@@ -13,17 +13,20 @@ lunarlander_dqn_default_config = dict(
         stop_value=200,
     ),
     reward_model=dict(
-    type='trex',
-    algo_for_model = 'dqn',
-    env_id='LunarLander-v2',
-    input_size=5,
-    hidden_size=64,
-    batch_size=64,
-    learning_rate=1e-5,
-    update_per_collect=1,
-    expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_dqn',
-    reward_model_path='./lunarlander.params',
-    offline_data_path='lunarlander_trex_dqn/suboptimal_data.pkl',
+        type='trex',
+        algo_for_model='dqn',
+        env_id='LunarLander-v2',
+        min_snippet_length=30,
+        max_snippet_length=100,
+        checkpoint_min=100,
+        checkpoint_max=900,
+        checkpoint_step=100,
+        learning_rate=1e-5,
+        update_per_collect=1,
+        expert_model_path=
+        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_dqn',
+        reward_model_path='./lunarlander.params',
+        offline_data_path='lunarlander_trex_dqn/suboptimal_data.pkl',
     ),
     policy=dict(
         # Whether to use cuda for network.
@@ -82,4 +85,3 @@ lunarlander_dqn_create_config = dict(
 )
 lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)
 create_config = lunarlander_dqn_create_config
-

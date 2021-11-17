@@ -3,23 +3,27 @@ from easydict import EasyDict
 cartpole_ppo_offpolicy_config = dict(
     exp_name='cartpole_trex_offppo',
     env=dict(
+        manager=dict(shared_memory=True, force_reproducibility=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=195,
     ),
     reward_model=dict(
-    type='trex',
-    algo_for_model = 'ppo',
-    env_id='CartPole-v0',
-    input_size=5,
-    hidden_size=64,
-    batch_size=64,
-    learning_rate=1e-5,
-    update_per_collect=1,
-    expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/classic_control/cartpole/config/cartpole_ppo_offpolicy',
-    reward_model_path='./cartpole.params',
-    offline_data_path='cartpole_trex_offppo/suboptimal_data.pkl',
+        type='trex',
+        algo_for_model='ppo',
+        env_id='CartPole-v0',
+        min_snippet_length=10,
+        max_snippet_length=100,
+        checkpoint_min=0,
+        checkpoint_max=1000,
+        checkpoint_step=1000,
+        learning_rate=1e-5,
+        update_per_collect=1,
+        expert_model_path=
+        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/classic_control/cartpole/config/cartpole_ppo_offpolicy',
+        reward_model_path='./cartpole.params',
+        offline_data_path='cartpole_trex_offppo/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=False,
@@ -55,7 +59,7 @@ cartpole_ppo_offpolicy_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
 cartpole_ppo_offpolicy_create_config = EasyDict(cartpole_ppo_offpolicy_create_config)

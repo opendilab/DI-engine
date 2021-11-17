@@ -13,17 +13,20 @@ pong_ppo_config = dict(
         manager=dict(shared_memory=False, )
     ),
     reward_model=dict(
-    type='trex',
-    algo_for_model = 'ppo',
-    env_id='PongNoFrameskip-v4',
-    input_size=5,
-    hidden_size=64,
-    batch_size=64,
-    learning_rate=1e-5,
-    update_per_collect=1,
-    expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/pong/ppo_offpolicy_pong',
-    reward_model_path='./pong.params',
-    offline_data_path='pong_trex_offppo/suboptimal_data.pkl',
+        type='trex',
+        algo_for_model='ppo',
+        env_id='PongNoFrameskip-v4',
+        min_snippet_length=50,
+        max_snippet_length=100,
+        checkpoint_min=0,
+        checkpoint_max=100,
+        checkpoint_step=100,
+        learning_rate=1e-5,
+        update_per_collect=1,
+        expert_model_path=
+        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/pong/ppo_offpolicy_pong',
+        reward_model_path='./pong.params',
+        offline_data_path='pong_trex_offppo/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=True,
@@ -74,4 +77,3 @@ pong_ppo_create_config = dict(
     policy=dict(type='ppo_offpolicy'),
 )
 create_config = EasyDict(pong_ppo_create_config)
-

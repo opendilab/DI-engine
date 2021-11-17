@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 halfcheetah_sac_default_config = dict(
-    exp_name = 'halfcheetah_trex_sac',
+    exp_name='halfcheetah_trex_sac',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
         env_id='HalfCheetah-v3',
@@ -14,15 +14,20 @@ halfcheetah_sac_default_config = dict(
         stop_value=12000,
     ),
     reward_model=dict(
-    type='trex',
-    algo_for_model = 'sac',
-    env_id='HalfCheetah-v3',
-    learning_rate=1e-5,
-    update_per_collect=1,
-    expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/mujoco/config/halfcheetah_sac',
-    reward_model_path='./halfcheetah.params',
-    continuous = True,
-    offline_data_path='halfcheetah_trex_sac/suboptimal_data.pkl',
+        type='trex',
+        algo_for_model='sac',
+        env_id='HalfCheetah-v3',
+        learning_rate=1e-5,
+        min_snippet_length=30,
+        max_snippet_length=100,
+        checkpoint_min=1000,
+        checkpoint_max=9000,
+        checkpoint_step=1000,
+        update_per_collect=1,
+        expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/mujoco/config/halfcheetah_sac',
+        reward_model_path='./halfcheetah.params',
+        continuous=True,
+        offline_data_path='halfcheetah_trex_sac/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=True,

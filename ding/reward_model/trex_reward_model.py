@@ -41,30 +41,33 @@ class ConvEncoder(nn.Module):
         self.conv4 = nn.Conv2d(16, 16, 3, stride=1)
         self.fc1 = nn.Linear(784, 64)
         self.fc2 = nn.Linear(64, 1)
+        self.act = nn.LeakyReLU()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x.permute(0, 3, 1, 2)  # get into NCHW format
         # compute forward pass of reward network (we parallelize across frames so
         # batch size is length of partial trajectory)
-        x = F.leaky_relu(self.conv1(x))
-        x = F.leaky_relu(self.conv2(x))
-        x = F.leaky_relu(self.conv3(x))
-        x = F.leaky_relu(self.conv4(x))
+        x = self.act(self.conv1(x))
+        x = self.act(self.conv2(x))
+        x = self.act(self.conv3(x))
+        x = self.act(self.conv4(x))
         x = x.reshape(-1, 784)
-        x = F.leaky_relu(self.fc1(x))
+        x = self.act(self.fc1(x))
         r = self.fc2(x)
         return r
 
 
-class TREX_Model(nn.Module):
+class TrexModel(nn.Module):
 
     def __init__(self, obs_shape):
-        super(TREX_Model, self).__init__()
+        super(TrexModel, self).__init__()
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             self.encoder = FCEncoder(obs_shape, [512, 64])
         # Conv Encoder
         elif len(obs_shape) == 3:
             self.encoder = ConvEncoder()
+        else:
+            print("The Trex reward model does not support this encoder currently")
 
     def cum_return(self, traj):
         '''calculate cumulative return of trajectory'''
@@ -114,7 +117,7 @@ class TrexRewardModel(BaseRewardModel):
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = TREX_Model(self.cfg.policy.model.get('obs_shape'))
+        self.reward_model = TrexModel(self.cfg.policy.model.get('obs_shape'))
         self.reward_model.to(self.device)
         self.pre_expert_data = []
         self.train_data = []
@@ -127,8 +130,8 @@ class TrexRewardModel(BaseRewardModel):
         self.training_labels = []
         self.num_trajs = 0  # number of downsampled full trajectories
         self.num_snippets = 6000  # number of short subtrajectories to sample
-        self.min_snippet_length = 50  # minimum number of short subtrajectories to sample
-        self.max_snippet_length = 100  # maximum number of short subtrajectories to sample
+        self.min_snippet_length = config.reward_model.min_snippet_length  # minimum number of short subtrajectories to sample
+        self.max_snippet_length = config.reward_model.max_snippet_length  # maximum number of short subtrajectories to sample
         self.l1_reg = 0
         self.data_for_save = {}
         self._logger, self._tb_logger = build_logger(
@@ -141,13 +144,13 @@ class TrexRewardModel(BaseRewardModel):
             env = wrap_deepmind(self.cfg.env.env_id)
         else:
             env = gym.make(self.cfg.reward_model.env_id)
-        checkpoint_min = 150000
-        checkpoint_max = 260000
-        checkpoint_step = 10000
+        checkpoint_min = self.cfg.reward_model.checkpoint_min
+        checkpoint_max = self.cfg.reward_model.checkpoint_max
+        checkpoint_step = self.cfg.reward_model.checkpoint_step
         checkpoints = []
         for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
             checkpoints.append(str(i))
-        print(checkpoints)
+        self._logger.info(checkpoints)
         for checkpoint in checkpoints:
 
             model_path = self.cfg.reward_model.expert_model_path + \
@@ -201,10 +204,10 @@ class TrexRewardModel(BaseRewardModel):
                         steps += 1
                         acc_reward += r
                         if done:
-                            print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
+                            self._logger.info("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
                             break
-                    print("traj length", len(traj))
-                    print("demo length", len(self.pre_expert_data))
+                    self._logger.info("traj length: {}".format(len(traj)))
+                    self._logger.info("demo length: {}".format(len(self.pre_expert_data)))
                     self.pre_expert_data.append(traj)
                     self.learning_returns.append(acc_reward)
                     self.learning_rewards.append(gt_rewards)
@@ -275,10 +278,10 @@ class TrexRewardModel(BaseRewardModel):
                         steps += 1
                         acc_reward += r
                         if done:
-                            print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
+                            self._logger.info("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
                             break
-                    print("traj length", len(traj))
-                    print("demo length", len(self.pre_expert_data))
+                    self._logger.info("traj length: {}".format(len(traj)))
+                    self._logger.info("demo length: {}".format(len(self.pre_expert_data)))
                     self.pre_expert_data.append(traj)
                     self.learning_returns.append(acc_reward)
                     self.learning_rewards.append(gt_rewards)
@@ -292,13 +295,13 @@ class TrexRewardModel(BaseRewardModel):
             norm_reward=self.cfg.env.get('norm_reward', None),
             only_info=False
         )
-        checkpoint_min = 1000
-        checkpoint_max = 9000
-        checkpoint_step = 1000
+        checkpoint_min = self.cfg.reward_model.checkpoint_min
+        checkpoint_max = self.cfg.reward_model.checkpoint_max
+        checkpoint_step = self.cfg.reward_model.checkpoint_step
         checkpoints = []
         for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
             checkpoints.append(str(i))
-        print(checkpoints)
+        self._logger.info(checkpoints)
         for checkpoint in checkpoints:
 
             model_path = self.cfg.reward_model.expert_model_path + \
@@ -355,10 +358,10 @@ class TrexRewardModel(BaseRewardModel):
                     steps += 1
                     acc_reward += r
                     if done:
-                        print("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
+                        self._logger.info("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
                         break
-                print("traj length", len(traj))
-                print("demo length", len(self.pre_expert_data))
+                self._logger.info("traj length: {}".format(len(traj)))
+                self._logger.info("demo length: {}".format(len(self.pre_expert_data)))
                 self.pre_expert_data.append(traj)
                 self.learning_returns.append(acc_reward)
                 self.learning_rewards.append(gt_rewards)
@@ -385,8 +388,8 @@ class TrexRewardModel(BaseRewardModel):
             data_type=self.cfg.policy.collect.get('data_type', 'naive')
         )
         self.training_obs, self.training_labels = self.create_training_data()
-        print("num_training_obs", len(self.training_obs))
-        print("num_labels", len(self.training_labels))
+        self._logger.info("num_training_obs: {}".format(len(self.training_obs)))
+        self._logger.info("num_labels: {}".format(len(self.training_labels)))
 
     def create_training_data(self):
         demonstrations = self.pre_expert_data
@@ -396,16 +399,17 @@ class TrexRewardModel(BaseRewardModel):
         max_snippet_length = self.max_snippet_length
 
         demo_lengths = [len(d) for d in demonstrations]
-        print("demo_lengths", demo_lengths)
+        self._logger.info("demo_lengths: {}".format(demo_lengths))
         max_snippet_length = min(np.min(demo_lengths), max_snippet_length)
-        print("max snippet length", max_snippet_length)
+        self._logger.info("min snippet length: {}".format(min_snippet_length))
+        self._logger.info("max snippet length: {}".format(max_snippet_length))
 
-        print(len(self.learning_returns))
-        print(len(demonstrations))
-        print([a[0] for a in zip(self.learning_returns, demonstrations)])
+        self._logger.info(len(self.learning_returns))
+        self._logger.info(len(demonstrations))
+        self._logger.info("learning returns: {}".format([a[0] for a in zip(self.learning_returns, demonstrations)]))
         demonstrations = [x for _, x in sorted(zip(self.learning_returns, demonstrations), key=lambda pair: pair[0])]
         sorted_returns = sorted(self.learning_returns)
-        print(sorted_returns)
+        self._logger.info("sorted learning returns: {}".format(sorted_returns))
 
         #collect training data
         max_traj_length = 0
@@ -428,10 +432,7 @@ class TrexRewardModel(BaseRewardModel):
             traj_i = demonstrations[ti][si::step]  # slice(start,stop,step)
             traj_j = demonstrations[tj][sj::step]
 
-            if ti > tj:
-                label = 0
-            else:
-                label = 1
+            label = int(ti <= tj)
 
             self.training_obs.append((traj_i, traj_j))
             self.training_labels.append(label)
@@ -463,21 +464,18 @@ class TrexRewardModel(BaseRewardModel):
             traj_j = demonstrations[tj][tj_start:tj_start + rand_length:2]
 
             max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
-            if ti > tj:
-                label = 0
-            else:
-                label = 1
+            label = int(ti <= tj)
             self.training_obs.append((traj_i, traj_j))
             self.training_labels.append(label)
 
-        print("maximum traj length", max_traj_length)
+        self._logger.info(("maximum traj length: {}".format(max_traj_length)))
         return self.training_obs, self.training_labels
 
     def train(self):
         #check if gpu available
         device = self.device  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # Assume that we are on a CUDA machine, then this should print a CUDA device:
-        print(device)
+        self._logger.info("device: {}".format(device))
         training_inputs, training_outputs = self.training_obs, self.training_labels
         loss_criterion = nn.CrossEntropyLoss()
 
@@ -510,29 +508,25 @@ class TrexRewardModel(BaseRewardModel):
                 cum_loss += item_loss
                 if i % 100 == 99:
                     #print(i)
-                    print("epoch {}:{} loss {}".format(epoch, i, cum_loss))
-                    print(abs_rewards)
+                    self._logger.info("epoch {}:{} loss {}".format(epoch, i, cum_loss))
+                    self._logger.info("abs_returns: {}".format(abs_rewards))
                     cum_loss = 0.0
-                    print("check pointing")
+                    self._logger.info("check pointing")
                     torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
         torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
-        print("finished training")
+        self._logger.info("finished training")
         # print out predicted cumulative returns and actual returns
         sorted_returns = sorted(self.learning_returns)
         with torch.no_grad():
             pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in self.pre_expert_data]
-        comparisons = []
         for i, p in enumerate(pred_returns):
-            print(i, p, sorted_returns[i])
-            comparisons.append([i, p, sorted_returns[i]])
-        print("accuracy", self.calc_accuracy(self.reward_model, self.training_obs, self.training_labels))
+            self._logger.info("{} {} {}".format(i, p, sorted_returns[i]))
         info = {
-            "demo_length": [len(d) for d in self.pre_expert_data],
-            "min_snippet_length": self.min_snippet_length,
-            "max_snippet_length": min(np.min([len(d) for d in self.pre_expert_data]), self.max_snippet_length),
-            "len_num_training_obs": len(self.training_obs),
-            "lem_num_labels": len(self.training_labels),
-            "comparison": comparisons,
+            #"demo_length": [len(d) for d in self.pre_expert_data],
+            #"min_snippet_length": self.min_snippet_length,
+            #"max_snippet_length": min(np.min([len(d) for d in self.pre_expert_data]), self.max_snippet_length),
+            #"len_num_training_obs": len(self.training_obs),
+            #"lem_num_labels": len(self.training_labels),
             "accuracy": self.calc_accuracy(self.reward_model, self.training_obs, self.training_labels),
         }
         self._logger.info(

@@ -13,17 +13,20 @@ space_invaders_dqn_config = dict(
         manager=dict(shared_memory=False, )
     ),
     reward_model=dict(
-    type='trex',
-    algo_for_model = 'dqn',
-    env_id='SpaceInvadersNoFrameskip-v4',
-    input_size=5,
-    hidden_size=64,
-    batch_size=64,
-    learning_rate=1e-5,
-    update_per_collect=1,
-    expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/spaceinvaders/space_invaders_dqn',
-    reward_model_path='./spaceinvaders.params',
-    offline_data_path='space_invaders_trex_dqn/suboptimal_data.pkl',
+        type='trex',
+        algo_for_model='dqn',
+        env_id='SpaceInvadersNoFrameskip-v4',
+        min_snippet_length=30,
+        max_snippet_length=100,
+        checkpoint_min=0,
+        checkpoint_max=100,
+        checkpoint_step=100,
+        learning_rate=1e-5,
+        update_per_collect=1,
+        expert_model_path=
+        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/spaceinvaders/space_invaders_dqn',
+        reward_model_path='./spaceinvaders.params',
+        offline_data_path='space_invaders_trex_dqn/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=True,
@@ -66,4 +69,3 @@ space_invaders_dqn_create_config = dict(
 )
 space_invaders_dqn_create_config = EasyDict(space_invaders_dqn_create_config)
 create_config = space_invaders_dqn_create_config
-

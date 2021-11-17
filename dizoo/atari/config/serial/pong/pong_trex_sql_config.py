@@ -13,17 +13,20 @@ pong_sql_config = dict(
         manager=dict(shared_memory=False, )
     ),
     reward_model=dict(
-    type='trex',
-    algo_for_model = 'sql',
-    env_id='PongNoFrameskip-v4',
-    input_size=5,
-    hidden_size=64,
-    batch_size=64,
-    learning_rate=1e-5,
-    update_per_collect=1,
-    expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/pong/pong_sql',
-    reward_model_path='./pong.params',
-    offline_data_path='pong_trex_sql/suboptimal_data.pkl',
+        type='trex',
+        algo_for_model='sql',
+        env_id='PongNoFrameskip-v4',
+        min_snippet_length=50,
+        max_snippet_length=100,
+        checkpoint_min=10000,
+        checkpoint_max=50000,
+        checkpoint_step=10000,
+        learning_rate=1e-5,
+        update_per_collect=1,
+        expert_model_path=
+        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/pong/pong_sql',
+        reward_model_path='./pong.params',
+        offline_data_path='pong_trex_sql/suboptimal_data.pkl',
     ),
     policy=dict(
         cuda=False,
@@ -36,7 +39,7 @@ pong_sql_config = dict(
         nstep=1,
         discount_factor=0.99,
         learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.12),
-        collect=dict(n_sample=96,),
+        collect=dict(n_sample=96, ),
         other=dict(
             eps=dict(
                 type='exp',
@@ -60,4 +63,3 @@ pong_sql_create_config = dict(
 )
 pong_sql_create_config = EasyDict(pong_sql_create_config)
 create_config = pong_sql_create_config
-
