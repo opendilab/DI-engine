@@ -1,13 +1,10 @@
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, Generator, List, Optional, Union
 
-import pynng
-from ding.framework import Context
-from mpire import WorkerPool
+from ding.framework.context import Context
+from ding.framework.parallel import Parallel
 import asyncio
 import concurrent.futures
-import random
-import time
 
 
 def enable_async(func: Callable) -> Callable:
@@ -160,6 +157,7 @@ class Task:
         self.sync()
         self.backward()
         self.sync()
+        # Renew context
         old_ctx = self.ctx
         new_ctx = old_ctx.renew()
         new_ctx.total_step = old_ctx.total_step + 1
@@ -178,26 +176,8 @@ class Task:
             t = self._async_stack.pop(0)
             await t
 
-    def parallel(self, main_process: Callable, n_workers: int):
-        node_name = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=4))
-        nodes = ["ipc:///tmp/ditask_{}_{}.ipc".format(node_name, i) for i in range(n_workers)]
-
-        async def _parallel_async(i):
-            # listen_address = nodes.pop(i)
-            # with pynng.Bus0() as sock:
-            #     sock.listen(listen_address)
-            #     for contact in nodes:
-            #         sock.dial(contact)
-            task = Task(async_mode=self.async_mode, n_async_workers=self.n_async_workers)
-            print(nodes)
-            main_process(task)
-
-        def _parallel(i):
-            asyncio.run(_parallel_async(i))
-
-        with WorkerPool(n_jobs=n_workers) as pool:
-            results = pool.map(_parallel, range(n_workers))
-        return results
+    def parallel(self, main_process: Callable, n_workers: int, attach_to: List[str] = None):
+        Parallel(n_workers).run(main_process, attach_to=attach_to)
 
     @property
     def finish(self) -> bool:
