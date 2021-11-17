@@ -145,7 +145,7 @@ class DDPGPolicy(Policy):
         other=dict(
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer.
-                replay_buffer_size=1000000,
+                replay_buffer_size=100000,
             ),
         ),
     )
@@ -309,12 +309,14 @@ class DDPGPolicy(Policy):
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer_actor': self._optimizer_actor.state_dict(),
             'optimizer_critic': self._optimizer_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
 

@@ -313,8 +313,8 @@ class MujocoEnv(BaseEnv):
             info.rew_space.shape = rew_shape
             return info
         else:
-            raise NotImplementedError('{} not found in MUJOCO_INFO_DICT [{}]'\
-                .format(self._cfg.env_id, MUJOCO_INFO_DICT.keys()))
+            keys = MUJOCO_INFO_DICT.keys()
+            raise NotImplementedError('{} not found in MUJOCO_INFO_DICT [{}]'.format(self._cfg.env_id, keys))
 
     def _make_env(self, only_info=False):
         return wrap_mujoco(
