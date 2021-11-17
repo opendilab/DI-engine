@@ -22,7 +22,7 @@ y0 = rollout_length_min
 y1 = rollout_length_max
 w = (rollout_length_max - rollout_length_min) / (rollout_end_step - rollout_start_step)
 b = rollout_length_min
-set_rollout_length = lambda x: int( min( max( w * (x - x0) + b, y0 ), y1 ) )
+set_rollout_length = lambda x: int(min(max(w * (x - x0) + b, y0), y1))
 set_buffer_size = lambda x: set_rollout_length(x) * rollout_batch_size * rollout_retain
 
 main_config = dict(

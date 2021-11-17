@@ -73,7 +73,6 @@ class ACERPolicy(Policy):
             discount_factor=0.9,
             # (float) additional discounting parameter
             lambda_=0.95,
-            load_path=None,
             # (int) the trajectory length to calculate v-trace target
             unroll_len=unroll_len,
             # (float) clip ratio of importance weights
@@ -147,9 +146,6 @@ class ACERPolicy(Policy):
         # Main model
         self._learn_model.reset()
         self._target_model.reset()
-        if self._cfg.learn.load_path is not None:
-            state_dict = torch.load(self._cfg.learn.load_path)
-            self._load_state_dict_learn(state_dict)
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
         """
