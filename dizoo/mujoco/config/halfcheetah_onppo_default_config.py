@@ -13,14 +13,16 @@ halfcheetah_ppo_default_config = dict(
         evaluator_env_num=evaluator_env_num,
         use_act_scale=True,
         n_evaluator_episode=10,
+        # n_evaluator_episode=1,
         stop_value=12000,
     ),
     policy=dict(
         cuda=True,
         recompute_adv=True,
-        continuous=False,
+        continuous=True,
         on_policy=True,
         model=dict(
+            continuous=True,
             obs_shape=17,
             action_shape=6,
         ),

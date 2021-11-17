@@ -39,7 +39,7 @@ def list_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
     timesteps = 0
     for i in range(len(data)):
         timesteps += 1
-        if data[i]['done'] is True:
+        if data['done'][i]: # data['done'][i]: torch.tensor(1.) or True
             # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
             traj_data = compute_adv(data[start_index:i + 1], torch.zeros(1)[0], cfg)
             processed_data.extend(traj_data)
@@ -73,13 +73,15 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
     for i in range(data['reward'].shape[0]):
         timesteps += 1
         traj_data = []
-        if data['done'][i] is True:
+        if data['done'][i]: # data['done'][i]: torch.tensor(1.) or True
             for k in range(start_index, i + 1):
-                # traj_data.append( {'value':data['value'][k] ,'reward':data['value'][k] ,'adv':data['adv'][k] } )
-                traj_data.append({key: data[key][k] for key in data.keys()})
+                # transform to shape like this: traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
+                # if discrete action: traj_data.append({key: data[key][k] for key in data.keys()})
+                # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
+                traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
 
             # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
-            traj_data = compute_adv(traj_data, torch.zeros(1)[0], cfg)
+            traj_data = compute_adv(traj_data, torch.zeros(1)[0].to(data['obs'][0].device), cfg)
             processed_data.extend(traj_data)
             start_index = i + 1
             timesteps = 0
@@ -89,7 +91,11 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
                 # for example, if i = 63, traj_data take the timestep [k=0,...,k=62], last value: next_value[62]
                 # throw away timestep t=63, because we don't kown the value of timestep 64
                 # owing to self._traj_len=64
-                traj_data.append({key: data[key][k] for key in data.keys()})
+
+                # if discrete action: traj_data.append({key: data[key][k] for key in data.keys()})
+                # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
+                traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
+
             traj_data = compute_adv(traj_data, next_value[i - 1], cfg)
 
             #####
@@ -105,8 +111,10 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
             continue
     remaining_traj_data = []  # because of the limit of max_sample
     for k in range(start_index, i + 1):
-        remaining_traj_data.append({key: data[key][k] for key in data.keys()})
-        # remaining_traj_data.append( {'value':data['value'][k] ,'reward':data['value'][k] ,'adv':data['adv'][k] } )
+        # transform to shape like this: remaining_traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
+        # if discrete action: remaining_traj_data.append({key: data[key][k] for key in data.keys()})
+        # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
+        remaining_traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
     return processed_data + remaining_traj_data  # add the remaining data, return shape list of dict
 
 

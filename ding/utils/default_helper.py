@@ -425,7 +425,7 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
         else:
             length.append(len(v))
     assert len(length) > 0
-    assert len(set(length)) == 1, "data values must have the same length: {}".format(length)
+    # assert len(set(length)) == 1, "data values must have the same length: {}".format(length) # if continuous action, data['logit'] is list of length 2
     length = length[0]
     assert split_size >= 1 and split_size <= length
     if shuffle:
@@ -441,8 +441,11 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
                 batch[k] = None
             elif k.startswith('prev_state'):
                 batch[k] = [data[k][t] for t in indices[i:i + split_size]]
-            elif isinstance(data[k], list) or isinstance(data[k], tuple):
-                batch[k] = [t[indices[i:i + split_size]] for t in data[k]]
+            # elif isinstance(data[k], list) or isinstance(data[k], tuple):
+            #     batch[k] = [t[indices[i:i + split_size]] for t in data[k]]
+            elif k=='logit': # for continuous action
+                batch[k] = [torch.stack([data[k][transition_index][mu_sigma_index] for transition_index in indices[i:i + split_size]]) for mu_sigma_index in range(2)]
+                # transform to mu_sigma (:obj:`list`): :math:`[(B, N), (B, N)]`, where B is batch size and N is action dim
             elif isinstance(data[k], dict):
                 batch[k] = {k1: v1[indices[i:i + split_size]] for k1, v1 in data[k].items()}
             else:

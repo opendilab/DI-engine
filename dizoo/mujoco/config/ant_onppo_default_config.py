@@ -18,9 +18,10 @@ ant_ppo_default_config = dict(
     policy=dict(
         cuda=True,
         recompute_adv=True,
-        continuous=False,
+        continuous=True,
         on_policy=True,
         model=dict(
+            continuous=True,
             obs_shape=111,
             action_shape=8,
         ),
