@@ -160,15 +160,19 @@ class Task:
         self.sync()
         self.backward()
         self.sync()
-        self.ctx = self.ctx.renew()
+        old_ctx = self.ctx
+        new_ctx = old_ctx.renew()
+        new_ctx.total_step = old_ctx.total_step + 1
+        new_ctx.prev = self._inherit_ctx(old_ctx, old_ctx.prev) if old_ctx.get("prev") else old_ctx
+        self.ctx = new_ctx
         return self
 
     def sync(self) -> 'Task':
         if self._loop:
-            self._loop.run_until_complete(self.async_renew())
+            self._loop.run_until_complete(self.sync_tasks())
         return self
 
-    async def async_renew(self) -> Awaitable[None]:
+    async def sync_tasks(self) -> Awaitable[None]:
         while self._async_stack:
             # FIFO
             t = self._async_stack.pop(0)
@@ -202,3 +206,20 @@ class Task:
             Link the ctx's finish state, in order to be easily called externally.
         """
         return self.ctx._finish
+
+    def _inherit_ctx(self, new_: Context, old: Context) -> Context:
+        """
+        Overview:
+            Overwrite old context with new properies, If the key does not exist in the new context,
+            the attributes in old are retained.
+        Arguments:
+            - new_ (:obj:`Context`): New context.
+            - old (:obj:`Context`): Old context.
+        Returns:
+            - child (:obj:`Context`): The heir.
+        """
+        for key, value in new_.items():
+            old[key] = value
+        if "prev" in old:
+            del old["prev"]
+        return old

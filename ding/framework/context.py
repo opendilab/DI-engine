@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 
 class Context(dict):
@@ -9,10 +9,11 @@ class Context(dict):
         any properties as you wish.
     """
 
-    def __init__(self, total_step: int = 0, *args, **kwargs) -> None:
+    def __init__(self, total_step: int = 0, prev: Optional["Context"] = None, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.__dict__ = self
         self.total_step = total_step  # Total steps
+        self.prev = prev
 
         # Reserved properties
         self._finish = False
@@ -24,7 +25,7 @@ class Context(dict):
         Overview:
             Renew context from self, add total_step and shift kept properties to the new instance.
         """
-        ctx = Context(total_step=self.total_step + 1)
+        ctx = Context()
         for hook in self._hooks_after_renew:
             hook(ctx, self)
         return ctx

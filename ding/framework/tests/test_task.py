@@ -22,9 +22,19 @@ def test_serial_pipeline():
 
     # Renew and execute step1, step2
     task.renew()
+    assert task.ctx.total_step == 1
+    assert task.ctx.prev.total_step == 0
     task.forward(step0)
     task.forward(step1)
     assert task.ctx.pipeline == [0, 1]
+
+    # Test context inheritance
+    task.ctx.prev.old_prop = "old_prop"  # This prop should be kept to new_ctx.prev
+    task.ctx.new_prop = "new_prop"  # The prop should also be kept to new_ctx.prev
+    task.renew()
+    assert task.ctx.prev.old_prop == "old_prop"
+    assert task.ctx.prev.new_prop == "new_prop"
+    assert "prev" not in task.ctx.prev
 
 
 @pytest.mark.unittest
@@ -66,6 +76,8 @@ def test_async_pipeline():
         time.sleep(0.1)
     task.backward()
     assert task.ctx.pipeline == [0, 1, 0, 1]
+    task.renew()
+    assert task.ctx.total_step == 1
 
 
 @pytest.mark.unittest
