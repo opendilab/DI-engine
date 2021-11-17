@@ -1,8 +1,10 @@
+import logging
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, Generator, List, Optional, Union
 
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
+import time
 import asyncio
 import concurrent.futures
 
@@ -47,7 +49,13 @@ class Task:
     and generate new context objects.
     """
 
-    def __init__(self, async_mode: bool = False, n_async_workers: Optional[int] = None) -> None:
+    def __init__(
+            self,
+            async_mode: bool = False,
+            n_async_workers: Optional[int] = None,
+            parallel_mode: bool = False,
+            router: Optional['Parallel'] = None
+    ) -> None:
         self.middleware = []
         self.ctx = Context()
         self._backward_stack = []
@@ -61,6 +69,10 @@ class Task:
         if async_mode:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             self._loop = asyncio.new_event_loop()
+
+        # Parallel segment
+        self.parallel_mode = parallel_mode
+        self._router = router
 
     def use(self, fn: Callable) -> 'Task':
         """
@@ -159,6 +171,11 @@ class Task:
         self.sync()
         # Renew context
         old_ctx = self.ctx
+        if self.parallel_mode and self._router:
+            # Sync context to other parallel processes
+            # The maximum number of iterations is estimated from the total number of all processes
+            self._router.send_rpc("sync_ctx", old_ctx)
+
         new_ctx = old_ctx.renew()
         new_ctx.total_step = old_ctx.total_step + 1
         new_ctx.prev = self._inherit_ctx(old_ctx, old_ctx.prev) if old_ctx.get("prev") else old_ctx
@@ -177,7 +194,35 @@ class Task:
             await t
 
     def parallel(self, main_process: Callable, n_workers: int, attach_to: List[str] = None):
-        Parallel(n_workers).run(main_process, attach_to=attach_to)
+
+        router = Parallel(n_workers)
+
+        def _parallel():
+            task = Task(
+                async_mode=self.async_mode, n_async_workers=self.n_async_workers, parallel_mode=True, router=router
+            )
+            router.register_rpc("sync_ctx", task.sync_ctx)
+            n_timeout = 10
+            if len(attach_to) > 0:
+                logging.warning(
+                    "The attach mode will wait for the latest context, \
+or wait for a timeout of {} seconds before starting execution".format(n_timeout)
+                )
+                for _ in range(n_timeout):
+                    if task.ctx.get("prev"):
+                        task.ctx = task.ctx.prev
+                        break
+                    time.sleep(1)
+            main_process(task)
+
+        router.run(_parallel, attach_to=attach_to)
+
+    def sync_ctx(self, ctx: Context):
+        self.ctx.total_step = max(ctx.total_step + 1, self.ctx.total_step + 1)
+        if self.ctx.get("prev") and self.ctx.prev.total_step > ctx.total_step:
+            self.ctx.prev = self._inherit_ctx(self.ctx.prev, ctx)
+        else:
+            self.ctx.prev = self._inherit_ctx(ctx, self.ctx.get("prev") or Context())
 
     @property
     def finish(self) -> bool:

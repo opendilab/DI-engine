@@ -75,8 +75,8 @@ class DequeBuffer(Buffer):
         if value_error or len(sampled_data) != size:
             if ignore_insufficient:
                 logging.warning(
-                    "Sample operation is ignored due to data insufficient, current buffer is {} while sample is {}"
-                    .format(self.count(), size)
+                    "Sample operation is ignored due to data insufficient, current buffer is {} while sample is {}".
+                    format(self.count(), size)
                 )
             else:
                 raise ValueError("There are less than {} data in buffer({})".format(size, self.count()))
