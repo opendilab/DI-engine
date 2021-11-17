@@ -130,8 +130,10 @@ class TrexRewardModel(BaseRewardModel):
         self.training_labels = []
         self.num_trajs = 0  # number of downsampled full trajectories
         self.num_snippets = 6000  # number of short subtrajectories to sample
-        self.min_snippet_length = config.reward_model.min_snippet_length  # minimum number of short subtrajectories to sample
-        self.max_snippet_length = config.reward_model.max_snippet_length  # maximum number of short subtrajectories to sample
+        # minimum number of short subtrajectories to sample
+        self.min_snippet_length = config.reward_model.min_snippet_length
+        # maximum number of short subtrajectories to sample
+        self.max_snippet_length = config.reward_model.max_snippet_length
         self.l1_reg = 0
         self.data_for_save = {}
         self._logger, self._tb_logger = build_logger(
@@ -204,7 +206,9 @@ class TrexRewardModel(BaseRewardModel):
                         steps += 1
                         acc_reward += r
                         if done:
-                            self._logger.info("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
+                            self._logger.info(
+                                "checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward)
+                            )
                             break
                     self._logger.info("traj length: {}".format(len(traj)))
                     self._logger.info("demo length: {}".format(len(self.pre_expert_data)))
@@ -278,7 +282,9 @@ class TrexRewardModel(BaseRewardModel):
                         steps += 1
                         acc_reward += r
                         if done:
-                            self._logger.info("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
+                            self._logger.info(
+                                "checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward)
+                            )
                             break
                     self._logger.info("traj length: {}".format(len(traj)))
                     self._logger.info("demo length: {}".format(len(self.pre_expert_data)))
