@@ -6,6 +6,7 @@ import math
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+from .nn_module import Flatten
 
 
 def to_2tuple(item):
@@ -94,7 +95,7 @@ class ClassifierHead(nn.Module):
         self.drop_rate = drop_rate
         self.global_pool, num_pooled_features = _create_pool(in_chs, num_classes, pool_type, use_conv=use_conv)
         self.fc = _create_fc(num_pooled_features, num_classes, use_conv=use_conv)
-        self.flatten = nn.Flatten(1) if use_conv and pool_type else nn.Identity()
+        self.flatten = Flatten(1) if use_conv and pool_type else nn.Identity()
 
     def forward(self, x):
         x = self.global_pool(x)
