@@ -282,8 +282,8 @@ def main_eager(cfg, create_cfg, seed=0):
             task.forward(learn_profiler(learn))
             task.renew()
 
-    # task.parallel(_execute_task, n_workers=2)
-    _execute_task(task)
+    task.parallel(_execute_task, n_workers=2)
+    # _execute_task(task)
 
 
 if __name__ == "__main__":

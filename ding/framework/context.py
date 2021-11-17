@@ -59,3 +59,18 @@ class Context(dict):
             - finish (:obj:`bool`): Finish or not
         """
         self._finish = finish
+
+    # Make it pickable
+    def __getstate__(self):
+        _ctx = {}
+        for key, value in self.items():
+            if key in ["_hooks_after_renew"]:
+                continue
+            _ctx[key] = value
+        return {'a': 'b'}
+
+    def __reduce__(self):
+        return (self.__class__, (self.__getstate__(), ))
+
+    def __setstate__(self, d):
+        self.__dict__ = d
