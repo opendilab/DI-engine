@@ -318,6 +318,9 @@ class R2D3Policy(Policy):
         # T, B, nstep -> T, nstep, B
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
+        loss_nstep = []
+        loss_1step = []
+        loss_sl = []
         td_error = []
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
@@ -337,7 +340,7 @@ class R2D3Policy(Policy):
             )
 
             if self._value_rescale:
-                l, e = dqfd_nstep_td_error_with_rescale(
+                l, e, loss_statistics = dqfd_nstep_td_error_with_rescale(
                     td_data,
                     self._gamma,
                     self.lambda1,
@@ -350,6 +353,12 @@ class R2D3Policy(Policy):
                 )
                 loss.append(l)
                 td_error.append(e.abs())
+                # loss statistics for debugging
+                loss_nstep.append(loss_statistics[0])
+                loss_1step.append(loss_statistics[1])
+                loss_sl.append(loss_statistics[2])
+
+
 
             else:
                 l, e = dqfd_nstep_td_error(
@@ -367,6 +376,12 @@ class R2D3Policy(Policy):
                 td_error.append(e.abs())
 
         loss = sum(loss) / (len(loss) + 1e-8)
+        # loss statistics for debugging
+        loss_nstep = sum(loss_nstep) / (len(loss_nstep) + 1e-8)
+        loss_1step = sum(loss_1step) / (len(loss_1step) + 1e-8)
+        loss_sl = sum(loss_sl) / (len(loss_sl) + 1e-8)
+
+
 
         # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
         td_error_per_sample = 0.9 * torch.max(
@@ -390,11 +405,17 @@ class R2D3Policy(Policy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
+            # loss statistics for debugging
+            'nstep_loss': loss_nstep.item(),
+            '1step_loss': loss_1step.item(),
+            'sl_loss': loss_sl.item(),
+
             'priority': td_error_per_sample.abs().tolist(),
             # the first timestep in the sequence, may not be the start of episode
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),
+
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -541,5 +562,5 @@ class R2D3Policy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
-            'total_loss', 'priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
+            'total_loss', 'nstep_loss','1step_loss','sl_loss','priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
         ]
