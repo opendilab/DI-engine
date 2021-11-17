@@ -23,7 +23,6 @@ ant_ppo_default_config = dict(
         model=dict(
             obs_shape=111,
             action_shape=8,
-            continuous=True,
         ),
         learn=dict(
             epoch_per_collect=10,

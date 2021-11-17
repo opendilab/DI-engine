@@ -23,7 +23,6 @@ halfcheetah_ppo_default_config = dict(
         model=dict(
             obs_shape=17,
             action_shape=6,
-            continuous=True,
         ),
         learn=dict(
             epoch_per_collect=10,
