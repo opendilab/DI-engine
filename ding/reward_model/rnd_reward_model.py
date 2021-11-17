@@ -14,7 +14,7 @@ from ding.utils import RunningMeanStd
 from ding.torch_utils.data_helper import to_tensor
 
 
-def collect_states(iterator):  # get total_states
+def collect_states(iterator):
     res = []
     for item in iterator:
         state = item['obs']

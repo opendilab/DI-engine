@@ -114,7 +114,7 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
 class PPOPolicy(Policy):
     r"""
     Overview:
-        Policy class of  on policy version PPO algorithm.
+        Policy class of on policy version PPO algorithm.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -294,7 +294,7 @@ class PPOPolicy(Policy):
                     # 64*8 -> 63*8
                     processed_data = dict_data_split_traj_and_compute_adv(
                         data, next_value.to(self._device), self._cfg
-                    )  # TODO
+                    )
                     processed_data = lists_to_dicts(processed_data)
                     for k, v in processed_data.items():
                         if isinstance(v[0], torch.Tensor):

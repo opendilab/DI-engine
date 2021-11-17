@@ -4,7 +4,7 @@ collector_env_num = 8
 minigrid_ppo_config = dict(
     # exp_name="minigrid_empty8_onppo",
     # exp_name="minigrid_fourrooms_onppo",
-    exp_name="minigrid_doorkey88_onppo_seed2",
+    exp_name="minigrid_doorkey88_onppo",
     # exp_name="minigrid_doorkey_onppo",
 
     env=dict(
@@ -18,8 +18,8 @@ minigrid_ppo_config = dict(
         stop_value=0.96,
     ),
     policy=dict(
-        recompute_adv=True,
         cuda=True,
+        recompute_adv=True,
         continuous=False,
         on_policy=True,
         model=dict(
@@ -40,14 +40,7 @@ minigrid_ppo_config = dict(
         ),
         collect=dict(
             collector_env_num=collector_env_num,
-            # n_sample=int(64 * collector_env_num),
-            n_sample=int(3200), 
-
-            #  self._traj_len  = max(1,64*8//8)=64
-            #    self._traj_len = max(
-            #      self._unroll_len,
-            #     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
-            #  )
+            n_sample=int(3200),
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,
@@ -68,4 +61,4 @@ minigrid_ppo_create_config = EasyDict(minigrid_ppo_create_config)
 create_config = minigrid_ppo_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_onpolicy([main_config, create_config], seed=2)
+    serial_pipeline_onpolicy([main_config, create_config], seed=0)

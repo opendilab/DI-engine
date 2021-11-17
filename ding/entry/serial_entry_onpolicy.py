@@ -100,7 +100,7 @@ def serial_pipeline_onpolicy(
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
 
         # Learn policy from collected data
-        for i in range(cfg.policy.learn.update_per_collect):  # 1
+        for i in range(cfg.policy.learn.update_per_collect):  # update_per_collect=1, for onppo
             # Learner will train ``update_per_collect`` times in one iteration.
             train_data = new_data
             if train_data is None:
