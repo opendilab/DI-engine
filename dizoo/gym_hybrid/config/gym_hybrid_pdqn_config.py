@@ -2,7 +2,10 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 
 gym_hybrid_pdqn_config = dict(
-    exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc1e-3_upc10_auf100_seed0',
+    # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc1e-3_upc10_auf100_seed0',
+    # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc3e-4_upc100_uc10v2_seed0',
+    exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc3e-4_upc500_uc10v2_seed0',
+
     # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd1e-5_lrc1e-3_upc100_seed0',
 
     env=dict(
@@ -34,12 +37,14 @@ gym_hybrid_pdqn_config = dict(
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
-            update_per_collect=100,  # 10,
+            update_per_collect=200,#100,  # 10,
             batch_size=320,  # 32,
             learning_rate_dis=3e-4,#1e-5,#3e-4,  # alpha
-            learning_rate_cont=1e-3,  # beta
+            learning_rate_cont=3e-4,  # beta
             target_theta=0.001,#0.005,
-            actor_update_freq=10,
+            # cont_update_freq=10,
+            ## disc_update_freq=10,
+            update_circle=10,
         ),
         # collect_mode config
         collect=dict(
