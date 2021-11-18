@@ -8,8 +8,5 @@ from .red_irl_model import RedRewardModel
 from .her_reward_model import HerRewardModel
 # exploration
 from .rnd_reward_model import RndRewardModel
-<<<<<<< HEAD
-from .max_entropy_irl_model import MaxEntropyModel
-=======
+from .guided_cost_reward_model import GuidedCostModel
 from .ngu_reward_model import RndNGURewardModel, EpisodicNGURewardModel
->>>>>>> origin/main
