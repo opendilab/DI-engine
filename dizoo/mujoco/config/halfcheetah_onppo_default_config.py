@@ -1,12 +1,12 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline_onpolicy
 
-collector_env_num = 8
-evaluator_env_num = 8
+collector_env_num = 1
+evaluator_env_num = 1
 halfcheetah_ppo_default_config = dict(
-    # exp_name="halfcheetah_onppo_ig",
-    exp_name="halfcheetah_onppo_ig_epc100",
-    # exp_name="halfcheetah_onppo_noig",
+    # exp_name="result_mujoco/halfcheetah_onppo_noig",
+    exp_name="result_mujoco/halfcheetah_onppo_ig_fix",
+    # exp_name="debug/debug_halfcheetah_onppo_ig_fix",
 
     env=dict(
         env_id='HalfCheetah-v3',
@@ -30,16 +30,18 @@ halfcheetah_ppo_default_config = dict(
             action_shape=6,
         ),
         learn=dict(
-            epoch_per_collect=100,#10,
+            epoch_per_collect=10,#10,
             update_per_collect=1,
             batch_size=64,#320,
             learning_rate=3e-4,
-            value_weight=0.5,
+            value_weight=0.25,#0.5,
             entropy_weight=0,#0.001,
             clip_ratio=0.2,
             adv_norm=True,
             value_norm=True,
-            # ignore_done=False,
+            # for onppo, when we recompute adv, we need the key done in data to split traj, so we must use ignore_done=False here,
+            # but when we add key traj_flag in data as the backup for key done, we could choose to use ignore_done=True
+            # for halfcheetah, the length=1000
             ignore_done=True,
             grad_clip_type='clip_norm',
             grad_clip_value=0.5,
@@ -63,8 +65,8 @@ halfcheetah_ppo_create_default_config = dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='subprocess'),
-    # env_manager=dict(type='base'),
+    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ppo', ),
 )
 halfcheetah_ppo_create_default_config = EasyDict(halfcheetah_ppo_create_default_config)
