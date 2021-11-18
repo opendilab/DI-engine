@@ -40,7 +40,7 @@ def list_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
     timesteps = 0
     for i in range(len(data)):
         timesteps += 1
-        if data['done'][i]: # data['done'][i]: torch.tensor(1.) or True
+        if data['done'][i]:  # data['done'][i]: torch.tensor(1.) or True
             # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
             traj_data = compute_adv(data[start_index:i + 1], torch.zeros(1)[0], cfg)
             processed_data.extend(traj_data)
@@ -79,22 +79,28 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):
         timesteps += 1
         traj_data = []
 
-        if hasattr(data,'traj_flag'):
+        if hasattr(data, 'traj_flag'):
             # for compatibility in mujoco, when ignore done, we should split the data according to the traj_flag
-            traj_flag=data['traj_flag'][i]
+            traj_flag = data['traj_flag'][i]
         else:
-            traj_flag=data['done'][i]
+            traj_flag = data['done'][i]
 
-        if traj_flag: # data['done'][i]: torch.tensor(1.) or True
+        if traj_flag:  # data['done'][i]: torch.tensor(1.) or True
             for k in range(start_index, i + 1):
                 # transform to shape like this: traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
                 # if discrete action: traj_data.append({key: data[key][k] for key in data.keys()})
                 # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
-                traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
+                traj_data.append(
+                    {
+                        key: [data[key][logit_index][k] for logit_index in range(len(data[key]))]
+                        if isinstance(data[key], list) and key == 'logit' else data[key][k]
+                        for key in data.keys()
+                    }
+                )
 
             # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
             if data['done'][i]:  # if done
-                traj_data = compute_adv(traj_data, torch.zeros(1)[0].to(data['obs'][0].device), cfg) # bug
+                traj_data = compute_adv(traj_data, torch.zeros(1)[0].to(data['obs'][0].device), cfg)  # bug
             else:  # if not done
                 traj_data = compute_adv(traj_data, next_value[i].to(data['obs'][0].device), cfg)
 
@@ -103,13 +109,19 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):
             timesteps = 0
             continue
         if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num:  # equals self._traj_len, e.g. 64
-            for k in range(start_index, i+1):
+            for k in range(start_index, i + 1):
                 # for example, if i = 63, traj_data take the timestep [k=0,...,k=63], last value: next_value[63]
                 # the next_value is computed according to the obs_next
 
                 # if discrete action: traj_data.append({key: data[key][k] for key in data.keys()})
                 # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
-                traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
+                traj_data.append(
+                    {
+                        key: [data[key][logit_index][k] for logit_index in range(len(data[key]))]
+                        if isinstance(data[key], list) and key == 'logit' else data[key][k]
+                        for key in data.keys()
+                    }
+                )
 
             traj_data = compute_adv(traj_data, next_value[i], cfg)
             processed_data.extend(traj_data)
@@ -121,7 +133,13 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):
         # transform to shape like this: remaining_traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
         # if discrete action: remaining_traj_data.append({key: data[key][k] for key in data.keys()})
         # if continuous action: special case, data['logit'] list(torch.tensor(3200,6)); data['weight'] list
-        remaining_traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
+        remaining_traj_data.append(
+            {
+                key: [data[key][logit_index][k] for logit_index in range(len(data[key]))]
+                if isinstance(data[key], list) and key == 'logit' else data[key][k]
+                for key in data.keys()
+            }
+        )
     # add the remaining data, return shape list of dict
     return processed_data + remaining_traj_data
 
@@ -313,9 +331,7 @@ class PPOPolicy(Policy):
                     # NOTE: processed_data have less transition than data, because we throw away the last timestep
                     # transition in each traj in fun dict_data_split_traj_and_compute_adv() to compute the adv
                     # 64*8 -> 63*8
-                    processed_data = dict_data_split_traj_and_compute_adv(
-                        data, next_value.to(self._device), self._cfg
-                    )
+                    processed_data = dict_data_split_traj_and_compute_adv(data, next_value.to(self._device), self._cfg)
                     processed_data = lists_to_dicts(processed_data)
                     for k, v in processed_data.items():
                         if isinstance(v[0], torch.Tensor):
@@ -480,9 +496,9 @@ class PPOPolicy(Policy):
             for transition in data:
                 # for compatibility in mujoco, when ignore done, we should split the data according to the traj_flag
                 if not hasattr(transition, 'traj_flag'):
-                    transition['traj_flag'] =  copy.deepcopy(transition['done'])  
+                    transition['traj_flag'] = copy.deepcopy(transition['done'])
             # # for compatibility in mujoco, when ignore done, we should split the data according to the traj_flag
-            # data[-1]['traj_flag'] =  copy.deepcopy(data[-1]['done'])  
+            # data[-1]['traj_flag'] =  copy.deepcopy(data[-1]['done'])
             data[-1]['done'] = False
 
         if data[-1]['done']:
