@@ -13,7 +13,7 @@ from ding.model import DQN
 from ding.utils import set_pkg_seed, deep_merge_dicts
 from ding.rl_utils import get_epsilon_greedy_fn
 from dizoo.atari.envs import AtariEnv
-from dizoo.atari.config.serial.spaceinvaders.spaceinvaders_dqn_config import spaceinvaders_dqn_config
+from dizoo.atari.config.serial.pong.pong_dqn_config import pong_dqn_config
 
 import envpool
 import numpy as np
@@ -150,4 +150,4 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
 
 if __name__ == "__main__":
-    main(EasyDict(spaceinvaders_dqn_config))
+    main(EasyDict(pong_dqn_config))

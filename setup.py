@@ -154,7 +154,7 @@ setup(
         ],
         'k8s': [
             'kubernetes',
-        ]
+        ],
         'envpool': [
             'envpool',
         ],
