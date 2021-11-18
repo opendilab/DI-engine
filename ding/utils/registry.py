@@ -35,7 +35,12 @@ class Registry(dict):
         super(Registry, self).__init__(*args, **kwargs)
         self.__trace__ = dict()
 
-    def register(self, module_name: Optional[str] = None, module: Optional[Callable] = None) -> Callable:
+    def register(
+            self,
+            module_name: Optional[str] = None,
+            module: Optional[Callable] = None,
+            force_overwrite: bool = False
+    ) -> Callable:
         if _DI_ENGINE_REG_TRACE_IS_ON:
             frame = inspect.stack()[1][0]
             info = inspect.getframeinfo(frame)
@@ -44,7 +49,7 @@ class Registry(dict):
         # used as function call
         if module is not None:
             assert module_name is not None
-            Registry._register_generic(self, module_name, module)
+            Registry._register_generic(self, module_name, module, force_overwrite)
             if _DI_ENGINE_REG_TRACE_IS_ON:
                 self.__trace__[module_name] = (filename, lineno)
             return
@@ -55,7 +60,7 @@ class Registry(dict):
                 name = fn.__name__
             else:
                 name = module_name
-            Registry._register_generic(self, name, fn)
+            Registry._register_generic(self, name, fn, force_overwrite)
             if _DI_ENGINE_REG_TRACE_IS_ON:
                 self.__trace__[name] = (filename, lineno)
             return fn
@@ -63,8 +68,9 @@ class Registry(dict):
         return register_fn
 
     @staticmethod
-    def _register_generic(module_dict: dict, module_name: str, module: Callable) -> None:
-        assert module_name not in module_dict, module_name
+    def _register_generic(module_dict: dict, module_name: str, module: Callable, force_overwrite: bool = False) -> None:
+        if not force_overwrite:
+            assert module_name not in module_dict, module_name
         module_dict[module_name] = module
 
     def get(self, module_name: str) -> Callable:
