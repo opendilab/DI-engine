@@ -1,6 +1,7 @@
 import logging
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, Generator, List, Optional, Union
+from ding.framework import parallel
 
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
@@ -66,7 +67,7 @@ class Task:
         self._async_stack = []
         self._loop = None
         self._thread_pool = None
-        if async_mode:
+        if async_mode or parallel_mode:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             self._loop = asyncio.new_event_loop()
 
@@ -174,7 +175,7 @@ class Task:
         if self.parallel_mode and self._router:
             # Sync context to other parallel processes
             # The maximum number of iterations is estimated from the total number of all processes
-            self._router.send_rpc("sync_ctx", old_ctx)
+            self.async_executor(self._router.send_rpc, "sync_parallel_ctx", old_ctx)
 
         new_ctx = old_ctx.renew()
         new_ctx.total_step = old_ctx.total_step + 1
@@ -201,7 +202,7 @@ class Task:
             task = Task(
                 async_mode=self.async_mode, n_async_workers=self.n_async_workers, parallel_mode=True, router=router
             )
-            router.register_rpc("sync_ctx", task.sync_ctx)
+            router.register_rpc("sync_parallel_ctx", task.sync_parallel_ctx)
             n_timeout = 10
             if len(attach_to) > 0:
                 logging.warning(
@@ -217,12 +218,24 @@ or wait for a timeout of {} seconds before starting execution".format(n_timeout)
 
         router.run(_parallel, attach_to=attach_to)
 
-    def sync_ctx(self, ctx: Context):
+    def sync_parallel_ctx(self, ctx: Context):
         self.ctx.total_step = max(ctx.total_step + 1, self.ctx.total_step + 1)
         if self.ctx.get("prev") and self.ctx.prev.total_step > ctx.total_step:
             self.ctx.prev = self._inherit_ctx(self.ctx.prev, ctx)
         else:
             self.ctx.prev = self._inherit_ctx(ctx, self.ctx.get("prev") or Context())
+
+    def async_executor(self, fn: Callable, *args, **kwargs) -> None:
+        """
+        Overview:
+            Execute task in background, then apppend the future instance in _async_stack.
+        Arguments:
+            - fn (:obj:`Callable`): Synchronization fuction.
+        """
+        if not self._loop:
+            raise Exception("Event loop was not initialized, please call this function in async or parallel mode")
+        t = self._loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
+        self._async_stack.append(t)
 
     @property
     def finish(self) -> bool:
