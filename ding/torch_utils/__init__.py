@@ -8,3 +8,4 @@ from .network import *
 from .optimizer_helper import Adam, RMSprop
 from .nn_test_helper import is_differentiable
 from .math_helper import cov
+from .dataparallel import DataParallel
