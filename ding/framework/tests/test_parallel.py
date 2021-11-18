@@ -1,4 +1,3 @@
-from asyncio.tasks import sleep
 from collections import defaultdict
 import pytest
 import time
