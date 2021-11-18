@@ -6,8 +6,8 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
-    create_serial_collector
+from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, BaseSerialCommander, \
+    create_buffer, create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
