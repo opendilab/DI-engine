@@ -193,6 +193,7 @@
         <span class="n">deepcopy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># default `False` for serial pipeline</span>
         <span class="n">enable_track_used_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">periodic_thruput_seconds</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -242,7 +243,7 @@
             <span class="p">)</span>
         <span class="c1"># Periodic thruput. Here by default, monitor range is 60 seconds. You can modify it for free.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_periodic_thruput_monitor</span> <span class="o">=</span> <span class="n">PeriodicThruputMonitor</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">60</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_instance_name</span><span class="p">,</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">periodic_thruput_seconds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tb_logger</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="NaiveReplayBuffer.start"><a class="viewcode-back" href="../../../../api_doc/worker/replay_buffer/buffer.html#ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
