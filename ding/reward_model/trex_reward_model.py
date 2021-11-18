@@ -67,7 +67,10 @@ class TrexModel(nn.Module):
         elif len(obs_shape) == 3:
             self.encoder = ConvEncoder()
         else:
-            print("The Trex reward model does not support this encoder currently")
+            raise KeyError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
+                format(obs_shape)
+            )
 
     def cum_return(self, traj):
         '''calculate cumulative return of trajectory'''
