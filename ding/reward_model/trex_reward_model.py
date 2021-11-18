@@ -68,7 +68,7 @@ class TrexModel(nn.Module):
             self.encoder = ConvEncoder()
         else:
             raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
+                "not support obs_shape for pre-defined encoder: {}, please customize your own Trex model".
                 format(obs_shape)
             )
 
