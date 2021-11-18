@@ -64,7 +64,7 @@ class Context(dict):
     def __getstate__(self):
         _ctx = {}
         for key, value in self.items():
-            if key in ["_hooks_after_renew"]:
+            if key in ["_hooks_after_renew", "prev"]:
                 continue
             _ctx[key] = value
         return _ctx
