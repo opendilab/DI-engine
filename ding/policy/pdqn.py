@@ -77,13 +77,18 @@ class PDQNPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
+        # self._dis_optimizer = Adam(
+        #     list(self._model.dis_head.parameters()) + list(self._model.dis_encoder.parameters()),
+        #     lr=self._cfg.learn.learning_rate_dis
+        # )
         self._dis_optimizer = Adam(
-            list(self._model.dis_head.parameters()) + list(self._model.dis_encoder.parameters()),
-            lr=self._cfg.learn.learning_rate
+            list(self._model.dis_head.parameters()) + list(self._model.cont_encoder.parameters()),
+            # this is very important to put cont_encoder.parameters in here.
+            lr=self._cfg.learn.learning_rate_dis
         )
         self._cont_optimizer = Adam(
-            list(self._model.cont_head.parameters()) + list(self._model.cont_encoder.parameters()),
-            lr=self._cfg.learn.learning_rate
+            list(self._model.cont_head.parameters()),
+            lr=self._cfg.learn.learning_rate_cont
         )
 
         self._gamma = self._cfg.discount_factor
@@ -100,6 +105,9 @@ class PDQNPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='hybrid_argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
+        self.cont_train_cnt=0
+        self.disc_train_cnt = 0
+        self.train_cnt = 0
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -128,66 +136,85 @@ class PDQNPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
 
+        self.train_cnt += 1
         # ================================
         # Continuous args network forward
         # ================================
-        action_args = self._learn_model.forward(data['obs'], mode='compute_continuous')['action_args']
-        action_args_cp = action_args.clone().detach()
-        # Current q value (main model) for cont loss
-        discrete_inputs = {'state':data['obs'], 'action_args':action_args_cp}
-        q_value1 = self._learn_model.forward(discrete_inputs, mode='compute_discrete')['logit']
-        cont_loss = -q_value1.sum(dim=-1).mean()
+        if self.train_cnt == 1 or self.train_cnt % self._cfg.learn.update_circle in range(5,10):
+            dis_loss=torch.Tensor([0])
+            td_error_per_sample=torch.Tensor([0])
+            target_q_value=torch.Tensor([0])
 
-        # ================================
-        # Continuous args network update
-        # ================================
-        self._cont_optimizer.zero_grad()
-        cont_loss.backward()
-        self._cont_optimizer.step()
+            action_args = self._learn_model.forward(data['obs'], mode='compute_continuous')['action_args']
+
+            # Current q value (main model) for cont loss
+            discrete_inputs = {'state': data['obs'], 'action_args': action_args}
+            # with torch.no_grad():
+            q_pi_action_value = self._learn_model.forward(discrete_inputs, mode='compute_discrete')['logit']
+            cont_loss = -  q_pi_action_value.sum(dim=-1).mean()
+
+            # ================================
+            # Continuous args network update
+            # ================================
+            # self.cont_train_cnt+=1
+            # if self.cont_train_cnt % self._cfg.learn.cont_update_freq==0:
+            self._cont_optimizer.zero_grad()
+            cont_loss.backward()
+            self._cont_optimizer.step()
 
         # ====================
         # Q-learning forward
         # ====================
-        self._learn_model.train()
-        self._target_model.train()
-        # Current q value (main model)
-        q_value2 = self._learn_model.forward(discrete_inputs, mode='compute_discrete')['logit']
-        
+        if self.train_cnt ==1 or self.train_cnt % self._cfg.learn.update_circle in range(0,5):
+            cont_loss = torch.Tensor([0])
+            q_pi_action_value =torch.Tensor([0])
+            self._learn_model.train()
+            self._target_model.train()
+            # Current q value (main model)
 
-        # Target q value
-        with torch.no_grad():
-            next_action_args = self._learn_model.forward(data['next_obs'], mode='compute_continuous')['action_args']
-            next_action_args_cp = next_action_args.clone().detach()
-            next_discrete_inputs = {'state':data['next_obs'], 'action_args':next_action_args_cp}
-            target_q_value = self._target_model.forward(next_discrete_inputs, mode='compute_discrete')['logit']
-            # Max q value action (main model)
-            target_q_discrete_action = self._learn_model.forward(next_discrete_inputs, mode='compute_discrete')['action']['action_type']
+            # action_args_cp = action_args.clone().detach()
+            # discrete_inputs = {'state': data['obs'], 'action_args': action_args_cp}
 
-        data_n = q_nstep_td_data(
-            q_value2, target_q_value, data['action']['action_type'], target_q_discrete_action, data['reward'],
-            data['done'], data['weight']
-        )
-        value_gamma = data.get('value_gamma')
-        dis_loss, td_error_per_sample = q_nstep_td_error(
-            data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
-        )
+            discrete_inputs = {'state': data['obs'], 'action_args': data['action']['action_args']}
+            q_data_action_args_value = self._learn_model.forward(discrete_inputs, mode='compute_discrete')['logit']
 
-        # ====================
-        # Q-learning update
-        # ====================
-        self._dis_optimizer.zero_grad()
-        dis_loss.backward()
-        self._dis_optimizer.step()
+            # Target q value
+            with torch.no_grad():
+                next_action_args = self._learn_model.forward(data['next_obs'], mode='compute_continuous')['action_args']
+                next_action_args_cp = next_action_args.clone().detach()
+                next_discrete_inputs = {'state': data['next_obs'], 'action_args': next_action_args_cp}
+                target_q_value = self._target_model.forward(next_discrete_inputs, mode='compute_discrete')['logit']
+                # Max q value action (main model)
+                target_q_discrete_action = self._learn_model.forward(next_discrete_inputs, mode='compute_discrete')['action']['action_type']
 
-        # =============
-        # after update
-        # =============
-        self._target_model.update(self._learn_model.state_dict())
+            data_n = q_nstep_td_data(
+                q_data_action_args_value, target_q_value, data['action']['action_type'], target_q_discrete_action, data['reward'],
+                data['done'], data['weight']
+            )
+            value_gamma = data.get('value_gamma')
+            dis_loss, td_error_per_sample = q_nstep_td_error(
+                data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+            )
+
+            # ====================
+            # Q-learning update
+            # ====================
+            # self.disc_train_cnt += 1
+            # if self.disc_train_cnt % self._cfg.learn.disc_update_freq == 0:
+            self._dis_optimizer.zero_grad()
+            dis_loss.backward()
+            self._dis_optimizer.step()
+
+            # =============
+            # after update
+            # =============
+            self._target_model.update(self._learn_model.state_dict())
+
         return {
             'cur_lr': self._dis_optimizer.defaults['lr'],
             'q_loss': dis_loss.item(),
             'continuous_loss': cont_loss.item(),
-            'q_value': q_value1.mean().item(),
+            'q_value':  q_pi_action_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             'reward': data['reward'].mean().item(),
             'target_q_value': target_q_value.mean().item(),
@@ -269,8 +296,8 @@ class PDQNPolicy(Policy):
         self._collect_model.eval()
         with torch.no_grad():
             action_args = self._collect_model.forward(data, 'compute_continuous', eps=eps)['action_args']
-            inputs = {'state':data, 'action_args':action_args.clone().detach()}
-            output = self._collect_model.forward(inputs,'compute_discrete', eps=eps)
+            inputs = {'state': data, 'action_args': action_args.clone().detach()}
+            output = self._collect_model.forward(inputs, 'compute_discrete', eps=eps)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -347,7 +374,7 @@ class PDQNPolicy(Policy):
         self._eval_model.eval()
         with torch.no_grad():
             action_args = self._eval_model.forward(data, mode='compute_continuous')['action_args']
-            inputs = {'state':data, 'action_args':action_args.clone().detach()}
+            inputs = {'state': data, 'action_args': action_args.clone().detach()}
             output = self._eval_model.forward(inputs, mode='compute_discrete')
         if self._cuda:
             output = to_device(output, 'cpu')
