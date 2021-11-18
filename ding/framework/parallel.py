@@ -38,10 +38,18 @@ class Parallel:
             address: Optional[str] = None,
             ports: Optional[List[int]] = None
     ) -> None:
-        nodes = self.get_node_addrs(n_workers, protocol=protocol, address=address, ports=ports)
-        atexit.register(lambda: self.cleanup_nodes(nodes))
         attach_to = attach_to or []
+
+        nodes = self.get_node_addrs(n_workers, protocol=protocol, address=address, ports=ports)
         print("Bind subprocesses on these addresses: {}".format(nodes))
+
+        def _cleanup_nodes():
+            for node in nodes:
+                protocol, file_path = node.split("://")
+                if protocol == "ipc" and path.exists(file_path):
+                    os.remove(file_path)
+
+        atexit.register(_cleanup_nodes)
 
         def _parallel(node_id):
             self._listener = Thread(
@@ -52,14 +60,13 @@ class Parallel:
             main_process()
 
         with WorkerPool(n_jobs=n_workers) as pool:
+
+            def _cleanup_pool():
+                pool.__exit__()
+
+            atexit.register(_cleanup_pool)
             results = pool.map(_parallel, range(n_workers))
         return results
-
-    def cleanup_nodes(self, nodes: List[str]) -> None:
-        for node in nodes:
-            protocol, file_path = node.split("://")
-            if protocol == "ipc" and path.exists(file_path):
-                os.remove(file_path)
 
     def get_node_addrs(
             self,
