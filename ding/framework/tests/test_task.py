@@ -1,5 +1,6 @@
 import pytest
 import time
+import copy
 from ding.framework import Task
 
 
@@ -133,3 +134,12 @@ def test_parallel_pipeline():
     task = Task(async_mode=True, n_async_workers=1, parallel_mode=True, n_parallel_workers=2)
     task.use(counter())
     task.run(max_step=5)
+
+
+@pytest.mark.unittest
+def test_copy_task():
+    t1 = Task(async_mode=True, n_async_workers=1, parallel_mode=True, n_parallel_workers=2)
+    t2 = copy.copy(t1)
+    assert t2.parallel_mode
+    assert t2.async_mode
+    assert t1 is not t2
