@@ -98,7 +98,14 @@ def serial_pipeline(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
+            new_data = collector.collect(
+                n_sample=cfg.policy.collect.each_iter_n_sample,
+                train_iter=learner.train_iter,
+                policy_kwargs=collect_kwargs
+            )
+        else:
+            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
@@ -114,9 +121,6 @@ def serial_pipeline(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
