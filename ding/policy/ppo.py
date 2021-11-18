@@ -33,7 +33,7 @@ def compute_adv(data, last_value, cfg):
 
 
 def list_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
-    # TODO(pu): backup, should be modified for mujoco continuous env
+    # TODO(pu): this function is backup, should be modified for mujoco continuous env
     # data shape: list of transitions dict [{'value':,'reward':,'adv':},...,{'value':,'reward':,'adv':}]
     processed_data = []
     start_index = 0
@@ -64,7 +64,11 @@ def list_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
     return processed_data + data[start_index:i + 1]  # add the remaining data
 
 
-def dict_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
+def dict_data_split_traj_and_compute_adv(data, next_value, cfg):
+    # because the get_gae function need input the traj data in the same episode not different episodes,
+    # so we should split the data into traj according to the key 'done' and 'traj_flag' if have, and
+    # the max_traj_length <cfg.collect.n_sample // cfg.collect.collector_env_num>
+
     # data shape: dict of torch.FloatTensor of thansitions
     # {'obs':[torch.FloatTensor], ...,'reward':[torch.FloatTensor],...}
     # traj mean episode transitions or truncated episode transitions because the restrict of max_traj_len
@@ -89,30 +93,25 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
                 traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
 
             # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
-            traj_data = compute_adv(traj_data, torch.zeros(1)[0].to(data['obs'][0].device), cfg)
+            if data['done'][i]:  # if done
+                traj_data = compute_adv(traj_data, torch.zeros(1)[0].to(data['obs'][0].device), cfg) # bug
+            else:  # if not done
+                traj_data = compute_adv(traj_data, next_value[i].to(data['obs'][0].device), cfg)
+
             processed_data.extend(traj_data)
             start_index = i + 1
             timesteps = 0
             continue
-        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num:  # self._traj_len 64
-            for k in range(start_index, i+1):  #
-                # for example, if i = 63, traj_data take the timestep [k=0,...,k=62], last value: next_value[62]
-                # throw away timestep t=63, because we don't known the value of timestep 64
-                # owing to self._traj_len=64
+        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num:  # equals self._traj_len, e.g. 64
+            for k in range(start_index, i+1):
+                # for example, if i = 63, traj_data take the timestep [k=0,...,k=63], last value: next_value[63]
+                # the next_value is computed according to the obs_next
 
                 # if discrete action: traj_data.append({key: data[key][k] for key in data.keys()})
                 # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
                 traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
 
             traj_data = compute_adv(traj_data, next_value[i], cfg)
-
-            #####
-            # below is wrong, because the next_value[i] for example, i=63,
-            # next_value[63] is the value of init timestep in next episode
-            # for k in range(start_index,i+1): #
-            #     traj_data.append( {key:data[key][k] for key in data.keys()} )
-            # traj_data=compute_adv(traj_data, next_value[i], cfg)
-            #####
             processed_data.extend(traj_data)
             start_index = i + 1
             timesteps = 0
@@ -121,9 +120,10 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):  # 64*8 -> 63*8
     for k in range(start_index, i + 1):
         # transform to shape like this: remaining_traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
         # if discrete action: remaining_traj_data.append({key: data[key][k] for key in data.keys()})
-        # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
+        # if continuous action: special case, data['logit'] list(torch.tensor(3200,6)); data['weight'] list
         remaining_traj_data.append({key: [data[key][logit_index][k] for logit_index in range(len(data[key]))] if isinstance(data[key],list) and key=='logit' else data[key][k] for key in data.keys()})
-    return processed_data + remaining_traj_data  # add the remaining data, return shape list of dict
+    # add the remaining data, return shape list of dict
+    return processed_data + remaining_traj_data  
 
 
 @POLICY_REGISTRY.register('ppo')

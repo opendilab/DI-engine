@@ -8,10 +8,6 @@ halfcheetah_ppo_default_config = dict(
     exp_name="result_mujoco/halfcheetah_onppo_ig_fix",
     # exp_name="debug/debug_halfcheetah_onppo_ig_fix",
 
-
-    # exp_name="halfcheetah_onppo_noig_epc100",
-    # exp_name="halfcheetah_onppo_ig",
-
     env=dict(
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
@@ -43,9 +39,9 @@ halfcheetah_ppo_default_config = dict(
             clip_ratio=0.2,
             adv_norm=True,
             value_norm=True,
-            # for onppo, when we recompute adv, we need the done flag to split traj, so we must use ignore_done=False here, 
+            # for onppo, when we recompute adv, we need the key done in data to split traj, so we must use ignore_done=False here, 
             # but when we add key traj_flag in data as the backup for key done, we could choose to use ignore_done=True
-            # for halfcheetah the max_length=1000, we use ignore_done=True,
+            # for halfcheetah, the length=1000
             ignore_done=True,
             grad_clip_type='clip_norm',
             grad_clip_value=0.5,
