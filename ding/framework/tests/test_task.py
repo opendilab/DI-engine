@@ -101,3 +101,35 @@ def test_async_yield_pipeline():
     task.backward().sync()
     assert task.ctx.pipeline == [0, 1, 0]
     assert len(task._backward_stack) == 0
+
+
+@pytest.mark.unittest
+def test_parallel_pipeline():
+    task = Task(async_mode=True, n_async_workers=1, parallel_mode=True, n_parallel_workers=2)
+
+    def counter():
+        call_count = 0  # +1 when call _counter
+
+        def _counter(ctx):
+            nonlocal call_count
+            if call_count > 2:
+                assert ctx.total_step > call_count
+            call_count += 1
+            time.sleep(0.1)
+
+        return _counter
+
+    def _execute(task: Task):
+        counter_ware = counter()
+        for i in range(5):
+            task.forward(counter_ware)
+            task.renew()
+        assert task.ctx.total_step > i
+
+    # In eager mode
+    task.parallel(_execute)
+
+    # In pipeline mode
+    task = Task(async_mode=True, n_async_workers=1, parallel_mode=True, n_parallel_workers=2)
+    task.use(counter())
+    task.run(max_step=5)

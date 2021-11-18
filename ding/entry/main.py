@@ -259,7 +259,7 @@ def main_eager(cfg, create_cfg, seed=0):
 
     dqn = DQNPipeline(cfg, model)
 
-    task = Task(async_mode=True, n_async_workers=3)
+    task = Task(async_mode=True, n_async_workers=3, parallel_mode=True, n_parallel_workers=2, attach_to=[])
     evaluate = dqn.evaluate(evaluator_env)
     act = dqn.act(collector_env)
     collect = dqn.collect(collector_env, replay_buffer)
@@ -284,9 +284,9 @@ def main_eager(cfg, create_cfg, seed=0):
             import random
             time.sleep(random.random() + 1)
             task.renew()
-            print("Current task step on {}".format(task._router and task._router._bind_addr), task.ctx.total_step)
+            print("Current task step on {}".format(task.router and task.router._bind_addr), task.ctx.total_step)
 
-    task.parallel(_execute_task, n_workers=2, attach_to=[])
+    task.parallel(_execute_task)
     # _execute_task(task)
 
 
