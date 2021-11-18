@@ -55,9 +55,13 @@ class Task:
             async_mode: bool = False,
             n_async_workers: Optional[int] = None,
             parallel_mode: bool = False,
-            router: Optional['Parallel'] = None
+            router: Optional['Parallel'] = None,
+            n_parallel_workers: Optional[int] = None,
+            attach_to: List[str] = None,
+            protocol: str = "ipc",
+            middlewares: List[Callable] = None
     ) -> None:
-        self.middleware = []
+        self.middleware = middlewares or []
         self.ctx = Context()
         self._backward_stack = []
 
@@ -73,7 +77,12 @@ class Task:
 
         # Parallel segment
         self.parallel_mode = parallel_mode
-        self._router = router
+        if parallel_mode:
+            self.router = router or Parallel()
+            assert n_parallel_workers, "The number of workers must be specified in parallel mode!"
+            self.n_parallel_workers = n_parallel_workers
+            self.attach_to = attach_to or []
+            self.protocol = protocol
 
     def use(self, fn: Callable) -> 'Task':
         """
@@ -93,15 +102,22 @@ class Task:
         Arguments:
             - max_step (:obj:`int`): Max step of iterations.
         """
-        if len(self.middleware) == 0:
-            return
-        for _ in range(max_step):
-            for fn in self.middleware:
-                self.forward(fn)
-            self.backward()
-            if self.finish:
-                break
-            self.renew()
+
+        def _execute(task):
+            if len(task.middleware) == 0:
+                return
+            for _ in range(max_step):
+                for fn in task.middleware:
+                    task.forward(fn)
+                task.backward()
+                if task.finish:
+                    break
+                task.renew()
+
+        if self.parallel_mode:
+            self.parallel(_execute)
+        else:
+            _execute(self)
 
     @enable_async
     def forward(self, fn: Callable, ctx: Context = None, backward_stack: List[Generator] = None) -> 'Task':
@@ -172,10 +188,10 @@ class Task:
         self.sync()
         # Renew context
         old_ctx = self.ctx
-        if self.parallel_mode and self._router:
+        if self.parallel_mode and self.router:
             # Sync context to other parallel processes
             # The maximum number of iterations is estimated from the total number of all processes
-            self.async_executor(self._router.send_rpc, "sync_parallel_ctx", old_ctx)
+            self.async_executor(self.router.send_rpc, "sync_parallel_ctx", old_ctx)
 
         new_ctx = old_ctx.renew()
         new_ctx.total_step = old_ctx.total_step + 1
@@ -194,29 +210,41 @@ class Task:
             t = self._async_stack.pop(0)
             await t
 
-    def parallel(self, main_process: Callable, n_workers: int, attach_to: List[str] = None, protocol: str = "ipc"):
-
-        router = Parallel()
+    def parallel(self, main_process: Callable):
+        prototype = self
 
         def _parallel():
+            router = prototype.router
             task = Task(
-                async_mode=self.async_mode, n_async_workers=self.n_async_workers, parallel_mode=True, router=router
+                async_mode=prototype.async_mode,
+                n_async_workers=prototype.n_async_workers,
+                parallel_mode=True,
+                router=prototype.router,
+                n_parallel_workers=prototype.n_parallel_workers,
+                attach_to=prototype.attach_to,
+                protocol=prototype.protocol,
+                middlewares=prototype.middleware
             )
             router.register_rpc("sync_parallel_ctx", task.sync_parallel_ctx)
             n_timeout = 10
-            if len(attach_to) > 0:
+            if len(prototype.attach_to) > 0:
                 logging.warning(
                     "The attach mode will wait for the latest context, \
 or wait for a timeout of {} seconds before starting execution".format(n_timeout)
                 )
-                for _ in range(n_timeout):
+                for _ in range(n_timeout * 2):
                     if task.ctx.get("prev"):
                         task.ctx = task.ctx.prev
                         break
-                    time.sleep(1)
+                    time.sleep(0.5)
             main_process(task)
 
-        router.run(_parallel, n_workers=n_workers, attach_to=attach_to, protocol=protocol)
+        prototype.router.run(
+            _parallel,
+            n_workers=prototype.n_parallel_workers,
+            attach_to=prototype.attach_to,
+            protocol=prototype.protocol
+        )
 
     def sync_parallel_ctx(self, ctx: Context):
         self.ctx.total_step = max(ctx.total_step + 1, self.ctx.total_step + 1)

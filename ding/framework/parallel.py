@@ -56,12 +56,13 @@ class Parallel:
                 target=lambda: self.listen(node_id, nodes, attach_to), name="paralllel_listener", daemon=True
             )
             self._listener.start()
-            time.sleep(0.3)  # Wait for thread start
+            time.sleep(0.3)  # Wait for thread starting
             main_process()
 
         with WorkerPool(n_jobs=n_workers) as pool:
 
             def _cleanup_pool():
+                # Cleanup the pool just in case the program crashes.
                 pool.__exit__()
 
             atexit.register(_cleanup_pool)
