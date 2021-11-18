@@ -1,11 +1,14 @@
 import atexit
 import os
+from sys import addaudithook
 import time
 import random
 import pynng
 import asyncio
 import pickle
 import logging
+import tempfile
+import socket
 from os import path
 from typing import Any, Callable, List, Optional
 from threading import Thread
@@ -20,36 +23,62 @@ random = random.Random()
 
 class Parallel:
 
-    def __init__(self, n_workers: int) -> None:
-        self.n_workers = n_workers
+    def __init__(self) -> None:
         self._listener = None
         self._sock: Socket = None
         self._rpc = {"echo": self.echo}
         self._bind_addr = None
 
-    def run(self, main_process: Callable, attach_to: List[str] = None) -> None:
-        node_name = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=4))
-        nodes = ["ipc:///tmp/ditask_{}_{}.ipc".format(node_name, i) for i in range(self.n_workers)]
+    def run(
+            self,
+            main_process: Callable,
+            n_workers: int,
+            attach_to: List[str] = None,
+            protocol: str = "ipc",
+            address: Optional[str] = None,
+            ports: Optional[List[int]] = None
+    ) -> None:
+        nodes = self.get_node_addrs(n_workers, protocol=protocol, address=address, ports=ports)
         atexit.register(lambda: self.cleanup_nodes(nodes))
         attach_to = attach_to or []
         print("Bind subprocesses on these addresses: {}".format(nodes))
 
         def _parallel(node_id):
-            self._listener = Thread(target=lambda: self.listen(node_id, nodes, attach_to), name="paralllel_listener")
+            self._listener = Thread(
+                target=lambda: self.listen(node_id, nodes, attach_to), name="paralllel_listener", daemon=True
+            )
             self._listener.start()
-            time.sleep(0.5)  # Wait for thread start
+            time.sleep(0.3)  # Wait for thread start
             main_process()
-            self._listener.join()
 
-        with WorkerPool(n_jobs=self.n_workers) as pool:
-            results = pool.map(_parallel, range(self.n_workers))
+        with WorkerPool(n_jobs=n_workers) as pool:
+            results = pool.map(_parallel, range(n_workers))
         return results
 
     def cleanup_nodes(self, nodes: List[str]) -> None:
         for node in nodes:
-            ipc_file = node.split("//")[1]
-            if path.exists(ipc_file):
-                os.remove(ipc_file)
+            protocol, file_path = node.split("://")
+            if protocol == "ipc" and path.exists(file_path):
+                os.remove(file_path)
+
+    def get_node_addrs(
+            self,
+            n_workers: int,
+            protocol: str = "ipc",
+            address: Optional[str] = None,
+            ports: Optional[List[int]] = None
+    ) -> None:
+        if protocol == "ipc":
+            node_name = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=4))
+            tmp_dir = tempfile.gettempdir()
+            nodes = ["ipc://{}/ditask_{}_{}.ipc".format(tmp_dir, node_name, i) for i in range(n_workers)]
+        elif protocol == "tcp":
+            address = address or self.get_ip()
+            ports = ports or range(50515, 50515 + n_workers)
+            nodes = ["tcp://{}:{}".format(address, port) for port in ports]
+        else:
+            raise Exception("Unknown protocol {}".format(protocol))
+        return nodes
 
     def listen(self, node_id: int, nodes: List[str], attach_to: List[str] = None):
 
@@ -101,3 +130,15 @@ class Parallel:
             self._rpc[payload["f"]](*payload["a"], **payload["k"])
         else:
             logging.warning("There was no function named {} in rpc table".format(payload["f"]))
+
+    def get_ip(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP

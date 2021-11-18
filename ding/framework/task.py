@@ -194,9 +194,9 @@ class Task:
             t = self._async_stack.pop(0)
             await t
 
-    def parallel(self, main_process: Callable, n_workers: int, attach_to: List[str] = None):
+    def parallel(self, main_process: Callable, n_workers: int, attach_to: List[str] = None, protocol: str = "ipc"):
 
-        router = Parallel(n_workers)
+        router = Parallel()
 
         def _parallel():
             task = Task(
@@ -216,7 +216,7 @@ or wait for a timeout of {} seconds before starting execution".format(n_timeout)
                     time.sleep(1)
             main_process(task)
 
-        router.run(_parallel, attach_to=attach_to)
+        router.run(_parallel, n_workers=n_workers, attach_to=attach_to, protocol=protocol)
 
     def sync_parallel_ctx(self, ctx: Context):
         self.ctx.total_step = max(ctx.total_step + 1, self.ctx.total_step + 1)
