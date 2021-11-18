@@ -28,6 +28,7 @@ class NaiveReplayBuffer(IBuffer):
         deepcopy=False,
         # default `False` for serial pipeline
         enable_track_used_data=False,
+        periodic_thruput_seconds=60,
     )
 
     def __init__(
@@ -77,7 +78,7 @@ class NaiveReplayBuffer(IBuffer):
             )
         # Periodic thruput. Here by default, monitor range is 60 seconds. You can modify it for free.
         self._periodic_thruput_monitor = PeriodicThruputMonitor(
-            self._instance_name, EasyDict(seconds=60), self._logger, self._tb_logger
+            self._instance_name, EasyDict(seconds=self._cfg.periodic_thruput_seconds), self._logger, self._tb_logger
         )
 
     def start(self) -> None:
