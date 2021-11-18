@@ -2,6 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 
 lunarlander_ppo_config = dict(
+    exp_name='lunarlander_expert_1031',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -9,7 +10,7 @@ lunarlander_ppo_config = dict(
         stop_value=200,
     ),
     policy=dict(
-        cuda=True,
+        cuda=False,
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -40,7 +41,7 @@ lunarlander_ppo_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
 )
 lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)

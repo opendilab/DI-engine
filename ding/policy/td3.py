@@ -6,8 +6,13 @@ from .ddpg import DDPGPolicy
 class TD3Policy(DDPGPolicy):
     r"""
     Overview:
-        Policy class of TD3 algorithm. Since DDPG and TD3 share many common things, we can easily derive this TD3
+        Policy class of TD3 algorithm.
+
+        Since DDPG and TD3 share many common things, we can easily derive this TD3
         class from DDPG class by changing ``_actor_update_freq``, ``_twin_critic`` and noise in model wrapper.
+
+        https://arxiv.org/pdf/1802.09477.pdf
+
     Property:
         learn_mode, collect_mode, eval_mode
 
@@ -74,9 +79,13 @@ class TD3Policy(DDPGPolicy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 25000 in DDPG/TD3.
         random_collect_size=25000,
+        # (str) Action space type
+        action_space='continuous',  # ['continuous', 'hybrid']
+        # (bool) Whether use batch normalization for reward
+        reward_batch_norm=False,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
-            # Clipped Double Q-Learning for Actor-Critic in original TD3 paper.
+            # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
             # Default True for TD3, False for DDPG.
             twin_critic=True,
         ),
@@ -86,16 +95,16 @@ class TD3Policy(DDPGPolicy):
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=1,
-            # Minibatch size for gradient descent.
+            # (int) Minibatch size for gradient descent.
             batch_size=256,
-            # Learning rates for actor network(aka. policy).
+            # (float) Learning rates for actor network(aka. policy).
             learning_rate_actor=1e-3,
-            # Learning rates and critic network(aka. Q-network).
+            # (float) Learning rates for critic network(aka. Q-network).
             learning_rate_critic=1e-3,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
             # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
             # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
-            # However, interaction with HalfCheetah always gets done with done is False,
+            # However, interaction with HalfCheetah always gets done with False,
             # Since we inplace done==True with done==False to keep
             # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
             # when the episode step is greater than max episode step.
@@ -107,11 +116,11 @@ class TD3Policy(DDPGPolicy):
             # (float) discount factor for the discounted sum of rewards, aka. gamma.
             discount_factor=0.99,
             # (int) When critic network updates once, how many times will actor network update.
-            # Delayed Policy Updates in original TD3 paper.
+            # Delayed Policy Updates in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
             # Default 1 for DDPG, 2 for TD3.
             actor_update_freq=2,
             # (bool) Whether to add noise on target network's action.
-            # Target Policy Smoothing Regularization in original TD3 paper.
+            # Target Policy Smoothing Regularization in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
             # Default True for TD3, False for DDPG.
             noise=True,
             # (float) Sigma for smoothing noise added to target policy.
@@ -123,16 +132,22 @@ class TD3Policy(DDPGPolicy):
             ),
         ),
         collect=dict(
-            # n_sample=1,
+            n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
-            # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
+            # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
             noise_sigma=0.1,
+        ),
+        eval=dict(
+            evaluator=dict(
+                # (int) Evaluate every "eval_freq" training iterations.
+                eval_freq=5000,
+            ),
         ),
         other=dict(
             replay_buffer=dict(
-                # (int) Maximum size of replay buffer
-                replay_buffer_size=1000000,
+                # (int) Maximum size of replay buffer.
+                replay_buffer_size=100000,
             ),
         ),
     )

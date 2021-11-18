@@ -1,0 +1,36 @@
+name: package_release
+
+on: [push]
+
+jobs:
+  release:
+    name: Publish to official pypi
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    strategy:
+      matrix:
+        os:
+          - 'ubuntu-18.04'
+        python-version: [3.6]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up python dependences
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade flake8 setuptools wheel twine
+          pip install .
+          pip install --upgrade build
+      - name: Build packages
+        run: |
+          python -m build --sdist --wheel --outdir dist/
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}

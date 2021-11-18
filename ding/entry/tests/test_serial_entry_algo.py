@@ -2,9 +2,11 @@ import pytest
 import time
 import os
 import torch
+import subprocess
 from copy import deepcopy
 
-from ding.entry import serial_pipeline
+from ding.utils import K8sLauncher, OrchestratorLauncher
+from ding.entry import serial_pipeline, serial_pipeline_offline, collect_demo_data, serial_pipeline_onpolicy
 from ding.entry.serial_entry_sqil import serial_pipeline_sqil
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import cartpole_sql_config, cartpole_sql_create_config
 from dizoo.classic_control.cartpole.config.cartpole_sqil_config import cartpole_sqil_config, cartpole_sqil_create_config
@@ -28,6 +30,7 @@ from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_
 from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
 from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
+from dizoo.multiagent_particle.config import cooperative_navigation_wqmix_config, cooperative_navigation_wqmix_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
@@ -35,6 +38,12 @@ from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config,
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
+from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -77,7 +86,7 @@ def test_td3():
 def test_a2c():
     config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
     try:
-        serial_pipeline(config, seed=0)
+        serial_pipeline_onpolicy(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
@@ -150,7 +159,7 @@ def test_c51():
         f.write("10. c51\n")
 
 
-# @pytest.mark.algotest
+@pytest.mark.algotest
 def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     try:
@@ -159,20 +168,6 @@ def test_r2d2():
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("11. r2d2\n")
-
-
-@pytest.mark.algotest
-def test_a2c_with_nstep_return():
-    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
-    config[0].policy.learn.nstep_return = config[0].policy.collect.nstep_return = True
-    config[0].policy.collect.discount_factor = 0.9
-    config[0].policy.collect.nstep = 3
-    try:
-        serial_pipeline(config, seed=0)
-    except Exception:
-        assert False, "pipeline fail"
-    with open("./algo_record.log", "a+") as f:
-        f.write("12. a2c with nstep return\n")
 
 
 # @pytest.mark.algotest
@@ -313,8 +308,194 @@ def test_sqil():
     config = [deepcopy(cartpole_sqil_config), deepcopy(cartpole_sqil_create_config)]
     config[0].policy.collect.demonstration_info_path = expert_policy_state_dict_path
     try:
-        serial_pipeline_sqil(config, seed=0)
+        serial_pipeline_sqil(config, [cartpole_sql_config, cartpole_sql_create_config], seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
         f.write("25. sqil\n")
+
+
+@pytest.mark.algotest
+def test_cql():
+    # train expert
+    config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    config[0].exp_name = 'sac'
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [
+        deepcopy(pendulum_sac_data_genearation_default_config),
+        deepcopy(pendulum_sac_data_genearation_default_create_config)
+    ]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train cql
+    config = [deepcopy(pendulum_cql_default_config), deepcopy(pendulum_cql_default_create_config)]
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("26. cql\n")
+
+
+@pytest.mark.algotest
+def test_discrete_cql():
+    # train expert
+    config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
+    config[0].exp_name = 'cartpole'
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train cql
+    config = [deepcopy(cartpole_discrete_cql_config), deepcopy(cartpole_discrete_cql_create_config)]
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("27. discrete cql\n")
+
+
+# @pytest.mark.algotest
+def test_wqmix():
+    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("28. wqmix\n")
+
+
+@pytest.mark.algotest
+def test_td3_bc():
+    # train expert
+    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
+    config[0].exp_name = 'td3'
+    try:
+        serial_pipeline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+
+    # collect expert data
+    import torch
+    config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
+    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    expert_data_path = config[0].policy.collect.save_path
+    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    try:
+        collect_demo_data(
+            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+        )
+    except Exception:
+        assert False, "pipeline fail"
+
+    # train td3 bc
+    config = [deepcopy(pendulum_td3_bc_config), deepcopy(pendulum_td3_bc_create_config)]
+    try:
+        serial_pipeline_offline(config, seed=0)
+    except Exception:
+        assert False, "pipeline fail"
+    with open("./algo_record.log", "a+") as f:
+        f.write("29. td3_bc\n")
+
+
+# @pytest.mark.algotest
+def test_running_on_orchestrator():
+    from kubernetes import config, client, dynamic
+    cluster_name = 'test-k8s-launcher'
+    config_path = os.path.join(os.path.dirname(__file__), 'config', 'k8s-config.yaml')
+    # create cluster
+    launcher = K8sLauncher(config_path)
+    launcher.name = cluster_name
+    launcher.create_cluster()
+
+    # create orchestrator
+    olauncher = OrchestratorLauncher('v0.2.0-rc.0', cluster=launcher)
+    olauncher.create_orchestrator()
+
+    # create dijob
+    namespace = 'default'
+    name = 'cartpole-dqn'
+    timeout = 20 * 60
+    file_path = os.path.dirname(__file__)
+    agconfig_path = os.path.join(file_path, 'config', 'agconfig.yaml')
+    dijob_path = os.path.join(file_path, 'config', 'dijob-cartpole.yaml')
+    create_object_from_config(agconfig_path, 'di-system')
+    create_object_from_config(dijob_path, namespace)
+
+    # watch for dijob to converge
+    config.load_kube_config()
+    dyclient = dynamic.DynamicClient(client.ApiClient(configuration=config.load_kube_config()))
+    dijobapi = dyclient.resources.get(api_version='diengine.opendilab.org/v1alpha1', kind='DIJob')
+
+    wait_for_dijob_condition(dijobapi, name, namespace, 'Succeeded', timeout)
+
+    v1 = client.CoreV1Api()
+    logs = v1.read_namespaced_pod_log(f'{name}-coordinator', namespace, tail_lines=20)
+    print(f'\ncoordinator logs:\n {logs} \n')
+
+    # delete dijob
+    dijobapi.delete(name=name, namespace=namespace, body={})
+    # delete orchestrator
+    olauncher.delete_orchestrator()
+    # delete k8s cluster
+    launcher.delete_cluster()
+
+
+def create_object_from_config(config_path: str, namespace: str = 'default'):
+    args = ['kubectl', 'apply', '-n', namespace, '-f', config_path]
+    proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+    _, err = proc.communicate()
+    err_str = err.decode('utf-8').strip()
+    if err_str != '' and 'WARN' not in err_str and 'already exists' not in err_str:
+        raise RuntimeError(f'Failed to create object: {err_str}')
+
+
+def delete_object_from_config(config_path: str, namespace: str = 'default'):
+    args = ['kubectl', 'delete', '-n', namespace, '-f', config_path]
+    proc = subprocess.Popen(args, stderr=subprocess.PIPE)
+    _, err = proc.communicate()
+    err_str = err.decode('utf-8').strip()
+    if err_str != '' and 'WARN' not in err_str and 'NotFound' not in err_str:
+        raise RuntimeError(f'Failed to delete object: {err_str}')
+
+
+def wait_for_dijob_condition(dijobapi, name: str, namespace: str, phase: str, timeout: int = 60, interval: int = 1):
+    start = time.time()
+    dijob = dijobapi.get(name=name, namespace=namespace)
+    while (dijob.status is None or dijob.status.phase != phase) and time.time() - start < timeout:
+        time.sleep(interval)
+        dijob = dijobapi.get(name=name, namespace=namespace)
+
+    if dijob.status.phase == phase:
+        return
+    raise TimeoutError(f'Timeout waiting for DIJob: {name} to be {phase}')

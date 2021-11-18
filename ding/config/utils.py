@@ -334,6 +334,23 @@ def save_config_formatted(config_: dict, path: str = 'formatted_total_config.py'
                                         f.write("                {}={},\n".format(k4, v4))
                                 f.write("            ),\n")
                         f.write("        ),\n")
+                    elif (k2 == 'eval'):
+                        f.write("        eval=dict(\n")
+                        for k3, v3 in v2.items():
+                            if (k3 != 'evaluator'):
+                                if (isinstance(v3, str)):
+                                    f.write("            {}='{}',\n".format(k3, v3))
+                                else:
+                                    f.write("            {}={},\n".format(k3, v3))
+                            if (k3 == 'evaluator'):
+                                f.write("            evaluator=dict(\n")
+                                for k4, v4 in v3.items():
+                                    if (isinstance(v4, str)):
+                                        f.write("                {}='{}',\n".format(k4, v4))
+                                    else:
+                                        f.write("                {}={},\n".format(k4, v4))
+                                f.write("            ),\n")
+                        f.write("        ),\n")
                     elif (k2 == 'model'):
                         f.write("        model=dict(\n")
                         for k3, v3 in v2.items():
@@ -501,7 +518,7 @@ parallel_test_create_config = dict(
     ),
     collector=dict(
         type='zergling',
-        import_names=['ding.worker.collector.zergling_collector'],
+        import_names=['ding.worker.collector.zergling_parallel_collector'],
     ),
     commander=dict(
         type='naive',

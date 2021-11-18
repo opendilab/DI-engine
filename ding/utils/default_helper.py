@@ -3,7 +3,6 @@ import logging
 import random
 from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 from functools import lru_cache  # in python3.9, we can change to cache
-
 import numpy as np
 import torch
 
@@ -414,11 +413,15 @@ def one_time_warning(warning_msg: str) -> None:
 def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> dict:
     assert isinstance(data, dict), type(data)
     length = []
-    for v in data.values():
+    for k, v in data.items():
         if v is None:
             continue
+        elif k in ['prev_state', 'prev_actor_state', 'prev_critic_state']:
+            length.append(len(v))
         elif isinstance(v, list) or isinstance(v, tuple):
             length.append(len(v[0]))
+        elif isinstance(v, dict):
+            length.append(len(v[list(v.keys())[0]]))
         else:
             length.append(len(v))
     assert len(length) > 0
@@ -436,8 +439,12 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
         for k in data.keys():
             if data[k] is None:
                 batch[k] = None
+            elif k.startswith('prev_state'):
+                batch[k] = [data[k][t] for t in indices[i:i + split_size]]
             elif isinstance(data[k], list) or isinstance(data[k], tuple):
                 batch[k] = [t[indices[i:i + split_size]] for t in data[k]]
+            elif isinstance(data[k], dict):
+                batch[k] = {k1: v1[indices[i:i + split_size]] for k1, v1 in data[k].items()}
             else:
                 batch[k] = data[k][indices[i:i + split_size]]
         yield batch
@@ -453,7 +460,7 @@ class RunningMeanStd(object):
         - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``
     """
 
-    def __init__(self, epsilon=1e-4, shape=()):
+    def __init__(self, epsilon=1e-4, shape=(), device=torch.device('cpu')):
         """
         Overview:
             Initialize ``self.`` See ``help(type(self))`` for accurate  \
@@ -466,6 +473,7 @@ class RunningMeanStd(object):
         """
         self._epsilon = epsilon
         self._shape = shape
+        self._device = device
         self.reset()
 
     def update(self, x):
@@ -496,8 +504,11 @@ class RunningMeanStd(object):
         Overview:
             Resets the state of the environment and reset properties: ``_mean``, ``_var``, ``_count``
         """
-        self._mean = np.zeros(self._shape, 'float32')
-        self._var = np.ones(self._shape, 'float32')
+        if len(self._shape) > 0:
+            self._mean = np.zeros(self._shape, 'float32')
+            self._var = np.ones(self._shape, 'float32')
+        else:
+            self._mean, self._var = 0., 1.
         self._count = self._epsilon
 
     @property
@@ -506,7 +517,10 @@ class RunningMeanStd(object):
         Overview:
             Property ``mean`` gotten  from ``self._mean``
         """
-        return self._mean
+        if np.isscalar(self._mean):
+            return self._mean
+        else:
+            return torch.FloatTensor(self._mean).to(self._device)
 
     @property
     def std(self) -> np.ndarray:
@@ -514,7 +528,11 @@ class RunningMeanStd(object):
         Overview:
             Property ``std`` calculated  from ``self._var`` and the epsilon value of ``self._epsilon``
         """
-        return np.sqrt(self._var + 1e-8)
+        std = np.sqrt(self._var + 1e-8)
+        if np.isscalar(std):
+            return std
+        else:
+            return torch.FloatTensor(std).to(self._device)
 
     @staticmethod
     def new_shape(obs_shape, act_shape, rew_shape):

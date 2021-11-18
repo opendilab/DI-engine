@@ -5,8 +5,12 @@ import numpy as np
 from ding.envs import ObsNormEnv, RewardNormEnv
 
 
-def wrap_mujoco(env_id, norm_obs: Dict=dict(use_norm=False, ), 
-                norm_reward: Dict=dict(use_norm=False, ), only_info=False) -> gym.Env:
+def wrap_mujoco(
+        env_id,
+        norm_obs: Dict = dict(use_norm=False, ),
+        norm_reward: Dict = dict(use_norm=False, ),
+        only_info=False
+) -> gym.Env:
     r"""
     Overview:
         Wrap Mujoco Env to preprocess env step's return info, e.g. observation normalization, reward normalization, etc.

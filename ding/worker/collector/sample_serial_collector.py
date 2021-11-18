@@ -11,7 +11,7 @@ from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF,
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('sample')
-class SampleCollector(ISerialCollector):
+class SampleSerialCollector(ISerialCollector):
     """
     Overview:
         Sample collector(n_sample), a sample is one training sample for updating model,
@@ -252,7 +252,7 @@ class SampleCollector(ISerialCollector):
                     )
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
-                    self._traj_buffer[env_id].append(transition)
+                    self._traj_buffer[env_id].append(transition)  # NOTE
                     self._env_info[env_id]['step'] += 1
                     self._total_envstep_count += 1
                     # prepare data

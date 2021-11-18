@@ -78,6 +78,26 @@ def allreduce(data: torch.Tensor, op: str = 'sum') -> None:
         data.div_(get_world_size())
 
 
+def allreduce_async(data: torch.Tensor, op: str = 'sum') -> None:
+    r"""
+    Overview:
+        Call ``linklink.allreduce_async`` on the data
+    Arguments:
+        - data (:obj:`obj`): the data to reduce
+        - op (:obj:`str`): the operation to perform on data, support ``['sum', 'max']``
+    """
+    link_op_map = {'sum': get_link().allreduceOp_t.Sum, 'max': get_link().allreduceOp_t.Max}
+    if op not in link_op_map.keys():
+        raise KeyError("not support allreduce op type: {}".format(op))
+    else:
+        link_op = link_op_map[op]
+    if is_fake_link():
+        return data
+    if op == 'sum':
+        data.div_(get_world_size())
+    get_link().allreduce_async(data, reduce_op=link_op)
+
+
 def get_group(group_size: int) -> List:
     r"""
     Overview:
@@ -166,3 +186,7 @@ def simple_group_split(world_size: int, rank: int, num_groups: int) -> List:
         groups.append(get_link().new_group(rank_list[i]))
     group_size = world_size // num_groups
     return groups[rank // group_size]
+
+
+def synchronize():
+    get_link().synchronize()

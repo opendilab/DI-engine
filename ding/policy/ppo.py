@@ -21,6 +21,9 @@ class PPOPolicy(Policy):
     r"""
     Overview:
         Policy class of PPO algorithm.
+
+        https://arxiv.org/pdf/1707.06347.pdf
+
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -35,6 +38,9 @@ class PPOPolicy(Policy):
         priority_IS_weight=False,
         recompute_adv=True,
         continuous=True,
+        multi_agent=False,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=True,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -124,7 +130,7 @@ class PPOPolicy(Policy):
         self._adv_norm = self._cfg.learn.adv_norm
         self._value_norm = self._cfg.learn.value_norm
         if self._value_norm:
-            self._running_mean_std = RunningMeanStd(epsilon=1e-4)
+            self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
         self._recompute_adv = self._cfg.recompute_adv
@@ -262,11 +268,14 @@ class PPOPolicy(Policy):
     def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for collect mode
+            Forward function of collect mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - data (:obj:`dict`): The collected data
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -321,18 +330,34 @@ class PPOPolicy(Policy):
             data[-1]['done'] = False
 
         if data[-1]['done']:
-            last_value = torch.zeros(1)
+            last_value = torch.zeros_like(data[-1]['value'])
         else:
-            with torch.no_grad():
-                last_value = self._collect_model.forward(
-                    data[-1]['next_obs'].unsqueeze(0), mode='compute_actor_critic'
-                )['value']
+            if self._cfg.multi_agent:
+                with torch.no_grad():
+                    last_value = self._collect_model.forward(
+                        {
+                            'agent_state': data[-1]['next_obs']['agent_state'].unsqueeze(0),
+                            'global_state': data[-1]['next_obs']['global_state'].unsqueeze(0),
+                            'action_mask': data[-1]['next_obs']['action_mask'].unsqueeze(0)
+                        },
+                        mode='compute_actor_critic'
+                    )['value']
+                    last_value = last_value.squeeze(0)
+            else:
+                with torch.no_grad():
+                    last_value = self._collect_model.forward(
+                        data[-1]['next_obs'].unsqueeze(0), mode='compute_actor_critic'
+                    )['value']
         if self._value_norm:
             last_value *= self._running_mean_std.std
             for i in range(len(data)):
                 data[i]['value'] *= self._running_mean_std.std
         data = get_gae(
-            data, to_device(last_value, self._device), gamma=self._gamma, gae_lambda=self._gae_lambda, cuda=self._cuda
+            data,
+            to_device(last_value, self._device),
+            gamma=self._gamma,
+            gae_lambda=self._gae_lambda,
+            cuda=False,
         )
         if self._value_norm:
             for i in range(len(data)):
@@ -360,11 +385,14 @@ class PPOPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -382,7 +410,10 @@ class PPOPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'vac', ['ding.model.template.vac']
+        if self._cfg.multi_agent:
+            return 'mappo', ['ding.model.template.mappo']
+        else:
+            return 'vac', ['ding.model.template.vac']
 
     def _monitor_vars_learn(self) -> List[str]:
         variables = super()._monitor_vars_learn() + [
@@ -412,8 +443,7 @@ class PPOOffPolicy(Policy):
         type='ppo',
         # (bool) Whether to use cuda for network.
         cuda=False,
-        # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
-        on_policy=True,
+        on_policy=False,
         # (bool) Whether to use priority(priority sample, IS weight, update priority)
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
@@ -422,6 +452,8 @@ class PPOOffPolicy(Policy):
         nstep_return=False,
         recompute_adv = False,
         nstep=3,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=True,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -557,7 +589,7 @@ class PPOOffPolicy(Policy):
             # TODO what should we do here to keep shape
             assert self._nstep > 1
             td_data = v_nstep_td_data(
-                value['value'], target_value['value'], reward.t(), data['done'], data['weight'], value_gamma
+                value['value'], target_value['value'], reward, data['done'], data['weight'], value_gamma
             )
             # calculate v_nstep_td critic_loss
             critic_loss, td_error_per_sample = v_nstep_td_error(td_data, self._gamma, self._nstep)
@@ -610,11 +642,14 @@ class PPOOffPolicy(Policy):
     def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for collect mode
+            Forward function of collect mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - data (:obj:`dict`): The collected data
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -675,7 +710,7 @@ class PPOOffPolicy(Policy):
             data[-1]['done'],
             gamma=self._gamma,
             gae_lambda=self._gae_lambda,
-            cuda=self._cuda,
+            cuda=False,
         )
         if not self._nstep_return:
             return get_train_sample(data, self._unroll_len)
@@ -694,11 +729,14 @@ class PPOOffPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))

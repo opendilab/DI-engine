@@ -13,6 +13,17 @@ class TestAdder:
         return {
             'value': torch.randn(1),
             'reward': torch.rand(1),
+            'action': torch.rand(3),
+            'other': np.random.randint(0, 10, size=(4, )),
+            'obs': torch.randn(3),
+            'done': False
+        }
+
+    def get_transition_multi_agent(self):
+        return {
+            'value': torch.randn(1, 8),
+            'reward': torch.rand(1, 1),
+            'action': torch.rand(3),
             'other': np.random.randint(0, 10, size=(4, )),
             'obs': torch.randn(3),
             'done': False
@@ -45,6 +56,39 @@ class TestAdder:
         output2 = get_gae_with_default_last_value(data, False, gamma=0.99, gae_lambda=0.97, cuda=False)
         for i in range(len(output)):
             assert output[i]['adv'].eq(output2[i]['adv'])
+
+    def test_get_gae_multi_agent(self):
+        transitions = deque([self.get_transition_multi_agent() for _ in range(10)])
+        last_value = torch.randn(1, 8)
+        output = get_gae(transitions, last_value, gamma=0.99, gae_lambda=0.97, cuda=False)
+        for i in range(len(output)):
+            o = output[i]
+            assert 'adv' in o.keys()
+            for k, v in o.items():
+                if k == 'adv':
+                    assert isinstance(v, torch.Tensor)
+                    assert v.shape == (
+                        1,
+                        8,
+                    )
+                else:
+                    if k == 'done':
+                        assert v == transitions[i][k]
+                    else:
+                        assert (v == transitions[i][k]).all()
+        output1 = get_gae_with_default_last_value(
+            copy.deepcopy(transitions), True, gamma=0.99, gae_lambda=0.97, cuda=False
+        )
+        for i in range(len(output)):
+            for j in range(output[i]['adv'].shape[1]):
+                assert output[i]['adv'][0][j].ne(output1[i]['adv'][0][j])
+
+        data = copy.deepcopy(transitions)
+        data.append({'value': last_value})
+        output2 = get_gae_with_default_last_value(data, False, gamma=0.99, gae_lambda=0.97, cuda=False)
+        for i in range(len(output)):
+            for j in range(output[i]['adv'].shape[1]):
+                assert output[i]['adv'][0][j].eq(output2[i]['adv'][0][j])
 
     def test_get_nstep_return_data(self):
         nstep = 3
@@ -96,3 +140,7 @@ class TestAdder:
         assert output[-1]['done'][-1] is True
         assert output[-1]['done'][0] is False
         assert id(output[-1]['obs'][-1]) != id(output[-1]['obs'][0])
+
+
+test = TestAdder()
+test.test_get_gae_multi_agent()
