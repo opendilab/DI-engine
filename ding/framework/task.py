@@ -1,13 +1,12 @@
 import logging
-from types import GeneratorType
-from typing import Any, Awaitable, Callable, Generator, List, Optional, Union
-from ding.framework import parallel
-
-from ding.framework.context import Context
-from ding.framework.parallel import Parallel
+import copy
 import time
 import asyncio
 import concurrent.futures
+from types import GeneratorType
+from typing import Awaitable, Callable, Generator, List, Optional
+from ding.framework.context import Context
+from ding.framework.parallel import Parallel
 
 
 def enable_async(func: Callable) -> Callable:
@@ -59,7 +58,9 @@ class Task:
             n_parallel_workers: Optional[int] = None,
             attach_to: List[str] = None,
             protocol: str = "ipc",
-            middlewares: List[Callable] = None
+            middlewares: List[Callable] = None,
+            *args,
+            **kwargs
     ) -> None:
         self.middleware = middlewares or []
         self.ctx = Context()
@@ -211,23 +212,12 @@ class Task:
             await t
 
     def parallel(self, main_process: Callable):
-        prototype = self
 
         def _parallel():
-            router = prototype.router
-            task = Task(
-                async_mode=prototype.async_mode,
-                n_async_workers=prototype.n_async_workers,
-                parallel_mode=True,
-                router=prototype.router,
-                n_parallel_workers=prototype.n_parallel_workers,
-                attach_to=prototype.attach_to,
-                protocol=prototype.protocol,
-                middlewares=prototype.middleware
-            )
-            router.register_rpc("sync_parallel_ctx", task.sync_parallel_ctx)
+            task = copy.copy(self)
+            task.router.register_rpc("sync_parallel_ctx", task.sync_parallel_ctx)
             n_timeout = 10
-            if len(prototype.attach_to) > 0:
+            if len(task.attach_to) > 0:
                 logging.warning(
                     "The attach mode will wait for the latest context, \
 or wait for a timeout of {} seconds before starting execution".format(n_timeout)
@@ -239,12 +229,7 @@ or wait for a timeout of {} seconds before starting execution".format(n_timeout)
                     time.sleep(0.5)
             main_process(task)
 
-        prototype.router.run(
-            _parallel,
-            n_workers=prototype.n_parallel_workers,
-            attach_to=prototype.attach_to,
-            protocol=prototype.protocol
-        )
+        self.router.run(_parallel, n_workers=self.n_parallel_workers, attach_to=self.attach_to, protocol=self.protocol)
 
     def sync_parallel_ctx(self, ctx: Context):
         self.ctx.total_step = max(ctx.total_step + 1, self.ctx.total_step + 1)
@@ -289,3 +274,6 @@ or wait for a timeout of {} seconds before starting execution".format(n_timeout)
         if "prev" in old:
             del old["prev"]
         return old
+
+    def __copy__(self):
+        return Task(**self.__dict__)
