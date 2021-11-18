@@ -98,27 +98,12 @@ def serial_pipeline(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
-            new_data = collector.collect(
-                n_sample=cfg.policy.collect.each_iter_n_sample,
-                train_iter=learner.train_iter,
-                policy_kwargs=collect_kwargs
-            )
-        else:
-            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        #print(learner.train_iter)
-        #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-        #print(learner.train_iter)
-        #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
@@ -129,6 +114,9 @@ def serial_pipeline(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
+        if cfg.policy.on_policy:
+            # On-policy algorithm must clear the replay buffer.
+            replay_buffer.clear()
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
