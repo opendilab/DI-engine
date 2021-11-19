@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to Use Multi-GPU to Train Your Model &mdash; DI-engine 0.1.0 documentation</title>
+  <title>How to Use Multi-GPUs to Train Your Model &mdash; DI-engine 0.1.0 documentation</title>
   
 
   
@@ -100,8 +100,9 @@
 <li class="toctree-l2"><a class="reference internal" href="rnn.html">How to use RNN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="random_seed.html">Random seed</a></li>
 <li class="toctree-l2"><a class="reference internal" href="multi_discrete.html">Multi-Discrete Example</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">How to Use Multi-GPU to Train Your Model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#going-deeper-with-multi-gpu-training-in-di-engine">Going deeper with multi-gpu training in DI-engine</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to Use Multi-GPUs to Train Your Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dataparallel-dp-mode">DataParallel(DP) Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#datadistributedparallel-ddp-mode">DataDistributedParallel(DDP) Mode</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="random_collect_size.html">How to randomly collect some data sample at the beginning?</a></li>
@@ -171,7 +172,7 @@
         
           <li><a href="index.html">Best Practice</a> &raquo;</li>
         
-      <li>How to Use Multi-GPU to Train Your Model</li>
+      <li>How to Use Multi-GPUs to Train Your Model</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -190,13 +191,60 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-use-multi-gpu-to-train-your-model">
-<h1>How to Use Multi-GPU to Train Your Model<a class="headerlink" href="#how-to-use-multi-gpu-to-train-your-model" title="Permalink to this headline">¶</a></h1>
-<p>DI-engine supports data-parallel training with multiple GPUs.</p>
-<p>During data-parallel training, each device handles a portion of total input. Large training batch significantly accelerate the training process.</p>
-<p>To enable multi-gpu training, you can simply set <code class="docutils literal notranslate"><span class="pre">config.learn.multi_gpu</span></code> as <cite>True</cite> in the policy file under <code class="docutils literal notranslate"><span class="pre">ding/policy/</span></code>.</p>
-<div class="section" id="going-deeper-with-multi-gpu-training-in-di-engine">
-<h2>Going deeper with multi-gpu training in DI-engine<a class="headerlink" href="#going-deeper-with-multi-gpu-training-in-di-engine" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="how-to-use-multi-gpus-to-train-your-model">
+<h1>How to Use Multi-GPUs to Train Your Model<a class="headerlink" href="#how-to-use-multi-gpus-to-train-your-model" title="Permalink to this headline">¶</a></h1>
+<p>DI-engine supports data-parallel training with multi-GPUs.</p>
+<p>During data-parallel training, each device handles a portion of total input.
+Large training batch significantly accelerate the training process.</p>
+<p>About data-parallel training in DI-engine, we support two types which are DataParallel(DP) and DataDistributedParallel(DDP).</p>
+<p>The experimental environment referred to here is a single machine with multi-GPUs.</p>
+<div class="section" id="dataparallel-dp-mode">
+<h2>DataParallel(DP) Mode<a class="headerlink" href="#dataparallel-dp-mode" title="Permalink to this headline">¶</a></h2>
+<p>DP is mainly used for single-machine multi-GPUs, single-process control multi-GPUs.
+There is 1 master node, the default is device[0].
+The gradients are aggregated to the master, and the parameters are updated through backpropagation,
+and then the parameters are synchronized with other GPUs.</p>
+<ol class="arabic simple">
+<li><p>In DI-engine, we define ding.torch_utils.DataParallel, which inherits Torch.nn.DataParallel. And at the same time, we rewrite the parameters() method. please refer to <code class="docutils literal notranslate"><span class="pre">ding/torch_utils/dataparallel.py</span></code></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="k">class</span> <span class="nc">DataParallel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">DataParallel</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">device_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">device_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">module</span>
+
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recurse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">parameters</span><span class="p">(</span><span class="n">recurse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Training</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+<span class="kn">from</span> <span class="nn">ding.model.template.q_learning</span> <span class="kn">import</span> <span class="n">DQN</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">DataParallel</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">DataParallel</span><span class="p">(</span><span class="n">DQN</span><span class="p">(</span><span class="n">obs_shape</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">],</span><span class="n">action_shape</span><span class="o">=</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We don’t need to change any other code, just simply encapsulate the policy. Please refer to <code class="docutils literal notranslate"><span class="pre">dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config_multi_gpu_dp.py</span></code></p>
+<p>For DP, the runnable script demo is demonstrated as follows.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1 python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+</pre></div>
+</div>
+<p>or (on cluster managed by Slurm)</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun -p PARTITION_NAME --mpi<span class="o">=</span>pmi2 --gres<span class="o">=</span>gpu:2 -n1 --ntasks-per-node<span class="o">=</span><span class="m">1</span> python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+</pre></div>
+</div>
+</div>
+<div class="section" id="datadistributedparallel-ddp-mode">
+<h2>DataDistributedParallel(DDP) Mode<a class="headerlink" href="#datadistributedparallel-ddp-mode" title="Permalink to this headline">¶</a></h2>
+<p>DataDistributedParallel(DDP) is mainly used for single-machine multi-GPUs and multi-machine multi-GPUs.
+It adopts multi-process to control multi-GPUs and adopts ring allreduce to synchronize gradient.</p>
+<p>In DataDistributedParallel(DDP) Mode, we should simply set <code class="docutils literal notranslate"><span class="pre">config.policy.learn.multi_gpu</span></code> as <cite>True</cite> in the config file under <code class="docutils literal notranslate"><span class="pre">dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config_multi_gpu_ddp.py</span></code>.</p>
 <p>We re-implement the data-parallel training module with APIs in <code class="docutils literal notranslate"><span class="pre">torch.distributed</span></code> for high scalability.</p>
 <ol class="arabic simple">
 <li><p>Parameters on Rank-0 GPU are broadcasted to all devices, so that models on different devices share the same initialization.</p></li>
@@ -227,6 +275,25 @@
 </div>
 <p>Information including loss and reward should be aggregated among devices when applying data-parallel training. DI-engine achieves this with AllReduce operator in a hook, and only saves log files on process with rank 0.
 For more related functions, please refer to <code class="docutils literal notranslate"><span class="pre">ding/utils/pytorch_ddp_dist_helper.py</span></code></p>
+<ol class="arabic simple" start="3">
+<li><p>Training</p></li>
+</ol>
+<p>When using it, firstly we set <code class="docutils literal notranslate"><span class="pre">config.policy.learn.multi_gpu</span></code> as <cite>True</cite> in the config file. Secondly, we need to Initialize the current experimental environment.
+Please refer to <code class="docutils literal notranslate"><span class="pre">dizoo/atari/entry/spaceinvaders_dqn_main_multi_gpu_ddp.py</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">DistContext</span>
+
+<span class="k">with</span> <span class="n">DistContext</span><span class="p">():</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">space_invaders_dqn_config</span><span class="p">,</span><span class="n">create_config</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For DPP, the runnable script demo is demonstrated as follows.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1 python -m torch.distributed.launch --nnodes<span class="o">=</span><span class="m">1</span> --node_rank<span class="o">=</span><span class="m">0</span> --nproc_per_node<span class="o">=</span><span class="m">2</span> spaceinvaders_dqn_main_multi_gpu_ddp.py
+</pre></div>
+</div>
+<p>or (on cluster managed by Slurm)</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun -p PARTITION_NAME --mpi<span class="o">=</span>pmi2 --gres<span class="o">=</span>gpu:2 -n2 --ntasks-per-node<span class="o">=</span><span class="m">2</span> python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+</pre></div>
+</div>
 </div>
 </div>
 
