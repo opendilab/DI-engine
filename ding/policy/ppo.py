@@ -71,7 +71,8 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):
 
     # data shape: dict of torch.FloatTensor of thansitions
     # {'obs':[torch.FloatTensor], ...,'reward':[torch.FloatTensor],...}
-    # traj mean episode transitions or truncated episode transitions because the restrict of max_traj_len
+    # traj means consequent transitions in one episode，it may be the whole episode or truncated episode,
+    # or consequent part of one episode, because the restrict of max_traj_len.
     processed_data = []
     start_index = 0
     timesteps = 0
@@ -100,7 +101,7 @@ def dict_data_split_traj_and_compute_adv(data, next_value, cfg):
 
             # traj data: list of dict (T timestep, 1 batch) [{'value':,'reward':,'adv':}, ...,]
             if data['done'][i]:  # if done
-                traj_data = compute_adv(traj_data, torch.zeros(1)[0].to(data['obs'][0].device), cfg)  # bug
+                traj_data = compute_adv(traj_data, torch.zeros(1)[0].to(data['obs'][0].device), cfg)
             else:  # if not done
                 traj_data = compute_adv(traj_data, next_value[i].to(data['obs'][0].device), cfg)
 
