@@ -131,10 +131,6 @@ class PDQNPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
-        # self._dis_optimizer = Adam(
-        #     list(self._model.dis_head.parameters()) + list(self._model.dis_encoder.parameters()),
-        #     lr=self._cfg.learn.learning_rate_dis
-        # )
         self._dis_optimizer = Adam(
             list(self._model.dis_head.parameters()) + list(self._model.cont_encoder.parameters()),
             # this is very important to put cont_encoder.parameters in here.
@@ -207,8 +203,6 @@ class PDQNPolicy(Policy):
             # ================================
             # Continuous args network update
             # ================================
-            # self.cont_train_cnt+=1
-            # if self.cont_train_cnt % self._cfg.learn.cont_update_freq==0:
             self._cont_optimizer.zero_grad()
             cont_loss.backward()
             self._cont_optimizer.step()
@@ -222,10 +216,6 @@ class PDQNPolicy(Policy):
             self._learn_model.train()
             self._target_model.train()
             # Current q value (main model)
-
-            # action_args_cp = action_args.clone().detach()
-            # discrete_inputs = {'state': data['obs'], 'action_args': action_args_cp}
-
             discrete_inputs = {'state': data['obs'], 'action_args': data['action']['action_args']}
             q_data_action_args_value = self._learn_model.forward(discrete_inputs, mode='compute_discrete')['logit']
 
@@ -252,8 +242,6 @@ class PDQNPolicy(Policy):
             # ====================
             # Q-learning update
             # ====================
-            # self.disc_train_cnt += 1
-            # if self.disc_train_cnt % self._cfg.learn.disc_update_freq == 0:
             self._dis_optimizer.zero_grad()
             dis_loss.backward()
             self._dis_optimizer.step()

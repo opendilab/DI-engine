@@ -69,7 +69,7 @@ class PDQN(nn.Module):
             )
         else:
             raise RuntimeError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
+                "not support obs_shape for pre-defined encoder: {}, please customize your own PDQN".format(obs_shape)
             )
 
         # Continuous Action Head Type
