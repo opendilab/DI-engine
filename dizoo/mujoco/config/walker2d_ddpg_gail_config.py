@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-walker2d_ddpg_default_config = dict(
-    exp_name='walker2d_ddpg',
+walker2d_ddpg_gail_default_config = dict(
+    exp_name='walker2d_ddpg_gail',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -12,8 +12,22 @@ walker2d_ddpg_default_config = dict(
         n_evaluator_episode=8,
         stop_value=6000,
     ),
+    reward_model=dict(
+        type='gail',
+        input_size=23,
+        hidden_size=256,
+        batch_size=64,
+        learning_rate=1e-3,
+        update_per_collect=100,
+        expert_data_path='walker2d_ddpg/expert_data_train.pkl',
+        load_path='walker2d_ddpg_gail/reward_model/ckpt/ckpt_best.pth.tar',  # state_dict of the reward model
+
+        collect_count=100000,
+    ),
     policy=dict(
+        load_path='walker2d_ddpg_gail/ckpt/ckpt_best.pth.tar',  # state_dict of the policy
         cuda=True,
+        on_policy=False,
         random_collect_size=25000,
         model=dict(
             obs_shape=17,
@@ -35,17 +49,17 @@ walker2d_ddpg_default_config = dict(
             noise=False,
         ),
         collect=dict(
-            n_sample=1,
+            n_sample=64,
             unroll_len=1,
             noise_sigma=0.1,
         ),
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
-walker2d_ddpg_default_config = EasyDict(walker2d_ddpg_default_config)
-main_config = walker2d_ddpg_default_config
+walker2d_ddpg_gail_default_config = EasyDict(walker2d_ddpg_gail_default_config)
+main_config = walker2d_ddpg_gail_default_config
 
-walker2d_ddpg_default_create_config = dict(
+walker2d_ddpg_gail_default_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -57,5 +71,5 @@ walker2d_ddpg_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-walker2d_ddpg_default_create_config = EasyDict(walker2d_ddpg_default_create_config)
-create_config = walker2d_ddpg_default_create_config
+walker2d_ddpg_gail_default_create_config = EasyDict(walker2d_ddpg_gail_default_create_config)
+create_config = walker2d_ddpg_gail_default_create_config
