@@ -170,7 +170,7 @@ def cli(
         if config is None:
             config = get_predefined_config(env, policy)
         expert_config = input("Enter the name of the config you used to generate your expert model: ")
-        serial_pipeline_gail(config, expert_config, seed, max_iterations=train_iter, collect_data=False)
+        serial_pipeline_gail(config, expert_config, seed, max_iterations=train_iter, collect_data=True)
     elif mode == 'serial_dqfd':
         from .serial_entry_dqfd import serial_pipeline_dqfd
         if config is None:
