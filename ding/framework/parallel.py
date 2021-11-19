@@ -1,6 +1,5 @@
 import atexit
 import os
-from sys import addaudithook
 import time
 import random
 import pynng
@@ -41,7 +40,7 @@ class Parallel:
         attach_to = attach_to or []
 
         nodes = self.get_node_addrs(n_workers, protocol=protocol, address=address, ports=ports)
-        print("Bind subprocesses on these addresses: {}".format(nodes))
+        logging.info("Bind subprocesses on these addresses: {}".format(nodes))
 
         def _cleanup_nodes():
             for node in nodes:
@@ -60,12 +59,8 @@ class Parallel:
             main_process()
 
         with WorkerPool(n_jobs=n_workers) as pool:
-
-            def _cleanup_pool():
-                # Cleanup the pool just in case the program crashes.
-                pool.__exit__()
-
-            atexit.register(_cleanup_pool)
+            # Cleanup the pool just in case the program crashes.
+            atexit.register(lambda: pool.__exit__())
             results = pool.map(_parallel, range(n_workers))
         return results
 
@@ -83,6 +78,8 @@ class Parallel:
         elif protocol == "tcp":
             address = address or self.get_ip()
             ports = ports or range(50515, 50515 + n_workers)
+            assert len(ports) == n_workers, "The number of ports must be the same as the number of workers, \
+now there are {} ports and {} workers".format(len(ports), n_workers)
             nodes = ["tcp://{}:{}".format(address, port) for port in ports]
         else:
             raise Exception("Unknown protocol {}".format(protocol))

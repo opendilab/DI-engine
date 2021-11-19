@@ -282,9 +282,13 @@ def main_eager(cfg, create_cfg, seed=0):
             task.forward(learn_profiler(learn))
 
             import random
+            from os import path
             time.sleep(random.random() + 1)
             task.renew()
-            print("Current task step on {}".format(task.router and task.router._bind_addr), task.ctx.total_step)
+            print(
+                "Current task step on {}".format(task.router and path.basename(task.router._bind_addr)),
+                task.ctx.total_step
+            )
 
     task.parallel(_execute_task)
     # _execute_task(task)
