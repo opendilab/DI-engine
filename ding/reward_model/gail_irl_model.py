@@ -233,24 +233,6 @@ class GailRewardModel(BaseRewardModel):
         for item, rew in zip(data, reward):
             item['reward'] = -torch.log(rew + 1e-8)
 
-    '''def estimate_D(self, data: list) -> None:
-        """
-        Overview:
-            Estimate reward by rewriting the reward key in each row of the data.
-        Arguments:
-            - data (:obj:`list`): the list of data used for estimation, with at least \
-                 ``obs`` and ``action`` keys.
-        Effects:
-            - This is a side effect function which updates the reward values in place.
-        """
-        res = self.concat_state_action_pairs(data)
-        res = torch.stack(res).to(self.device)
-        with torch.no_grad():
-            reward = self.reward_model(res).squeeze(-1).cpu()
-        reward = torch.chunk(reward, reward.shape[0], dim=0)
-        for item, rew in zip(data, reward):
-            item['reward'] = rew'''
-
     def collect_data(self, data: list) -> None:
         """
         Overview:
