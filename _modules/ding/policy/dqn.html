@@ -205,18 +205,32 @@
 <span class="sd">        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary</span>
 <span class="sd">           | ``per_collect``                            | after collector&#39;s one collection. Only | from envs. Bigger val</span>
 <span class="sd">                                                        | valid in serial training               | means more off-policy</span>
-<span class="sd">        9  | ``learn.batch_``   int      64             | The number of samples of an iteration</span>
+<span class="sd">        9  | ``learn.multi``    bool     False          | whether to use multi gpu during</span>
+<span class="sd">           | ``_gpu``</span>
+<span class="sd">        10 | ``learn.batch_``   int      64             | The number of samples of an iteration</span>
 <span class="sd">           | ``size``</span>
-<span class="sd">        10 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.</span>
+<span class="sd">        11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.</span>
 <span class="sd">           | ``_rate``</span>
-<span class="sd">        11 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update</span>
+<span class="sd">        12 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update</span>
 <span class="sd">           | ``update_freq``</span>
-<span class="sd">        12 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some</span>
+<span class="sd">        13 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some</span>
 <span class="sd">           | ``done``                                   | calculation.                           | fake termination env</span>
-<span class="sd">        13 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from</span>
+<span class="sd">        14 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from</span>
 <span class="sd">                                                        | call of collector.                     | different envs</span>
-<span class="sd">        14 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len&gt;1</span>
+<span class="sd">        15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len&gt;1</span>
 <span class="sd">           | ``_len``</span>
+<span class="sd">        16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support [&#39;exp&#39;,</span>
+<span class="sd">                                                                                                 | &#39;linear&#39;].</span>
+<span class="sd">        17 | ``other.eps.       float    0.95           | start value of exploration rate        | [0,1]</span>
+<span class="sd">           |  start``</span>
+<span class="sd">        18 | ``other.eps.       float    0.1            | end value of exploration rate          | [0,1]</span>
+<span class="sd">           |  end``</span>
+<span class="sd">        19 | ``other.eps.       int      10000          | decay length of exploration            | greater than 0. set</span>
+<span class="sd">           |  decay``                                                                            | decay=10000 means</span>
+<span class="sd">                                                                                                 | the exploration rate</span>
+<span class="sd">                                                                                                 | decay from start</span>
+<span class="sd">                                                                                                 | value to end value</span>
+<span class="sd">                                                                                                 | during decay length.</span>
 <span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 

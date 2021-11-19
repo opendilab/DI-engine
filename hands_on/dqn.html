@@ -429,6 +429,20 @@
 </tr>
 <tr class="row-even"><td><p>9</p></td>
 <td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.multi</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_gpu</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">whether to use multi gpu during</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.batch_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">size</span></code></div>
 </div>
@@ -441,7 +455,7 @@
 </td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>10</p></td>
+<tr class="row-even"><td><p>11</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">_rate</span></code></div>
@@ -455,7 +469,7 @@
 </td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>11</p></td>
+<tr class="row-odd"><td><p>12</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.target_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">update_freq</span></code></div>
@@ -472,7 +486,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>12</p></td>
+<tr class="row-even"><td><p>13</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">learn.ignore_</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">done</span></code></div>
@@ -491,7 +505,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-even"><td><p>13</p></td>
+<tr class="row-odd"><td><p>14</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">collect.n_sample</span></code></p></td>
 <td><p>int</p></td>
 <td><p>[8, 128]</p></td>
@@ -506,7 +520,7 @@
 </div>
 </td>
 </tr>
-<tr class="row-odd"><td><p>14</p></td>
+<tr class="row-even"><td><p>15</p></td>
 <td><div class="line-block">
 <div class="line"><code class="docutils literal notranslate"><span class="pre">collect.unroll</span></code></div>
 <div class="line"><code class="docutils literal notranslate"><span class="pre">_len</span></code></div>
@@ -520,6 +534,85 @@
 </td>
 <td><div class="line-block">
 <div class="line">In RNN, unroll_len&gt;1</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>16</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.type</span></code></div>
+</div>
+</td>
+<td><p>str</p></td>
+<td><p>exp</p></td>
+<td><div class="line-block">
+<div class="line">exploration rate decay type</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Support [‘exp’,</div>
+<div class="line">‘linear’].</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>17</p></td>
+<td><div class="line-block">
+<div class="line"><a href="#id1"><span class="problematic" id="id2">``</span></a>other.eps.</div>
+<div class="line-block">
+<div class="line">start``</div>
+</div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.95</p></td>
+<td><div class="line-block">
+<div class="line">start value of exploration rate</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">[0,1]</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>18</p></td>
+<td><div class="line-block">
+<div class="line"><a href="#id3"><span class="problematic" id="id4">``</span></a>other.eps.</div>
+<div class="line-block">
+<div class="line">end``</div>
+</div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.1</p></td>
+<td><div class="line-block">
+<div class="line">end value of exploration rate</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">[0,1]</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>19</p></td>
+<td><div class="line-block">
+<div class="line"><a href="#id5"><span class="problematic" id="id6">``</span></a>other.eps.</div>
+<div class="line-block">
+<div class="line">decay``</div>
+</div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>10000</p></td>
+<td><div class="line-block">
+<div class="line">decay length of exploration</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">greater than 0. set</div>
+<div class="line">decay=10000 means</div>
+<div class="line">the exploration rate</div>
+<div class="line">decay from start</div>
+<div class="line">value to end value</div>
+<div class="line">during decay length.</div>
 </div>
 </td>
 </tr>
