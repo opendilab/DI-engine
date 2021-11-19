@@ -8,7 +8,7 @@
 ![Conda](https://anaconda.org/opendilab/di-engine/badges/version.svg)
 ![Conda update](https://anaconda.org/opendilab/di-engine/badges/latest_release_date.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/DI-engine)
-![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com/PaParaZz1/54c5c44eeb94734e276b2ed5770eba8d/raw/4d1ba1a3122eb8096c32c3d7bad165ce430cee9a/badges.json)
+![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com/PaParaZz1/54c5c44eeb94734e276b2ed5770eba8d/raw/c27503982a466fb609c87bff22d8673c4491ea47/badges.json)
 
 ![Loc](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/loc.json)
 ![Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/comments.json)
