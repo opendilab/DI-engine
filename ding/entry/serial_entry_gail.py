@@ -7,13 +7,13 @@ from tensorboardX import SummaryWriter
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
-from ding.config import compile_config
+from ding.config import compile_config, read_config
 from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.entry import collect_demo_data
-from dizoo.mujoco.config import *
 from ding.utils import save_file
+import numpy as np
 
 
 def save_reward_model(path, reward_model, weights_name='best'):
@@ -29,7 +29,7 @@ def save_reward_model(path, reward_model, weights_name='best'):
     print('Saved reward model ckpt in {}'.format(path))
 
 
-def main(
+def serial_pipeline_gail(
         input_cfg: Tuple[dict, dict],
         expert_cfg: Tuple[dict, dict],
         seed: int = 0,
@@ -53,10 +53,16 @@ def main(
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
-    cfg, create_cfg = input_cfg
+    if isinstance(input_cfg, str):
+        cfg, create_cfg = read_config(input_cfg)
+    else:
+        cfg, create_cfg = input_cfg
+    if isinstance(expert_cfg, str):
+        expert_cfg, expert_create_cfg = read_config(input_cfg)
+    else:
+        cfg, create_cfg = input_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
-    expert_cfg, expert_create_cfg = expert_cfg
     # Load expert data
     if collect_data:
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:
@@ -112,7 +118,7 @@ def main(
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size)
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
-    best_reward = -10000
+    best_reward = -np.inf
     for _ in range(max_iterations):
         # Evaluate policy performance
         collect_kwargs = commander.step()
@@ -157,13 +163,3 @@ def main(
     save_reward_model(cfg.exp_name, reward_model, 'last')
     # evaluate
     evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-
-
-if __name__ == "__main__":
-    main(
-        (walker2d_ddpg_gail_default_config, walker2d_ddpg_gail_default_create_config),
-        (walker2d_ddpg_default_config, walker2d_ddpg_default_create_config),
-        collect_data=False,
-        seed=0,
-        max_iterations=1000000
-    )

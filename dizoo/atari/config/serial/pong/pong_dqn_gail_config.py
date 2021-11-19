@@ -21,6 +21,7 @@ pong_dqn_gail_config = dict(
         expert_data_path='pong_dqn/expert_data_train.pkl',
         load_path='pong_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',  # state_dict of the reward model
         collect_count=1000,
+        action_size=6
     ),
     policy=dict(
         load_path='pong_dqn_gail/ckpt/ckpt_best.pth.tar',

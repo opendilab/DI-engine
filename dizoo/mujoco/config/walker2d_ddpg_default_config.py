@@ -13,7 +13,6 @@ walker2d_ddpg_default_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        load_path='walker2d_ddpg/ckpt/ckpt_best.pth.tar',
         cuda=True,
         random_collect_size=25000,
         model=dict(

@@ -53,7 +53,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     '-m',
     '--mode',
     type=click.Choice(
-        ['serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'parallel', 'dist', 'eval', 'serial_reward_model']
+        ['serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'parallel', 'dist', 'eval', 'serial_reward_model',
+         'serial_gail']
     ),
     help='serial-train or parallel-train or dist-train or eval'
 )
@@ -164,6 +165,12 @@ def cli(
         if config is None:
             config = get_predefined_config(env, policy)
         serial_pipeline_reward_model(config, seed, max_iterations=train_iter)
+    elif mode == 'serial_gail':
+        from .serial_entry_gail import serial_pipeline_gail
+        if config is None:
+            config = get_predefined_config(env, policy)
+        expert_config = input("Enter the name of the config you used to generate your expert model: ")
+        serial_pipeline_gail(config, expert_config, seed, max_iterations=train_iter, collect_data=False)
     elif mode == 'serial_dqfd':
         from .serial_entry_dqfd import serial_pipeline_dqfd
         if config is None:
