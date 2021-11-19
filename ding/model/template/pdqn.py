@@ -24,7 +24,7 @@ class PDQN(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        """
+        r"""
         Overview:
             Init the PDQN (encoder + head) Model according to input arguments.
         Arguments:
@@ -98,34 +98,50 @@ class PDQN(nn.Module):
         # self.encoder = nn.ModuleList([self.dis_encoder, self.cont_encoder])
         self.encoder = nn.ModuleList([self.cont_encoder, self.cont_encoder])
 
-
     def forward(self, inputs: Union[torch.Tensor, Dict, EasyDict], mode: str) -> Dict:
         r"""
         Overview:
             PDQN forward computation graph, input observation tensor to predict q_value for discrete actions and values for continuous action_args
         Arguments:
-            - x (:obj:`torch.Tensor`): Observation inputs
-        Returns:
-            - outputs (:obj:`Dict`): PDQN forward outputs, such as q_values and continuous action args.
-        ReturnsKeys:
-            - logit (:obj:`torch.Tensor`): Discrete Q-value output of each discrete action dimension.
-            - action_args (:obj:`torch.FloatTensor`): Continuous action args (scaled from -1 to 1)
+            - inputs (:obj:`torch.Tensor`): Observation inputs
+            - mode (:obj:`str`): Name of the forward mode.
         Shapes:
-            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where B is batch size and M is ``action_type_shape``
-            - action_args (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where N2 is action_args_shape
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
     def compute_continuous(self, inputs: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            Use observation tensor to predict continuous action args.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`): Observation inputs
+        Shapes:
+            - inputs (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is ``obs_shape``
+        Returns:
+            - outputs (:obj:`Dict`): A dict with key 'action_args'
+                -  'action_args': the continuous action args
+        """
         cont_x = self.encoder[1](inputs)  # size (B, encoded_state_shape)
         action_args = self.actor_head[1](cont_x)['pred']  # size (B, action_args_shape)
-        return {'action_args': action_args}
+        outputs = {'action_args': action_args}
+        return outputs
 
     def compute_discrete(self, inputs: Union[Dict, EasyDict]) -> Dict:
+        r"""
+        Overview:
+            Use observation tensor and continuous action args to predict discrete action types.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`): A dict with keys 'state', 'action_args'
+        Returns:
+            - outputs (:obj:`Dict`): A dict with keys 'logit', 'action_args'
+                -  'logit': the logit value for each discrete action,
+                -  'action_args': the continuous action args(same as the inputs['action_args']) for later usage
+        """
         dis_x = self.encoder[0](inputs['state'])  # size (B, encoded_state_shape)
         action_args = inputs['action_args']  # size (B, action_args_shape
         state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
         logit = self.actor_head[0](state_action_cat)['logit']  # size (B, action_type_shape)
-        return {'logit': logit, 'action_args':action_args}
+        outputs = {'logit': logit, 'action_args': action_args}
+        return outputs

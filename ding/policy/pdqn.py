@@ -15,7 +15,61 @@ from .common_utils import default_preprocess_learn
 @POLICY_REGISTRY.register('pdqn')
 class PDQNPolicy(Policy):
     r""":
-    TODO
+    Overview:
+        Policy class of PDQN algorithm, which extends the DQN algorithm on discrete-continuous hybrid action spaces.
+
+    Config:
+        == ==================== ======== ============== ======================================== =======================
+        ID Symbol               Type     Default Value  Description                              Other(Shape)
+        == ==================== ======== ============== ======================================== =======================
+        1  ``type``             str      pdqn           | RL policy register name, refer to      | This arg is optional,
+                                                        | registry ``POLICY_REGISTRY``           | a placeholder
+        2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-
+                                                                                                 | erent from modes
+        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy  | This value is always
+                                                        | or off-policy                          | False for PDQN
+        4  ``priority``         bool     False          | Whether use priority(PER)              | Priority sample,
+                                                                                                 | update priority
+        5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight
+           | ``_weight``                                | to correct biased update. If True,
+                                                        | priority must be True.
+        6  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | May be 1 when sparse
+           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
+        
+        7  ``nstep``            int      1,             | N-step reward discount sum for target
+                                         [3, 5]         | q_value estimation
+        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
+           | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
+                                                        | valid in serial training               | means more off-policy
+        9  | ``learn.batch_``   int      64             | The number of samples of an iteration
+           | ``size``
+        10 | ``learn.multi``    bool     False          | whether to use multi gpu during     
+           | ``_gpu``
+        11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
+           | ``_rate``
+        12 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
+           | ``update_freq``
+        13 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
+           | ``done``                                   | calculation.                           | fake termination env       
+        14 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
+                                                        | call of collector.                     | different envs
+        15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
+           | ``_len``
+        16 | ``collect.noise``  float    0.1            | add noise to continuous args 
+           | ``_sigma``                                 | during collection
+        17 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp', 
+                                                                                                 | 'linear'].
+        18 | ``other.eps.       float    0.95           | start value of exploration rate        | [0,1]
+           |  start``
+        19 | ``other.eps.       float    0.05           | end value of exploration rate          | [0,1]
+           |  end``
+        20 | ``other.eps.       int      10000          | decay length of exploration            | greater than 0. set
+           |  decay``                                                                            | decay=10000 means
+                                                                                                 | the exploration rate
+                                                                                                 | decay from start
+                                                                                                 | value to end value
+                                                                                                 | during decay length.
+        == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
         type='pdqn',
@@ -86,10 +140,7 @@ class PDQNPolicy(Policy):
             # this is very important to put cont_encoder.parameters in here.
             lr=self._cfg.learn.learning_rate_dis
         )
-        self._cont_optimizer = Adam(
-            list(self._model.cont_head.parameters()),
-            lr=self._cfg.learn.learning_rate_cont
-        )
+        self._cont_optimizer = Adam(list(self._model.cont_head.parameters()), lr=self._cfg.learn.learning_rate_cont)
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
@@ -105,7 +156,7 @@ class PDQNPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='hybrid_argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
-        self.cont_train_cnt=0
+        self.cont_train_cnt = 0
         self.disc_train_cnt = 0
         self.train_cnt = 0
 
@@ -123,8 +174,7 @@ class PDQNPolicy(Policy):
             - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
             - optional: ``value_gamma``, ``IS``
         ReturnsKeys:
-            - necessary: ``cur_lr``, ``total_q_loss``, ``total_cont_network_loss``, ``priority``
-            - optional: ``action_distribution``
+            - necessary: ``cur_lr``, ``q_loss``, ``continuous_loss``, ``q_value``, ``priority``, ``reward``, ``target_q_value``
         """
         data = default_preprocess_learn(
             data,
@@ -140,10 +190,10 @@ class PDQNPolicy(Policy):
         # ================================
         # Continuous args network forward
         # ================================
-        if self.train_cnt == 1 or self.train_cnt % self._cfg.learn.update_circle in range(5,10):
-            dis_loss=torch.Tensor([0])
-            td_error_per_sample=torch.Tensor([0])
-            target_q_value=torch.Tensor([0])
+        if self.train_cnt == 1 or self.train_cnt % self._cfg.learn.update_circle in range(5, 10):
+            dis_loss = torch.Tensor([0])
+            td_error_per_sample = torch.Tensor([0])
+            target_q_value = torch.Tensor([0])
 
             action_args = self._learn_model.forward(data['obs'], mode='compute_continuous')['action_args']
 
@@ -151,7 +201,7 @@ class PDQNPolicy(Policy):
             discrete_inputs = {'state': data['obs'], 'action_args': action_args}
             # with torch.no_grad():
             q_pi_action_value = self._learn_model.forward(discrete_inputs, mode='compute_discrete')['logit']
-            cont_loss = -  q_pi_action_value.sum(dim=-1).mean()
+            cont_loss = -q_pi_action_value.sum(dim=-1).mean()
 
             # ================================
             # Continuous args network update
@@ -165,9 +215,9 @@ class PDQNPolicy(Policy):
         # ====================
         # Q-learning forward
         # ====================
-        if self.train_cnt ==1 or self.train_cnt % self._cfg.learn.update_circle in range(0,5):
+        if self.train_cnt == 1 or self.train_cnt % self._cfg.learn.update_circle in range(0, 5):
             cont_loss = torch.Tensor([0])
-            q_pi_action_value =torch.Tensor([0])
+            q_pi_action_value = torch.Tensor([0])
             self._learn_model.train()
             self._target_model.train()
             # Current q value (main model)
@@ -185,11 +235,13 @@ class PDQNPolicy(Policy):
                 next_discrete_inputs = {'state': data['next_obs'], 'action_args': next_action_args_cp}
                 target_q_value = self._target_model.forward(next_discrete_inputs, mode='compute_discrete')['logit']
                 # Max q value action (main model)
-                target_q_discrete_action = self._learn_model.forward(next_discrete_inputs, mode='compute_discrete')['action']['action_type']
+                target_q_discrete_action = self._learn_model.forward(
+                    next_discrete_inputs, mode='compute_discrete'
+                )['action']['action_type']
 
             data_n = q_nstep_td_data(
-                q_data_action_args_value, target_q_value, data['action']['action_type'], target_q_discrete_action, data['reward'],
-                data['done'], data['weight']
+                q_data_action_args_value, target_q_value, data['action']['action_type'], target_q_discrete_action,
+                data['reward'], data['done'], data['weight']
             )
             value_gamma = data.get('value_gamma')
             dis_loss, td_error_per_sample = q_nstep_td_error(
@@ -214,7 +266,7 @@ class PDQNPolicy(Policy):
             'cur_lr': self._dis_optimizer.defaults['lr'],
             'q_loss': dis_loss.item(),
             'continuous_loss': cont_loss.item(),
-            'q_value':  q_pi_action_value.mean().item(),
+            'q_value': q_pi_action_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             'reward': data['reward'].mean().item(),
             'target_q_value': target_q_value.mean().item(),
