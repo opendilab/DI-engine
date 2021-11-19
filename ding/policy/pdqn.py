@@ -35,7 +35,7 @@ class PDQNPolicy(Policy):
                                                         | priority must be True.
         6  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | May be 1 when sparse
            | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
-        
+
         7  ``nstep``            int      1,             | N-step reward discount sum for target
                                          [3, 5]         | q_value estimation
         8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
@@ -43,21 +43,21 @@ class PDQNPolicy(Policy):
                                                         | valid in serial training               | means more off-policy
         9  | ``learn.batch_``   int      64             | The number of samples of an iteration
            | ``size``
-        10 | ``learn.multi``    bool     False          | whether to use multi gpu during     
+        10 | ``learn.multi``    bool     False          | whether to use multi gpu during
            | ``_gpu``
         11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
            | ``_rate``
         12 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
            | ``update_freq``
         13 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
-           | ``done``                                   | calculation.                           | fake termination env       
+           | ``done``                                   | calculation.                           | fake termination env
         14 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
                                                         | call of collector.                     | different envs
         15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
            | ``_len``
-        16 | ``collect.noise``  float    0.1            | add noise to continuous args 
+        16 | ``collect.noise``  float    0.1            | add noise to continuous args
            | ``_sigma``                                 | during collection
-        17 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp', 
+        17 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp',
                                                                                                  | 'linear'].
         18 | ``other.eps.       float    0.95           | start value of exploration rate        | [0,1]
            |  start``
@@ -174,7 +174,8 @@ class PDQNPolicy(Policy):
             - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
             - optional: ``value_gamma``, ``IS``
         ReturnsKeys:
-            - necessary: ``cur_lr``, ``q_loss``, ``continuous_loss``, ``q_value``, ``priority``, ``reward``, ``target_q_value``
+            - necessary: ``cur_lr``, ``q_loss``, ``continuous_loss``,
+                         ``q_value``, ``priority``, ``reward``, ``target_q_value``
         """
         data = default_preprocess_learn(
             data,

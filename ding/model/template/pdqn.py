@@ -29,7 +29,8 @@ class PDQN(nn.Module):
             Init the PDQN (encoder + head) Model according to input arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape, such as 8 or [4, 84, 84].
-            - action_shape (:obj:`EasyDict`): Action space shape in dict type, such as EasyDict({'action_type_shape': 3, 'action_args_shape': 5}).
+            - action_shape (:obj:`EasyDict`): Action space shape in dict type, such as \
+                EasyDict({'action_type_shape': 3, 'action_args_shape': 5}).
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``, \
                 the last element must match ``head_hidden_size``.
             - dueling (:obj:`dueling`): Whether choose ``DuelingHead`` or ``DiscreteHead(default)``.
@@ -101,7 +102,8 @@ class PDQN(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict, EasyDict], mode: str) -> Dict:
         r"""
         Overview:
-            PDQN forward computation graph, input observation tensor to predict q_value for discrete actions and values for continuous action_args
+            PDQN forward computation graph, input observation tensor to predict q_value for \
+            discrete actions and values for continuous action_args
         Arguments:
             - inputs (:obj:`torch.Tensor`): Observation inputs
             - mode (:obj:`str`): Name of the forward mode.

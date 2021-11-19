@@ -40,7 +40,7 @@ class DQNPolicy(Policy):
         8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
-        9  | ``learn.multi``    bool     False          | whether to use multi gpu during     
+        9  | ``learn.multi``    bool     False          | whether to use multi gpu during
            | ``_gpu``
         10 | ``learn.batch_``   int      64             | The number of samples of an iteration
            | ``size``
@@ -54,7 +54,7 @@ class DQNPolicy(Policy):
                                                         | call of collector.                     | different envs
         15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
            | ``_len``
-        16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp', 
+        16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp',
                                                                                                  | 'linear'].
         17 | ``other.eps.       float    0.95           | start value of exploration rate        | [0,1]
            |  start``
