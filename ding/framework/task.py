@@ -58,11 +58,13 @@ class Task:
             n_parallel_workers: Optional[int] = None,
             attach_to: List[str] = None,
             protocol: str = "ipc",
-            middlewares: List[Callable] = None,
+            middleware: List[Callable] = None,
+            bind_address: str = None,
+            bind_ports: Optional[List[int]] = None,
             *args,
             **kwargs
     ) -> None:
-        self.middleware = middlewares or []
+        self.middleware = middleware or []
         self.ctx = Context()
         self._backward_stack = []
 
@@ -84,6 +86,8 @@ class Task:
             self.n_parallel_workers = n_parallel_workers
             self.attach_to = attach_to or []
             self.protocol = protocol
+            self.bind_address = bind_address
+            self.bind_ports = bind_ports
 
     def use(self, fn: Callable) -> 'Task':
         """
@@ -104,10 +108,10 @@ class Task:
             - max_step (:obj:`int`): Max step of iterations.
         """
 
-        def _execute(task):
+        def _execute(task: Task):
             if len(task.middleware) == 0:
                 return
-            for _ in range(max_step):
+            while task.ctx.total_step < max_step:
                 for fn in task.middleware:
                     task.forward(fn)
                 task.backward()
@@ -190,8 +194,11 @@ class Task:
         # Renew context
         old_ctx = self.ctx
         if self.parallel_mode and self.router:
-            # Sync context to other parallel processes
+            # Send context to other parallel processes
             # The maximum number of iterations is estimated from the total number of all processes
+            # Set current total step to real step in the cluster
+            prev_total_step = old_ctx.get("prev") and old_ctx.get("prev").total_step or -1
+            old_ctx.total_step = max(old_ctx.total_step, prev_total_step + 1)
             self.async_executor(self.router.send_rpc, "sync_parallel_ctx", old_ctx)
 
         new_ctx = old_ctx.renew()
@@ -216,23 +223,29 @@ class Task:
         def _parallel():
             task = copy.copy(self)
             task.router.register_rpc("sync_parallel_ctx", task.sync_parallel_ctx)
-            n_timeout = 10
+            n_timeout = 30
             if len(task.attach_to) > 0:
                 logging.warning(
                     "The attach mode will wait for the latest context, \
 or wait for a timeout of {} seconds before starting execution".format(n_timeout)
                 )
-                for _ in range(n_timeout * 2):
+                for _ in range(n_timeout * 10):
                     if task.ctx.get("prev"):
                         task.ctx = task.ctx.prev
                         break
-                    time.sleep(0.5)
+                    time.sleep(0.1)
             main_process(task)
 
-        self.router.run(_parallel, n_workers=self.n_parallel_workers, attach_to=self.attach_to, protocol=self.protocol)
+        self.router.run(
+            _parallel,
+            n_workers=self.n_parallel_workers,
+            attach_to=self.attach_to,
+            protocol=self.protocol,
+            address=self.bind_address,
+            ports=self.bind_ports
+        )
 
     def sync_parallel_ctx(self, ctx: Context):
-        self.ctx.total_step = max(ctx.total_step + 1, self.ctx.total_step + 1)
         if self.ctx.get("prev") and self.ctx.prev.total_step > ctx.total_step:
             self.ctx.prev = self._inherit_ctx(self.ctx.prev, ctx)
         else:

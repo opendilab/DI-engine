@@ -1,6 +1,8 @@
+from mpire.pool import WorkerPool
 import pytest
 import time
 import copy
+import random
 from ding.framework import Task
 
 
@@ -113,10 +115,10 @@ def test_parallel_pipeline():
 
         def _counter(ctx):
             nonlocal call_count
-            if call_count > 2:
+            if call_count > 3:
                 assert ctx.total_step > call_count
             call_count += 1
-            time.sleep(0.1)
+            time.sleep(0.1 + random.random() / 10)
 
         return _counter
 
@@ -143,3 +145,51 @@ def test_copy_task():
     assert t2.parallel_mode
     assert t2.async_mode
     assert t1 is not t2
+
+
+@pytest.mark.unittest
+def test_attach_mode():
+
+    def run_task():
+
+        def wait(ctx):
+            time.sleep(0.1)
+
+        task = Task(
+            parallel_mode=True,
+            n_parallel_workers=2,
+            protocol="tcp",
+            bind_address="127.0.0.1",
+            bind_ports=[50501, 50502]
+        )
+        task.use(wait)
+        task.run(max_step=10)
+
+    def run_attach_task():
+        attach_task = Task(
+            parallel_mode=True,
+            n_parallel_workers=1,
+            protocol="tcp",
+            bind_address="127.0.0.1",
+            bind_ports=[50503],
+            attach_to=["tcp://127.0.0.1:50501", "tcp://127.0.0.1:50502"]
+        )
+
+        def attach_step(ctx):
+            # Should get ctx from other process and start from the latest state
+            assert ctx.total_step > 0
+
+        time.sleep(0.2)
+        attach_task.use(attach_step)
+        attach_task.run(max_step=10)
+
+    def main_test(job):
+        if job == "run_task":
+            run_task()
+        elif "run_attach_task":
+            run_attach_task()
+        else:
+            raise Exception("Unknown task")
+
+    with WorkerPool(n_jobs=2, daemon=False) as pool:
+        pool.map(main_test, ["run_task", "run_attach_task"])
