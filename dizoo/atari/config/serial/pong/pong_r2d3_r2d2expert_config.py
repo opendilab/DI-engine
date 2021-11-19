@@ -10,11 +10,10 @@ expert_replay_buffer_size=1000  #TODO 1000
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_l2',
-    # exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-256_rbs2e4_l2',
-
-    # exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_bs256_rbs2e4_l2',
-    # exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-256_bs256_rbs2e4_l2',
+    # exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_l2_run2',
+    # exp_name='debug_pong_r2d3_r2d2expert_k100_pho1-4_rbs2e4_l2',
+    # exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-256_bs512_rbs2e4_l2',
+    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-256_bs64_rbs2e4_l2',
 
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
@@ -51,7 +50,7 @@ pong_r2d3_config = dict(
             # in most environments
             value_rescale=True,
             update_per_collect=8,
-            batch_size=64,
+            batch_size=64,#512,#64,#512,#64, # TODO(pu)
             learning_rate=0.0005,
             target_update_theta=0.001,
             # DQFD related parameters
@@ -68,7 +67,7 @@ pong_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/4,#1/256,  # TODO(pu), 1/256,
+            pho=1/256,#1/256,#1/256,  # TODO(pu), 1/256,
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -104,13 +103,10 @@ create_config = pong_r2d3_create_config
 
 """export config"""
 expert_pong_r2d3_config = dict(
-    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_l2',
-    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-256_rbs2e4_l2',
-
-    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_bs256_rbs2e4_l2',
-    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-256_bs256_rbs2e4_l2',
-
-
+    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_l2_run2',
+    # exp_name='expert_pong_r2d3_r2d2expert_k100_pho1-4_rbs2e4_l2',
+    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-256_bs512_rbs2e4_l2',
+    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-256_bs64_rbs2e4_l2',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -171,7 +167,9 @@ expert_pong_r2d3_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    # env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
+
     policy=dict(type='r2d2_collect_traj'),
 )
 expert_pong_r2d3_create_config = EasyDict(expert_pong_r2d3_create_config)
