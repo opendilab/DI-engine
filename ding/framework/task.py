@@ -207,6 +207,15 @@ class Task:
         self.ctx = new_ctx
         return self
 
+    def step(self) -> 'Task':
+        return self
+
+    def __enter__(self) -> 'Task':
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.renew()
+
     def sync(self) -> 'Task':
         if self._loop:
             self._loop.run_until_complete(self.sync_tasks())

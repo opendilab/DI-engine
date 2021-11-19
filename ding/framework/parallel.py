@@ -1,5 +1,6 @@
 import atexit
 import os
+import threading
 import time
 import random
 import pynng
@@ -118,11 +119,11 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def register_rpc(self, fn_name: str, fn: Callable) -> None:
         self._rpc[fn_name] = fn
 
-    def send_rpc(self, func_name: str, *args, **kwargs):
+    def send_rpc(self, func_name: str, *args, **kwargs) -> None:
         payload = {"f": func_name, "a": args, "k": kwargs}
-        return self._sock.send(pickle.dumps(payload))
+        return self._sock and self._sock.send(pickle.dumps(payload))
 
-    async def asend_rpc(self, func_name: str, *args, **kwargs):
+    async def asend_rpc(self, func_name: str, *args, **kwargs) -> None:
         msg = {"f": func_name, "a": args, "k": kwargs}
         return await self._sock.asend(pickle.dumps(msg))
 

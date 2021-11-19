@@ -241,6 +241,16 @@ def main(cfg, create_cfg, seed=0):
     task.run(max_step=1000)
 
 
+def print_step(task):
+    import random
+    from os import path
+    time.sleep(random.random() + 1)
+    print(
+        "Current task step on {}".format(task.router and path.basename(task.router._bind_addr or "")),
+        task.ctx.total_step
+    )
+
+
 def main_eager(cfg, create_cfg, seed=0):
 
     cfg = compile_config(cfg, create_cfg=create_cfg, auto=True)
@@ -270,28 +280,20 @@ def main_eager(cfg, create_cfg, seed=0):
     learn_profiler = step_profiler("Learn", silent=True)
 
     def _execute_task(task: Task):
-        while task.ctx.total_step < 1000:
-            task.forward(profiler)
-            task.forward(evaluate_profiler(evaluate))
-            if task.finish:
-                break
+        while task.ctx.total_step < 300:
+            with task.step():
+                task.forward(profiler)
+                task.forward(evaluate_profiler(evaluate))
+                if task.finish:
+                    break
+                for _ in range(1):
+                    task.forward(task.sequence(act, collect))
+                task.forward(learn_profiler(learn))
 
-            for _ in range(1):
-                task.forward(task.sequence(act, collect))
+            print_step(task)
 
-            task.forward(learn_profiler(learn))
-
-            import random
-            from os import path
-            time.sleep(random.random() + 1)
-            task.renew()
-            print(
-                "Current task step on {}".format(task.router and path.basename(task.router._bind_addr)),
-                task.ctx.total_step
-            )
-
-    task.parallel(_execute_task)
-    # _execute_task(task)
+    # task.parallel(_execute_task)
+    _execute_task(task)
 
 
 if __name__ == "__main__":
