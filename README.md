@@ -8,7 +8,7 @@
 ![Conda](https://anaconda.org/opendilab/di-engine/badges/version.svg)
 ![Conda update](https://anaconda.org/opendilab/di-engine/badges/latest_release_date.svg)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/DI-engine)
-![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com/PaParaZz1/54c5c44eeb94734e276b2ed5770eba8d/raw/4d1ba1a3122eb8096c32c3d7bad165ce430cee9a/badges.json)
+![PyTorch Version](https://img.shields.io/badge/dynamic/json?color=blue&label=pytorch&query=%24.pytorchVersion&url=https%3A%2F%2Fgist.githubusercontent.com/PaParaZz1/54c5c44eeb94734e276b2ed5770eba8d/raw/c27503982a466fb609c87bff22d8673c4491ea47/badges.json)
 
 ![Loc](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/loc.json)
 ![Comments](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/HansBug/3690cccd811e4c5f771075c2f785c7bb/raw/comments.json)
@@ -126,7 +126,7 @@ ding -m serial -e cartpole -p dqn -s 0
 |  26  |           [RND](https://arxiv.org/abs/1810.12894)            |   ![exp](https://img.shields.io/badge/-exploration-orange)   | [reward_model/rnd](https://github.com/opendilab/DI-engine/blob/main/ding/reward_model/rnd_reward_model.py) |             python3 -u cartpole_ppo_rnd_main.py              |
 |  27  |         [CQL](https://arxiv.org/pdf/2006.04779.pdf)          | ![offline](https://img.shields.io/badge/-offlineRL-darkblue) | [policy/cql](https://github.com/opendilab/DI-engine/blob/main/ding/policy/cql.py) |                 python3 -u d4rl_cql_main.py                  |
 |  28  |         [TD3BC](https://arxiv.org/pdf/2106.06860.pdf)          | ![offline](https://img.shields.io/badge/-offlineRL-darkblue) | [policy/td3_bc](https://github.com/opendilab/DI-engine/blob/main/ding/policy/td3_bc.py) |                 python3 -u mujoco_td3_bc_main.py                  |
-|  29  |         [MBPO](https://arxiv.org/pdf/1906.08253.pdf)         | ![continuous](https://img.shields.io/badge/-continous-green) | [model/template/model_based/mbpo](https://github.com/opendilab/DI-engine/blob/main/ding/model/template/model_based/mbpo.py) |        python3 -u sac_halfcheetah_mopo_default_config.py     |
+|  29  |         [MBPO](https://arxiv.org/pdf/1906.08253.pdf)         | ![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [model/template/model_based/mbpo](https://github.com/opendilab/DI-engine/blob/main/ding/model/template/model_based/mbpo.py) |        python3 -u sac_halfcheetah_mopo_default_config.py     |
 |  30  |         [PER](https://arxiv.org/pdf/1511.05952.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [worker/replay_buffer](https://github.com/opendilab/DI-engine/blob/main/ding/worker/replay_buffer/advanced_buffer.py) |                        `rainbow demo`                        |
 |  31  |         [GAE](https://arxiv.org/pdf/1506.02438.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [rl_utils/gae](https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/gae.py) |                          `ppo demo`                          |
 
@@ -146,19 +146,21 @@ ding -m serial -e cartpole -p dqn -s 0
 
 ![offline](https://img.shields.io/badge/-offlineRL-darkblue) means offline RL algorithm
 
+![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue)means model-based RL algorithm
+
 ![other](https://img.shields.io/badge/-other-lightgrey) means other sub-direction algorithm, usually as plugin-in in the whole pipeline
 
 P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 
 
 ### Environment Versatility
-|  No  |                Environment               |                 Label               |         Visualization            |                   dizoo link                              |
+|  No  |                Environment               |                 Label               |         Visualization            |                   Code and Doc Links                   |
 | :--: | :--------------------------------------: | :---------------------------------: | :--------------------------------:|:---------------------------------------------------------: |
-|  1   |       [atari](https://github.com/openai/gym/tree/master/gym/envs/atari)    | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/atari/atari.gif)     |             [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/envs)        |
+|  1   |       [atari](https://github.com/openai/gym/tree/master/gym/envs/atari)    | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/atari/atari.gif)     |        [code link](https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/envs)  [env tutorial](https://di-engine-docs.readthedocs.io/en/latest/env_tutorial/atari.html)   [环境指南](https://di-engine-docs.readthedocs.io/en/main-zh/env_tutorial/atari_zh.html)        |
 |  2   |       [box2d/bipedalwalker](https://github.com/openai/gym/tree/master/gym/envs/box2d)    | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/box2d/bipedalwalker/original.gif)        | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/bipedalwalker/envs)         |
 |  3   |       [box2d/lunarlander](https://github.com/openai/gym/tree/master/gym/envs/box2d)      | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/box2d/lunarlander/lunarlander.gif)   |  [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/lunarlander/envs)              |
 |  4   |       [classic_control/cartpole](https://github.com/openai/gym/tree/master/gym/envs/classic_control)       | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/classic_control/cartpole/cartpole.gif)    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/classic_control/cartpole/envs)      |
-|  5   |       [classic_control/pendulum](https://github.com/openai/gym/tree/master/gym/envs/classic_control)       | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/classic_control/pendulum/pendulum.gif)    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/classic_control/pendulum/envs)      |
+|  5   |       [classic_control/pendulum](https://github.com/openai/gym/tree/master/gym/envs/classic_control)       | ![continuous](https://img.shields.io/badge/-continous-green) | ![original](./dizoo/classic_control/pendulum/pendulum.gif)    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/classic_control/pendulum/envs)      |
 |  6   |       [competitive_rl](https://github.com/cuhkrlcourse/competitive-rl)       | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![selfplay](https://img.shields.io/badge/-selfplay-blue) | ![original](./dizoo/competitive_rl/competitive_rl.gif)   |  [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo.classic_control)   |
 |  7   |       [gfootball](https://github.com/google-research/football)                        | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![sparse](https://img.shields.io/badge/-sparse%20reward-orange)![selfplay](https://img.shields.io/badge/-selfplay-blue) | ![original](./dizoo/gfootball/gfootball.gif)      | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo.gfootball/envs)                   |
 |  8   |       [minigrid](https://github.com/maximecb/gym-minigrid)                         | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![sparse](https://img.shields.io/badge/-sparse%20reward-orange) | ![original](./dizoo/minigrid/minigrid.gif)         | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/envs)                      |

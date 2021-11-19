@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 cartpole_qrdqn_config = dict(
+    exp_name='cartpole_qrdqn',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -29,6 +30,7 @@ cartpole_qrdqn_config = dict(
             n_sample=80,
             unroll_len=1,
         ),
+        eval=dict(evaluator=dict(eval_freq=100, )),
         other=dict(
             eps=dict(
                 type='exp',

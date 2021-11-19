@@ -4,6 +4,7 @@ import sys
 import traceback
 from typing import Callable
 import torch
+import torch.utils.data  # torch1.1.0 compatibility
 from ding.utils import read_file, save_file
 
 logger = logging.getLogger('default_logger')

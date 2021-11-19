@@ -1,36 +1,26 @@
 import os
-import gym
+import torch
 from tensorboardX import SummaryWriter
-
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
-from ding.envs import BaseEnvManager, DingEnvWrapper
-from ding.policy import C51Policy
-from ding.model import C51DQN
+from ding.policy import DQNPolicy
+from ding.model import DQN
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
-from dizoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c51_config
+from dizoo.atari.config.serial.spaceinvaders.spaceinvaders_dqn_config_multi_gpu_ddp import space_invaders_dqn_config,create_config
+from ding.utils import DistContext
+from functools import partial
+from ding.envs import get_vec_env_setting, create_env_manager
 
 
-# Get DI-engine form env class
-def wrapped_cartpole_env():
-    return DingEnvWrapper(gym.make('CartPole-v0'))
+def main(cfg, create_cfg, seed=0):
 
+    cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
 
-def main(cfg, seed=0):
-    cfg = compile_config(
-        cfg,
-        BaseEnvManager,
-        C51Policy,
-        BaseLearner,
-        SampleSerialCollector,
-        InteractionSerialEvaluator,
-        AdvancedReplayBuffer,
-        save_cfg=True
-    )
-    collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    # Create main components: env, policy
+    env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+    collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
+    evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
 
     # Set random seed for all package and instance
     collector_env.seed(seed)
@@ -38,8 +28,8 @@ def main(cfg, seed=0):
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     # Set up RL Policy
-    model = C51DQN(**cfg.policy.model)
-    policy = C51Policy(cfg.policy, model=model)
+    model = DQN(**cfg.policy.model)
+    policy = DQNPolicy(cfg.policy, model=model)
 
     # Set up collection, training and evaluation utilities
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -75,6 +65,6 @@ def main(cfg, seed=0):
                 break
             learner.train(train_data, collector.envstep)
 
-
 if __name__ == "__main__":
-    main(cartpole_c51_config)
+    with DistContext():
+        main(space_invaders_dqn_config,create_config)
