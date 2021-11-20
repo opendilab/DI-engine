@@ -46,8 +46,9 @@ class Adder(object):
         return data
 
     @classmethod
-    def get_gae_traj_flag(cls, data: List[Dict[str, Any]], next_value: torch.Tensor, gamma: float, gae_lambda: float,
-                cuda: bool) -> List[Dict[str, Any]]:
+    def get_gae_traj_flag(
+            cls, data: List[Dict[str, Any]], next_value: torch.Tensor, gamma: float, gae_lambda: float, cuda: bool
+    ) -> List[Dict[str, Any]]:
         """
         Overview:
             Get GAE advantage for stacked transitions(T timestep, 1 batch). Call ``gae`` for calculation.

@@ -106,7 +106,7 @@ class RndRewardModel(BaseRewardModel):
         if self.cfg.obs_norm:
             # TODO(pu): observation normalization:  transform to mean 0, std 1
             obs = (obs - to_tensor(self._running_mean_std_rnd_obs.mean
-                                ).to(self.device)) / to_tensor(self._running_mean_std_rnd_obs.std).to(self.device)
+                                   ).to(self.device)) / to_tensor(self._running_mean_std_rnd_obs.std).to(self.device)
             obs = torch.clamp(obs, min=self.cfg.obs_norm_clamp_min, max=self.cfg.obs_norm_clamp_max)
 
         with torch.no_grad():
@@ -116,10 +116,12 @@ class RndRewardModel(BaseRewardModel):
             # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-11)
 
             self._running_mean_std_rnd_reward.update(reward.cpu().numpy())
+
             # TODO(pu): reward normalization: transform to (mean 0, std 1), lm0std1
             # empirically we found this normalization way works well
             # than only dividing the self._running_mean_std_rnd_reward.std
-            # reward = (reward - self._running_mean_std_rnd_reward.mean) / (self._running_mean_std_rnd_reward.std + 1e-11)
+            # reward = (reward - self._running_mean_std_rnd_reward.mean)
+            # / (self._running_mean_std_rnd_reward.std + 1e-11)
 
             # TODO(pu): transform to [0,1]: b01
             rnd_reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-11)
@@ -134,7 +136,8 @@ class RndRewardModel(BaseRewardModel):
         for item, rnd_rew in zip(data, rnd_reward):
             if self.intrinsic_reward_type == 'add':
                 if item['reward'] > 0 and item['reward'] <= self.cfg.extrinsic_reward_scale:
-                    item['reward'] = self.cfg.extrinsic_reward_weight * item['reward'] + rnd_rew  # TODO(pu) avarage episode length
+                    item['reward'] = self.cfg.extrinsic_reward_weight * item[
+                        'reward'] + rnd_rew  # TODO(pu) avarage episode length
                     # item['reward'] = item['reward'] + rnd_rew
                 else:
                     item['reward'] += rnd_rew

@@ -5,6 +5,7 @@ from ding.hpc_rl import hpc_wrapper
 gae_data = namedtuple('gae_data', ['value', 'next_value', 'reward', 'done'])
 gae_data_traj_flag = namedtuple('gae_data', ['value', 'next_value', 'reward', 'done', 'traj_flag'])
 
+
 def shape_fn_gae(args, kwargs):
     r"""
     Overview:

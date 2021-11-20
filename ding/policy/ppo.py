@@ -8,7 +8,7 @@ from torch.distributions import Independent, Normal
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
     v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous, \
-    get_gae,  get_gae_traj_flag
+    get_gae, get_gae_traj_flag
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
@@ -18,28 +18,19 @@ from ding.utils import dicts_to_lists, lists_to_dicts
 
 
 def compute_adv(data, last_value, cfg):
-    data = get_gae(
-        data,
-        last_value,
-        gamma=cfg.collect.discount_factor,
-        gae_lambda=cfg.collect.gae_lambda,
-        cuda=False
-    )  
+    data = get_gae(data, last_value, gamma=cfg.collect.discount_factor, gae_lambda=cfg.collect.gae_lambda, cuda=False)
     # data: list (T timestep, 1 batch) [['value':,'reward':,'adv':], ...,]
-    return get_nstep_return_data(data, cfg.nstep) if cfg.nstep_return else get_train_sample(data, cfg.collect.unroll_len)
+    return get_nstep_return_data(data,
+                                 cfg.nstep) if cfg.nstep_return else get_train_sample(data, cfg.collect.unroll_len)
 
 
 def compute_adv_traj_flag(data, next_value, cfg):
     data = get_gae_traj_flag(
-        data,
-        next_value,
-        gamma=cfg.collect.discount_factor,
-        gae_lambda=cfg.collect.gae_lambda,
-        cuda=False
+        data, next_value, gamma=cfg.collect.discount_factor, gae_lambda=cfg.collect.gae_lambda, cuda=False
     )
     # data: list (T timestep, 1 batch) [['value':,'reward':,'adv':], ...,]
-    return get_nstep_return_data(data, cfg.nstep) if cfg.nstep_return else get_train_sample(data, cfg.collect.unroll_len)
-    
+    return get_nstep_return_data(data,
+                                 cfg.nstep) if cfg.nstep_return else get_train_sample(data, cfg.collect.unroll_len)
 
 
 def dict_data_split_traj_and_compute_adv_v1(data, next_value, cfg):
@@ -66,7 +57,8 @@ def dict_data_split_traj_and_compute_adv_v1(data, next_value, cfg):
 
         if traj_flag:  # data['done'][i]: torch.tensor(1.) or True
             for k in range(start_index, i + 1):
-                # transform to shape like this: traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
+                # transform to shape like this:
+                # traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
                 # if discrete action: traj_data.append({key: data[key][k] for key in data.keys()})
                 # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
                 traj_data.append(
@@ -110,7 +102,8 @@ def dict_data_split_traj_and_compute_adv_v1(data, next_value, cfg):
             continue
     remaining_traj_data = []  # because of the limit of max_sample
     for k in range(start_index, i + 1):
-        # transform to shape like this: remaining_traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
+        # transform to shape like this:
+        # remaining_traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
         # if discrete action: remaining_traj_data.append({key: data[key][k] for key in data.keys()})
         # if continuous action: special case, data['logit'] list(torch.tensor(3200,6)); data['weight'] list
         remaining_traj_data.append(
@@ -153,7 +146,8 @@ def dict_data_split_traj_and_compute_adv_v2(data, next_value, cfg):
 
         if traj_flag:  # data['done'][i]: torch.tensor(1.) or True
             for k in range(start_index, i + 1):
-                # transform to shape like this: traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
+                # transform to shape like this:
+                # traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
                 # if discrete action: traj_data.append({key: data[key][k] for key in data.keys()})
                 # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
                 traj_data.append(
@@ -202,6 +196,7 @@ def dict_data_split_traj_and_compute_adv_v2(data, next_value, cfg):
     # add the remaining data, return shape list of dict
     data = processed_data + remaining_traj_data
     return compute_adv_traj_flag(data, next_value, cfg)
+
 
 @POLICY_REGISTRY.register('ppo')
 class PPOPolicy(Policy):
@@ -371,8 +366,12 @@ class PPOPolicy(Policy):
                     # verify the correctness of function dict_data_split_traj_and_compute_adv_v2
                     # data_copy = copy.deepcopy(data)
                     # next_value_copy = copy.deepcopy(next_value)
-                    # processed_data_v1 = dict_data_split_traj_and_compute_adv_v1(data_copy, next_value_copy.to(self._device), self._cfg)
-                    processed_data = dict_data_split_traj_and_compute_adv_v2(data, next_value.to(self._device), self._cfg)
+                    # processed_data_v1 = dict_data_split_traj_and_compute_adv_v1(
+                    # data_copy, next_value_copy.to(self._device), self._cfg)
+
+                    processed_data = dict_data_split_traj_and_compute_adv_v2(
+                        data, next_value.to(self._device), self._cfg
+                    )
 
                     processed_data = lists_to_dicts(processed_data)
                     for k, v in processed_data.items():
