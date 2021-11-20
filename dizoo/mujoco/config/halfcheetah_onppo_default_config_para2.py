@@ -5,8 +5,8 @@ collector_env_num = 1
 evaluator_env_num = 1
 halfcheetah_ppo_default_config = dict(
     # exp_name="result_mujoco_para2/halfcheetah_onppo_noig",
-    exp_name="result_mujoco_para2/halfcheetah_onppo_ig_fix_para2",
-    # exp_name="debug/debug_halfcheetah_onppo_ig_fix",
+    exp_name="result_mujoco_para2/halfcheetah_onppo_ig_para2",
+    # exp_name="debug/debug",
 
     env=dict(
         env_id='HalfCheetah-v3',
@@ -15,8 +15,8 @@ halfcheetah_ppo_default_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         use_act_scale=True,
-        n_evaluator_episode=10,
-        # n_evaluator_episode=1,
+        # n_evaluator_episode=10,
+        n_evaluator_episode=1,
         stop_value=12000,
     ),
     policy=dict(
@@ -66,8 +66,8 @@ halfcheetah_ppo_create_default_config = dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    # env_manager=dict(type='subprocess'),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='base'),
     policy=dict(type='ppo', ),
 )
 halfcheetah_ppo_create_default_config = EasyDict(halfcheetah_ppo_create_default_config)

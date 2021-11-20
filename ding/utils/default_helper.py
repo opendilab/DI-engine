@@ -442,16 +442,19 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
                 batch[k] = None
             elif k.startswith('prev_state'):
                 batch[k] = [data[k][t] for t in indices[i:i + split_size]]
-            # elif isinstance(data[k], list) or isinstance(data[k], tuple):
-            #     batch[k] = [t[indices[i:i + split_size]] for t in data[k]]
-            elif k == 'logit':  # for continuous action
-                batch[k] = [
-                    torch.stack(
-                        [data[k][transition_index][mu_sigma_index] for transition_index in indices[i:i + split_size]]
-                    ) for mu_sigma_index in range(2)
-                ]
-                # transform to mu_sigma (:obj:`list`): :math:`[(B, N), (B, N)]`,
-                # where B is batch size and N is action dim
+            elif isinstance(data[k], list) or isinstance(data[k], tuple):
+                if isinstance(data[k][0], list) and  k == 'logit':
+                    # for continuous action
+                    # transform to mu_sigma (:obj:`list`): :math:`[(B, N), (B, N)]`,
+                    # where B is batch size and N is action dim
+                    batch[k] = [
+                        torch.stack(
+                            [data[k][transition_index][mu_sigma_index] for transition_index in
+                             indices[i:i + split_size]]
+                        ) for mu_sigma_index in range(2)
+                    ]
+                else:  # for discrete action
+                    batch[k] = [t[indices[i:i + split_size]] for t in data[k]]
             elif isinstance(data[k], dict):
                 batch[k] = {k1: v1[indices[i:i + split_size]] for k1, v1 in data[k].items()}
             else:

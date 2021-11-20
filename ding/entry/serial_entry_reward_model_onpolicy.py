@@ -103,7 +103,6 @@ def serial_pipeline_reward_model_onpolicy(
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)
-            # replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         reward_model.train()
         if iter % cfg.reward_model.clear_buffer_per_iters == 0:
@@ -111,7 +110,6 @@ def serial_pipeline_reward_model_onpolicy(
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):  # 1
             # Learner will train ``update_per_collect`` times in one iteration.
-            # train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             train_data = new_data
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
