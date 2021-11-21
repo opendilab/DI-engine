@@ -13,13 +13,13 @@ lunarlander_ppo_config = dict(
         learning_rate=0.001,
         input_size=9,
         batch_size=32,
-        continuous = False,
+        continuous=False,
         update_per_collect=20,
     ),
     policy=dict(
         cuda=False,
-        on_policy = False,
-        recompute_adv = True,
+        on_policy=False,
+        recompute_adv=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -36,7 +36,7 @@ lunarlander_ppo_config = dict(
             adv_norm=True,
         ),
         collect=dict(
-            demonstration_info_path ='path',
+            demonstration_info_path='path',
             n_sample=800,
             unroll_len=1,
             discount_factor=0.99,

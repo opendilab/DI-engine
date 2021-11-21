@@ -19,7 +19,7 @@ hopper_ppo_default_config = dict(
         input_size=14,
         batch_size=32,
         action_shape=3,
-        continuous = True,
+        continuous=True,
         update_per_collect=20,
     ),
     policy=dict(
@@ -41,7 +41,7 @@ hopper_ppo_default_config = dict(
             adv_norm=True,
         ),
         collect=dict(
-            demonstration_info_path ='path',
+            demonstration_info_path='path',
             n_sample=2048,
             unroll_len=1,
             discount_factor=0.99,

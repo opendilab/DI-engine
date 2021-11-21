@@ -450,7 +450,7 @@ class PPOOffPolicy(Policy):
         priority_IS_weight=False,
         # (bool) Whether to use nstep_return for value loss
         nstep_return=False,
-        recompute_adv = False,
+        recompute_adv=False,
         nstep=3,
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
@@ -549,9 +549,9 @@ class PPOOffPolicy(Policy):
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
                     next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
                     gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
-                        # GAE need (T, B) shape input and return (T, B) output
+                    # GAE need (T, B) shape input and return (T, B) output
                     data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
-                        # value = value[:-1]
+                    # value = value[:-1]
             output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
             adv = data['adv']
             return_ = data['value'] + adv

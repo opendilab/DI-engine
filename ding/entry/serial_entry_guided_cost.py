@@ -19,6 +19,7 @@ from ding.reward_model import create_reward_model
 import copy
 import os
 
+
 def serial_pipeline_guided_cost(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
@@ -151,14 +152,14 @@ def serial_pipeline_guided_cost(
         if cfg.policy.on_policy:
             # On-policy algorithm must clear the replay buffer.
             replay_buffer.clear()
-        dirname = cfg.exp_name+'/reward_model'
+        dirname = cfg.exp_name + '/reward_model'
         if not os.path.exists(dirname):
             try:
                 os.mkdir(dirname)
             except FileExistsError:
                 pass
-        if learner.train_iter%cfg.reward_model.store_model_every_n_train == 0:
-        #if learner.train_iter%5000 == 0:
+        if learner.train_iter % cfg.reward_model.store_model_every_n_train == 0:
+            #if learner.train_iter%5000 == 0:
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(learner.train_iter))
             state_dict = reward_model.state_dict_reward_model()
             save_file(path, state_dict)

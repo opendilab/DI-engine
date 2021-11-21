@@ -17,7 +17,7 @@ halfcheetah_sac_default_config = dict(
         input_size=23,
         batch_size=32,
         action_shape=6,
-        continuous = True,
+        continuous=True,
         update_per_collect=20,
     ),
     policy=dict(
@@ -46,7 +46,7 @@ halfcheetah_sac_default_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            demonstration_info_path = 'path',
+            demonstration_info_path='path',
             use_logit=True,
             n_sample=256,
             unroll_len=1,

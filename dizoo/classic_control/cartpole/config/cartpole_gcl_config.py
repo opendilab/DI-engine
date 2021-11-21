@@ -13,13 +13,13 @@ cartpole_ppo_offpolicy_config = dict(
         learning_rate=0.001,
         input_size=5,
         batch_size=32,
-        continuous = False,
+        continuous=False,
         update_per_collect=10,
     ),
     policy=dict(
         on_policy=False,
         cuda=False,
-        recompute_adv = False,
+        recompute_adv=False,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -36,7 +36,7 @@ cartpole_ppo_offpolicy_config = dict(
             clip_ratio=0.2,
         ),
         collect=dict(
-            demonstration_info_path ='path',
+            demonstration_info_path='path',
             n_sample=128,
             unroll_len=1,
             discount_factor=0.9,
