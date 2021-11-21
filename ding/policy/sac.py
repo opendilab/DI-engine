@@ -162,6 +162,7 @@ class SACPolicy(Policy):
             # You can use either "n_sample" or "n_episode" in actor.collect.
             # Get "n_sample" samples per collect.
             # Default n_sample to 1.
+            use_logit=False,
             n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
@@ -481,13 +482,23 @@ class SACPolicy(Policy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': policy_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
+        if self._cfg.collect.use_logit:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'logit': policy_output['logit'],
+                'action': policy_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        else:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': policy_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:

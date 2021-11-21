@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_max_entropy
+from ding.entry import serial_pipeline_guided_cost
 
 cartpole_ppo_offpolicy_config = dict(
     exp_name='cartpole_guided_cost',
@@ -49,7 +49,7 @@ cartpole_ppo_offpolicy_config = EasyDict(cartpole_ppo_offpolicy_config)
 main_config = cartpole_ppo_offpolicy_config
 cartpole_ppo_offpolicy_create_config = dict(
     env=dict(
-        type='cartpole',
+        type='guided_cost',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
@@ -60,4 +60,4 @@ cartpole_ppo_offpolicy_create_config = EasyDict(cartpole_ppo_offpolicy_create_co
 create_config = cartpole_ppo_offpolicy_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_max_entropy([main_config, create_config], seed=0)
+    serial_pipeline_guided_cost([main_config, create_config], seed=0)

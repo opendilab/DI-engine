@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_max_entropy
+from ding.entry import serial_pipeline_guided_cost
 
 lunarlander_ppo_config = dict(
     exp_name='lunarlander_guided_cost',
@@ -53,10 +53,10 @@ lunarlander_ppo_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
-    reward_model=dict(type='max_entropy'),
+    reward_model=dict(type='guided_cost'),
 )
 lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
 create_config = lunarlander_ppo_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_max_entropy([main_config, create_config], seed=0)
+    serial_pipeline_guided_cost([main_config, create_config], seed=0)

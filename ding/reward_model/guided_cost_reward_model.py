@@ -35,8 +35,16 @@ class GuidedCostNN(nn.Module):
 
 @REWARD_MODEL_REGISTRY.register('guided_cost')
 class GuidedCostModel(BaseRewardModel):
+    r"""
+    Overview:
+        Policy class of Guided cost algorithm.
+
+        https://arxiv.org/pdf/1603.00448.pdf
+
+    """
+
     config = dict(
-        type='max_entropy',
+        type='guided_cost',
         learning_rate=1e-3,
         action_shape=1,
         continuous = True,

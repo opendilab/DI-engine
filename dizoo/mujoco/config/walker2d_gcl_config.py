@@ -3,12 +3,11 @@ from ding.entry import serial_pipeline, serial_pipeline_guided_cost
 from easydict import EasyDict
 
 hopper_ppo_default_config = dict(
-    exp_name='hopper_guided_cost',
     env=dict(
-        env_id='Hopper-v3',
+        env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=4,
+        collector_env_num=8,
         evaluator_env_num=10,
         use_act_scale=True,
         n_evaluator_episode=10,
@@ -16,9 +15,9 @@ hopper_ppo_default_config = dict(
     ),
     reward_model=dict(
         learning_rate=0.001,
-        input_size=14,
+        input_size=23,
         batch_size=32,
-        action_shape=3,
+        action_shape=6,
         continuous = True,
         update_per_collect=20,
     ),
@@ -26,8 +25,8 @@ hopper_ppo_default_config = dict(
         cuda=False,
         recompute_adv=True,
         model=dict(
-            obs_shape=11,
-            action_shape=3,
+            obs_shape=17,
+            action_shape=6,
             continuous=True,
         ),
         continuous=True,
@@ -63,6 +62,7 @@ hopper_ppo_create_default_config = dict(
         type='ppo',
         import_names=['ding.policy.ppo'],
     ),
+    replay_buffer=dict(type='naive', ),
     reward_model=dict(type='guided_cost'),
 )
 hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)

@@ -19,7 +19,7 @@ from ding.reward_model import create_reward_model
 import copy
 import os
 
-def serial_pipeline_max_entropy(
+def serial_pipeline_guided_cost(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
