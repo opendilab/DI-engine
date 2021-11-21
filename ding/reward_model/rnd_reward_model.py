@@ -133,7 +133,7 @@ class RndRewardModel(BaseRewardModel):
         for item, rnd_rew in zip(data, rnd_reward):
             if self.intrinsic_reward_type == 'add':
                 if item['reward'] > 0 and item['reward'] <= 1:
-                    item['reward'] = 1000 * item['reward'] + rnd_rew # TODO(pu) avarage episode length
+                    item['reward'] = 1000 * item['reward'] + rnd_rew  # TODO(pu) avarage episode length
                     # item['reward'] = item['reward'] + rnd_rew # TODO(pu) avarage episode length
                 else:
                     item['reward'] += rnd_rew

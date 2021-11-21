@@ -8,7 +8,9 @@ collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
 pong_ppo_rnd_config = dict(
-    exp_name='debug_pong_ngu_ul98_er01_n32_rlbs2e4_fixepseval',
+    # exp_name='debug_pong_ngu_ul98_er01_n32_rlbs2e4_fixepseval',
+    exp_name='debug_pong_ngu_ul40_er01_n32_rlbs2e4_fixepseval',
+
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -49,9 +51,9 @@ pong_ppo_rnd_config = dict(
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=10,
+        burnin_step=2,
         nstep=nstep,
-        unroll_len=98,  # TODO(pu): according to the episode length
+        unroll_len=40,  # 98,  # TODO(pu): according to the episode length
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -78,7 +80,7 @@ pong_ppo_rnd_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=20000,  # TODO(pu)
+                replay_buffer_size=int(2e4),  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

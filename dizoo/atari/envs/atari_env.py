@@ -183,7 +183,7 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
-        max_step=int(1e4),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
     'PitfallNoFrameskip-v4': AtariEnvInfo(
@@ -212,7 +212,7 @@ ATARIENV_INFO_DICT = {
                 'dtype': np.float32
             },
         ),
-        max_step=int(1e4),
+        max_step=int(1e6),
         use_wrappers=None,
     ),
 }
