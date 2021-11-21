@@ -66,7 +66,7 @@ SMAC_5m6m_masac_default_config = dict(
                 type='linear',
                 start=1,
                 end=0.05,
-                decay=100000,
+                decay=50000,
             ),  # TODO(pu)
             replay_buffer=dict(replay_buffer_size=1000000, ),
         ),
