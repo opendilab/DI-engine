@@ -4,8 +4,8 @@ from ding.entry import serial_pipeline_onpolicy
 collector_env_num = 1
 evaluator_env_num = 1
 walker2d_ppo_default_config = dict(
-    exp_name="result_mujoco_para2/wlker2d_onppo_noig_para2",
-    # exp_name="result_mujoco_para2/wlker2d_onppo_ig_para2",
+    # exp_name="result_mujoco_para2/wlker2d_onppo_noig_para2",
+    exp_name="result_mujoco_para2/wlker2d_onppo_ig_para2",
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -39,8 +39,8 @@ walker2d_ppo_default_config = dict(
             # for onppo, when we recompute adv, we need the key done in data to split traj, so we must use ignore_done=False here,
             # but when we add key traj_flag in data as the backup for key done, we could choose to use ignore_done=True
             # for halfcheetah, the length=1000
-            # ignore_done=True,
-            ignore_done=False,
+            ignore_done=True,
+            # ignore_done=False,
             grad_clip_type='clip_norm',
             grad_clip_value=0.5,
         ),

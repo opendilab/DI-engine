@@ -4,7 +4,7 @@ import copy
 import torch
 
 from ding.utils import list_split, lists_to_dicts
-from .gae import gae, gae_traj_flag, gae_data, gae_data_traj_flag
+from .gae import gae, gae_data
 
 
 class Adder(object):
@@ -32,47 +32,22 @@ class Adder(object):
             - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key 'adv'
         """
         value = torch.stack([d['value'] for d in data])
-        next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
+        if 'traj_flag' not in data[0].keys():
+            next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
+        else:
+            next_value = last_value  # pass the whole next_value, not only the last value in the last timesteps
+            traj_flag = torch.stack([torch.tensor(int(d['traj_flag'])) for d in data])
         reward = torch.stack([d['reward'] for d in data])
         if cuda:
             value = value.cuda()
             next_value = next_value.cuda()
             reward = reward.cuda()
-        adv = gae(gae_data(value, next_value, reward, None), gamma, gae_lambda)
-        if cuda:
-            adv = adv.cpu()
-        for i in range(len(data)):
-            data[i]['adv'] = adv[i]
-        return data
-
-    @classmethod
-    def get_gae_traj_flag(
-            cls, data: List[Dict[str, Any]], next_value: torch.Tensor, gamma: float, gae_lambda: float, cuda: bool
-    ) -> List[Dict[str, Any]]:
-        """
-        Overview:
-            Get GAE advantage for stacked transitions(T timestep, 1 batch). Call ``gae`` for calculation.
-        Arguments:
-            - data (:obj:`list`): Transitions list, each element is a transition dict with at least ['value', 'reward']
-            - last_value (:obj:`torch.Tensor`): The last value(i.e.: the T+1 timestep)
-            - gamma (:obj:`float`): The future discount factor
-            - gae_lambda (:obj:`float`): GAE lambda parameter
-            - cuda (:obj:`bool`): Whether use cuda in GAE computation
-        Returns:
-            - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key 'adv'
-        """
-        value = torch.stack([d['value'] for d in data])
-        # next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
-        next_value = next_value
-        reward = torch.stack([d['reward'] for d in data])
-        traj_flag = torch.stack([d['traj_flag'] for d in data])
-        if cuda:
-            value = value.cuda()
-            next_value = next_value.cuda()
-            reward = reward.cuda()
-        # done is None, we distinguish if done according to the next_value,
-        # if next_value is zero, then it's real done, otherwise, it's not done
-        adv = gae_traj_flag(gae_data_traj_flag(value, next_value, reward, None, traj_flag), gamma, gae_lambda)
+        if 'traj_flag' not in data[0].keys():
+            adv = gae(gae_data(value, next_value, reward, None, None), gamma, gae_lambda)
+        else:
+            # done is None, we distinguish if done according to the next_value,
+            # if next_value is zero, then it's real done, otherwise, it's not done
+            adv = gae(gae_data(value, next_value, reward, None, traj_flag), gamma, gae_lambda)
         if cuda:
             adv = adv.cpu()
         for i in range(len(data)):
@@ -238,7 +213,6 @@ class Adder(object):
 
 
 get_gae = Adder.get_gae
-get_gae_traj_flag = Adder.get_gae_traj_flag
 get_gae_with_default_last_value = Adder.get_gae_with_default_last_value
 get_nstep_return_data = Adder.get_nstep_return_data
 get_train_sample = Adder.get_train_sample
