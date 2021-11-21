@@ -4,7 +4,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 pong_r2d2_config = dict(
-    exp_name='debug_pong_r2d2_n5_bs2_ul40_rbs2e4_seed0',
+    exp_name='debug_pong_r2d2_n5_bs2_ul40_rbs1e4_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -55,7 +55,7 @@ pong_r2d2_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=20000,  # TODO(pu)
+                replay_buffer_size=10000,  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
