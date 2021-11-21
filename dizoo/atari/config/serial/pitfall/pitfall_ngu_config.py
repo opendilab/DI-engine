@@ -5,14 +5,15 @@ from ding.entry import serial_pipeline_reward_model_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 32
-# collector_env_num = 2
 evaluator_env_num = 5
 nstep = 5
 pitfall_ppo_rnd_config = dict(
-    # exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs2e4_fixepseval',
-    # exp_name='debug_pitfall_ngu_ul198_er01_n32_rlbs1e4_fixepseval',
-    exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs1e4_fixepseval',
-    # exp_name='debug_pitfall_ngu_ul40_er01_n32_rlbs1e4_fixepseval',
+    # Note: 
+    # 1. at least 1e10 timesteps, i.e., 10000 million, the reward may increase, please be patient.
+    # 2. the larger unroll_lenth and replay buffer size may have better results, but also require more memory.
+    # exp_name='debug_pitfall_ngu_ul298_er01_n32_rlbs2e4',
+    exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs2e4',
+    # exp_name='debug_pitfall_ngu_ul40_er01_n32_rlbs2e4',
 
     env=dict(
         collector_env_num=collector_env_num,
