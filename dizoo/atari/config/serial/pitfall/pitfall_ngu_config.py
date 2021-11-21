@@ -12,8 +12,10 @@ pitfall_ppo_rnd_config = dict(
     # 1. at least 1e10 timesteps, i.e., 10000 million, the reward may increase, please be patient.
     # 2. the larger unroll_lenth and replay buffer size may have better results, but also require more memory.
     # exp_name='debug_pitfall_ngu_ul298_er01_n32_rlbs2e4',
-    exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs2e4',
+    # exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs2e4',
     # exp_name='debug_pitfall_ngu_ul40_er01_n32_rlbs2e4',
+    exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs3e3_maxstep1e6',
+
 
     env=dict(
         collector_env_num=collector_env_num,
@@ -84,7 +86,7 @@ pitfall_ppo_rnd_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=int(1e4),  # TODO(pu)
+                replay_buffer_size=int(3e3),  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
