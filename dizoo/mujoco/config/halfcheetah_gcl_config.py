@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline, serial_pipeline_guided_cost
+from ding.entry import serial_pipeline_guided_cost
 
 halfcheetah_gcl_default_config = dict(
     env=dict(

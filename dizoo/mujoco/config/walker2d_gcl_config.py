@@ -1,5 +1,5 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline, serial_pipeline_guided_cost
+from ding.entry import serial_pipeline_guided_cost
 from easydict import EasyDict
 
 walker_gcl_default_config = dict(
