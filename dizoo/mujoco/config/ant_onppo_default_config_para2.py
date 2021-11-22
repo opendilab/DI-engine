@@ -4,7 +4,7 @@ from ding.entry import serial_pipeline_onpolicy
 collector_env_num = 1
 evaluator_env_num = 1
 ant_ppo_default_config = dict(
-    exp_name="result_mujoco_para2/ant_onppo_noig_para2",
+    exp_name="result_mujoco_para2/ant_onppo_noig_para2_seed0",
     # exp_name="result_mujoco_para2/ant_onppo_ig_para2",
 
     env=dict(
