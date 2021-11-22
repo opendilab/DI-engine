@@ -25,7 +25,7 @@ lunarlander_ppo_config = dict(
             action_shape=4,
         ),
         learn=dict(
-            epoch_per_collect=8,
+            update_per_collect=8,
             batch_size=800,
             learning_rate=0.001,
             value_weight=0.5,

@@ -28,7 +28,7 @@ cartpole_ppo_offpolicy_config = dict(
             actor_head_hidden_size=128,
         ),
         learn=dict(
-            epoch_per_collect=2,
+            update_per_collect=2,
             batch_size=64,
             learning_rate=0.001,
             value_weight=0.5,
@@ -56,12 +56,12 @@ cartpole_ppo_offpolicy_config = EasyDict(cartpole_ppo_offpolicy_config)
 main_config = cartpole_ppo_offpolicy_config
 cartpole_ppo_offpolicy_create_config = dict(
     env=dict(
-        type='guided_cost',
+        type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo'),
-    reward_model=dict(type='max_entropy'),
+    reward_model=dict(type='guided_cost'),
 )
 cartpole_ppo_offpolicy_create_config = EasyDict(cartpole_ppo_offpolicy_create_config)
 create_config = cartpole_ppo_offpolicy_create_config
