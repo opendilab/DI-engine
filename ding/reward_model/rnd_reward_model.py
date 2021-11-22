@@ -57,6 +57,11 @@ class RndRewardModel(BaseRewardModel):
         batch_size=64,
         hidden_size_list=[64, 64, 128],
         update_per_collect=100,
+        obs_norm=True,
+        obs_norm_clamp_min=-1,
+        obs_norm_clamp_max=1,
+        extrinsic_reward_scale=1,
+        extrinsic_reward_weight=1,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
