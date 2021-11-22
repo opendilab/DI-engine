@@ -178,7 +178,7 @@ class PPOPolicy(Policy):
                         data['value'] = value
                         data['return'] = unnormalized_returns
 
-            else:  # don't recompute adv 
+            else:  # don't recompute adv
                 if self._value_norm:
                     unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
                     data['return'] = unnormalized_return / self._running_mean_std.std
