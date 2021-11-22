@@ -31,7 +31,7 @@
 [![Contributors](https://img.shields.io/github/contributors/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/graphs/contributors)
 [![GitHub license](https://img.shields.io/github/license/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/blob/master/LICENSE)
 
-Updated on 2021.09.30 DI-engine-v0.2.0 (beta)
+Updated on 2021.11.22 DI-engine-v0.2.1 (beta)
 
 
 ## Introduction to DI-engine (beta)
@@ -52,7 +52,7 @@ DI-engine is a generalized Decision Intelligence engine. It supports most basic 
 ### Other
 - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
 - [treevalue](https://github.com/opendilab/treevalue)
-- [DI-treetensor](https://github.com/opendilab/DI-treetensor) (preview)
+- [DI-treetensor](https://github.com/opendilab/DI-treetensor) 
 
 ## Installation
 
