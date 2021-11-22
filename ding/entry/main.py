@@ -275,25 +275,22 @@ def main_eager(cfg, create_cfg, seed=0):
     collect = dqn.collect(collector_env, replay_buffer)
     learn = dqn.learn(replay_buffer)
     profiler = sample_profiler(replay_buffer, print_per_step=50)
-    evaluate_profiler = step_profiler("Evaluate", silent=True)
-    collect_profiler = step_profiler("Collect", silent=True)
-    learn_profiler = step_profiler("Learn", silent=True)
 
     def _execute_task(task: Task):
         while task.ctx.total_step < 300:
-            with task.step():
-                task.forward(profiler)
-                task.forward(evaluate_profiler(evaluate))
-                if task.finish:
-                    break
-                for _ in range(1):
-                    task.forward(task.sequence(act, collect))
-                task.forward(learn_profiler(learn))
+            task.forward(profiler)
+            task.forward(evaluate)
+            if task.finish:
+                break
+            for _ in range(1):
+                task.forward(task.sequence(act, collect))
+            task.forward(learn)
+            task.renew()
 
             print_step(task)
 
-    # task.parallel(_execute_task)
-    _execute_task(task)
+    task.parallel(_execute_task)
+    # _execute_task(task)
 
 
 if __name__ == "__main__":
