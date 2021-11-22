@@ -4,13 +4,18 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
-# collector_env_num = 32
-collector_env_num = 3
+collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
 pitfall_ppo_rnd_config = dict(
-    # exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs2e4_fixepseval',
-    exp_name='debug_pitfall_ngu_ul40_er01_n32_rlbs1e4_fixepseval',
+    # Note: 
+    # 1. at least 1e10 timesteps, i.e., 10000 million, the reward may increase, please be patient.
+    # 2. the larger unroll_lenth and replay buffer size may have better results, but also require more memory.
+    # exp_name='debug_pitfall_ngu_ul298_er01_n32_rlbs2e4',
+    # exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs2e4',
+    # exp_name='debug_pitfall_ngu_ul40_er01_n32_rlbs2e4',
+    exp_name='debug_pitfall_ngu_ul98_er01_n32_rlbs3e3_maxstep1e6',
+
 
     env=dict(
         collector_env_num=collector_env_num,
@@ -52,9 +57,9 @@ pitfall_ppo_rnd_config = dict(
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=10,
+        burnin_step=2,
         nstep=nstep,
-        unroll_len=40,#98,  # TODO(pu): according to the episode length
+        unroll_len=98,#98,  # TODO(pu): according to the episode length
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=18,
@@ -81,7 +86,7 @@ pitfall_ppo_rnd_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=int(1e4),  # TODO(pu)
+                replay_buffer_size=int(3e3),  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

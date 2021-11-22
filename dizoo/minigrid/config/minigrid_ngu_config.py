@@ -9,8 +9,8 @@ evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_rnd_config = dict(
     # exp_name='debug_minigrid_empty8_ngu_ul98_er01_n32_rbs5e4_fixepseval',
-    # exp_name='debug_minigrid_fourrooms_ngu_ul98_er01_n32_rbs5e4_fixepseval',
-    exp_name='debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval',
+    # exp_name='debug_minigrid_fourrooms_ngu_ul98_er01_n32_rbs5e4_fixepseval_seed3',
+    exp_name='debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval_seed2',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -56,7 +56,7 @@ minigrid_ppo_rnd_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=98,  # TODO(pu): according to the episode length
+        unroll_len=298,  # TODO(pu): according to the episode length
         model=dict(
             obs_shape=2739,
             action_shape=7,
@@ -82,7 +82,7 @@ minigrid_ppo_rnd_config = dict(
                 end=0.05,
                 decay=1e5,
             ),
-            replay_buffer=dict(replay_buffer_size=int(5e4),
+            replay_buffer=dict(replay_buffer_size=int(3e4),
                                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                                alpha=0.6,
                                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -98,8 +98,8 @@ minigrid_ppo_rnd_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
@@ -109,4 +109,4 @@ minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
 create_config = minigrid_ppo_rnd_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+    serial_pipeline_reward_model_ngu([main_config, create_config], seed=2)

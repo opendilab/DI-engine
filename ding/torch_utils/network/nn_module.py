@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
 from typing import Union, Tuple, List, Callable
+from ding.compatibility import torch_gt_131
 
 from .normalization import build_normalization
 
@@ -362,7 +363,7 @@ def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.F
     # If the value is -1, then it should be converted to all zeros encodings and
     # the corresponding entry in index_neg_one is 1, which is used to transform
     # the ret after the operation of ret.scatter_(1, val_reshape, 1) to their correct encodings bellowing
-    index_neg_one = torch.eq(val_reshape, -1).long()
+    index_neg_one = torch.eq(val_reshape, -1).long().float()  # TODO(pu)
     if index_neg_one.sum() != 0:  # if -1 exists in val
         # convert the original value -1 to 0
         val_reshape = torch.where(
@@ -577,3 +578,23 @@ def noise_block(
     if use_dropout:
         block.append(nn.Dropout(dropout_probability))
     return sequential_pack(block)
+
+
+class NaiveFlatten(nn.Module):
+
+    def __init__(self, start_dim: int = 1, end_dim: int = -1) -> None:
+        super(NaiveFlatten, self).__init__()
+        self.start_dim = start_dim
+        self.end_dim = end_dim
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if self.end_dim != -1:
+            return x.view(*x.shape[:self.start_dim], -1, *x.shape[self.end_dim + 1:])
+        else:
+            return x.view(*x.shape[:self.start_dim], -1)
+
+
+if torch_gt_131():
+    Flatten = nn.Flatten
+else:
+    Flatten = NaiveFlatten

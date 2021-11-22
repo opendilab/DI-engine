@@ -147,7 +147,7 @@ class TD3Policy(DDPGPolicy):
         other=dict(
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer.
-                replay_buffer_size=1000000,
+                replay_buffer_size=100000,
             ),
         ),
     )
