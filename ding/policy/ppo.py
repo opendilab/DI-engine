@@ -7,23 +7,106 @@ from torch.distributions import Independent, Normal
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
-    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous,\
+    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous, \
     get_gae
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
+from ding.utils import dicts_to_lists, lists_to_dicts
+
+
+def compute_adv(data, last_value, cfg):
+    # last_value could be the real last value of the last timestep in the whole traj,
+    # or the next_value sequence for each timesteps.
+    data = get_gae(data, last_value, gamma=cfg.collect.discount_factor, gae_lambda=cfg.collect.gae_lambda, cuda=False)
+    # data: list (T timestep, 1 batch) [['value':,'reward':,'adv':], ...,]
+    return get_nstep_return_data(data,
+                                 cfg.nstep) if cfg.nstep_return else get_train_sample(data, cfg.collect.unroll_len)
+
+
+def dict_data_split_traj_and_compute_adv(data, next_value, cfg):
+    # because the get_gae function need input the traj data in the same episode not different episodes,
+    # so we should split the data into traj according to the key 'done' and 'traj_flag' if have, and
+    # the max_traj_length <cfg.collect.n_sample // cfg.collect.collector_env_num>
+
+    # data shape: dict of torch.FloatTensor of thansitions
+    # {'obs':[torch.FloatTensor], ...,'reward':[torch.FloatTensor],...}
+    # traj means consequent transitions in one episode，it may be the whole episode or truncated episode,
+    # or consequent part of one episode, because the restrict of max_traj_len.
+    processed_data = []
+    start_index = 0
+    timesteps = 0
+    for i in range(data['reward'].shape[0]):
+        timesteps += 1
+        traj_data = []
+
+        if 'traj_flag' in data.keys():
+            # for compatibility in mujoco, when ignore done, we should split the data according to the traj_flag
+            traj_flag = data['traj_flag'][i]
+        else:
+            traj_flag = data['done'][i]
+
+        if traj_flag:  # data['done'][i]: torch.tensor(1.) or True
+            for k in range(start_index, i + 1):
+                # transform to shape like this:
+                # traj_data.append( {'value':data['value'][k] ,'reward':data['reward'][k] ,'adv':data['adv'][k] } )
+                # if discrete action: traj_data.append({key: data[key][k] for key in data.keys()})
+                # if continuous action: data['logit'] list(torch.tensor(3200,6)); data['weight'] list
+                traj_data.append(
+                    {
+                        key: [data[key][logit_index][k] for logit_index in range(len(data[key]))]
+                        if isinstance(data[key], list) and key == 'logit' else data[key][k]
+                        for key in data.keys()
+                    }
+                )
+                if data['done'][i]:  # if done
+                    next_value[i] = torch.zeros(1)[0].to(data['obs'][0].device)
+
+            processed_data.extend(traj_data)
+            start_index = i + 1
+            timesteps = 0
+            continue
+        if timesteps == cfg.collect.n_sample // cfg.collect.collector_env_num:  # equals self._traj_len, e.g. 64
+            for k in range(start_index, i + 1):
+                traj_data.append(
+                    {
+                        key: [data[key][logit_index][k] for logit_index in range(len(data[key]))]
+                        if isinstance(data[key], list) and key == 'logit' else data[key][k]
+                        for key in data.keys()
+                    }
+                )
+
+            # traj_data = compute_adv(traj_data, next_value[i], cfg)
+            if data['done'][i]:  # if done
+                next_value[i] = torch.zeros(1)[0].to(data['obs'][0].device)
+            processed_data.extend(traj_data)
+            start_index = i + 1
+            timesteps = 0
+            continue
+
+    remaining_traj_data = []
+    for k in range(start_index, i + 1):
+        remaining_traj_data.append(
+            {
+                key: [data[key][logit_index][k] for logit_index in range(len(data[key]))]
+                if isinstance(data[key], list) and key == 'logit' else data[key][k]
+                for key in data.keys()
+            }
+        )
+        if data['done'][i]:  # if done
+            next_value[i] = torch.zeros(1)[0].to(data['obs'][0].device)
+    # add the remaining data, return shape list of dict
+    data = processed_data + remaining_traj_data
+    return compute_adv(data, next_value, cfg)
 
 
 @POLICY_REGISTRY.register('ppo')
 class PPOPolicy(Policy):
     r"""
     Overview:
-        Policy class of PPO algorithm.
-
-        https://arxiv.org/pdf/1707.06347.pdf
-
+        Policy class of on policy version PPO algorithm.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -38,6 +121,7 @@ class PPOPolicy(Policy):
         priority_IS_weight=False,
         recompute_adv=True,
         continuous=True,
+        nstep_return=False,
         multi_agent=False,
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
@@ -148,6 +232,11 @@ class PPOPolicy(Policy):
               Including current lr, total_loss, policy_loss, value_loss, entropy_loss, \
                         adv_abs_max, approx_kl, clipfrac
         """
+        # for transition in data:
+        #     # for compatibility in mujoco, when ignore done, we should split the data according to the traj_flag
+        #     if 'traj_flag' not in transition.keys():
+        #         transition['traj_flag'] =  copy.deepcopy(transition['done'])
+
         data = default_preprocess_learn(data, ignore_done=self._cfg.learn.ignore_done, use_nstep=False)
         if self._cuda:
             data = to_device(data, self._device)
@@ -161,10 +250,12 @@ class PPOPolicy(Policy):
             data['return'] = unnormalized_return / self._running_mean_std.std
             self._running_mean_std.update(unnormalized_return.cpu().numpy())
         else:
+            # if ppo_onpolicy_rnd, the data['adv'] should be recompute accordingto
+            # the new reward before calling this _forward_learn()
             data['return'] = data['adv'] + data['value']
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._recompute_adv:
+            if self._recompute_adv:  # new v network compute new value
                 with torch.no_grad():
                     # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
@@ -173,21 +264,32 @@ class PPOPolicy(Policy):
                         value *= self._running_mean_std.std
                         next_value *= self._running_mean_std.std
 
-                    gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
-                    # GAE need (T, B) shape input and return (T, B) output
-                    data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
-                    # value = value[:-1]
-                    unnormalized_returns = value + data['adv']
+                    data['value'] = value
+                    data['weight'] = [None for i in range(data['reward'].shape[0])]
+
+                    processed_data = dict_data_split_traj_and_compute_adv(
+                        data, next_value.to(self._device), self._cfg
+                    )
+
+                    processed_data = lists_to_dicts(processed_data)
+                    for k, v in processed_data.items():
+                        if isinstance(v[0], torch.Tensor):
+                            processed_data[k] = torch.stack(v, dim=0)
+                    processed_data['weight'] = None
+
+                    unnormalized_returns = processed_data['value'] + processed_data['adv']
 
                     if self._value_norm:
-                        data['value'] = value / self._running_mean_std.std
-                        data['return'] = unnormalized_returns / self._running_mean_std.std
+                        processed_data['value'] = processed_data['value'] / self._running_mean_std.std
+                        processed_data['return'] = unnormalized_returns / self._running_mean_std.std
                         self._running_mean_std.update(unnormalized_returns.cpu().numpy())
                     else:
-                        data['value'] = value
-                        data['return'] = unnormalized_returns
+                        processed_data['value'] = processed_data['value']
+                        processed_data['return'] = unnormalized_returns
+            else:
+                processed_data = data
 
-            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+            for batch in split_data_generator(processed_data, self._cfg.learn.batch_size, shuffle=True):
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
                 adv = batch['adv']
                 if self._adv_norm:
@@ -326,6 +428,12 @@ class PPOPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = to_device(data, self._device)
+        for transition in data:
+            # for compatibility in mujoco, when ignore done, we should split the data according to the traj_flag
+            if 'traj_flag' not in transition.keys():
+                transition['traj_flag'] = copy.deepcopy(transition['done'])
+
+        # adder is defined in _init_collect
         if self._cfg.learn.ignore_done:
             data[-1]['done'] = False
 
