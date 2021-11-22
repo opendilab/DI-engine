@@ -42,6 +42,7 @@ class Parallel:
 
         nodes = self.get_node_addrs(n_workers, protocol=protocol, address=address, ports=ports)
         logging.info("Bind subprocesses on these addresses: {}".format(nodes))
+        print("Bind subprocesses on these addresses: {}".format(nodes))
 
         def _cleanup_nodes():
             for node in nodes:
@@ -53,7 +54,14 @@ class Parallel:
 
         def _parallel(node_id):
             self._listener = Thread(
-                target=lambda: self.listen(node_id, nodes, attach_to), name="paralllel_listener", daemon=True
+                target=self.listen,
+                kwargs={
+                    "node_id": node_id,
+                    "nodes": nodes,
+                    "attach_to": attach_to
+                },
+                name="paralllel_listener",
+                daemon=True
             )
             self._listener.start()
             time.sleep(0.3)  # Wait for thread starting
@@ -61,7 +69,7 @@ class Parallel:
 
         with WorkerPool(n_jobs=n_workers) as pool:
             # Cleanup the pool just in case the program crashes.
-            atexit.register(lambda: pool.__exit__())
+            atexit.register(pool.__exit__)
             results = pool.map(_parallel, range(n_workers))
         return results
 
