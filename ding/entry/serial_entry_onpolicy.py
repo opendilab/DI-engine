@@ -69,9 +69,8 @@ def serial_pipeline_onpolicy(
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
-    replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
     commander = BaseSerialCommander(
-        cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
+        cfg.policy.other.commander, learner, collector, evaluator, None, policy.command_mode
     )
 
     # ==========
@@ -80,15 +79,6 @@ def serial_pipeline_onpolicy(
     # Learner's before_run hook.
     learner.call_hook('before_run')
 
-    # Accumulate plenty of data at the beginning of training.
-    if cfg.policy.get('random_collect_size', 0) > 0:
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(random_policy)
-        collect_kwargs = commander.step()
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
     for _ in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance
@@ -100,23 +90,7 @@ def serial_pipeline_onpolicy(
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
 
         # Learn policy from collected data
-        for i in range(cfg.policy.learn.update_per_collect):  # update_per_collect=1, for onppo
-            # Learner will train ``update_per_collect`` times in one iteration.
-            train_data = new_data
-            if train_data is None:
-                # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
-                logging.warning(
-                    "Replay buffer's data can only train for {} steps. ".format(i) +
-                    "You can modify data collect config, e.g. increasing n_sample, n_episode."
-                )
-                break
-
-            learner.train(train_data, collector.envstep)
-            if learner.policy.get_attribute('priority'):
-                replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
+        learner.train(new_data, collector.envstep)
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
