@@ -10,7 +10,7 @@ nstep = 5
 minigrid_ppo_rnd_config = dict(
     # exp_name='debug_minigrid_empty8_ngu_ul98_er01_n32_rbs5e4_fixepseval',
     # exp_name='debug_minigrid_fourrooms_ngu_ul98_er01_n32_rbs5e4_fixepseval_seed3',
-    exp_name='debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval_seed2',
+    exp_name='debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval_ee0.1_ed0.1_upc16_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -64,7 +64,8 @@ minigrid_ppo_rnd_config = dict(
             collector_env_num=collector_env_num,
         ),
         learn=dict(
-            update_per_collect=8,
+            # update_per_collect=8,
+            update_per_collect=16,  # TODO(pu) 32*32/64=16
             batch_size=64,
             learning_rate=1e-4,
             target_update_theta=0.001,
@@ -79,8 +80,8 @@ minigrid_ppo_rnd_config = dict(
             eps=dict(
                 type='exp',
                 start=0.95,
-                end=0.05,
-                decay=1e5,
+                end=0.1,  # TODO(pu) 0.05
+                decay=1e7,  # TODO(pu) 1e5
             ),
             replay_buffer=dict(replay_buffer_size=int(3e4),
                                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
@@ -109,4 +110,4 @@ minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
 create_config = minigrid_ppo_rnd_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=2)
+    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)

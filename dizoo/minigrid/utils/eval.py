@@ -10,11 +10,9 @@ from ding.utils import set_pkg_seed
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
 
 
-
 def eval(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
-        env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         state_dict: Optional[dict] = None,
 ) -> float:
@@ -37,7 +35,6 @@ def eval(
         cfg, create_cfg = input_cfg
     create_cfg.policy.type += '_command'
     cfg = compile_config(cfg, auto=True, create_cfg=create_cfg)
-
     env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     env = env_fn(evaluator_env_cfg[0])
     env.seed(seed, dynamic_seed=False)
@@ -49,7 +46,7 @@ def eval(
 
     import os
     module_path = os.path.dirname(__file__)
-    replay_path = module_path + '/minigrid_ngu/',
+    replay_path = module_path + '/doorkey_ngu/0',
 
     env.enable_save_replay(replay_path=replay_path[0])
     obs = env.reset()
@@ -61,10 +58,9 @@ def eval(
     prev_action = {i: torch.tensor(-1) for i in range(1)}
     prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(1)}
 
-
     while True:
         # TODO(pu): r_i, reward embeding
-        policy_output = policy.forward(beta_index ,obs , prev_action, prev_reward_e)
+        policy_output = policy.forward(beta_index, obs, prev_action, prev_reward_e)
 
         actions = {i: a['action'] for i, a in policy_output.items()}
         actions = to_ndarray(actions)
@@ -75,14 +71,14 @@ def eval(
         # print(action)
         # print(timestep.reward)
 
-        timesteps = {0:timestep}
+        timesteps = {0: timestep}
         timesteps = to_tensor(timesteps, dtype=torch.float32)
 
-        # prev_reward_e = to_ndarray(prev_reward_e)
-        # prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
-        # prev_action = actions
+        prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
+        prev_reward_e = to_ndarray(prev_reward_e)
+        prev_action = actions
 
-        timestep=timesteps[0]
+        timestep = timesteps[0]
         # print(timestep.info)
         eval_reward += timestep.reward
 
@@ -96,9 +92,12 @@ def eval(
 
 
 if __name__ == "__main__":
-    path = './iteration_33000.pth.tar'
+    # path = './iteration_33000.pth.tar'
+    path = './debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval/ckpt/iteration_0.pth.tar'
+
     cfg = '../config/minigrid_ngu_config.py'
 
     state_dict = torch.load(path, map_location='cpu')
-    for i in range(5):
+    # for i in [0]:#range(5):
+    for i in range(5,10):
         eval(cfg, seed=i, state_dict=state_dict)
