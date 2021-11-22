@@ -2,12 +2,12 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_onpolicy
 
 bipedalwalker_ppo_config = dict(
+    exp_name='bipedalwalker_ppo',
     env=dict(
-        collector_env_num=2,
+        collector_env_num=8,
         evaluator_env_num=5,
-        # # (bool) Scale output action into legal range.
+        # (bool) Scale output action into legal range.
         act_scale=True,
-
         n_evaluator_episode=5,
         stop_value=300,
         rew_clip=True,
@@ -22,7 +22,8 @@ bipedalwalker_ppo_config = dict(
             action_shape=4,
         ),
         learn=dict(
-            update_per_collect=4,
+            epoch_per_collect=10,
+            # update_per_collect=4, # offpolicy
             batch_size=64,
             learning_rate=0.001,
             value_weight=0.5,
@@ -33,7 +34,7 @@ bipedalwalker_ppo_config = dict(
             adv_norm=True,
         ),
         collect=dict(
-            n_sample=128,
+            n_sample=2048,
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,
@@ -49,9 +50,8 @@ bipedalwalker_ppo_create_config = dict(
     ),
 
     env_manager=dict(type='base'),
-    # policy=dict(type='ppo_offpolicy'),
+    # policy=dict(type='ppo_offpolicy'),  # TODO
     policy=dict(type='ppo'),
-
 )
 bipedalwalker_ppo_create_config = EasyDict(bipedalwalker_ppo_create_config)
 create_config = bipedalwalker_ppo_create_config

@@ -8,8 +8,15 @@ collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
 montezuma_ppo_rnd_config = dict(
-    # exp_name='debug_montezuma_ngu_ul298_er01_n32_rlbs1e4_fixepseval',
-    exp_name='debug_montezuma_ngu_ul40_er01_n32_rlbs1e4_fixepseval',
+    # Note: 
+    # 1. at least 1e9 timesteps, i.e., 1000 million, the reward may increase, please be patient.
+    # 2. the larger unroll_lenth and replay buffer size may have better results, but also require more memory.
+    # exp_name='debug_montezuma_ngu_ul298_er01_n32_rlbs1e4',
+    # exp_name='debug_montezuma_ngu_ul40_er01_n32_rlbs1e4',
+    # exp_name='debug_montezuma_ngu_ul98_er01_n32_rlbs3e3_maxstep1e6',
+    exp_name='debug_montezuma_ngu_ul198_er01_n32_rlbs2e3_maxstep1e6',
+
+
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -52,7 +59,7 @@ montezuma_ppo_rnd_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=40,#298,
+        unroll_len=198,#40,#298,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=18,
@@ -79,7 +86,7 @@ montezuma_ppo_rnd_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=int(1e4),
+                replay_buffer_size=int(2e3),
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

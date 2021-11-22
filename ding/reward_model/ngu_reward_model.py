@@ -255,7 +255,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
                     # add the number of null transitions in i'th sequence in batch
                     null_cnt = null_cnt + seq_length - null_start_index
                     for k in range(null_start_index, seq_length):
-                        episodic_reward[i][k] = torch.tensor(0).to(self.device)
+                        episodic_reward[i][k] = torch.tensor(0).to(self.device).float()
                         # episodic_reward[i][null_start_index:-1]=[torch.tensor(0).to(self.device)
                         # for i in range(seq_length-null_start_index)]
 

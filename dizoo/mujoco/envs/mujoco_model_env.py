@@ -1,6 +1,7 @@
 from typing import Any, Union, List, Callable, Dict
 import copy
 import torch
+import torch.nn as nn
 import numpy as np
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
@@ -11,8 +12,10 @@ from .mujoco_wrappers import wrap_mujoco
 from ding.utils import ENV_REGISTRY
 from ding.worker.collector.base_serial_collector import to_tensor_transitions
 
+
 @ENV_REGISTRY.register('mujoco_model')
 class MujocoModelEnv(object):
+
     def __init__(self, env_id: str, set_rollout_length: Callable, rollout_batch_size: int = 100000):
         self.env_id = env_id
         self.rollout_batch_size = rollout_batch_size
@@ -41,9 +44,9 @@ class MujocoModelEnv(object):
             done = ~not_done
             return done
         elif 'walker_' in self.env_id:
-            torso_height =  next_obs[:, -2]
+            torso_height = next_obs[:, -2]
             torso_ang = next_obs[:, -1]
-            if 'walker_7' in env_id or 'walker_5' in env_id:
+            if 'walker_7' in self.env_id or 'walker_5' in self.env_id:
                 offset = 0.
             else:
                 offset = 0.26
@@ -57,14 +60,20 @@ class MujocoModelEnv(object):
             done = torch.zeros_like(next_obs.sum(-1)).bool()
             return done
 
-    def rollout(self,
-                env_model: nn.Module,
-                policy: 'Policy',
-                replay_buffer: 'IBuffer',
-                imagine_buffer: 'IBuffer',
-                envstep: int,
-                cur_learner_iter: int) -> None:
-        # This function samples from the replay_buffer, rollouts to generate new data, and push them into the imagine_buffer
+    def rollout(
+            self,
+            env_model: nn.Module,
+            policy: 'Policy',  # noqa
+            replay_buffer: 'IBuffer',  # noqa
+            imagine_buffer: 'IBuffer',  # noqa
+            envstep: int,
+            cur_learner_iter: int
+    ) -> None:
+        """
+        Overview:
+            This function samples from the replay_buffer, rollouts to generate new data,
+            and push them into the imagine_buffer
+        """
         # set rollout length
         rollout_length = self._set_rollout_length(envstep)
         # load data
@@ -82,9 +91,7 @@ class MujocoModelEnv(object):
             timesteps = self.step(obs, actions, env_model)
             obs_new = {}
             for id, timestep in timesteps.items():
-                transition = policy.process_transition(
-                    obs[id], policy_output[id], timestep
-                )
+                transition = policy.process_transition(obs[id], policy_output[id], timestep)
                 transition['collect_iter'] = cur_learner_iter
                 buffer[id].append(transition)
                 if not timestep.done:
@@ -102,9 +109,12 @@ class MujocoModelEnv(object):
     def step(self, obs: Dict, act: Dict, env_model: nn.Module) -> Dict:
         # This function has the same input and output format as env manager's step
         data_id = list(obs.keys())
-        obs = torch.stack([obs[id] for id in data_id],dim=0)
-        act = torch.stack([act[id] for id in data_id],dim=0)
+        obs = torch.stack([obs[id] for id in data_id], dim=0)
+        act = torch.stack([act[id] for id in data_id], dim=0)
         rewards, next_obs = env_model.predict(obs, act)
         terminals = self.termination_fn(next_obs)
-        timesteps = {id:BaseEnvTimestep(n,r,d,{}) for id, n, r, d in zip(data_id, next_obs.numpy(), rewards.numpy(), terminals.numpy())}
+        timesteps = {
+            id: BaseEnvTimestep(n, r, d, {})
+            for id, n, r, d in zip(data_id, next_obs.numpy(), rewards.numpy(), terminals.numpy())
+        }
         return timesteps

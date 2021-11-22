@@ -48,9 +48,7 @@ hopper_ppo_create_default_config = dict(
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(
-        type='ppo',
-    ),
+    policy=dict(type='ppo', ),
 )
 hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
 create_config = hopper_ppo_create_default_config
