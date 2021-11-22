@@ -15,7 +15,7 @@ from dizoo.bsuite.config.serial.memory_len.memory_len_0_dqn_config import memory
 def main(cfg, seed=0):
 
     def memory_len_env():
-        return BSuiteEnv(cfg)
+        return BSuiteEnv(cfg.env)
 
     cfg = compile_config(
         cfg,
