@@ -485,7 +485,7 @@ class SACPolicy(Policy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        if self._cfg.collect.use_logit:
+        if self._cfg.collect.collector_logit:
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
