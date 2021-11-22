@@ -123,8 +123,6 @@ expert_pong_r2d3_config = dict(
             action_shape=6,
             # encoder_hidden_size_list=[64, 64, 128],  # ppo expert policy
             encoder_hidden_size_list=[128, 128, 512],  # r2d2 expert policy
-            # actor_head_hidden_size=128,
-            # critic_head_hidden_size=128,
         ),
         discount_factor=0.997,
         burnin_step=2,

@@ -358,8 +358,6 @@ class R2D3Policy(Policy):
                 loss_1step.append(loss_statistics[1])
                 loss_sl.append(loss_statistics[2])
 
-
-
             else:
                 l, e = dqfd_nstep_td_error(
                     td_data,
@@ -380,8 +378,6 @@ class R2D3Policy(Policy):
         loss_nstep = sum(loss_nstep) / (len(loss_nstep) + 1e-8)
         loss_1step = sum(loss_1step) / (len(loss_1step) + 1e-8)
         loss_sl = sum(loss_sl) / (len(loss_sl) + 1e-8)
-
-
 
         # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
         td_error_per_sample = 0.9 * torch.max(
@@ -409,13 +405,11 @@ class R2D3Policy(Policy):
             'nstep_loss': loss_nstep.item(),
             '1step_loss': loss_1step.item(),
             'sl_loss': loss_sl.item(),
-
             'priority': td_error_per_sample.abs().tolist(),
             # the first timestep in the sequence, may not be the start of episode
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),
-
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
@@ -562,5 +556,6 @@ class R2D3Policy(Policy):
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
-            'total_loss', 'nstep_loss','1step_loss','sl_loss','priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
+            'total_loss', 'nstep_loss', '1step_loss', 'sl_loss', 'priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0',
+            'q_s_a-mean_t0'
         ]
