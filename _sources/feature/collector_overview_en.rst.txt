@@ -61,7 +61,7 @@ We conduct speed tests of our collector in comparison with Tianshou, under envir
     To approximate some environments with large reset times, e.g. Carla and StarCraft2, we further conduct a group of tests with all reset times multiplied by **5** (unit: second):
 
         +------------------------+---------------+--------------+--------------+-------------+-------------+
-        |                        |    ts-async   |   ts-sync    |    nx-base   |   nx-async  |   nx-sync   |
+        |                        |    ts-async   |   ts-sync    |  ours-base   |  ours-async |  ours-sync  |
         +========================+===============+==============+==============+=============+=============+
         |       Small Env        |  55.11+0.10   |  45.10+0.08  | 176.55+0.05  | 50.71+0.80  | 50.55+1.39  |
         +------------------------+---------------+--------------+--------------+-------------+-------------+
