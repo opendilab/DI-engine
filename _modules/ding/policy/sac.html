@@ -324,6 +324,10 @@
             <span class="n">init_w</span><span class="o">=</span><span class="mf">3e-3</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># If you need the data collected by the collector to contain logit key which reflect the probability of the action, you can change the key to be True.</span>
+            <span class="c1"># In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.</span>
+            <span class="c1"># Default collector_logit to False.</span>
+            <span class="n">collector_logit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="c1"># You can use either &quot;n_sample&quot; or &quot;n_episode&quot; in actor.collect.</span>
             <span class="c1"># Get &quot;n_sample&quot; samples per collect.</span>
             <span class="c1"># Default n_sample to 1.</span>
@@ -646,13 +650,23 @@
 <span class="sd">        Return:</span>
 <span class="sd">            - transition (:obj:`Dict[str, Any]`): Dict type transition data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
-            <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
-            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
-            <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
-        <span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector_logit</span><span class="p">:</span>
+            <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+                <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
+                <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
+                <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+                <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
+                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">policy_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
+                <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
+            <span class="p">}</span>
         <span class="k">return</span> <span class="n">transition</span>
 
     <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
