@@ -34,10 +34,7 @@ cartpole_ppo_config = dict(
         ),
         eval=dict(
             evaluator=dict(
-                eval_freq=1000,
-                cfg_type='InteractionSerialEvaluatorDict',
-                stop_value=195,
-                n_episode=5,
+                eval_freq=100,
             ),
         ),
     ),
