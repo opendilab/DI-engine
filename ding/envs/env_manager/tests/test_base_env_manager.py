@@ -21,9 +21,6 @@ class TestBaseEnvManager:
         name = env_manager._name
         assert len(name) == env_manager.env_num
         assert all([isinstance(n, str) for n in name])
-        name = env_manager.name
-        assert len(name) == env_manager.env_num
-        assert all([isinstance(n, str) for n in name])
         assert env_manager._max_retry == 5
         assert env_manager._reset_timeout == 10
         assert all([s == 314 for s in env_manager._seed])
@@ -96,37 +93,35 @@ class TestBaseEnvManager:
 
         env_manager.close()
 
-    def test_block(self, setup_base_manager_cfg, setup_watchdog):
+    @pytest.mark.timeout(60)
+    def test_block(self, setup_base_manager_cfg):
         env_fn = setup_base_manager_cfg.pop('env_fn')
+        setup_base_manager_cfg['max_retry'] = 1
         env_manager = BaseEnvManager(env_fn, setup_base_manager_cfg)
-        watchdog = setup_watchdog(30)
+        assert env_manager._max_retry == 1
         # Test reset timeout
-        watchdog.start()
         with pytest.raises(RuntimeError):
             reset_param = {i: {'stat': 'block'} for i in range(env_manager.env_num)}
             obs = env_manager.launch(reset_param=reset_param)
         assert env_manager._closed
         reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
-        reset_param[0]['stat'] = 'timeout'
+        reset_param[0]['stat'] = 'wait'
 
         obs = env_manager.launch(reset_param=reset_param)
         assert not env_manager._closed
 
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) == env_manager.env_num
-        watchdog.stop()
         # Test step timeout
-        watchdog.start()
         action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
         action[0] = 'block'
-        with pytest.raises(RuntimeError):
+        with pytest.raises(TimeoutError):
             timestep = env_manager.step(action)
         assert all([env_manager._env_states[i] == EnvState.RUN for i in range(1, env_manager.env_num)])
 
         obs = env_manager.reset(reset_param)
-        action[0] = 'timeout'
+        action[0] = 'wait'
         timestep = env_manager.step(action)
         assert len(timestep) == env_manager.env_num
-        watchdog.stop()
 
         env_manager.close()

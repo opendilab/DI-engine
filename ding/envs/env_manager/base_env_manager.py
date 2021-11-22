@@ -29,40 +29,43 @@ def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: floa
     Overview:
         Retry the function until exceeding the maximum retry times.
     """
+    return func
 
-    if func is None:
-        return partial(retry_wrapper, max_retry=max_retry)
+#     if func is None:
+#         return partial(retry_wrapper, max_retry=max_retry)
 
-    if max_retry == 1:
-        return func
+#     if max_retry == 1:
+#         return func
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        exceptions = []
-        for _ in range(max_retry):
-            try:
-                ret = func(*args, **kwargs)
-                return ret
-            except BaseException as e:
-                exceptions.append(e)
-                time.sleep(waiting_time)
-        logging.error("Function {} has exceeded max retries({})".format(func, max_retry))
-        runtime_error = RuntimeError(
-            "Function {} has exceeded max retries({}), and the latest exception is: {}".format(
-                func, max_retry, repr(exceptions[-1])
-            )
-        )
-        runtime_error.__traceback__ = exceptions[-1].__traceback__
-        raise runtime_error
+#     @wraps(func)
+#     def wrapper(*args, **kwargs):
+#         exceptions = []
+#         for _ in range(max_retry):
+#             try:
+#                 ret = func(*args, **kwargs)
+#                 return ret
+#             except BaseException as e:
+#                 exceptions.append(e)
+#                 time.sleep(waiting_time)
+#         logging.error("Function {} has exceeded max retries({})".format(func, max_retry))
+#         runtime_error = RuntimeError(
+#             "Function {} has exceeded max retries({}), and the latest exception is: {}".format(
+#                 func, max_retry, repr(exceptions[-1])
+#             )
+#         )
+#         runtime_error.__traceback__ = exceptions[-1].__traceback__
+#         raise runtime_error
 
-    return wrapper
+#     return wrapper
 
 
-def timeout_wrapper(func: Callable = None, timeout: int = 10) -> Callable:
+def timeout_wrapper(func: Callable = None, timeout: Optional[int] = None) -> Callable:
     """
     Overview:
         Watch the function that must be finihsed within a period of time. If timeout, raise the captured error.
     """
+    if timeout is None:
+        return func
     if func is None:
         return partial(timeout_wrapper, timeout=timeout)
 
@@ -109,9 +112,10 @@ class BaseEnvManager(object):
     config = dict(
         episode_num=float("inf"),
         max_retry=1,
-        step_timeout=60,
+        retry_type='reset',
         auto_reset=True,
-        reset_timeout=60,
+        step_timeout=None,
+        reset_timeout=None,
         retry_waiting_time=0.1,
     )
 
@@ -138,9 +142,11 @@ class BaseEnvManager(object):
         self._env_seed = {i: None for i in range(self._env_num)}
 
         self._episode_num = self._cfg.episode_num
-        self._max_retry = self._cfg.max_retry
-        self._step_timeout = self._cfg.step_timeout
+        self._max_retry = max(self._cfg.max_retry, 1)
         self._auto_reset = self._cfg.auto_reset
+        self._retry_type = self._cfg.retry_type
+        assert self._retry_type in ['reset', 'renew'], self._retry_type
+        self._step_timeout = self._cfg.step_timeout
         self._reset_timeout = self._cfg.reset_timeout
         self._retry_waiting_time = self._cfg.retry_waiting_time
 
@@ -256,7 +262,7 @@ class BaseEnvManager(object):
 
     def _reset(self, env_id: int) -> None:
 
-        @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
+        #@retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
         @timeout_wrapper(timeout=self._reset_timeout)
         def reset_fn():
             # if self._reset_param[env_id] is None, just reset specific env, not pass reset param
@@ -266,14 +272,32 @@ class BaseEnvManager(object):
             else:
                 return self._envs[env_id].reset()
 
-        try:
-            obs = reset_fn()
-        except Exception as e:
-            self._env_states[env_id] = EnvState.ERROR
-            self.close()
-            raise e
-        self._ready_obs[env_id] = obs
-        self._env_states[env_id] = EnvState.RUN
+        exceptions = []
+        for _ in range(self._max_retry):
+            try:
+                obs = reset_fn()
+                self._ready_obs[env_id] = obs
+                self._env_states[env_id] = EnvState.RUN
+                return
+            except BaseException as e:
+                if self._retry_type == 'renew':
+                    err_env = self._envs[env_id]
+                    err_env.close()
+                    self._envs[env_id] = self._env_fn[env_id]()
+                exceptions.append(e)
+                time.sleep(self._retry_waiting_time)
+                continue
+
+        self._env_states[env_id] = EnvState.ERROR
+        self.close()
+        logging.error("Env {} reset has exceeded max retries({})".format(env_id, self._max_retry))
+        runtime_error = RuntimeError(
+            "Env {} reset has exceeded max retries({}), and the latest exception is: {}".format(
+                env_id, self._max_retry, repr(exceptions[-1])
+            )
+        )
+        runtime_error.__traceback__ = exceptions[-1].__traceback__
+        raise runtime_error
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
@@ -312,14 +336,13 @@ class BaseEnvManager(object):
 
     def _step(self, env_id: int, act: Any) -> namedtuple:
 
-        @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
         @timeout_wrapper(timeout=self._step_timeout)
         def step_fn():
             return self._envs[env_id].step(act)
 
         try:
             return step_fn()
-        except Exception as e:
+        except BaseException as e:
             self._env_states[env_id] = EnvState.ERROR
             raise e
 
