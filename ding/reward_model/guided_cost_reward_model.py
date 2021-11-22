@@ -36,7 +36,7 @@ class GuidedCostNN(nn.Module):
 
 
 @REWARD_MODEL_REGISTRY.register('guided_cost')
-class GuidedCostModel(BaseRewardModel):
+class GuidedCostRewardModel(BaseRewardModel):
     r"""
     Overview:
         Policy class of Guided cost algorithm.
@@ -58,7 +58,7 @@ class GuidedCostModel(BaseRewardModel):
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
-        super(GuidedCostModel, self).__init__()
+        super(GuidedCostRewardModel, self).__init__()
         self.cfg = config
         self.action_shape = self.cfg.action_shape
         assert device == "cpu" or device.startswith("cuda")
@@ -85,7 +85,7 @@ class GuidedCostModel(BaseRewardModel):
                 probs = F.softmax(samp[i]['logit'], dim=-1)
                 prob = probs[samp[i]['action']]
                 samp[i]['prob'] = prob.to(device_1)
-
+        # Mix the expert data and sample data to train the reward model.
         samp.extend(expert_demo)
         expert_demo = default_collate(expert_demo)
         samp = default_collate(samp)

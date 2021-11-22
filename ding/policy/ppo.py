@@ -450,7 +450,6 @@ class PPOOffPolicy(Policy):
         priority_IS_weight=False,
         # (bool) Whether to use nstep_return for value loss
         nstep_return=False,
-        recompute_adv=False,
         nstep=3,
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
@@ -519,7 +518,6 @@ class PPOOffPolicy(Policy):
         self._adv_norm = self._cfg.learn.adv_norm
         self._nstep = self._cfg.nstep
         self._nstep_return = self._cfg.nstep_return
-        self._recompute_adv = self._cfg.recompute_adv
         # Main model
         self._learn_model.reset()
 
@@ -544,14 +542,6 @@ class PPOOffPolicy(Policy):
         self._learn_model.train()
         # normal ppo
         if not self._nstep_return:
-            if self._recompute_adv:
-                with torch.no_grad():
-                    value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
-                    next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
-                    gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
-                    # GAE need (T, B) shape input and return (T, B) output
-                    data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
-                    # value = value[:-1]
             output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
             adv = data['adv']
             return_ = data['value'] + adv
@@ -631,7 +621,6 @@ class PPOOffPolicy(Policy):
             Init traj and unroll length, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._recompute_adv = self._cfg.recompute_adv
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
         self._gamma = self._cfg.collect.discount_factor
@@ -675,10 +664,9 @@ class PPOOffPolicy(Policy):
         Returns:
                - transition (:obj:`dict`): Dict type transition data.
         """
-        if self._nstep_return or self._recompute_adv:
+        if not self._nstep_return:
             transition = {
                 'obs': obs,
-                'next_obs': timestep.obs,
                 'logit': model_output['logit'],
                 'action': model_output['action'],
                 'value': model_output['value'],
@@ -688,6 +676,7 @@ class PPOOffPolicy(Policy):
         else:
             transition = {
                 'obs': obs,
+                'next_obs': timestep.obs,
                 'logit': model_output['logit'],
                 'action': model_output['action'],
                 'value': model_output['value'],

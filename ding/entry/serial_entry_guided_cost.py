@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer, \
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
@@ -30,9 +30,9 @@ def serial_pipeline_guided_cost(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline sqil entry: we create this serial pipeline in order to\
-            implement SQIL in DI-engine. For now, we support the following envs\
-            Cartpole, Lunarlander, Pong, Spaceinvader, Qbert. The demonstration\
+        Serial pipeline guided cost: we create this serial pipeline in order to\
+            implement guided cost learning in DI-engine. For now, we support the following envs\
+            Cartpole, Lunarlander, Hopper, Halfcheetah, Walker2d. The demonstration\
             data come from the expert model. We use a well-trained model to \
             generate demonstration data online
     Arguments:
@@ -91,7 +91,7 @@ def serial_pipeline_guided_cost(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)

@@ -159,10 +159,13 @@ class SACPolicy(Policy):
             init_w=3e-3,
         ),
         collect=dict(
+            # If you need the data collected by the collector to contain logit key which reflect the probability of the action, you can change the key to be True.
+            # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
+            # Default collector_logit to False.
+            collector_logit=False,
             # You can use either "n_sample" or "n_episode" in actor.collect.
             # Get "n_sample" samples per collect.
             # Default n_sample to 1.
-            use_logit=False,
             n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
