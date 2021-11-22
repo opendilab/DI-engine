@@ -32,7 +32,7 @@ class Adder(object):
             - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key 'adv'
         """
         value = torch.stack([d['value'] for d in data])
-        if 'traj_flag' not in data[0].keys():
+        if last_value.shape[0]==1:
             next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
         else:
             next_value = last_value  # pass the whole next_value, not only the last value in the last timesteps
@@ -42,7 +42,7 @@ class Adder(object):
             value = value.cuda()
             next_value = next_value.cuda()
             reward = reward.cuda()
-        if 'traj_flag' not in data[0].keys():
+        if last_value.shape[0]==1:
             adv = gae(gae_data(value, next_value, reward, None, None), gamma, gae_lambda)
         else:
             # done is None, we distinguish if done according to the next_value,

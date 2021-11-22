@@ -4,8 +4,8 @@ from ding.entry import serial_pipeline_onpolicy
 collector_env_num = 1
 evaluator_env_num = 1
 walker2d_ppo_default_config = dict(
-    exp_name="result_mujoco_para2/wlker2d_onppo_noig_para2_seed0",
-    # exp_name="result_mujoco_para2/wlker2d_onppo_ig_para2",
+    # exp_name="result_mujoco_para2/wlker2d_onppo_noig_para2_seed1",
+    # exp_name="result_mujoco_para2/wlker2d_onppo_ig_para2_seed1",
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -27,7 +27,7 @@ walker2d_ppo_default_config = dict(
             action_shape=6,
         ),
         learn=dict(
-           epoch_per_collect=10,
+            epoch_per_collect=10,
             update_per_collect=1,
             batch_size=320,
             learning_rate=3e-4,
@@ -70,4 +70,4 @@ walker2d_ppo_create_default_config = EasyDict(walker2d_ppo_create_default_config
 create_config = walker2d_ppo_create_default_config
 
 if __name__ == "__main__":
-    serial_pipeline_onpolicy([main_config, create_config], seed=0)
+    serial_pipeline_onpolicy([main_config, create_config], seed=1)
