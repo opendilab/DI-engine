@@ -235,14 +235,20 @@ class Task:
             n_timeout = 30
             if len(task.attach_to) > 0:
                 logging.warning(
-                    "The attach mode will wait for the latest context, \
-or wait for a timeout of {} seconds before starting execution".format(n_timeout)
+                    "The attach mode will wait for the latest context, an exception will \
+be thrown after the timeout {}s is reached".format(n_timeout)
                 )
+                is_timeout = True
                 for _ in range(n_timeout * 10):
                     if task.ctx.get("prev"):
+                        is_timeout = False
                         task.ctx = task.ctx.prev
                         break
                     time.sleep(0.1)
+                if is_timeout:
+                    # The attach mode does not allow to start from step 0 alone,
+                    # otherwise it may overwrite the training results of other processes
+                    raise TimeoutError("Attach timeout, not received the latest context.")
             main_process(task)
 
         self.router.run(
