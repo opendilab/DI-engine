@@ -49,8 +49,9 @@ class DequeBuffer:
 
 class DQNPipeline:
 
-    def __init__(self, cfg, model):
+    def __init__(self, cfg, model: torch.nn.Module):
         self.cfg = cfg
+        self.model = model
         self.policy = DQNPolicy(cfg.policy, model=model)
         eps_cfg = cfg.policy.other.eps
         self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
@@ -68,21 +69,30 @@ class DQNPipeline:
 
         return _act
 
-    def collect(self, env, buffer_):
+    def collect(self, env, buffer_, task: Task):
+
+        def on_sync_parallel_ctx(ctx):
+            if "collect_transitions" in ctx:
+                for t in ctx.collect_transitions:
+                    buffer_.push(t)
+
+        # task.on("sync_parallel_ctx", on_sync_parallel_ctx)
 
         def _collect(ctx):
             timesteps = env.step(ctx.action)
             ctx.collect_env_step += len(timesteps)
             timesteps = to_tensor(timesteps, dtype=torch.float32)
+            ctx.collect_transitions = []
             for env_id, timestep in timesteps.items():
                 transition = self.policy.collect_mode.process_transition(
                     ctx.obs[env_id], ctx.policy_output[env_id], timestep
                 )
+                ctx.collect_transitions.append(transition)
                 buffer_.push(transition)
 
         return _collect
 
-    def learn(self, buffer_):
+    def learn(self, buffer_, task: Task):
 
         def _learn(ctx):
             ctx.setdefault("train_iter", 0)
@@ -241,12 +251,12 @@ def main(cfg, create_cfg, seed=0):
     task.run(max_step=1000)
 
 
-def print_step(task):
+def print_step(task: Task):
     import random
     from os import path
     time.sleep(random.random() + 1)
     print(
-        "Current task step on {}".format(task.router and path.basename(task.router._bind_addr or "")),
+        "Current task step on {}".format(task.parallel_mode and path.basename(task.router._bind_addr or "")),
         task.ctx.total_step
     )
 
@@ -254,7 +264,11 @@ def print_step(task):
 def main_eager(cfg, create_cfg, seed=0):
 
     cfg = compile_config(cfg, create_cfg=create_cfg, auto=True)
+    task = Task(async_mode=True, n_async_workers=3, parallel_mode=True, n_parallel_workers=2, attach_to=[])
+    start = time.time()
+
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+
     collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
     evaluator_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager)
 
@@ -265,32 +279,31 @@ def main_eager(cfg, create_cfg, seed=0):
     evaluator_env.launch()
 
     model = DQN(**cfg.policy.model)
+    # model.share_memory()
     replay_buffer = DequeBuffer()
 
     dqn = DQNPipeline(cfg, model)
-
-    task = Task(async_mode=True, n_async_workers=3, parallel_mode=True, n_parallel_workers=2, attach_to=[])
     evaluate = dqn.evaluate(evaluator_env)
     act = dqn.act(collector_env)
-    collect = dqn.collect(collector_env, replay_buffer)
-    learn = dqn.learn(replay_buffer)
+    collect = dqn.collect(collector_env, replay_buffer, task=task)
+    learn = dqn.learn(replay_buffer, task=task)
     profiler = sample_profiler(replay_buffer, print_per_step=50)
 
     def _execute_task(task: Task):
-        while task.ctx.total_step < 300:
+        while task.ctx.total_step < 1000:
             task.forward(profiler)
             task.forward(evaluate)
             if task.finish:
                 break
-            for _ in range(1):
-                task.forward(task.sequence(act, collect))
+            task.forward(task.sequence(act, collect))
             task.forward(learn)
             task.renew()
-
-            print_step(task)
+            # print_step(task)
+        # print("model weight", model._version, model.state_dict()["encoder.main.0.weight"][0][:10])
 
     task.parallel(_execute_task)
     # _execute_task(task)
+    print("Total time cost: {:.2f}s".format(time.time() - start))
 
 
 if __name__ == "__main__":

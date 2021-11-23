@@ -1,3 +1,4 @@
+from collections import defaultdict
 import logging
 import copy
 import time
@@ -61,6 +62,7 @@ class Task:
             middleware: List[Callable] = None,
             bind_address: str = None,
             bind_ports: Optional[List[int]] = None,
+            event_listeners: Optional[defaultdict] = None,
             *args,
             **kwargs
     ) -> None:
@@ -74,6 +76,7 @@ class Task:
         self._async_stack = []
         self._loop = None
         self._thread_pool = None
+        self.event_listeners = event_listeners or defaultdict(list)
         if async_mode or parallel_mode:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             self._loop = asyncio.new_event_loop()
@@ -261,6 +264,8 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         )
 
     def sync_parallel_ctx(self, ctx: Context):
+        for fn in self.event_listeners["sync_parallel_ctx"]:
+            fn(ctx)
         if self.ctx.get("prev") and self.ctx.prev.total_step > ctx.total_step:
             self.ctx.prev = self._inherit_ctx(self.ctx.prev, ctx)
         else:
@@ -277,6 +282,9 @@ be thrown after the timeout {}s is reached".format(n_timeout)
             raise Exception("Event loop was not initialized, please call this function in async or parallel mode")
         t = self._loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
         self._async_stack.append(t)
+
+    def on(self, event: str, fn: Callable) -> None:
+        self.event_listeners[event].append(fn)
 
     @property
     def finish(self) -> bool:
