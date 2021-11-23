@@ -28,10 +28,10 @@ pendulum_acer_config = dict(
             clip_value=None,
             multi_gpu=False,
             update_per_collect=4,
-            batch_size=16,
+            batch_size=64,#16,
             value_weight=0.5,
             entropy_weight=0.0001,
-            discount_factor=0.9,
+            discount_factor=0.997,#0.9,
             lambda_=0.95,
             load_path=None,
             unroll_len=32,
@@ -40,7 +40,7 @@ pendulum_acer_config = dict(
             trust_region_value=1.0,
             learning_rate_actor=0.0005,
             learning_rate_critic=0.0005,
-            target_theta=0.01
+            target_theta=0.001
         ),
         collect=dict(
             n_sample=16,
@@ -54,7 +54,7 @@ pendulum_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            replay_buffer_size=1000,
+            replay_buffer_size=10000,#0000,
             max_use=16,
         ), ),
     ),
@@ -73,3 +73,7 @@ pendulum_acer_create_config = dict(
 pendulum_acer_create_config = EasyDict(pendulum_acer_create_config)
 create_config = pendulum_acer_create_config
 
+from ding.entry import serial_pipeline
+
+if __name__ == "__main__":
+    serial_pipeline([pendulum_acer_config, pendulum_acer_create_config], seed=0)

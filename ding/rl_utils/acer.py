@@ -105,7 +105,9 @@ def acer_trust_region_update(
 
 
 def acer_value_error_continuous(q_values: torch.Tensor, 
-                                q_retraces: torch.Tensor):
+                                q_retraces: torch.Tensor,
+                                ratio: torch.Tensor,
+                                ):
     """
     Overview:
         Get ACER critic loss
@@ -123,8 +125,14 @@ def acer_value_error_continuous(q_values: torch.Tensor,
         - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
     """
 
-    critic_loss = (q_retraces - q_values.detach())*q_values
-    return critic_loss
+    critic_loss_q = (q_retraces.detach() - q_values)
+    critic_loss_v = ratio.clamp(max=1) * (q_retraces.detach() - q_values)  # shape T,B,1
+    # critic_loss = critic_loss_q + critic_loss_v
+    # return [critic_loss_q, critic_loss_v, critic_loss]
+    return critic_loss_q +  critic_loss_v
+
+    # critic_loss = (q_retraces.detach() - q_values)
+    # return critic_loss
 
 
 def acer_policy_error_continuous(
