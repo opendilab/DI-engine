@@ -15,6 +15,7 @@ def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable: 
         nonlocal use_count
         idx = item.index
         use_count[idx] += 1
+        item.meta['use_count'] = use_count[idx]
         if use_count[idx] >= max_use:
             buffer_.delete(idx)
             del use_count[idx]
