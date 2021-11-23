@@ -6,7 +6,7 @@ cartpole_dqn_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        stop_value=205,
+        stop_value=195,
         replay_path='cartpole_dqn/video',
     ),
     policy=dict(
