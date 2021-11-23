@@ -625,19 +625,22 @@ class StochasticDuelingHead(nn.Module):
         state_cat_action = torch.cat((s, a), dim=1)  # size (B, action_size + state_size)
         a_val = self.A(state_cat_action)  # size (B, 1)
         s_val = self.V(s)  # size (B,1)
+
         mu_t = (torch.unsqueeze(mu_t, 1)).expand(
             (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
         sigma_t = (torch.unsqueeze(sigma_t, 1)).expand(
             (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
+
         expand_s = (torch.unsqueeze(s, 1)).expand(
             (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
-        action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size) 
+        action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size)
+
         state_cat_action_sample = torch.cat((expand_s, action_sample),
                                             dim=-1)  # size (B, sample_size, action_size + hidden_size)
         a_val_sample = self.A(state_cat_action_sample)  # size (B, sample_size, 1)
         a_val_sample = torch.squeeze(a_val_sample, -1)  # (B, sample_size)
         logit = a_val - a_val_sample.mean(dim=-1, keepdim=True) + s_val  # size (B,1)
-        return {'pred': logit}
+        return {'pred': logit, 'v': s_val}
 
 
 class RegressionHead(nn.Module):

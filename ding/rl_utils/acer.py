@@ -95,7 +95,7 @@ def acer_trust_region_update(
     with torch.no_grad():
         KL_gradients = [(avg_pi / (target_pi + EPS))]
     update_gradients = []
-    # TODO: here is only one elements in this list.Maybe will use to more elements in the future
+    # TODO: here is only one elements in this list. Maybe will use to more elements in the future
     actor_gradient = actor_gradients[0]
     KL_gradient = KL_gradients[0]
     scale = actor_gradient.mul(KL_gradient).sum(-1, keepdim=True) - trust_region_value
@@ -125,13 +125,13 @@ def acer_value_error_continuous(q_values: torch.Tensor,
         - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
     """
 
-    critic_loss_q = (q_retraces.detach() - q_values)
-    critic_loss_v = ratio.clamp(max=1) * (q_retraces.detach() - q_values)  # shape T,B,1
+    critic_loss_q = 0.5*(q_retraces.detach() - q_values).pow(2)
+    critic_loss_v = 0.5*ratio.clamp(max=1) * (q_retraces.detach() - q_values).pow(2)  # shape T,B,1
     # critic_loss = critic_loss_q + critic_loss_v
     # return [critic_loss_q, critic_loss_v, critic_loss]
-    return critic_loss_q +  critic_loss_v
+    return critic_loss_q + critic_loss_v
 
-    # critic_loss = (q_retraces.detach() - q_values)
+    # critic_loss = 0.5*(q_retraces.detach() - q_values).pow(2)
     # return critic_loss
 
 
@@ -175,4 +175,5 @@ def acer_policy_error_continuous(
 
     # bias correction term, the first target_pi will not calculate gradient flow
     bias_correction_loss = (1.0-c_clip_ratio/(ratio_prime+EPS)).clamp(min=0.0) * advantage_native * (target_pi_prime + EPS).log()  # shape T,B,env_action_shape
+    bias_correction_loss = bias_correction_loss.sum(-1, keepdim=True)
     return actor_loss, bias_correction_loss

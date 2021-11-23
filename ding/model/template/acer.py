@@ -236,4 +236,4 @@ class ACER(nn.Module):
                 )
         else:
             q_val = self.critic_head(encoded_state)
-        return {"q_value": q_val['pred']}
+        return {"q_value": q_val['pred'], 'v_value': q_val['v']}

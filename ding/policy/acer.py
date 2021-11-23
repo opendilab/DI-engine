@@ -118,11 +118,15 @@ class ACERPolicy(Policy):
             self._model.actor.parameters(),
             lr=self._cfg.learn.learning_rate_actor,
             grad_clip_type=self._cfg.learn.grad_clip_type,
-            clip_value=self._cfg.learn.clip_value
+            clip_value=self._cfg.learn.clip_value,
+            weight_decay=1e-5, optim_type='adamw'
         )
         self._optimizer_critic = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
+            grad_clip_type=self._cfg.learn.grad_clip_type,
+            clip_value=self._cfg.learn.clip_value,
+            weight_decay=1e-5, optim_type='adamw'
         )
         # TODO(pu)
         self._optimizer_critic_v = Adam(
@@ -257,8 +261,14 @@ class ACERPolicy(Policy):
             avg_dist = torch.distributions.normal.Normal(avg_action_mu, avg_action_sigma)
 
             # TODO: here we bruteforce generate a T+1 dimenstional target pi because the data['action'] is T dimention
-            tar_act_gen = target_dist.sample()[0].reshape(1, -1, self._action_shape)
-            avg_act_gen = avg_dist.sample()[0].reshape(1, -1, self._action_shape)
+            # tar_act_gen = target_dist.sample()[0].reshape(1, -1, self._action_shape)
+            # avg_act_gen = avg_dist.sample()[0].reshape(1, -1, self._action_shape)
+            tar_act_gen = target_dist.sample()[-1].reshape(1, -1, self._action_shape)
+            avg_act_gen = avg_dist.sample()[-1].reshape(1, -1, self._action_shape)
+
+            # tar_act_gen = target_dist.sample()
+            # avg_act_gen = avg_dist.sample()
+
             target_action_plus_1 = torch.cat((data['action'], tar_act_gen), dim=0)  # shape (T+1),B,env_action_shape
             avg_action_plus_1 = torch.cat((data['action'], avg_act_gen), dim=0)  # shape (T+1),B,env_action_shape
 
@@ -278,13 +288,28 @@ class ACERPolicy(Policy):
             # shape T,B, env_action_shape
             log_behaviour_pi_prime = behaviour_dist.log_prob(action_prime[0:-1, ...])
             behaviour_pi_prime = torch.exp(log_behaviour_pi_prime)
+
             # Reshape the tensor from (T, B, N) to (T*B, N) to match the SDN head computation
             obs_data_view = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
             target_action_view = target_action_plus_1.view(-1, target_action_plus_1.shape[-1])  # (T+1)*B, 1
+
+            # mu_t = (torch.unsqueeze(mu_t, 1)).expand(
+            #     (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
+            # sigma_t = (torch.unsqueeze(sigma_t, 1)).expand(
+            #     (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
+            #
+            # expand_s = (torch.unsqueeze(s, 1)).expand(
+            #     (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
+            # action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size)
+
             q_value_data = self._learn_model.forward(obs_data_view, mode='compute_critic',
                                                      action=target_action_view)  # (T+1)*B,1
             #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
             q_values = q_value_data['q_value'].reshape(
+                self._unroll_len + 1, -1, 1
+            )  # shape (T+1),B,1
+            #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
+            v_values = q_value_data['v_value'].reshape(
                 self._unroll_len + 1, -1, 1
             )  # shape (T+1),B,1
 
@@ -310,7 +335,8 @@ class ACERPolicy(Policy):
 
         with torch.no_grad():
             # shape (T+1),B,1
-            v_pred = (q_values * target_pi).sum(-1).unsqueeze(-1)
+            # v_pred = (q_values * target_pi).sum(-1).unsqueeze(-1)
+            v_pred = v_values  # TODO(pu)
             # shape T,B,env_action_shape
             ratio = target_pi[0:-1, ...] / (behaviour_pi + EPS)
 
@@ -323,10 +349,11 @@ class ACERPolicy(Policy):
 
                 # Calculate opc
                 q_opc = compute_q_opc(q_values, v_pred, rewards, actions, weights, self._gamma)
-                q_opc = q_opc[0:-1]  # T,B,1
+
                 # Reshape the tensor from (T, B, N) to (B', N) to match the SDN head computation
                 obs_data_view = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
                 action_prime_view = action_prime.view(-1, action_prime.shape[-1])  # (T+1)*B, 1
+
                 # Calculate q_value_data_prime
                 q_value_data_prime = self._learn_model.forward(obs_data_view, mode='compute_critic',
                                                                action=action_prime_view, )  # (T+1)*B,1
@@ -344,6 +371,7 @@ class ACERPolicy(Policy):
         weights_ext[1:] = weights[0:-1]
         weights = weights_ext
         q_retraces = q_retraces[0:-1]  # shape T,B,1
+        q_opc = q_opc[0:-1]  # T,B,1
         q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
         q_values_prime = q_values_prime[0:-1]  # shape T,B,1
         v_pred = v_pred[0:-1]  # shape T,B,1
@@ -367,10 +395,14 @@ class ACERPolicy(Policy):
 
         actor_loss = actor_loss * weights.unsqueeze(-1)
         bc_loss = bc_loss * weights.unsqueeze(-1)
-        entropy_loss = (dist_new.entropy().unsqueeze(-1) * weights).unsqueeze(-1)  # shape T,B,1
+        # entropy_loss = (dist_new.entropy().unsqueeze(-1) * weights).unsqueeze(-1)  # shape T,B,1
+
+        entropy_loss = dist_new.entropy() * weights.unsqueeze(-1)  # shape T,B,1 TODO(pu)
+
         total_actor_loss = (actor_loss + bc_loss + self._entropy_weight * entropy_loss).sum() / total_valid
         self._optimizer_actor.zero_grad()
         actor_gradients = torch.autograd.grad(-total_actor_loss, target_pi, retain_graph=True)
+
         if self._use_trust_region:
             actor_gradients = acer_trust_region_update(actor_gradients, target_pi, avg_pi, self._trust_region_value)
         target_pi.backward(actor_gradients)
@@ -421,9 +453,9 @@ class ACERPolicy(Policy):
             'cur_critic_lr': self._optimizer_critic.defaults['lr'],
             'actor_loss': (actor_loss.sum() / total_valid).item(),
             'bc_loss': (bc_loss.sum() / total_valid).item(),
-            'policy_loss': total_actor_loss.item(),
-            'critic_loss': critic_loss.item(),
             'entropy_loss': (entropy_loss.sum() / total_valid).item(),
+            'total_actor_loss': total_actor_loss.item(),
+            'critic_loss': critic_loss.item(),
             'kl_div': kl_div.item()
         }
 
@@ -688,4 +720,4 @@ class ACERPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return ['actor_loss', 'bc_loss', 'policy_loss', 'critic_loss', 'entropy_loss', 'kl_div']
+        return ['actor_loss', 'bc_loss', 'entropy_loss','total_actor_loss', 'critic_loss',  'kl_div']

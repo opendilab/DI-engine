@@ -4,7 +4,8 @@ from easydict import EasyDict
 pendulum_acer_config = dict(
     seed=0,
     env=dict(
-        collector_env_num=10,
+        # collector_env_num=10,
+        collector_env_num=1,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
         act_scale=True,
@@ -12,7 +13,7 @@ pendulum_acer_config = dict(
         stop_value=-250,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         on_policy=False,
         priority=False,
         priority_IS_weight=False,
@@ -24,14 +25,17 @@ pendulum_acer_config = dict(
             noise_ratio= 0.1,
         ),
         learn=dict(
-            grad_clip_type=None,
-            clip_value=None,
+            # grad_clip_type=None,
+            # clip_value=None,
+            grad_clip_type='clip_norm',
+            clip_value=0.5,
+
             multi_gpu=False,
             update_per_collect=4,
-            batch_size=64,#16,
+            batch_size=16,
             value_weight=0.5,
-            entropy_weight=0.0001,
-            discount_factor=0.997,#0.9,
+            entropy_weight=0,#0.0001,
+            discount_factor=0.9,#0.997,#0.9,
             lambda_=0.95,
             load_path=None,
             unroll_len=32,
@@ -40,7 +44,7 @@ pendulum_acer_config = dict(
             trust_region_value=1.0,
             learning_rate_actor=0.0005,
             learning_rate_critic=0.0005,
-            target_theta=0.001
+            target_theta=0.001,
         ),
         collect=dict(
             n_sample=16,
@@ -54,7 +58,7 @@ pendulum_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            replay_buffer_size=10000,#0000,
+            replay_buffer_size=10000,
             max_use=16,
         ), ),
     ),
