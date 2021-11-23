@@ -24,41 +24,6 @@ class EnvState(enum.IntEnum):
     ERROR = 5
 
 
-def retry_wrapper(func: Callable = None, max_retry: int = 10, waiting_time: float = 0.1) -> Callable:
-    """
-    Overview:
-        Retry the function until exceeding the maximum retry times.
-    """
-    return func
-
-#     if func is None:
-#         return partial(retry_wrapper, max_retry=max_retry)
-
-#     if max_retry == 1:
-#         return func
-
-#     @wraps(func)
-#     def wrapper(*args, **kwargs):
-#         exceptions = []
-#         for _ in range(max_retry):
-#             try:
-#                 ret = func(*args, **kwargs)
-#                 return ret
-#             except BaseException as e:
-#                 exceptions.append(e)
-#                 time.sleep(waiting_time)
-#         logging.error("Function {} has exceeded max retries({})".format(func, max_retry))
-#         runtime_error = RuntimeError(
-#             "Function {} has exceeded max retries({}), and the latest exception is: {}".format(
-#                 func, max_retry, repr(exceptions[-1])
-#             )
-#         )
-#         runtime_error.__traceback__ = exceptions[-1].__traceback__
-#         raise runtime_error
-
-#     return wrapper
-
-
 def timeout_wrapper(func: Callable = None, timeout: Optional[int] = None) -> Callable:
     """
     Overview:
@@ -262,7 +227,6 @@ class BaseEnvManager(object):
 
     def _reset(self, env_id: int) -> None:
 
-        #@retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
         @timeout_wrapper(timeout=self._reset_timeout)
         def reset_fn():
             # if self._reset_param[env_id] is None, just reset specific env, not pass reset param
