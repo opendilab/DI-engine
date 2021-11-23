@@ -3,6 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_dqn_config = dict(
+    exp_name='pong_dqn',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,

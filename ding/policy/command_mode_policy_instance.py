@@ -34,6 +34,7 @@ from .r2d3 import R2D3Policy
 
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
+from .pdqn import PDQNPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -275,4 +276,9 @@ class NGUCommandModePolicy(NGUPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('d4pg_command')
 class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('pdqn_command')
+class PDQNCommandModePolicy(PDQNPolicy, EpsCommandModePolicy):
     pass

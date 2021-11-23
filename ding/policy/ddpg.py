@@ -435,7 +435,7 @@ class DDPGPolicy(Policy):
     def _monitor_vars_learn(self) -> List[str]:
         r"""
         Overview:
-            Return variables' name if variables are to used in monitor.
+            Return variables' names if variables are to used in monitor.
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
