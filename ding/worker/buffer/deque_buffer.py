@@ -86,11 +86,13 @@ class DequeBuffer(Buffer):
         return sampled_data
 
     @apply_middleware("update")
-    def update(self, index: str, data: Any, meta: Optional[Any] = None) -> bool:
+    def update(self, index: str, data: Optional[Any] = None, meta: Optional[Any] = None) -> bool:
         for item in self.storage:
             if item.index == index:
-                item.data = data
-                item.meta = meta
+                if data is not None:
+                    item.data = data
+                if meta is not None:
+                    item.meta = meta
                 return True
         return False
 

@@ -4,7 +4,7 @@ from easydict import EasyDict
 import numpy as np
 
 from ding.worker.buffer import DequeBuffer
-from ding.worker.buffer.middleware import use_time_check
+from ding.worker.buffer.middleware import use_time_check, priority
 from ding.utils import BUFFER_REGISTRY
 
 
@@ -21,6 +21,11 @@ class DequeBufferWrapper(object):
         replay_buffer_size=10000,
         max_use=float("inf"),
         train_iter_per_log=100,
+        priority=False,
+        priority_IS_weight=False,
+        priority_power_factor=0.6,
+        IS_weight_power_factor=0.4,
+        IS_weight_anneal_train_iter=int(1e5),
     )
 
     def __init__(
@@ -39,6 +44,20 @@ class DequeBufferWrapper(object):
         # use_count middleware
         if self.cfg.max_use != float("inf"):
             self.buffer.use(use_time_check(self.buffer, max_use=self.cfg.max_use))
+        # priority middleware
+        if self.cfg.priority:
+            self.buffer.use(
+                priority(
+                    self.buffer,
+                    self.cfg.replay_buffer_size,
+                    IS_weight=self.cfg.priority_IS_weight,
+                    priority_power_factor=self.cfg.priority_power_factor,
+                    IS_weight_power_factor=self.cfg.IS_weight_power_factor,
+                    IS_weight_anneal_train_iter=self.cfg.IS_weight_anneal_train_iter
+                )
+            )
+            self.last_sample_index = None
+            self.last_sample_meta = None
 
     def sample(self, size: int, train_iter: int):
         output = self.buffer.sample(size=size, ignore_insufficient=True)
@@ -48,12 +67,42 @@ class DequeBufferWrapper(object):
                 if self.cfg.max_use != float("inf"):
                     use_count_avg = np.mean([m['use_count'] for m in meta])
                     self.tb_logger.add_scalar('{}/use_count_avg'.format(self.name), use_count_avg, train_iter)
+                if self.cfg.priority:
+                    self.last_sample_index = [o.index for o in output]
+                    self.last_sample_meta = meta
+                    priority_list = [m['priority'] for m in meta]
+                    priority_avg = np.mean(priority_list)
+                    priority_max = np.max(priority_list)
+                    self.tb_logger.add_scalar('{}/priority_avg'.format(self.name), priority_avg, train_iter)
+                    self.tb_logger.add_scalar('{}/priority_max'.format(self.name), priority_max, train_iter)
                 self.tb_logger.add_scalar('{}/buffer_data_count'.format(self.name), self.buffer.count(), train_iter)
-            return [o.data for o in output]
+
+            data = [o.data for o in output]
+            if self.cfg.priority_IS_weight:
+                IS = [o.meta['priority_IS'] for o in output]
+                for i in range(len(data)):
+                    data[i]['IS'] = IS[i]
+            return data
         else:
             return None
 
     def push(self, data, cur_collector_envstep: int = -1) -> None:
-        # meta = {'train_iter_data_collected': }
         for d in data:
-            self.buffer.push(d)
+            meta = {}
+            if self.cfg.priority and 'priority' in d:
+                init_priority = d.pop('priority')
+                meta['priority'] = init_priority
+            self.buffer.push(d, meta=meta)
+
+    def update(self, meta: dict) -> None:
+        if not self.cfg.priority:
+            return
+        if self.last_sample_index is None:
+            return
+        new_meta = self.last_sample_meta
+        for m, p in zip(new_meta, meta['priority']):
+            m['priority'] = p
+        for idx, m in zip(self.last_sample_index, new_meta):
+            self.buffer.update(idx, data=None, meta=m)
+        self.last_sample_index = None
+        self.last_sample_meta = None

@@ -94,7 +94,7 @@ class Buffer:
         raise NotImplementedError
 
     @abstractmethod
-    def update(self, index: str, data: Any, meta: Optional[Any] = None) -> bool:
+    def update(self, index: str, data: Optional[Any] = None, meta: Optional[Any] = None) -> bool:
         """
         Overview:
             Update data and meta by index
