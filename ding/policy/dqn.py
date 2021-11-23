@@ -56,12 +56,12 @@ class DQNPolicy(Policy):
            | ``_len``
         16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp',
                                                                                                  | 'linear'].
-        17 | ``other.eps.       float    0.95           | start value of exploration rate        | [0,1]
-           |  start``
-        18 | ``other.eps.       float    0.1            | end value of exploration rate          | [0,1]
-           |  end``
-        19 | ``other.eps.       int      10000          | decay length of exploration            | greater than 0. set
-           |  decay``                                                                            | decay=10000 means
+        17 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]
+           | ``start``
+        18 | ``other.eps.``     float    0.1            | end value of exploration rate          | [0,1]
+           | ``end``
+        19 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set
+           | ``decay``                                                                           | decay=10000 means
                                                                                                  | the exploration rate
                                                                                                  | decay from start
                                                                                                  | value to end value
