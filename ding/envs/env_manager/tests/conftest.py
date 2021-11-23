@@ -28,10 +28,17 @@ class FakeEnv(object):
         self.timeout_flag = False
         self._launched = False
         self._state = EnvState.INIT
+        self._dead_once = False
 
     def reset(self, stat):
         if isinstance(stat, str) and stat == 'error':
             self.dead()
+        if isinstance(stat, str) and stat == 'error_once':
+            if self._dead_once:
+                self._dead_once = False
+                self.dead()
+            else:
+                self._dead_once = True
         if isinstance(stat, str) and stat == "wait":
             if self.timeout_flag:  # after step(), the reset can hall with status of timeout
                 time.sleep(5)
@@ -107,6 +114,10 @@ class FakeEnv(object):
     def name(self):
         return self._name
 
+    @property
+    def time_id(self):
+        return self._id
+
     def user_defined(self):
         pass
 
@@ -159,7 +170,8 @@ def get_subprecess_manager_cfg(env_num=4):
         } for i in range(env_num)],
         'episode_num': 2,
         'connect_timeout': 8,
-        'max_retry': 5,
+        'step_timeout': 5,
+        'max_retry': 2,
     }
     return EasyDict(manager_cfg)
 
@@ -188,5 +200,4 @@ def setup_async_manager_cfg():
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeAsyncEnv, cfg=c) for c in env_cfg]
     manager_cfg['shared_memory'] = False
-    manager_cfg['connect_timeout'] = 30
     return deep_merge_dicts(AsyncSubprocessEnvManager.default_config(), EasyDict(manager_cfg))

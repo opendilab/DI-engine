@@ -64,10 +64,10 @@ def timeout_wrapper(func: Callable = None, timeout: Optional[int] = None) -> Cal
     Overview:
         Watch the function that must be finihsed within a period of time. If timeout, raise the captured error.
     """
-    if timeout is None:
-        return func
     if func is None:
         return partial(timeout_wrapper, timeout=timeout)
+    if timeout is None:
+        return func
 
     windows_flag = platform.system().lower() == 'windows'
     if windows_flag:

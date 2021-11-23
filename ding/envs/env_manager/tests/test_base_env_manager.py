@@ -70,6 +70,21 @@ class TestBaseEnvManager:
 
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) == env_manager.env_num
+        # Test reset error once
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
+        assert env_manager._retry_type == 'reset'
+        env_id_0 = env_manager.time_id[0]
+        reset_param[0] = {'stat': 'error_once'}
+        env_manager.reset(reset_param)
+        env_manager.reset(reset_param)
+        assert not env_manager._closed
+        assert env_manager.time_id[0] == env_id_0
+        env_manager._retry_type = 'renew'
+        env_id_0 = env_manager.time_id[0]
+        reset_param[0] = {'stat': 'error_once'}
+        env_manager.reset(reset_param)
+        assert not env_manager._closed
+        assert env_manager.time_id[0] != env_id_0
 
         # Test step catched error
         action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
