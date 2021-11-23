@@ -169,6 +169,8 @@ def get_subprecess_manager_cfg(env_num=4):
             'name': 'name{}'.format(i),
         } for i in range(env_num)],
         'episode_num': 2,
+        #'step_timeout': 8,
+        #'reset_timeout': 10,
         'connect_timeout': 8,
         'step_timeout': 5,
         'max_retry': 2,
