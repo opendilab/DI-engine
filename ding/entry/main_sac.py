@@ -216,36 +216,6 @@ def mock_pipeline(buffer):
     return _mock_pipeline
 
 
-def main(cfg, create_cfg, seed=0):
-
-    def wrapped_cartpole_env():
-        return DingEnvWrapper(gym.make('CartPole-v0'))
-
-    cfg = compile_config(cfg, create_cfg=create_cfg, auto=True)
-    collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-
-    collector_env.seed(seed)
-    evaluator_env.seed(seed, dynamic_seed=False)
-    set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
-    collector_env.launch()
-    evaluator_env.launch()
-
-    model = QAC(**cfg.policy.model)
-    replay_buffer = DequeBuffer()
-
-    task = Task()
-    sac = SACPipeline(cfg, model)
-
-    task.use(sample_profiler(replay_buffer))
-    task.use(sac.evaluate(evaluator_env))
-    task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer)))
-    task.use(sac.learn(replay_buffer))
-
-    task.run(max_step=1000)
-
-
 def print_step(task: Task):
     import random
     from os import path
@@ -256,11 +226,8 @@ def print_step(task: Task):
     )
 
 
-def main_eager(cfg, create_cfg, seed=0):
-
+def main(cfg, create_cfg, seed=0):
     cfg = compile_config(cfg, create_cfg=create_cfg, auto=True)
-    task = Task(async_mode=True, n_async_workers=3, parallel_mode=True, n_parallel_workers=2, attach_to=[])
-    start = time.time()
 
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
 
@@ -274,34 +241,19 @@ def main_eager(cfg, create_cfg, seed=0):
     evaluator_env.launch()
 
     model = QAC(**cfg.policy.model)
-    # model.share_memory()
     replay_buffer = DequeBuffer()
 
+    task = Task(async_mode=False, n_async_workers=3, parallel_mode=False, n_parallel_workers=2, attach_to=[])
     sac = SACPipeline(cfg, model)
-    evaluate = sac.evaluate(evaluator_env)
-    act = sac.act(collector_env)
-    collect = sac.collect(collector_env, replay_buffer, task=task)
-    learn = sac.learn(replay_buffer, task=task)
-    profiler = sample_profiler(replay_buffer, print_per_step=50)
 
-    def _execute_task(task: Task):
-        # while task.ctx.total_step < 1000:
-        while True:
-            task.forward(profiler)
-            task.forward(evaluate)
-            if task.finish:
-                break
-            task.forward(task.sequence(act, collect))
-            task.forward(learn)
-            task.renew()
-            # print_step(task)
-        # print("model weight", model._version, model.state_dict()["encoder.main.0.weight"][0][:10])
+    task.use(sac.evaluate(evaluator_env))
+    task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)))
+    task.use(sac.learn(replay_buffer, task=task))
 
-    # task.parallel(_execute_task)
-    _execute_task(task)
+    start = time.time()
+    task.run(max_step=10000)
     print("Total time cost: {:.2f}s".format(time.time() - start))
 
 
 if __name__ == "__main__":
-    # main(main_config, create_config)
-    main_eager(main_config, create_config)
+    main(main_config, create_config)
