@@ -8,7 +8,7 @@ import gym
 import numpy as np
 from matplotlib import animation
 import matplotlib.pyplot as plt
-from gym_minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper
+from gym_minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
 from gym_minigrid.window import Window
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
@@ -44,6 +44,75 @@ MINIGRID_INFO_DICT = {
         use_wrappers=None,
     ),
     'MiniGrid-FourRooms-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=100,
+        use_wrappers=None,
+    ),
+    'MiniGrid-AKTDT-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=100,
+        use_wrappers=None,
+    ),
+    'MiniGrid-AKTDT-13x13-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2667, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=100,
+        use_wrappers=None,
+    ),
+    'MiniGrid-AKTDT-19x19-v0': MiniGridEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(shape=(2739, ), value={
             'min': 0,
@@ -187,7 +256,7 @@ MINIGRID_INFO_DICT = {
 @ENV_REGISTRY.register('minigrid')
 class MiniGridEnv(BaseEnv):
     config = dict(
-        env_id='MiniGrid-KeyCorridorS3R3-v0',
+        env_id='MiniGrid-AKTDT-13x13-v0',
         flat_obs=True,
     )
 
@@ -208,6 +277,11 @@ class MiniGridEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._env_id)
+            if self._env_id == 'MiniGrid-AKTDT-13x13-v0':
+                self._env = ViewSizeWrapper(
+                    self._env, agent_view_size=5
+                )  # customize the agent field of view size, note this must be an odd number # This also related to the observation space, see gym_minigrid.wrappers for more details
+            self._env.render()
             if self._flat_obs:
                 self._env = FlatObsWrapper(self._env)
                 # self._env = RGBImgPartialObsWrapper(self._env)
