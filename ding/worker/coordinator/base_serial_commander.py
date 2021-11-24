@@ -26,7 +26,7 @@ class BaseSerialCommander(object):
             cfg: dict,
             learner: 'BaseLearner',  # noqa
             collector: 'BaseSerialCollector',  # noqa
-            evaluator: 'BaseSerialEvaluator',  # noqa
+            evaluator: 'InteractionSerialEvaluator',  # noqa
             replay_buffer: 'IBuffer',  # noqa
             policy: namedtuple = None,
     ) -> None:
@@ -37,7 +37,7 @@ class BaseSerialCommander(object):
             - cfg (:obj:`dict`): the config of commander
             - learner (:obj:`BaseLearner`): the learner
             - collector (:obj:`BaseSerialCollector`): the collector
-            - evaluator (:obj:`BaseSerialEvaluator`): the evaluator
+            - evaluator (:obj:`InteractionSerialEvaluator`): the evaluator
             - replay_buffer (:obj:`IBuffer`): the buffer
         """
         self._cfg = cfg

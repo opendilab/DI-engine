@@ -10,13 +10,11 @@ lunarlander_acer_default_config = dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        stop_value=5,
+        stop_value=200,
     ),
     policy=dict(
         # Whether to use cuda for network.
         cuda=False,
-        # Whether the RL algorithm is on-policy or off-policy.
-        on_policy=False,
         # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
         model=dict(
             obs_shape=8,

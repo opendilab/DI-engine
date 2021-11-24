@@ -2,11 +2,13 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 
 minigrid_ppo_config = dict(
-    exp_name="minigrid_empty8_ppo",
+    # exp_name="minigrid_empty8_offppo",
+    exp_name="minigrid_fourrooms_offppo",
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
-        env_id='MiniGrid-Empty-8x8-v0',
+        # env_id='MiniGrid-Empty-8x8-v0',
+        env_id='MiniGrid-FourRooms-v0',
         n_evaluator_episode=5,
         stop_value=0.96,
     ),

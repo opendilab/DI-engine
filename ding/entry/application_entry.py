@@ -4,11 +4,12 @@ import torch
 from functools import partial
 
 from ding.config import compile_config, read_config
-from ding.worker import SampleCollector, BaseSerialEvaluator
+from ding.worker import SampleSerialCollector, InteractionSerialEvaluator
 from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
 from ding.torch_utils import to_device
 from ding.utils import set_pkg_seed
+from ding.utils.data import offline_data_save_type
 
 
 def eval(
@@ -63,7 +64,7 @@ def eval(
             load_path = cfg.policy.learn.learner.load_path
         state_dict = torch.load(load_path, map_location='cpu')
     policy.eval_mode.load_state_dict(state_dict)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode)
+    evaluator = InteractionSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode)
 
     # Evaluate
     _, eval_reward = evaluator.eval()
@@ -79,6 +80,7 @@ def collect_demo_data(
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         state_dict: Optional[dict] = None,
+        state_dict_path: Optional[str] = None,
 ) -> None:
     r"""
     Overview:
@@ -94,6 +96,7 @@ def collect_demo_data(
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
+        - state_dict_path (:obj:`Optional[str]`): The path of the state_dict of policy or model.
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
@@ -122,27 +125,29 @@ def collect_demo_data(
     policy = create_policy(cfg.policy, model=model, enable_field=['collect', 'eval'])
     # for policies like DQN (in collect_mode has eps-greedy)
     # collect_demo_policy = policy.collect_function(
-    #     policy._data_preprocess_collect,
-    #     # forward_collect -> forward_eval, because eps-greedy exploration is not needed.
     #     policy._forward_eval,
-    #     policy._data_postprocess_collect,
     #     policy._process_transition,
     #     policy._get_train_sample,
-    #     policy._reset_collect,
-    #     policy.get_attribute,
-    #     policy.set_attribute,
-    #     policy.state_dict_handle,
+    #     policy._reset_eval,
+    #     policy._get_attribute,
+    #     policy._set_attribute,
+    #     policy._state_dict_collect,
+    #     policy._load_state_dict_collect,
     # )
     collect_demo_policy = policy.collect_mode
     if state_dict is None:
-        state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
+        assert state_dict_path is not None
+        state_dict = torch.load(state_dict_path, map_location='cpu')
     policy.collect_mode.load_state_dict(state_dict)
-    collector = SampleCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
+    collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
-    # Let's collect some expert demostrations
-    exp_data = collector.collect(n_sample=collect_count)
+    policy_kwargs = None if not hasattr(cfg.policy.other.get('eps', None), 'collect') \
+        else {'eps': cfg.policy.other.eps.get('collect', 0.2)}
+
+    # Let's collect some expert demonstrations
+    exp_data = collector.collect(n_sample=collect_count, policy_kwargs=policy_kwargs)
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')
-    with open(expert_data_path, 'wb') as f:
-        pickle.dump(exp_data, f)
+    # Save data transitions.
+    offline_data_save_type(exp_data, expert_data_path, data_type=cfg.policy.collect.get('data_type', 'naive'))
     print('Collect demo data successfully')

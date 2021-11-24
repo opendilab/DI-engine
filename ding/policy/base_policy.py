@@ -7,7 +7,7 @@ import copy
 from easydict import EasyDict
 
 from ding.model import create_model
-from ding.utils import import_module, allreduce, broadcast, get_rank, POLICY_REGISTRY
+from ding.utils import import_module, allreduce, broadcast, get_rank, allreduce_async, synchronize, POLICY_REGISTRY
 
 
 class Policy(ABC):
@@ -75,14 +75,16 @@ class Policy(ABC):
             if len(set(self._enable_field).intersection(set(['learn']))) > 0:
                 self._rank = get_rank() if self._cfg.learn.multi_gpu else 0
                 if self._cuda:
-                    torch.cuda.set_device(self._rank)
+                    torch.cuda.set_device(self._rank % torch.cuda.device_count())
                     model.cuda()
                 if self._cfg.learn.multi_gpu:
-                    self._init_multi_gpu_setting(model)
+                    bp_update_sync = self._cfg.learn.get('bp_update_sync', True)
+                    self._bp_update_sync = bp_update_sync
+                    self._init_multi_gpu_setting(model, bp_update_sync)
             else:
                 self._rank = 0
                 if self._cuda:
-                    torch.cuda.set_device(self._rank)
+                    torch.cuda.set_device(self._rank % torch.cuda.device_count())
                     model.cuda()
             self._model = model
             self._device = 'cuda:{}'.format(self._rank % torch.cuda.device_count()) if self._cuda else 'cpu'
@@ -94,12 +96,26 @@ class Policy(ABC):
         for field in self._enable_field:
             getattr(self, '_init_' + field)()
 
-    def _init_multi_gpu_setting(self, model: torch.nn.Module) -> None:
+    def _init_multi_gpu_setting(self, model: torch.nn.Module, bp_update_sync: bool) -> None:
         for name, param in model.state_dict().items():
             assert isinstance(param.data, torch.Tensor), type(param.data)
             broadcast(param.data, 0)
         for name, param in model.named_parameters():
             setattr(param, 'grad', torch.zeros_like(param))
+        if not bp_update_sync:
+
+            def make_hook(name, p):
+
+                def hook(*ignore):
+                    allreduce_async(name, p.grad.data)
+
+                return hook
+
+            for i, (name, p) in enumerate(model.named_parameters()):
+                if p.requires_grad:
+                    p_tmp = p.expand_as(p)
+                    grad_acc = p_tmp.grad_fn.next_functions[0][0]
+                    grad_acc.register_hook(make_hook(name, p))
 
     def _create_model(self, cfg: dict, model: Optional[torch.nn.Module] = None) -> torch.nn.Module:
         if model is None:
@@ -183,9 +199,12 @@ class Policy(ABC):
         return "DI-engine DRL Policy\n{}".format(repr(self._model))
 
     def sync_gradients(self, model: torch.nn.Module) -> None:
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                allreduce(param.grad.data)
+        if self._bp_update_sync:
+            for name, param in model.named_parameters():
+                if param.requires_grad:
+                    allreduce(param.grad.data)
+        else:
+            synchronize()
 
     # don't need to implement default_model method by force
     def default_model(self) -> Tuple[str, List[str]]:
@@ -205,10 +224,10 @@ class Policy(ABC):
         return ['cur_lr', 'total_loss']
 
     def _state_dict_learn(self) -> Dict[str, Any]:
-        return {'model': self._model.state_dict()}
+        return {'model': self._learn_model.state_dict()}
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'], strict=True)
+        self._learn_model.load_state_dict(state_dict['model'], strict=True)
 
     def _get_batch_size(self) -> Union[int, Dict[str, int]]:
         return self._cfg.learn.batch_size
@@ -232,10 +251,10 @@ class Policy(ABC):
         pass
 
     def _state_dict_collect(self) -> Dict[str, Any]:
-        return {'model': self._model.state_dict()}
+        return {'model': self._collect_model.state_dict()}
 
     def _load_state_dict_collect(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'], strict=True)
+        self._collect_model.load_state_dict(state_dict['model'], strict=True)
 
     # *************************************** eval function ************************************
 
@@ -248,10 +267,10 @@ class Policy(ABC):
         pass
 
     def _state_dict_eval(self) -> Dict[str, Any]:
-        return {'model': self._model.state_dict()}
+        return {'model': self._eval_model.state_dict()}
 
     def _load_state_dict_eval(self, state_dict: Dict[str, Any]) -> None:
-        self._model.load_state_dict(state_dict['model'], strict=True)
+        self._eval_model.load_state_dict(state_dict['model'], strict=True)
 
 
 class CommandModePolicy(Policy):

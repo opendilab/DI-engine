@@ -3,43 +3,94 @@ import torch
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error
 from ding.policy import DQNPolicy
 from ding.utils import POLICY_REGISTRY
+from ding.policy.common_utils import default_preprocess_learn
+from ding.torch_utils import to_device
 
 
 @POLICY_REGISTRY.register('md_dqn')
 class MultiDiscreteDQNPolicy(DQNPolicy):
+    r"""
+    Overview:
+        Policy class of Multi-discrete action space DQN algorithm.
+    """
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        reward = data['reward']
-        if len(reward.shape) == 1:
-            reward = reward.unsqueeze(1)
-        assert reward.shape == (self._cfg.learn.batch_size, self._nstep), reward.shape
-        reward = reward.permute(1, 0).contiguous()
-        q_value = self._armor.forward(data['obs'])['logit']
-        # target_q_value = self._armor.target_forward(data['next_obs'])['logit']
-        target = self._armor.forward(data['next_obs'])
-        target_q_value = target['logit']
-        next_act = target['action']
-        if isinstance(q_value, torch.Tensor):
-            td_data = q_nstep_td_data(  # 'q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'
-                q_value, target_q_value, data['action'][0], next_act, reward, data['done'], data['weight']
-            )
-            loss, td_error_per_sample = q_nstep_td_error(td_data, self._gamma, nstep=self._nstep)
-        else:
+        """
+        Overview:
+            Forward computation of learn mode(updating policy). It supports both single and multi-discrete action \
+                space. It depends on whether the ``q_value`` is a list.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \
+                np.ndarray or dict/list combinations.
+        Returns:
+            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \
+                recorded in text log and tensorboard, values are python scalar or a list of scalars.
+        ArgumentsKeys:
+            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``
+            - optional: ``value_gamma``, ``IS``
+        ReturnsKeys:
+            - necessary: ``cur_lr``, ``total_loss``, ``priority``
+            - optional: ``action_distribution``
+        """
+        data = default_preprocess_learn(
+            data,
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=True
+        )
+        if self._cuda:
+            data = to_device(data, self._device)
+        # ====================
+        # Q-learning forward
+        # ====================
+        self._learn_model.train()
+        self._target_model.train()
+        # Current q value (main model)
+        q_value = self._learn_model.forward(data['obs'])['logit']
+        # Target q value
+        with torch.no_grad():
+            target_q_value = self._target_model.forward(data['next_obs'])['logit']
+            # Max q value action (main model)
+            target_q_action = self._learn_model.forward(data['next_obs'])['action']
+
+        value_gamma = data.get('value_gamma')
+        if isinstance(q_value, list):
             tl_num = len(q_value)
             loss, td_error_per_sample = [], []
             for i in range(tl_num):
                 td_data = q_nstep_td_data(
-                    q_value[i], target_q_value[i], data['action'][i], next_act[i], reward, data['done'], data['weight']
+                    q_value[i], target_q_value[i], data['action'][i], target_q_action[i], data['reward'], data['done'],
+                    data['weight']
                 )
-                loss_, td_error_per_sample_ = q_nstep_td_error(td_data, self._gamma, nstep=self._nstep)
+                loss_, td_error_per_sample_ = q_nstep_td_error(
+                    td_data, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+                )
                 loss.append(loss_)
                 td_error_per_sample.append(td_error_per_sample_.abs())
             loss = sum(loss) / (len(loss) + 1e-8)
             td_error_per_sample = sum(td_error_per_sample) / (len(td_error_per_sample) + 1e-8)
+        else:
+            data_n = q_nstep_td_data(
+                q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
+            )
+            loss, td_error_per_sample = q_nstep_td_error(
+                data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+            )
+
+        # ====================
+        # Q-learning update
+        # ====================
         self._optimizer.zero_grad()
         loss.backward()
+        if self._cfg.learn.multi_gpu:
+            self.sync_gradients(self._learn_model)
         self._optimizer.step()
-        self._armor.target_update(self._armor.state_dict()['model'])
+
+        # =============
+        # after update
+        # =============
+        self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),

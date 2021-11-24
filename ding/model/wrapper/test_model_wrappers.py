@@ -133,6 +133,12 @@ class TestModelWrappers:
         assert model.fc1.weight.ne(target_model.fc1.weight).sum() == 12
         target_model.update(model.state_dict())
         assert model.fc1.weight.eq(target_model.fc1.weight).sum() == 12
+        # test real reset update_count
+        assert target_model._update_count != 0
+        target_model.reset()
+        assert target_model._update_count != 0
+        target_model.reset(target_update_count=0)
+        assert target_model._update_count == 0
 
         target_model2 = model_wrap(
             target_model2, wrapper_name='target', update_type='momentum', update_kwargs={'theta': 0.01}

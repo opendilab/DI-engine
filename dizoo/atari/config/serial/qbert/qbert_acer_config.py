@@ -14,7 +14,6 @@ qbert_acer_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=False,
         random_collect_size=1000,
         model=dict(

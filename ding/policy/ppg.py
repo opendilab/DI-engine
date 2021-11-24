@@ -344,11 +344,14 @@ class PPGPolicy(Policy):
     def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for collect mode
+            Forward function of collect mode.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - data (:obj:`dict`): The collected data
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -398,7 +401,7 @@ class PPGPolicy(Policy):
             data[-1]['done'],
             gamma=self._gamma,
             gae_lambda=self._gae_lambda,
-            cuda=self._cuda,
+            cuda=False,
         )
         data = get_train_sample(data, self._unroll_len)
         for d in data:
@@ -429,11 +432,14 @@ class PPGPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for eval mode, similar to ``self._forward_collect``.
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))

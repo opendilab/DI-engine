@@ -43,7 +43,15 @@ class TestNaiveBuffer:
         for _ in range(64):
             naive_buffer.push(generate_data(), 0)
         batch = naive_buffer.sample(32, 0)
-        assert (len(batch) == 32)
+        assert len(batch) == 32
+        last_one_batch = naive_buffer.sample(1, 0, sample_range=slice(-1, None))
+        assert len(last_one_batch) == 1
+        assert last_one_batch[0] == naive_buffer._data[-1]
+        batch = naive_buffer.sample(5, 0, sample_range=slice(-10, -2))
+        sample_range_data = naive_buffer._data[-10:-2]
+        assert len(batch) == 5
+        for b in batch:
+            assert any([b['data_id'] == d['data_id'] for d in sample_range_data])
 
         # test clear
         naive_buffer.clear()

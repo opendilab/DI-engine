@@ -3,7 +3,7 @@
 
 name: platform_test
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   test_unittest:
@@ -23,6 +23,6 @@ jobs:
       - name: do_platform_test
         run: |
           python -m pip install .
-          python -m pip install ".[test]"
+          python -m pip install ".[test,k8s]"
           python -m pip uninstall pytest-timeouts -y
           make platformtest

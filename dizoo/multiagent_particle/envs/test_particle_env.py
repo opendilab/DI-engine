@@ -1,11 +1,11 @@
 import pytest
-import torch
+import numpy as np
 from dizoo.multiagent_particle.envs import ParticleEnv, CooperativeNavigation
 
 use_discrete = [True, False]
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 @pytest.mark.parametrize('discrete_action', use_discrete)
 class TestParticleEnv:
 
@@ -57,25 +57,22 @@ class TestParticleEnv:
                     min_val, max_val = act_val['min'], act_val['max']
                     if act_sp.shape == (1, ):
                         if discrete_action:
-                            random_action.append(torch.randint(min_val, max_val, act_sp.shape))
+                            random_action.append(np.random.randint(min_val, max_val, act_sp.shape))
                         else:
-                            random_action.append(torch.rand(max_val + 1 - min_val, ))
+                            random_action.append(np.random.random(max_val + 1 - min_val, ))
                     else:
                         # print(act_sp.shape)
                         if discrete_action:
                             random_action.append(
-                                torch.cat(
-                                    [torch.randint(min_val[t], max_val[t], (1, )) for t in range(act_sp.shape[0])]
+                                np.concatenate(
+                                    [np.random.randint(min_val[t], max_val[t], (1, )) for t in range(act_sp.shape[0])]
                                 )
-                                # [torch.randint(min_val[t], max_val[t], (1, )) for t in range(act_sp.shape[0])]
                             )
                         else:
                             # print("i = ", i)
                             # print('randon_action = ', random_action)
-                            # print([torch.rand(max_val[t]+1 - min_val[t], ) for t in range(act_sp.shape[0])])
                             random_action.append(
-                                # torch.stack([torch.rand(max_val[t]+1 - min_val[t], ) for t in range(act_sp.shape[0])])
-                                [torch.rand(max_val[t] + 1 - min_val[t], ) for t in range(act_sp.shape[0])]
+                                [np.random.random(max_val[t] + 1 - min_val[t], ) for t in range(act_sp.shape[0])]
                             )
             # print('randon_action = ', random_action)
             timestep = env.step(random_action)
@@ -88,7 +85,7 @@ class TestParticleEnv:
         env.close()
 
 
-@pytest.mark.unittest
+@pytest.mark.envtest
 class TestCooperativeNavigation:
 
     def test_discrete_naive(self):
@@ -99,7 +96,7 @@ class TestCooperativeNavigation:
         for k, v in obs.items():
             assert v.shape == env.info().obs_space.shape[k]
         for _ in range(env._max_step):
-            action = torch.randint(0, 5, (num_agent, ))
+            action = np.random.randint(0, 5, (num_agent, ))
             timestep = env.step(action)
             obs = timestep.obs
             for k, v in obs.items():
@@ -125,7 +122,7 @@ class TestCooperativeNavigation:
         for k, v in obs.items():
             assert v.shape == env.info().obs_space.shape[k]
         for _ in range(env._max_step):
-            action = torch.randn((
+            action = np.random.random((
                 num_agent,
                 5,
             ))

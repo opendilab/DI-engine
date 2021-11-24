@@ -4,7 +4,7 @@ from tensorboardX import SummaryWriter
 from easydict import EasyDict
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import SyncSubprocessEnvManager
 from ding.policy import QMIXPolicy
 from ding.model import QMix
@@ -24,8 +24,8 @@ def main(cfg, seed=0):
         SyncSubprocessEnvManager,
         QMIXPolicy,
         BaseLearner,
-        SampleCollector,
-        BaseSerialEvaluator,
+        SampleSerialCollector,
+        InteractionSerialEvaluator,
         AdvancedReplayBuffer,
         save_cfg=True
     )
@@ -45,8 +45,8 @@ def main(cfg, seed=0):
     policy = QMIXPolicy(cfg.policy, model=model)
     tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
-    collector = SampleCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
-    evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
+    collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
+    evaluator = InteractionSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
     replay_buffer = AdvancedReplayBuffer(cfg.policy.other.replay_buffer, tb_logger)
 
     eps_cfg = cfg.policy.other.eps

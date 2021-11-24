@@ -125,7 +125,7 @@ class PeriodicThruputMonitor:
     """
     Overview:
         PeriodicThruputMonitor is a tool to record and print logs(text & tensorboard) how many datas are
-        pushed/sampled/removed/valid in a period of time.
+        pushed/sampled/removed/valid in a period of time. For tensorboard, you can view it in 'buffer_{$NAME}_sec'.
     Interface:
         close
     Property:
@@ -165,7 +165,7 @@ class PeriodicThruputMonitor:
                 }
                 self._logger.info(self._logger.get_tabulate_vars_hor(count_dict))
                 for k, v in count_dict.items():
-                    self._tb_logger.add_scalar('buffer_{}_sec/'.format(self.name) + k, v, self._thruput_print_times)
+                    self._tb_logger.add_scalar('{}_sec/'.format(self.name) + k, v, self._thruput_print_times)
                 self._history_push_count = 0
                 self._history_sample_count = 0
                 self._remove_data_count = 0

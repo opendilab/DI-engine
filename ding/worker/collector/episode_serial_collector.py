@@ -11,7 +11,7 @@ from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF,
 
 
 @SERIAL_COLLECTOR_REGISTRY.register('episode')
-class EpisodeCollector(ISerialCollector):
+class EpisodeSerialCollector(ISerialCollector):
     """
     Overview:
         Episode collector(n_episode)

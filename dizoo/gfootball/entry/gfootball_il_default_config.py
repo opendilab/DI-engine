@@ -12,7 +12,6 @@ gfootball_il_default_config = dict(
     policy=dict(
         use_cuda=True,
         policy_type='IL',
-        on_policy=False,
         model=dict(),
         learn=dict(
             train_iteration=20,

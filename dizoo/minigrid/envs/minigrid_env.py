@@ -13,11 +13,14 @@ from gym_minigrid.window import Window
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
-from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
+MiniGridEnvInfo = namedtuple(
+    'MiniGridEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'max_step', 'use_wrappers']
+)
 MINIGRID_INFO_DICT = {
-    'MiniGrid-Empty-8x8-v0': BaseEnvInfo(
+    'MiniGrid-Empty-8x8-v0': MiniGridEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(shape=(2739, ), value={
             'min': 0,
@@ -37,6 +40,168 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
+        max_step=100,
+        use_wrappers=None,
+    ),
+    'MiniGrid-DoorKey-8x8-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=300,
+        use_wrappers=None,
+    ),
+    'MiniGrid-FourRooms-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=100,
+        use_wrappers=None,
+    ),
+    'MiniGrid-DoorKey-8x8-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=300,
+        use_wrappers=None,
+    ),
+    'MiniGrid-DoorKey-16x16-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=300,
+        use_wrappers=None,
+    ),
+    'MiniGrid-KeyCorridorS3R3-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 6,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=300,
+        use_wrappers=None,
+    ),
+    'MiniGrid-ObstructedMaze-2Dlh-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 7,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=300,
+        use_wrappers=None,
+    ),
+    'MiniGrid-ObstructedMaze-Full-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 7,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=300,
         use_wrappers=None,
     ),
 }
@@ -45,9 +210,8 @@ MINIGRID_INFO_DICT = {
 @ENV_REGISTRY.register('minigrid')
 class MiniGridEnv(BaseEnv):
     config = dict(
-        env_id='MiniGrid-Empty-8x8-v0',
+        env_id='MiniGrid-KeyCorridorS3R3-v0',
         flat_obs=True,
-        max_step=100,
     )
 
     @classmethod
@@ -62,7 +226,7 @@ class MiniGridEnv(BaseEnv):
         self._env_id = cfg.env_id
         self._flat_obs = cfg.flat_obs
         self._save_replay = False
-        self._max_step = cfg.max_step
+        self._max_step = MINIGRID_INFO_DICT[cfg.env_id].max_step
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -98,7 +262,7 @@ class MiniGridEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         if action.shape == (1, ):
-            action = action.squeeze()  # 0-dim tensor
+            action = action.squeeze()  # 0-dim array
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
@@ -118,10 +282,10 @@ class MiniGridEnv(BaseEnv):
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnvInfo:
+    def info(self) -> MiniGridEnvInfo:
         return MINIGRID_INFO_DICT[self._env_id]
 
     def __repr__(self) -> str:
