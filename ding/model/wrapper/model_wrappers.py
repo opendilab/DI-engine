@@ -252,7 +252,7 @@ class NormalNoisySampleWrapper(IModelWrapper):
         noise_action_sample = noise_ratio * noise + (1. - noise_ratio) * action_sample
 
         # # scaled_action_sample size (B, action_size)
-        # scaled_action_sample = -1 + 2*torch.sigmoid(noise_action_sample) # (-3,1) wrong [-2,2]
+        # scaled_action_sample = -1 + 2*torch.sigmoid(noise_action_sample) # (-1,1) wrong should be [-2,2]
         # output['action'] = scaled_action_sample
         # return output
 
