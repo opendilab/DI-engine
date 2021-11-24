@@ -10,7 +10,9 @@ expert_replay_buffer_size=int(5e3)
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs1e4_ds5e3',
+    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-16_rbs1e4_ds5e3',
+    # exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3_run2',
+
     # exp_name='debug_pong_r2d3_r2d2expert_k100_pho1-4_rbs1e4_ds5e3',
 
     env=dict(
@@ -65,7 +67,7 @@ pong_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/4,  # 256 TODO(pu)
+            pho=1/16,#1/4,  # 256 TODO(pu)
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -101,7 +103,9 @@ create_config = pong_r2d3_create_config
 
 """export config"""
 expert_pong_r2d3_config = dict(
-    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs1e4_ds5e3',
+    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-16_rbs1e4_ds5e3',
+    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3_run2',
+    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs1e4_ds5e3',
     # exp_name='expert_pong_r2d3_r2d2expert_k100_pho1-4_rbs1e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
