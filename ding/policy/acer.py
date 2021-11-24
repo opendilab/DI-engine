@@ -143,6 +143,25 @@ class ACERPolicy(Policy):
         # learn model
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
+        if self._cfg.model.continuous_action_space:
+            # Learn from the practice of ppo
+            # init log sigma
+            if hasattr(self._model.actor[1], 'log_sigma_param'):  # self._model.actor[1]:actor_head
+                torch.nn.init.constant_(self._model.actor[1].log_sigma_param, -0.5)
+            for m in list(self._model.critic.modules()) + list(self._model.actor.modules()):
+                if isinstance(m, torch.nn.Linear):
+                    # orthogonal initialization
+                    torch.nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
+                    torch.nn.init.zeros_(m.bias)
+
+            # do last policy layer scaling, this will make initial actions have (close to)
+            # 0 mean and std, and will help boost performances,
+            # see https://arxiv.org/abs/2006.05990, Fig.24 for details
+            for m in self._model.actor.modules():
+                if isinstance(m, torch.nn.Linear):
+                    torch.nn.init.zeros_(m.bias)
+                    m.weight.data.copy_(0.01 * m.weight.data)
+
         self._action_shape = self._cfg.model.action_shape
         self._unroll_len = self._cfg.learn.unroll_len
 
