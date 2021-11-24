@@ -27,6 +27,7 @@ from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 
 from .il import ILPolicy
+from .sil import create_sil
 
 from .r2d3 import R2D3Policy
 

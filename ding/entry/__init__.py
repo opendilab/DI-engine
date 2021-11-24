@@ -13,3 +13,4 @@ from .serial_entry_sqil import serial_pipeline_sqil
 from .parallel_entry import parallel_pipeline
 from .application_entry import eval, collect_demo_data
 from .serial_entry_guided_cost import serial_pipeline_guided_cost
+from .serial_entry_sil import serial_entry_sil
