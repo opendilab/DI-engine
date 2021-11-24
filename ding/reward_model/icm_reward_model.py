@@ -57,13 +57,15 @@ class ICMNetwork(nn.Module):
         self.action_shape = action_shape
         feature_output = hidden_size_list[-1]
         self.inverse_net = nn.Sequential(nn.Linear(feature_output * 2, 512), nn.ReLU(), nn.Linear(512, action_shape))
-        self.residual = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(action_shape + 512, 512),
-                nn.LeakyReLU(),
-                nn.Linear(512, 512),
-            ) for _ in range(8)
-        ])
+        self.residual = nn.ModuleList(
+            [
+                nn.Sequential(
+                    nn.Linear(action_shape + 512, 512),
+                    nn.LeakyReLU(),
+                    nn.Linear(512, 512),
+                ) for _ in range(8)
+            ]
+        )
         self.forward_net_1 = nn.Sequential(nn.Linear(action_shape + feature_output, 512), nn.LeakyReLU())
         self.forward_net_2 = nn.Linear(action_shape + 512, feature_output)
 
