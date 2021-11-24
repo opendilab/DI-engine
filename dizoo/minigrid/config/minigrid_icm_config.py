@@ -1,7 +1,7 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
 
-minigrid_ppo_rnd_config = dict(
+minigrid_ppo_icm_config = dict(
     exp_name='MiniGrid-FourRooms-v0',  #exp_name='minigrid_empty8_ppo_rnd',
     env=dict(
         collector_env_num=8,
@@ -41,9 +41,9 @@ minigrid_ppo_rnd_config = dict(
         ),
     ),
 )
-minigrid_ppo_rnd_config = EasyDict(minigrid_ppo_rnd_config)
-main_config = minigrid_ppo_rnd_config
-minigrid_ppo_rnd_create_config = dict(
+minigrid_ppo_icm_config = EasyDict(minigrid_ppo_icm_config)
+main_config = minigrid_ppo_icm_config
+minigrid_ppo_icm_create_config = dict(
     env=dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
@@ -52,8 +52,8 @@ minigrid_ppo_rnd_create_config = dict(
     policy=dict(type='ppo_offpolicy'),
     reward_model=dict(type='icm'),  #'rnd'
 )
-minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
-create_config = minigrid_ppo_rnd_create_config
+minigrid_ppo_icm_create_config = EasyDict(minigrid_ppo_icm_create_config)
+create_config = minigrid_ppo_icm_create_config
 
 if __name__ == "__main__":
     serial_pipeline_reward_model([main_config, create_config], seed=0)

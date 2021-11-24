@@ -34,6 +34,9 @@ class ICMNetwork(nn.Module):
     [1] Curiosity-driven Exploration by Self-supervised Prediction
     Pathak, Agrawal, Efros, and Darrell - UC Berkeley - ICML 2017.
     https://arxiv.org/pdf/1705.05363.pdf
+    [2] Code implementation reference:
+    https://github.com/pathak22/noreward-rl
+    https://github.com/jcwleo/curiosity-driven-exploration-pytorch
 
     1) Embedding observations into a latent space
     2) Predicting the action logit given two consecutive embedded observations
@@ -62,7 +65,7 @@ class ICMNetwork(nn.Module):
             ) for _ in range(8)
         ])
         self.forward_net_1 = nn.Sequential(nn.Linear(action_shape + feature_output, 512), nn.LeakyReLU())
-        self.forward_net_2 = nn.Sequential(nn.Linear(action_shape + 512, feature_output), )
+        self.forward_net_2 = nn.Linear(action_shape + 512, feature_output)
 
     def forward(self, state: torch.Tensor, next_state: torch.Tensor,
                 action_long: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -72,26 +75,32 @@ class ICMNetwork(nn.Module):
             Parameter updates with ICMNetwork forward setup.
         Arguments:
             - state (:obj:`torch.Tensor`):
-                The current state batch, (B,N=observation_size)``.
+                The current state batch
             - next_state (:obj:`torch.Tensor`):
-                The next state batch, (B,N=observation_size)``.
+                The next state batch
             - action_long (:obj:`torch.Tensor`):
-                The action, (B,M=action_size)``.
+                The action, in long tensor, range from 0 to action_shape -1
         Returns:
             - real_next_state_feature (:obj:`torch.Tensor`):
                 Run with the encoder. Return the real next_state's embedded feature.
             - pred_next_state_feature (:obj:`torch.Tensor`):
                 Run with the encoder and residual network. Return the predicted next_state's embedded feature.
-            - pred_action_logit (:obj:`Dict`):
+            - pred_action_logit (:obj:`torch.Tensor`):
                 Run with the encoder. Return the predicted action logit.
+        Shapes:
+            - state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is ''obs_shape''
+            - next_state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is ''obs_shape''
+            - action_long (:obj:`torch.Tensor`): :math:`(B)`, where B is the batch size''
+            - real_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size and M is embedded feature shape
+            - pred_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size and M is embedded feature shape
+            - pred_action_logit (:obj:`torch.Tensor`): :math:`(B, A)`, where B is the batch size and A is the ''action_shape''
         """
-        # assert_shape(acrtion_long, [batch_size, 1])
         action = one_hot(action_long, num=self.action_shape)
         encode_state = self.feature(state)
         encode_next_state = self.feature(next_state)
         # get pred action logit
-        pred_action_logit = torch.cat((encode_state, encode_next_state), 1)
-        pred_action_logit = self.inverse_net(pred_action_logit)
+        concat_state = torch.cat((encode_state, encode_next_state), 1)
+        pred_action_logit = self.inverse_net(concat_state)
         # ---------------------
 
         # get pred next state
@@ -111,15 +120,31 @@ class ICMNetwork(nn.Module):
 
 @REWARD_MODEL_REGISTRY.register('icm')
 class ICMRewardModel(BaseRewardModel):
+    """
+    Overview:
+        The ICM reward model class (https://arxiv.org/pdf/1705.05363.pdf)
+    Interface:
+        ``estimate``, ``train``, ``collect_data``, ``clear_data``, \
+            ``__init__``, ``_train``,
+    """
     config = dict(
+        # (str) the type of the exploration method
         type='icm',
+        # (str) the intrinsic reward type, including add, new, or assign
         intrinsic_reward_type='add',
+        # (float) learning rate of the optimizer
         learning_rate=1e-3,
-        # obs_shape=6,
+        # (Tuple[int, list]), the observation shape,
+        obs_shape=6,
+        # (int) the action shape, support discrete action only in this version
         action_shape=7,
+        # (float) batch size
         batch_size=64,
+        # (list) the MLP layer shape
         hidden_size_list=[64, 64, 128],
+        # (int) update how many times after each collect
         update_per_collect=100,
+        # (float) the importance weight of the forward and reverse loss
         reverse_scale=1,
     )
 
