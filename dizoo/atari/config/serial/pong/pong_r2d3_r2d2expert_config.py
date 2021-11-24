@@ -1,5 +1,4 @@
 from easydict import EasyDict
-
 from ding.entry import serial_pipeline_r2d3
 import os
 module_path = os.path.dirname(__file__)
@@ -10,10 +9,7 @@ expert_replay_buffer_size=int(5e3)
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-16_rbs1e4_ds5e3',
-    # exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3_run2',
-
-    # exp_name='debug_pong_r2d3_r2d2expert_k100_pho1-4_rbs1e4_ds5e3',
+    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
 
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
@@ -50,7 +46,7 @@ pong_r2d3_config = dict(
             # in most environments
             value_rescale=True,
             update_per_collect=8,
-            batch_size=64,  # 128 TODO(pu)
+            batch_size=64,  # TODO(pu)
             learning_rate=0.0005,
             target_update_theta=0.001,
             # DQFD related parameters
@@ -59,7 +55,7 @@ pong_r2d3_config = dict(
             lambda3=1e-5,  # L2  it's very important to set Adam optimizer optim_type='adamw'.
             lambda_one_step_td=1.0,  # 1-step return
             margin_function=0.8,  # margin function in JE, here we implement this as a constant
-            per_train_iter_k=0,  # 100 TODO(pu)
+            per_train_iter_k=0,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -67,7 +63,7 @@ pong_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/16,#1/4,  # 256 TODO(pu)
+            pho=1/4,  # TODO(pu)
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -78,7 +74,7 @@ pong_r2d3_config = dict(
                 decay=100000,
             ),
             replay_buffer=dict(
-                replay_buffer_size=int(1e4),  # TODO(pu)
+                replay_buffer_size=int(2e4),  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -100,13 +96,9 @@ pong_r2d3_create_config = dict(
 pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
 create_config = pong_r2d3_create_config
 
-
 """export config"""
 expert_pong_r2d3_config = dict(
-    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-16_rbs1e4_ds5e3',
-    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3_run2',
-    # exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs1e4_ds5e3',
-    # exp_name='expert_pong_r2d3_r2d2expert_k100_pho1-4_rbs1e4_ds5e3',
+    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs1e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -132,7 +124,7 @@ expert_pong_r2d3_config = dict(
         burnin_step=2,
         nstep=5,
         learn=dict(
-            expert_replay_buffer_size=expert_replay_buffer_size,  # TODO(pu)
+            expert_replay_buffer_size=expert_replay_buffer_size,
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -148,7 +140,7 @@ expert_pong_r2d3_config = dict(
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
             replay_buffer=dict(
-                replay_buffer_size=expert_replay_buffer_size,  # TODO(pu)
+                replay_buffer_size=expert_replay_buffer_size,
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
