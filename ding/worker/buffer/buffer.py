@@ -94,7 +94,7 @@ class Buffer:
         raise NotImplementedError
 
     @abstractmethod
-    def update(self, index: str, data: Optional[Any] = None, meta: Optional[Any] = None) -> bool:
+    def update(self, index: str, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
         """
         Overview:
             Update data and meta by index
@@ -104,6 +104,23 @@ class Buffer:
             - meta (:obj:`dict`): Meta information.
         Returns:
             - success (:obj:`bool`): Success or not, if data with the index not exist in buffer, return false.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def batch_update(
+            self,
+            indices: List[str],
+            datas: Optional[List[Optional[Any]]] = None,
+            metas: Optional[List[Optional[dict]]] = None
+    ) -> None:
+        """
+        Overview:
+            Batch update data and meta by indices, maybe useful in some data architectures.
+        Arguments:
+            - indices (:obj:`List[str]`): Index of data.
+            - datas (:obj:`Optional[List[Optional[Any]]]`): Pure data.
+            - metas (:obj:`Optional[List[Optional[dict]]]`): Meta information.
         """
         raise NotImplementedError
 

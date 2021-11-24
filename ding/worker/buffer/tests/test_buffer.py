@@ -4,7 +4,7 @@ import random
 from typing import Callable
 from ding.worker.buffer import DequeBuffer
 from ding.worker.buffer.buffer import BufferedData
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
 
 class RateLimit:
@@ -157,6 +157,34 @@ def test_update_delete():
 
 
 @pytest.mark.unittest
+def test_batch_update():
+
+    def batch_update(n_new):
+        buf = DequeBuffer(size=10)
+        for i in range(10):
+            buf.push({"data": i}, {"meta": i})
+
+        # Update less than 7
+        items = buf.sample(n_new)
+        for item in items:
+            item.data["new_prop"] = "any"
+        indices = [item.index for item in items]
+        datas = [item.data for item in items]
+        metas = [item.meta for item in items]
+        buf.batch_update(indices, datas, metas)
+        ## Resample
+        items = buf.sample(10)
+        n_isnew = 0
+        for item in items:
+            if "new_prop" in item.data:
+                n_isnew += 1
+        assert n_isnew == n_new
+
+    batch_update(5)
+    batch_update(9)
+
+
+@pytest.mark.unittest
 def test_ignore_insufficient():
     buffer = DequeBuffer(size=10)
     for i in range(2):
@@ -208,13 +236,25 @@ def test_groupby():
     assert "b" in data
     assert "c" in data
 
-    # Push new data and swap out a
+    # Push new data and swap out a, the result will all in group 2
     buffer.push("d", {"group": 2})
     sampled_data = buffer.sample(1, groupby="group")
     assert len(sampled_data) == 1
     assert len(sampled_data[0]) == 3
     data = [buffered.data for buffered in sampled_data[0]]
     assert "d" in data
+
+    # Update meta, set first data's group to 1
+    first: BufferedData = buffer.storage[0]
+    buffer.update(first.index, first.data, {"group": 1})
+    sampled_data = buffer.sample(2, groupby="group")
+    assert len(sampled_data) == 2
+
+    # Delete last record, each group will only have one record
+    last: BufferedData = buffer.storage[-1]
+    buffer.delete(last.index)
+    sampled_data = buffer.sample(2, groupby="group")
+    assert len(sampled_data) == 2
 
 
 @pytest.mark.unittest

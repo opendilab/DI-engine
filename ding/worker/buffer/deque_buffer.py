@@ -15,6 +15,7 @@ class DequeBuffer(Buffer):
         super().__init__()
         self.storage = deque(maxlen=size)
         # Meta index is a dict which use deque as values
+        self.indices = deque(maxlen=size)
         self.meta_index = {}
 
     @apply_middleware("push")
@@ -79,32 +80,80 @@ class DequeBuffer(Buffer):
                     format(self.count(), size)
                 )
             else:
-                raise ValueError("There are less than {} data in buffer({})".format(size, self.count()))
+                raise ValueError("There are less than {} records/groups in buffer({})".format(size, self.count()))
 
         sampled_data = self._independence(sampled_data)
 
         return sampled_data
 
     @apply_middleware("update")
-    def update(self, index: str, data: Optional[Any] = None, meta: Optional[Any] = None) -> bool:
-        for item in self.storage:
-            if item.index == index:
-                if data is not None:
-                    item.data = data
-                if meta is not None:
-                    item.meta = meta
-                return True
-        return False
+    def update(self, index: str, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
+        return self._update(index, data=data, meta=meta)
+
+    def _update(
+            self,
+            index: Union[str, int],
+            data: Optional[Any] = None,
+            meta: Optional[dict] = None,
+    ) -> bool:
+        if isinstance(index, int):
+            i = index
+        else:
+            try:
+                i = self.indices.index(index)
+            except ValueError:
+                return False
+        item = self.storage[i]
+        if data is not None:
+            item.data = data
+        if meta is not None:
+            item.meta = meta
+            for key in self.meta_index:
+                self.meta_index[key][i] = meta[key] if key in meta else None
+        return True
+
+    @apply_middleware("batch_update")
+    def batch_update(
+            self,
+            indices: List[str],
+            datas: Optional[List[Optional[Any]]] = None,
+            metas: Optional[List[Optional[dict]]] = None
+    ) -> List[bool]:
+        if datas:
+            assert len(datas) == len(indices), "Data's length({}) should equal to indices length({})".format(
+                len(datas), len(indices)
+            )
+        if metas:
+            assert len(metas) == len(indices), "Meta's length({}) should equal to indices length({})".format(
+                len(metas), len(indices)
+            )
+
+        results = []
+        if len(indices) < 7:
+            # When the index size is small, the cost of constructing the index map is greater
+            # than the cost of searching in the index, so simple update is used instead.
+            for i, index in enumerate(indices):
+                results.append(self._update(index, datas[i] if datas else None, metas[i] if metas else None))
+            return results
+
+        reverse_index = dict(zip(self.indices, range(len(self.indices))))
+        for i, index in enumerate(indices):
+            results.append(self._update(reverse_index[index], datas[i] if datas else None, metas[i] if metas else None))
+        return results
 
     @apply_middleware("delete")
     def delete(self, indices: Union[str, Iterable[str]]) -> None:
         if isinstance(indices, str):
             indices = [indices]
-        for i in indices:
-            for index, item in enumerate(self.storage):
-                if item.index == i:
-                    del self.storage[index]
-                    break
+        for index in indices:
+            try:
+                i = self.indices.index(index)
+            except ValueError:
+                continue
+            del self.storage[i]
+            del self.indices[i]
+            for key in self.meta_index:
+                del self.meta_index[key][i]
 
     def count(self) -> int:
         return len(self.storage)
@@ -129,6 +178,7 @@ class DequeBuffer(Buffer):
             meta = {}
         buffered = BufferedData(data=data, index=index, meta=meta)
         self.storage.append(buffered)
+        self.indices.append(index)
         # Add meta index
         for key in self.meta_index:
             self.meta_index[key].append(meta[key] if key in meta else None)
@@ -171,6 +221,11 @@ class DequeBuffer(Buffer):
                          groupby: str,
                          replace: bool = False,
                          storage: deque = None) -> List[List[BufferedData]]:
+        """
+        Overview:
+            Sampling by `group` instead of records, the result will be a collection
+            of lists with a length of `size`, but the length of each list may be different from other lists.
+        """
         if storage is None:
             storage = self.storage
         if groupby not in self.meta_index:
