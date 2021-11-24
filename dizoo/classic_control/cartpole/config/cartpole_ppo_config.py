@@ -10,7 +10,6 @@ cartpole_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=True,
         continuous=False,
         model=dict(
             obs_shape=4,
@@ -35,10 +34,7 @@ cartpole_ppo_config = dict(
         ),
         eval=dict(
             evaluator=dict(
-                eval_freq=1000,
-                cfg_type='InteractionSerialEvaluatorDict',
-                stop_value=195,
-                n_episode=5,
+                eval_freq=100,
             ),
         ),
     ),

@@ -33,6 +33,7 @@ src/
 *.fatbin
 
 ### Eclipse template
+*.bin
 .metadata
 bin/
 tmp/

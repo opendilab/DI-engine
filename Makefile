@@ -10,7 +10,7 @@ RANGE_DIR  ?=
 TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
 FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
-PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/)
+PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/test_serial_entry.py ./ding/entry/tests/test_serial_entry_onpolicy.py)
 
 docs:
 	$(MAKE) -C ./ding/docs html

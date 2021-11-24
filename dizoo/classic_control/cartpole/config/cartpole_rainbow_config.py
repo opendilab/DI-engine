@@ -9,7 +9,6 @@ cartpole_rainbow_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         priority=True,
         discount_factor=0.97,
         nstep=3,

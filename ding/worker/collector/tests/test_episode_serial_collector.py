@@ -7,7 +7,7 @@ from dizoo.classic_control.cartpole.envs import CartPoleEnv
 
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('env_manager_type', [BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager])
+@pytest.mark.parametrize('env_manager_type', [BaseEnvManager, SyncSubprocessEnvManager])
 def test_collect(env_manager_type):
     env = env_manager_type([lambda: CartPoleEnv({}) for _ in range(8)], env_manager_type.default_config())
     env.seed(0)

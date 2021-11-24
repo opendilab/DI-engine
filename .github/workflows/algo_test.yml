@@ -9,11 +9,6 @@ on:
       - "ding/policy/*"
       - "ding/model/*"
       - "ding/rl_utils/*"
-  pull_request:
-    paths:
-      - "ding/policy/*"
-      - "ding/model/*"
-      - "ding/rl_utils/*"
 
 jobs:
   test_algotest:
