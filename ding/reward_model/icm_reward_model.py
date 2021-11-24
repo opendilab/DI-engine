@@ -85,10 +85,8 @@ class ICMNetwork(nn.Module):
             - pred_action_logit (:obj:`Dict`):
                 Run with the encoder. Return the predicted action logit.
         """
-        # state = torch.FloatTensor(state)
-        # next_state = torch.FloatTensor(next_state)
-        # action_long = torch.LongTensor(action_long)
-        action = one_hot(action_long, num=self.action_shape).squeeze(1)
+        # assert_shape(acrtion_long, [batch_size, 1])
+        action = one_hot(action_long, num=self.action_shape)
         encode_state = self.feature(state)
         encode_next_state = self.feature(next_state)
         # get pred action logit
@@ -152,12 +150,12 @@ class ICMRewardModel(BaseRewardModel):
         data_next_states: list = [self.train_next_states[i] for i in train_data_index]
         data_next_states: torch.Tensor = torch.stack(data_next_states).to(self.device)
         data_actions: list = [self.train_actions[i] for i in train_data_index]
-        data_actions: torch.Tensor = torch.stack(data_actions).to(self.device)
+        data_actions: torch.Tensor = torch.cat(data_actions).to(self.device)
 
         real_next_state_feature, pred_next_state_feature, pred_action_logit = self.reward_model(
             data_states, data_next_states, data_actions
         )
-        inverse_loss = self.ce(pred_action_logit, data_actions.squeeze(dim=1).long())
+        inverse_loss = self.ce(pred_action_logit, data_actions.long())
         forward_loss = self.forward_mse(pred_next_state_feature, real_next_state_feature.detach()).mean()
         loss = self.reverse_scale * inverse_loss + forward_loss
         self.opt.zero_grad()
@@ -173,7 +171,7 @@ class ICMRewardModel(BaseRewardModel):
         states, next_states, actions = collect_states(data)
         states = torch.stack(states).to(self.device)
         next_states = torch.stack(next_states).to(self.device)
-        actions = torch.stack(actions).to(self.device)
+        actions = torch.cat(actions).to(self.device)
         with torch.no_grad():
             real_next_state_feature, pred_next_state_feature, _ = self.reward_model(states, next_states, actions)
             reward = self.forward_mse(real_next_state_feature, pred_next_state_feature).mean(dim=1)
