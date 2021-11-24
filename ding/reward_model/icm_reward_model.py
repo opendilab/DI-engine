@@ -79,7 +79,7 @@ class ICMNetwork(nn.Module):
             - next_state (:obj:`torch.Tensor`):
                 The next state batch
             - action_long (:obj:`torch.Tensor`):
-                The action, in long tensor, range from 0 to action_shape -1
+                The action batch
         Returns:
             - real_next_state_feature (:obj:`torch.Tensor`):
                 Run with the encoder. Return the real next_state's embedded feature.
@@ -91,9 +91,12 @@ class ICMNetwork(nn.Module):
             - state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is ''obs_shape''
             - next_state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is ''obs_shape''
             - action_long (:obj:`torch.Tensor`): :math:`(B)`, where B is the batch size''
-            - real_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size and M is embedded feature shape
-            - pred_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size and M is embedded feature shape
-            - pred_action_logit (:obj:`torch.Tensor`): :math:`(B, A)`, where B is the batch size and A is the ''action_shape''
+            - real_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size
+              and M is embedded feature size
+            - pred_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size
+              and M is embedded feature size
+            - pred_action_logit (:obj:`torch.Tensor`): :math:`(B, A)`, where B is the batch size
+              and A is the ''action_shape''
         """
         action = one_hot(action_long, num=self.action_shape)
         encode_state = self.feature(state)
@@ -203,7 +206,6 @@ class ICMRewardModel(BaseRewardModel):
             reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
             reward = reward.to(data[0]['reward'].device)
             reward = torch.chunk(reward, reward.shape[0], dim=0)
-            
         for item, rew in zip(data, reward):
             if self.intrinsic_reward_type == 'add':
                 item['reward'] += rew

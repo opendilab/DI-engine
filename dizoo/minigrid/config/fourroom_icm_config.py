@@ -2,18 +2,19 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
 
 minigrid_ppo_icm_config = dict(
-    exp_name='minigrid_empty8_ppo_icm',
+    exp_name='fourroom_ppo_icm',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
-        env_id='MiniGrid-Empty-8x8-v0',
+        env_id='MiniGrid-FourRooms-v0',
         stop_value=0.96,
     ),
     reward_model=dict(
         intrinsic_reward_type='add',
         learning_rate=0.001,
         obs_shape=2739,
+        action_shape=7,
         batch_size=32,
         update_per_collect=10,
     ),
