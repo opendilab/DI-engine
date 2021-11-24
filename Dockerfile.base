@@ -3,7 +3,7 @@ FROM pytorch/pytorch:1.7.1-cuda11.0-cudnn8-runtime
 WORKDIR /ding
 
 RUN apt update \
-    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl gcc \g++ make locales -y \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git gcc \g++ make locales -y \
     && apt clean \
     && rm -rf /var/cache/apt/* \
     && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \

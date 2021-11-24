@@ -79,6 +79,10 @@ class TD3Policy(DDPGPolicy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 25000 in DDPG/TD3.
         random_collect_size=25000,
+        # (str) Action space type
+        action_space='continuous',  # ['continuous', 'hybrid']
+        # (bool) Whether use batch normalization for reward
+        reward_batch_norm=False,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
@@ -143,7 +147,7 @@ class TD3Policy(DDPGPolicy):
         other=dict(
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer.
-                replay_buffer_size=1000000,
+                replay_buffer_size=100000,
             ),
         ),
     )

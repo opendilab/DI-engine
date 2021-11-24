@@ -2,7 +2,7 @@ from typing import Optional
 import torch
 import torch.nn as nn
 
-from ding.torch_utils import ResFCBlock, ResBlock
+from ding.torch_utils import ResFCBlock, ResBlock, Flatten
 from ding.utils import SequenceType
 
 
@@ -49,7 +49,7 @@ class ConvEncoder(nn.Module):
         assert len(set(hidden_size_list[3:-1])) <= 1, "Please indicate the same hidden size for res block parts"
         for i in range(3, len(self.hidden_size_list) - 1):
             layers.append(ResBlock(self.hidden_size_list[i], activation=self.act, norm_type=norm_type))
-        layers.append(nn.Flatten())
+        layers.append(Flatten())
         self.main = nn.Sequential(*layers)
 
         flatten_size = self._get_flatten_size()

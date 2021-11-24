@@ -286,3 +286,31 @@ class WQMIXPolicy(QMIXPolicy):
             by import_names path. For WQMIX, ``ding.model.template.wqmix``
         """
         return 'wqmix', ['ding.model.template.wqmix']
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        r"""
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+        """
+        return {
+            'model': self._learn_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+            'optimizer_star': self._optimizer_star.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        r"""
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+        self._optimizer_star.load_state_dict(state_dict['optimizer_star'])

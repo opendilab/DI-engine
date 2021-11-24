@@ -5,9 +5,7 @@ name: doc
 
 on:
   push:
-    branches: [main, 'doc/*']
-  pull_request:
-    branches: [main, 'doc/*']
+    branches: [main]
 
 jobs:
   doc:

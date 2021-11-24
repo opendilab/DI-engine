@@ -13,7 +13,6 @@ halfcheetah_td3_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         random_collect_size=25000,
         model=dict(
             obs_shape=11,
@@ -38,7 +37,7 @@ halfcheetah_td3_default_config = dict(
                 min=-0.5,
                 max=0.5,
             ),
-            learner = dict(
+            learner=dict(
                 load_path='./td3/ckpt/ckpt_best.pth.tar',
                 hook=dict(
                     load_ckpt_before_run='./td3/ckpt/ckpt_best.pth.tar',

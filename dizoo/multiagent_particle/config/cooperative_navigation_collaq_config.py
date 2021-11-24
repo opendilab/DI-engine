@@ -17,7 +17,6 @@ cooperative_navigation_collaq_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=True,
         model=dict(
             agent_num=n_agent,
             obs_shape=2 + 2 + (n_agent - 1) * 2 + num_landmarks * 2,
