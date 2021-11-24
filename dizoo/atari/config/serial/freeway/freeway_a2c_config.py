@@ -1,5 +1,5 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline_onpolicy
 from easydict import EasyDict
 
 freeway_a2c_config = dict(
@@ -7,7 +7,7 @@ freeway_a2c_config = dict(
         collector_env_num=16,
         evaluator_env_num=4,
         n_evaluator_episode=8,
-        stop_value=20,
+        stop_value=9999999999,
         env_id='FreewayNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
@@ -43,11 +43,7 @@ freeway_a2c_config = dict(
             gae_lambda=0.99,
             discount_factor=0.99,
         ),
-        eval=dict(evaluator=dict(eval_freq=100, )),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=160,
-            max_use=1,
-        ), ),
+        eval=dict(evaluator=dict(eval_freq=500, )),
     ),
 )
 main_config = EasyDict(freeway_a2c_config)
@@ -63,4 +59,4 @@ freeway_a2c_create_config = dict(
 create_config = EasyDict(freeway_a2c_create_config)
 
 if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)
