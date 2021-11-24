@@ -14,7 +14,7 @@ class PriorityExperienceReplay:
             IS_weight: bool = True,
             priority_power_factor: float = 0.6,
             IS_weight_power_factor: float = 0.4,
-            IS_weight_anneal_train_iter: int = int(1e5)
+            IS_weight_anneal_train_iter: int = int(1e5),
     ) -> None:
         self.buffer = buffer
         self.buffer_idx = {}

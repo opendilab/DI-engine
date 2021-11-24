@@ -26,6 +26,7 @@ class DequeBufferWrapper(object):
         priority_power_factor=0.6,
         IS_weight_power_factor=0.4,
         IS_weight_anneal_train_iter=int(1e5),
+        priority_max_limit=1000,
     )
 
     def __init__(
@@ -36,6 +37,7 @@ class DequeBufferWrapper(object):
             instance_name: str = 'buffer'
     ) -> None:
         self.cfg = cfg
+        self.priority_max_limit = cfg.priority_max_limit
         self.name = '{}_iter'.format(instance_name)
         self.tb_logger = tb_logger
         self.buffer = DequeBuffer(size=cfg.replay_buffer_size)
@@ -101,9 +103,7 @@ class DequeBufferWrapper(object):
             return
         new_meta = self.last_sample_meta
         for m, p in zip(new_meta, meta['priority']):
-            m['priority'] = p
+            m['priority'] = min(self.priority_max_limit, p)
         self.buffer.batch_update(self.last_sample_index, None, new_meta)
-        # for idx, m in zip(self.last_sample_index, new_meta):
-        #     self.buffer.update(idx, data=None, meta=m)
         self.last_sample_index = None
         self.last_sample_meta = None

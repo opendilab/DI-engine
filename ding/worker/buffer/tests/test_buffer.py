@@ -172,7 +172,7 @@ def test_batch_update():
         datas = [item.data for item in items]
         metas = [item.meta for item in items]
         buf.batch_update(indices, datas, metas)
-        ## Resample
+        # Resample
         items = buf.sample(10)
         n_isnew = 0
         for item in items:
