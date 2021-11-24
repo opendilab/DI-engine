@@ -104,7 +104,8 @@ def acer_trust_region_update(
     return update_gradients
 
 
-def acer_value_error_continuous(q_values: torch.Tensor, 
+def acer_value_error_continuous(q_values: torch.Tensor,
+                                v_values: torch.Tensor,
                                 q_retraces: torch.Tensor,
                                 ratio: torch.Tensor,
                                 ):
@@ -124,15 +125,23 @@ def acer_value_error_continuous(q_values: torch.Tensor,
         - actions (:obj:`torch.LongTensor`): :math:`(T, B)`
         - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`
     """
-
-    critic_loss_q = 0.5*(q_retraces.detach() - q_values).pow(2)
-    critic_loss_v = 0.5*ratio.clamp(max=1) * (q_retraces.detach() - q_values).pow(2)  # shape T,B,1
-    # critic_loss = critic_loss_q + critic_loss_v
-    # return [critic_loss_q, critic_loss_v, critic_loss]
-    return critic_loss_q + critic_loss_v
-
+    # loss v1 -200, 3600 iter
     # critic_loss = 0.5*(q_retraces.detach() - q_values).pow(2)
     # return critic_loss
+
+    # loss v2 -200 1400 iter
+    critic_loss_q = -(q_retraces.detach() - q_values).detach() * q_values
+    critic_loss_v = -ratio.clamp(max=1) * (q_retraces.detach() - q_values).detach() * v_values  # shape T,B,1
+    critic_loss = critic_loss_q + critic_loss_v
+    return critic_loss
+
+    # loss v3
+    # critic_loss_q = 0.5*(q_retraces.detach() - q_values).pow(2)
+    # critic_loss_v = 0.5*ratio.clamp(max=1) * (q_retraces.detach() - q_values).pow(2)  # shape T,B,1
+
+    # critic_loss = critic_loss_q + critic_loss_v
+    # return [critic_loss_q, critic_loss_v, critic_loss]
+    # return critic_loss_q + critic_loss_v
 
 
 def acer_policy_error_continuous(

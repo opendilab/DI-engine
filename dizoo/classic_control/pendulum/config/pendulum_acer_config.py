@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-
 pendulum_acer_config = dict(
+    exp_name='debug_pendulum_critic_loss_v2_ns16_bs16',
     seed=0,
     env=dict(
         # collector_env_num=10,
@@ -10,7 +10,7 @@ pendulum_acer_config = dict(
         # (bool) Scale output action into legal range.
         act_scale=True,
         n_evaluator_episode=5,
-        stop_value=-250,
+        stop_value=-150,
     ),
     policy=dict(
         cuda=True,
@@ -21,8 +21,8 @@ pendulum_acer_config = dict(
             obs_shape=3,
             action_shape=1,
             continuous_action_space=True,
-            q_value_sample_size= 20,
-            noise_ratio= 0.1,
+            q_value_sample_size=20,
+            noise_ratio=0,  # 0.1,
         ),
         learn=dict(
             # grad_clip_type=None,
@@ -33,10 +33,10 @@ pendulum_acer_config = dict(
             multi_gpu=False,
             update_per_collect=4,
             batch_size=16,
+            # batch_size=32,
             value_weight=0.5,
-            entropy_weight=0,#0.0001,
-            discount_factor=0.9,#0.997,#0.9,
-            lambda_=0.95,
+            entropy_weight=0,  # 0.0001,
+            discount_factor=0.9,  # 0.997,#0.9,
             load_path=None,
             unroll_len=32,
             c_clip_ratio=10,
@@ -48,6 +48,7 @@ pendulum_acer_config = dict(
         ),
         collect=dict(
             n_sample=16,
+            # n_sample=32,
             unroll_len=32,
             discount_factor=0.9,
             gae_lambda=0.95,

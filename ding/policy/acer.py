@@ -424,7 +424,7 @@ class ACERPolicy(Policy):
             # critic_loss = (acer_value_error_continuous(q_values, q_retraces, ratio) * weights.unsqueeze(
             #     -1)).sum() / total_valid
 
-            critic_loss = (acer_value_error_continuous(q_values, q_retraces, ratio) * weights.unsqueeze(
+            critic_loss = (acer_value_error_continuous(q_values, v_pred, q_retraces, ratio) * weights.unsqueeze(
                 -1)).sum() / total_valid
 
         else:
@@ -616,8 +616,7 @@ class ACERPolicy(Policy):
         self._collect_model.eval()
         with torch.no_grad():
             if self._cfg.model.continuous_action_space:
-                noise_ratio = 0.1
-                output = self._collect_model.forward(noise_ratio, data, mode='compute_actor')
+                output = self._collect_model.forward(self._cfg.model.noise_ratio, data, mode='compute_actor')
             else:
                 output = self._collect_model.forward(data, mode='compute_actor')
         if self._cuda:
@@ -674,7 +673,9 @@ class ACERPolicy(Policy):
             For continuous action, we pass the mu to tanh funtion and got actions
         """
         if self._cfg.model.continuous_action_space:
-            self._eval_model = model_wrap(self._model, wrapper_name='tanh_sample')
+            # self._eval_model = model_wrap(self._model, wrapper_name='tanh_sample')
+            self._eval_model = model_wrap(self._model, wrapper_name='mu_sample')  # TODO(pu)
+
         else:
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
