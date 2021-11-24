@@ -475,7 +475,7 @@
         <span class="n">learner</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">BaseLearner</span><span class="p">,</span>
         <span class="n">collector</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">evaluator</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span>
-        <span class="n">buffer</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">AdvancedReplayBuffer</span><span class="p">,</span>
+        <span class="n">buffer</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">env</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">reward_model</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -495,7 +495,7 @@
 <span class="sd">        - learner (:obj:`type`): Input learner class, defaults to BaseLearner</span>
 <span class="sd">        - collector (:obj:`type`): Input collector class, defaults to BaseSerialCollector</span>
 <span class="sd">        - evaluator (:obj:`type`): Input evaluator class, defaults to InteractionSerialEvaluator</span>
-<span class="sd">        - buffer (:obj:`type`): Input buffer class, defaults to BufferManager</span>
+<span class="sd">        - buffer (:obj:`type`): Input buffer class, defaults to IBuffer</span>
 <span class="sd">        - env (:obj:`type`): Environment class which is to be used in the following pipeline</span>
 <span class="sd">        - reward_model (:obj:`type`): Reward model class which aims to offer various and valuable reward</span>
 <span class="sd">        - seed (:obj:`int`): Random number seed</span>
@@ -513,6 +513,7 @@
             <span class="n">create_cfg</span><span class="o">.</span><span class="n">collector</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
         <span class="k">if</span> <span class="s1">&#39;replay_buffer&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">create_cfg</span><span class="p">:</span>
             <span class="n">create_cfg</span><span class="o">.</span><span class="n">replay_buffer</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;advanced&#39;</span><span class="p">))</span>
+            <span class="n">buffer</span> <span class="o">=</span> <span class="n">AdvancedReplayBuffer</span>
         <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">env</span> <span class="o">=</span> <span class="n">get_env_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">env_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
