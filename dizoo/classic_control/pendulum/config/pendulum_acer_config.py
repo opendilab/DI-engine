@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    exp_name='debug_pendulum_critic_loss_v2_ns16_bs16',
+    exp_name='debug_pendulum_critic_loss_v2_ns16_bs16_seed0',
     seed=0,
     env=dict(
         # collector_env_num=10,
