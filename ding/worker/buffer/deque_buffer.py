@@ -27,8 +27,11 @@ class BufferIndex(OrderedDict):
         return value
 
     def __delitem__(self, key: str, *args, **kwargs) -> None:
+        value = super().__getitem__(key)
         found = False
-        for k in self.keys():
+        for i, (k, v) in enumerate(self.items()):
+            if i == 0 and value < v:  # Skip when pop first item
+                break
             if found:
                 self[k] = super().__getitem__(k) - 1
             if key == k:
