@@ -131,12 +131,12 @@ def test_sample_with_index():
 
 
 @pytest.mark.unittest
-def test_update_delete():
+def test_update():
     buf = DequeBuffer(size=10)
     for i in range(1):
         buf.push({"data": i}, {"meta": i})
 
-    # Update data
+    # Update one data
     [item] = buf.sample(1)
     item.data["new_prop"] = "any"
     meta = None
@@ -150,38 +150,29 @@ def test_update_delete():
     success = buf.update("invalidindex", {}, None)
     assert not success
 
-    # Delete data
-    [item] = buf.sample(1)
-    buf.delete(item.index)
-    assert buf.count() == 0
+    # When exceed buffer size
+    for i in range(20):
+        buf.push({"data": i})
+    assert len(buf.indices) == 10
+    assert len(buf.storage) == 10
+    for i in range(10):
+        index = buf.storage[i].index
+        assert buf.indices[index] == i
 
 
 @pytest.mark.unittest
-def test_batch_update():
-
-    def batch_update(n_new):
-        buf = DequeBuffer(size=10)
-        for i in range(10):
-            buf.push({"data": i}, {"meta": i})
-
-        # Update less than 7
-        items = buf.sample(n_new)
-        for item in items:
-            item.data["new_prop"] = "any"
-        indices = [item.index for item in items]
-        datas = [item.data for item in items]
-        metas = [item.meta for item in items]
-        buf.batch_update(indices, datas, metas)
-        # Resample
-        items = buf.sample(10)
-        n_isnew = 0
-        for item in items:
-            if "new_prop" in item.data:
-                n_isnew += 1
-        assert n_isnew == n_new
-
-    batch_update(5)
-    batch_update(9)
+def test_delete():
+    buf = DequeBuffer(size=10)
+    for i in range(20):
+        buf.push({"data": i}, {"meta": i})
+    # Delete data
+    [item] = buf.sample(1)
+    buf.delete(item.index)
+    assert len(buf.indices) == 9
+    assert len(buf.storage) == 9
+    for i in range(9):
+        index = buf.storage[i].index
+        assert buf.indices[index] == i
 
 
 @pytest.mark.unittest

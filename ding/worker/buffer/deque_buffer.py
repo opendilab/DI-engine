@@ -1,5 +1,5 @@
 from typing import Any, Iterable, List, Optional, Tuple, Union
-from collections import defaultdict, deque
+from collections import defaultdict, deque, OrderedDict
 
 from ding.worker.buffer import Buffer, apply_middleware, BufferedData
 from ding.worker.buffer.utils import fastcopy
@@ -9,13 +9,45 @@ import uuid
 import logging
 
 
+class BufferIndex(OrderedDict):
+    """
+    Overview:
+        Save index string and offset in key value pair.
+    """
+
+    def __init__(self, maxlen: int, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.maxlen = maxlen
+        self.cumlen = 0
+
+    def __getitem__(self, key: str) -> int:
+        value = super().__getitem__(key)
+        value = value % self.cumlen + min(0, (self.maxlen - self.cumlen))
+        return value
+
+    def __delitem__(self, key: str, *args, **kwargs) -> None:
+        found = False
+        for k in self.keys():
+            if found:
+                self[k] = super().__getitem__(k) - 1
+            if key == k:
+                found = True
+        super().__delitem__(key, *args, **kwargs)
+
+    def append(self, key: str):
+        self[key] = self.cumlen
+        self.cumlen += 1
+        if len(self) > self.maxlen:
+            self.popitem(last=False)
+
+
 class DequeBuffer(Buffer):
 
     def __init__(self, size: int) -> None:
         super().__init__()
         self.storage = deque(maxlen=size)
         # Meta index is a dict which use deque as values
-        self.indices = deque(maxlen=size)
+        self.indices = BufferIndex(maxlen=size)
         self.meta_index = {}
 
     @apply_middleware("push")
@@ -88,21 +120,9 @@ class DequeBuffer(Buffer):
 
     @apply_middleware("update")
     def update(self, index: str, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
-        return self._update(index, data=data, meta=meta)
-
-    def _update(
-            self,
-            index: Union[str, int],
-            data: Optional[Any] = None,
-            meta: Optional[dict] = None,
-    ) -> bool:
-        if isinstance(index, int):
-            i = index
-        else:
-            try:
-                i = self.indices.index(index)
-            except ValueError:
-                return False
+        if index not in self.indices:
+            return False
+        i = self.indices[index]
         item = self.storage[i]
         if data is not None:
             item.data = data
@@ -112,46 +132,16 @@ class DequeBuffer(Buffer):
                 self.meta_index[key][i] = meta[key] if key in meta else None
         return True
 
-    @apply_middleware("batch_update")
-    def batch_update(
-            self,
-            indices: List[str],
-            datas: Optional[List[Optional[Any]]] = None,
-            metas: Optional[List[Optional[dict]]] = None
-    ) -> List[bool]:
-        if datas:
-            assert len(datas) == len(indices), "Data's length({}) should equal to indices length({})".format(
-                len(datas), len(indices)
-            )
-        if metas:
-            assert len(metas) == len(indices), "Meta's length({}) should equal to indices length({})".format(
-                len(metas), len(indices)
-            )
-
-        results = []
-        if len(indices) < 7:
-            # When the index size is small, the cost of constructing the index map is greater
-            # than the cost of searching in the index, so simple update is used instead.
-            for i, index in enumerate(indices):
-                results.append(self._update(index, datas[i] if datas else None, metas[i] if metas else None))
-            return results
-
-        reverse_index = dict(zip(self.indices, range(len(self.indices))))
-        for i, index in enumerate(indices):
-            results.append(self._update(reverse_index[index], datas[i] if datas else None, metas[i] if metas else None))
-        return results
-
     @apply_middleware("delete")
     def delete(self, indices: Union[str, Iterable[str]]) -> None:
         if isinstance(indices, str):
             indices = [indices]
         for index in indices:
-            try:
-                i = self.indices.index(index)
-            except ValueError:
+            if index not in self.indices:
                 continue
+            i = self.indices[index]
+            del self.indices[index]
             del self.storage[i]
-            del self.indices[i]
             for key in self.meta_index:
                 del self.meta_index[key][i]
 
