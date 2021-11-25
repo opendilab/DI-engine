@@ -17,14 +17,14 @@ class RateLimit:
         self.window_seconds = window_seconds
         self.buffered = []
 
-    def handler(self) -> Callable:
+    def __call__(self) -> Callable:
 
-        def _handler(action: str, chain: Callable, *args, **kwargs):
+        def _caller(action: str, chain: Callable, *args, **kwargs):
             if action == "push":
                 return self.push(chain, *args, **kwargs)
             return chain(*args, **kwargs)
 
-        return _handler
+        return _caller
 
     def push(self, chain, data, *args, **kwargs) -> None:
         current = time.time()
@@ -84,7 +84,7 @@ def test_naive_push_sample():
 @pytest.mark.unittest
 def test_rate_limit_push_sample():
     ratelimit = RateLimit(max_rate=5)
-    buffer = DequeBuffer(size=10).use(ratelimit.handler())
+    buffer = DequeBuffer(size=10).use(ratelimit())
     for i in range(10):
         buffer.push(i)
     assert buffer.count() == 5
@@ -99,7 +99,7 @@ def test_buffer_view():
     assert buf1.count() == 1
 
     ratelimit = RateLimit(max_rate=5)
-    buf2 = buf1.view().use(ratelimit.handler()).use(add_10())
+    buf2 = buf1.view().use(ratelimit()).use(add_10())
 
     for i in range(10):
         buf2.push(i)
