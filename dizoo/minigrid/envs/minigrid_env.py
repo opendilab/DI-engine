@@ -86,7 +86,7 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=100,
+        max_step=500,
         use_wrappers=None,
     ),
     'MiniGrid-AKTDT-13x13-v0': MiniGridEnvInfo(
@@ -109,7 +109,30 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=100,
+        max_step=500,
+        use_wrappers=None,
+    ),
+    'MiniGrid-AKTDT-13x13-1-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2667, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=500,
         use_wrappers=None,
     ),
     'MiniGrid-AKTDT-19x19-v0': MiniGridEnvInfo(
@@ -132,7 +155,30 @@ MINIGRID_INFO_DICT = {
             'max': 1,
             'dtype': np.float32
         }),
-        max_step=100,
+        max_step=500,
+        use_wrappers=None,
+    ),
+    'MiniGrid-AKTDT-19x19-3-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2739, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=500,
         use_wrappers=None,
     ),
     'MiniGrid-DoorKey-8x8-v0': MiniGridEnvInfo(
@@ -256,7 +302,7 @@ MINIGRID_INFO_DICT = {
 @ENV_REGISTRY.register('minigrid')
 class MiniGridEnv(BaseEnv):
     config = dict(
-        env_id='MiniGrid-AKTDT-13x13-v0',
+        env_id='MiniGrid-KeyCorridorS3R3-v0',
         flat_obs=True,
     )
 
@@ -277,11 +323,10 @@ class MiniGridEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._env_id)
-            if self._env_id == 'MiniGrid-AKTDT-13x13-v0':
+            if self._env_id in ['MiniGrid-AKTDT-13x13-v0' or 'MiniGrid-AKTDT-13x13-1-v0']:
                 self._env = ViewSizeWrapper(
                     self._env, agent_view_size=5
                 )  # customize the agent field of view size, note this must be an odd number # This also related to the observation space, see gym_minigrid.wrappers for more details
-            self._env.render()
             if self._flat_obs:
                 self._env = FlatObsWrapper(self._env)
                 # self._env = RGBImgPartialObsWrapper(self._env)
@@ -333,7 +378,7 @@ class MiniGridEnv(BaseEnv):
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transferred to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> MiniGridEnvInfo:
