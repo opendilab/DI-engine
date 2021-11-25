@@ -104,6 +104,7 @@ class DequeBufferWrapper(object):
         new_meta = self.last_sample_meta
         for m, p in zip(new_meta, meta['priority']):
             m['priority'] = min(self.priority_max_limit, p)
-        self.buffer.batch_update(self.last_sample_index, None, new_meta)
+        for idx, m in zip(self.last_sample_index, new_meta):
+            self.buffer.update(idx, data=None, meta=m)
         self.last_sample_index = None
         self.last_sample_meta = None

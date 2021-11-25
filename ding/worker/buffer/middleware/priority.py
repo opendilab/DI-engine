@@ -75,32 +75,15 @@ class PriorityExperienceReplay:
             self.IS_weight_power_factor = min(1.0, self.IS_weight_power_factor + self.delta_anneal)
         return data
 
-    def _update(self, meta: dict) -> None:
-        assert meta is not None, "Please indicate dict-type meta in priority update"
-        new_priority, idx = meta['priority'], meta['priority_idx']
-        assert new_priority >= 0, "new_priority should greater than 0, but found {}".format(new_priority)
-        new_priority += 1e-5  # Add epsilon to avoid priority == 0
-        self._update_tree(new_priority, idx)
-        self.max_priority = max(self.max_priority, new_priority)
-
     def update(self, chain: Callable, index: str, data: Any, meta: Any, *args, **kwargs) -> None:
         update_flag = chain(index, data, meta, *args, **kwargs)
         if update_flag:  # when update succeed
-            self._update(meta)
-
-    def batch_update(
-            self,
-            chain: Callable,
-            indices: List[str],
-            datas: Optional[List[Optional[Any]]] = None,
-            metas: Optional[List[Optional[Any]]] = None,
-            *args,
-            **kwargs
-    ) -> None:
-        update_flags = chain(indices, datas, metas, *args, **kwargs)
-        for i, update_flag in enumerate(update_flags):
-            if update_flag and metas:
-                self._update(metas[i])
+            assert meta is not None, "Please indicate dict-type meta in priority update"
+            new_priority, idx = meta['priority'], meta['priority_idx']
+            assert new_priority >= 0, "new_priority should greater than 0, but found {}".format(new_priority)
+            new_priority += 1e-5  # Add epsilon to avoid priority == 0
+            self._update_tree(new_priority, idx)
+            self.max_priority = max(self.max_priority, new_priority)
 
     def delete(self, chain: Callable, index: str, *args, **kwargs) -> None:
         for item in self.buffer.storage:
@@ -148,7 +131,7 @@ def priority(*per_args, **per_kwargs):
     per = PriorityExperienceReplay(*per_args, **per_kwargs)
 
     def _priority(action: str, chain: Callable, *args, **kwargs) -> Any:
-        if action in ["push", "sample", "update", "delete", "clear", "batch_update"]:
+        if action in ["push", "sample", "update", "delete", "clear"]:
             return getattr(per, action)(chain, *args, **kwargs)
         return chain(*args, **kwargs)
 

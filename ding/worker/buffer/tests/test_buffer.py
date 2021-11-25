@@ -17,14 +17,14 @@ class RateLimit:
         self.window_seconds = window_seconds
         self.buffered = []
 
-    def handler(self) -> Callable:
+    def __call__(self) -> Callable:
 
-        def _handler(action: str, chain: Callable, *args, **kwargs):
+        def _caller(action: str, chain: Callable, *args, **kwargs):
             if action == "push":
                 return self.push(chain, *args, **kwargs)
             return chain(*args, **kwargs)
 
-        return _handler
+        return _caller
 
     def push(self, chain, data, *args, **kwargs) -> None:
         current = time.time()
@@ -84,7 +84,7 @@ def test_naive_push_sample():
 @pytest.mark.unittest
 def test_rate_limit_push_sample():
     ratelimit = RateLimit(max_rate=5)
-    buffer = DequeBuffer(size=10).use(ratelimit.handler())
+    buffer = DequeBuffer(size=10).use(ratelimit())
     for i in range(10):
         buffer.push(i)
     assert buffer.count() == 5
@@ -99,7 +99,7 @@ def test_buffer_view():
     assert buf1.count() == 1
 
     ratelimit = RateLimit(max_rate=5)
-    buf2 = buf1.view().use(ratelimit.handler()).use(add_10())
+    buf2 = buf1.view().use(ratelimit()).use(add_10())
 
     for i in range(10):
         buf2.push(i)
@@ -131,12 +131,12 @@ def test_sample_with_index():
 
 
 @pytest.mark.unittest
-def test_update_delete():
+def test_update():
     buf = DequeBuffer(size=10)
     for i in range(1):
         buf.push({"data": i}, {"meta": i})
 
-    # Update data
+    # Update one data
     [item] = buf.sample(1)
     item.data["new_prop"] = "any"
     meta = None
@@ -150,38 +150,36 @@ def test_update_delete():
     success = buf.update("invalidindex", {}, None)
     assert not success
 
-    # Delete data
-    [item] = buf.sample(1)
-    buf.delete(item.index)
-    assert buf.count() == 0
+    # When exceed buffer size
+    for i in range(20):
+        buf.push({"data": i})
+    assert len(buf.indices) == 10
+    assert len(buf.storage) == 10
+    for i in range(10):
+        index = buf.storage[i].index
+        assert buf.indices.get(index) == i
 
 
 @pytest.mark.unittest
-def test_batch_update():
-
-    def batch_update(n_new):
-        buf = DequeBuffer(size=10)
-        for i in range(10):
-            buf.push({"data": i}, {"meta": i})
-
-        # Update less than 7
-        items = buf.sample(n_new)
-        for item in items:
-            item.data["new_prop"] = "any"
-        indices = [item.index for item in items]
-        datas = [item.data for item in items]
-        metas = [item.meta for item in items]
-        buf.batch_update(indices, datas, metas)
-        # Resample
-        items = buf.sample(10)
-        n_isnew = 0
-        for item in items:
-            if "new_prop" in item.data:
-                n_isnew += 1
-        assert n_isnew == n_new
-
-    batch_update(5)
-    batch_update(9)
+def test_delete():
+    maxlen = 100
+    cumlen = 40
+    dellen = 20
+    buf = DequeBuffer(size=maxlen)
+    for i in range(cumlen):
+        buf.push(i)
+    # Delete data
+    del_indices = [item.index for item in buf.sample(dellen)]
+    buf.delete(del_indices)
+    # Reappend
+    for i in range(10):
+        buf.push(i)
+    remlen = min(cumlen, maxlen) - dellen + 10
+    assert len(buf.indices) == remlen
+    assert len(buf.storage) == remlen
+    for i in range(remlen):
+        index = buf.storage[i].index
+        assert buf.indices.get(index) == i
 
 
 @pytest.mark.unittest
