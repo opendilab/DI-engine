@@ -1,6 +1,8 @@
 from easydict import EasyDict
+from ding.entry import serial_pipeline_onpolicy
 
 hopper_ppo_default_config = dict(
+    exp_name="hopper_onppo",
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -22,19 +24,20 @@ hopper_ppo_default_config = dict(
         continuous=True,
         learn=dict(
             epoch_per_collect=10,
-            batch_size=64,
+            update_per_collect=1,
+            batch_size=320,
             learning_rate=3e-4,
             value_weight=0.5,
-            entropy_weight=0.0,
+            entropy_weight=0.001,
             clip_ratio=0.2,
             adv_norm=True,
             value_norm=True,
         ),
         collect=dict(
-            n_sample=2048,
+            n_sample=3200,
             unroll_len=1,
             discount_factor=0.99,
-            gae_lambda=0.97,
+            gae_lambda=0.95,
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
@@ -52,3 +55,6 @@ hopper_ppo_create_default_config = dict(
 )
 hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
 create_config = hopper_ppo_create_default_config
+
+if __name__ == "__main__":
+    serial_pipeline_onpolicy([main_config, create_config], seed=0)

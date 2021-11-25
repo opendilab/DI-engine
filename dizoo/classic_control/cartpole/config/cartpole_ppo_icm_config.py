@@ -1,12 +1,22 @@
 from easydict import EasyDict
+from ding.entry import serial_pipeline_reward_model
 
-cartpole_ppo_config = dict(
+
+cartpole_ppo_icm_config = dict(
     exp_name='cartpole_ppo',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=195,
+    ),
+    reward_model=dict(
+        intrinsic_reward_type='add',
+        learning_rate=0.001,
+        obs_shape=4,
+        action_shape=2,
+        batch_size=32,
+        update_per_collect=10,
     ),
     policy=dict(
         cuda=False,
@@ -32,22 +42,22 @@ cartpole_ppo_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
-        eval=dict(
-            evaluator=dict(
-                eval_freq=100,
-            ),
-        ),
+        eval=dict(evaluator=dict(eval_freq=100, ), ),
     ),
 )
-cartpole_ppo_config = EasyDict(cartpole_ppo_config)
-main_config = cartpole_ppo_config
-cartpole_ppo_create_config = dict(
+cartpole_ppo_icm_config = EasyDict(cartpole_ppo_icm_config)
+main_config = cartpole_ppo_icm_config
+cartpole_ppo_icm_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='ppo'),
+    policy=dict(type='ppo_offpolicy'),
+    reward_model=dict(type='icm'),
 )
-cartpole_ppo_create_config = EasyDict(cartpole_ppo_create_config)
-create_config = cartpole_ppo_create_config
+cartpole_ppo_icm_create_config = EasyDict(cartpole_ppo_icm_create_config)
+create_config = cartpole_ppo_icm_create_config
+
+if __name__ == '__main__':
+    serial_pipeline_reward_model([main_config, create_config], seed=0)

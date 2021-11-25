@@ -1,16 +1,21 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline_reward_model
 
-minigrid_ppo_config = dict(
-    # exp_name="minigrid_empty8_offppo",
-    exp_name="minigrid_fourrooms_offppo",
+minigrid_ppo_icm_config = dict(
+    exp_name='minigrid_empty8_ppo_icm',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        env_id='MiniGrid-FourRooms-v0',
         n_evaluator_episode=5,
+        env_id='MiniGrid-Empty-8x8-v0',
         stop_value=0.96,
+    ),
+    reward_model=dict(
+        intrinsic_reward_type='add',
+        learning_rate=0.001,
+        obs_shape=2739,
+        batch_size=32,
+        update_per_collect=10,
     ),
     policy=dict(
         cuda=True,
@@ -36,18 +41,19 @@ minigrid_ppo_config = dict(
         ),
     ),
 )
-minigrid_ppo_config = EasyDict(minigrid_ppo_config)
-main_config = minigrid_ppo_config
-minigrid_ppo_create_config = dict(
+minigrid_ppo_icm_config = EasyDict(minigrid_ppo_icm_config)
+main_config = minigrid_ppo_icm_config
+minigrid_ppo_icm_create_config = dict(
     env=dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
+    reward_model=dict(type='icm'),
 )
-minigrid_ppo_create_config = EasyDict(minigrid_ppo_create_config)
-create_config = minigrid_ppo_create_config
+minigrid_ppo_icm_create_config = EasyDict(minigrid_ppo_icm_create_config)
+create_config = minigrid_ppo_icm_create_config
 
 if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+    serial_pipeline_reward_model([main_config, create_config], seed=0)

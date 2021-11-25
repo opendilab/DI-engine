@@ -7,23 +7,21 @@ from torch.distributions import Independent, Normal
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
-    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous,\
+    v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous, \
     get_gae
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
+from ding.utils import dicts_to_lists, lists_to_dicts
 
 
 @POLICY_REGISTRY.register('ppo')
 class PPOPolicy(Policy):
     r"""
     Overview:
-        Policy class of PPO algorithm.
-
-        https://arxiv.org/pdf/1707.06347.pdf
-
+        Policy class of on policy version PPO algorithm.
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
@@ -38,6 +36,7 @@ class PPOPolicy(Policy):
         priority_IS_weight=False,
         recompute_adv=True,
         continuous=True,
+        nstep_return=False,
         multi_agent=False,
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
@@ -156,27 +155,19 @@ class PPOPolicy(Policy):
         # ====================
         return_infos = []
         self._learn_model.train()
-        if self._value_norm:
-            unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
-            data['return'] = unnormalized_return / self._running_mean_std.std
-            self._running_mean_std.update(unnormalized_return.cpu().numpy())
-        else:
-            data['return'] = data['adv'] + data['value']
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._recompute_adv:
+            if self._recompute_adv:  # new v network compute new value
                 with torch.no_grad():
-                    # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
                     next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
                     if self._value_norm:
                         value *= self._running_mean_std.std
                         next_value *= self._running_mean_std.std
 
-                    gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
-                    # GAE need (T, B) shape input and return (T, B) output
-                    data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
-                    # value = value[:-1]
+                    compute_adv_data = gae_data(value, next_value, data['reward'], data['done'], data['traj_flag'])
+                    data['adv'] = gae(compute_adv_data, self._gamma, self._gae_lambda)
+
                     unnormalized_returns = value + data['adv']
 
                     if self._value_norm:
@@ -186,6 +177,14 @@ class PPOPolicy(Policy):
                     else:
                         data['value'] = value
                         data['return'] = unnormalized_returns
+
+            else:  # don't recompute adv
+                if self._value_norm:
+                    unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
+                    data['return'] = unnormalized_return / self._running_mean_std.std
+                    self._running_mean_std.update(unnormalized_return.cpu().numpy())
+                else:
+                    data['return'] = data['adv'] + data['value']
 
             for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
@@ -326,6 +325,10 @@ class PPOPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = to_device(data, self._device)
+        for transition in data:
+            transition['traj_flag'] = copy.deepcopy(transition['done'])
+        data[-1]['traj_flag'] = True
+
         if self._cfg.learn.ignore_done:
             data[-1]['done'] = False
 
@@ -664,25 +667,16 @@ class PPOOffPolicy(Policy):
         Returns:
                - transition (:obj:`dict`): Dict type transition data.
         """
-        if not self._nstep_return:
-            transition = {
-                'obs': obs,
-                'logit': model_output['logit'],
-                'action': model_output['action'],
-                'value': model_output['value'],
-                'reward': timestep.reward,
-                'done': timestep.done,
-            }
-        else:
-            transition = {
-                'obs': obs,
-                'next_obs': timestep.obs,
-                'logit': model_output['logit'],
-                'action': model_output['action'],
-                'value': model_output['value'],
-                'reward': timestep.reward,
-                'done': timestep.done,
-            }
+
+        transition = {
+            'obs': obs,
+            'next_obs': timestep.obs,
+            'logit': model_output['logit'],
+            'action': model_output['action'],
+            'value': model_output['value'],
+            'reward': timestep.reward,
+            'done': timestep.done,
+        }
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
