@@ -6,7 +6,6 @@ import torch.nn.functional as F
 import cv2
 import random
 from math import log, exp, pow
-from torchvision.utils import save_image
 
 import numpy as np
 from ding.utils import REWARD_MODEL_REGISTRY
