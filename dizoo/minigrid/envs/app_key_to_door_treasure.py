@@ -3,17 +3,6 @@
 
 from gym_minigrid.minigrid import *
 from gym_minigrid.minigrid import WorldObj
-'''
-class Apple(WorldObj):
-    def __init__(self, color='red'):
-        super(Apple, self).__init__('apple', color)
-
-    def can_pickup(self):
-        return True
-
-    def render(self, img):
-        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
-'''
 
 
 class Ball(WorldObj):
@@ -215,6 +204,11 @@ class AppleKeyToDoorTreasure_13x13_1(AppleKeyToDoorTreasure):
     def __init__(self):
         super().__init__(agent_pos=(2, 8), goal_pos=(7, 1), grid_size=13, apple=1)
 
+
+class AppleKeyToDoorTreasure_7x7_1(AppleKeyToDoorTreasure):
+    
+    def __init__(self):
+        super().__init__(agent_pos=(1, 5), goal_pos=(4, 1), grid_size=7, apple=1)
 
 class AppleKeyToDoorTreasure_19x19_3(AppleKeyToDoorTreasure):
 

@@ -89,6 +89,29 @@ MINIGRID_INFO_DICT = {
         max_step=500,
         use_wrappers=None,
     ),
+    'MiniGrid-AKTDT-7x7-1-v0': MiniGridEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(shape=(2619, ), value={
+            'min': 0,
+            'max': 8,
+            'dtype': np.float32
+        }),
+        act_space=EnvElementInfo(
+            shape=(1, ),
+            value={
+                'min': 0,
+                'max': 7,  # [0, 7)
+                'dtype': np.int64,
+            }
+        ),
+        rew_space=EnvElementInfo(shape=(1, ), value={
+            'min': 0,
+            'max': 1,
+            'dtype': np.float32
+        }),
+        max_step=500,
+        use_wrappers=None,
+    ),
     'MiniGrid-AKTDT-13x13-v0': MiniGridEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(shape=(2667, ), value={
@@ -327,6 +350,10 @@ class MiniGridEnv(BaseEnv):
                 self._env = ViewSizeWrapper(
                     self._env, agent_view_size=5
                 )  # customize the agent field of view size, note this must be an odd number # This also related to the observation space, see gym_minigrid.wrappers for more details
+            if self._env_id == 'MiniGrid-AKTDT-7x7-1-v0':
+                self._env = ViewSizeWrapper(
+                    self._env, agent_view_size=3
+                )
             if self._flat_obs:
                 self._env = FlatObsWrapper(self._env)
                 # self._env = RGBImgPartialObsWrapper(self._env)
