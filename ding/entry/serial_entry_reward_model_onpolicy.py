@@ -6,15 +6,15 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, BaseSerialCommander, \
-    create_buffer, create_serial_collector
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
+    create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 
 
-def serial_pipeline_onpolicy(
+def serial_pipeline_reward_model_onpolicy(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -23,7 +23,7 @@ def serial_pipeline_onpolicy(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry on-policy version.
+        Serial pipeline entry with reward model.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -69,9 +69,11 @@ def serial_pipeline_onpolicy(
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
+    replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
     commander = BaseSerialCommander(
-        cfg.policy.other.commander, learner, collector, evaluator, None, policy.command_mode
+        cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
+    reward_model = create_reward_model(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
 
     # ==========
     # Main loop
@@ -79,18 +81,52 @@ def serial_pipeline_onpolicy(
     # Learner's before_run hook.
     learner.call_hook('before_run')
 
-    for _ in range(max_iterations):
+    # Accumulate plenty of data at the beginning of training.
+    if cfg.policy.get('random_collect_size', 0) > 0:
+        action_space = collector_env.env_info().act_space
+        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
+        collector.reset_policy(random_policy)
+        collect_kwargs = commander.step()
+        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
+        replay_buffer.push(new_data, cur_collector_envstep=0)
+        collector.reset_policy(policy.collect_mode)
+    for iter in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        # Collect data by default config n_sample/n_episode
-        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-
+        new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
+        while new_data_count < target_new_data_count:
+            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+            new_data_count += len(new_data)
+            # collect data for reward_model training
+            reward_model.collect_data(new_data)
+        # update reward_model
+        reward_model.train()
+        if iter % cfg.reward_model.clear_buffer_per_iters == 0:
+            reward_model.clear_data()
         # Learn policy from collected data
-        learner.train(new_data, collector.envstep)
+        for i in range(cfg.policy.learn.update_per_collect):  # 1
+            # Learner will train ``update_per_collect`` times in one iteration.
+            train_data = new_data
+            if train_data is None:
+                # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
+                logging.warning(
+                    "Replay buffer's data can only train for {} steps. ".format(i) +
+                    "You can modify data collect config, e.g. increasing n_sample, n_episode."
+                )
+                break
+            # update train_data reward
+            reward_model.estimate(train_data)
+
+            learner.train(train_data, collector.envstep)
+            if learner.policy.get_attribute('priority'):
+                replay_buffer.update(learner.priority_info)
+        if cfg.policy.on_policy:
+            # On-policy algorithm must clear the replay buffer.
+            replay_buffer.clear()
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
