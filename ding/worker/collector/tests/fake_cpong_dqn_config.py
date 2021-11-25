@@ -60,15 +60,15 @@ main_config = fake_cpong_dqn_config
 
 fake_cpong_dqn_create_config = dict(
     env=dict(
-        import_names=['ding.worker.collector.tests.test_one_vs_one_collector'],
+        import_names=['ding.worker.collector.tests.test_marine_parallel_collector'],
         type='fake_competitive_rl',
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn_command'),
     learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
     collector=dict(
-        type='one_vs_one',
-        import_names=['ding.worker.collector.one_vs_one_collector'],
+        type='marine',
+        import_names=['ding.worker.collector.marine_parallel_collector'],
     ),
     commander=dict(
         type='one_vs_one',

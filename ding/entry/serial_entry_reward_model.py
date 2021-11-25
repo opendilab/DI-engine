@@ -6,7 +6,7 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer, \
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
@@ -66,7 +66,7 @@ def serial_pipeline_reward_model(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
@@ -123,9 +123,6 @@ def serial_pipeline_reward_model(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

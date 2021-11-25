@@ -11,10 +11,11 @@ import yaml
 from easydict import EasyDict
 
 from ding.utils import deep_merge_dicts
-from ding.envs import get_env_cls, get_env_manager_cls
+from ding.envs import get_env_cls, get_env_manager_cls, BaseEnvManager
 from ding.policy import get_policy_cls
-from ding.worker import BaseLearner, BaseSerialEvaluator, BaseSerialCommander, Coordinator, AdvancedReplayBuffer, \
-    get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, get_serial_collector_cls
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, Coordinator, \
+    AdvancedReplayBuffer, get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, \
+    get_serial_collector_cls, MetricSerialEvaluator, BattleInteractionSerialEvaluator
 from ding.reward_model import get_reward_model_cls
 from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s, save_config_formatted
 
@@ -308,8 +309,8 @@ def compile_config(
         policy: type = None,
         learner: type = BaseLearner,
         collector: type = None,
-        evaluator: type = BaseSerialEvaluator,
-        buffer: type = AdvancedReplayBuffer,
+        evaluator: type = InteractionSerialEvaluator,
+        buffer: type = None,
         env: type = None,
         reward_model: type = None,
         seed: int = 0,
@@ -328,8 +329,8 @@ def compile_config(
         - policy (:obj:`type`): Policy class which is to be used in the following pipeline
         - learner (:obj:`type`): Input learner class, defaults to BaseLearner
         - collector (:obj:`type`): Input collector class, defaults to BaseSerialCollector
-        - evaluator (:obj:`type`): Input evaluator class, defaults to BaseSerialEvaluator
-        - buffer (:obj:`type`): Input buffer class, defaults to BufferManager
+        - evaluator (:obj:`type`): Input evaluator class, defaults to InteractionSerialEvaluator
+        - buffer (:obj:`type`): Input buffer class, defaults to IBuffer
         - env (:obj:`type`): Environment class which is to be used in the following pipeline
         - reward_model (:obj:`type`): Reward model class which aims to offer various and valuable reward
         - seed (:obj:`int`): Random number seed
@@ -347,6 +348,7 @@ def compile_config(
             create_cfg.collector = EasyDict(dict(type='sample'))
         if 'replay_buffer' not in create_cfg:
             create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
+            buffer = AdvancedReplayBuffer
         if env is None:
             env = get_env_cls(create_cfg.env)
         if env_manager is None:
@@ -379,6 +381,8 @@ def compile_config(
         else:
             env_config = EasyDict()  # env does not have default_config
         env_config = deep_merge_dicts(env_config_template, env_config)
+        if env_manager is None:
+            env_manager = BaseEnvManager  # for compatibility
         env_config.manager = deep_merge_dicts(env_manager.default_config(), env_config.manager)
         policy_config = policy.default_config()
         policy_config = deep_merge_dicts(policy_config_template, policy_config)
@@ -390,26 +394,32 @@ def compile_config(
         learner.default_config(),
         policy_config.learn.learner,
     )
-    policy_config.collect.collector = compile_collector_config(policy_config, cfg, collector)
+    if create_cfg is not None or collector is not None:
+        policy_config.collect.collector = compile_collector_config(policy_config, cfg, collector)
     policy_config.eval.evaluator = deep_merge_dicts(
         evaluator.default_config(),
         policy_config.eval.evaluator,
     )
-    policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, buffer)
+    if create_cfg is not None or buffer is not None:
+        policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, buffer)
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     if len(reward_model_config) > 0:
         default_config['reward_model'] = reward_model_config
     cfg = deep_merge_dicts(default_config, cfg)
     cfg.seed = seed
     # check important key in config
-    assert all([k in cfg.env for k in ['n_evaluator_episode', 'stop_value']]), cfg.env
-    cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
-    cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+    if evaluator in [InteractionSerialEvaluator, BattleInteractionSerialEvaluator]:  # env interaction evaluation
+        assert all([k in cfg.env for k in ['n_evaluator_episode', 'stop_value']]), cfg.env
+        cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
+        cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
     if save_cfg:
         if not os.path.exists(cfg.exp_name):
-            os.mkdir(cfg.exp_name)
+            try:
+                os.mkdir(cfg.exp_name)
+            except FileExistsError:
+                pass
         save_path = os.path.join(cfg.exp_name, save_path)
         save_config(cfg, save_path, save_formatted=True)
     return cfg

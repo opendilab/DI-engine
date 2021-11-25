@@ -53,6 +53,13 @@ class OneVsOneLeague(BaseLeague):
             decay=0.99,
             min_win_rate_games=8,
         ),
+        metric=dict(
+            mu=0,
+            sigma=25 / 3,
+            beta=25 / 3 / 2,
+            tau=0.0,
+            draw_probability=0.02,
+        ),
     )
 
     # override

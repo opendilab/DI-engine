@@ -68,8 +68,8 @@ cpong_dqn_create_config = dict(
     policy=dict(type='dqn_command'),
     learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
     collector=dict(
-        type='one_vs_one',
-        import_names=['ding.worker.collector.one_vs_one_collector'],
+        type='marine',
+        import_names=['ding.worker.collector.marine_parallel_collector'],
     ),
     commander=dict(
         type='one_vs_one',

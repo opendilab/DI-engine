@@ -2,7 +2,7 @@ import torch
 import pytest
 from ding.torch_utils import build_activation, build_normalization
 from ding.torch_utils.network.nn_module import conv1d_block, conv2d_block, fc_block, deconv2d_block, ChannelShuffle, \
-    one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_
+    one_hot, NearestUpsample, BilinearUpsample, binary_encode, weight_init_, NaiveFlatten
 
 batch_size = 2
 in_channels = 2
@@ -148,3 +148,16 @@ class TestNnModule:
         max_val = torch.tensor(8)
         output = binary_encode(input, max_val)
         assert torch.equal(output, torch.tensor([[0, 1, 0, 0]]))
+
+    @pytest.mark.tmp
+    def test_flatten(self):
+        inputs = torch.randn(4, 3, 8, 8)
+        model1 = NaiveFlatten()
+        output1 = model1(inputs)
+        assert output1.shape == (4, 3 * 8 * 8)
+        model2 = NaiveFlatten(1, 2)
+        output2 = model2(inputs)
+        assert output2.shape == (4, 3 * 8, 8)
+        model3 = NaiveFlatten(1, 3)
+        output3 = model2(inputs)
+        assert output1.shape == (4, 3 * 8 * 8)

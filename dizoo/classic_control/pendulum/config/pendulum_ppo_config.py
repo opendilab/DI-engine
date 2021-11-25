@@ -10,9 +10,8 @@ pendulum_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=True,
         continuous=True,
-        recompute_adv=False,
+        recompute_adv=True,
         model=dict(
             obs_shape=3,
             action_shape=1,
@@ -32,7 +31,7 @@ pendulum_ppo_config = dict(
             clip_ratio=0.2,
             adv_norm=False,
             value_norm=True,
-            ignore_done=False,
+            ignore_done=True,
         ),
         collect=dict(
             n_sample=200,

@@ -9,11 +9,6 @@ on:
       - "ding/policy/*"
       - "ding/model/*"
       - "ding/rl_utils/*"
-  pull_request:
-    paths:
-      - "ding/policy/*"
-      - "ding/model/*"
-      - "ding/rl_utils/*"
 
 jobs:
   test_algotest:
@@ -35,5 +30,6 @@ jobs:
           DURATIONS: 600
         run: |
           python -m pip install .
-          python -m pip install ".[test]"
+          python -m pip install ".[test,k8s]"
+          ./ding/scripts/install-k8s-tools.sh
           make algotest

@@ -3,7 +3,7 @@ from typing import Any
 from easydict import EasyDict
 
 from ding.utils import get_task_uid, import_module, COMM_COLLECTOR_REGISTRY
-from ..base_parallel_collector import create_parallel_collector, BaseCollector
+from ..base_parallel_collector import create_parallel_collector, BaseParallelCollector
 
 
 class BaseCommCollector(ABC):
@@ -80,14 +80,14 @@ class BaseCommCollector(ABC):
     def collector_uid(self) -> str:
         return self._collector_uid
 
-    def _create_collector(self, task_info: dict) -> BaseCollector:
+    def _create_collector(self, task_info: dict) -> BaseParallelCollector:
         """
         Overview:
             Receive ``task_info`` passed from coordinator and create a collector.
         Arguments:
             - task_info (:obj:`dict`): Task info dict from coordinator. Should be like \
         Returns:
-            - collector (:obj:`BaseCollector`): Created base collector.
+            - collector (:obj:`BaseParallelCollector`): Created base collector.
         Note:
             Four methods('send_metadata', 'send_stepdata', 'get_policy_update_info'), and policy are set.
             The reason why they are set here rather than base collector is, they highly depend on the specific task.

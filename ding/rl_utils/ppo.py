@@ -92,14 +92,23 @@ def ppo_policy_error(data: namedtuple,
     dist_old = torch.distributions.categorical.Categorical(logits=logit_old)
     logp_new = dist_new.log_prob(action)
     logp_old = dist_old.log_prob(action)
-    entropy_loss = (dist_new.entropy() * weight).mean()
+    dist_new_entropy = dist_new.entropy()
+    if dist_new_entropy.shape != weight.shape:
+        dist_new_entropy = dist_new.entropy().mean(dim=1)
+    entropy_loss = (dist_new_entropy * weight).mean()
     # policy_loss
     ratio = torch.exp(logp_new - logp_old)
+    if ratio.shape != adv.shape:
+        ratio = ratio.mean(dim=1)
     surr1 = ratio * adv
     surr2 = ratio.clamp(1 - clip_ratio, 1 + clip_ratio) * adv
     if dual_clip is not None:
-        policy_loss = (-torch.max(torch.min(surr1, surr2), dual_clip * adv) * weight).mean()
+        clip1 = torch.min(surr1, surr2)
+        clip2 = torch.max(clip1, dual_clip * adv)
+        # only use dual_clip when adv < 0
+        policy_loss = -(torch.where(adv < 0, clip2, clip1) * weight).mean()
     else:
+        #policy_loss = (-torch.min(surr1, surr2) * weight).mean()
         policy_loss = (-torch.min(surr1, surr2) * weight).mean()
     with torch.no_grad():
         approx_kl = (logp_old - logp_new).mean().item()

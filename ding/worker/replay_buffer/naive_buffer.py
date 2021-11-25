@@ -1,10 +1,11 @@
 import copy
 from typing import Union, Any, Optional, List
 import numpy as np
+from easydict import EasyDict
 
 from ding.worker.replay_buffer import IBuffer
-from ding.utils import LockContext, LockContextType, BUFFER_REGISTRY
-from .utils import UsedDataRemover
+from ding.utils import LockContext, LockContextType, BUFFER_REGISTRY, build_logger
+from .utils import UsedDataRemover, PeriodicThruputMonitor
 
 
 @BUFFER_REGISTRY.register('naive')
@@ -27,12 +28,13 @@ class NaiveReplayBuffer(IBuffer):
         deepcopy=False,
         # default `False` for serial pipeline
         enable_track_used_data=False,
+        periodic_thruput_seconds=60,
     )
 
     def __init__(
             self,
             cfg: 'EasyDict',  # noqa
-            name: str = 'default',
+            tb_logger: Optional['SummaryWriter'] = None,  # noqa
             exp_name: Optional[str] = 'default_experiment',
             instance_name: Optional[str] = 'buffer',
     ) -> None:
@@ -41,7 +43,9 @@ class NaiveReplayBuffer(IBuffer):
             Initialize the buffer
         Arguments:
             - cfg (:obj:`dict`): Config dict.
-            - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.
+            - tb_logger (:obj:`Optional['SummaryWriter']`): Outer tb logger. Usually get this argument in serial mode.
+            - exp_name (:obj:`Optional[str]`): Name of this experiment.
+            - instance_name (:obj:`Optional[str]`): Name of this instance.
         """
         self._exp_name = exp_name
         self._instance_name = instance_name
@@ -62,6 +66,20 @@ class NaiveReplayBuffer(IBuffer):
         self._enable_track_used_data = self._cfg.enable_track_used_data
         if self._enable_track_used_data:
             self._used_data_remover = UsedDataRemover()
+        if tb_logger is not None:
+            self._logger, _ = build_logger(
+                './{}/log/{}'.format(self._exp_name, self._instance_name), self._instance_name, need_tb=False
+            )
+            self._tb_logger = tb_logger
+        else:
+            self._logger, self._tb_logger = build_logger(
+                './{}/log/{}'.format(self._exp_name, self._instance_name),
+                self._instance_name,
+            )
+        # Periodic thruput. Here by default, monitor range is 60 seconds. You can modify it for free.
+        self._periodic_thruput_monitor = PeriodicThruputMonitor(
+            self._instance_name, EasyDict(seconds=self._cfg.periodic_thruput_seconds), self._logger, self._tb_logger
+        )
 
     def start(self) -> None:
         """
@@ -79,6 +97,8 @@ class NaiveReplayBuffer(IBuffer):
         self.clear()
         if self._enable_track_used_data:
             self._used_data_remover.close()
+        self._tb_logger.flush()
+        self._tb_logger.close()
 
     def push(self, data: Union[List[Any], Any], cur_collector_envstep: int) -> None:
         r"""
@@ -92,10 +112,16 @@ class NaiveReplayBuffer(IBuffer):
         """
         if isinstance(data, list):
             self._extend(data, cur_collector_envstep)
+            self._periodic_thruput_monitor.push_data_count += len(data)
         else:
             self._append(data, cur_collector_envstep)
+            self._periodic_thruput_monitor.push_data_count += 1
 
-    def sample(self, size: int, cur_learner_iter: int, sample_range: slice = None) -> Optional[list]:
+    def sample(self,
+               size: int,
+               cur_learner_iter: int,
+               sample_range: slice = None,
+               replace: bool = False) -> Optional[list]:
         """
         Overview:
             Sample data with length ``size``.
@@ -105,18 +131,20 @@ class NaiveReplayBuffer(IBuffer):
                 Not used in naive buffer, but preserved for compatibility.
             - sample_range (:obj:`slice`): Buffer slice for sampling, such as `slice(-10, None)`, which \
                 means only sample among the last 10 data
+            - replace (:obj:`bool`): Whether sample with replacement
         Returns:
             - sample_data (:obj:`list`): A list of data with length ``size``.
         """
         if size == 0:
             return []
-        can_sample = self._sample_check(size)
+        can_sample = self._sample_check(size, replace)
         if not can_sample:
             return None
         with self._lock:
-            indices = self._get_indices(size, sample_range)
-            result = self._sample_with_indices(indices, cur_learner_iter)
-            return result
+            indices = self._get_indices(size, sample_range, replace)
+            sample_data = self._sample_with_indices(indices, cur_learner_iter)
+        self._periodic_thruput_monitor.sample_data_count += len(sample_data)
+        return sample_data
 
     def _append(self, ori_data: Any, cur_collector_envstep: int = -1) -> None:
         r"""
@@ -134,6 +162,7 @@ class NaiveReplayBuffer(IBuffer):
             self._push_count += 1
             if self._data[self._tail] is None:
                 self._valid_count += 1
+                self._periodic_thruput_monitor.valid_count = self._valid_count
             elif self._enable_track_used_data:
                 self._used_data_remover.add_used_data(self._data[self._tail])
             self._data[self._tail] = data
@@ -160,6 +189,7 @@ class NaiveReplayBuffer(IBuffer):
             if self._tail + length <= self._replay_buffer_size:
                 if self._valid_count != self._replay_buffer_size:
                     self._valid_count += length
+                    self._periodic_thruput_monitor.valid_count = self._valid_count
                 elif self._enable_track_used_data:
                     for i in range(length):
                         self._used_data_remover.add_used_data(self._data[self._tail + i])
@@ -174,6 +204,7 @@ class NaiveReplayBuffer(IBuffer):
                     L = min(space, residual_num)
                     if self._valid_count != self._replay_buffer_size:
                         self._valid_count += L
+                        self._periodic_thruput_monitor.valid_count = self._valid_count
                     elif self._enable_track_used_data:
                         for i in range(L):
                             self._used_data_remover.add_used_data(self._data[new_tail + i])
@@ -189,17 +220,25 @@ class NaiveReplayBuffer(IBuffer):
             # Update ``tail`` and ``next_unique_id`` after the whole list is pushed into buffer.
             self._tail = (self._tail + length) % self._replay_buffer_size
 
-    def _sample_check(self, size: int) -> bool:
+    def _sample_check(self, size: int, replace: bool = False) -> bool:
         r"""
         Overview:
             Check whether this buffer has more than `size` datas to sample.
         Arguments:
             - size (:obj:`int`): Number of data that will be sampled.
+            - replace (:obj:`bool`): Whether sample with replacement.
         Returns:
             - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
         """
-        if self._valid_count < size:
-            print("No enough elements for sampling (expect: {} / current: {})".format(size, self._valid_count))
+        if self._valid_count == 0:
+            print("The buffer is empty")
+            return False
+        if self._valid_count < size and not replace:
+            print(
+                "No enough elements for sampling without replacement (expect: {} / current: {})".format(
+                    size, self._valid_count
+                )
+            )
             return False
         else:
             return True
@@ -226,6 +265,7 @@ class NaiveReplayBuffer(IBuffer):
                         self._used_data_remover.add_used_data(self._data[i])
                     self._data[i] = None
             self._valid_count = 0
+            self._periodic_thruput_monitor.valid_count = self._valid_count
             self._push_count = 0
             self._tail = 0
 
@@ -236,7 +276,7 @@ class NaiveReplayBuffer(IBuffer):
         """
         self.close()
 
-    def _get_indices(self, size: int, sample_range: slice = None) -> list:
+    def _get_indices(self, size: int, sample_range: slice = None, replace: bool = False) -> list:
         r"""
         Overview:
             Get the sample index list.
@@ -253,10 +293,10 @@ class NaiveReplayBuffer(IBuffer):
         else:
             tail = self._tail
         if sample_range is None:
-            indices = list(np.random.choice(a=tail, size=size, replace=False))
+            indices = list(np.random.choice(a=tail, size=size, replace=replace))
         else:
             indices = list(range(tail))[sample_range]
-            indices = list(np.random.choice(indices, size=size, replace=False))
+            indices = list(np.random.choice(indices, size=size, replace=replace))
         return indices
 
     def _sample_with_indices(self, indices: List[int], cur_learner_iter: int) -> list:
@@ -324,3 +364,92 @@ class NaiveReplayBuffer(IBuffer):
     @property
     def push_count(self) -> int:
         return self._push_count
+
+
+@BUFFER_REGISTRY.register('elastic')
+class ElasticReplayBuffer(NaiveReplayBuffer):
+    r"""
+    Overview:
+        Elastic replay buffer, it stores data and support dynamically change the buffer size.
+        An naive implementation of replay buffer with no priority or any other advanced features.
+        This buffer refers to multi-thread/multi-process and guarantees thread-safe, which means that methods like
+        ``sample``, ``push``, ``clear`` are all mutual to each other.
+    Interface:
+        start, close, push, update, sample, clear, count, state_dict, load_state_dict, default_config
+    Property:
+        replay_buffer_size, push_count
+    """
+
+    config = dict(
+        type='elastic',
+        replay_buffer_size=10000,
+        deepcopy=False,
+        # default `False` for serial pipeline
+        enable_track_used_data=False,
+    )
+
+    def __init__(
+            self,
+            cfg: 'EasyDict',  # noqa
+            tb_logger: Optional['SummaryWriter'] = None,  # noqa
+            exp_name: Optional[str] = 'default_experiment',
+            instance_name: Optional[str] = 'buffer',
+    ) -> None:
+        """
+        Overview:
+            Initialize the buffer
+        Arguments:
+            - cfg (:obj:`dict`): Config dict.
+            - tb_logger (:obj:`Optional['SummaryWriter']`): Outer tb logger. Usually get this argument in serial mode.
+            - exp_name (:obj:`Optional[str]`): Name of this experiment.
+            - instance_name (:obj:`Optional[str]`): Name of this instance.
+        """
+        super().__init__(cfg, tb_logger, exp_name, instance_name)
+        self._set_buffer_size = self._cfg.set_buffer_size
+        self._current_buffer_size = self._set_buffer_size(0)  # Set the buffer size at the 0-th envstep.
+        # The variable 'current_buffer_size' restricts how many samples the buffer can use for sampling
+
+    def _sample_check(self, size: int, replace: bool = False) -> bool:
+        r"""
+        Overview:
+            Check whether this buffer has more than `size` datas to sample.
+        Arguments:
+            - size (:obj:`int`): Number of data that will be sampled.
+            - replace (:obj:`bool`): Whether sample with replacement.
+        Returns:
+            - can_sample (:obj:`bool`): Whether this buffer can sample enough data.
+        """
+        valid_count = min(self._valid_count, self._current_buffer_size)
+        if valid_count == 0:
+            print("The buffer is empty")
+            return False
+        if valid_count < size and not replace:
+            print(
+                "No enough elements for sampling without replacement (expect: {} / current: {})".format(
+                    size, self._valid_count
+                )
+            )
+            return False
+        else:
+            return True
+
+    def _get_indices(self, size: int, sample_range: slice = None, replace: bool = False) -> list:
+        r"""
+        Overview:
+            Get the sample index list.
+        Arguments:
+            - size (:obj:`int`): The number of the data that will be sampled.
+            - replace (:obj:`bool`): Whether sample with replacement.
+        Returns:
+            - index_list (:obj:`list`): A list including all the sample indices, whose length should equal to ``size``.
+        """
+        assert self._valid_count <= self._replay_buffer_size
+        assert sample_range is None  # not support
+        range = min(self._valid_count, self._current_buffer_size)
+        indices = list(
+            (self._tail - 1 - np.random.choice(a=range, size=size, replace=replace)) % self._replay_buffer_size
+        )
+        return indices
+
+    def update(self, envstep):
+        self._current_buffer_size = self._set_buffer_size(envstep)

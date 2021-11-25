@@ -7,6 +7,10 @@ class GameEnv(BaseEnv):
     def __init__(self, game_type='prisoner_dilemma'):
         self.game_type = game_type
         assert self.game_type in ['zero_sum', 'prisoner_dilemma']
+        if self.game_type == 'prisoner_dilemma':
+            self.optimal_policy = [0, 1]
+        elif self.game_type == 'zero_sum':
+            self.optimal_policy = [0.375, 0.625]
 
     def seed(self, seed, dynamic_seed=False):
         pass
@@ -36,10 +40,10 @@ class GameEnv(BaseEnv):
                 results = "draws", "draws"
             elif actions == [0, 1]:
                 rewards = -20, 0
-                results = "wins", "losses"
+                results = "losses", "wins"
             elif actions == [1, 0]:
                 rewards = 0, -20
-                results = "losses", "wins"
+                results = "wins", "losses"
             elif actions == [1, 1]:
                 rewards = -10, -10
                 results = 'draws', 'draws'

@@ -8,6 +8,9 @@ from easydict import EasyDict
 
 from ding.league.player import Player
 from ding.league.shared_payoff import BattleRecordDict, create_payoff
+from ding.league.metric import LeagueMetricEnv
+
+env = LeagueMetricEnv()
 
 
 @pytest.mark.unittest
@@ -42,7 +45,8 @@ def get_shared_payoff_player(payoff):
         init_payoff=payoff,
         checkpoint_path='sp_ckpt_{}.pth'.format(sp_player_count),
         player_id='sp_player_{}'.format(sp_player_count),
-        total_agent_step=0
+        total_agent_step=0,
+        rating=env.create_rating(),
     )
     sp_player_count += 1
     return player

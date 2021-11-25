@@ -52,7 +52,12 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     '-m',
     '--mode',
-    type=click.Choice(['serial', 'serial_sqil', 'parallel', 'dist', 'eval']),
+    type=click.Choice(
+        [
+            'serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'parallel', 'dist', 'eval',
+            'serial_reward_model', 'serial_gail'
+        ]
+    ),
     help='serial-train or parallel-train or dist-train or eval'
 )
 @click.option('-c', '--config', type=str, help='Path to DRL experiment config')
@@ -144,13 +149,39 @@ def cli(
         if config is None:
             config = get_predefined_config(env, policy)
         serial_pipeline(config, seed, max_iterations=train_iter)
-    if mode == 'serial_sqil':
+    elif mode == 'serial_onpolicy':
+        from .serial_entry_onpolicy import serial_pipeline_onpolicy
+        if config is None:
+            config = get_predefined_config(env, policy)
+        serial_pipeline_onpolicy(config, seed, max_iterations=train_iter)
+    elif mode == 'serial_sqil':
         if config == 'lunarlander_sqil_config.py' or 'cartpole_sqil_config.py' or 'pong_sqil_config.py' \
         or 'spaceinvaders_sqil_config.py' or 'qbert_sqil_config.py':
             from .serial_entry_sqil import serial_pipeline_sqil
         if config is None:
             config = get_predefined_config(env, policy)
-        serial_pipeline_sqil(config, seed, max_iterations=train_iter)
+        expert_config = input("Enter the name of the config you used to generate your expert model: ")
+        serial_pipeline_sqil(config, expert_config, seed, max_iterations=train_iter)
+    elif mode == 'serial_reward_model':
+        from .serial_entry_reward_model import serial_pipeline_reward_model
+        if config is None:
+            config = get_predefined_config(env, policy)
+        serial_pipeline_reward_model(config, seed, max_iterations=train_iter)
+    elif mode == 'serial_gail':
+        from .serial_entry_gail import serial_pipeline_gail
+        if config is None:
+            config = get_predefined_config(env, policy)
+        expert_config = input("Enter the name of the config you used to generate your expert model: ")
+        serial_pipeline_gail(config, expert_config, seed, max_iterations=train_iter, collect_data=True)
+    elif mode == 'serial_dqfd':
+        from .serial_entry_dqfd import serial_pipeline_dqfd
+        if config is None:
+            config = get_predefined_config(env, policy)
+        expert_config = input("Enter the name of the config you used to generate your expert model: ")
+        assert (expert_config == config[:config.find('_dqfd')] + '_dqfd_config.py'), "DQFD only supports "\
+        + "the models used in q learning now; However, one should still type the DQFD config in this "\
+        + "place, i.e., {}{}".format(config[:config.find('_dqfd')], '_dqfd_config.py')
+        serial_pipeline_dqfd(config, expert_config, seed, max_iterations=train_iter)
     elif mode == 'parallel':
         from .parallel_entry import parallel_pipeline
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)

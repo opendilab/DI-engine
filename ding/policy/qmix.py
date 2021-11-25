@@ -197,6 +197,7 @@ class QMIXPolicy(Policy):
 
         if self._cfg.learn.double_q:
             next_inputs = {'obs': data['next_obs']}
+            self._learn_model.reset(state=data['prev_state'][1])
             logit_detach = self._learn_model.forward(next_inputs, single_step=False)['logit'].clone().detach()
             next_inputs = {'obs': data['next_obs'], 'action': logit_detach.argmax(dim=-1)}
         else:
@@ -251,6 +252,7 @@ class QMIXPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
@@ -266,6 +268,7 @@ class QMIXPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
@@ -291,10 +294,13 @@ class QMIXPolicy(Policy):
         Overview:
             Forward function for collect mode with eps_greedy
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
             - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
         Returns:
-            - data (:obj:`dict`): The collected data
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
@@ -361,11 +367,14 @@ class QMIXPolicy(Policy):
     def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
-            Forward function for evaluation mode, similar to ``self._forward_collect``.
+            Forward function of eval mode, similar to ``self._forward_collect``.
         Arguments:
-            - data (:obj:`dict`): Dict type data, including at least ['obs'].
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
         Returns:
-            - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))

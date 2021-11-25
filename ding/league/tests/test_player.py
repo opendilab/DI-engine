@@ -8,8 +8,10 @@ from ding.league.player import Player, HistoricalPlayer, ActivePlayer, create_pl
 from ding.league.shared_payoff import create_payoff
 from ding.league.starcraft_player import MainPlayer, MainExploiter, LeagueExploiter
 from ding.league.tests.league_test_default_config import league_test_config
+from ding.league.metric import LeagueMetricEnv
 
 ONE_PHASE_STEP = 2000
+env = LeagueMetricEnv()
 
 
 @pytest.fixture(scope='function')
@@ -27,7 +29,7 @@ def setup_league(setup_payoff):
         players.append(
             create_player(
                 league_test_config.league, 'main_player', league_test_config.league.main_player, category, setup_payoff,
-                'ckpt_{}.pth'.format(main_player_name), main_player_name, 0
+                'ckpt_{}.pth'.format(main_player_name), main_player_name, 0, env.create_rating()
             )
         )
         # main_exloiter
@@ -35,7 +37,7 @@ def setup_league(setup_payoff):
         players.append(
             create_player(
                 league_test_config.league, 'main_exploiter', league_test_config.league.main_exploiter, category,
-                setup_payoff, 'ckpt_{}.pth'.format(main_exploiter_name), main_exploiter_name, 0
+                setup_payoff, 'ckpt_{}.pth'.format(main_exploiter_name), main_exploiter_name, 0, env.create_rating()
             )
         )
         # league_exploiter
@@ -51,6 +53,7 @@ def setup_league(setup_payoff):
                     'ckpt_{}.pth'.format(league_exploiter_name),
                     league_exploiter_name,
                     0,
+                    env.create_rating(),
                 )
             )
         # historical player: sl player is used as initial HistoricalPlayer
@@ -65,7 +68,8 @@ def setup_league(setup_payoff):
                 'ckpt_sl_{}'.format(sl_hp_name),
                 sl_hp_name,
                 0,
-                parent_id=main_player_name
+                env.create_rating(),
+                parent_id=main_player_name,
             )
         )
     for p in players:
@@ -94,7 +98,7 @@ class TestMainPlayer:
         for p in setup_league:
             if isinstance(p, ActivePlayer):
                 p.total_agent_step = 2 * ONE_PHASE_STEP
-                hp = p.snapshot()
+                hp = p.snapshot(env)
                 hp_list.append(hp)
                 setup_payoff.add_player(hp)
         setup_league += hp_list  # 12+3 + 12
@@ -122,7 +126,7 @@ class TestMainPlayer:
         for p in setup_league:
             for i in range(N):
                 if isinstance(p, ActivePlayer):
-                    hp = p.snapshot()
+                    hp = p.snapshot(env)
                     assert isinstance(hp, HistoricalPlayer)
                     assert id(hp.payoff) == id(p.payoff)
                     assert hp.parent_id == p.player_id
@@ -146,7 +150,7 @@ class TestMainPlayer:
         hp_list = []
         for p in setup_league:
             if isinstance(p, MainPlayer):
-                hp = p.snapshot()
+                hp = p.snapshot(env)
                 setup_payoff.add_player(hp)
                 hp_list.append(hp)
         setup_league += hp_list
@@ -243,7 +247,7 @@ class TestMainExploiter:
             for p in setup_league:
                 if isinstance(p, MainPlayer):
                     p.total_agent_step = (i + 1) * 2 * ONE_PHASE_STEP
-                    hp = p.snapshot()
+                    hp = p.snapshot(env)
                     setup_payoff.add_player(hp)
                     hp_list.append(hp)
         setup_league += hp_list
@@ -272,9 +276,9 @@ class TestMainExploiter:
 
     def test_mutate(self, setup_league):
         assert isinstance(setup_league[1], MainExploiter)
-        info = {'pretrain_checkpoint_path': 'pretrain_checkpoint.pth'}
+        info = {'reset_checkpoint_path': 'pretrain_checkpoint.pth'}
         for _ in range(10):
-            assert setup_league[1].mutate(info) == info['pretrain_checkpoint_path']
+            assert setup_league[1].mutate(info) == info['reset_checkpoint_path']
 
 
 @pytest.mark.unittest
@@ -296,7 +300,7 @@ class TestLeagueExploiter:
 
     def test_mutate(self, setup_league):
         assert isinstance(setup_league[2], LeagueExploiter)
-        info = {'pretrain_checkpoint_path': 'pretrain_checkpoint.pth'}
+        info = {'reset_checkpoint_path': 'pretrain_checkpoint.pth'}
         results = []
         for _ in range(1000):
             results.append(setup_league[2].mutate(info))

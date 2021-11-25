@@ -10,7 +10,6 @@ cartpole_dqn_config = dict(
         replay_path='cartpole_dqn/video',
     ),
     policy=dict(
-        load_path='',
         cuda=False,
         model=dict(
             obs_shape=4,
@@ -25,7 +24,7 @@ cartpole_dqn_config = dict(
             learning_rate=0.001,
         ),
         collect=dict(n_sample=8),
-        eval=dict(evaluator=dict(eval_freq=50, )),
+        eval=dict(evaluator=dict(eval_freq=40, )),
         other=dict(
             eps=dict(
                 type='exp',

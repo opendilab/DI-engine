@@ -97,7 +97,8 @@ class AdvancedReplayBuffer(IBuffer):
         Arguments:
             - cfg (:obj:`dict`): Config dict.
             - tb_logger (:obj:`Optional['SummaryWriter']`): Outer tb logger. Usually get this argument in serial mode.
-            - name (:obj:`Optional[str]`): Buffer name, used to generate unique data id and logger name.
+            - exp_name (:obj:`Optional[str]`): Name of this experiment.
+            - instance_name (:obj:`Optional[str]`): Name of this instance.
         """
         self._exp_name = exp_name
         self._instance_name = instance_name
@@ -454,8 +455,8 @@ class AdvancedReplayBuffer(IBuffer):
                     self._max_priority = max(self._max_priority, priority)
                 else:
                     self._logger.debug(
-                        'buffer_idx: {}; id_in_buffer: {}; id_in_update_info: {}'.format(
-                            idx, self._data[idx]['replay_unique_id'], id_
+                        '[Skip Update]: buffer_idx: {}; id_in_buffer: {}; id_in_update_info: {}'.format(
+                            idx, id_, priority
                         )
                     )
 
@@ -615,10 +616,6 @@ class AdvancedReplayBuffer(IBuffer):
         self._periodic_thruput_monitor.push_data_count += add_count
         if self._use_thruput_controller:
             self._thruput_controller.history_push_count += add_count
-        self._tb_logger.add_scalar(
-            'buffer_{}_sec/'.format(self._instance_name) + 'push', add_count,
-            time.time() - self._start_time
-        )
         self._cur_collector_envstep = cur_collector_envstep
 
     def _monitor_update_of_sample(self, sample_data: list, cur_learner_iter: int) -> None:
@@ -670,10 +667,6 @@ class AdvancedReplayBuffer(IBuffer):
                     self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, iter_metric)
                 if step_metric is not None:
                     self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, step_metric)
-        self._tb_logger.add_scalar(
-            '{}_sec/'.format(self._instance_name) + 'sample', len(sample_data),
-            time.time() - self._start_time
-        )
         self._sampled_data_attr_print_count += 1
 
     def _calculate_staleness(self, pos_index: int, cur_learner_iter: int) -> Optional[int]:

@@ -1,14 +1,13 @@
 from typing import Any, Union, List
 import copy
-import torch
 import numpy as np
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.envs.common.common_function import affine_transform
-from ding.torch_utils import to_tensor, to_ndarray, to_list
-from .pybullet_wrappers import wrap_pybullet
+from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
+from .pybullet_wrappers import wrap_pybullet
 
 Pybullet_INFO_DICT = {
     # pybullet env
@@ -93,10 +92,64 @@ Pybullet_INFO_DICT = {
         ),
         use_wrappers=None,
     ),
+    'Walker2DPyBulletEnv-v0': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(22, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(6, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
     'HalfCheetahMuJoCoEnv-v0': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(17, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(6, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'HalfCheetahPyBulletEnv-v0': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(26, ),
             value={
                 'min': np.float64("-inf"),
                 'max': np.float64("inf"),
@@ -147,10 +200,64 @@ Pybullet_INFO_DICT = {
         ),
         use_wrappers=None,
     ),
+    'AntPyBulletEnv-v0': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(28, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(8, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
     'HopperMuJoCoEnv-v0': BaseEnvInfo(
         agent_num=1,
         obs_space=EnvElementInfo(
             shape=(11, ),
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf"),
+                'dtype': np.float32
+            },
+        ),
+        act_space=EnvElementInfo(
+            shape=(3, ),
+            value={
+                'min': -1.0,
+                'max': 1.0,
+                'dtype': np.float32
+            },
+        ),
+        rew_space=EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        ),
+        use_wrappers=None,
+    ),
+    'HopperPyBulletEnv-v0': BaseEnvInfo(
+        agent_num=1,
+        obs_space=EnvElementInfo(
+            shape=(15, ),
             value={
                 'min': np.float64("-inf"),
                 'max': np.float64("inf"),
@@ -185,7 +292,7 @@ class PybulletEnv(BaseEnv):
         self._use_act_scale = cfg.use_act_scale
         self._init_flag = False
 
-    def reset(self) -> torch.FloatTensor:
+    def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env(only_info=False)
             self._init_flag = True
@@ -209,7 +316,7 @@ class PybulletEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def step(self, action: Union[torch.Tensor, np.ndarray, list]) -> BaseEnvTimestep:
+    def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
         action = to_ndarray(action)
         if self._use_act_scale:
             action_range = self.info().act_space.value
@@ -217,7 +324,7 @@ class PybulletEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs).astype('float32')
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)

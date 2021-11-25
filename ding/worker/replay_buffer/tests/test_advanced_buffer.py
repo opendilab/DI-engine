@@ -98,6 +98,10 @@ class TestAdvancedBuffer:
         eps = advanced_buffer._eps
         for i in range(2, 5):
             assert (info['priority'][i] + eps == advanced_buffer._data[selected_idx[i]]['priority'])
+        # test case when data is None(such as max use remove)
+        advanced_buffer._data[selected_idx[0]] = None
+        advanced_buffer._valid_count -= 1
+        advanced_buffer.update(info)
 
         # test beta
         advanced_buffer.beta = 1.

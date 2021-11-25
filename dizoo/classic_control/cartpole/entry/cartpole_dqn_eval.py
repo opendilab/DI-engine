@@ -4,7 +4,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, AdvancedReplayBuffer
+from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import DQNPolicy
 from ding.model import DQN
@@ -24,8 +24,8 @@ def main(cfg, seed=0):
         BaseEnvManager,
         DQNPolicy,
         BaseLearner,
-        SampleCollector,
-        BaseSerialEvaluator,
+        SampleSerialCollector,
+        InteractionSerialEvaluator,
         AdvancedReplayBuffer,
         save_cfg=True
     )
@@ -44,7 +44,7 @@ def main(cfg, seed=0):
 
     # evaluate
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     evaluator.eval()

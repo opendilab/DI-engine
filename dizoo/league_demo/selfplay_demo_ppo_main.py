@@ -6,7 +6,7 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, Episode1v1Collector, OnevOneEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, BattleEpisodeSerialCollector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
@@ -45,15 +45,22 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         BaseEnvManager,
         PPOPolicy,
         BaseLearner,
-        Episode1v1Collector,
-        OnevOneEvaluator,
+        BattleEpisodeSerialCollector,
+        BattleInteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
     )
+    env_type = cfg.env.env_type
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
-    collector_env = BaseEnvManager(env_fn=[GameEnv for _ in range(collector_env_num)], cfg=cfg.env.manager)
-    evaluator_env1 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    evaluator_env2 = BaseEnvManager(env_fn=[GameEnv for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
+    collector_env = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(collector_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env1 = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
+    evaluator_env2 = BaseEnvManager(
+        env_fn=[lambda: GameEnv(env_type) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    )
 
     collector_env.seed(seed)
     evaluator_env1.seed(seed, dynamic_seed=False)
@@ -74,16 +81,16 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     learner2 = BaseLearner(
         cfg.policy.learn.learner, policy2.learn_mode, tb_logger, exp_name=cfg.exp_name, instance_name='learner2'
     )
-    collector = Episode1v1Collector(
+    collector = BattleEpisodeSerialCollector(
         cfg.policy.collect.collector,
         collector_env, [policy1.collect_mode, policy2.collect_mode],
         tb_logger,
         exp_name=cfg.exp_name
     )
-    # collect_mode ppo use multimonial sample for selecting action
+    # collect_mode ppo use multinomial sample for selecting action
     evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator1_cfg.stop_value = cfg.env.stop_value[0]
-    evaluator1 = OnevOneEvaluator(
+    evaluator1 = BattleInteractionSerialEvaluator(
         evaluator1_cfg,
         evaluator_env1, [policy1.collect_mode, eval_policy1],
         tb_logger,
@@ -92,7 +99,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     )
     evaluator2_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
     evaluator2_cfg.stop_value = cfg.env.stop_value[1]
-    evaluator2 = OnevOneEvaluator(
+    evaluator2 = BattleInteractionSerialEvaluator(
         evaluator2_cfg,
         evaluator_env2, [policy1.collect_mode, eval_policy2],
         tb_logger,
@@ -102,10 +109,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     for _ in range(max_iterations):
         if evaluator1.should_eval(learner1.train_iter):
-            stop_flag1, reward = evaluator1.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
+            stop_flag1, reward, _ = evaluator1.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
             tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, collector.envstep)
         if evaluator2.should_eval(learner1.train_iter):
-            stop_flag2, reward = evaluator2.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
+            stop_flag2, reward, _ = evaluator2.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
             tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, collector.envstep)
         if stop_flag1 and stop_flag2:
             break

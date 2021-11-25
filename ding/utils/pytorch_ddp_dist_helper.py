@@ -29,8 +29,20 @@ def get_world_size() -> int:
 
 
 broadcast = dist.broadcast
-allreduce = dist.all_reduce
 allgather = dist.all_gather
+
+
+def allreduce(x: torch.Tensor) -> None:
+    dist.all_reduce(x)
+    x.div_(get_world_size())
+
+
+def allreduce_async(name: str, x: torch.Tensor) -> None:
+    x.div_(get_world_size())
+    dist.all_reduce(x, async_op=True)
+
+
+synchronize = torch.cuda.synchronize
 
 
 def get_group(group_size: int) -> List:
