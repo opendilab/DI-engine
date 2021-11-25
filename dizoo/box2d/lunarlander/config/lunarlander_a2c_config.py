@@ -1,8 +1,8 @@
-from ding.entry.serial_entry_sil import serial_pipeline_sil
+from ding.entry.serial_entry_onpolicy import serial_pipeline_onpolicy
 from easydict import EasyDict
 
 lunarlander_a2c_config = dict(
-    exp_name='lunarlander_a2c_sil_seed0',
+    exp_name='lunarlander_a2c_seed0',
     env=dict(
         collector_env_num=4,
         evaluator_env_num=5,
@@ -34,13 +34,6 @@ lunarlander_a2c_config = dict(
             gae_lambda=0.95,
             discount_factor=0.995,
         ),
-        other=dict(
-            replay_buffer=dict(replay_buffer_size=100000, ),
-            sil=dict(
-                update_per_collect=10,
-                n_episode_per_train=8,
-            ),
-        )
     ),
 )
 lunarlander_a2c_config = EasyDict(lunarlander_a2c_config)
@@ -53,10 +46,9 @@ lunarlander_a2c_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='a2c'),
-    replay_buffer=dict(type='deque'),
 )
 lunarlander_a2c_create_config = EasyDict(lunarlander_a2c_create_config)
 create_config = lunarlander_a2c_create_config
 
 if __name__ == '__main__':
-    serial_pipeline_sil((main_config, create_config), seed=0)
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)

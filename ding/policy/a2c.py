@@ -170,7 +170,7 @@ class A2CPolicy(Policy):
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
 
-    def _forward_collect(self, data: dict) -> dict:
+    def _forward_collect(self, data: dict, **kwargs) -> dict:
         r"""
         Overview:
             Forward function of collect mode.
@@ -188,7 +188,7 @@ class A2CPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, mode='compute_actor_critic')
+            output = self._collect_model.forward(data, mode='compute_actor_critic', **kwargs)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

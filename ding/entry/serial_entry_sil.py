@@ -6,7 +6,7 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory, create_sil
@@ -58,7 +58,12 @@ def serial_pipeline_sil(
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
-    learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+    base_learner = BaseLearner(
+        cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name, instance_name='base_learner'
+    )
+    sil_learner = BaseLearner(
+        cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name, instance_name='sil_learner'
+    )
     collector = create_serial_collector(
         cfg.policy.collect.collector,
         env=collector_env,
@@ -71,64 +76,67 @@ def serial_pipeline_sil(
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
     commander = BaseSerialCommander(
-        cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
+        cfg.policy.other.commander, base_learner, collector, evaluator, replay_buffer, policy.command_mode
     )
     # ==========
     # Main loop
     # ==========
     # Learner's before_run hook.
-    learner.call_hook('before_run')
-    new_ptr = old_ptr = 0
+    base_learner.call_hook('before_run')
+
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(policy.collect_mode)
+        if cfg.policy.get('transition_with_policy_data', False):
+            collector.reset_policy(policy.collect_mode)
+        else:
+            action_space = collector_env.env_info().act_space
+            random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
+            collector.reset_policy(random_policy)
         collect_kwargs = commander.step()
-        new_data = collector.collect(n_episode=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
-        new_ptr += len(new_data)
     for _ in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance
-        if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+        if evaluator.should_eval(base_learner.train_iter):
+            stop, reward = evaluator.eval(base_learner.save_checkpoint, base_learner.train_iter, collector.envstep)
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(train_iter=base_learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        new_ptr += len(new_data)
         # Learn policy from collected data
-        for i in range(cfg.policy.learn.update_per_collect):
-            # Learner will train ``update_per_collect`` times in one iteration.
-            if cfg.policy.on_policy:
+        if cfg.policy.on_policy:
+            train_data_base_policy = replay_buffer.sample(
+                base_learner.policy.get_attribute('batch_size'),
+                base_learner.train_iter,
+                sample_range=slice(-len(new_data), None)
+            )
+            base_learner.train(train_data_base_policy)
+        else:
+            for i in range(cfg.policy.learn.update_per_collect):
+                # Learner will train ``update_per_collect`` times in one iteration.
                 train_data_base_policy = replay_buffer.sample(
-                    learner.policy.get_attribute('batch_size'),
-                    learner.train_iter,
-                    sample_range=slice(old_ptr - new_ptr, None)
+                    base_learner.policy.get_attribute('batch_size'), base_learner.train_iter
                 )
-            else:
-                train_data_base_policy = replay_buffer.sample(
-                    learner.policy.get_attribute('batch_size'), learner.train_iter
-                )
-            train_data_sil = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            if train_data_base_policy is None or train_data_sil is None:
+                base_learner.train(train_data_base_policy)
+                if base_learner.policy.get_attribute('priority'):
+                    replay_buffer.update(base_learner.priority_info)
+        for i in range(cfg.policy.other.sil.update_per_collect):
+            train_data_sil = replay_buffer.sample(
+                cfg.policy.other.sil.n_episode_per_train, sil_learner.train_iter, groupby='episode'
+            )
+            train_data_sil = policy.process_sil_data(train_data_sil)
+            if train_data_sil is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
-                    "Replay buffer's data can only train for {} steps. ".format(i) +
+                    "Replay buffer's data can only train for sil {} steps. ".format(i) +
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            learner.train({'base_policy': train_data_base_policy, 'sil': train_data_sil}, collector.envstep)
-            if learner.policy.get_attribute('priority'):
-                replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            # replay_buffer.clear()
-            old_ptr = new_ptr
+            sil_learner.train(train_data_sil)
 
     # Learner's after_run hook.
-    learner.call_hook('after_run')
+    base_learner.call_hook('after_run')
     return policy

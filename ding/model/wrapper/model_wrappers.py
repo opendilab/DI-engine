@@ -320,7 +320,7 @@ class EpsGreedyMultinomialSampleWrapper(IModelWrapper):
 
     def forward(self, *args, **kwargs):
         eps = kwargs.pop('eps')
-        alpha = kwargs.pop('alpha')
+        alpha = kwargs.pop('alpha', 1)
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         logit = output['logit']

@@ -17,12 +17,14 @@ def create_sil(policy: Policy, cfg):
     return sil_policy
 
 
-class SIL(Policy):
+class SILPolicy(Policy):
     r"""
     Overview:
         Policy class of SIL algorithm.
     """
-    sil_config = dict(
+    config = dict(
+        update_per_collect=10,
+        n_episode_per_train=4,
         value_weight=0.5,
         learning_rate=0.001,
         betas=(0.9, 0.999),
@@ -32,8 +34,8 @@ class SIL(Policy):
     def __init__(self, policy: Policy, cfg):
         self.base_policy = policy
         self._model = policy._model
-        cfg.policy.other.sil = deep_merge_dicts(self.sil_config, cfg.policy.other.sil)
-        super(SIL, self).__init__(cfg.policy, model=policy._model, enable_field=policy._enable_field)
+        cfg.policy.other.sil = deep_merge_dicts(self.config, cfg.policy.other.sil)
+        super(SILPolicy, self).__init__(cfg.policy, model=policy._model, enable_field=policy._enable_field)
 
     def _init_learn(self) -> None:
         r"""
@@ -184,5 +186,5 @@ class SIL(Policy):
         ]
 
 
-class SILCommand(SIL, DummyCommandModePolicy):
+class SILCommand(SILPolicy, DummyCommandModePolicy):
     pass
