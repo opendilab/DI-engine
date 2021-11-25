@@ -106,7 +106,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#use-model-wrapper-to-wrap-your-rnn-model-in-policy">Use model wrapper to wrap your RNN model in policy</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#data-arrangement">Data Arrangement</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#initialize-hidden-state">Initialize Hidden State</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#burn-in-optional">Burn-in(Optional)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#burn-in-in-r2d2">Burn-in(in R2D2)</a></li>
 </ul>
 </li>
 </ul>
@@ -211,7 +211,7 @@ from feedforward neural networks, RNNs can use their internal state
 (memory) to process variable length sequences of inputs. This makes them
 applicable to tasks such as unsegmented, connected handwriting
 recognition or speech recognition.</p>
-<p>In deep reinforcement learning, RNN is first used in DRQN(Deep Recurrent
+<p>In deep reinforcement learning, RNN is first used in <a class="reference external" href="https://arxiv.org/abs/1507.06527">DRQN</a> (Deep Recurrent
 Q-Learning Network), which aims to solve the problem of paritial
 observation in atari games. After that, RNN has become an important
 method to solve the environments of complex temporal dependence.</p>
@@ -382,7 +382,7 @@ hidden states to model in next time forward.</p>
     <span class="p">)</span>
 
      <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-     <span class="o">...</span>
+        <span class="o">...</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">,</span> <span class="n">state_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">env_num</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -403,40 +403,47 @@ the following figure:</p>
 should be arranged in time series. For DI-engine, this process happens in
 <code class="docutils literal notranslate"><span class="pre">collector</span></code>. Users need to specify <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> in config to make
 sure the length of sequence data matches your algorithm. For most cases,
-<code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> should be equal to RNN’s historical length. For example,
-the original sampled data is <span class="math notranslate nohighlight">\([x_1,x_2,x_3,x_4,x_5,x_6]\)</span>, each
+<code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> should be equal to RNN’s historical length (a.k.a sequence length), but in some cases it’s not the case, e.g.
+In r2d2, we use burn-in operation, the sequence length is equal to
+<code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> plus <code class="docutils literal notranslate"><span class="pre">burnin_step</span></code>. This will be explained in following section.</p>
+<p>For example, the original sampled data is <span class="math notranslate nohighlight">\([x_1,x_2,x_3,x_4,x_5,x_6]\)</span>, each
 <span class="math notranslate nohighlight">\(x\)</span> represents <span class="math notranslate nohighlight">\([s_t,a_t,r_t,d_t,s_{t+1}]\)</span> (maybe
 <span class="math notranslate nohighlight">\(log_\pi(a_t|s_t)\)</span>, hidden state, etc in it), and we need RNN’s
-historical length to be 3. By specify <code class="docutils literal notranslate"><span class="pre">unroll_len=3</span></code>, the data will be
-arranged as <span class="math notranslate nohighlight">\([[x_1,x_2,x_3],[x_4,x_5,x_6]]\)</span>.</p>
-<p>If the <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> is not divided by <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> of collector, the
-residual data will be filled by last sample, i.e. if <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> and
-<code class="docutils literal notranslate"><span class="pre">unroll_len=4</span></code>, the data will be arranged as
-<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4],[x_5,x_6,x_6,x_6]]\)</span> by default. DI-engine’s
-<code class="docutils literal notranslate"><span class="pre">get_train_sample</span></code> have <code class="docutils literal notranslate"><span class="pre">drop</span></code> and <code class="docutils literal notranslate"><span class="pre">null_padding</span></code> method for this case, to
-use it, you need to specify the arguments of <code class="docutils literal notranslate"><span class="pre">get_train_sample</span></code> method in policy’s collect related method.</p>
-<p>For <code class="docutils literal notranslate"><span class="pre">drop</span></code>, it means data’ll be arranged as <span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4]]\)</span>,
-For <code class="docutils literal notranslate"><span class="pre">null_padding</span></code>, it means data’ll be arranged as <span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4],[x_5,x_6,x_{null},x_{null}]]\)</span>,
-<span class="math notranslate nohighlight">\(x_{null}\)</span> is similar to <span class="math notranslate nohighlight">\(x_6\)</span> but its <code class="docutils literal notranslate"><span class="pre">done=True</span></code> and <code class="docutils literal notranslate"><span class="pre">reward=0</span></code>. More details can be found in <a class="reference external" href="../api_doc/rl_utils/adder.html?highlight=adder#ding.rl_utils.adder.Adder">Adder</a>.</p>
+sequence length to be 3.</p>
+<p>1. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &gt;= <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> and <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> is divided by <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> :
+e.g. <code class="docutils literal notranslate"><span class="pre">unroll_len=3</span></code>, the data will be arranged as <span class="math notranslate nohighlight">\([[x_1,x_2,x_3],[x_4,x_5,x_6]]\)</span>.</p>
+<p>2. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &gt;= <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> and <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> is not divided by <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> :
+residual data will be filled by last sample by default, e.g. if <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> and <code class="docutils literal notranslate"><span class="pre">unroll_len=4</span></code> , the data will be arranged as
+<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4],[x_3,x_4,x_5,x_6]]\)</span>.</p>
+<p>3. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &lt; <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code>: e.g. if <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> and <code class="docutils literal notranslate"><span class="pre">unroll_len=7</span></code>, by default, alg. use <code class="docutils literal notranslate"><span class="pre">null_padding</span></code> method, the data will be arranged as
+<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4,x_5,x_6,x_{null}]]\)</span>.  <span class="math notranslate nohighlight">\(x_{null}\)</span> is similar to <span class="math notranslate nohighlight">\(x_6\)</span> but its <code class="docutils literal notranslate"><span class="pre">done=True</span></code> and <code class="docutils literal notranslate"><span class="pre">reward=0</span></code>.</p>
+<p>Here, taking the r2d2 algorithm as an example, in r2d2, in method <code class="docutils literal notranslate"><span class="pre">_get_train_sample</span></code> it calls the function
+<code class="docutils literal notranslate"><span class="pre">get_nstep_return_data</span></code> and  <code class="docutils literal notranslate"><span class="pre">get_train_sample</span></code>.</p>
+<p>More details about the two data processing functions can be found in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/adder.py#L125">ding/rl_utilrs/adder.py</a> ,
+the work flow of its data processing is given in
+the following figure:</p>
+<blockquote>
+<div><img alt="../_images/r2d2_sequence.png" class="align-center" src="../_images/r2d2_sequence.png" />
+</div></blockquote>
 </div>
 <div class="section" id="initialize-hidden-state">
 <h3>Initialize Hidden State<a class="headerlink" href="#initialize-hidden-state" title="Permalink to this headline">¶</a></h3>
-<p>The <cite>_learn_model</cite> of policy needs to initialize RNN. These hidden states comes from <cite>prev_state</cite> saved by <cite>_collect_model</cite>.
-Users need to add these states to <cite>_learn_model</cite> input data dict by <cite>_process_transition</cite> function.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> of policy needs to initialize RNN. These hidden states comes from <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> saved by <code class="docutils literal notranslate"><span class="pre">_collect_model</span></code>.
+Users need to add these states to <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> input data dict by <code class="docutils literal notranslate"><span class="pre">_process_transition</span></code> function.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_process_transition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_output</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 
      <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
          <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
          <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
-         <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">],</span> <span class="c1"># add `prev_state` key here</span>
+         <span class="s1">&#39;prev_state&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">],</span> <span class="c1"># add ``prev_state`` key here</span>
          <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
          <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
      <span class="p">}</span>
      <span class="k">return</span> <span class="n">transition</span>
 </pre></div>
 </div>
-<p>Then in <cite>_learn_model</cite> forward function, call its reset function(overwritten by HiddenStateWrapper) to initialize RNN with data’s
-<cite>prev_state</cite>.</p>
+<p>Then in <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> forward function, call its reset function(overwritten by HiddenStateWrapper) to initialize RNN with data’s
+<code class="docutils literal notranslate"><span class="pre">prev_state</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
      <span class="c1"># forward</span>
      <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_preprocess_learn</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -445,33 +452,86 @@ Users need to add these states to <cite>_learn_model</cite> input data dict by <
 </pre></div>
 </div>
 </div>
-<div class="section" id="burn-in-optional">
-<h3>Burn-in(Optional)<a class="headerlink" href="#burn-in-optional" title="Permalink to this headline">¶</a></h3>
-<p>This concept comes from R2D2(Recurrent Experience Replay in Distributed
-Reinforcement Learning). When using LSTM, we either use a zero start
-state to initialize the network at the beginning of sampled sequences,
-or replay whole episode trajectories. The former brings bias and the
-latter is hard to implement.</p>
+<div class="section" id="burn-in-in-r2d2">
+<h3>Burn-in(in R2D2)<a class="headerlink" href="#burn-in-in-r2d2" title="Permalink to this headline">¶</a></h3>
+<p>This concept comes from R2D2 (Recurrent Experience Replay in Distributed
+Reinforcement Learning). When using LSTM, the most naive way is:</p>
+<p>1.use a zero start state to initialize the network at the beginning of sampled sequences.</p>
+<p>2.replay whole episode trajectories. The former brings bias and the latter is hard to implement.</p>
 <p>Burn-in allow the network a
-<code class="docutils literal notranslate"><span class="pre">burn-in</span> <span class="pre">period</span></code> by using a portion of the replay sequenceonly for
-unrolling the network and producing a start state, and update the
-network only onthe remaining part of the sequence. In DI-engine, to
-implement <code class="docutils literal notranslate"><span class="pre">burn-in</span></code>, <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> should be set to
-<code class="docutils literal notranslate"><span class="pre">burnin_step+1</span></code>(if use n-step return, it should be
-<code class="docutils literal notranslate"><span class="pre">burnin_step+2*n_steps</span></code>). In this setting, the unrolled data is split
-into <code class="docutils literal notranslate"><span class="pre">burnin_data</span></code> and <code class="docutils literal notranslate"><span class="pre">main_data</span></code>. The former is only used to
-initialize the network the the latter is used to train the network. This
-data process can be implemented by the following code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][:</span><span class="n">bs</span><span class="p">]</span>
-<span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">bs</span><span class="p">:</span><span class="n">bs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+<code class="docutils literal notranslate"><span class="pre">burn-in</span> <span class="pre">period</span></code> by using a portion of the replay sequence only for
+unrolling the network and producing a start hidden state, and update the
+network only on the remaining part of the sequence.</p>
+<p>In DI-engine, r2d2 use the n-step td error <code class="docutils literal notranslate"><span class="pre">self._nstep</span></code> is the number of n.
+<code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">length</span> <span class="pre">=</span> <span class="pre">burnin_step</span> <span class="pre">+</span> <span class="pre">unroll_len</span></code>.
+so in the config, <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> should be set to <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">length</span> <span class="pre">-</span> <span class="pre">burnin_step</span></code>.</p>
+<p>In this setting, the original unrolled obs sequence, is split
+into <code class="docutils literal notranslate"><span class="pre">burnin_nstep_obs</span></code> , <code class="docutils literal notranslate"><span class="pre">main_obs</span></code> and <code class="docutils literal notranslate"><span class="pre">marget_obs</span></code>. The <code class="docutils literal notranslate"><span class="pre">burnin_nstep_obs</span></code> is
+used to calculate the init hidden state of rnn for the calculation of the q_value, target_q_value, and target_q_action.
+The <code class="docutils literal notranslate"><span class="pre">main_obs</span></code> is used to calculate the q_value, in the following code, [bs:-self._nstep] means using the data from
+<code class="docutils literal notranslate"><span class="pre">bs</span></code> timestep to <code class="docutils literal notranslate"><span class="pre">sequence</span> <span class="pre">length</span></code> - <code class="docutils literal notranslate"><span class="pre">self._nstep</span></code> timestep.
+The <code class="docutils literal notranslate"><span class="pre">target_obs</span></code> is used to calculate the target_q_value.</p>
+<p>This data process can be implemented by the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">][</span><span class="n">bs</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">][</span><span class="n">bs</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][:</span><span class="n">bs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">bs</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
 <span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">bs</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">:]</span>
 </pre></div>
 </div>
+<p>In R2D2, if we use burn-in, the reset way is not so simple.</p>
+<ul class="simple">
+<li><p>When we call the <code class="docutils literal notranslate"><span class="pre">forward</span></code> method of <code class="docutils literal notranslate"><span class="pre">self._collect_model</span></code>, we set <code class="docutils literal notranslate"><span class="pre">inference=True</span></code> , each time call it, we pass into only one timestep data,
+so we can get the hidden state of rnn: <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> at each timestep.</p></li>
+<li><p>When we call the <code class="docutils literal notranslate"><span class="pre">forward</span></code> method of  <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code>, we set <code class="docutils literal notranslate"><span class="pre">inference=False</span></code> , when <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> is not the <code class="docutils literal notranslate"><span class="pre">inference</span></code> mode, each call we pass into a sequence data,
+the <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> filed of their output is only the hidden state in last timestep,
+so we can specify which timesteps of hidden state to store in the way that specify the parameter <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code>
+(a list, which implementation is in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/template/q_learning.py#L700">ding/model/template/q_learning.py</a> ) when we call the <code class="docutils literal notranslate"><span class="pre">forward</span></code> method of  <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code>.
+As we can see in the following code, we first pass the <code class="docutils literal notranslate"><span class="pre">data['burnin_nstep_obs']</span></code> into the <code class="docutils literal notranslate"><span class="pre">self._learn_model</span></code> and
+<code class="docutils literal notranslate"><span class="pre">self._target_model</span></code> for obtaining the hidden_state in different timesteps specified in the list <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps</span></code> , which will be used in the latter calculation
+of <code class="docutils literal notranslate"><span class="pre">q_value</span></code>, <code class="docutils literal notranslate"><span class="pre">target_q_value</span></code>,  <code class="docutils literal notranslate"><span class="pre">target_q_action</span></code>.</p></li>
+<li><p>Note that here in r2d2, we specify that <code class="docutils literal notranslate"><span class="pre">saved_hidden_state_timesteps=[self._burnin_step,</span> <span class="pre">self._burnin_step</span> <span class="pre">+</span> <span class="pre">self._nstep]</span></code> , and after unrolling the rnn,
+the <code class="docutils literal notranslate"><span class="pre">burnin_output</span></code> and <code class="docutils literal notranslate"><span class="pre">burnin_output_target</span></code> will save the hidden_state in corresponding timesteps in their field <code class="docutils literal notranslate"><span class="pre">saved_hidden_state</span></code>.</p></li>
+</ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Burn-in is not conflict with RNN reset. Use burn-in also needs RNN to reset by last timestep’s hidden state. Burn-in only make a specific number of forward steps before usual forward.</p>
+<p>In DI-engine, each time when we call the <code class="docutils literal notranslate"><span class="pre">forward</span></code> method of RNN model and want to unroll the RNN model again, we should consider reset it with the proper hidden state
+using the <code class="docutils literal notranslate"><span class="pre">burnin_output['saved_hidden_state']</span></code> , because inherently the init hidden state of the RNN model is set as the last timestep hidden state when last time we unroll the RNN model.</p>
 </div>
-<p>For more details of RNN and burn-in, you can refer to <cite>ding/policy/r2d2.py</cite>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="c1"># forward</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_preprocess_learn</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+    <span class="c1"># use the hidden state in timestep=0</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_obs&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_obs&#39;</span><span class="p">],</span> <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+            <span class="n">burnin_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span>
+                <span class="n">inputs</span><span class="p">,</span> <span class="n">saved_hidden_state_timesteps</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">burnin_output_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span>
+                <span class="n">inputs</span><span class="p">,</span> <span class="n">saved_hidden_state_timesteps</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
+            <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">burnin_output</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_obs&#39;</span><span class="p">],</span> <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+    <span class="n">q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">burnin_output</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">burnin_output_target</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">next_inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_obs&#39;</span><span class="p">],</span> <span class="s1">&#39;enable_fast_timestep&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+        <span class="c1"># argmax_action double_dqn</span>
+        <span class="n">target_q_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">)[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For more details of RNN and burn-in, you can refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py">ding/policy/r2d2.py</a>.</p>
 </div>
 </div>
 </div>

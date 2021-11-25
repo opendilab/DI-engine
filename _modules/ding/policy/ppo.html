@@ -832,25 +832,16 @@
 <span class="sd">        Returns:</span>
 <span class="sd">               - transition (:obj:`dict`): Dict type transition data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep_return</span><span class="p">:</span>
-            <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
-                <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span>
-                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
-                <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
-                <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
-                <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
-                <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
-                <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span>
-                <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
-                <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
-                <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
-                <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
-            <span class="p">}</span>
+
+        <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+            <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
+            <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">reward</span><span class="p">,</span>
+            <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">,</span>
+        <span class="p">}</span>
         <span class="k">return</span> <span class="n">transition</span>
 
     <span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
