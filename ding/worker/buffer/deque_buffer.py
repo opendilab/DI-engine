@@ -18,6 +18,7 @@ class BufferIndex(OrderedDict):
     def __init__(self, maxlen: int, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.maxlen = maxlen
+        self.last_key = None
         self.cumlen = 0
 
     def __getitem__(self, key: str) -> int:
@@ -33,9 +34,12 @@ class BufferIndex(OrderedDict):
             if key == k:
                 found = True
         super().__delitem__(key, *args, **kwargs)
+        if key == k:  # Delete last item
+            self.last_key = next(reversed(self)) if len(self) > 0 else None
 
     def append(self, key: str):
-        self[key] = self.cumlen
+        self[key] = super().__getitem__(self.last_key) + 1 if self.last_key else 0
+        self.last_key = key
         self.cumlen += 1
         if len(self) > self.maxlen:
             self.popitem(last=False)
@@ -140,8 +144,8 @@ class DequeBuffer(Buffer):
             if index not in self.indices:
                 continue
             i = self.indices[index]
-            del self.indices[index]
             del self.storage[i]
+            del self.indices[index]
             for key in self.meta_index:
                 del self.meta_index[key][i]
 
@@ -154,6 +158,8 @@ class DequeBuffer(Buffer):
     @apply_middleware("clear")
     def clear(self) -> None:
         self.storage.clear()
+        self.indices = BufferIndex(maxlen=self.storage.maxlen)
+        self.meta_index = {}
 
     def import_data(self, data_with_meta: List[Tuple[Any, dict]]) -> None:
         for data, meta in data_with_meta:

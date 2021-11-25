@@ -162,15 +162,22 @@ def test_update():
 
 @pytest.mark.unittest
 def test_delete():
-    buf = DequeBuffer(size=10)
-    for i in range(20):
-        buf.push({"data": i}, {"meta": i})
+    maxlen = 100
+    cumlen = 40
+    dellen = 20
+    buf = DequeBuffer(size=maxlen)
+    for i in range(cumlen):
+        buf.push(i)
     # Delete data
-    [item] = buf.sample(1)
-    buf.delete(item.index)
-    assert len(buf.indices) == 9
-    assert len(buf.storage) == 9
-    for i in range(9):
+    for item in buf.sample(dellen):
+        buf.delete(item.index)
+    # Reappend
+    for i in range(10):
+        buf.push(i)
+    remlen = min(cumlen, maxlen) - dellen + 10
+    assert len(buf.indices) == remlen
+    assert len(buf.storage) == remlen
+    for i in range(remlen):
         index = buf.storage[i].index
         assert buf.indices[index] == i
 
