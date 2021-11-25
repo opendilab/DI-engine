@@ -9,43 +9,40 @@ import uuid
 import logging
 
 
-class BufferIndex(OrderedDict):
+class BufferIndex():
     """
     Overview:
         Save index string and offset in key value pair.
     """
 
     def __init__(self, maxlen: int, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self.maxlen = maxlen
-        self.last_key = None
-        self.cumlen = 0
+        self.__map = OrderedDict(*args, **kwargs)
+        self._last_key = next(reversed(self.__map)) if len(self) > 0 else None
+        self._cumlen = len(self.__map)
 
-    def __getitem__(self, key: str) -> int:
-        value = super().__getitem__(key)
-        value = value % self.cumlen + min(0, (self.maxlen - self.cumlen))
+    def get(self, key: str) -> int:
+        value = self.__map[key]
+        value = value % self._cumlen + min(0, (self.maxlen - self._cumlen))
         return value
 
-    def __delitem__(self, key: str, *args, **kwargs) -> None:
-        value = super().__getitem__(key)
-        found = False
-        for i, (k, v) in enumerate(self.items()):
-            if i == 0 and value < v:  # Skip when pop first item
-                break
-            if found:
-                self[k] = super().__getitem__(k) - 1
-            if key == k:
-                found = True
-        super().__delitem__(key, *args, **kwargs)
-        if key == k:  # Delete last item
-            self.last_key = next(reversed(self)) if len(self) > 0 else None
+    def __len__(self) -> int:
+        return len(self.__map)
+
+    def has(self, key: str) -> bool:
+        return key in self.__map
 
     def append(self, key: str):
-        self[key] = super().__getitem__(self.last_key) + 1 if self.last_key else 0
-        self.last_key = key
-        self.cumlen += 1
+        self.__map[key] = self.__map[self._last_key] + 1 if self._last_key else 0
+        self._last_key = key
+        self._cumlen += 1
         if len(self) > self.maxlen:
-            self.popitem(last=False)
+            self.__map.popitem(last=False)
+
+    def clear(self):
+        self.__map = OrderedDict()
+        self._last_key = None
+        self._cumlen = 0
 
 
 class DequeBuffer(Buffer):
@@ -127,9 +124,9 @@ class DequeBuffer(Buffer):
 
     @apply_middleware("update")
     def update(self, index: str, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
-        if index not in self.indices:
+        if not self.indices.has(index):
             return False
-        i = self.indices[index]
+        i = self.indices.get(index)
         item = self.storage[i]
         if data is not None:
             item.data = data
@@ -143,14 +140,18 @@ class DequeBuffer(Buffer):
     def delete(self, indices: Union[str, Iterable[str]]) -> None:
         if isinstance(indices, str):
             indices = [indices]
+        del_idx = []
         for index in indices:
-            if index not in self.indices:
-                continue
-            i = self.indices[index]
-            del self.storage[i]
-            del self.indices[index]
-            for key in self.meta_index:
-                del self.meta_index[key][i]
+            if self.indices.has(index):
+                del_idx.append(self.indices.get(index))
+        if len(del_idx) == 0:
+            return
+        del_idx = sorted(del_idx, reverse=True)
+        for idx in del_idx:
+            del self.storage[idx]
+        remain_indices = [item.index for item in self.storage]
+        key_value_pairs = zip(remain_indices, range(len(indices)))
+        self.indices = BufferIndex(self.storage.maxlen, key_value_pairs)
 
     def count(self) -> int:
         return len(self.storage)
@@ -161,7 +162,7 @@ class DequeBuffer(Buffer):
     @apply_middleware("clear")
     def clear(self) -> None:
         self.storage.clear()
-        self.indices = BufferIndex(maxlen=self.storage.maxlen)
+        self.indices.clear()
         self.meta_index = {}
 
     def import_data(self, data_with_meta: List[Tuple[Any, dict]]) -> None:

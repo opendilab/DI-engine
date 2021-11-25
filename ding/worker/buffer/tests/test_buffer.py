@@ -157,7 +157,7 @@ def test_update():
     assert len(buf.storage) == 10
     for i in range(10):
         index = buf.storage[i].index
-        assert buf.indices[index] == i
+        assert buf.indices.get(index) == i
 
 
 @pytest.mark.unittest
@@ -169,8 +169,8 @@ def test_delete():
     for i in range(cumlen):
         buf.push(i)
     # Delete data
-    for item in buf.sample(dellen):
-        buf.delete(item.index)
+    del_indices = [item.index for item in buf.sample(dellen)]
+    buf.delete(del_indices)
     # Reappend
     for i in range(10):
         buf.push(i)
@@ -179,7 +179,7 @@ def test_delete():
     assert len(buf.storage) == remlen
     for i in range(remlen):
         index = buf.storage[i].index
-        assert buf.indices[index] == i
+        assert buf.indices.get(index) == i
 
 
 @pytest.mark.unittest
