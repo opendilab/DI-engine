@@ -189,47 +189,15 @@
     <span class="n">ERROR</span> <span class="o">=</span> <span class="mi">5</span>
 
 
-<span class="k">def</span> <span class="nf">retry_wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">max_retry</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">waiting_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        Retry the function until exceeding the maximum retry times.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">retry_wrapper</span><span class="p">,</span> <span class="n">max_retry</span><span class="o">=</span><span class="n">max_retry</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">max_retry</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">func</span>
-
-    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_retry</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">ret</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">ret</span>
-            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="n">exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">waiting_time</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Function </span><span class="si">{}</span><span class="s2"> has exceeded max retries(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">max_retry</span><span class="p">))</span>
-        <span class="n">runtime_error</span> <span class="o">=</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-            <span class="s2">&quot;Function </span><span class="si">{}</span><span class="s2"> has exceeded max retries(</span><span class="si">{}</span><span class="s2">), and the latest exception is: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">func</span><span class="p">,</span> <span class="n">max_retry</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">runtime_error</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">__traceback__</span>
-        <span class="k">raise</span> <span class="n">runtime_error</span>
-
-    <span class="k">return</span> <span class="n">wrapper</span>
-
-
-<span class="k">def</span> <span class="nf">timeout_wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">timeout_wrapper</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Watch the function that must be finihsed within a period of time. If timeout, raise the captured error.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">timeout_wrapper</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">func</span>
 
     <span class="n">windows_flag</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;windows&#39;</span>
     <span class="k">if</span> <span class="n">windows_flag</span><span class="p">:</span>
@@ -274,9 +242,10 @@
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">episode_num</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
         <span class="n">max_retry</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">step_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">retry_type</span><span class="o">=</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span>
         <span class="n">auto_reset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">reset_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">step_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">reset_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">retry_waiting_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -303,9 +272,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_episode_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">episode_num</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">max_retry</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_step_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">step_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">max_retry</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_auto_reset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">auto_reset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_retry_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">retry_type</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retry_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="s1">&#39;renew&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retry_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_step_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">step_timeout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reset_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">reset_timeout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_retry_waiting_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">retry_waiting_time</span>
 
@@ -421,7 +392,6 @@
 
     <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
-        <span class="nd">@retry_wrapper</span><span class="p">(</span><span class="n">max_retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">,</span> <span class="n">waiting_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry_waiting_time</span><span class="p">)</span>
         <span class="nd">@timeout_wrapper</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset_timeout</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">reset_fn</span><span class="p">():</span>
             <span class="c1"># if self._reset_param[env_id] is None, just reset specific env, not pass reset param</span>
@@ -431,14 +401,32 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">obs</span> <span class="o">=</span> <span class="n">reset_fn</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">ERROR</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="k">raise</span> <span class="n">e</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span>
+        <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">obs</span> <span class="o">=</span> <span class="n">reset_fn</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span>
+                <span class="k">return</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retry_type</span> <span class="o">==</span> <span class="s1">&#39;renew&#39;</span><span class="p">:</span>
+                    <span class="n">err_env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span>
+                    <span class="n">err_env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_fn</span><span class="p">[</span><span class="n">env_id</span><span class="p">]()</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry_waiting_time</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">ERROR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Env </span><span class="si">{}</span><span class="s2"> reset has exceeded max retries(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">))</span>
+        <span class="n">runtime_error</span> <span class="o">=</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Env </span><span class="si">{}</span><span class="s2"> reset has exceeded max retries(</span><span class="si">{}</span><span class="s2">), and the latest exception is: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">env_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">runtime_error</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">__traceback__</span>
+        <span class="k">raise</span> <span class="n">runtime_error</span>
 
 <div class="viewcode-block" id="BaseEnvManager.step"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -477,16 +465,25 @@
 
     <span class="k">def</span> <span class="nf">_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">act</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">namedtuple</span><span class="p">:</span>
 
-        <span class="nd">@retry_wrapper</span><span class="p">(</span><span class="n">max_retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">,</span> <span class="n">waiting_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry_waiting_time</span><span class="p">)</span>
         <span class="nd">@timeout_wrapper</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_step_timeout</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">step_fn</span><span class="p">():</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_envs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">act</span><span class="p">)</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">step_fn</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">ERROR</span>
-            <span class="k">raise</span> <span class="n">e</span>
+        <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">step_fn</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">ERROR</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Env </span><span class="si">{}</span><span class="s2"> step has exceeded max retries(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">))</span>
+        <span class="n">runtime_error</span> <span class="o">=</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Env </span><span class="si">{}</span><span class="s2"> step has exceeded max retries(</span><span class="si">{}</span><span class="s2">), and the latest exception is: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">env_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">runtime_error</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">__traceback__</span>
+        <span class="k">raise</span> <span class="n">runtime_error</span>
 
 <div class="viewcode-block" id="BaseEnvManager.seed"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.base_env_manager.BaseEnvManager.seed">[docs]</a>    <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">],</span> <span class="n">dynamic_seed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>

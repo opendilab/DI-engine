@@ -180,7 +180,8 @@
 <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
 
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">PropagatingThread</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">ENV_MANAGER_REGISTRY</span>
-<span class="kn">from</span> <span class="nn">.base_env_manager</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">EnvState</span><span class="p">,</span> <span class="n">retry_wrapper</span><span class="p">,</span> <span class="n">timeout_wrapper</span>
+<span class="kn">from</span> <span class="nn">.base_env_manager</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">EnvState</span><span class="p">,</span> <span class="n">timeout_wrapper</span>
+<span class="kn">from</span> <span class="nn">ding.envs.env.base_env</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
 
 <span class="n">_NTYPE_TO_CTYPE</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">,</span>
@@ -328,9 +329,10 @@
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">episode_num</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
         <span class="n">max_retry</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-        <span class="n">step_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">step_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">auto_reset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">reset_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">retry_type</span><span class="o">=</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span>
+        <span class="n">reset_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">retry_waiting_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="c1"># subprocess specified args</span>
         <span class="n">shared_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -365,7 +367,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">connect_timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_timeout</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_timeout</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_async_args</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="p">{</span>
                 <span class="s1">&#39;wait_num&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">),</span>
@@ -411,7 +412,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">method_name_list</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_reset_timeout</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_step_timeout</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">name</span><span class="o">=</span><span class="s1">&#39;subprocess_env_manager</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
@@ -510,7 +510,7 @@
                     <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">ret</span><span class="p">})</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># seed only use once</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;subprocess reset set seed failed, ignore and continue...&quot;</span><span class="p">)</span>
             <span class="n">reset_thread</span> <span class="o">=</span> <span class="n">PropagatingThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="p">))</span>
             <span class="n">reset_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
@@ -523,11 +523,10 @@
 
     <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
-        <span class="nd">@retry_wrapper</span><span class="p">(</span><span class="n">max_retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">,</span> <span class="n">waiting_time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry_waiting_time</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">reset_fn</span><span class="p">():</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">poll</span><span class="p">():</span>
                 <span class="n">recv_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;unread data left before sending to the pipe: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">recv_data</span><span class="p">)))</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;unread data left before sending to the pipe: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">recv_data</span><span class="p">)))</span>
             <span class="c1"># if self._reset_param[env_id] is None, just reset specific env, not pass reset param</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="nb">dict</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">])</span>
@@ -536,13 +535,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="p">[],</span> <span class="p">{}])</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span><span class="p">):</span>
-                <span class="c1"># terminate the old subprocess</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
-                <span class="c1"># reset the subprocess</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_create_env_subprocess</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;env reset timeout&quot;</span><span class="p">)</span>  <span class="c1"># Leave it to retry_wrapper to try again</span>
+                <span class="k">raise</span> <span class="ne">ConnectionError</span><span class="p">(</span><span class="s2">&quot;env reset connection timeout&quot;</span><span class="p">)</span>  <span class="c1"># Leave it to try again</span>
 
             <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">obs</span><span class="p">},</span> <span class="n">close</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -552,16 +545,32 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">reset_fn</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;VEC_ENV_MANAGER: env </span><span class="si">{}</span><span class="s1"> reset error&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">))</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Env Process Reset Exception:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_tb</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">__traceback__</span><span class="p">))</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>  <span class="c1"># exception cased by main thread closing parent_remote</span>
+        <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">reset_fn</span><span class="p">()</span>
                 <span class="k">return</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                <span class="k">raise</span> <span class="n">e</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retry_type</span> <span class="o">==</span> <span class="s1">&#39;renew&#39;</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_create_env_subprocess</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry_waiting_time</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Env </span><span class="si">{}</span><span class="s2"> reset has exceeded max retries(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">))</span>
+        <span class="n">runtime_error</span> <span class="o">=</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Env </span><span class="si">{}</span><span class="s2"> reset has exceeded max retries(</span><span class="si">{}</span><span class="s2">), and the latest exception is: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">env_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">runtime_error</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">__traceback__</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>  <span class="c1"># exception cased by main thread closing parent_remote</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">runtime_error</span>
 
 <div class="viewcode-block" id="AsyncSubprocessEnvManager.step"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -606,7 +615,17 @@
             <span class="n">ready_conn</span><span class="p">,</span> <span class="n">ready_ids</span> <span class="o">=</span> <span class="n">AsyncSubprocessEnvManager</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">wait_num</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">)),</span> <span class="n">timeout</span><span class="p">)</span>
             <span class="n">cur_ready_env_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_rest_env_ids</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">ready_ids</span><span class="p">]</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_ready_env_ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ready_conn</span><span class="p">)</span>
-            <span class="n">timesteps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cur_ready_env_ids</span><span class="p">,</span> <span class="n">ready_conn</span><span class="p">)})</span>
+            <span class="c1"># timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})</span>
+            <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cur_ready_env_ids</span><span class="p">,</span> <span class="n">ready_conn</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">timesteps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">recv</span><span class="p">()})</span>
+                <span class="k">except</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">timestep</span> <span class="o">=</span> <span class="n">BaseEnvTimestep</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;abnormal&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+                    <span class="n">timesteps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">timestep</span><span class="p">})</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_create_env_subprocess</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span>
             <span class="n">ready_env_ids</span> <span class="o">+=</span> <span class="n">cur_ready_env_ids</span>
             <span class="n">cur_rest_env_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cur_rest_env_ids</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cur_ready_env_ids</span><span class="p">)))</span>
@@ -711,9 +730,8 @@
             <span class="n">env_fn_wrapper</span><span class="p">,</span>
             <span class="n">obs_buffer</span><span class="p">,</span>
             <span class="n">method_name_list</span><span class="p">,</span>
-            <span class="n">reset_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
-            <span class="n">step_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
-            <span class="n">max_retry</span><span class="o">=</span><span class="mi">1</span>
+            <span class="n">reset_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">step_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -724,7 +742,6 @@
         <span class="n">env</span> <span class="o">=</span> <span class="n">env_fn</span><span class="p">()</span>
         <span class="n">parent</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="nd">@retry_wrapper</span><span class="p">(</span><span class="n">max_retry</span><span class="o">=</span><span class="n">max_retry</span><span class="p">)</span>
         <span class="nd">@timeout_wrapper</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">step_timeout</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">step_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -746,7 +763,7 @@
                     <span class="n">obs_buffer</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
                     <span class="n">ret</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">return</span> <span class="n">ret</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                 <span class="k">raise</span> <span class="n">e</span>
 
@@ -771,8 +788,8 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;not support env cmd: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
                 <span class="n">child</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="c1"># print(&quot;Sub env &#39;{}&#39; error when executing {}&quot;.format(str(env), cmd))</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Sub env &#39;</span><span class="si">{}</span><span class="s2">&#39; error when executing </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">env</span><span class="p">),</span> <span class="n">cmd</span><span class="p">))</span>
                 <span class="c1"># when there are some errors in env, worker_fn will send the errors to env manager</span>
                 <span class="c1"># directly send error to another process will lose the stack trace, so we create a new Exception</span>
                 <span class="n">child</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
@@ -785,7 +802,7 @@
     <span class="k">def</span> <span class="nf">_check_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">close</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">ERROR</span>
                 <span class="n">exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
         <span class="c1"># when receiving env Exception, env manager will safely close and raise this Exception to caller</span>
@@ -835,7 +852,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">p</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;close&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+                <span class="k">continue</span>
             <span class="n">p</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">VOID</span>
@@ -879,9 +898,10 @@
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">episode_num</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
         <span class="n">max_retry</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-        <span class="n">step_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">step_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">auto_reset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">reset_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">reset_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">retry_type</span><span class="o">=</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span>
         <span class="n">retry_waiting_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="c1"># subprocess specified args</span>
         <span class="n">shared_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
