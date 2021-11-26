@@ -739,7 +739,7 @@ def dqfd_nstep_td_error_with_rescale(
                 lambda_supervised_loss * JE
             ) * weight
         ).mean(), lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
-        lambda_supervised_loss * JE
+        lambda_supervised_loss * JE, (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
     )
 
 
