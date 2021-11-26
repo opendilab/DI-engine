@@ -161,12 +161,11 @@ def acer_value_error_continuous(q_values: torch.Tensor,
 
     # loss v3
     critic_loss_q = 0.5 * (q_retraces.detach() - q_values).pow(2)
-    # critic_loss_v = 0.5 * ((ratio.clamp(max=1) * (q_retraces - q_values) + v_values).detach() - v_values).pow(2)
-
+    critic_loss_v = 0.5 * ((ratio.clamp(max=1) * (q_retraces - q_values) + v_values).detach() - v_values).pow(2)
     # critic_loss = critic_loss_q + critic_loss_v
     # return [critic_loss_q, critic_loss_v, critic_loss]
-    # return critic_loss_q + critic_loss_v
-    return critic_loss_q
+    return critic_loss_q + critic_loss_v
+
 
 def acer_policy_error_continuous(
         q_values_prime: torch.Tensor,

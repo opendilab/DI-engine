@@ -321,21 +321,10 @@ class ACERPolicy(Policy):
             behaviour_pi_prime  =  behaviour_pi_prime.unsqueeze(-1)  # shape T,B,1
 
             # Reshape the tensor from (T, B, N) to (T*B, N) to match the SDN head computation
-            obs_data_view = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
-            target_action_view = target_action_plus_1.view(-1, target_action_plus_1.shape[-1])  # (T+1)*B, 1
+            obs_data = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
+            target_action = target_action_plus_1.view(-1, target_action_plus_1.shape[-1])  # (T+1)*B, 1
 
-            # mu_t = (torch.unsqueeze(mu_t, 1)).expand(
-            #     (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
-            # sigma_t = (torch.unsqueeze(sigma_t, 1)).expand(
-            #     (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
-            #
-            # expand_s = (torch.unsqueeze(s, 1)).expand(
-            #     (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
-            # action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size)
-
-            # q_value_data = self._learn_model.forward(obs_data_view, mode='compute_critic',
-            #                                          action=target_action_view)  # (T+1)*B,1
-            q_value_data = self._learn_model.forward({'obs': obs_data_view, 'action': target_action_view},
+            q_value_data = self._learn_model.forward({'obs': obs_data, 'action': target_action},
                                                      mode='compute_critic')  # (T+1)*B,1
 
             #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
@@ -386,13 +375,13 @@ class ACERPolicy(Policy):
                 q_opc = compute_q_opc(q_values, v_values, rewards, actions, weights, self._gamma)
 
                 # Reshape the tensor from (T, B, N) to (B', N) to match the SDN head computation
-                obs_data_view = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
+                obs_data = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
                 action_prime_view = action_prime.view(-1, action_prime.shape[-1])  # (T+1)*B, 1
 
                 # Calculate q_value_data_prime
-                q_value_data_prime = self._learn_model.forward({'obs': obs_data_view, 'action': action_prime_view},
+                q_value_data_prime = self._learn_model.forward({'obs': obs_data, 'action': action_prime_view},
                                                                mode='compute_critic')  # (T+1)*B,1
-                # q_value_data_prime = self._learn_model.forward(obs_data_view, mode='compute_critic',
+                # q_value_data_prime = self._learn_model.forward(obs_data, mode='compute_critic',
                 #                                                action=action_prime_view, )  # (T+1)*B,1
                 #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
                 q_values_prime = q_value_data_prime['q_value'].reshape(
@@ -442,7 +431,7 @@ class ACERPolicy(Policy):
 
         if self._use_trust_region:
             actor_gradients = acer_trust_region_update(actor_gradients, target_pi, avg_pi, self._trust_region_value)
-        target_pi.backward(actor_gradients,retain_graph=True)
+        target_pi.backward(actor_gradients, retain_graph=True)
         self._optimizer_actor.step()
 
         # ====================
@@ -450,8 +439,11 @@ class ACERPolicy(Policy):
         # ====================
 
         if self._cfg.model.continuous_action_space:
-            q_value_data = self._learn_model.forward({'obs': obs_data_view, 'action': target_action_view},
-                                                     mode='compute_critic')  # (T+1)*B,1
+            # critic_loss = (acer_value_error_continuous(q_values, v_values, q_retraces.detach(),
+            #                                            ratio.detach()) * weights.unsqueeze(
+            #     -1)).sum() / total_valid
+            q_value_data = self._learn_model.forward({'obs': obs_data.clone().detach(), 'action': target_action.clone().detach()},
+                                                     mode='compute_critic')  # (T+1)*B,1 NOTE TODO
             #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
             q_values = q_value_data['q_value'].reshape(
                 self._unroll_len + 1, -1, 1
@@ -459,11 +451,10 @@ class ACERPolicy(Policy):
             v_values = q_value_data['v_value'].reshape(
                 self._unroll_len + 1, -1, 1
             )  # shape (T+1),B,1
+            q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
+            v_values = v_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
 
-            # critic_loss = (acer_value_error_continuous(q_values, q_retraces, ratio) * weights.unsqueeze(
-            #     -1)).sum() / total_valid
-
-            critic_loss = (acer_value_error_continuous(q_values[0:-1], v_values[0:-1], q_retraces.detach(), ratio.detach()) * weights.unsqueeze(
+            critic_loss = (acer_value_error_continuous(q_values, v_values, q_retraces.clone().detach(), ratio.clone().detach()) * weights.unsqueeze(
                 -1)).sum() / total_valid
 
         else:

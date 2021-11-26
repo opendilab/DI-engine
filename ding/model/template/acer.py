@@ -76,10 +76,15 @@ class ACER(nn.Module):
             # when the action space is continuous, we use ReparameterizationHead.
             # the action_shape of continuous action space is a int, indicating the num of action dim.
 
+            # self.actor_head = ReparameterizationHead(
+            #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed',
+            #     fixed_sigma_value=0.3,
+            #     activation=activation, norm_type=norm_type, bound_type='tanh',
+            # )
             self.actor_head = ReparameterizationHead(
                 actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed',
                 fixed_sigma_value=0.3,
-                activation=activation, norm_type=norm_type, bound_type='tanh',
+                activation=activation, norm_type=norm_type, bound_type=None,
             )
             # self.actor_head = ReparameterizationHead(
             #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='independent',
@@ -241,7 +246,7 @@ class ACER(nn.Module):
                 encoded_action = act_inputs
                 # mu_t.shape = (B, action_size)
                 mu_t, sigma_t = self.compute_actor(obs_inputs)['logit']
-                q_val = self.critic_head(encoded_state, encoded_action, mu_t, sigma_t, self.q_value_sample_size)
+                q_val = self.critic_head(encoded_state, encoded_action, mu_t.clone().detach(), sigma_t.clone().detach(), self.q_value_sample_size)
             else:
                 raise RuntimeError(
                     "If you indicate continuous action space, please add act_inputs when computing critic."
