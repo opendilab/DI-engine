@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    exp_name='debug_pendulum_critic_loss_v2_ul50_rbs1e3_seed0',
+    exp_name='debug_pendulum_critic_loss_v3_ul50_rbs2e3_seed0',
     seed=0,
     env=dict(
         # collector_env_num=10,
@@ -14,7 +14,6 @@ pendulum_acer_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=False,
         priority_IS_weight=False,
         model=dict(
@@ -29,12 +28,10 @@ pendulum_acer_config = dict(
             # clip_value=None,
             grad_clip_type='clip_norm',
             clip_value=0.5,
-
             multi_gpu=False,
             update_per_collect=4,
             batch_size=16,
             unroll_len=50,
-            # unroll_len=100,
             # unroll_len=32,
             # value_weight=0.5,
             entropy_weight=0,  # 0.0001,
@@ -50,21 +47,18 @@ pendulum_acer_config = dict(
         collect=dict(
             n_sample=16,
             unroll_len=50,
-            # unroll_len=100,
             # unroll_len=32,
             discount_factor=0.99,
             gae_lambda=0.95,
             collector=dict(
                 type='sample',
-                # collect_print_freq=1000,
                 collect_print_freq=500,
 
             ),
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            # replay_buffer_size=5000,
-            replay_buffer_size=1000,  # TODO(pu)
+            replay_buffer_size=2000,  # 1000, 5000 TODO(pu)
             max_use=16,
         ), ),
     ),

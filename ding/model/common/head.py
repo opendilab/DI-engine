@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
 from ding.rl_utils import beta_function_map
 from ding.utils import lists_to_dicts, SequenceType
+from torch.distributions import Normal, Independent
 
 
 class DiscreteHead(nn.Module):
@@ -532,8 +533,8 @@ class DuelingHead(nn.Module):
         """
         a = self.A(x)
         v = self.V(x)
-        logit = a - a.mean(dim=-1, keepdim=True) + v
-        return {'logit': logit}
+        q_value = a - a.mean(dim=-1, keepdim=True) + v
+        return {'logit': q_value}
 
 
 class StochasticDuelingHead(nn.Module):
@@ -553,7 +554,7 @@ class StochasticDuelingHead(nn.Module):
     ) -> None:
         r"""
         Overview:
-            Init the Head according to arguments.
+            The  Stochastic Dueling Head from paper acer: https://arxiv.org/abs/1611.01224. Init the Head according to arguments.
         Arguments:
             - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
             - output_size (:obj:`int`): The num of output
@@ -623,24 +624,23 @@ class StochasticDuelingHead(nn.Module):
         hidden_size = s.shape[1]
         action_size = a.shape[1]  # TODO(pu): action dim is too small than hidden size
         state_cat_action = torch.cat((s, a), dim=1)  # size (B, action_size + state_size)
-        a_val = self.A(state_cat_action)  # size (B, 1)
-        s_val = self.V(s)  # size (B,1)
-
-        mu_t = (torch.unsqueeze(mu_t, 1)).expand(
-            (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
-        sigma_t = (torch.unsqueeze(sigma_t, 1)).expand(
-            (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
-
+        a_value = self.A(state_cat_action)  # size (B, 1)
+        v_value = self.V(s)  # size (B,1)
         expand_s = (torch.unsqueeze(s, 1)).expand(
             (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
-        action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size)
+
+        # action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size)
+
+        dist = Independent(Normal(mu_t, sigma_t), 1)
+        action_sample = dist.rsample(sample_shape=(sample_size,))  # in case for gradient back propagation
+        action_sample = action_sample.permute(1, 0, 2)
 
         state_cat_action_sample = torch.cat((expand_s, action_sample),
                                             dim=-1)  # size (B, sample_size, action_size + hidden_size)
         a_val_sample = self.A(state_cat_action_sample)  # size (B, sample_size, 1)
         a_val_sample = torch.squeeze(a_val_sample, -1)  # (B, sample_size)
-        logit = a_val - a_val_sample.mean(dim=-1, keepdim=True) + s_val  # size (B,1)
-        return {'pred': logit, 'v': s_val}
+        q_value =  v_value + a_value - a_val_sample.mean(dim=-1, keepdim=True)  # size (B,1)
+        return {'q_value': q_value, 'v_value': v_value}
 
 
 class RegressionHead(nn.Module):

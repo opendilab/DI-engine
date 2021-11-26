@@ -75,10 +75,16 @@ class ACER(nn.Module):
         if self.continuous_action_space:
             # when the action space is continuous, we use ReparameterizationHead.
             # the action_shape of continuous action space is a int, indicating the num of action dim.
+
             self.actor_head = ReparameterizationHead(
-                actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='independent',
+                actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed',
+                fixed_sigma_value=0.3,
                 activation=activation, norm_type=norm_type, bound_type='tanh',
             )
+            # self.actor_head = ReparameterizationHead(
+            #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='independent',
+            #     activation=activation, norm_type=norm_type, bound_type='tanh',
+            # )
 
             self.critic_head = StochasticDuelingHead(
                 critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation,
@@ -101,7 +107,7 @@ class ACER(nn.Module):
         self.actor = nn.ModuleList(self.actor)
         self.critic = nn.ModuleList(self.critic)
 
-    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str, action: Optional[torch.Tensor] = None) -> Dict:
+    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         r"""
         Overview:
         Use observation to predict output.
@@ -153,10 +159,14 @@ class ACER(nn.Module):
 
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
-        if action is not None:
-            return getattr(self, mode)(inputs, action)
+        if 'action' in inputs.keys():
+            return getattr(self, mode)(inputs['obs'], inputs['action'])
         else:
-            return getattr(self, mode)(inputs)
+            return getattr(self, mode)(inputs['obs'])
+        # if action is not None:
+        #     return getattr(self, mode)(inputs, action)
+        # else:
+        #     return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: torch.Tensor) -> Dict:
         r"""
@@ -236,6 +246,8 @@ class ACER(nn.Module):
                 raise RuntimeError(
                     "If you indicate continuous action space, please add act_inputs when computing critic."
                 )
+            return {"q_value": q_val['q_value'], 'v_value': q_val['v_value']}
+
         else:
             q_val = self.critic_head(encoded_state)
-        return {"q_value": q_val['pred'], 'v_value': q_val['v']}
+            return {"q_value": q_val['pred']}

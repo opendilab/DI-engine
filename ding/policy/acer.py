@@ -14,6 +14,7 @@ from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from ding.policy.base_policy import Policy
+from torch.distributions import Normal, Independent
 
 EPS = 1e-8
 
@@ -259,8 +260,9 @@ class ACERPolicy(Policy):
         """
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
-        action_data = self._learn_model.forward(data['obs_plus_1'], mode='compute_actor')  # (T+1),B,env_action_shape
-        avg_action_data = self._target_model.forward(data['obs_plus_1'], mode='compute_actor')
+        action_data = self._learn_model.forward({'obs': data['obs_plus_1']},
+                                                mode='compute_actor')  # (T+1),B,env_action_shape
+        avg_action_data = self._target_model.forward({'obs': data['obs_plus_1']}, mode='compute_actor')
 
         if self._cfg.model.continuous_action_space:
 
@@ -268,18 +270,25 @@ class ACERPolicy(Policy):
                 action_data, avg_action_data, data
             )
 
-            # shape (T+1),B,env_action_shape
-            target_dist = torch.distributions.normal.Normal(target_mu, target_sigma)
-            # shape T,B,env_action_shape
-            behaviour_dist = torch.distributions.normal.Normal(behaviour_mu, behaviour_sigma)
-            # shape (T+1),B,env_action_shape
-            avg_dist = torch.distributions.normal.Normal(avg_action_mu, avg_action_sigma)
+            # # shape (T+1),B,env_action_shape
+            # target_dist = torch.distributions.normal.Normal(target_mu, target_sigma)
+            # # shape T,B,env_action_shape
+            # behaviour_dist = torch.distributions.normal.Normal(behaviour_mu, behaviour_sigma)
+            # # shape (T+1),B,env_action_shape
+            # avg_dist = torch.distributions.normal.Normal(avg_action_mu, avg_action_sigma)
+
+            target_dist = Independent(Normal(target_mu, target_sigma), 1)
+            behaviour_dist = Independent(Normal(behaviour_mu, behaviour_sigma), 1)
+            avg_dist = Independent(Normal(avg_action_mu, avg_action_sigma), 1)
+
+            # action_sample = dist.rsample(sample_shape=(sample_size,))  # in case for gradient back propagation
+            # action_sample = action_sample.permute(1, 0, 2)
 
             # TODO: here we bruteforce generate a T+1 dimenstional target pi because the data['action'] is T dimention
             # tar_act_gen = target_dist.sample()[0].reshape(1, -1, self._action_shape)
             # avg_act_gen = avg_dist.sample()[0].reshape(1, -1, self._action_shape)
-            tar_act_gen = target_dist.sample()[-1].reshape(1, -1, self._action_shape)
-            avg_act_gen = avg_dist.sample()[-1].reshape(1, -1, self._action_shape)
+            tar_act_gen = target_dist.rsample()[-1].reshape(1, -1, self._action_shape)
+            avg_act_gen = avg_dist.rsample()[-1].reshape(1, -1, self._action_shape)
 
             # tar_act_gen = target_dist.sample()
             # avg_act_gen = avg_dist.sample()
@@ -289,20 +298,27 @@ class ACERPolicy(Policy):
 
             log_target_pi = target_dist.log_prob(target_action_plus_1)  # shape (T+1),B,env_action_shape
             target_pi = torch.exp(log_target_pi)  # shape (T+1),B,env_action_shape
+            target_pi =  target_pi.unsqueeze(-1)  # shape T,B,1
 
             log_avg_pi = avg_dist.log_prob(avg_action_plus_1)  # shape (T+1),B,env_action_shape
             avg_pi = torch.exp(log_avg_pi)  # shape (T+1),B,env_action_shape
+            avg_pi =  avg_pi.unsqueeze(-1)  # shape T,B,1
+
 
             log_behaviour_pi = behaviour_dist.log_prob(data['action'])  # shape T,B,env_action_shape
             behaviour_pi = torch.exp(log_behaviour_pi)  # shape T,B,env_action_shape
+            behaviour_pi =  behaviour_pi.unsqueeze(-1)  # shape T,B,1
 
             # shape (T+1),B, env_action_shape
-            action_prime = target_dist.sample()
+            action_prime = target_dist.rsample()
             log_target_pi_prime = target_dist.log_prob(action_prime)
             target_pi_prime = torch.exp(log_target_pi_prime)
+            target_pi_prime =  target_pi_prime.unsqueeze(-1)  # shape T,B,1
+
             # shape T,B, env_action_shape
             log_behaviour_pi_prime = behaviour_dist.log_prob(action_prime[0:-1, ...])
             behaviour_pi_prime = torch.exp(log_behaviour_pi_prime)
+            behaviour_pi_prime  =  behaviour_pi_prime.unsqueeze(-1)  # shape T,B,1
 
             # Reshape the tensor from (T, B, N) to (T*B, N) to match the SDN head computation
             obs_data_view = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
@@ -317,8 +333,11 @@ class ACERPolicy(Policy):
             #     (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
             # action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size)
 
-            q_value_data = self._learn_model.forward(obs_data_view, mode='compute_critic',
-                                                     action=target_action_view)  # (T+1)*B,1
+            # q_value_data = self._learn_model.forward(obs_data_view, mode='compute_critic',
+            #                                          action=target_action_view)  # (T+1)*B,1
+            q_value_data = self._learn_model.forward({'obs': obs_data_view, 'action': target_action_view},
+                                                     mode='compute_critic')  # (T+1)*B,1
+
             #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
             q_values = q_value_data['q_value'].reshape(
                 self._unroll_len + 1, -1, 1
@@ -334,8 +353,7 @@ class ACERPolicy(Policy):
             target_logit, behaviour_logit, avg_logit, actions, rewards, weights = self._reshape_data(
                 action_data, avg_action_data, data
             )
-
-            q_value_data = self._learn_model.forward(data['obs_plus_1'],
+            q_value_data = self._learn_model.forward({'obs': data['obs_plus_1']},
                                                      mode='compute_critic')  # (T+1),B,env_action_shape
             q_values = q_value_data['q_value'].reshape(
                 self._unroll_len + 1, -1, self._action_shape
@@ -351,27 +369,31 @@ class ACERPolicy(Policy):
         with torch.no_grad():
             # shape (T+1),B,1
             # v_pred = (q_values * target_pi).sum(-1).unsqueeze(-1)
-            v_pred = v_values  # TODO(pu)
             # shape T,B,env_action_shape
             ratio = target_pi[0:-1, ...] / (behaviour_pi + EPS)
 
             if self._cfg.model.continuous_action_space:
                 ratio_dim = torch.pow(ratio, 1 / self._action_shape)  # T,B,env_action_shape
+                # ratio_dim = ratio_dim.unsqueeze(-1)  # shape T,B,1
+
                 ratio_prime = target_pi_prime[0:-1, ...] / (behaviour_pi_prime + EPS)  # T,B,env_action_shape
+
                 # Calculate retrace
                 # q_retraces = compute_q_retraces_continuous(q_values, v_pred, rewards, weights, ratio_dim, self._gamma)
-                q_retraces = compute_q_retraces_continuous(q_values, v_pred, rewards, weights, ratio_dim, self._gamma)
+                q_retraces = compute_q_retraces_continuous(q_values, v_values, rewards, weights, ratio_dim, self._gamma)
 
                 # Calculate opc
-                q_opc = compute_q_opc(q_values, v_pred, rewards, actions, weights, self._gamma)
+                q_opc = compute_q_opc(q_values, v_values, rewards, actions, weights, self._gamma)
 
                 # Reshape the tensor from (T, B, N) to (B', N) to match the SDN head computation
                 obs_data_view = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
                 action_prime_view = action_prime.view(-1, action_prime.shape[-1])  # (T+1)*B, 1
 
                 # Calculate q_value_data_prime
-                q_value_data_prime = self._learn_model.forward(obs_data_view, mode='compute_critic',
-                                                               action=action_prime_view, )  # (T+1)*B,1
+                q_value_data_prime = self._learn_model.forward({'obs': obs_data_view, 'action': action_prime_view},
+                                                               mode='compute_critic')  # (T+1)*B,1
+                # q_value_data_prime = self._learn_model.forward(obs_data_view, mode='compute_critic',
+                #                                                action=action_prime_view, )  # (T+1)*B,1
                 #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
                 q_values_prime = q_value_data_prime['q_value'].reshape(
                     self._unroll_len + 1, -1, 1
@@ -379,7 +401,7 @@ class ACERPolicy(Policy):
             else:
 
                 # Calculate retrace
-                q_retraces = compute_q_retraces(q_values, v_pred, rewards, actions, weights, ratio, self._gamma)
+                q_retraces = compute_q_retraces(q_values, v_values, rewards, actions, weights, ratio, self._gamma)
 
         # the terminal states' weights are 0. it needs to be shift to count valid state
         weights_ext = torch.ones_like(weights)
@@ -389,7 +411,7 @@ class ACERPolicy(Policy):
         q_opc = q_opc[0:-1]  # T,B,1
         q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
         q_values_prime = q_values_prime[0:-1]  # shape T,B,1
-        v_pred = v_pred[0:-1]  # shape T,B,1
+        v_values = v_values[0:-1]  # shape T,B,1
         target_pi = target_pi[0:-1]  # shape T,B,env_action_shape
         target_pi_prime = target_pi_prime[0:-1]  # shape T,B,env_action_shape
         avg_pi = avg_pi[0:-1]  # shape T,B,env_action_shape
@@ -399,20 +421,20 @@ class ACERPolicy(Policy):
         # ====================
         if self._cfg.model.continuous_action_space:
             actor_loss, bc_loss = acer_policy_error_continuous(
-                q_values_prime, q_opc, v_pred, target_pi, target_pi_prime, ratio, ratio_prime, self._c_clip_ratio
+                q_values_prime, q_opc,  v_values, target_pi, target_pi_prime, ratio, ratio_prime, self._c_clip_ratio
             )
-            dist_new = torch.distributions.normal.Normal(target_mu[:-1], target_sigma[:-1])
+            # dist_new = torch.distributions.normal.Normal(target_mu[:-1], target_sigma[:-1])
+            dist_new = Independent(Normal(target_mu[:-1], target_sigma[:-1]), 1)
+
         else:
             actor_loss, bc_loss = acer_policy_error(
-                q_values, q_retraces, v_pred, target_pi, actions, ratio, self._c_clip_ratio
+                q_values, q_retraces, v_values, target_pi, actions, ratio, self._c_clip_ratio
             )
             dist_new = torch.distributions.categorical.Categorical(probs=target_pi)
 
         actor_loss = actor_loss * weights.unsqueeze(-1)
         bc_loss = bc_loss * weights.unsqueeze(-1)
-        # entropy_loss = (dist_new.entropy().unsqueeze(-1) * weights).unsqueeze(-1)  # shape T,B,1
-
-        entropy_loss = dist_new.entropy() * weights.unsqueeze(-1)  # shape T,B,1 TODO(pu)
+        entropy_loss = (dist_new.entropy() * weights).unsqueeze(-1)
 
         total_actor_loss = (actor_loss + bc_loss + self._entropy_weight * entropy_loss).sum() / total_valid
         self._optimizer_actor.zero_grad()
@@ -420,7 +442,7 @@ class ACERPolicy(Policy):
 
         if self._use_trust_region:
             actor_gradients = acer_trust_region_update(actor_gradients, target_pi, avg_pi, self._trust_region_value)
-        target_pi.backward(actor_gradients)
+        target_pi.backward(actor_gradients,retain_graph=True)
         self._optimizer_actor.step()
 
         # ====================
@@ -428,18 +450,20 @@ class ACERPolicy(Policy):
         # ====================
 
         if self._cfg.model.continuous_action_space:
-            q_value_data = self._learn_model.forward(obs_data_view, mode='compute_critic',
-                                                     action=target_action_view)  # (T+1)*B,1
+            q_value_data = self._learn_model.forward({'obs': obs_data_view, 'action': target_action_view},
+                                                     mode='compute_critic')  # (T+1)*B,1
             #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
             q_values = q_value_data['q_value'].reshape(
                 self._unroll_len + 1, -1, 1
             )  # shape (T+1),B,1
-            q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
+            v_values = q_value_data['v_value'].reshape(
+                self._unroll_len + 1, -1, 1
+            )  # shape (T+1),B,1
 
             # critic_loss = (acer_value_error_continuous(q_values, q_retraces, ratio) * weights.unsqueeze(
             #     -1)).sum() / total_valid
 
-            critic_loss = (acer_value_error_continuous(q_values, v_pred, q_retraces, ratio) * weights.unsqueeze(
+            critic_loss = (acer_value_error_continuous(q_values[0:-1], v_values[0:-1], q_retraces.detach(), ratio.detach()) * weights.unsqueeze(
                 -1)).sum() / total_valid
 
         else:
@@ -631,9 +655,9 @@ class ACERPolicy(Policy):
         self._collect_model.eval()
         with torch.no_grad():
             if self._cfg.model.continuous_action_space:
-                output = self._collect_model.forward(self._cfg.model.noise_ratio, data, mode='compute_actor')
+                output = self._collect_model.forward(self._cfg.model.noise_ratio, {'obs': data}, mode='compute_actor')
             else:
-                output = self._collect_model.forward(data, mode='compute_actor')
+                output = self._collect_model.forward({'obs': data}, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -688,9 +712,7 @@ class ACERPolicy(Policy):
             For continuous action, we pass the mu to tanh funtion and got actions
         """
         if self._cfg.model.continuous_action_space:
-            # self._eval_model = model_wrap(self._model, wrapper_name='tanh_sample')
-            self._eval_model = model_wrap(self._model, wrapper_name='mu_sample')  # TODO(pu)
-
+            self._eval_model = model_wrap(self._model, wrapper_name='tanh_sample')
         else:
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
@@ -716,7 +738,7 @@ class ACERPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, mode='compute_actor')
+            output = self._eval_model.forward({'obs': data}, tanh_squash=False, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -736,4 +758,4 @@ class ACERPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return ['actor_loss', 'bc_loss', 'entropy_loss','total_actor_loss', 'critic_loss',  'kl_div']
+        return ['actor_loss', 'bc_loss', 'entropy_loss', 'total_actor_loss', 'critic_loss', 'kl_div']
