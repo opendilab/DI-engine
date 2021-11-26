@@ -10,7 +10,6 @@ expert_replay_buffer_size=int(5e3)
 """agent config"""
 pong_r2d3_config = dict(
     exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
-
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -130,7 +129,6 @@ expert_pong_r2d3_config = dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             each_iter_n_sample=32,
             # Users should add their own path here (path should lead to a well-trained model)
-            # demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_16127.pth.tar',
             # demonstration_info_path=module_path + '/demo_path/ppo-off_ckpt_best.pth.tar',
             demonstration_info_path=module_path + '/demo_path/r2d2_iteration_15000.pth.tar',
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
@@ -156,10 +154,8 @@ expert_pong_r2d3_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    # env_manager=dict(type='base'),
-    env_manager=dict(type='subprocess'),
-
-    policy=dict(type='r2d2_collect_traj'),
+    env_manager=dict(type='base'),
+    policy=dict(type='r2d2_collect_traj'),   # this policy is designed to collect expert traj for r2d3
 )
 expert_pong_r2d3_create_config = EasyDict(expert_pong_r2d3_create_config)
 expert_create_config = expert_pong_r2d3_create_config
