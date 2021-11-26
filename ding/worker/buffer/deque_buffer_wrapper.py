@@ -4,7 +4,7 @@ from easydict import EasyDict
 import numpy as np
 
 from ding.worker.buffer import DequeBuffer
-from ding.worker.buffer.middleware import use_time_check, priority
+from ding.worker.buffer.middleware import use_time_check, PriorityExperienceReplay
 from ding.utils import BUFFER_REGISTRY
 
 
@@ -49,7 +49,7 @@ class DequeBufferWrapper(object):
         # priority middleware
         if self.cfg.priority:
             self.buffer.use(
-                priority(
+                PriorityExperienceReplay(
                     self.buffer,
                     self.cfg.replay_buffer_size,
                     IS_weight=self.cfg.priority_IS_weight,

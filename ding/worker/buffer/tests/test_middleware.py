@@ -1,7 +1,7 @@
 import pytest
 import torch
 from ding.worker.buffer import DequeBuffer
-from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check, priority
+from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check, PriorityExperienceReplay
 from ding.worker.buffer.middleware.padding import padding
 
 
@@ -85,7 +85,7 @@ def test_staleness_check():
 def test_priority():
     N = 5
     buffer = DequeBuffer(size=10)
-    buffer.use(priority(buffer, buffer_size=10, IS_weight=True))
+    buffer.use(PriorityExperienceReplay(buffer, buffer_size=10, IS_weight=True))
     for _ in range(N):
         buffer.push(get_data())
     assert buffer.count() == N

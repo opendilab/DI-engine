@@ -126,13 +126,7 @@ class PriorityExperienceReplay:
             else:
                 setattr(self, '{}'.format(k), v)
 
-
-def priority(*per_args, **per_kwargs):
-    per = PriorityExperienceReplay(*per_args, **per_kwargs)
-
-    def _priority(action: str, chain: Callable, *args, **kwargs) -> Any:
+    def __call__(self, action: str, chain: Callable, *args, **kwargs) -> Any:
         if action in ["push", "sample", "update", "delete", "clear"]:
-            return getattr(per, action)(chain, *args, **kwargs)
+            return getattr(self, action)(chain, *args, **kwargs)
         return chain(*args, **kwargs)
-
-    return _priority
