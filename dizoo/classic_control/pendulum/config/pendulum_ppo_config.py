@@ -6,7 +6,7 @@ pendulum_ppo_config = dict(
         evaluator_env_num=5,
         act_scale=True,
         n_evaluator_episode=5,
-        stop_value=-250,
+        stop_value=-150,
     ),
     policy=dict(
         cuda=False,

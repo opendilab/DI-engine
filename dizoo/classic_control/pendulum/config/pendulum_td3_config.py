@@ -8,7 +8,7 @@ pendulum_td3_config = dict(
         # (bool) Scale output action into legal range.
         act_scale=True,
         n_evaluator_episode=5,
-        stop_value=-250,
+        stop_value=-100,
     ),
     policy=dict(
         cuda=False,

@@ -4,6 +4,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.distributions import Normal, Independent
 
 from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
 from ding.rl_utils import beta_function_map
@@ -633,8 +634,9 @@ class StochasticDuelingHead(nn.Module):
 
         expand_s = (torch.unsqueeze(s, 1)).expand(
             (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
-        action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size)
-
+        action_sample = Independent(Normal(mu_t, sigma_t), 1)  # size (B, sample_size, action_size)
+        action_sample = action_sample.sample()
+        
         state_cat_action_sample = torch.cat((expand_s, action_sample),
                                             dim=-1)  # size (B, sample_size, action_size + hidden_size)
         a_val_sample = self.A(state_cat_action_sample)  # size (B, sample_size, 1)
