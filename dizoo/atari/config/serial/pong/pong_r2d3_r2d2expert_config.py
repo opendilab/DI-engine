@@ -155,7 +155,7 @@ expert_pong_r2d3_create_config = dict(
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='r2d2_collect_traj'),   # this policy is designed to collect expert traj for r2d3
+    policy=dict(type='r2d2_collect_traj'),   # this policy is designed to collect r2d2 expert traj for r2d3
 )
 expert_pong_r2d3_create_config = EasyDict(expert_pong_r2d3_create_config)
 expert_create_config = expert_pong_r2d3_create_config

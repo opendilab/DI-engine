@@ -125,7 +125,8 @@ expert_lunarlander_r2d3_config = dict(
             expert_replay_buffer_size=expert_replay_buffer_size,
         ),
         collect=dict(
-            # n_sample=32, NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            each_iter_n_sample=32,
             # Users should add their own path here (path should lead to a well-trained model)
             # demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_12948.pth.tar',
             demonstration_info_path=module_path + '/demo_path/r2d2_iteration_13000.pth.tar',
@@ -152,7 +153,7 @@ expert_lunarlander_r2d3_create_config = dict(
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='r2d2_collect_traj'),  # this policy is designed to collect expert traj for r2d3
+    policy=dict(type='r2d2_collect_traj'),  # this policy is designed to collect r2d2 expert traj for r2d3
 )
 expert_lunarlander_r2d3_create_config = EasyDict(expert_lunarlander_r2d3_create_config)
 expert_create_config = expert_lunarlander_r2d3_create_config
