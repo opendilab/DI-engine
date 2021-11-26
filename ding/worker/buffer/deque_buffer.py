@@ -237,8 +237,8 @@ class DequeBuffer(Buffer):
         else:
             try:
                 sampled_groups = random.sample(meta_indices, k=size)
-            except ValueError as e:
-                pass
+            except ValueError:
+                raise ValueError("There are less than {} groups in buffer({} groups)".format(size, len(meta_indices)))
         sampled_data = defaultdict(list)
         for buffered in storage:
             meta_value = buffered.meta[groupby] if groupby in buffered.meta else None

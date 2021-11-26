@@ -1,7 +1,8 @@
 import pytest
 import torch
 from ding.worker.buffer import DequeBuffer
-from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check, PriorityExperienceReplay
+from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check
+from ding.worker.buffer.middleware import PriorityExperienceReplay, group_sample
 from ding.worker.buffer.middleware.padding import padding
 
 
@@ -112,10 +113,43 @@ def test_priority():
 @pytest.mark.unittest
 def test_padding():
     buffer = DequeBuffer(size=10)
-    buffer.use(padding(method="group"))
+    buffer.use(padding())
     for i in range(10):
         buffer.push(i, {"group": i & 5})  # [3,3,2,2]
     sampled_data = buffer.sample(4, groupby="group")
     assert len(sampled_data) == 4
     for grouped_data in sampled_data:
         assert len(grouped_data) == 3
+
+
+@pytest.mark.unittest
+def test_group_sample():
+    buffer = DequeBuffer(size=10)
+    buffer.use(padding(policy="none")).use(group_sample(size_in_group=5, ordered_in_group=True, max_use_in_group=True))
+    for i in range(4):
+        buffer.push(i, {"episode": 0})
+    for i in range(6):
+        buffer.push(i, {"episode": 1})
+    sampled_data = buffer.sample(2, groupby="episode")
+    assert len(sampled_data) == 2
+
+    def check_group0(grouped_data):
+        # In group0 should find only last record with data as None
+        n_none = 0
+        for item in grouped_data:
+            if item.data is None:
+                n_none += 1
+        assert n_none == 1
+
+    def check_group1(grouped_data):
+        # In group1 every record should have data and meta
+        for item in grouped_data:
+            assert item.data is not None
+
+    for grouped_data in sampled_data:
+        assert len(grouped_data) == 5
+        meta = grouped_data[0].meta
+        if meta and "episode" in meta and meta["episode"] == 1:
+            check_group1(grouped_data)
+        else:
+            check_group0(grouped_data)
