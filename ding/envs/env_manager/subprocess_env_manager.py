@@ -15,7 +15,8 @@ from easydict import EasyDict
 from types import MethodType
 
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
-from .base_env_manager import BaseEnvManager, EnvState, retry_wrapper, timeout_wrapper
+from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
+from ding.envs.env.base_env import BaseEnvTimestep
 
 _NTYPE_TO_CTYPE = {
     np.bool_: ctypes.c_bool,
@@ -163,9 +164,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     config = dict(
         episode_num=float("inf"),
         max_retry=5,
-        step_timeout=60,
+        step_timeout=None,
         auto_reset=True,
-        reset_timeout=60,
+        retry_type='reset',
+        reset_timeout=None,
         retry_waiting_time=0.1,
         # subprocess specified args
         shared_memory=True,
@@ -200,7 +202,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
         self._lock = LockContext(LockContextType.THREAD_LOCK)
         self._connect_timeout = self._cfg.connect_timeout
-        self._connect_timeout = np.max([self._connect_timeout, self._step_timeout + 0.5, self._reset_timeout + 0.5])
         self._async_args = {
             'step': {
                 'wait_num': min(self._wait_num, self._env_num),
@@ -246,7 +247,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 self.method_name_list,
                 self._reset_timeout,
                 self._step_timeout,
-                self._max_retry,
             ),
             daemon=True,
             name='subprocess_env_manager{}_{}'.format(env_id, time.time())
@@ -345,7 +345,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     ret = self._pipe_parents[env_id].recv()
                     self._check_data({env_id: ret})
                     self._env_seed[env_id] = None  # seed only use once
-                except Exception as e:
+                except BaseException as e:
                     logging.warning("subprocess reset set seed failed, ignore and continue...")
             reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
@@ -358,11 +358,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _reset(self, env_id: int) -> None:
 
-        @retry_wrapper(max_retry=self._max_retry, waiting_time=self._retry_waiting_time)
         def reset_fn():
             if self._pipe_parents[env_id].poll():
                 recv_data = self._pipe_parents[env_id].recv()
-                raise Exception("unread data left before sending to the pipe: {}".format(repr(recv_data)))
+                raise RuntimeError("unread data left before sending to the pipe: {}".format(repr(recv_data)))
             # if self._reset_param[env_id] is None, just reset specific env, not pass reset param
             if self._reset_param[env_id] is not None:
                 assert isinstance(self._reset_param[env_id], dict), type(self._reset_param[env_id])
@@ -371,13 +370,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 self._pipe_parents[env_id].send(['reset', [], {}])
 
             if not self._pipe_parents[env_id].poll(self._connect_timeout):
-                # terminate the old subprocess
-                self._pipe_parents[env_id].close()
-                if self._subprocesses[env_id].is_alive():
-                    self._subprocesses[env_id].terminate()
-                # reset the subprocess
-                self._create_env_subprocess(env_id)
-                raise Exception("env reset timeout")  # Leave it to retry_wrapper to try again
+                raise ConnectionError("env reset connection timeout")  # Leave it to try again
 
             obs = self._pipe_parents[env_id].recv()
             self._check_data({env_id: obs}, close=False)
@@ -387,16 +380,32 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._env_states[env_id] = EnvState.RUN
             self._ready_obs[env_id] = obs
 
-        try:
-            reset_fn()
-        except Exception as e:
-            logging.error('VEC_ENV_MANAGER: env {} reset error'.format(env_id))
-            logging.error('\nEnv Process Reset Exception:\n' + ''.join(traceback.format_tb(e.__traceback__)) + repr(e))
-            if self._closed:  # exception cased by main thread closing parent_remote
+        exceptions = []
+        for _ in range(self._max_retry):
+            try:
+                reset_fn()
                 return
-            else:
-                self.close()
-                raise e
+            except BaseException as e:
+                if self._retry_type == 'renew' or isinstance(e, pickle.UnpicklingError):
+                    self._pipe_parents[env_id].close()
+                    if self._subprocesses[env_id].is_alive():
+                        self._subprocesses[env_id].terminate()
+                    self._create_env_subprocess(env_id)
+                exceptions.append(e)
+                time.sleep(self._retry_waiting_time)
+
+        logging.error("Env {} reset has exceeded max retries({})".format(env_id, self._max_retry))
+        runtime_error = RuntimeError(
+            "Env {} reset has exceeded max retries({}), and the latest exception is: {}".format(
+                env_id, self._max_retry, repr(exceptions[-1])
+            )
+        )
+        runtime_error.__traceback__ = exceptions[-1].__traceback__
+        if self._closed:  # exception cased by main thread closing parent_remote
+            return
+        else:
+            self.close()
+            raise runtime_error
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
@@ -441,7 +450,17 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
-            timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+            # timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+            for env_id, p in zip(cur_ready_env_ids, ready_conn):
+                try:
+                    timesteps.update({env_id: p.recv()})
+                except pickle.UnpicklingError as e:
+                    timestep = BaseEnvTimestep(None, None, None, {'abnormal': True})
+                    timesteps.update({env_id: timestep})
+                    self._pipe_parents[env_id].close()
+                    if self._subprocesses[env_id].is_alive():
+                        self._subprocesses[env_id].terminate()
+                    self._create_env_subprocess(env_id)
             self._check_data(timesteps)
             ready_env_ids += cur_ready_env_ids
             cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))
@@ -546,9 +565,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             env_fn_wrapper,
             obs_buffer,
             method_name_list,
-            reset_timeout=60,
-            step_timeout=60,
-            max_retry=1
+            reset_timeout=None,
+            step_timeout=None,
     ) -> None:
         """
         Overview:
@@ -559,7 +577,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         env = env_fn()
         parent.close()
 
-        @retry_wrapper(max_retry=max_retry)
         @timeout_wrapper(timeout=step_timeout)
         def step_fn(*args, **kwargs):
             timestep = env.step(*args, **kwargs)
@@ -581,7 +598,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     obs_buffer.fill(ret)
                     ret = None
                 return ret
-            except Exception as e:
+            except BaseException as e:
                 env.close()
                 raise e
 
@@ -606,8 +623,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 else:
                     raise KeyError("not support env cmd: {}".format(cmd))
                 child.send(ret)
-            except Exception as e:
-                # print("Sub env '{}' error when executing {}".format(str(env), cmd))
+            except BaseException as e:
+                logging.debug("Sub env '{}' error when executing {}".format(str(env), cmd))
                 # when there are some errors in env, worker_fn will send the errors to env manager
                 # directly send error to another process will lose the stack trace, so we create a new Exception
                 child.send(
@@ -620,7 +637,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     def _check_data(self, data: Dict, close: bool = True) -> None:
         exceptions = []
         for i, d in data.items():
-            if isinstance(d, Exception):
+            if isinstance(d, BaseException):
                 self._env_states[i] = EnvState.ERROR
                 exceptions.append(d)
         # when receiving env Exception, env manager will safely close and raise this Exception to caller
@@ -670,7 +687,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._env_ref.close()
         for _, p in self._pipe_parents.items():
             p.send(['close', None, None])
-        for _, p in self._pipe_parents.items():
+        for env_id, p in self._pipe_parents.items():
+            if not p.poll(5):
+                continue
             p.recv()
         for i in range(self._env_num):
             self._env_states[i] = EnvState.VOID
@@ -714,9 +733,10 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
     config = dict(
         episode_num=float("inf"),
         max_retry=5,
-        step_timeout=60,
+        step_timeout=None,
         auto_reset=True,
-        reset_timeout=60,
+        reset_timeout=None,
+        retry_type='reset',
         retry_waiting_time=0.1,
         # subprocess specified args
         shared_memory=True,
