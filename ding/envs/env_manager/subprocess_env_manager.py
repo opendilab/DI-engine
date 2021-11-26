@@ -16,6 +16,7 @@ from types import MethodType
 
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
 from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
+from ding.envs.env.base_env import BaseEnvTimestep
 
 _NTYPE_TO_CTYPE = {
     np.bool_: ctypes.c_bool,
@@ -380,12 +381,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._ready_obs[env_id] = obs
 
         exceptions = []
-        for t in range(self._max_retry):
+        for _ in range(self._max_retry):
             try:
                 reset_fn()
                 return
             except BaseException as e:
-                if self._retry_type == 'renew':
+                if self._retry_type == 'renew' or isinstance(e, pickle.UnpicklingError):
                     self._pipe_parents[env_id].close()
                     if self._subprocesses[env_id].is_alive():
                         self._subprocesses[env_id].terminate()
@@ -449,7 +450,17 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             ready_conn, ready_ids = AsyncSubprocessEnvManager.wait(rest_conn, min(wait_num, len(rest_conn)), timeout)
             cur_ready_env_ids = [cur_rest_env_ids[env_id] for env_id in ready_ids]
             assert len(cur_ready_env_ids) == len(ready_conn)
-            timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+            # timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})
+            for env_id, p in zip(cur_ready_env_ids, ready_conn):
+                try:
+                    timesteps.update({env_id: p.recv()})
+                except pickle.UnpicklingError as e:
+                    timestep = BaseEnvTimestep(None, None, None, {'abnormal': True})
+                    timesteps.update({env_id: timestep})
+                    self._pipe_parents[env_id].close()
+                    if self._subprocesses[env_id].is_alive():
+                        self._subprocesses[env_id].terminate()
+                    self._create_env_subprocess(env_id)
             self._check_data(timesteps)
             ready_env_ids += cur_ready_env_ids
             cur_rest_env_ids = list(set(cur_rest_env_ids).difference(set(cur_ready_env_ids)))

@@ -130,7 +130,7 @@ class TestBaseEnvManager:
         # Test step timeout
         action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
         action[0] = 'block'
-        with pytest.raises(TimeoutError):
+        with pytest.raises(RuntimeError):
             timestep = env_manager.step(action)
         assert all([env_manager._env_states[i] == EnvState.RUN for i in range(1, env_manager.env_num)])
 

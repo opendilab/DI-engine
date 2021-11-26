@@ -304,11 +304,21 @@ class BaseEnvManager(object):
         def step_fn():
             return self._envs[env_id].step(act)
 
-        try:
-            return step_fn()
-        except BaseException as e:
-            self._env_states[env_id] = EnvState.ERROR
-            raise e
+        exceptions = []
+        for _ in range(self._max_retry):
+            try:
+                return step_fn()
+            except BaseException as e:
+                exceptions.append(e)
+        self._env_states[env_id] = EnvState.ERROR
+        logging.error("Env {} step has exceeded max retries({})".format(env_id, self._max_retry))
+        runtime_error = RuntimeError(
+            "Env {} step has exceeded max retries({}), and the latest exception is: {}".format(
+                env_id, self._max_retry, repr(exceptions[-1])
+            )
+        )
+        runtime_error.__traceback__ = exceptions[-1].__traceback__
+        raise runtime_error
 
     def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
         """
