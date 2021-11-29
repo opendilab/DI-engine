@@ -74,7 +74,6 @@ setup(
         'trueskill',
         'h5py',
         'rich',
-        'mpire',
         'pynng'
     ],
     extras_require={

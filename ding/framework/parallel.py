@@ -1,6 +1,5 @@
 import atexit
 import os
-import threading
 import time
 import random
 import pynng
@@ -9,72 +8,116 @@ import pickle
 import logging
 import tempfile
 import socket
+import multiprocessing as mp
+from multiprocessing import Process
 from os import path
-from typing import Any, Callable, List, Optional
+from typing import Callable, List, Optional
 from threading import Thread
-
-from mpire.pool import WorkerPool
 from pynng.nng import Bus0, Socket
+from ding.utils.design_helper import SingletonMetaclass
 from rich import print
 
 # Avoid ipc address conflict, random should always use random seed
 random = random.Random()
 
 
-class Parallel:
+class Parallel(metaclass=SingletonMetaclass):
 
     def __init__(self) -> None:
         self._listener = None
         self._sock: Socket = None
         self._rpc = {"echo": self.echo}
         self._bind_addr = None
+        self.is_subprocess = False
+        self.attach_to = None
+        self.finished = False
+        self._process_pool = []
 
-    def run(
-            self,
-            main_process: Callable,
-            n_workers: int,
+    def run(self, listen_to: str, attach_to: List[str] = None) -> None:
+        self.attach_to = attach_to = attach_to or []
+        self._listener = Thread(
+            target=self.listen,
+            kwargs={
+                "listen_to": listen_to,
+                "attach_to": attach_to
+            },
+            name="paralllel_listener",
+            daemon=False
+        )
+        self._listener.start()
+        time.sleep(0.3)  # Wait for thread starting
+
+    @staticmethod
+    def runner(
+            n_parallel_workers,
             attach_to: List[str] = None,
             protocol: str = "ipc",
             address: Optional[str] = None,
             ports: Optional[List[int]] = None
-    ) -> None:
+    ) -> Callable:
+        """
+        Overview:
+            Config to run in subprocess.
+        """
         attach_to = attach_to or []
 
-        nodes = self.get_node_addrs(n_workers, protocol=protocol, address=address, ports=ports)
-        logging.info("Bind subprocesses on these addresses: {}".format(nodes))
-        print("Bind subprocesses on these addresses: {}".format(nodes))
+        def _runner(main_process: Callable, *args, **kwargs) -> Callable:
+            """
+            Overview:
+                Prepare to run in subprocess.
+            """
+            nodes = Parallel.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
+            logging.info("Bind subprocesses on these addresses: {}".format(nodes))
+            print("Bind subprocesses on these addresses: {}".format(nodes))
 
-        def _cleanup_nodes():
-            for node in nodes:
-                protocol, file_path = node.split("://")
-                if protocol == "ipc" and path.exists(file_path):
-                    os.remove(file_path)
+            def cleanup_nodes():
+                for node in nodes:
+                    protocol, file_path = node.split("://")
+                    if protocol == "ipc" and path.exists(file_path):
+                        os.remove(file_path)
 
-        atexit.register(_cleanup_nodes)
+            atexit.register(cleanup_nodes)
 
-        def _parallel(node_id):
-            self._listener = Thread(
-                target=self.listen,
-                kwargs={
-                    "node_id": node_id,
-                    "nodes": nodes,
-                    "attach_to": attach_to
-                },
-                name="paralllel_listener",
-                daemon=True
-            )
-            self._listener.start()
-            time.sleep(0.3)  # Wait for thread starting
-            main_process()
+            process_pool = []
+            if mp.get_start_method() != "spawn":
+                mp.set_start_method("spawn")
 
-        with WorkerPool(n_jobs=n_workers) as pool:
-            # Cleanup the pool just in case the program crashes.
-            atexit.register(pool.__exit__)
-            results = pool.map(_parallel, range(n_workers))
-        return results
+            for node_id in range(n_parallel_workers):
+                runner_args = []
+                runner_kwargs = {"listen_to": nodes[node_id], "attach_to": nodes[:node_id] + attach_to}
+                params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
+                p = Process(target=Parallel.subprocess_runner, args=params)
+                p.start()
+                process_pool.append(p)
 
+            def cleanup_processes():
+                for p in process_pool:
+                    p.close()
+
+            atexit.register(cleanup_processes)
+
+            for p in process_pool:
+                p.join()
+
+        return _runner
+
+    @staticmethod
+    def subprocess_runner(runner_params, main_params):
+        """
+        Overview:
+            Really run in subprocess.
+        """
+        main_process, args, kwargs = main_params
+        runner_args, runner_kwargs = runner_params
+
+        router = Parallel()
+        router.is_subprocess = True
+        router.run(*runner_args, **runner_kwargs)
+        main_process(*args, **kwargs)
+        router.stop()
+
+    @staticmethod
     def get_node_addrs(
-            self,
             n_workers: int,
             protocol: str = "ipc",
             address: Optional[str] = None,
@@ -85,7 +128,7 @@ class Parallel:
             tmp_dir = tempfile.gettempdir()
             nodes = ["ipc://{}/ditask_{}_{}.ipc".format(tmp_dir, node_name, i) for i in range(n_workers)]
         elif protocol == "tcp":
-            address = address or self.get_ip()
+            address = address or Parallel.get_ip()
             ports = ports or range(50515, 50515 + n_workers)
             assert len(ports) == n_workers, "The number of ports must be the same as the number of workers, \
 now there are {} ports and {} workers".format(len(ports), n_workers)
@@ -94,18 +137,17 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             raise Exception("Unknown protocol {}".format(protocol))
         return nodes
 
-    def listen(self, node_id: int, nodes: List[str], attach_to: List[str] = None):
+    def listen(self, listen_to: str, attach_to: List[str] = None):
+        attach_to = attach_to or []
 
         async def _listen():
-            bind_addr = nodes[node_id]
-            self._bind_addr = bind_addr
-            dial_addrs = nodes[:node_id] + attach_to
+            self._bind_addr = listen_to
 
             with Bus0() as sock:
                 self._sock = sock
-                sock.listen(bind_addr)
+                sock.listen(self._bind_addr)
                 await asyncio.sleep(.3)  # Wait for peers to bind
-                for contact in dial_addrs:
+                for contact in attach_to:
                     sock.dial(contact)
 
                 while True:
@@ -114,6 +156,10 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
                         await self.recv_rpc(msg.bytes)
                     except pynng.Timeout:
                         logging.warning("Timeout on node {} when waiting for message from bus".format(self._bind_addr))
+                    except pynng.Closed:
+                        if not self.finished:
+                            logging.error("The socket is not closed under normal circumstances!")
+                        break
 
         asyncio.run(_listen())
 
@@ -128,12 +174,14 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         self._rpc[fn_name] = fn
 
     def send_rpc(self, func_name: str, *args, **kwargs) -> None:
-        payload = {"f": func_name, "a": args, "k": kwargs}
-        return self._sock and self._sock.send(pickle.dumps(payload))
+        if self.is_subprocess:
+            payload = {"f": func_name, "a": args, "k": kwargs}
+            return self._sock and self._sock.send(pickle.dumps(payload))
 
     async def asend_rpc(self, func_name: str, *args, **kwargs) -> None:
-        msg = {"f": func_name, "a": args, "k": kwargs}
-        return await self._sock.asend(pickle.dumps(msg))
+        if self.is_subprocess:
+            msg = {"f": func_name, "a": args, "k": kwargs}
+            return await self._sock.asend(pickle.dumps(msg))
 
     async def recv_rpc(self, msg: bytes):
         try:
@@ -145,7 +193,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         else:
             logging.warning("There was no function named {} in rpc table".format(payload["f"]))
 
-    def get_ip(self):
+    @staticmethod
+    def get_ip():
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             # doesn't even have to be reachable
@@ -156,3 +205,9 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         finally:
             s.close()
         return IP
+
+    def stop(self):
+        logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
+        self.finished = True
+        self._sock.close()
+        self._listener.join()

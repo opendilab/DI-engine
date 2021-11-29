@@ -3,7 +3,6 @@ Main entry
 """
 from collections import deque
 from types import GeneratorType
-import gym
 import torch
 import numpy as np
 import time
@@ -16,7 +15,7 @@ from ding.config import compile_config
 from ding.policy import SACPolicy
 from ding.torch_utils import to_ndarray, to_tensor
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
-from ding.framework import Task
+from ding.framework import Task, Parallel
 from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
 
 
@@ -71,7 +70,7 @@ class SACPipeline:
                 for t in ctx.collect_transitions:
                     buffer_.push(t)
 
-        # task.on("sync_parallel_ctx", on_sync_parallel_ctx)
+        task.on("sync_parallel_ctx", on_sync_parallel_ctx)
 
         def _collect(ctx):
             timesteps = env.step(ctx.action)
@@ -174,7 +173,7 @@ def sample_profiler(buffer, print_per_step=1, async_mode=False):
 
 
 def step_profiler(step_name, silent=False, print_per_step=1):
-    records = deque(maxlen=10)
+    records = deque(maxlen=100)
 
     def _step_wrapper(fn):
         # Wrap step function
@@ -241,25 +240,26 @@ def main(cfg, create_cfg, seed=0):
     evaluator_env.launch()
 
     model = QAC(**cfg.policy.model)
+    model.share_memory()
     replay_buffer = DequeBuffer()
-
-    task = Task(async_mode=False, parallel_mode=False, n_parallel_workers=2, attach_to=[])
     sac = SACPipeline(cfg, model)
 
-    task.use(sac.evaluate(evaluator_env))
-    task.use(
-        step_profiler("collect", silent=False, print_per_step=10)(
-            task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task))
-        )
-    )
-    task.use(step_profiler("learn", silent=False, print_per_step=10)(sac.learn(replay_buffer, task=task)))
-
     start = time.time()
-    task.run(max_step=10000)
+    with Task(async_mode=False) as task:
+        task.use(step_profiler("evaluate", silent=False, print_per_step=100)(sac.evaluate(evaluator_env)))
+        task.use(
+            step_profiler("collect", silent=False, print_per_step=100)(
+                task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task))
+            )
+        )
+        task.use(step_profiler("learn", silent=False, print_per_step=100)(sac.learn(replay_buffer, task=task)))
+
+        task.run(max_step=100)
     print("Total time cost: {:.2f}s".format(time.time() - start))
 
 
 if __name__ == "__main__":
-    from ding.utils import profiler
-    profiler()
-    main(main_config, create_config)
+    # from ding.utils import profiler
+    # profiler()
+    # main(main_config, create_config)
+    Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
