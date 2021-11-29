@@ -53,7 +53,7 @@ class Task:
     def __init__(
             self,
             async_mode: bool = False,
-            n_async_workers: Optional[int] = None,
+            n_async_workers: int = 1,
             parallel_mode: bool = False,
             router: Optional['Parallel'] = None,
             n_parallel_workers: Optional[int] = None,
