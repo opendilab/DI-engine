@@ -13,8 +13,8 @@ def parallel_main():
         msg[key] = True
 
     router.register_rpc("test_callback", test_callback)
-    # Wait for rpc function to bind (send to thread)
-    time.sleep(0.1)
+    # Wait for nodes to bind
+    time.sleep(0.7)
 
     router.send_rpc("test_callback", "ping")
 

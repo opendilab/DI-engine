@@ -1,7 +1,8 @@
 import atexit
 import os
-import time
 import random
+import time
+from mpire.pool import WorkerPool
 import pynng
 import asyncio
 import pickle
@@ -11,7 +12,7 @@ import socket
 import multiprocessing as mp
 from multiprocessing import Process
 from os import path
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from threading import Thread
 from pynng.nng import Bus0, Socket
 from ding.utils.design_helper import SingletonMetaclass
@@ -31,7 +32,6 @@ class Parallel(metaclass=SingletonMetaclass):
         self.is_subprocess = False
         self.attach_to = None
         self.finished = False
-        self._process_pool = []
 
     def run(self, listen_to: str, attach_to: List[str] = None) -> None:
         self.attach_to = attach_to = attach_to or []
@@ -45,26 +45,36 @@ class Parallel(metaclass=SingletonMetaclass):
             daemon=False
         )
         self._listener.start()
-        time.sleep(0.3)  # Wait for thread starting
+        # time.sleep(0.1)
 
     @staticmethod
     def runner(
-            n_parallel_workers,
-            attach_to: List[str] = None,
+            n_parallel_workers: int,
+            attach_to: Optional[List[str]] = None,
             protocol: str = "ipc",
             address: Optional[str] = None,
             ports: Optional[List[int]] = None
     ) -> Callable:
         """
         Overview:
-            Config to run in subprocess.
+            This method allows you to configure parallel parameters, and now you are still in the parent process.
+        Arguments:
+            - n_parallel_workers (:obj:`int`): Workers to spawn.
+            - attach_to (:obj:`Optional[List[str]]`): The node's addresses you want to attach to.
+            - protocol (:obj:`str`): Network protocol.
+            - address (:obj:`Optional[str]`): Bind address, ip or file path.
+            - ports (:obj:`Optional[List[int]]`): Candidate ports.
+        Returns:
+            - _runner (:obj:`Callable`): The wrapper function for main.
         """
         attach_to = attach_to or []
 
-        def _runner(main_process: Callable, *args, **kwargs) -> Callable:
+        def _runner(main_process: Callable, *args, **kwargs) -> None:
             """
             Overview:
                 Prepare to run in subprocess.
+            Arguments:
+                - main_process (:obj:`Callable`): The main function, your program start from here.
             """
             nodes = Parallel.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
             logging.info("Bind subprocesses on these addresses: {}".format(nodes))
@@ -78,34 +88,28 @@ class Parallel(metaclass=SingletonMetaclass):
 
             atexit.register(cleanup_nodes)
 
-            process_pool = []
-            if mp.get_start_method() != "spawn":
-                mp.set_start_method("spawn")
-
+            params_group = []
             for node_id in range(n_parallel_workers):
                 runner_args = []
                 runner_kwargs = {"listen_to": nodes[node_id], "attach_to": nodes[:node_id] + attach_to}
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
-                p = Process(target=Parallel.subprocess_runner, args=params)
-                p.start()
-                process_pool.append(p)
+                params_group.append(params)
 
-            def cleanup_processes():
-                for p in process_pool:
-                    p.close()
-
-            atexit.register(cleanup_processes)
-
-            for p in process_pool:
-                p.join()
+            with WorkerPool(n_jobs=n_parallel_workers, start_method="spawn") as pool:
+                # Cleanup the pool just in case the program crashes.
+                atexit.register(pool.__exit__)
+                pool.map(Parallel.subprocess_runner, params_group)
 
         return _runner
 
     @staticmethod
-    def subprocess_runner(runner_params, main_params):
+    def subprocess_runner(runner_params: Tuple[Union[List, Dict]], main_params: Tuple[Union[List, Dict]]) -> None:
         """
         Overview:
             Really run in subprocess.
+        Arguments:
+            - runner_params (:obj:`Tuple[Union[List, Dict]]`): Args and kwargs for runner.
+            - main_params (:obj:`Tuple[Union[List, Dict]]`): Args and kwargs for main function.
         """
         main_process, args, kwargs = main_params
         runner_args, runner_kwargs = runner_params
@@ -159,6 +163,9 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
                     except pynng.Closed:
                         if not self.finished:
                             logging.error("The socket is not closed under normal circumstances!")
+                        break
+                    except Exception as e:
+                        logging.error("Meet exception when listening for new messages", e)
                         break
 
         asyncio.run(_listen())
