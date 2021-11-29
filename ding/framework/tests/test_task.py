@@ -1,11 +1,10 @@
-import multiprocessing as mp
 import pytest
 import time
 import copy
 import random
+from mpire import WorkerPool
 from ding.framework import Task
 from ding.framework.parallel import Parallel
-from multiprocessing import Process
 
 
 @pytest.mark.unittest
@@ -113,8 +112,7 @@ def parallel_counter():
 
     def _counter(ctx):
         nonlocal call_count
-        if call_count > 3:
-            assert ctx.total_step > call_count
+        assert ctx.total_step >= call_count
         call_count += 1
         time.sleep(0.1 + random.random() / 10)
 
@@ -124,7 +122,7 @@ def parallel_counter():
 def parallel_main():
     task = Task(async_mode=True)
     task.use(parallel_counter())
-    task.run(max_step=5)
+    task.run(max_step=10)
 
 
 def parallel_main_eager():
@@ -191,11 +189,5 @@ def attach_mode_main(job):
 
 @pytest.mark.unittest
 def test_attach_mode():
-    if mp.get_start_method() != "spawn":
-        mp.set_start_method("spawn")
-    p1 = Process(target=attach_mode_main, args=("run_task", ), daemon=False)
-    p2 = Process(target=attach_mode_main, args=("run_attach_task", ), daemon=False)
-    p1.start()
-    p2.start()
-    p1.join()
-    p2.join()
+    with WorkerPool(n_jobs=2, daemon=False) as pool:
+        pool.map(attach_mode_main, ["run_task", "run_attach_task"])
