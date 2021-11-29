@@ -22,7 +22,9 @@ class PDQN(nn.Module):
             head_hidden_size: Optional[int] = None,
             head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            multi_pass: Optional[bool] = False,
+            action_mask: Optional[list] = None
     ) -> None:
         r"""
         Overview:
@@ -40,17 +42,31 @@ class PDQN(nn.Module):
                 if ``None`` then default set it to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`): The type of normalization in networks, see \
                 ``ding.torch_utils.fc_block`` for more details.
+            - multi_pass (:obj:`Optional[bool]`): Whether to use multi pass version.
+            - action_mask: (:obj:`Optional[list]`): An action mask indicating how action args are associated to each discrete action.
+                For example, if there are 3 discrete action, 4 continous action args, and the first discrete action associates with
+                the first continuous action args, the second discrete action associates with the second continuous action args, and 
+                the third discrete action associates with the remaining 2 action args, the action mask will be like: 
+                [[1,0,0,0],[0,1,0,0],[0,0,1,1]] with shape 3*4.
         """
         super(PDQN, self).__init__()
+        if multi_pass:
+            assert isinstance(action_mask, list), 'Please indicate action mask in list form if you set multi_pass to True'
+        self.multi_pass = multi_pass
+        self.action_mask = action_mask
 
-        # squeeze obs input for compatibility: 1, (1, ), [4, 32, 32]
-        obs_shape = squeeze(obs_shape)
         # squeeze action shape input like (3,) to 3
         action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
         action_shape.action_type_shape = squeeze(action_shape.action_type_shape)
+        self.action_args_shape = action_shape.action_args_shape
+        self.action_type_shape = action_shape.action_type_shape
+
         # init head hidden size
         if head_hidden_size is None:
             head_hidden_size = encoder_hidden_size_list[-1]
+
+        # squeeze obs input for compatibility: 1, (1, ), [4, 32, 32]
+        obs_shape = squeeze(obs_shape)
 
         # Obs Encoder Type
         if isinstance(obs_shape, int) or len(obs_shape) == 1:  # FC Encoder
@@ -69,7 +85,7 @@ class PDQN(nn.Module):
             )
         else:
             raise RuntimeError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own PDQN".format(obs_shape)
+                "Pre-defined encoder not support obs_shape {}, please customize your own PDQN.".format(input_feature_shape)
             )
 
         # Continuous Action Head Type
@@ -142,8 +158,25 @@ class PDQN(nn.Module):
                 -  'action_args': the continuous action args(same as the inputs['action_args']) for later usage
         """
         dis_x = self.encoder[0](inputs['state'])  # size (B, encoded_state_shape)
-        action_args = inputs['action_args']  # size (B, action_args_shape
-        state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
-        logit = self.actor_head[0](state_action_cat)['logit']  # size (B, action_type_shape)
+        action_args = inputs['action_args']  # size (B, action_args_shape)
+        if self.multi_pass:  # mpdqn
+            mp_action_args_shape = [self.action_type_shape] + list(action_args.shape)  # size (K, B, action_args_shape) where K is action_type_shape
+            mp_action_args = action_args.expand(size=mp_action_args_shape)  # size (K, B, action_args_shape) where K is action_type_shape
+            for i in range(len(self.action_mask)):  # discrete action i with total K
+                for j in range(len(self.action_mask[i])):  # continuous args j with total K'
+                    if not self.action_mask[i][j]:  # action_mask[i][j] == 0, which means this arg is not associated with this action
+                        mp_action_args[i,...,j] = -2 # setting the value to any value which is not in range [-1,1] works
+            
+            mp_state_shape = [self.action_type_shape] + list(dis_x.shape)  # size (K, B, encoded_state_shape)
+            mp_dis_x = dis_x.expand(mp_state_shape)  # size (K, B, encoded_state_shape)
+
+            mp_state_action_cat = torch.cat((mp_dis_x, mp_action_args), dim=-1)  # size (K, B, encoded_state_shape + action_args_shape)
+            raw_logit = self.actor_head[0](mp_state_action_cat)['logit']  # size (K, B, K) where K is action_type_shape
+            logit = torch.tensor([list(raw_logit[i,...,i]) for i in range(self.action_type_shape)])
+      
+        else:  # pdqn
+            state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
+            logit = self.actor_head[0](state_action_cat)['logit']  # size (B, K) where K is action_type_shape
+        
         outputs = {'logit': logit, 'action_args': action_args}
         return outputs
