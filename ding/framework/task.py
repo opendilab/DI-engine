@@ -54,14 +54,7 @@ class Task:
             self,
             async_mode: bool = False,
             n_async_workers: int = 1,
-            parallel_mode: bool = False,
-            router: Optional['Parallel'] = None,
-            n_parallel_workers: Optional[int] = None,
-            attach_to: List[str] = None,
-            protocol: str = "ipc",
             middleware: List[Callable] = None,
-            bind_address: str = None,
-            bind_ports: Optional[List[int]] = None,
             event_listeners: Optional[defaultdict] = None,
             *args,
             **kwargs
@@ -77,20 +70,15 @@ class Task:
         self._loop = None
         self._thread_pool = None
         self.event_listeners = event_listeners or defaultdict(list)
-        if async_mode or parallel_mode:
+
+        self.router = Parallel()
+        if async_mode or self.router.is_subprocess:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             self._loop = asyncio.new_event_loop()
 
-        # Parallel segment
-        self.parallel_mode = parallel_mode
-        if parallel_mode:
-            self.router = router or Parallel()
-            assert n_parallel_workers, "The number of workers must be specified in parallel mode!"
-            self.n_parallel_workers = n_parallel_workers
-            self.attach_to = attach_to or []
-            self.protocol = protocol
-            self.bind_address = bind_address
-            self.bind_ports = bind_ports
+        if self.router.is_subprocess:
+            self.router.register_rpc("sync_parallel_ctx", self.sync_parallel_ctx)
+            self.check_attach_mode()
 
     def use(self, fn: Callable) -> 'Task':
         """
@@ -110,22 +98,15 @@ class Task:
         Arguments:
             - max_step (:obj:`int`): Max step of iterations.
         """
-
-        def _execute(task: Task):
-            if len(task.middleware) == 0:
-                return
-            while task.ctx.total_step < max_step:
-                for fn in task.middleware:
-                    task.forward(fn)
-                task.backward()
-                if task.finish:
-                    break
-                task.renew()
-
-        if self.parallel_mode:
-            self.parallel(_execute)
-        else:
-            _execute(self)
+        if len(self.middleware) == 0:
+            return
+        while self.ctx.total_step < max_step:
+            for fn in self.middleware:
+                self.forward(fn)
+            self.backward()
+            if self.finish:
+                break
+            self.renew()
 
     @enable_async
     def forward(self, fn: Callable, ctx: Context = None, backward_stack: List[Generator] = None) -> 'Task':
@@ -196,7 +177,7 @@ class Task:
         self.sync()
         # Renew context
         old_ctx = self.ctx
-        if self.parallel_mode and self.router:
+        if self.router.is_subprocess:
             # Send context to other parallel processes
             # The maximum number of iterations is estimated from the total number of all processes
             # Set current total step to real step in the cluster
@@ -210,14 +191,15 @@ class Task:
         self.ctx = new_ctx
         return self
 
-    def step(self) -> 'Task':
+    def __enter__(self) -> "Task":
         return self
 
-    def __enter__(self) -> 'Task':
-        return self
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-        self.renew()
+    def stop(self) -> None:
+        if self._thread_pool:
+            self._thread_pool.shutdown()
 
     def sync(self) -> 'Task':
         if self._loop:
@@ -230,38 +212,24 @@ class Task:
             t = self._async_stack.pop(0)
             await t
 
-    def parallel(self, main_process: Callable):
-
-        def _parallel():
-            task = copy.copy(self)
-            task.router.register_rpc("sync_parallel_ctx", task.sync_parallel_ctx)
-            n_timeout = 30
-            if len(task.attach_to) > 0:
-                logging.warning(
-                    "The attach mode will wait for the latest context, an exception will \
+    def check_attach_mode(self, n_timeout: int = 30):
+        if len(self.router.attach_to) > 0:
+            logging.warning(
+                "The attach mode will wait for the latest context, an exception will \
 be thrown after the timeout {}s is reached".format(n_timeout)
-                )
-                is_timeout = True
-                for _ in range(n_timeout * 10):
-                    if task.ctx.get("prev"):
-                        is_timeout = False
-                        task.ctx = task.ctx.prev
-                        break
-                    time.sleep(0.1)
-                if is_timeout:
-                    # The attach mode does not allow to start from step 0 alone,
-                    # otherwise it may overwrite the training results of other processes
-                    raise TimeoutError("Attach timeout, not received the latest context.")
-            main_process(task)
-
-        self.router.run(
-            _parallel,
-            n_workers=self.n_parallel_workers,
-            attach_to=self.attach_to,
-            protocol=self.protocol,
-            address=self.bind_address,
-            ports=self.bind_ports
-        )
+            )
+            is_timeout = True
+            for _ in range(n_timeout * 10):
+                if self.ctx.get("prev"):
+                    is_timeout = False
+                    self.ctx = self.ctx.prev
+                    self.ctx.total_step += 1
+                    break
+                time.sleep(0.1)
+            if is_timeout:
+                # The attach mode does not allow to start from step 0 alone,
+                # otherwise it may overwrite the training results of other processes
+                raise TimeoutError("Attach timeout, not received the latest context.")
 
     def sync_parallel_ctx(self, ctx: Context):
         for fn in self.event_listeners["sync_parallel_ctx"]:

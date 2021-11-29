@@ -1,9 +1,11 @@
-from mpire.pool import WorkerPool
+import multiprocessing as mp
 import pytest
 import time
 import copy
 import random
 from ding.framework import Task
+from ding.framework.parallel import Parallel
+from multiprocessing import Process
 
 
 @pytest.mark.unittest
@@ -106,90 +108,94 @@ def test_async_yield_pipeline():
     assert len(task._backward_stack) == 0
 
 
+def parallel_counter():
+    call_count = 0  # +1 when call _counter
+
+    def _counter(ctx):
+        nonlocal call_count
+        if call_count > 3:
+            assert ctx.total_step > call_count
+        call_count += 1
+        time.sleep(0.1 + random.random() / 10)
+
+    return _counter
+
+
+def parallel_main():
+    task = Task(async_mode=True)
+    task.use(parallel_counter())
+    task.run(max_step=5)
+
+
+def parallel_main_eager():
+    counter_ware = parallel_counter()
+    task = Task(async_mode=True)
+    for i in range(5):
+        task.forward(counter_ware)
+        task.renew()
+    assert task.ctx.total_step > i
+
+
 @pytest.mark.unittest
 def test_parallel_pipeline():
-    task = Task(async_mode=True, n_async_workers=1, parallel_mode=True, n_parallel_workers=2)
-
-    def counter():
-        call_count = 0  # +1 when call _counter
-
-        def _counter(ctx):
-            nonlocal call_count
-            if call_count > 3:
-                assert ctx.total_step > call_count
-            call_count += 1
-            time.sleep(0.1 + random.random() / 10)
-
-        return _counter
-
-    def _execute(task: Task):
-        counter_ware = counter()
-        for i in range(5):
-            task.forward(counter_ware)
-            task.renew()
-        assert task.ctx.total_step > i
-
-    # In eager mode
-    task.parallel(_execute)
-
-    # In pipeline mode
-    task = Task(async_mode=True, n_async_workers=1, parallel_mode=True, n_parallel_workers=2)
-    task.use(counter())
-    task.run(max_step=5)
+    Parallel.runner(n_parallel_workers=2)(parallel_main_eager)
+    Parallel.runner(n_parallel_workers=2)(parallel_main)
 
 
 @pytest.mark.unittest
 def test_copy_task():
-    t1 = Task(async_mode=True, n_async_workers=1, parallel_mode=True, n_parallel_workers=2)
+    t1 = Task(async_mode=True, n_async_workers=1)
     t2 = copy.copy(t1)
-    assert t2.parallel_mode
     assert t2.async_mode
     assert t1 is not t2
 
 
-@pytest.mark.unittest
-def test_attach_mode():
+def attach_mode_main_task():
 
-    def run_task():
+    def wait(ctx):
+        time.sleep(0.1)
 
-        def wait(ctx):
-            time.sleep(0.1)
-
-        task = Task(
-            parallel_mode=True,
-            n_parallel_workers=2,
-            protocol="tcp",
-            bind_address="127.0.0.1",
-            bind_ports=[50501, 50502]
-        )
+    with Task() as task:
         task.use(wait)
         task.run(max_step=10)
 
-    def run_attach_task():
-        attach_task = Task(
-            parallel_mode=True,
+
+def attach_mode_attach_task():
+
+    def attach_step(ctx):
+        # Should get ctx from other process and start from the latest state
+        assert ctx.total_step > 0
+
+    with Task() as task:
+        task.use(attach_step)
+        task.run(max_step=10)
+
+
+def attach_mode_main(job):
+    if job == "run_task":
+        Parallel.runner(
+            n_parallel_workers=2, protocol="tcp", address="127.0.0.1", ports=[50501, 50502]
+        )(attach_mode_main_task)
+    elif "run_attach_task":
+        time.sleep(0.3)
+        Parallel.runner(
             n_parallel_workers=1,
             protocol="tcp",
-            bind_address="127.0.0.1",
-            bind_ports=[50503],
+            address="127.0.0.1",
+            ports=[50503],
             attach_to=["tcp://127.0.0.1:50501", "tcp://127.0.0.1:50502"]
-        )
+        )(attach_mode_attach_task)
+    else:
+        raise Exception("Unknown task")
 
-        def attach_step(ctx):
-            # Should get ctx from other process and start from the latest state
-            assert ctx.total_step > 0
 
-        time.sleep(0.2)
-        attach_task.use(attach_step)
-        attach_task.run(max_step=10)
-
-    def main_test(job):
-        if job == "run_task":
-            run_task()
-        elif "run_attach_task":
-            run_attach_task()
-        else:
-            raise Exception("Unknown task")
-
-    with WorkerPool(n_jobs=2, daemon=False) as pool:
-        pool.map(main_test, ["run_task", "run_attach_task"])
+@pytest.mark.unittest
+def test_attach_mode():
+    if mp.get_start_method() != "spawn":
+        mp.set_start_method("spawn")
+    p1 = Process(target=attach_mode_main, args=("run_task", ), daemon=False)
+    p2 = Process(target=attach_mode_main, args=("run_attach_task", ), daemon=False)
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
