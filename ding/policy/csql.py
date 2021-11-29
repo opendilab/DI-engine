@@ -18,8 +18,8 @@ def assert_shape(tensor, expected_shape):
     tensor_shape = tensor.shape.as_list()
     assert len(tensor_shape) == len(expected_shape)
     assert all([a == b for a, b in zip(tensor_shape, expected_shape)])
-@POLICY_REGISTRY.register('sac')
-class SoftQLPolicy(Policy):
+@POLICY_REGISTRY.register('csql')
+class ContinousSoftQLPolicy(Policy):
     r"""
        Overview:
            Policy class of SAC algorithm.
@@ -300,17 +300,17 @@ class SoftQLPolicy(Policy):
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
         # 2. predict target next value 
         # equation (10)
-        obs_expand = next_obs.unsqueeze(0)
-        obs_expand = obs_expand.expand([sample_size, batch_size, obs_size])
-        obs_expand = obs_expand.reshape(sample_size * batch_size, obs_size)
-        action_expand = torch.randn(sample_size * batch_size, obs_size).uniform_(-1, 1)
+        obs_expand = next_obs.unsqueeze(1)
+        obs_expand = obs_expand.expand([batch_size, sample_size, obs_size])
+        obs_expand = obs_expand.reshape(batch_size * sample_size, obs_size)
+        action_expand = torch.randn(batch_size * sample_size, obs_size).uniform_(-1, 1)
         sample_data = {'obs': obs_expand, 'action': action_expand}
-        sample_q_value = self._learn_model.forward(sample_data, mode='compute_critic')['q_value']
-        sample_q_value = sample_q_value.reshape(sample_size, -1)
-        next_v_value = alpha * torch.logsumexp(sample_q_value / alpha, 0)
+        next_q_expand = self._target_model.forward(sample_data, mode='compute_critic')['q_value']
+        next_q_expand = next_q_expand.reshape(batch_size, -1)
+        next_v_value = alpha * torch.logsumexp(next_q_expand / alpha, 1)
         # corresponds to Line 183, do not understand the reason
         next_v_value -= torch.log(sample_size.type(torch.FloatTensor))
-        next_v_value += action_size * torch.log(2)
+        next_v_value += action_size.type(torch.FloatTensor) * torch.log(2)
         # 3. compute td error
         q_data = v_1step_td_data(q_value, next_v_value, reward, done, data['weight'])
         loss_dict['critic_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
@@ -325,6 +325,8 @@ class SoftQLPolicy(Policy):
         # sample_list shape: [sample_size, action_size]
         latent_sample = sample_list.unsqueeze(0)
         latent_sample = latent_sample.expand(batch_size, sample_size, action_size)
+
+        # sample_list shape: [batch_size, sample_size, action_size]
         obs_expand = obs.unsqueeze(1)
         obs_expand = obs_expand.expand(batch_size, sample_size, action_size)
 
@@ -332,10 +334,10 @@ class SoftQLPolicy(Policy):
         stochastic_expand = torch.cat([obs_expand, latent_sample],dim=2)
         stochastic_expand = stochastic_expand.reshape(batch_size * sample_size, -1)
         # stochastic_expand shape: [batch_size * sample_size, obs_shape + action_sample]
-        sample_action_flat = self._learn_model.forward(stochastic_expand, mode='compute_actor')
+        sample_action_flat = self._learn_model.forward(stochastic_expand, mode='compute_actor')['logit']
         sample_action = sample_action_flat.reshape(batch_size, sample_size, action_size)
 
-        n_updated_actions = kernel_update_ratio * sample_size 
+        n_updated_actions = int(kernel_update_ratio * sample_size )
         n_fixed_actions = sample_size - n_updated_actions
 
         fixed_actions, updated_actions = torch.split(sample_action, [n_fixed_actions, n_updated_actions], dim = 1)
@@ -347,6 +349,7 @@ class SoftQLPolicy(Policy):
         assert_shape(fixed_actions, [batch_size, n_fixed_actions, action_size])
         
         fixed_observations = fixed_observations.reshape(-1, obs_size)
+        assert_shape(fixed_observations, [batch_size, n_fixed_actions, obs_size])
         # fixed actions:  batch * sample_size , action_size
         # fixed observations: batch * sample_size , observation_shape
         data_fixed = {'obs': fixed_observations, 'action': fixed_actions_flat}
@@ -363,13 +366,19 @@ class SoftQLPolicy(Policy):
         assert_shape(grad_log_p, [batch_size, n_fixed_actions, 1, action_size])
 
         kernel_dict = self.adaptive_isotropic_gaussian_kernel(xs=fixed_actions, ys=updated_actions)
+        # kernel_dict kappa output shape: batch_size x n_fixed_acitons x n_updated_shape
+        # kernel dict kappa gradient shape: batch_size x n_fixed_actions x n_updated_shape x aciton_size
+
 
         #kernel function in Equation 13:
         kappa = kernel_dict['output'].unsqueeze(3)
+        # kappa shape: batch_size x n_fixed_actions x n_updated_actions x 1
+        # grad_log_p : batch_size x n_fixed_actions x 1 x action_size
         assert_shape(kappa, [batch_size, n_fixed_actions, n_updated_actions, 1])
 
         # Stein Variational Gradient in Equation 13:
         action_gradients = (kappa* grad_log_p + kernel_dict['gradient']).mean(1, keep_dim = False)
+        # to batch_size x n_updated_actions x action_size
         assert_shape(action_gradients, [batch_size, n_updated_actions, action_size])
 
         surrogate_loss = torch.sum(action_gradients.mul(updated_actions))
@@ -391,7 +400,7 @@ class SoftQLPolicy(Policy):
         #assert_shape(kappa, [None, n_fixed_actions, n_updated_actions, 1])
         action_gradients = (kappa * grad_log_p + kernel_dict['gradient']).mean(dim=1)
 
-        gradients = 
+        #gradients = 
 
 
 
@@ -405,19 +414,30 @@ class SoftQLPolicy(Policy):
 
 
     def adaptive_isotropic_gaussian_kernel(self, xs, ys, h_min = 1e-3):
+        # fixed actions: batch_size, fixed_action_size, action_size
+        # updated actions: batch_size, updated_action_size, action_size
         _, Kx, D = xs.shape
         _, Ky, D2 = ys.shape
         assert D == D2
 
         leading_shape = xs.shape[:-2]
+        Kx, D = xs.shape[-2], xs.shape[-1]
+        Ky, D2 = ys.shape[-2], ys.shape[-1]
+        assert D == D2
+
+        #input shape: batch_size x fixed_action_size * updated_action_size
         input_shape = leading_shape + torch.Size([Kx * Ky])
 
         # Compute the pairwise distances of the left and right particles
         diff = torch.unsqueeze(xs, -2) - torch.unsqueeze(ys, -3)
+        # diff shape: batch_size x fixed_action_size x updated_action_size x action_size
         dist_sq = torch.sum(diff**2, axis=-1, keepdim=False)
+        # dist_sq shape: batch_size x fixed_action_size x updated_action_size
         values, _ = torch.topk(input = torch.reshape(dist_sq, input_shape),
                                 k = (Kx * Ky //2 + 1))
-        median_sq = values[..., -2]
+        
+        # median shape: batch 
+        median_sq = values[..., -1]
 
         h = median_sq / np.log(Kx)
         
@@ -425,12 +445,17 @@ class SoftQLPolicy(Policy):
         h[h < h_min] = h_min
         h_nograd = h.detach()
         h_expanded_twice = torch.unsqueeze(torch.unsqueeze(h_nograd, -1), -1)
+        # h_expanded_twice shape: batch_size x 1 x 1
 
         kappa = torch.exp(-dist_sq / h_expanded_twice)
+        # kappa shape: batch_size x fixed_action_size x updated_action_size
 
         h_expanded_thrice = torch.unsqueeze(h_expanded_twice, -1)
+        # h_expanded_thrice shape: batch_size x 1 x 1 x 1
         kappa_expanded = torch.unsqueeze(kappa, -1)
+        # kappa_expanded shape : batch_size x fixed_action_size x updated_action_size x 1
         kappa_grad = -2 * diff / h_expanded_thrice * kappa_expanded 
+        # kappa_grad shape: batch_size x fixed_aciton_size x updated_action_size x action_size
         return {"output": kappa, "gradient": kappa_grad}
 
 
@@ -439,6 +464,151 @@ class SoftQLPolicy(Policy):
         
 
 
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        ret = {
+            'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
+            'optimizer_q': self._optimizer_q.state_dict(),
+            'optimizer_policy': self._optimizer_policy.state_dict(),
+        }
+        if self._value_network:
+            ret.update({'optimizer_value': self._optimizer_value.state_dict()})
+        if self._auto_alpha:
+            ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
+        return ret
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
+        self._optimizer_q.load_state_dict(state_dict['optimizer_q'])
+        if self._value_network:
+            self._optimizer_value.load_state_dict(state_dict['optimizer_value'])
+        self._optimizer_policy.load_state_dict(state_dict['optimizer_policy'])
+        if self._auto_alpha:
+            self._alpha_optim.load_state_dict(state_dict['optimizer_alpha'])
+
+    def _init_collect(self) -> None:
+        r"""
+        Overview:
+            Collect mode init method. Called by ``self.__init__``.
+            Init traj and unroll length, collect model.
+            Use action noise for exploration.
+        """
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._collect_model = model_wrap(self._model, wrapper_name='base')
+        self._collect_model.reset()
+
+    def _forward_collect(self, data: dict) -> dict:
+        r"""
+        Overview:
+            Forward function of collect mode.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): Dict type data, including at least inferred action according to input obs.
+        ReturnsKeys
+            - necessary: ``action``
+            - optional: ``logit``
+        """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._collect_model.eval()
+        with torch.no_grad():
+            (mu, sigma) = self._collect_model.forward(data, mode='compute_actor')['logit']
+            dist = Independent(Normal(mu, sigma), 1)
+            action = torch.tanh(dist.rsample())
+            output = {'logit': (mu, sigma), 'action': action}
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _process_transition(self, obs: Any, policy_output: dict, timestep: namedtuple) -> dict:
+        r"""
+        Overview:
+            Generate dict type transition data from inputs.
+        Arguments:
+            - obs (:obj:`Any`): Env observation
+            - policy_output (:obj:`dict`): Output of policy collect model, including at least ['action']
+            - timestep (:obj:`namedtuple`): Output after env step, including at least ['obs', 'reward', 'done'] \
+                (here 'obs' indicates obs after env step, i.e. next_obs).
+        Return:
+            - transition (:obj:`Dict[str, Any]`): Dict type transition data.
+        """
+        transition = {
+            'obs': obs,
+            'next_obs': timestep.obs,
+            'action': policy_output['action'],
+            'reward': timestep.reward,
+            'done': timestep.done,
+        }
+        return transition
+
+    def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        return get_train_sample(data, self._unroll_len)
+
+    def _init_eval(self) -> None:
+        r"""
+        Overview:
+            Evaluate mode init method. Called by ``self.__init__``.
+            Init eval model. Unlike learn and collect model, eval model does not need noise.
+        """
+        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.reset()
+
+    def _forward_eval(self, data: dict) -> dict:
+        r"""
+        Overview:
+            Forward function of eval mode, similar to ``self._forward_collect``.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ReturnsKeys
+            - necessary: ``action``
+            - optional: ``logit``
+        """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
+        with torch.no_grad():
+            (mu, sigma) = self._eval_model.forward(data, mode='compute_actor')['logit']
+            action = torch.tanh(mu)  # deterministic_eval
+            output = {'action': action}
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'qac', ['ding.model.template.qac']
+
+    def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
+        twin_critic = ['twin_critic_loss'] if self._twin_critic else []
+        alpha_loss = ['alpha_loss'] if self._auto_alpha else []
+        value_loss = ['value_loss'] if self._value_network else []
+        return [
+            'alpha_loss',
+            'policy_loss',
+            'critic_loss',
+            'cur_lr_q',
+            'cur_lr_p',
+            'target_q_value',
+            'alpha',
+            'td_error',
+        ] + twin_critic + alpha_loss + value_loss
 
 
         

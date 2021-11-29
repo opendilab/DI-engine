@@ -28,7 +28,7 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 from .sql import SQLPolicy
-
+from .csql import ContinousSoftQLPolicy
 from .dqfd import DQFDPolicy
 from .r2d3 import R2D3Policy
 
@@ -275,4 +275,8 @@ class NGUCommandModePolicy(NGUPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('d4pg_command')
 class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):
+    pass
+
+@POLICY_REGISTRY.register('csql_command')
+class CSQLCommandModePolicy(ContinousSoftQLPolicy, DummyCommandModePolicy):
     pass
