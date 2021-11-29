@@ -173,7 +173,7 @@ def sample_profiler(buffer, print_per_step=1, async_mode=False):
     return async_sample_profiler if async_mode else _sample_profiler
 
 
-def step_profiler(step_name, silent=False):
+def step_profiler(step_name, silent=False, print_per_step=1):
     records = deque(maxlen=10)
 
     def _step_wrapper(fn):
@@ -196,7 +196,7 @@ def step_profiler(step_name, silent=False):
             else:
                 time_cost = time.time() - start_time
             records.append(time_cost * 1000)
-            if not silent:
+            if not silent and ctx.total_step % print_per_step == 0:
                 print(
                     "    Step Profiler {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
                         step_name, time_cost * 1000, np.mean(records)
@@ -243,12 +243,16 @@ def main(cfg, create_cfg, seed=0):
     model = QAC(**cfg.policy.model)
     replay_buffer = DequeBuffer()
 
-    task = Task(async_mode=False, n_async_workers=3, parallel_mode=False, n_parallel_workers=2, attach_to=[])
+    task = Task(async_mode=False, parallel_mode=False, n_parallel_workers=2, attach_to=[])
     sac = SACPipeline(cfg, model)
 
     task.use(sac.evaluate(evaluator_env))
-    task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)))
-    task.use(sac.learn(replay_buffer, task=task))
+    task.use(
+        step_profiler("collect", silent=False, print_per_step=10)(
+            task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task))
+        )
+    )
+    task.use(step_profiler("learn", silent=False, print_per_step=10)(sac.learn(replay_buffer, task=task)))
 
     start = time.time()
     task.run(max_step=10000)
@@ -256,4 +260,6 @@ def main(cfg, create_cfg, seed=0):
 
 
 if __name__ == "__main__":
+    from ding.utils import profiler
+    profiler()
     main(main_config, create_config)
