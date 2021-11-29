@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    exp_name='debug_pendulum_ul50_rbs2e3_seed0',
+    exp_name='debug_pendulum_ul50_bs64_rbs2e3_seed0',
     seed=0,
     env=dict(
         # collector_env_num=10,
@@ -26,11 +26,11 @@ pendulum_acer_config = dict(
         learn=dict(
             # grad_clip_type=None,
             # clip_value=None,
-            grad_clip_type='clip_norm',
-            clip_value=0.5,
+            # grad_clip_type='clip_norm',
+            # clip_value=0.5,
             multi_gpu=False,
             update_per_collect=4,
-            batch_size=16,
+            batch_size=64,#16,
             unroll_len=50,
             # unroll_len=32,
             # value_weight=0.5,

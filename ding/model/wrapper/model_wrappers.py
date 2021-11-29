@@ -7,6 +7,7 @@ from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
 from ding.torch_utils.math_helper import OrnsteinUhlenbeckProcess
 from torch.distributions import Categorical
+from torch.distributions import Normal, Independent
 
 
 class IModelWrapper(ABC):
@@ -250,27 +251,36 @@ class MultinomialSampleWrapper(IModelWrapper):
         output['action'] = action
         return output
 
+
 class NormalNoisySampleWrapper(IModelWrapper):
-    
     r"""
     Overview:
         Used to helper the model get the corresponding action from the output['mu','sigma']
     Interfaces:
         register
     """
+
     def forward(self, noise_ratio: float = 0.1, *args, **kwargs):
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         (mu, sigma) = output['logit']
-        OUProcessNoise = OrnsteinUhlenbeckProcess()
-        batch_size = mu.shape[0]
-        action_size = mu.shape[1]
-        action_sample = torch.normal(mu, sigma)
+        # OUProcessNoise = OrnsteinUhlenbeckProcess()
+        # batch_size = mu.shape[0]
+        # action_size = mu.shape[1]
+        # action_sample = torch.normal(mu, sigma)
+        # sigma = torch.clamp(sigma, 0, 2)  #  TODO(pu)
+
+        dist = Independent(Normal(mu.unsqueeze(-1), sigma.unsqueeze(-1)), 1)
+        action_sample = dist.rsample()
+        output['action_pred'] = action_sample.squeeze(-1)
+        action_sample = torch.tanh(action_sample).squeeze(-1)
         # size (B, action_size)
-        noise = OUProcessNoise.sample((batch_size, action_size))
+        # noise = OUProcessNoise.sample((batch_size, action_size))
         # noise_action_sample size (B, action_size)
-        noise_action_sample = noise_ratio * noise + (1. - noise_ratio) * action_sample
-        output['action'] = noise_action_sample
+        # noise_action_sample = noise_ratio * noise + (1. - noise_ratio) * action_sample
+        # output['action'] = noise_action_sample
+        output['action'] = action_sample
+
         return output
 
 
@@ -662,6 +672,7 @@ class TeacherNetworkWrapper(IModelWrapper):
     def __init__(self, model, teacher_cfg):
         super().__init__(model)
         self._model._teacher_cfg = teacher_cfg
+
 
 wrapper_name_map = {
     'base': BaseModelWrapper,
