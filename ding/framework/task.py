@@ -1,11 +1,10 @@
 from collections import defaultdict
 import logging
-import copy
 import time
 import asyncio
 import concurrent.futures
 from types import GeneratorType
-from typing import Awaitable, Callable, Generator, List, Optional
+from typing import Awaitable, Callable, Dict, Generator, List, Optional, Union
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 
@@ -55,7 +54,9 @@ class Task:
             async_mode: bool = False,
             n_async_workers: int = 1,
             middleware: List[Callable] = None,
-            event_listeners: Optional[defaultdict] = None,
+            event_listeners: Dict[str, List] = None,
+            once_listeners: Dict[str, List] = None,
+            attach_callback: Callable = None,
             *args,
             **kwargs
     ) -> None:
@@ -70,23 +71,29 @@ class Task:
         self._loop = None
         self._thread_pool = None
         self.event_listeners = event_listeners or defaultdict(list)
+        self.once_listeners = once_listeners or defaultdict(list)
 
+        # Parallel segment
         self.router = Parallel()
         if async_mode or self.router.is_subprocess:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             self._loop = asyncio.new_event_loop()
 
         if self.router.is_subprocess:
-            self.router.register_rpc("sync_parallel_ctx", self.sync_parallel_ctx)
-            self.check_attach_mode()
+            self.router.register_rpc("task.emit", self.emit)
 
-    def use(self, fn: Callable) -> 'Task':
+        if attach_callback:
+            self.wait_for_attach_callback(attach_callback)
+
+    def use(self, fn: Callable, filter_node: Optional[Callable] = None) -> 'Task':
         """
         Overview:
             Register middleware to task. The middleware will be executed by it's registry order.
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
         """
+        if self.router.is_subprocess and filter_node and not filter_node(self.router.node_id):
+            return self
         self.middleware.append(fn)
         return self
 
@@ -100,7 +107,7 @@ class Task:
         """
         if len(self.middleware) == 0:
             return
-        while self.ctx.total_step < max_step:
+        for _ in range(max_step):
             for fn in self.middleware:
                 self.forward(fn)
             self.backward()
@@ -179,15 +186,10 @@ class Task:
         old_ctx = self.ctx
         if self.router.is_subprocess:
             # Send context to other parallel processes
-            # The maximum number of iterations is estimated from the total number of all processes
-            # Set current total step to real step in the cluster
-            prev_total_step = old_ctx.get("prev") and old_ctx.get("prev").total_step or -1
-            old_ctx.total_step = max(old_ctx.total_step, prev_total_step + 1)
-            self.async_executor(self.router.send_rpc, "sync_parallel_ctx", old_ctx)
+            self.async_executor(self.router.send_rpc, "task.emit", "sync_parallel_ctx", old_ctx)
 
         new_ctx = old_ctx.renew()
         new_ctx.total_step = old_ctx.total_step + 1
-        new_ctx.prev = self._inherit_ctx(old_ctx, old_ctx.prev) if old_ctx.get("prev") else old_ctx
         self.ctx = new_ctx
         return self
 
@@ -212,32 +214,30 @@ class Task:
             t = self._async_stack.pop(0)
             await t
 
-    def check_attach_mode(self, n_timeout: int = 30):
+    def wait_for_attach_callback(self, attach_callback: Callable, n_timeout: int = 30):
         if len(self.router.attach_to) > 0:
             logging.warning(
                 "The attach mode will wait for the latest context, an exception will \
 be thrown after the timeout {}s is reached".format(n_timeout)
             )
             is_timeout = True
+            ctx = None
+
+            def on_sync_parallel_ctx(new_ctx):
+                nonlocal ctx
+                ctx = new_ctx
+
+            self.once("sync_parallel_ctx", on_sync_parallel_ctx)
             for _ in range(n_timeout * 10):
-                if self.ctx.get("prev"):
+                if ctx:
                     is_timeout = False
-                    self.ctx = self.ctx.prev
-                    self.ctx.total_step += 1
                     break
                 time.sleep(0.1)
             if is_timeout:
-                # The attach mode does not allow to start from step 0 alone,
+                # If attach callback is defined, the attach mode should wait for callback finished,
                 # otherwise it may overwrite the training results of other processes
                 raise TimeoutError("Attach timeout, not received the latest context.")
-
-    def sync_parallel_ctx(self, ctx: Context):
-        for fn in self.event_listeners["sync_parallel_ctx"]:
-            fn(ctx)
-        if self.ctx.get("prev") and self.ctx.prev.total_step > ctx.total_step:
-            self.ctx.prev = self._inherit_ctx(self.ctx.prev, ctx)
-        else:
-            self.ctx.prev = self._inherit_ctx(ctx, self.ctx.get("prev") or Context())
+            attach_callback(ctx)
 
     def async_executor(self, fn: Callable, *args, **kwargs) -> None:
         """
@@ -251,8 +251,20 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         t = self._loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
         self._async_stack.append(t)
 
+    def emit(self, event_name, *args, **kwargs):
+        if event_name in self.event_listeners:
+            for fn in self.event_listeners[event_name]:
+                fn(*args, **kwargs)
+        if event_name in self.once_listeners:
+            while self.once_listeners[event_name]:
+                fn = self.once_listeners[event_name].pop()
+                fn(*args, **kwargs)
+
     def on(self, event: str, fn: Callable) -> None:
         self.event_listeners[event].append(fn)
+
+    def once(self, event: str, fn: Callable) -> None:
+        self.once_listeners[event].append(fn)
 
     @property
     def finish(self) -> bool:
@@ -261,23 +273,6 @@ be thrown after the timeout {}s is reached".format(n_timeout)
             Link the ctx's finish state, in order to be easily called externally.
         """
         return self.ctx._finish
-
-    def _inherit_ctx(self, new_: Context, old: Context) -> Context:
-        """
-        Overview:
-            Overwrite old context with new properies, If the key does not exist in the new context,
-            the attributes in old are retained.
-        Arguments:
-            - new_ (:obj:`Context`): New context.
-            - old (:obj:`Context`): Old context.
-        Returns:
-            - child (:obj:`Context`): The heir.
-        """
-        for key, value in new_.items():
-            old[key] = value
-        if "prev" in old:
-            del old["prev"]
-        return old
 
     def __copy__(self):
         return Task(**self.__dict__)

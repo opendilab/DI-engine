@@ -9,11 +9,10 @@ class Context(dict):
         any properties as you wish.
     """
 
-    def __init__(self, total_step: int = 0, prev: Optional["Context"] = None, *args, **kwargs) -> None:
+    def __init__(self, total_step: int = 0, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.__dict__ = self
-        self.total_step = total_step  # Total steps
-        self.prev = prev
+        self.total_step = total_step
 
         # Reserved properties
         self._finish = False
@@ -64,7 +63,7 @@ class Context(dict):
     def __getstate__(self):
         _ctx = {}
         for key, value in self.items():
-            if key in ["_hooks_after_renew", "prev"]:
+            if key in ["_hooks_after_renew"]:
                 continue
             _ctx[key] = value
         return _ctx

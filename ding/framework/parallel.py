@@ -1,6 +1,7 @@
 import atexit
 import os
 import random
+import threading
 import time
 from mpire.pool import WorkerPool
 import pynng
@@ -9,8 +10,6 @@ import pickle
 import logging
 import tempfile
 import socket
-import multiprocessing as mp
-from multiprocessing import Process
 from os import path
 from typing import Callable, Dict, List, Optional, Tuple, Union
 from threading import Thread
@@ -29,11 +28,13 @@ class Parallel(metaclass=SingletonMetaclass):
         self._sock: Socket = None
         self._rpc = {"echo": self.echo}
         self._bind_addr = None
+        self._lock = threading.Lock()
         self.is_subprocess = False
         self.attach_to = None
         self.finished = False
 
-    def run(self, listen_to: str, attach_to: List[str] = None) -> None:
+    def run(self, node_id: int, listen_to: str, attach_to: List[str] = None) -> None:
+        self.node_id = node_id
         self.attach_to = attach_to = attach_to or []
         self._listener = Thread(
             target=self.listen,
@@ -42,10 +43,9 @@ class Parallel(metaclass=SingletonMetaclass):
                 "attach_to": attach_to
             },
             name="paralllel_listener",
-            daemon=False
+            daemon=True
         )
         self._listener.start()
-        # time.sleep(0.1)
 
     @staticmethod
     def runner(
@@ -91,7 +91,11 @@ class Parallel(metaclass=SingletonMetaclass):
             params_group = []
             for node_id in range(n_parallel_workers):
                 runner_args = []
-                runner_kwargs = {"listen_to": nodes[node_id], "attach_to": nodes[:node_id] + attach_to}
+                runner_kwargs = {
+                    "node_id": node_id,
+                    "listen_to": nodes[node_id],
+                    "attach_to": nodes[:node_id] + attach_to
+                }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
                 params_group.append(params)
 
@@ -162,7 +166,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
                         logging.warning("Timeout on node {} when waiting for message from bus".format(self._bind_addr))
                     except pynng.Closed:
                         if not self.finished:
-                            logging.error("The socket is not closed under normal circumstances!")
+                            logging.error("The socket was not closed under normal circumstances!")
                         break
                     except Exception as e:
                         logging.error("Meet exception when listening for new messages", e)
@@ -216,5 +220,6 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def stop(self):
         logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
         self.finished = True
+        time.sleep(0.03)
         self._sock.close()
-        self._listener.join()
+        self._listener.join(timeout=1)

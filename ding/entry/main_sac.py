@@ -44,6 +44,18 @@ class DequeBuffer:
         return len(self.memory)
 
 
+class Differential:
+    """
+    Sync train/collect/evaluate speed
+    """
+
+    def __init__(self, buffer, collect_env) -> None:
+        pass
+
+    def __call__(self, ctx) -> None:
+        pass
+
+
 class SACPipeline:
 
     def __init__(self, cfg, model: torch.nn.Module):
@@ -141,7 +153,7 @@ class SACPipeline:
         return _eval
 
 
-def sample_profiler(buffer, print_per_step=1, async_mode=False):
+def sample_profiler(buffer, print_per_step=1):
     start_time = None
     start_counter = 0
     start_step = 0
@@ -166,14 +178,11 @@ def sample_profiler(buffer, print_per_step=1, async_mode=False):
             )
             start_time, start_counter, start_step = end_time, end_counter, end_step
 
-    async def async_sample_profiler(ctx):
-        _sample_profiler(ctx)
-
-    return async_sample_profiler if async_mode else _sample_profiler
+    return _sample_profiler
 
 
 def step_profiler(step_name, silent=False, print_per_step=1):
-    records = deque(maxlen=100)
+    records = deque(maxlen=print_per_step * 5)
 
     def _step_wrapper(fn):
         # Wrap step function
@@ -246,20 +255,28 @@ def main(cfg, create_cfg, seed=0):
 
     start = time.time()
     with Task(async_mode=False) as task:
-        task.use(step_profiler("evaluate", silent=False, print_per_step=100)(sac.evaluate(evaluator_env)))
+        task.use(sample_profiler(replay_buffer, print_per_step=100))
+        task.use(
+            step_profiler("evaluate", silent=False, print_per_step=100)(sac.evaluate(evaluator_env)),
+            filter_node=lambda node_id: node_id % 2 == 1
+        )
         task.use(
             step_profiler("collect", silent=False, print_per_step=100)(
                 task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task))
             )
         )
-        task.use(step_profiler("learn", silent=False, print_per_step=100)(sac.learn(replay_buffer, task=task)))
+        task.use(
+            step_profiler("learn", silent=False, print_per_step=100)(sac.learn(replay_buffer, task=task)),
+            filter_node=lambda node_id: node_id % 8 == 0
+        )
 
-        task.run(max_step=100)
+        print(task.middleware)
+        task.run(max_step=10000)
     print("Total time cost: {:.2f}s".format(time.time() - start))
 
 
 if __name__ == "__main__":
     # from ding.utils import profiler
     # profiler()
-    # main(main_config, create_config)
-    Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
+    main(main_config, create_config)
+    # Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
