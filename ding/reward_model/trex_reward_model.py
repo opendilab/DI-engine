@@ -23,6 +23,8 @@ from torch.distributions import Normal, Independent
 from ding.utils.data import offline_data_save_type
 from copy import deepcopy
 from ding.utils import build_logger
+from typing import Tuple, Optional
+
 
 
 class ConvEncoder(nn.Module):
@@ -33,28 +35,74 @@ class ConvEncoder(nn.Module):
         ``__init__``, ``forward``
     """
 
-    def __init__(self, ) -> None:
+    def __init__(
+            self,
+            obs_shape: SequenceType,
+            hidden_size_list: SequenceType = [16, 16, 16, 16, 64, 1],
+            activation: Optional[nn.Module] = nn.LeakyReLU(),
+            norm_type: Optional[str] = None
+    ) -> None:
+        r"""
+        Overview:
+            Init the Convolution Encoder according to arguments.
+        Arguments:
+            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, some ``output size``
+            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``
+            - activation (:obj:`nn.Module`):
+                The type of activation to use in the conv ``layers``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`str`):
+                The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details
+        """
         super(ConvEncoder, self).__init__()
-        self.conv1 = nn.Conv2d(4, 16, 7, stride=3)
-        self.conv2 = nn.Conv2d(16, 16, 5, stride=2)
-        self.conv3 = nn.Conv2d(16, 16, 3, stride=1)
-        self.conv4 = nn.Conv2d(16, 16, 3, stride=1)
-        self.fc1 = nn.Linear(784, 64)
-        self.fc2 = nn.Linear(64, 1)
-        self.act = nn.LeakyReLU()
+        self.obs_shape = obs_shape
+        self.act = activation
+        self.hidden_size_list = hidden_size_list
+
+        layers = []
+        kernel_size = [7, 5, 3, 3]
+        stride = [3, 2, 1, 1]
+        input_size = obs_shape[0]  # in_channel
+        for i in range(len(kernel_size)):
+            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i]))
+            layers.append(self.act)
+            input_size = hidden_size_list[i]
+        layers.append(nn.Flatten())
+        self.main = nn.Sequential(*layers)
+
+        flatten_size = self._get_flatten_size()
+        self.mid = nn.Sequential(
+            nn.Linear(flatten_size, hidden_size_list[-2]), self.act,
+            nn.Linear(hidden_size_list[-2], hidden_size_list[-1])
+        )
+
+    def _get_flatten_size(self) -> int:
+        r"""
+        Overview:
+            Get the encoding size after ``self.main`` to get the number of ``in-features`` to feed to ``nn.Linear``.
+        Arguments:
+            - x (:obj:`torch.Tensor`): Encoded Tensor after ``self.main``
+        Returns:
+            - outputs (:obj:`torch.Tensor`): Size int, also number of in-feature
+        """
+        test_data = torch.randn(1, *self.obs_shape)
+        with torch.no_grad():
+            output = self.main(test_data)
+        return output.shape[1]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        r"""
+        Overview:
+            Return embedding tensor of the env observation
+        Arguments:
+            - x (:obj:`torch.Tensor`): Env raw observation
+        Returns:
+            - outputs (:obj:`torch.Tensor`): Embedding tensor
+        """
         x = x.permute(0, 3, 1, 2)  # get into NCHW format
-        # compute forward pass of reward network (we parallelize across frames so
-        # batch size is length of partial trajectory)
-        x = self.act(self.conv1(x))
-        x = self.act(self.conv2(x))
-        x = self.act(self.conv3(x))
-        x = self.act(self.conv4(x))
-        x = x.reshape(-1, 784)
-        x = self.act(self.fc1(x))
-        r = self.fc2(x)
-        return r
+        x = self.main(x)
+        x = self.mid(x)
+        return x
 
 
 class TrexModel(nn.Module):
@@ -62,24 +110,29 @@ class TrexModel(nn.Module):
     def __init__(self, obs_shape):
         super(TrexModel, self).__init__()
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.encoder = FCEncoder(obs_shape, [512, 64])
+            self.encoder = nn.Sequential(FCEncoder(obs_shape, [512, 64]), nn.Linear(64, 1))
         # Conv Encoder
         elif len(obs_shape) == 3:
-            self.encoder = ConvEncoder()
+            self.encoder = ConvEncoder(obs_shape)
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own Trex model".
                 format(obs_shape)
             )
 
-    def cum_return(self, traj):
+    def cum_return(self, traj: torch.Tensor, mode: str = 'sum') -> Tuple[torch.Tensor, torch.Tensor]:
         '''calculate cumulative return of trajectory'''
         r = self.encoder(traj)
-        sum_rewards = torch.sum(r)
-        sum_abs_rewards = torch.sum(torch.abs(r))
-        return sum_rewards, sum_abs_rewards
+        if mode == 'sum':
+            sum_rewards = torch.sum(r)
+            sum_abs_rewards = torch.sum(torch.abs(r))
+            return sum_rewards, sum_abs_rewards
+        elif mode == 'batch':
+            return r, torch.abs(r)
+        else:
+            raise KeyError("not support mode: {}, please choose mode=sum or mode=batch".format(mode))
 
-    def forward(self, traj_i, traj_j):
+    def forward(self, traj_i: torch.Tensor, traj_j: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         '''compute cumulative return for each trajectory and return logits'''
         cum_r_i, abs_r_i = self.cum_return(traj_i)
         cum_r_j, abs_r_j = self.cum_return(traj_j)
@@ -98,10 +151,8 @@ class TrexRewardModel(BaseRewardModel):
     config = dict(
         type='trex',
         learning_rate=1e-5,
-        # expert_data_path='expert_data.pkl'
         update_per_collect=100,
         batch_size=64,
-        # input_size=4,
         target_new_data_count=64,
         hidden_size=128,
     )
@@ -425,6 +476,9 @@ class TrexRewardModel(BaseRewardModel):
         num_demos = len(demonstrations)
 
         #add full trajs (for use on Enduro)
+        si = np.random.randint(6, size=num_trajs)
+        sj = np.random.randint(6, size=num_trajs)
+        step = np.random.randint(3, 7, size=num_trajs)
         for n in range(num_trajs):
             ti = 0
             tj = 0
@@ -434,12 +488,8 @@ class TrexRewardModel(BaseRewardModel):
                 ti = np.random.randint(num_demos)
                 tj = np.random.randint(num_demos)
             #create random partial trajs by finding random start frame and random skip frame
-            si = np.random.randint(6)
-            sj = np.random.randint(6)
-            step = np.random.randint(3, 7)
-
-            traj_i = demonstrations[ti][si::step]  # slice(start,stop,step)
-            traj_j = demonstrations[tj][sj::step]
+            traj_i = demonstrations[ti][si[n]::step[n]]  # slice(start,stop,step)
+            traj_j = demonstrations[tj][sj[n]::step[n]]
 
             label = int(ti <= tj)
 
@@ -448,6 +498,7 @@ class TrexRewardModel(BaseRewardModel):
             max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
 
         #fixed size snippets with progress prior
+        rand_length = np.random.randint(min_snippet_length, max_snippet_length, size=num_snippets)
         for n in range(num_snippets):
             ti = 0
             tj = 0
@@ -460,17 +511,17 @@ class TrexRewardModel(BaseRewardModel):
             #find min length of both demos to ensure we can pick a demo no earlier
             #than that chosen in worse preferred demo
             min_length = min(len(demonstrations[ti]), len(demonstrations[tj]))
-            rand_length = np.random.randint(min_snippet_length, max_snippet_length)
             if ti < tj:  # pick tj snippet to be later than ti
-                ti_start = np.random.randint(min_length - rand_length + 1)
+                ti_start = np.random.randint(min_length - rand_length[n] + 1)
                 # print(ti_start, len(demonstrations[tj]))
-                tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - rand_length + 1)
+                tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - rand_length[n] + 1)
             else:  # ti is better so pick later snippet in ti
-                tj_start = np.random.randint(min_length - rand_length + 1)
+                tj_start = np.random.randint(min_length - rand_length[n] + 1)
                 # print(tj_start, len(demonstrations[ti]))
-                ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - rand_length + 1)
-            traj_i = demonstrations[ti][ti_start:ti_start + rand_length:2]  # skip everyother framestack to reduce size
-            traj_j = demonstrations[tj][tj_start:tj_start + rand_length:2]
+                ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - rand_length[n] + 1)
+            traj_i = demonstrations[ti][ti_start:ti_start + rand_length[n]:2
+                                        ]  # skip everyother framestack to reduce size
+            traj_j = demonstrations[tj][tj_start:tj_start + rand_length[n]:2]
 
             max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
             label = int(ti <= tj)
@@ -494,7 +545,8 @@ class TrexRewardModel(BaseRewardModel):
             np.random.shuffle(training_data)
             training_obs, training_labels = zip(*training_data)
             for i in range(len(training_labels)):
-                traj_i, traj_j = training_obs[i]
+                traj_i, traj_j = training_obs[
+                    i]  # traj_i, traj_j has the same length, however, they change as i increases
                 labels = np.array([training_labels[i]])
                 traj_i = np.array(traj_i)
                 traj_j = np.array(traj_j)
@@ -590,14 +642,10 @@ class TrexRewardModel(BaseRewardModel):
             pass
         elif len(self.cfg.policy.model.get('obs_shape')) == 3:
             res = res.permute(0, 3, 2, 1)
-        reward = []
         with torch.no_grad():
-            for i in range(res.shape[0]):
-                sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res)
-                reward.append(sum_rewards)  # cpu?
-        #sum_rewards = torch.chunk(reward, reward.shape[0], dim=0)
-        sum_rewards = torch.stack(reward)
-        for item, rew in zip(data, sum_rewards):
+            sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res, mode='batch')
+
+        for item, rew in zip(data, sum_rewards):  # TODO optimise this loop as well ?
             item['reward'] = rew
 
     def collect_data(self, data: list) -> None:

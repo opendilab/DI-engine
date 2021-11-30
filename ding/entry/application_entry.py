@@ -4,12 +4,13 @@ import torch
 from functools import partial
 
 from ding.config import compile_config, read_config
-from ding.worker import SampleSerialCollector, InteractionSerialEvaluator
+from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, EpisodeSerialCollector
 from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
 from ding.torch_utils import to_device
 from ding.utils import set_pkg_seed
 from ding.utils.data import offline_data_save_type
+from ding.rl_utils import get_nstep_return_data
 
 
 def eval(
@@ -148,3 +149,95 @@ def collect_demo_data(
     # Save data transitions.
     offline_data_save_type(exp_data, expert_data_path, data_type=cfg.policy.collect.get('data_type', 'naive'))
     print('Collect demo data successfully')
+
+
+def collect_episodic_demo_data(
+        input_cfg: Union[str, dict],
+        seed: int,
+        collect_count: int,
+        expert_data_path: str,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        state_dict: Optional[dict] = None,
+        state_dict_path: Optional[str] = None,
+) -> None:
+    r"""
+    Overview:
+        Collect episodic demonstration data by the trained policy.
+    Arguments:
+        - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
+            ``str`` type means config file path. \
+            ``Tuple[dict, dict]`` type means [user_config, create_cfg].
+        - seed (:obj:`int`): Random seed.
+        - collect_count (:obj:`int`): The count of collected data.
+        - expert_data_path (:obj:`str`): File path of the expert demo data will be written to.
+        - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
+            ``BaseEnv`` subclass, collector env config, and evaluator env config.
+        - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
+        - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
+    """
+    if isinstance(input_cfg, str):
+        cfg, create_cfg = read_config(input_cfg)
+    else:
+        cfg, create_cfg = input_cfg
+    create_cfg.policy.type += '_command'
+    env_fn = None if env_setting is None else env_setting[0]
+    cfg = compile_config(
+        cfg,
+        collector=EpisodeSerialCollector,
+        seed=seed,
+        env=env_fn,
+        auto=True,
+        create_cfg=create_cfg,
+        save_cfg=True,
+        save_path='collect_demo_data_config.py'
+    )
+
+    # Create components: env, policy, collector
+    if env_setting is None:
+        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env)
+    else:
+        env_fn, collector_env_cfg, _ = env_setting
+    collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
+    collector_env.seed(seed)
+    set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
+    policy = create_policy(cfg.policy, model=model, enable_field=['collect', 'eval'])
+    collect_demo_policy = policy.collect_mode
+    if state_dict is None:
+        assert state_dict_path is not None
+        state_dict = torch.load(state_dict_path, map_location='cpu')
+    policy.collect_mode.load_state_dict(state_dict)
+    collector = EpisodeSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
+
+    policy_kwargs = None if not hasattr(cfg.policy.other.get('eps', None), 'collect') \
+        else {'eps': cfg.policy.other.eps.get('collect', 0.2)}
+
+    # Let's collect some expert demostrations
+    exp_data = collector.collect(n_episode=collect_count, policy_kwargs=policy_kwargs)
+    if cfg.policy.cuda:
+        exp_data = to_device(exp_data, 'cpu')
+    # Save data transitions.
+    offline_data_save_type(exp_data, expert_data_path, data_type=cfg.policy.collect.get('data_type', 'naive'))
+    print('Collect episodic demo data successfully')
+
+
+def epsiode_to_transitions(data_path: str, expert_data_path: str, nstep: int) -> None:
+    r"""
+    Overview:
+        Transfer episoded data into nstep transitions
+    Arguments:
+        - data_path (:obj:str): data path that stores the pkl file
+        - expert_data_path (:obj:`str`): File path of the expert demo data will be written to.
+        - nstep (:obj:`int`): {s_{t}, a_{t}, s_{t+n}}.
+
+    """
+    with open(data_path, 'rb') as f:
+        _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
+    post_process_data = []
+    for i in range(len(_dict)):
+        data = get_nstep_return_data(_dict[i + 1], nstep)
+        post_process_data.extend(data)
+    offline_data_save_type(
+        post_process_data,
+        expert_data_path,
+    )
