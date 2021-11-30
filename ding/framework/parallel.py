@@ -29,7 +29,7 @@ class Parallel(metaclass=SingletonMetaclass):
         self._rpc = {"echo": self.echo}
         self._bind_addr = None
         self._lock = threading.Lock()
-        self.is_subprocess = False
+        self.is_active = False
         self.attach_to = None
         self.finished = False
 
@@ -68,6 +68,7 @@ class Parallel(metaclass=SingletonMetaclass):
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
         attach_to = attach_to or []
+        assert n_parallel_workers > 0, "Parallel worker number should bigger than 0"
 
         def _runner(main_process: Callable, *args, **kwargs) -> None:
             """
@@ -99,10 +100,13 @@ class Parallel(metaclass=SingletonMetaclass):
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
                 params_group.append(params)
 
-            with WorkerPool(n_jobs=n_parallel_workers, start_method="spawn") as pool:
-                # Cleanup the pool just in case the program crashes.
-                atexit.register(pool.__exit__)
-                pool.map(Parallel.subprocess_runner, params_group)
+            if n_parallel_workers == 1:
+                Parallel.subprocess_runner(*params_group[0])
+            else:
+                with WorkerPool(n_jobs=n_parallel_workers, start_method="spawn") as pool:
+                    # Cleanup the pool just in case the program crashes.
+                    atexit.register(pool.__exit__)
+                    pool.map(Parallel.subprocess_runner, params_group)
 
         return _runner
 
@@ -119,7 +123,7 @@ class Parallel(metaclass=SingletonMetaclass):
         runner_args, runner_kwargs = runner_params
 
         router = Parallel()
-        router.is_subprocess = True
+        router.is_active = True
         router.run(*runner_args, **runner_kwargs)
         main_process(*args, **kwargs)
         router.stop()
@@ -185,12 +189,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         self._rpc[fn_name] = fn
 
     def send_rpc(self, func_name: str, *args, **kwargs) -> None:
-        if self.is_subprocess:
+        if self.is_active:
             payload = {"f": func_name, "a": args, "k": kwargs}
             return self._sock and self._sock.send(pickle.dumps(payload))
 
     async def asend_rpc(self, func_name: str, *args, **kwargs) -> None:
-        if self.is_subprocess:
+        if self.is_active:
             msg = {"f": func_name, "a": args, "k": kwargs}
             return await self._sock.asend(pickle.dumps(msg))
 

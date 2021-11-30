@@ -75,15 +75,14 @@ class Task:
 
         # Parallel segment
         self.router = Parallel()
-        if async_mode or self.router.is_subprocess:
+        if async_mode or self.router.is_active:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             self._loop = asyncio.new_event_loop()
 
-        if self.router.is_subprocess:
+        if self.router.is_active:
             self.router.register_rpc("task.emit", self.emit)
-
-        if attach_callback:
-            self.wait_for_attach_callback(attach_callback)
+            if attach_callback:
+                self.wait_for_attach_callback(attach_callback)
 
     def use(self, fn: Callable, filter_node: Optional[Callable] = None) -> 'Task':
         """
@@ -92,7 +91,7 @@ class Task:
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
         """
-        if self.router.is_subprocess and filter_node and not filter_node(self.router.node_id):
+        if self.router.is_active and filter_node and not filter_node(self.router.node_id):
             return self
         self.middleware.append(fn)
         return self
@@ -184,7 +183,7 @@ class Task:
         self.sync()
         # Renew context
         old_ctx = self.ctx
-        if self.router.is_subprocess:
+        if self.router.is_active:
             # Send context to other parallel processes
             self.async_executor(self.router.send_rpc, "task.emit", "sync_parallel_ctx", old_ctx)
 

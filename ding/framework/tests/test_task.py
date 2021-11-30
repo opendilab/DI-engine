@@ -1,4 +1,6 @@
 from concurrent.futures import thread
+from os import spawnl
+from attr.validators import instance_of
 import pytest
 import time
 import copy
@@ -7,6 +9,7 @@ from mpire import WorkerPool
 from ding.framework import Task
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
+from ding.utils.design_helper import SingletonMetaclass
 
 
 @pytest.mark.unittest
@@ -174,18 +177,21 @@ def attach_mode_main(job):
         )(attach_mode_main_task)
     elif "run_attach_task":
         time.sleep(0.3)
-        Parallel.runner(
-            n_parallel_workers=1,
-            protocol="tcp",
-            address="127.0.0.1",
-            ports=[50503],
-            attach_to=["tcp://127.0.0.1:50501", "tcp://127.0.0.1:50502"]
-        )(attach_mode_attach_task)
+        try:
+            Parallel.runner(
+                n_parallel_workers=1,
+                protocol="tcp",
+                address="127.0.0.1",
+                ports=[50503],
+                attach_to=["tcp://127.0.0.1:50501", "tcp://127.0.0.1:50502"]
+            )(attach_mode_attach_task)
+        finally:
+            del SingletonMetaclass.instances[Parallel]
     else:
         raise Exception("Unknown task")
 
 
 @pytest.mark.unittest
 def test_attach_mode():
-    with WorkerPool(n_jobs=2, daemon=False) as pool:
+    with WorkerPool(n_jobs=2, daemon=False, start_method="spawn") as pool:
         pool.map(attach_mode_main, ["run_task", "run_attach_task"])

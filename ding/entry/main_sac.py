@@ -258,7 +258,7 @@ def main(cfg, create_cfg, seed=0):
         task.use(sample_profiler(replay_buffer, print_per_step=100))
         task.use(
             step_profiler("evaluate", silent=False, print_per_step=100)(sac.evaluate(evaluator_env)),
-            filter_node=lambda node_id: node_id % 2 == 1
+            # filter_node=lambda node_id: node_id % 2 == 1
         )
         task.use(
             step_profiler("collect", silent=False, print_per_step=100)(
@@ -267,7 +267,7 @@ def main(cfg, create_cfg, seed=0):
         )
         task.use(
             step_profiler("learn", silent=False, print_per_step=100)(sac.learn(replay_buffer, task=task)),
-            filter_node=lambda node_id: node_id % 8 == 0
+            # filter_node=lambda node_id: node_id % 8 == 0
         )
 
         print(task.middleware)
@@ -278,5 +278,5 @@ def main(cfg, create_cfg, seed=0):
 if __name__ == "__main__":
     # from ding.utils import profiler
     # profiler()
-    main(main_config, create_config)
-    # Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
+    # main(main_config, create_config)
+    Parallel.runner(n_parallel_workers=1)(main, main_config, create_config)
