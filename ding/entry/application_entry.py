@@ -81,6 +81,7 @@ def collect_demo_data(
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         state_dict: Optional[dict] = None,
+        state_dict_path: Optional[str] = None,
 ) -> None:
     r"""
     Overview:
@@ -96,6 +97,7 @@ def collect_demo_data(
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
+        - state_dict_path (:obj:`Optional[str]`): The path of the state_dict of policy or model.
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
@@ -135,14 +137,15 @@ def collect_demo_data(
     # )
     collect_demo_policy = policy.collect_mode
     if state_dict is None:
-        state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
+        assert state_dict_path is not None
+        state_dict = torch.load(state_dict_path, map_location='cpu')
     policy.collect_mode.load_state_dict(state_dict)
     collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
     policy_kwargs = None if not hasattr(cfg.policy.other.get('eps', None), 'collect') \
         else {'eps': cfg.policy.other.eps.get('collect', 0.2)}
 
-    # Let's collect some expert demostrations
+    # Let's collect some expert demonstrations
     exp_data = collector.collect(n_sample=collect_count, policy_kwargs=policy_kwargs)
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')

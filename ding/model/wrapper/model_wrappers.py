@@ -99,7 +99,7 @@ class HiddenStateWrapper(IModelWrapper):
         data, state_info = self.before_forward(data, state_id)
         output = self._model.forward(data, **kwargs)
         h = output.pop('next_state', None)
-        if h:
+        if h is not None:
             self.after_forward(h, state_info, valid_id)
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
@@ -368,6 +368,9 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
         eps = kwargs.pop('eps')
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        if 'logit' not in output:
+            return output
+
         logit = output['logit']
         assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
         if isinstance(logit, torch.Tensor):
@@ -516,11 +519,12 @@ class ActionNoiseWrapper(IModelWrapper):
     def forward(self, *args, **kwargs):
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-        if 'action' in output:
-            action = output['action']
+        if 'action' in output or 'action_args' in output:
+            key = 'action' if 'action' in output else 'action_args'
+            action = output[key]
             assert isinstance(action, torch.Tensor)
             action = self.add_noise(action)
-            output['action'] = action
+            output[key] = action
         return output
 
     def add_noise(self, action: torch.Tensor) -> torch.Tensor:
@@ -577,20 +581,21 @@ class TargetNetworkWrapper(IModelWrapper):
         Arguments:
             - state_dict (:obj:`dict`): the state_dict from learner model
             - direct (:obj:`bool`): whether to update the target network directly, \
-                if ture then will simply call the load_state_dict method of the model
+                if true then will simply call the load_state_dict method of the model
         """
         if direct:
             self._model.load_state_dict(state_dict, strict=True)
             self._update_count = 0
-        elif self._update_type == 'assign':
-            if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
-                self._model.load_state_dict(state_dict, strict=True)
-            self._update_count += 1
-        elif self._update_type == 'momentum':
-            theta = self._update_kwargs['theta']
-            for name, p in self._model.named_parameters():
-                # default theta = 0.001
-                p.data = (1 - theta) * p.data + theta * state_dict[name]
+        else:
+            if self._update_type == 'assign':
+                if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
+                    self._model.load_state_dict(state_dict, strict=True)
+                self._update_count += 1
+            elif self._update_type == 'momentum':
+                theta = self._update_kwargs['theta']
+                for name, p in self._model.named_parameters():
+                    # default theta = 0.001
+                    p.data = (1 - theta) * p.data + theta * state_dict[name]
 
     def reset_state(self, target_update_count: int = None) -> None:
         r"""
