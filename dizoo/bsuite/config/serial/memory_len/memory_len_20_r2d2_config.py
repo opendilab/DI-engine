@@ -10,7 +10,7 @@ memory_len_r2d2_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=100,
         env_id='memory_len/22',  # 100 memory steps, 101 obs per episode
-        stop_value=1.9,
+        stop_value=1.,
     ),
     policy=dict(
         cuda=True,
