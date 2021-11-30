@@ -191,7 +191,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def send_rpc(self, func_name: str, *args, **kwargs) -> None:
         if self.is_active:
             payload = {"f": func_name, "a": args, "k": kwargs}
-            return self._sock and self._sock.send(pickle.dumps(payload))
+            return self._sock and self._sock.send(pickle.dumps(payload, protocol=-1))
 
     async def asend_rpc(self, func_name: str, *args, **kwargs) -> None:
         if self.is_active:
