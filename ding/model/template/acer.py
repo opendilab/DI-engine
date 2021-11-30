@@ -77,16 +77,6 @@ class ACER(nn.Module):
             # the action_shape of continuous action space is a int, indicating the num of action dim.
 
             # self.actor_head = ReparameterizationHead(
-            #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed',
-            #     fixed_sigma_value=0.3,
-            #     activation=activation, norm_type=norm_type, bound_type='tanh',
-            # )
-            # self.actor_head = ReparameterizationHead(
-            #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed',
-            #     fixed_sigma_value=0.01,  # TODO(pu)
-            #     activation=activation, norm_type=norm_type, bound_type='tanh',
-            # )
-            # self.actor_head = ReparameterizationHead(
             #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='independent',
             #     activation=activation, norm_type=norm_type, bound_type='tanh',
             # )
@@ -98,6 +88,10 @@ class ACER(nn.Module):
                 actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned',
                 activation=activation, norm_type=norm_type, bound_type=None,
             )
+            # self.actor_head = ReparameterizationHead(
+            #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed', fixed_sigma_value=0.3,  # TODO(pu)
+            #     activation=activation, norm_type=norm_type, bound_type=None,
+            # )
 
             self.critic_head = StochasticDuelingHead(
                 critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation,

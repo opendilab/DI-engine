@@ -638,7 +638,9 @@ class StochasticDuelingHead(nn.Module):
 
         # in case for gradient back propagation
         dist = Independent(Normal(mu_t, sigma_t), 1)
-        action_sample = dist.rsample(sample_shape=(sample_size,))
+        action_sample_pred = dist.rsample(sample_shape=(sample_size,))
+        action_sample = torch.tanh(action_sample_pred)  # TODO(pu)
+
         action_sample = action_sample.permute(1, 0, 2)
 
         state_cat_action_sample = torch.cat((expand_s, action_sample),

@@ -117,16 +117,14 @@ class ACERPolicy(Policy):
         self._optimizer_actor = Adam(
             self._model.actor.parameters(),
             lr=self._cfg.learn.learning_rate_actor,
-            # grad_clip_type=self._cfg.learn.grad_clip_type,
-            # clip_value=self._cfg.learn.clip_value,
-            # weight_decay=1e-5, optim_type='adamw'
+            grad_clip_type=self._cfg.learn.grad_clip_type,
+            clip_value=self._cfg.learn.clip_value,
         )
         self._optimizer_critic = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
-            # grad_clip_type=self._cfg.learn.grad_clip_type,
-            # clip_value=self._cfg.learn.clip_value,
-            # weight_decay=1e-5, optim_type='adamw'
+            grad_clip_type=self._cfg.learn.grad_clip_type,
+            clip_value=self._cfg.learn.clip_value,
         )
         # TODO(pu)
         self._optimizer_critic_v = Adam(
@@ -162,6 +160,16 @@ class ACERPolicy(Policy):
                 if isinstance(m, torch.nn.Linear):
                     torch.nn.init.zeros_(m.bias)
                     m.weight.data.copy_(0.01 * m.weight.data)
+
+        # if self._cfg.model.continuous_action_space:
+        #     # Learn from the practice of sac
+        #     # Weight Init for the last output layer
+        #     init_w = self._cfg.learn.init_w
+        #     self._model.actor[1].mu.weight.data.uniform_(-init_w, init_w)
+        #     self._model.actor[1].mu.bias.data.uniform_(-init_w, init_w)
+        #     if hasattr(self._model.actor[1], 'log_sigma_param'):  # self._model.actor[1]:actor_head
+        #         self._model.actor[1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
+        #         self._model.actor[1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
 
         self._action_shape = self._cfg.model.action_shape
         self._unroll_len = self._cfg.learn.unroll_len
@@ -292,7 +300,7 @@ class ACERPolicy(Policy):
             # cur_act_gen = current_dist.sample()
             # avg_act_gen = avg_dist.sample()
 
-            data['action_pred']=torch.stack(data['action_pred'],dim=0).unsqueeze(-1)
+            data['action_pred']=torch.stack(data['action_pred'], dim=0).unsqueeze(-1)
 
             current_action_plus_1_pred = torch.cat((data['action_pred'], cur_act_gen), dim=0)  # shape (T+1),B,env_action_shape
             avg_action_plus_1_pred = torch.cat((data['action_pred'], avg_act_gen), dim=0)  # shape (T+1),B,env_action_shape
@@ -317,7 +325,6 @@ class ACERPolicy(Policy):
             log_avg_pi = log_prob - torch.log(y).sum(-1, keepdim=True)
 
             avg_pi = torch.exp(log_avg_pi)  # shape (T+1),B,env_action_shape
-            # avg_pi = avg_pi.unsqueeze(-1)  # shape T,B,1
 
             # 3. behaviour_pi
             # log_behaviour_pi = behaviour_dist.log_prob(data['action'])  # shape T,B,env_action_shape
@@ -329,7 +336,6 @@ class ACERPolicy(Policy):
             log_behaviour_pi = log_prob - torch.log(y).sum(-1, keepdim=True)
 
             behaviour_pi = torch.exp(log_behaviour_pi)  # shape T,B,env_action_shape
-            # behaviour_pi = behaviour_pi.unsqueeze(-1)  # shape T,B,1
 
             # 4. current_pi_prime
             # shape (T+1),B, env_action_shape
@@ -351,7 +357,6 @@ class ACERPolicy(Policy):
             log_prob = behaviour_dist.log_prob(action_prime_pred[0:-1, ...]).unsqueeze(-1)
             log_behaviour_pi_prime = log_prob - torch.log(y).sum(-1, keepdim=True)
             behaviour_pi_prime = torch.exp(log_behaviour_pi_prime)  # shape T,B,1
-            # behaviour_pi_prime = behaviour_pi_prime.unsqueeze(-1)
 
             # Reshape the tensor from (T, B, N) to (T*B, N) to match the SDN head computation
             obs_data = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
@@ -467,9 +472,7 @@ class ACERPolicy(Policy):
         # ====================
 
         if self._cfg.model.continuous_action_space:
-            q_value_data = self._learn_model.forward(
-                {'obs': obs_data, 'action': current_action.clone().detach()},
-                mode='compute_critic')  # (T+1)*B,1
+            q_value_data = self._learn_model.forward({'obs': obs_data, 'action': current_action.clone().detach()}, mode='compute_critic')  # (T+1)*B,1
             # Restore the shape from (T+1)*B, 1 to (T+1), B, 1
             q_values = q_value_data['q_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
             v_values = q_value_data['v_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
