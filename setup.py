@@ -76,6 +76,7 @@ setup(
         'rich',
         'mpire',
         'pynng'
+        'flameprof'
     ],
     extras_require={
         'test': [
