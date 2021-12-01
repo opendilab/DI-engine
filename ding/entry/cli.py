@@ -107,6 +107,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option(
     '--memory', type=str, default=None, help='The requested Memory, read the value from DIJob yaml by default'
 )
+@click.option('--profile', type=str, default=None, help='profile Time cost by cProfile, and save the files into the specified folder path')
 def cli(
     # serial/eval
     mode: str,
