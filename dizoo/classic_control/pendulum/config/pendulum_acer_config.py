@@ -1,7 +1,9 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
+    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.03_seed0',
+
     seed=0,
     env=dict(
         # collector_env_num=10,
