@@ -1,10 +1,15 @@
+from concurrent.futures import thread
+from os import spawnl
+from attr.validators import instance_of
 import pytest
 import time
 import copy
 import random
 from mpire import WorkerPool
 from ding.framework import Task
+from ding.framework.context import Context
 from ding.framework.parallel import Parallel
+from ding.utils.design_helper import SingletonMetaclass
 
 
 @pytest.mark.unittest
@@ -27,18 +32,12 @@ def test_serial_pipeline():
     # Renew and execute step1, step2
     task.renew()
     assert task.ctx.total_step == 1
-    assert task.ctx.prev.total_step == 0
     task.forward(step0)
     task.forward(step1)
     assert task.ctx.pipeline == [0, 1]
 
     # Test context inheritance
-    task.ctx.prev.old_prop = "old_prop"  # This prop should be kept to new_ctx.prev
-    task.ctx.new_prop = "new_prop"  # The prop should also be kept to new_ctx.prev
     task.renew()
-    assert task.ctx.prev.old_prop == "old_prop"
-    assert task.ctx.prev.new_prop == "new_prop"
-    assert "prev" not in task.ctx.prev
 
 
 @pytest.mark.unittest
@@ -107,31 +106,35 @@ def test_async_yield_pipeline():
     assert len(task._backward_stack) == 0
 
 
-def parallel_counter():
-    call_count = 0  # +1 when call _counter
-
-    def _counter(ctx):
-        nonlocal call_count
-        assert ctx.total_step >= call_count
-        call_count += 1
-        time.sleep(0.1 + random.random() / 10)
-
-    return _counter
-
-
 def parallel_main():
-    task = Task(async_mode=True)
-    task.use(parallel_counter())
+    task = Task()
+    sync_count = 0
+
+    def on_sync_parallel_ctx(ctx):
+        nonlocal sync_count
+        assert isinstance(ctx, Context)
+        sync_count += 1
+
+    task.on("sync_parallel_ctx", on_sync_parallel_ctx)
+    task.use(lambda _: time.sleep(0.01 + random.random() / 10))
     task.run(max_step=10)
+    assert sync_count > 0
 
 
 def parallel_main_eager():
-    counter_ware = parallel_counter()
-    task = Task(async_mode=True)
-    for i in range(5):
-        task.forward(counter_ware)
+    task = Task()
+    sync_count = 0
+
+    def on_sync_parallel_ctx(ctx):
+        nonlocal sync_count
+        assert isinstance(ctx, Context)
+        sync_count += 1
+
+    task.on("sync_parallel_ctx", on_sync_parallel_ctx)
+    for _ in range(10):
+        task.forward(lambda _: time.sleep(0.01 + random.random() / 10))
         task.renew()
-    assert task.ctx.total_step > i
+    assert sync_count > 0
 
 
 @pytest.mark.unittest
@@ -149,24 +152,22 @@ def test_copy_task():
 
 
 def attach_mode_main_task():
-
-    def wait(ctx):
-        time.sleep(0.1)
-
     with Task() as task:
-        task.use(wait)
+        task.use(lambda _: time.sleep(0.1))
         task.run(max_step=10)
 
 
 def attach_mode_attach_task():
+    ctx = None
 
-    def attach_step(ctx):
-        # Should get ctx from other process and start from the latest state
-        assert ctx.total_step > 0
+    def attach_callback(new_ctx):
+        nonlocal ctx
+        ctx = new_ctx
 
-    with Task() as task:
-        task.use(attach_step)
+    with Task(attach_callback=attach_callback) as task:
+        task.use(lambda _: time.sleep(0.1))
         task.run(max_step=10)
+    assert ctx is not None
 
 
 def attach_mode_main(job):
@@ -176,18 +177,21 @@ def attach_mode_main(job):
         )(attach_mode_main_task)
     elif "run_attach_task":
         time.sleep(0.3)
-        Parallel.runner(
-            n_parallel_workers=1,
-            protocol="tcp",
-            address="127.0.0.1",
-            ports=[50503],
-            attach_to=["tcp://127.0.0.1:50501", "tcp://127.0.0.1:50502"]
-        )(attach_mode_attach_task)
+        try:
+            Parallel.runner(
+                n_parallel_workers=1,
+                protocol="tcp",
+                address="127.0.0.1",
+                ports=[50503],
+                attach_to=["tcp://127.0.0.1:50501", "tcp://127.0.0.1:50502"]
+            )(attach_mode_attach_task)
+        finally:
+            del SingletonMetaclass.instances[Parallel]
     else:
         raise Exception("Unknown task")
 
 
 @pytest.mark.unittest
 def test_attach_mode():
-    with WorkerPool(n_jobs=2, daemon=False) as pool:
+    with WorkerPool(n_jobs=2, daemon=False, start_method="spawn") as pool:
         pool.map(attach_mode_main, ["run_task", "run_attach_task"])

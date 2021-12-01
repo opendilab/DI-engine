@@ -8,15 +8,17 @@ import numpy as np
 import time
 from rich import print
 from functools import partial
-from ding.model import QAC
+from ding.model import QAC, DQN
 from ding.utils import set_pkg_seed
 from ding.envs import DingEnvWrapper, BaseEnvManager, get_vec_env_setting
 from ding.config import compile_config
-from ding.policy import SACPolicy
+from ding.policy import SACPolicy, DQNPolicy
 from ding.torch_utils import to_ndarray, to_tensor
+from ding.rl_utils import get_epsilon_greedy_fn
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.framework import Task, Parallel
-from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
+# from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
+from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
 
 class DequeBuffer:
@@ -44,12 +46,28 @@ class DequeBuffer:
         return len(self.memory)
 
 
-class SACPipeline:
+class Differential:
+    """
+    Sync train/collect/evaluate speed
+    """
+
+    def __init__(self, buffer, collect_env) -> None:
+        pass
+
+    def __call__(self, ctx) -> None:
+        pass
+
+
+class Pipeline:
 
     def __init__(self, cfg, model: torch.nn.Module):
         self.cfg = cfg
         self.model = model
-        self.policy = SACPolicy(cfg.policy, model=model)
+        # self.policy = SACPolicy(cfg.policy, model=model)
+        self.policy = DQNPolicy(cfg.policy, model=model)
+        if 'eps' in cfg.policy.other:
+            eps_cfg = cfg.policy.other.eps
+            self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def act(self, env):
 
@@ -57,7 +75,10 @@ class SACPipeline:
             ctx.setdefault("collect_env_step", 0)
             ctx.keep("collect_env_step")
             ctx.obs = env.ready_obs
-            policy_output = self.policy.collect_mode.forward(ctx.obs)
+            policy_kwargs = {}
+            if hasattr(self, 'epsilon_greedy'):
+                policy_kwargs['eps'] = self.epsilon_greedy(ctx.collect_env_step)
+            policy_output = self.policy.collect_mode.forward(ctx.obs, **policy_kwargs)
             ctx.action = to_ndarray({env_id: output['action'] for env_id, output in policy_output.items()})
             ctx.policy_output = policy_output
 
@@ -141,15 +162,16 @@ class SACPipeline:
         return _eval
 
 
-def sample_profiler(buffer, print_per_step=1, async_mode=False):
+def sample_profiler(buffer, print_per_step=1):
     start_time = None
     start_counter = 0
     start_step = 0
-    records = deque(maxlen=10)
-    step_records = deque(maxlen=10)
+    records = deque(maxlen=print_per_step * 50)
+    step_records = deque(maxlen=print_per_step * 50)
+    max_mean = 0
 
     def _sample_profiler(ctx):
-        nonlocal start_time, start_counter, start_step
+        nonlocal start_time, start_counter, start_step, max_mean
         if not start_time:
             start_time = time.time()
         elif ctx.total_step % print_per_step == 0:
@@ -160,20 +182,20 @@ def sample_profiler(buffer, print_per_step=1, async_mode=False):
             step_record = (end_step - start_step) / (end_time - start_time)
             records.append(record)
             step_records.append(step_record)
+            max_mean = max(np.mean(records), max_mean)
             print(
-                "        Samples/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}; Steps/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}".
-                format(record, np.mean(records), end_counter, step_record, np.mean(step_records), ctx.total_step)
+                "        Samples/s: {:.2f}, Mean: {:.2f}, Max: {:.2f}, Total: {:.0f}; Steps/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}"
+                .format(
+                    record, np.mean(records), max_mean, end_counter, step_record, np.mean(step_records), ctx.total_step
+                )
             )
             start_time, start_counter, start_step = end_time, end_counter, end_step
 
-    async def async_sample_profiler(ctx):
-        _sample_profiler(ctx)
-
-    return async_sample_profiler if async_mode else _sample_profiler
+    return _sample_profiler
 
 
 def step_profiler(step_name, silent=False, print_per_step=1):
-    records = deque(maxlen=100)
+    records = deque(maxlen=print_per_step * 5)
 
     def _step_wrapper(fn):
         # Wrap step function
@@ -239,22 +261,31 @@ def main(cfg, create_cfg, seed=0):
     collector_env.launch()
     evaluator_env.launch()
 
-    model = QAC(**cfg.policy.model)
+    # model = QAC(**cfg.policy.model)
+    model = DQN(**cfg.policy.model)
     model.share_memory()
     replay_buffer = DequeBuffer()
-    sac = SACPipeline(cfg, model)
+    sac = Pipeline(cfg, model)
 
     start = time.time()
     with Task(async_mode=False) as task:
-        task.use(step_profiler("evaluate", silent=False, print_per_step=100)(sac.evaluate(evaluator_env)))
+        task.use(sample_profiler(replay_buffer, print_per_step=100))
+        task.use(
+            step_profiler("evaluate", silent=False, print_per_step=100)(sac.evaluate(evaluator_env)),
+            # filter_node=lambda node_id: node_id % 2 == 1
+        )
         task.use(
             step_profiler("collect", silent=False, print_per_step=100)(
                 task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task))
             )
         )
-        task.use(step_profiler("learn", silent=False, print_per_step=100)(sac.learn(replay_buffer, task=task)))
+        task.use(
+            step_profiler("learn", silent=False, print_per_step=100)(sac.learn(replay_buffer, task=task)),
+            # filter_node=lambda node_id: node_id % 8 == 0
+        )
 
-        task.run(max_step=100)
+        print(task.middleware)
+        task.run(max_step=10000)
     print("Total time cost: {:.2f}s".format(time.time() - start))
 
 
@@ -262,4 +293,4 @@ if __name__ == "__main__":
     # from ding.utils import profiler
     # profiler()
     # main(main_config, create_config)
-    Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
+    Parallel.runner(n_parallel_workers=1)(main, main_config, create_config)

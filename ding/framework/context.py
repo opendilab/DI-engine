@@ -1,6 +1,3 @@
-from typing import Callable, Optional
-
-
 class Context(dict):
     """
     Overview:
@@ -9,16 +6,14 @@ class Context(dict):
         any properties as you wish.
     """
 
-    def __init__(self, total_step: int = 0, prev: Optional["Context"] = None, *args, **kwargs) -> None:
+    def __init__(self, total_step: int = 0, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.__dict__ = self
-        self.total_step = total_step  # Total steps
-        self.prev = prev
+        self.total_step = total_step
 
         # Reserved properties
         self._finish = False
-        self._hooks_after_renew = []
-        self.keep("_finish")
+        self._kept_keys = ["_finish"]
 
     def renew(self) -> 'Context':  # noqa
         """
@@ -26,8 +21,8 @@ class Context(dict):
             Renew context from self, add total_step and shift kept properties to the new instance.
         """
         ctx = Context()
-        for hook in self._hooks_after_renew:
-            hook(ctx, self)
+        for key in self._kept_keys:
+            ctx[key] = self[key]
         return ctx
 
     def keep(self, *keys: str) -> None:
@@ -35,21 +30,7 @@ class Context(dict):
         Overview:
             Keep this key/keys until next iteration.
         """
-
-        def _keep(new_, old):
-            for key in keys:
-                new_[key] = old[key]
-
-        self.after_renew(_keep)
-
-    def after_renew(self, fn: Callable) -> None:
-        """
-        Overview:
-            Hook after renew, the function should look like (lambda new_, old: ...)
-        Arguments:
-            - fn (:obj:`Callable`): Hook after renew
-        """
-        self._hooks_after_renew.append(fn)
+        self._kept_keys += keys
 
     def finish(self, finish: bool = True) -> None:
         """
@@ -59,22 +40,3 @@ class Context(dict):
             - finish (:obj:`bool`): Finish or not
         """
         self._finish = finish
-
-    # Make it pickable
-    def __getstate__(self):
-        _ctx = {}
-        for key, value in self.items():
-            if key in ["_hooks_after_renew", "prev"]:
-                continue
-            _ctx[key] = value
-        return _ctx
-
-    def __setstate__(self, d):
-        self.__dict__ = d
-
-    def __reduce__(self):
-        return (Context.new, (self.__getstate__(), ))
-
-    @staticmethod
-    def new(ctx):
-        return Context(**ctx)

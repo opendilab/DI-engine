@@ -75,7 +75,7 @@ setup(
         'h5py',
         'rich',
         'mpire',
-        'pynng'
+        'pynng',
         'flameprof'
     ],
     extras_require={

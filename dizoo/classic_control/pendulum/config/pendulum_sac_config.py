@@ -5,6 +5,8 @@ pendulum_sac_config = dict(
     env=dict(
         collector_env_num=10,
         evaluator_env_num=5,
+        # collector_env_num=1,
+        # evaluator_env_num=1,
         # (bool) Scale output action into legal range.
         act_scale=True,
         n_evaluator_episode=5,
