@@ -45,15 +45,18 @@ class PDQN(nn.Module):
             - multi_pass (:obj:`Optional[bool]`): Whether to use multi pass version.
             - action_mask: (:obj:`Optional[list]`): An action mask indicating how action args are associated to each discrete action.
                 For example, if there are 3 discrete action, 4 continous action args, and the first discrete action associates with
-                the first continuous action args, the second discrete action associates with the second continuous action args, and 
-                the third discrete action associates with the remaining 2 action args, the action mask will be like: 
+                the first continuous action args, the second discrete action associates with the second continuous action args, and
+                the third discrete action associates with the remaining 2 action args, the action mask will be like:
                 [[1,0,0,0],[0,1,0,0],[0,0,1,1]] with shape 3*4.
         """
         super(PDQN, self).__init__()
         if multi_pass:
-            assert isinstance(action_mask, list), 'Please indicate action mask in list form if you set multi_pass to True'
+            assert isinstance(
+                action_mask, list
+            ), 'Please indicate action mask in list form if you set multi_pass to True'
         self.multi_pass = multi_pass
-        self.action_mask = action_mask
+        self.action_mask = torch.LongTensor(action_mask)
+        self.action_scatter_index = torch.nonzero(self.action_mask)[:, -1]  # (self.action_args_shape, )
 
         # squeeze action shape input like (3,) to 3
         action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
@@ -85,7 +88,8 @@ class PDQN(nn.Module):
             )
         else:
             raise RuntimeError(
-                "Pre-defined encoder not support obs_shape {}, please customize your own PDQN.".format(input_feature_shape)
+                "Pre-defined encoder not support obs_shape {}, please customize your own PDQN.".
+                format(input_feature_shape)
             )
 
         # Continuous Action Head Type
@@ -159,28 +163,49 @@ class PDQN(nn.Module):
         """
         dis_x = self.encoder[0](inputs['state'])  # size (B, encoded_state_shape)
         action_args = inputs['action_args']  # size (B, action_args_shape)
+        # if self.multi_pass:  # mpdqn
+        #     mp_action_args_shape = [self.action_type_shape] + list(action_args.shape)  # size (K, B, action_args_shape) where K is action_type_shape
+        #     mp_action_args = torch.rand(size=mp_action_args_shape)  # size (K, B, action_args_shape) where K is action_type_shape
+        #     for i in range(self.action_type_shape):
+        #         mp_action_args[i].copy_(action_args)
+
+        #     for i in range(len(self.action_mask)):  # discrete action i with total K
+        #         for j in range(len(self.action_mask[i])):  # continuous args j with total K'
+        #             if not self.action_mask[i][j]:  # action_mask[i][j] == 0, which means this arg is not associated with this action
+        #                 mp_action_args[i,...,j] = -2 # setting the value to any value which is not in range [-1,1] works
+
+        #     mp_state_shape = [self.action_type_shape] + list(dis_x.shape)  # size (K, B, encoded_state_shape)
+        #     mp_dis_x = torch.rand(size=mp_state_shape)  # size (K, B, encoded_state_shape)
+        #     for i in range(self.action_type_shape):
+        #         mp_dis_x[i].copy_(dis_x)
+        #     mp_state_action_cat = torch.cat((mp_dis_x, mp_action_args), dim=-1)  # size (K, B, encoded_state_shape + action_args_shape)
+        #     raw_logit = self.actor_head[0](mp_state_action_cat)['logit']  # size (K, B, K) where K is action_type_shape
+
+        #     logit = torch.tensor([list(raw_logit[i,...,i]) for i in range(self.action_type_shape)], requires_grad=True).T  # size (B, K) where K is action_type_shape
         if self.multi_pass:  # mpdqn
-            mp_action_args_shape = [self.action_type_shape] + list(action_args.shape)  # size (K, B, action_args_shape) where K is action_type_shape
-            mp_action_args = torch.rand(size=mp_action_args_shape)  # size (K, B, action_args_shape) where K is action_type_shape
-            for i in range(self.action_type_shape):
-                mp_action_args[i].copy_(action_args)
+            # fill_value=-2 is a mask value, which is not in normal acton range
+            # (B, action_args_shape, K)
+            mp_action = torch.full(
+                (dis_x.shape[0], self.action_args_shape, self.action_type_shape),
+                fill_value=-2,
+                device=dis_x.device,
+                dtype=dis_x.dtype
+            )
+            index = self.action_scatter_index.view(1, -1, 1).repeat(dis_x.shape[0], 1, 1)
+            # index: (B, action_args_shape, 1)  src: (B, action_args_shape, 1)
+            mp_action.scatter_(dim=-1, index=index, src=action_args.unsqueeze(-1))
+            mp_action = mp_action.permute(0, 2, 1)  # (B, K, action_args_shape)
 
-            for i in range(len(self.action_mask)):  # discrete action i with total K
-                for j in range(len(self.action_mask[i])):  # continuous args j with total K'
-                    if not self.action_mask[i][j]:  # action_mask[i][j] == 0, which means this arg is not associated with this action
-                        mp_action_args[i,...,j] = -2 # setting the value to any value which is not in range [-1,1] works
+            mp_state = dis_x.unsqueeze(1).repeat(1, self.action_type_shape, 1)  # (B, K, obs_shape)
+            mp_state_action_cat = torch.cat([mp_state, mp_action], dim=-1)
 
-            mp_state_shape = [self.action_type_shape] + list(dis_x.shape)  # size (K, B, encoded_state_shape)
-            mp_dis_x = torch.rand(size=mp_state_shape)  # size (K, B, encoded_state_shape)
-            for i in range(self.action_type_shape):
-                mp_dis_x[i].copy_(dis_x)  
-            mp_state_action_cat = torch.cat((mp_dis_x, mp_action_args), dim=-1)  # size (K, B, encoded_state_shape + action_args_shape)
-            raw_logit = self.actor_head[0](mp_state_action_cat)['logit']  # size (K, B, K) where K is action_type_shape
-            
-            logit = torch.tensor([list(raw_logit[i,...,i]) for i in range(self.action_type_shape)], requires_grad=True).T  # size (B, K) where K is action_type_shape
+            logit = self.actor_head[0](mp_state_action_cat)['logit']  # (B, K, K)
+
+            logit = torch.diagonal(logit, dim1=-2, dim2=-1)  # (B, K)
         else:  # pdqn
-            state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
+            # size (B, encoded_state_shape + action_args_shape)
+            state_action_cat = torch.cat((dis_x, action_args), dim=-1)
             logit = self.actor_head[0](state_action_cat)['logit']  # size (B, K) where K is action_type_shape
-        
+
         outputs = {'logit': logit, 'action_args': action_args}
         return outputs
