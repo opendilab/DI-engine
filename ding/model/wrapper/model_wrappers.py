@@ -99,7 +99,7 @@ class HiddenStateWrapper(IModelWrapper):
         data, state_info = self.before_forward(data, state_id)
         output = self._model.forward(data, **kwargs)
         h = output.pop('next_state', None)
-        if h:
+        if h is not None:
             self.after_forward(h, state_info, valid_id)
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
