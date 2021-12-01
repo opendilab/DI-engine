@@ -188,6 +188,7 @@ class ACERPolicy(Policy):
         # Main model
         self._learn_model.reset()
         self._target_model.reset()
+        self.train_cnt = 0
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
         """
@@ -266,6 +267,7 @@ class ACERPolicy(Policy):
             - necessary: ``cur_lr_actor``, ``cur_lr_critic``, ``actor_loss`,``bc_loss``,``policy_loss``,\
                 ``critic_loss``,``entropy_loss``
         """
+        self.train_cnt+=1
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
         current_action_data = self._learn_model.forward({'obs': data['obs_plus_1']},
@@ -457,15 +459,22 @@ class ACERPolicy(Policy):
         actor_loss = actor_loss * weights.unsqueeze(-1)
         bc_loss = bc_loss * weights.unsqueeze(-1)
         entropy_loss = (dist_new.entropy() * weights).unsqueeze(-1)
+        if self._cfg.model.continuous_action_space:
+            actor_update_freq = 1
+        else:
+            actor_update_freq = 1
 
-        total_actor_loss = (actor_loss + bc_loss + self._entropy_weight * entropy_loss).sum() / total_valid
-        self._optimizer_actor.zero_grad()
-        actor_gradients = torch.autograd.grad(-total_actor_loss, current_pi, retain_graph=True)
+        if self.train_cnt % actor_update_freq == 0:
+            total_actor_loss = (actor_loss + bc_loss + self._entropy_weight * entropy_loss).sum() / total_valid
+            self._optimizer_actor.zero_grad()
+            actor_gradients = torch.autograd.grad(-total_actor_loss, current_pi, retain_graph=True)
 
-        if self._use_trust_region:
-            actor_gradients = acer_trust_region_update(actor_gradients, current_pi, avg_pi, self._trust_region_value)
-        current_pi.backward(actor_gradients, retain_graph=True)
-        self._optimizer_actor.step()
+            if self._use_trust_region:
+                actor_gradients = acer_trust_region_update(actor_gradients, current_pi, avg_pi, self._trust_region_value)
+            current_pi.backward(actor_gradients, retain_graph=True)
+            self._optimizer_actor.step()
+        else:
+            total_actor_loss=torch.Tensor([0])
 
         # ====================
         # critic update

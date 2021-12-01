@@ -2,7 +2,8 @@ from easydict import EasyDict
 
 pendulum_acer_config = dict(
     # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
-    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.03_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_auf2_seed0',
+    exp_name='debug_pendulum_ul50_bs64_rbs100_tt0.005_clipnorm0.5_mubound_fixsigma0.3_auf1_seed0',
 
     seed=0,
     env=dict(
@@ -61,8 +62,10 @@ pendulum_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
+            replay_buffer_size=100,  # 1000, 5000 TODO(pu)
+
             # replay_buffer_size=2000,  # 1000, 5000 TODO(pu)
-            replay_buffer_size=10000,  # 1000, 5000 TODO(pu)
+            # replay_buffer_size=10000,  # 1000, 5000 TODO(pu)
             max_use=16,
         ), ),
     ),
