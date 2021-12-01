@@ -1,7 +1,6 @@
 from collections import defaultdict
 import pytest
 import time
-import asyncio
 import os
 from ding.framework import Parallel
 from ding.utils.design_helper import SingletonMetaclass
@@ -9,29 +8,22 @@ from ding.utils.design_helper import SingletonMetaclass
 
 def parallel_main():
     msg = defaultdict(bool)
-    router = Parallel()
 
     def test_callback(key):
         msg[key] = True
 
-    router.register_rpc("test_callback", test_callback)
-    # Wait for nodes to bind
-    time.sleep(0.7)
+    with Parallel() as router:
+        router.register_rpc("test_callback", test_callback)
+        # Wait for nodes to bind
+        time.sleep(0.7)
 
-    router.send_rpc("test_callback", "ping")
+        router.send_rpc("test_callback", "ping")
 
     for _ in range(30):
         if msg["ping"]:
             break
         time.sleep(0.03)
     assert msg["ping"]
-
-    asyncio.run(router.asend_rpc("test_callback", "pong"))
-    for _ in range(30):
-        if msg["pong"]:
-            break
-        time.sleep(0.03)
-    assert msg["pong"]
 
 
 @pytest.mark.unittest

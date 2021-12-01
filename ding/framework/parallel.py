@@ -5,7 +5,6 @@ import threading
 import time
 from mpire.pool import WorkerPool
 import pynng
-import asyncio
 import pickle
 import logging
 import tempfile
@@ -122,11 +121,10 @@ class Parallel(metaclass=SingletonMetaclass):
         main_process, args, kwargs = main_params
         runner_args, runner_kwargs = runner_params
 
-        router = Parallel()
-        router.is_active = True
-        router.run(*runner_args, **runner_kwargs)
-        main_process(*args, **kwargs)
-        router.stop()
+        with Parallel() as router:
+            router.is_active = True
+            router.run(*runner_args, **runner_kwargs)
+            main_process(*args, **kwargs)
 
     @staticmethod
     def get_node_addrs(
@@ -151,32 +149,28 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
 
     def listen(self, listen_to: str, attach_to: List[str] = None):
         attach_to = attach_to or []
+        self._bind_addr = listen_to
 
-        async def _listen():
-            self._bind_addr = listen_to
+        with Bus0() as sock:
+            self._sock = sock
+            sock.listen(self._bind_addr)
+            time.sleep(0.1)  # Wait for peers to bind
+            for contact in attach_to:
+                sock.dial(contact)
 
-            with Bus0() as sock:
-                self._sock = sock
-                sock.listen(self._bind_addr)
-                await asyncio.sleep(.3)  # Wait for peers to bind
-                for contact in attach_to:
-                    sock.dial(contact)
-
-                while True:
-                    try:
-                        msg = await sock.arecv_msg()
-                        await self.recv_rpc(msg.bytes)
-                    except pynng.Timeout:
-                        logging.warning("Timeout on node {} when waiting for message from bus".format(self._bind_addr))
-                    except pynng.Closed:
-                        if not self.finished:
-                            logging.error("The socket was not closed under normal circumstances!")
-                        break
-                    except Exception as e:
-                        logging.error("Meet exception when listening for new messages", e)
-                        break
-
-        asyncio.run(_listen())
+            while True:
+                try:
+                    msg = sock.recv_msg()
+                    self.recv_rpc(msg.bytes)
+                except pynng.Timeout:
+                    logging.warning("Timeout on node {} when waiting for message from bus".format(self._bind_addr))
+                except pynng.Closed:
+                    if not self.finished:
+                        logging.error("The socket was not closed under normal circumstances!")
+                    break
+                except Exception as e:
+                    logging.error("Meet exception when listening for new messages", e)
+                    break
 
     def echo(self, msg):
         """
@@ -193,12 +187,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             payload = {"f": func_name, "a": args, "k": kwargs}
             return self._sock and self._sock.send(pickle.dumps(payload, protocol=-1))
 
-    async def asend_rpc(self, func_name: str, *args, **kwargs) -> None:
-        if self.is_active:
-            msg = {"f": func_name, "a": args, "k": kwargs}
-            return await self._sock.asend(pickle.dumps(msg))
-
-    async def recv_rpc(self, msg: bytes):
+    def recv_rpc(self, msg: bytes):
         try:
             payload = pickle.loads(msg)
         except Exception as e:
@@ -220,6 +209,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         finally:
             s.close()
         return IP
+
+    def __enter__(self) -> "Parallel":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
 
     def stop(self):
         logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
