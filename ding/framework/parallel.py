@@ -220,5 +220,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
         self.finished = True
         time.sleep(0.03)
-        self._sock.close()
-        self._listener.join(timeout=1)
+        if self._sock:
+            self._sock.close()
+        if self._listener:
+            self._listener.join(timeout=1)

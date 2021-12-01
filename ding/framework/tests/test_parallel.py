@@ -19,11 +19,11 @@ def parallel_main():
 
         router.send_rpc("test_callback", "ping")
 
-    for _ in range(30):
-        if msg["ping"]:
-            break
-        time.sleep(0.03)
-    assert msg["ping"]
+        for _ in range(30):
+            if msg["ping"]:
+                break
+            time.sleep(0.03)
+        assert msg["ping"]
 
 
 @pytest.mark.unittest
