@@ -157,11 +157,12 @@ def sample_profiler(buffer, print_per_step=1):
     start_time = None
     start_counter = 0
     start_step = 0
-    records = deque(maxlen=10)
-    step_records = deque(maxlen=10)
+    records = deque(maxlen=print_per_step * 50)
+    step_records = deque(maxlen=print_per_step * 50)
+    max_mean = 0
 
     def _sample_profiler(ctx):
-        nonlocal start_time, start_counter, start_step
+        nonlocal start_time, start_counter, start_step, max_mean
         if not start_time:
             start_time = time.time()
         elif ctx.total_step % print_per_step == 0:
@@ -172,9 +173,12 @@ def sample_profiler(buffer, print_per_step=1):
             step_record = (end_step - start_step) / (end_time - start_time)
             records.append(record)
             step_records.append(step_record)
+            max_mean = max(np.mean(records), max_mean)
             print(
-                "        Samples/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}; Steps/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}".
-                format(record, np.mean(records), end_counter, step_record, np.mean(step_records), ctx.total_step)
+                "        Samples/s: {:.2f}, Mean: {:.2f}, Max: {:.2f}, Total: {:.0f}; Steps/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}"
+                .format(
+                    record, np.mean(records), max_mean, end_counter, step_record, np.mean(step_records), ctx.total_step
+                )
             )
             start_time, start_counter, start_step = end_time, end_counter, end_step
 
