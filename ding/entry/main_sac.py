@@ -8,15 +8,17 @@ import numpy as np
 import time
 from rich import print
 from functools import partial
-from ding.model import QAC
+from ding.model import QAC, DQN
 from ding.utils import set_pkg_seed
 from ding.envs import DingEnvWrapper, BaseEnvManager, get_vec_env_setting
 from ding.config import compile_config
-from ding.policy import SACPolicy
+from ding.policy import SACPolicy, DQNPolicy
 from ding.torch_utils import to_ndarray, to_tensor
+from ding.rl_utils import get_epsilon_greedy_fn
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.framework import Task, Parallel
-from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
+# from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
+from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
 
 class DequeBuffer:
@@ -56,12 +58,16 @@ class Differential:
         pass
 
 
-class SACPipeline:
+class Pipeline:
 
     def __init__(self, cfg, model: torch.nn.Module):
         self.cfg = cfg
         self.model = model
-        self.policy = SACPolicy(cfg.policy, model=model)
+        # self.policy = SACPolicy(cfg.policy, model=model)
+        self.policy = DQNPolicy(cfg.policy, model=model)
+        if 'eps' in cfg.policy.other:
+            eps_cfg = cfg.policy.other.eps
+            self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
 
     def act(self, env):
 
@@ -69,7 +75,10 @@ class SACPipeline:
             ctx.setdefault("collect_env_step", 0)
             ctx.keep("collect_env_step")
             ctx.obs = env.ready_obs
-            policy_output = self.policy.collect_mode.forward(ctx.obs)
+            policy_kwargs = {}
+            if hasattr(self, 'epsilon_greedy'):
+                policy_kwargs['eps'] = self.epsilon_greedy(ctx.collect_env_step)
+            policy_output = self.policy.collect_mode.forward(ctx.obs, **policy_kwargs)
             ctx.action = to_ndarray({env_id: output['action'] for env_id, output in policy_output.items()})
             ctx.policy_output = policy_output
 
@@ -252,10 +261,11 @@ def main(cfg, create_cfg, seed=0):
     collector_env.launch()
     evaluator_env.launch()
 
-    model = QAC(**cfg.policy.model)
+    # model = QAC(**cfg.policy.model)
+    model = DQN(**cfg.policy.model)
     model.share_memory()
     replay_buffer = DequeBuffer()
-    sac = SACPipeline(cfg, model)
+    sac = Pipeline(cfg, model)
 
     start = time.time()
     with Task(async_mode=False) as task:
