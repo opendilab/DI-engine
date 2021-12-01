@@ -14,6 +14,7 @@ from ding.model.template.qac import QAC
 from torch.distributions.categorical import Categorical
 import gym
 import numpy as np
+import pickle
 from dizoo.atari.envs.atari_wrappers import wrap_deepmind
 from dizoo.mujoco.envs.mujoco_wrappers import wrap_mujoco
 from .rnd_reward_model import collect_states
@@ -99,7 +100,7 @@ class ConvEncoder(nn.Module):
         Returns:
             - outputs (:obj:`torch.Tensor`): Embedding tensor
         """
-        x = x.permute(0, 3, 1, 2)  # get into NCHW format
+        #x = x.permute(0, 3, 1, 2)  # get into NCHW format
         x = self.main(x)
         x = self.mid(x)
         return x
@@ -126,8 +127,11 @@ class TrexModel(nn.Module):
         if mode == 'sum':
             sum_rewards = torch.sum(r)
             sum_abs_rewards = torch.sum(torch.abs(r))
+            # print(sum_rewards)
+            # print(r)
             return sum_rewards, sum_abs_rewards
         elif mode == 'batch':
+            # print(r)
             return r, torch.abs(r)
         else:
             raise KeyError("not support mode: {}, please choose mode=sum or mode=batch".format(mode))
@@ -212,11 +216,7 @@ class TrexRewardModel(BaseRewardModel):
             model_path = self.cfg.reward_model.expert_model_path + \
             '/ckpt/iteration_' + checkpoint + '.pth.tar'
             if self.cfg.reward_model.algo_for_model in {'dqn', 'sql'}:
-                model = DQN(
-                    obs_shape=self.cfg.policy.model.obs_shape,
-                    action_shape=self.cfg.policy.model.action_shape,
-                    encoder_hidden_size_list=self.cfg.policy.model.encoder_hidden_size_list,
-                )
+                model = DQN(**self.cfg.policy.model)
                 model.load_state_dict(torch.load(model_path)['model'])
                 episode_count = 1
                 for i in range(episode_count):
@@ -270,30 +270,7 @@ class TrexRewardModel(BaseRewardModel):
                     self.learning_returns.append(acc_reward)
                     self.learning_rewards.append(gt_rewards)
             elif self.cfg.reward_model.algo_for_model == 'ppo':
-                if hasattr(self.cfg.env, 'env_id'):
-                    model = VAC(        # Todo, do we have a better solution to have generality?
-                        obs_shape=self.cfg.policy.model.get('obs_shape'),
-                        action_shape=self.cfg.policy.model.get('action_shape'),
-                        encoder_hidden_size_list=self.cfg.policy.model.get('encoder_hidden_size_list'),
-                        actor_head_hidden_size=self.cfg.policy.model.get('actor_head_hidden_size'),
-                        critic_head_hidden_size=self.cfg.policy.model.get('critic_head_hidden_size'),
-                        critic_head_layer_num=self.cfg.policy.model.get('critic_head_layer_num'),
-                    )   # self.cfg.policy.model
-                else:
-                    if self.cfg.reward_model.env_id == 'LunarLander-v2':
-                        model = VAC(
-                            obs_shape=self.cfg.policy.model.get('obs_shape'),
-                            action_shape=self.cfg.policy.model.get('action_shape')
-                        )
-                    else:
-                        model = VAC(        # Todo, do we have a better solution to have generality?
-                            obs_shape=self.cfg.policy.model.get('obs_shape'),
-                            action_shape=self.cfg.policy.model.get('action_shape'),
-                            encoder_hidden_size_list=self.cfg.policy.model.get('encoder_hidden_size_list'),
-                            actor_head_hidden_size=self.cfg.policy.model.get('actor_head_hidden_size'),
-                            critic_head_hidden_size=self.cfg.policy.model.get('critic_head_hidden_size'),
-                            critic_head_layer_num=self.cfg.policy.model.get('critic_head_layer_num'),
-                        )
+                model = VAC(**self.cfg.policy.model)
                 model.load_state_dict(torch.load(model_path)['model'])
                 episode_count = 1
                 for i in range(episode_count):
@@ -367,20 +344,9 @@ class TrexRewardModel(BaseRewardModel):
             model_path = self.cfg.reward_model.expert_model_path + \
             '/ckpt/iteration_' + checkpoint + '.pth.tar'
             if self.cfg.reward_model.algo_for_model == 'ppo':
-                model = VAC(
-                    obs_shape=self.cfg.policy.model.obs_shape,
-                    action_shape=self.cfg.policy.model.action_shape,
-                    continuous=True,
-                )
+                model = VAC(**self.cfg.policy.model)
             elif self.cfg.reward_model.algo_for_model == 'sac':
-                model = QAC(
-                    obs_shape=self.cfg.policy.model.obs_shape,
-                    action_shape=self.cfg.policy.model.action_shape,
-                    twin_critic=self.cfg.policy.model.twin_critic,
-                    actor_head_type=self.cfg.policy.model.actor_head_type,
-                    actor_head_hidden_size=self.cfg.policy.model.actor_head_hidden_size,
-                    critic_head_hidden_size=self.cfg.policy.model.critic_head_hidden_size,
-                )
+                model = QAC(**self.cfg.policy.model)
             model.load_state_dict(torch.load(model_path)['model'])
             episode_count = 1
             for i in range(episode_count):
@@ -435,18 +401,14 @@ class TrexRewardModel(BaseRewardModel):
             This is a side effect function which updates the expert data attribute \
                 (i.e. ``self.expert_data``) with ``fn:concat_state_action_pairs``
         """
-        if hasattr(self.cfg.reward_model, 'continuous'):
-            if self.cfg.reward_model.continuous is True:
-                self.pre_expert_data, self.learning_returns, self.learning_rewards \
-                = self.generate_novice_demos_continuous_action_space(
-                )
-        else:
-            self.pre_expert_data, self.learning_returns, self.learning_rewards = self.generate_novice_demos()
-        offline_data_save_type(
-            self.data_for_save,
-            self.cfg.reward_model.offline_data_path,
-            data_type=self.cfg.policy.collect.get('data_type', 'naive')
-        )
+        with open(self.cfg.reward_model.offline_data_path + '/episodes_data.pkl', 'rb') as f:
+            self.pre_expert_data = pickle.load(f)
+        with open(self.cfg.reward_model.offline_data_path + '/learning_returns.pkl', 'rb') as f:
+            self.learning_returns= pickle.load(f)
+        with open(self.cfg.reward_model.offline_data_path + '/learning_rewards.pkl', 'rb') as f:
+            self.learning_reward = pickle.load(f)
+        with open(self.cfg.reward_model.offline_data_path + '/checkpoints.pkl', 'rb') as f:
+            self.checkpoints = pickle.load(f)
         self.training_obs, self.training_labels = self.create_training_data()
         self._logger.info("num_training_obs: {}".format(len(self.training_obs)))
         self._logger.info("num_labels: {}".format(len(self.training_labels)))
@@ -532,7 +494,7 @@ class TrexRewardModel(BaseRewardModel):
         return self.training_obs, self.training_labels
 
     def train(self):
-        #check if gpu available
+        # check if gpu available
         device = self.device  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # Assume that we are on a CUDA machine, then this should print a CUDA device:
         self._logger.info("device: {}".format(device))
@@ -545,30 +507,30 @@ class TrexRewardModel(BaseRewardModel):
             np.random.shuffle(training_data)
             training_obs, training_labels = zip(*training_data)
             for i in range(len(training_labels)):
-                traj_i, traj_j = training_obs[
-                    i]  # traj_i, traj_j has the same length, however, they change as i increases
-                labels = np.array([training_labels[i]])
+
+                # traj_i, traj_j has the same length, however, they change as i increases
+                traj_i, traj_j = training_obs[i] # traj_i is a list of array generated by env.step
+                labels = np.array([training_labels[i]]) # training_labels[i] is a boolean integer: 0 or 1
                 traj_i = np.array(traj_i)
                 traj_j = np.array(traj_j)
                 traj_i = torch.from_numpy(traj_i).float().to(device)
                 traj_j = torch.from_numpy(traj_j).float().to(device)
                 labels = torch.from_numpy(labels).to(device)
 
-                #zero out gradient
-                self.opt.zero_grad()
 
-                #forward + backward + optimize
+                # forward + backward + zero out gradient + optimize
                 outputs, abs_rewards = self.reward_model.forward(traj_i, traj_j)
                 outputs = outputs.unsqueeze(0)
                 loss = loss_criterion(outputs, labels) + self.l1_reg * abs_rewards
+                self.opt.zero_grad()
                 loss.backward()
                 self.opt.step()
 
-                #print stats to see if learning
+                # print stats to see if learning
                 item_loss = loss.item()
                 cum_loss += item_loss
                 if i % 100 == 99:
-                    #print(i)
+                    # print(i)
                     self._logger.info("epoch {}:{} loss {}".format(epoch, i, cum_loss))
                     self._logger.info("abs_returns: {}".format(abs_rewards))
                     cum_loss = 0.0
@@ -594,17 +556,16 @@ class TrexRewardModel(BaseRewardModel):
             "accuracy and comparison:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()]))
         )
 
-    def predict_reward_sequence(self, net, traj):
-        device = self.device
-        rewards_from_obs = []
-        with torch.no_grad():
-            for s in traj:
-                r = net.cum_return(torch.from_numpy(np.array([s])).float().to(device))[0].item()
-                rewards_from_obs.append(r)
-        return rewards_from_obs
-
     def predict_traj_return(self, net, traj):
-        return sum(self.predict_reward_sequence(net, traj))
+        device = self.device
+        # torch.set_printoptions(precision=20)
+        # torch.use_deterministic_algorithms(True)
+        with torch.no_grad():
+            rewards_from_obs = net.cum_return(torch.from_numpy(np.array(traj)).float().to(device), mode='batch')[0].squeeze().tolist()
+            # rewards_from_obs1 = net.cum_return(torch.from_numpy(np.array([traj[0]])).float().to(device))[0].item()
+        # print(rewards_from_obs)
+        # print(rewards_from_obs1)
+        return sum(rewards_from_obs) # rewards_from_obs is a list of floats
 
     def calc_accuracy(self, reward_network, training_inputs, training_outputs):
         device = self.device
@@ -638,10 +599,12 @@ class TrexRewardModel(BaseRewardModel):
         """
         res = collect_states(data)
         res = torch.stack(res).to(self.device)
+        '''
         if isinstance(self.cfg.policy.model.get('obs_shape'), int) or len(self.cfg.policy.model.get('obs_shape')) == 1:
             pass
         elif len(self.cfg.policy.model.get('obs_shape')) == 3:
             res = res.permute(0, 3, 2, 1)
+        '''
         with torch.no_grad():
             sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res, mode='batch')
 

@@ -22,8 +22,8 @@ lunarlander_ppo_config = dict(
         update_per_collect=1,
         expert_model_path=
         '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_ppo',
-        reward_model_path='./lunarlander.params',
-        offline_data_path='lunarlander_trex_offppo/suboptimal_data.pkl',
+        reward_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_trex_offppo/lunarlander.params',
+        offline_data_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_trex_offppo',
     ),
     policy=dict(
         cuda=True,
