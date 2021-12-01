@@ -262,7 +262,7 @@ def main(cfg, create_cfg, seed=0):
     collector_env.launch()
     evaluator_env.launch()
 
-    model = QAC(**cfg.policy.model)
+    model = DQN(**cfg.policy.model)
     # model.share_memory()
     replay_buffer = DequeBuffer()
     sac = Pipeline(cfg, model)
@@ -285,7 +285,7 @@ def main(cfg, create_cfg, seed=0):
         )
 
         print(task.middleware)
-        task.run(max_step=10)
+        task.run(max_step=100)
     time.sleep(1)
     print("Threads", threading.enumerate())
     print("Total time cost: {:.2f}s".format(time.time() - start))
@@ -294,6 +294,6 @@ def main(cfg, create_cfg, seed=0):
 if __name__ == "__main__":
     # from ding.utils import profiler
     # profiler()
-    # main(main_config, create_config)
-    Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
+    main(main_config, create_config)
+    # Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
     print("Parent Threads", threading.enumerate())
