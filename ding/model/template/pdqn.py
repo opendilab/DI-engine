@@ -161,19 +161,23 @@ class PDQN(nn.Module):
         action_args = inputs['action_args']  # size (B, action_args_shape)
         if self.multi_pass:  # mpdqn
             mp_action_args_shape = [self.action_type_shape] + list(action_args.shape)  # size (K, B, action_args_shape) where K is action_type_shape
-            mp_action_args = action_args.expand(size=mp_action_args_shape)  # size (K, B, action_args_shape) where K is action_type_shape
+            mp_action_args = torch.rand(size=mp_action_args_shape)  # size (K, B, action_args_shape) where K is action_type_shape
+            for i in range(self.action_type_shape):
+                mp_action_args[i].copy_(action_args)
+
             for i in range(len(self.action_mask)):  # discrete action i with total K
                 for j in range(len(self.action_mask[i])):  # continuous args j with total K'
                     if not self.action_mask[i][j]:  # action_mask[i][j] == 0, which means this arg is not associated with this action
                         mp_action_args[i,...,j] = -2 # setting the value to any value which is not in range [-1,1] works
-            
-            mp_state_shape = [self.action_type_shape] + list(dis_x.shape)  # size (K, B, encoded_state_shape)
-            mp_dis_x = dis_x.expand(mp_state_shape)  # size (K, B, encoded_state_shape)
 
+            mp_state_shape = [self.action_type_shape] + list(dis_x.shape)  # size (K, B, encoded_state_shape)
+            mp_dis_x = torch.rand(size=mp_state_shape)  # size (K, B, encoded_state_shape)
+            for i in range(self.action_type_shape):
+                mp_dis_x[i].copy_(dis_x)  
             mp_state_action_cat = torch.cat((mp_dis_x, mp_action_args), dim=-1)  # size (K, B, encoded_state_shape + action_args_shape)
             raw_logit = self.actor_head[0](mp_state_action_cat)['logit']  # size (K, B, K) where K is action_type_shape
-            logit = torch.tensor([list(raw_logit[i,...,i]) for i in range(self.action_type_shape)])
-      
+            
+            logit = torch.tensor([list(raw_logit[i,...,i]) for i in range(self.action_type_shape)], requires_grad=True).T  # size (B, K) where K is action_type_shape
         else:  # pdqn
             state_action_cat = torch.cat((dis_x, action_args), dim=-1)  # size (B, encoded_state_shape + action_args_shape)
             logit = self.actor_head[0](state_action_cat)['logit']  # size (B, K) where K is action_type_shape

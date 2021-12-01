@@ -10,7 +10,7 @@ gym_hybrid_pdqn_config = dict(
     # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd1e-5_lrc1e-3_upc100_seed0',
     env=dict(
         collector_env_num=8,
-        evaluator_env_num=5,
+        evaluator_env_num=3,
         # (bool) Scale output action into legal range [-1, 1].
         act_scale=True,
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
@@ -39,9 +39,9 @@ gym_hybrid_pdqn_config = dict(
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
-            update_per_collect=500,  # 100, 10,
-            batch_size=320,  # 32,
-            learning_rate_dis=3e-4,  # 1e-5,#3e-4, alpha
+            update_per_collect=100,  # 100, 10,
+            batch_size=32,  # 32,
+            learning_rate_dis=3e-4,  # 1e-5, 3e-4, alpha
             learning_rate_cont=3e-4,  # beta
             target_theta=0.001,  # 0.005,
             # cont_update_freq=10,
@@ -51,7 +51,7 @@ gym_hybrid_pdqn_config = dict(
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=3200,  # 128,
+            n_sample=128,  # 128,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             noise_sigma=0.1,  # 0.05,
@@ -67,7 +67,7 @@ gym_hybrid_pdqn_config = dict(
                 start=1,  # 0.95,
                 end=0.1,  # 0.05,
                 # (int) Decay length(env step)
-                decay=int(1e5),
+                decay=int(1e6),
             ),
             replay_buffer=dict(replay_buffer_size=int(1e6), ),
         ),
