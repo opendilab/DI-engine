@@ -1,8 +1,8 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_onpolicy
 import torch
-print(torch.__version__,torch.cuda.is_available())
-collector_env_num=8
+print(torch.__version__, torch.cuda.is_available())
+collector_env_num = 8
 minigrid_ppo_rnd_config = dict(
     # exp_name='minigrid_empty8_rnd_onppo_b01_weight1000_maxlen100',
     # exp_name='minigrid_fourrooms_rnd_onppo_b01_weight1000_maxlen100',
@@ -10,7 +10,6 @@ minigrid_ppo_rnd_config = dict(
     # exp_name='minigrid_doorkey_rnd_onppo_b01_weight1000_maxlen300',
     # exp_name='minigrid_kcs3r3_rnd_onppo_b01',
     # exp_name='minigrid_om2dlh_rnd_onppo_b01',
-
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=5,
@@ -54,14 +53,14 @@ minigrid_ppo_rnd_config = dict(
             batch_size=320,  # 64,
             learning_rate=3e-4,
             value_weight=0.5,
-            entropy_weight=0.001, 
+            entropy_weight=0.001,
             clip_ratio=0.2,
             adv_norm=True,
-            value_norm=True, 
+            value_norm=True,
         ),
         collect=dict(
             collector_env_num=collector_env_num,
-            n_sample=int(3200), 
+            n_sample=int(3200),
             # here self.traj_length = 3200//8 = 400, because in minigrid env the max_length is 300.
             # in ding/worker/collector/sample_serial_collector.py
             #    self._traj_len = max(
