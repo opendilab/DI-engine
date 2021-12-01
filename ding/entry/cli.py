@@ -143,7 +143,12 @@ def cli(
     gpus: int,
     memory: str,
     restart_pod_name: str,
+    profile: str,
 ):
+    if profile!=None:
+        from ..utils.profiler_helper import Profiler
+        profiler=Profiler()
+        profiler.profile(profile)
     if mode == 'serial':
         from .serial_entry import serial_pipeline
         if config is None:
