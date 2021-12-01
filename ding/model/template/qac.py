@@ -57,10 +57,22 @@ class QAC(nn.Module):
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
         self.actor_head_type = actor_head_type
-        assert self.actor_head_type in ['regression', 'reparameterization', 'hybrid']
+        assert self.actor_head_type in ['regression', 'reparameterization', 'hybrid', 'noise_regression']
         if self.actor_head_type == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                RegressionHead(
+                    actor_head_hidden_size,
+                    action_shape,
+                    actor_head_layer_num,
+                    final_tanh=True,
+                    activation=activation,
+                    norm_type=norm_type
+                )
+            )
+        elif self.actor_head_type == 'noise_regression':
+            self.actor = nn.Sequential(
+                nn.Linear(obs_shape + action_shape, actor_head_hidden_size), activation,
                 RegressionHead(
                     actor_head_hidden_size,
                     action_shape,
@@ -247,6 +259,9 @@ class QAC(nn.Module):
             >>> torch.Size([4, 64])
         """
         if self.actor_head_type == 'regression':
+            x = self.actor(inputs)
+            return {'action': x['pred']}
+        if self.actor_head_type == 'noise_regression':
             x = self.actor(inputs)
             return {'action': x['pred']}
         elif self.actor_head_type == 'reparameterization':

@@ -14,10 +14,10 @@ from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
-def assert_shape(tensor, expected_shape):
-    tensor_shape = tensor.shape.as_list()
-    assert len(tensor_shape) == len(expected_shape)
-    assert all([a == b for a, b in zip(tensor_shape, expected_shape)])
+# def assert_shape(tensor, expected_shape):
+#     tensor_shape = tensor.shape.as_list()
+#     assert len(tensor_shape) == len(expected_shape)
+#     assert all([a == b for a, b in zip(tensor_shape, expected_shape)])
 @POLICY_REGISTRY.register('csql')
 class ContinousSoftQLPolicy(Policy):
     r"""
@@ -93,7 +93,7 @@ class ContinousSoftQLPolicy(Policy):
             # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
             # Default to True.
-            twin_critic=True,
+            twin_critic=False,
 
             # (bool type) value_network: Determine whether to use value network as the
             # original SAC paper (arXiv 1801.01290).
@@ -101,7 +101,7 @@ class ContinousSoftQLPolicy(Policy):
             # and learning_rate_policy in `cfg.policy.learn`.
             # Default to False.
             # value_network=False,
-            actor_head_type='reparameterization',
+            actor_head_type='noise_regression',
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -147,7 +147,7 @@ class ContinousSoftQLPolicy(Policy):
             # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
             # Default to False.
             # Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.
-            auto_alpha=True,
+            auto_alpha=False,
             # (bool type) log_space: Determine whether to use auto `\alpha` in log space.
             log_space=True,
             # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
@@ -160,6 +160,8 @@ class ContinousSoftQLPolicy(Policy):
             ignore_done=False,
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
+            sample_size = 100,
+            kernel_update_ratio = 0.5
         ),
         collect=dict(
             # You can use either "n_sample" or "n_episode" in actor.collect.
@@ -168,6 +170,7 @@ class ContinousSoftQLPolicy(Policy):
             n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
+            noise_sigma = 0.1
         ),
         eval=dict(
             evaluator=dict(
@@ -200,11 +203,11 @@ class ContinousSoftQLPolicy(Policy):
         self._twin_critic = self._cfg.model.twin_critic
 
         # Weight Init for the last output layer
-        init_w = self._cfg.learn.init_w
-        self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
-        self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
+        # init_w = self._cfg.learn.init_w
+        # self._model.actor[2].mu.weight.data.uniform_(-init_w, init_w)
+        # self._model.actor[2].mu.bias.data.uniform_(-init_w, init_w)
+        # self._model.actor[2].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
+        # self._model.actor[2].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
 
         # Optimizers
         if self._value_network:
@@ -220,6 +223,8 @@ class ContinousSoftQLPolicy(Policy):
             self._model.actor.parameters(),
             lr=self._cfg.learn.learning_rate_policy,
         )
+        self._sample_size = self._cfg.learn.sample_size
+        self._kernel_update_ratio = self._cfg.learn.kernel_update_ratio
 
         # Algorithm config
         self._gamma = self._cfg.learn.discount_factor
@@ -288,82 +293,77 @@ class ContinousSoftQLPolicy(Policy):
         done = data['done']
         obs_size = obs.shape[1]
         batch_size = obs.shape[0]
-        sample_size = 20
-        action_size = 3
-        alpha = 0.9
-        kernel_update_ratio = 0.5
+        action_size = self._model.action_shape
+        sample_size = self._sample_size 
+        kernel_update_ratio = self._kernel_update_ratio
+        alpha = self._alpha
 
 
-
-        ## Compute td error
         # 1. predict q value
         q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
         # 2. predict target next value 
         # equation (10)
-        obs_expand = next_obs.unsqueeze(1)
-        obs_expand = obs_expand.expand([batch_size, sample_size, obs_size])
-        obs_expand = obs_expand.reshape(batch_size * sample_size, obs_size)
-        action_expand = torch.randn(batch_size * sample_size, obs_size).uniform_(-1, 1)
-        sample_data = {'obs': obs_expand, 'action': action_expand}
-        next_q_expand = self._target_model.forward(sample_data, mode='compute_critic')['q_value']
-        next_q_expand = next_q_expand.reshape(batch_size, -1)
-        next_v_value = alpha * torch.logsumexp(next_q_expand / alpha, 1)
-        # corresponds to Line 183, do not understand the reason
-        next_v_value -= torch.log(sample_size.type(torch.FloatTensor))
-        next_v_value += action_size.type(torch.FloatTensor) * torch.log(2)
+        with torch.no_grad():
+            obs_expand = next_obs.unsqueeze(1)
+            obs_expand = obs_expand.expand([batch_size, sample_size, obs_size])
+            obs_expand = obs_expand.reshape(batch_size * sample_size, obs_size)
+            action_expand = torch.rand(batch_size * sample_size, action_size)
+            sample_data = {'obs': obs_expand, 'action': action_expand}
+            next_q_expand = self._target_model.forward(sample_data, mode='compute_critic')['q_value']
+            next_q_expand = next_q_expand.reshape(batch_size, -1)
+            # next_q_expand : batch_size x sample_size
+            next_v_value = alpha * torch.logsumexp(next_q_expand / alpha, 1)
+            # Importance weights add just a constant to the value.
+            next_v_value -= torch.log(torch.tensor(sample_size))
+            next_v_value += torch.tensor(action_size).type(torch.FloatTensor) * torch.log(torch.tensor(2))
         # 3. compute td error
         q_data = v_1step_td_data(q_value, next_v_value, reward, done, data['weight'])
         loss_dict['critic_loss'], td_error_per_sample = v_1step_td_error(q_data, self._gamma)
 
-
         ## create svgd update
-        #(mu, sigma) = self._learn_model.forward(data['obs'], mode='compute_actor')['logit']
-        mu = torch.zeros(action_size)
-        sigma = torch.ones(action_size)
-        dist = Independent(Normal(mu, sigma), 1)
-        sample_list = dist.sample_n(sample_size)
-        # sample_list shape: [sample_size, action_size]
-        latent_sample = sample_list.unsqueeze(0)
-        latent_sample = latent_sample.expand(batch_size, sample_size, action_size)
-
-        # sample_list shape: [batch_size, sample_size, action_size]
+        # mu = torch.zeros(action_size)
+        # sigma = torch.ones(action_size)
+        # dist = Independent(Normal(mu, sigma), 1)
+        # sample_list = dist.sample_n(batch_size * sample_size)
+        # sample_list = torch.randn(batch_size * sample_size)
+        sample_list = torch.randn((batch_size * sample_size, action_size))
+        latent_sample = sample_list.view(batch_size, sample_size, -1)
+        # latent sample shape: [batch_size, sample_size, action_size]
         obs_expand = obs.unsqueeze(1)
-        obs_expand = obs_expand.expand(batch_size, sample_size, action_size)
+        obs_expand = obs_expand.expand(batch_size, sample_size, obs_size)
 
 
         stochastic_expand = torch.cat([obs_expand, latent_sample],dim=2)
         stochastic_expand = stochastic_expand.reshape(batch_size * sample_size, -1)
         # stochastic_expand shape: [batch_size * sample_size, obs_shape + action_sample]
-        sample_action_flat = self._learn_model.forward(stochastic_expand, mode='compute_actor')['logit']
+        sample_action_flat = self._learn_model.forward(stochastic_expand, mode='compute_actor')['action']
         sample_action = sample_action_flat.reshape(batch_size, sample_size, action_size)
 
         n_updated_actions = int(kernel_update_ratio * sample_size )
         n_fixed_actions = sample_size - n_updated_actions
 
         fixed_actions, updated_actions = torch.split(sample_action, [n_fixed_actions, n_updated_actions], dim = 1)
-        fixed_actions = fixed_actions.detach()
+        # fixed actions shape: batch_size, n_fixed_actions, action_size
+        # updated actions shape: batch_size, n_updated_actions, action_size
+        #fixed_actions = fixed_actions.detach()
         fixed_observations, updated_observations = torch.split(obs_expand,[n_fixed_actions, n_updated_actions], dim = 1)
-
-
-        fixed_actions_flat = fixed_actions.reshape(-1, action_size)
-        assert_shape(fixed_actions, [batch_size, n_fixed_actions, action_size])
-        
-        fixed_observations = fixed_observations.reshape(-1, obs_size)
-        assert_shape(fixed_observations, [batch_size, n_fixed_actions, obs_size])
-        # fixed actions:  batch * sample_size , action_size
-        # fixed observations: batch * sample_size , observation_shape
-        data_fixed = {'obs': fixed_observations, 'action': fixed_actions_flat}
+        fixed_actions_flat = fixed_actions.reshape(-1, action_size)       
+        fixed_observations_flat = fixed_observations.reshape(-1, obs_size)
+        # fixed_actions_flat shape:     batch_size*n_fixed_actions x action_size
+        # fixed_observation_flat shape: batch_size*n_fixed_actions x obs_size
+        data_fixed = {'obs': fixed_observations_flat, 'action': fixed_actions_flat}
         svgd_target_values = self._target_model.forward(data_fixed, mode='compute_critic')['q_value']
 
         # Here we must check if tanh is in the nn.parameters or not
-        squash_correction = (1 - fixed_actions_flat.pow(2) + 1e-6).sum(-1,keep_dim = False)
+        squash_correction = (1 - fixed_actions_flat.pow(2) + 1e-6).sum(-1)
         log_p = svgd_target_values + squash_correction
 
 
-        grad_log_p = torch.autograd.grad(outputs = log_p, inputs = fixed_actions, grad_output=torch.ones_like(log_p))[0]
+        grad_log_p = torch.autograd.grad(outputs = log_p, inputs = fixed_actions, grad_outputs=torch.ones_like(log_p))[0]
         grad_log_p = grad_log_p.unsqueeze(2)
         grad_log_p = grad_log_p.detach()
-        assert_shape(grad_log_p, [batch_size, n_fixed_actions, 1, action_size])
+        # grad_log_p shape : batch x n_fixed_actions x 1 x action_dim, how to get
+        #assert_shape(grad_log_p, [batch_size, n_fixed_actions, 1, action_size])
 
         kernel_dict = self.adaptive_isotropic_gaussian_kernel(xs=fixed_actions, ys=updated_actions)
         # kernel_dict kappa output shape: batch_size x n_fixed_acitons x n_updated_shape
@@ -374,44 +374,35 @@ class ContinousSoftQLPolicy(Policy):
         kappa = kernel_dict['output'].unsqueeze(3)
         # kappa shape: batch_size x n_fixed_actions x n_updated_actions x 1
         # grad_log_p : batch_size x n_fixed_actions x 1 x action_size
-        assert_shape(kappa, [batch_size, n_fixed_actions, n_updated_actions, 1])
+        #assert_shape(kappa, [batch_size, n_fixed_actions, n_updated_actions, 1])
 
         # Stein Variational Gradient in Equation 13:
-        action_gradients = (kappa* grad_log_p + kernel_dict['gradient']).mean(1, keep_dim = False)
+        action_gradients = (kappa* grad_log_p + kernel_dict['gradient']).mean(1)
         # to batch_size x n_updated_actions x action_size
-        assert_shape(action_gradients, [batch_size, n_updated_actions, action_size])
+        #assert_shape(action_gradients, [batch_size, n_updated_actions, action_size])
 
         surrogate_loss = torch.sum(action_gradients.mul(updated_actions))
-        surrogate_loss.backward()
-
-
-
-
-
-
-
-
-
-
-        # grad_log_p.shape = n_fixed_actions, batch_size, 1, action_size
+        loss_dict['policy_loss'] = surrogate_loss
         
-        kernel_dict = self.adaptive_isotropic_gaussian_kernel(xs = fixed_actions, ys=updated_actions)
-        kappa = kernel_dict['output'].unsqueeze(3)
-        #assert_shape(kappa, [None, n_fixed_actions, n_updated_actions, 1])
-        action_gradients = (kappa * grad_log_p + kernel_dict['gradient']).mean(dim=1)
-
-        #gradients = 
-
-
-
-
-
-
-        
-
-
-
-
+        # update policy network
+        self._optimizer_policy.zero_grad()
+        loss_dict['policy_loss'].backward()
+        self._optimizer_policy.step()
+        # =============
+        # after update
+        # =============
+        self._forward_learn_cnt += 1
+        # target update
+        self._target_model.update(self._learn_model.state_dict())
+        return {
+            'cur_lr_q': self._optimizer_q.defaults['lr'],
+            'cur_lr_p': self._optimizer_policy.defaults['lr'],
+            'priority': td_error_per_sample.abs().tolist(),
+            'td_error': td_error_per_sample.detach().mean().item(),
+            'alpha': self._alpha.item(),
+            #'target_q_value': target_q_value.detach().mean().item(),
+            **loss_dict
+        }
 
     def adaptive_isotropic_gaussian_kernel(self, xs, ys, h_min = 1e-3):
         # fixed actions: batch_size, fixed_action_size, action_size
@@ -457,11 +448,6 @@ class ContinousSoftQLPolicy(Policy):
         kappa_grad = -2 * diff / h_expanded_thrice * kappa_expanded 
         # kappa_grad shape: batch_size x fixed_aciton_size x updated_action_size x action_size
         return {"output": kappa, "gradient": kappa_grad}
-
-
-        
-
-        
 
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -517,10 +503,16 @@ class ContinousSoftQLPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            (mu, sigma) = self._collect_model.forward(data, mode='compute_actor')['logit']
-            dist = Independent(Normal(mu, sigma), 1)
-            action = torch.tanh(dist.rsample())
-            output = {'logit': (mu, sigma), 'action': action}
+            action_size = 3
+            # mu = torch.zeros(action_size)
+            # sigma = torch.ones(action_size)
+            # dist = Independent(Normal(mu, sigma), 1)
+            # sample_list = dist.sample(data.shape[0])
+            sample_list = torch.randn((data.shape[0], action_size))
+            stochastic_list = torch.cat([data, sample_list], dim=1)
+            stochastic_data = {'obs': stochastic_list}
+            sample_action = self._collect_model.forward(stochastic_list, mode='compute_actor')
+            output = sample_action
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -578,9 +570,17 @@ class ContinousSoftQLPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            (mu, sigma) = self._eval_model.forward(data, mode='compute_actor')['logit']
-            action = torch.tanh(mu)  # deterministic_eval
-            output = {'action': action}
+            action_size = 3
+            # mu = torch.zeros(action_size)
+            # sigma = torch.ones(action_size)
+            # dist = Independent(Normal(mu, sigma), 1)
+            # sample_list = dist.sample(data.shape[0])
+            sample_list = torch.randn((data.shape[0], action_size))
+            stochastic_list = torch.cat([data, sample_list], dim=1)
+            #stochastic_data = {'obs': stochastic_list}
+            sample_action = self._collect_model.forward(stochastic_list, mode='compute_actor')
+            #output = {'action': sample_action}
+            output = sample_action
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

@@ -12,13 +12,13 @@ hopper_csql_default_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        cuda=True,
+        cuda=False,
         random_collect_size=10000,
         model=dict(
             obs_shape=11,
             action_shape=3,
-            twin_critic=True,
-            actor_head_type='reparameterization',
+            twin_critic=False,
+            actor_head_type='noise_regression',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
         ),
