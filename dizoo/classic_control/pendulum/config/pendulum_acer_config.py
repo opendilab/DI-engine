@@ -1,8 +1,7 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    exp_name='debug_pendulum_ul50_bs16_rbs2e3_tt0.005_clipnorm_seed0',
-    # exp_name='debug_pendulum_ul50_bs16_rbs2e3_tt0.005_clipnorm_fixsigma0.3_seed0',
+    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
     seed=0,
     env=dict(
         # collector_env_num=10,
@@ -28,9 +27,11 @@ pendulum_acer_config = dict(
             grad_clip_type='clip_norm',
             # grad_clip_type='clip_value',
             clip_value=0.5,
+            # clip_value=10,
             multi_gpu=False,
             update_per_collect=4,
-            batch_size=16,#64
+            # batch_size=16,
+            batch_size=64,
             unroll_len=50,
             entropy_weight=0,  # 0.0001,
             discount_factor=0.99,  # 0.997,#0.9,
@@ -42,7 +43,6 @@ pendulum_acer_config = dict(
             learning_rate_critic=0.0005,
             target_theta=0.005,  # TODO(pu)
             # target_theta=0.05,  # TODO(pu)
-
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
         ),
@@ -59,7 +59,8 @@ pendulum_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            replay_buffer_size=2000,  # 1000, 5000 TODO(pu)
+            # replay_buffer_size=2000,  # 1000, 5000 TODO(pu)
+            replay_buffer_size=10000,  # 1000, 5000 TODO(pu)
             max_use=16,
         ), ),
     ),
