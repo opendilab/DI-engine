@@ -1,10 +1,8 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline
 
-gym_hybrid_pdqn_config = dict(
-    exp_name='gym_hybrid_pdqn_seed1',
-
-    # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd1e-5_lrc1e-3_upc100_seed0',
+gym_hybrid_mpdqn_config = dict(
+    exp_name='gym_hybrid_mpdqn_seed1',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=3,
@@ -27,8 +25,8 @@ gym_hybrid_pdqn_config = dict(
                 action_type_shape=3,
                 action_args_shape=2,
             ),
-            # multi_pass=True,
-            # action_mask=[[1,0],[0,1],[0,0]],
+            multi_pass=True,
+            action_mask=[[1,0],[0,1],[0,0]],
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -71,10 +69,10 @@ gym_hybrid_pdqn_config = dict(
     )
 )
 
-gym_hybrid_pdqn_config = EasyDict(gym_hybrid_pdqn_config)
-main_config = gym_hybrid_pdqn_config
+gym_hybrid_mpdqn_config = EasyDict(gym_hybrid_mpdqn_config)
+main_config = gym_hybrid_mpdqn_config
 
-gym_hybrid_pdqn_create_config = dict(
+gym_hybrid_mpdqn_create_config = dict(
     env=dict(
         type='gym_hybrid',
         import_names=['dizoo.gym_hybrid.envs.gym_hybrid_env'],
@@ -82,8 +80,8 @@ gym_hybrid_pdqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='pdqn'),
 )
-gym_hybrid_pdqn_create_config = EasyDict(gym_hybrid_pdqn_create_config)
-create_config = gym_hybrid_pdqn_create_config
+gym_hybrid_mpdqn_create_config = EasyDict(gym_hybrid_mpdqn_create_config)
+create_config = gym_hybrid_mpdqn_create_config
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=1)

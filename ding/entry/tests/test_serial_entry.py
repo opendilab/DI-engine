@@ -43,7 +43,7 @@ from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config i
 from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
 from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_pdqn_config, gym_hybrid_pdqn_create_config
-
+from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_mpdqn_config, gym_hybrid_mpdqn_create_config
 
 @pytest.mark.unittest
 @pytest.mark.dqn
@@ -81,6 +81,16 @@ def test_hybrid_ddpg():
 # @pytest.mark.unittest
 def test_hybrid_pdqn():
     config = [deepcopy(gym_hybrid_pdqn_config), deepcopy(gym_hybrid_pdqn_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+# @pytest.mark.unittest
+def test_hybrid_mpdqn():
+    config = [deepcopy(gym_hybrid_mpdqn_config), deepcopy(gym_hybrid_mpdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
