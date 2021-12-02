@@ -667,25 +667,16 @@ class PPOOffPolicy(Policy):
         Returns:
                - transition (:obj:`dict`): Dict type transition data.
         """
-        if not self._nstep_return:
-            transition = {
-                'obs': obs,
-                'logit': model_output['logit'],
-                'action': model_output['action'],
-                'value': model_output['value'],
-                'reward': timestep.reward,
-                'done': timestep.done,
-            }
-        else:
-            transition = {
-                'obs': obs,
-                'next_obs': timestep.obs,
-                'logit': model_output['logit'],
-                'action': model_output['action'],
-                'value': model_output['value'],
-                'reward': timestep.reward,
-                'done': timestep.done,
-            }
+
+        transition = {
+            'obs': obs,
+            'next_obs': timestep.obs,
+            'logit': model_output['logit'],
+            'action': model_output['action'],
+            'value': model_output['value'],
+            'reward': timestep.reward,
+            'done': timestep.done,
+        }
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
