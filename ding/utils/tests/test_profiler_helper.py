@@ -4,7 +4,8 @@ import unittest
 from unittest import mock
 from unittest.mock import patch
 import pathlib as pl
-import os, shutil
+import os
+import shutil
 
 from ding.utils.profiler_helper import Profiler, regist_profiler
 
@@ -39,4 +40,5 @@ class TestProfilerModule:
             self.assertIsFile(file_path)
             file_path = os.path.join(dir, "profile.svg")
             self.assertIsFile(file_path)
+
         clean_up(dir)

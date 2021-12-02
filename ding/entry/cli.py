@@ -151,7 +151,7 @@ def cli(
     restart_pod_name: str,
     profile: str,
 ):
-    if profile != None:
+    if profile is not None:
         from ..utils.profiler_helper import Profiler
         profiler = Profiler()
         profiler.profile(profile)
