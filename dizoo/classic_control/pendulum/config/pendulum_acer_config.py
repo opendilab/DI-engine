@@ -1,8 +1,10 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_rewardnorm_seed0',
-    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_auf2_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_rewardnorm_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_reward-batch-norm_seed0',
+    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_reward-runnning-norm_seed0',
+
 
     seed=0,
     env=dict(
@@ -47,7 +49,10 @@ pendulum_acer_config = dict(
             # target_theta=0.05,  # TODO(pu)
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
-            reward_norm=True,
+            reward_running_norm=True,
+            reward_batch_norm=False,
+            # reward_running_norm=False,
+            # reward_batch_norm=True,
         ),
         collect=dict(
             n_sample=16,
@@ -62,9 +67,7 @@ pendulum_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            replay_buffer_size=100,  # 1000, 5000 TODO(pu)
-
-            # replay_buffer_size=2000,  # 1000, 5000 TODO(pu)
+            replay_buffer_size=2000,  # 1000, 5000 TODO(pu)
             # replay_buffer_size=10000,  # 1000, 5000 TODO(pu)
             max_use=16,
         ), ),

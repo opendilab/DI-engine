@@ -189,8 +189,10 @@ class ACERPolicy(Policy):
         self._learn_model.reset()
         self._target_model.reset()
         self.train_cnt = 0
-        self._reward_norm = self._cfg.learn.reward_norm
-        if self._reward_norm:
+        self._reward_running_norm = self._cfg.learn.reward_running_norm
+        self._reward_batch_norm = self._cfg.learn.reward_batch_norm
+
+        if self._reward_running_norm:
             self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
@@ -228,9 +230,11 @@ class ACERPolicy(Policy):
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
         # TODO(pu): reward norm, transform to mean 0, std 1
-        self._running_mean_std.update(data['reward'].cpu().numpy())
-        if self._reward_norm:
+        if self._reward_running_norm:
+            self._running_mean_std.update(data['reward'].cpu().numpy())
             data['reward'] = (data['reward'] - self._running_mean_std.mean) / (self._running_mean_std.std + EPS)
+        if self._reward_batch_norm:
+            data['reward'] = (data['reward'] - data['reward'].mean()) / (data['reward'].std() +  EPS)
 
         data['weight'] = torch.cat(
             data['weight'], dim=0
