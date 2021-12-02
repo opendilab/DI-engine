@@ -1,9 +1,8 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
+    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_rewardnorm_seed0',
     # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_auf2_seed0',
-    exp_name='debug_pendulum_ul50_bs64_rbs100_tt0.005_clipnorm0.5_mubound_fixsigma0.3_auf1_seed0',
 
     seed=0,
     env=dict(
@@ -48,6 +47,7 @@ pendulum_acer_config = dict(
             # target_theta=0.05,  # TODO(pu)
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
+            reward_norm=True,
         ),
         collect=dict(
             n_sample=16,
