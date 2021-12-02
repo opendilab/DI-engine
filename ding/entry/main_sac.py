@@ -185,8 +185,8 @@ def sample_profiler(buffer, print_per_step=1):
             step_records.append(step_record)
             max_mean = max(np.mean(records), max_mean)
             print(
-                "        Samples/s: {:.2f}, Mean: {:.2f}, Max: {:.2f}, Total: {:.0f}; Steps/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}"
-                .format(
+                "        Samples/s: {:.2f}, Mean: {:.2f}, Max: {:.2f}, Total: {:.0f};\
+ Steps/s: {:.2f}, Mean: {:.2f}, Total: {:.0f}".format(
                     record, np.mean(records), max_mean, end_counter, step_record, np.mean(step_records), ctx.total_step
                 )
             )
