@@ -26,7 +26,7 @@ gym_hybrid_mpdqn_config = dict(
                 action_args_shape=2,
             ),
             multi_pass=True,
-            action_mask=[[1,0],[0,1],[0,0]],
+            action_mask=[[1, 0], [0, 1], [0, 0]],
         ),
         learn=dict(
             # (bool) Whether to use multi gpu

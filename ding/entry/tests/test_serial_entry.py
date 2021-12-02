@@ -45,6 +45,7 @@ from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_confi
 from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_pdqn_config, gym_hybrid_pdqn_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_mpdqn_config, gym_hybrid_mpdqn_create_config
 
+
 @pytest.mark.unittest
 @pytest.mark.dqn
 def test_dqn():
