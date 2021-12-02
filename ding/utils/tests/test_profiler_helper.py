@@ -14,21 +14,18 @@ class TestProfilerModule:
 
     def assertIsFile(self, path):
         if not pl.Path(path).resolve().is_file():
-           raise AssertionError("File does not exist: %s" % str(path))
+            raise AssertionError("File does not exist: %s" % str(path))
 
     def test(self):
-        profiler=Profiler()
+        profiler = Profiler()
 
-        def register_mock(write_profile,pr,folder_path):
-            a=1
-            b=2
-            c=a+b
-            profiler.write_profile(pr,folder_path)
-            
+        def register_mock(write_profile, pr, folder_path):
+            profiler.write_profile(pr, folder_path)
+
         def clean_up(dir):
             if os.path.exists(dir):
                 shutil.rmtree(dir)
-        
+
         dir = "./tmp_test/"
         clean_up(dir)
 
