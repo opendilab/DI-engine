@@ -5,7 +5,7 @@ gym_hybrid_pdqn_config = dict(
     # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc1e-3_upc10_auf100_seed0',
     # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc3e-4_upc100_uc10v2_seed0',
     # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc3e-4_upc500_uc10v2_seed0',
-    exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd3e-4_lrc3e-4_upc500_ed1e5_rbs1e6_uc10v2_seed1',
+    exp_name='gym_hybrid_pdqn_seed1',
 
     # exp_name='gym_hybrid_pdqn_dataaction_1encoder_lrd1e-5_lrc1e-3_upc100_seed0',
     env=dict(
@@ -30,8 +30,8 @@ gym_hybrid_pdqn_config = dict(
                 action_type_shape=3,
                 action_args_shape=2,
             ),
-            multi_pass=True,
-            action_mask=[[1,0],[0,1],[0,0]],
+            # multi_pass=True,
+            # action_mask=[[1,0],[0,1],[0,0]],
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -39,8 +39,8 @@ gym_hybrid_pdqn_config = dict(
             # How many updates(iterations) to train after collector's one collection.
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
-            update_per_collect=100,  # 100, 10,
-            batch_size=32,  # 32,
+            update_per_collect=500,  # 100, 10,
+            batch_size=320,  # 32,
             learning_rate_dis=3e-4,  # 1e-5, 3e-4, alpha
             learning_rate_cont=3e-4,  # beta
             target_theta=0.001,  # 0.005,
@@ -51,7 +51,7 @@ gym_hybrid_pdqn_config = dict(
         # collect_mode config
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=128,  # 128,
+            n_sample=3200,  # 128,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             noise_sigma=0.1,  # 0.05,
@@ -67,7 +67,7 @@ gym_hybrid_pdqn_config = dict(
                 start=1,  # 0.95,
                 end=0.1,  # 0.05,
                 # (int) Decay length(env step)
-                decay=int(1e6),
+                decay=int(1e5),
             ),
             replay_buffer=dict(replay_buffer_size=int(1e6), ),
         ),

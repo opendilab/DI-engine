@@ -50,13 +50,14 @@ class PDQN(nn.Module):
                 [[1,0,0,0],[0,1,0,0],[0,0,1,1]] with shape 3*4.
         """
         super(PDQN, self).__init__()
-        if multi_pass:
+        self.multi_pass = multi_pass
+        if self.multi_pass:
             assert isinstance(
                 action_mask, list
             ), 'Please indicate action mask in list form if you set multi_pass to True'
-        self.multi_pass = multi_pass
-        self.action_mask = torch.LongTensor(action_mask)
-        self.action_scatter_index = torch.nonzero(self.action_mask)[:, -1]  # (self.action_args_shape, )
+            
+            self.action_mask = torch.LongTensor(action_mask)
+            self.action_scatter_index = torch.nonzero(self.action_mask)[:, -1]  # (self.action_args_shape, )
 
         # squeeze action shape input like (3,) to 3
         action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
@@ -89,7 +90,7 @@ class PDQN(nn.Module):
         else:
             raise RuntimeError(
                 "Pre-defined encoder not support obs_shape {}, please customize your own PDQN.".
-                format(input_feature_shape)
+                format(obs_shape)
             )
 
         # Continuous Action Head Type
