@@ -14,7 +14,6 @@ memory_len_r2d2_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=True,
         priority_IS_weight=True,
         model=dict(
