@@ -16,3 +16,4 @@ from .mappo import MAPPO
 from .ngu import NGU
 from .qac_dist import QACDIST
 from .model_based import EnsembleDynamicsModel
+from .maqac import MAQAC

@@ -545,7 +545,7 @@ class SACPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
+        return 'maqac', ['ding.model.template.maqac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
