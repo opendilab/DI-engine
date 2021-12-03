@@ -13,7 +13,7 @@ class Context(dict):
 
         # Reserved properties
         self._finish = False
-        self._kept_keys = ["_finish"]
+        self._kept_keys = {"_finish"}
 
     def renew(self) -> 'Context':  # noqa
         """
@@ -30,7 +30,8 @@ class Context(dict):
         Overview:
             Keep this key/keys until next iteration.
         """
-        self._kept_keys += keys
+        for key in keys:
+            self._kept_keys.add(key)
 
     def finish(self, finish: bool = True) -> None:
         """
