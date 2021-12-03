@@ -35,11 +35,6 @@ class Profiler:
 
         pr.dump_stats(folder_path + "/profile.prof")
 
-        flameprof_file_path = folder_path + "/profile.prof"
-        flameprof_SVG_file_path = folder_path + "/profile.svg"
-        flameprof_cmd = "flameprof " + flameprof_file_path + " > " + flameprof_SVG_file_path
-        os.system(flameprof_cmd)
-
     def profile(self, folder_path="./tmp"):
         self.mkdir(folder_path)
         self.pr.enable()

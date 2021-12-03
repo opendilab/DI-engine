@@ -5,6 +5,7 @@ from collections import deque
 import threading
 from types import GeneratorType
 import torch
+import pickle
 import numpy as np
 import time
 from rich import print
@@ -108,16 +109,19 @@ class Pipeline:
 
         return _collect
 
-    def learn(self, buffer_, task: Task):
+    def learn(self, buffer_: DequeBuffer, task: Task):
 
         def _learn(ctx):
             ctx.setdefault("train_iter", 0)
             ctx.keep("train_iter")
+            print("Get buffer size", buffer_.count())
             for i in range(self.cfg.policy.learn.update_per_collect):
                 data = buffer_.sample(self.policy.learn_mode.get_attribute('batch_size'))
                 if data is None:
                     break
+                start = time.time()
                 learn_output = self.policy.learn_mode.forward(data)
+                print("Learn time", time.time() - start)
                 if ctx.train_iter % 20 == 0:
                     print(
                         'Current Training: Train Iter({})\tLoss({:.3f})'.format(
@@ -269,31 +273,31 @@ def main(cfg, create_cfg, seed=0):
 
     start = time.time()
     with Task(async_mode=False) as task:
-        task.use(sample_profiler(replay_buffer, print_per_step=100))
+        task.use(sample_profiler(replay_buffer, print_per_step=1))
         task.use(
-            step_profiler("evaluate", silent=False, print_per_step=100)(sac.evaluate(evaluator_env)),
+            step_profiler("evaluate", silent=False, print_per_step=1)(sac.evaluate(evaluator_env)),
             # filter_node=lambda node_id: node_id % 2 == 1
         )
         task.use(
-            step_profiler("collect", silent=False, print_per_step=100)(
+            step_profiler("collect", silent=False, print_per_step=1)(
                 task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task))
             )
         )
         task.use(
-            step_profiler("learn", silent=False, print_per_step=100)(sac.learn(replay_buffer, task=task)),
+            step_profiler("learn", silent=False, print_per_step=1)(sac.learn(replay_buffer, task=task)),
             # filter_node=lambda node_id: node_id % 8 == 0
         )
 
         print(task.middleware)
-        task.run(max_step=100)
+        task.run(max_step=10000)
     time.sleep(1)
     print("Threads", threading.enumerate())
     print("Total time cost: {:.2f}s".format(time.time() - start))
 
 
 if __name__ == "__main__":
-    # from ding.utils import profiler
-    # profiler()
+    from ding.utils import Profiler
+    Profiler().profile()
     main(main_config, create_config)
     # Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
     print("Parent Threads", threading.enumerate())
