@@ -1,7 +1,7 @@
 from copy import deepcopy
 from easydict import EasyDict
 
-qbert_ppo_config = dict(
+qbert_trex_ppo_config = dict(
     exp_name='qbert_trex_offppo',
     env=dict(
         collector_env_num=16,
@@ -63,9 +63,9 @@ qbert_ppo_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(qbert_ppo_config)
+main_config = EasyDict(qbert_trex_ppo_config)
 
-qbert_ppo_create_config = dict(
+qbert_trex_ppo_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -73,4 +73,4 @@ qbert_ppo_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
 )
-create_config = EasyDict(qbert_ppo_create_config)
+create_config = EasyDict(qbert_trex_ppo_create_config)

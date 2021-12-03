@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-cartpole_dqn_config = dict(
+cartpole_trex_dqn_config = dict(
     exp_name='cartpole_trex_dqn',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -53,9 +53,9 @@ cartpole_dqn_config = dict(
         ),
     ),
 )
-cartpole_dqn_config = EasyDict(cartpole_dqn_config)
-main_config = cartpole_dqn_config
-cartpole_dqn_create_config = dict(
+cartpole_trex_dqn_config = EasyDict(cartpole_trex_dqn_config)
+main_config = cartpole_trex_dqn_config
+cartpole_trex_dqn_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -63,5 +63,5 @@ cartpole_dqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
-cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)
-create_config = cartpole_dqn_create_config
+cartpole_trex_dqn_create_config = EasyDict(cartpole_trex_dqn_create_config)
+create_config = cartpole_trex_dqn_create_config

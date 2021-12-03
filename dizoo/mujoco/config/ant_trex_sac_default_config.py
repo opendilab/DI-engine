@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-ant_sac_default_config = dict(
+ant_trex_sac_default_config = dict(
     exp_name='ant_trex_sac',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -63,10 +63,10 @@ ant_sac_default_config = dict(
     ),
 )
 
-ant_sac_default_config = EasyDict(ant_sac_default_config)
-main_config = ant_sac_default_config
+ant_trex_sac_default_config = EasyDict(ant_trex_sac_default_config)
+main_config = ant_trex_sac_default_config
 
-ant_sac_default_create_config = dict(
+ant_trex_sac_default_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -78,5 +78,5 @@ ant_sac_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-ant_sac_default_create_config = EasyDict(ant_sac_default_create_config)
-create_config = ant_sac_default_create_config
+ant_trex_sac_default_create_config = EasyDict(ant_trex_sac_default_create_config)
+create_config = ant_trex_sac_default_create_config

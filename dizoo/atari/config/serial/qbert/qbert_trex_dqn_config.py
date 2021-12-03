@@ -1,7 +1,7 @@
 from copy import deepcopy
 from easydict import EasyDict
 
-qbert_dqn_config = dict(
+qbert_trex_dqn_config = dict(
     exp_name='qbert_trex_dqn',
     env=dict(
         collector_env_num=8,
@@ -56,9 +56,9 @@ qbert_dqn_config = dict(
         ),
     ),
 )
-qbert_dqn_config = EasyDict(qbert_dqn_config)
-main_config = qbert_dqn_config
-qbert_dqn_create_config = dict(
+qbert_trex_dqn_config = EasyDict(qbert_trex_dqn_config)
+main_config = qbert_trex_dqn_config
+qbert_trex_dqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -66,5 +66,5 @@ qbert_dqn_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
-qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
-create_config = qbert_dqn_create_config
+qbert_trex_dqn_create_config = EasyDict(qbert_trex_dqn_create_config)
+create_config = qbert_trex_dqn_create_config

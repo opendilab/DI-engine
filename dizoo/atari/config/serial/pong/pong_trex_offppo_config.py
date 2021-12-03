@@ -1,7 +1,7 @@
 from copy import deepcopy
 from easydict import EasyDict
 
-pong_ppo_config = dict(
+pong_trex_ppo_config = dict(
     exp_name='pong_trex_offppo',
     env=dict(
         collector_env_num=16,
@@ -64,9 +64,9 @@ pong_ppo_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(pong_ppo_config)
+main_config = EasyDict(pong_trex_ppo_config)
 
-pong_ppo_create_config = dict(
+pong_trex_ppo_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -75,4 +75,4 @@ pong_ppo_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
 )
-create_config = EasyDict(pong_ppo_create_config)
+create_config = EasyDict(pong_trex_ppo_create_config)

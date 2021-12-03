@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-hopper_ppo_default_config = dict(
+hopper_trex_ppo_default_config = dict(
     exp_name='hopper_trex_onppo',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -57,10 +57,10 @@ hopper_ppo_default_config = dict(
         eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-hopper_ppo_default_config = EasyDict(hopper_ppo_default_config)
-main_config = hopper_ppo_default_config
+hopper_trex_ppo_default_config = EasyDict(hopper_trex_ppo_default_config)
+main_config = hopper_trex_ppo_default_config
 
-hopper_ppo_create_default_config = dict(
+hopper_trex_ppo_create_default_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -68,5 +68,5 @@ hopper_ppo_create_default_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo', ),
 )
-hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
-create_config = hopper_ppo_create_default_config
+hopper_trex_ppo_create_default_config = EasyDict(hopper_trex_ppo_create_default_config)
+create_config = hopper_trex_ppo_create_default_config

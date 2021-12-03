@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-walker_ppo_default_config = dict(
+walker_trex_ppo_default_config = dict(
     exp_name = 'walker2d_trex_onppo',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -57,10 +57,10 @@ walker_ppo_default_config = dict(
         eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-walker_ppo_default_config = EasyDict(walker_ppo_default_config)
-main_config = walker_ppo_default_config
+walker_trex_ppo_default_config = EasyDict(walker_trex_ppo_default_config)
+main_config = walker_trex_ppo_default_config
 
-walker_ppo_create_default_config = dict(
+walker_trex_ppo_create_default_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -70,5 +70,5 @@ walker_ppo_create_default_config = dict(
         type='ppo',
     ),
 )
-walker_ppo_create_default_config = EasyDict(walker_ppo_create_default_config)
-create_config = walker_ppo_create_default_config
+walker_trex_ppo_create_default_config = EasyDict(walker_trex_ppo_create_default_config)
+create_config = walker_trex_ppo_create_default_config

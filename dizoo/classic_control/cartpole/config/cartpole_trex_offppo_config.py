@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-cartpole_ppo_offpolicy_config = dict(
+cartpole_trex_ppo_offpolicy_config = dict(
     exp_name='cartpole_trex_offppo',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -51,9 +51,9 @@ cartpole_ppo_offpolicy_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )
-cartpole_ppo_offpolicy_config = EasyDict(cartpole_ppo_offpolicy_config)
-main_config = cartpole_ppo_offpolicy_config
-cartpole_ppo_offpolicy_create_config = dict(
+cartpole_trex_ppo_offpolicy_config = EasyDict(cartpole_trex_ppo_offpolicy_config)
+main_config = cartpole_trex_ppo_offpolicy_config
+cartpole_trex_ppo_offpolicy_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -61,5 +61,5 @@ cartpole_ppo_offpolicy_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
-cartpole_ppo_offpolicy_create_config = EasyDict(cartpole_ppo_offpolicy_create_config)
-create_config = cartpole_ppo_offpolicy_create_config
+cartpole_trex_ppo_offpolicy_create_config = EasyDict(cartpole_trex_ppo_offpolicy_create_config)
+create_config = cartpole_trex_ppo_offpolicy_create_config

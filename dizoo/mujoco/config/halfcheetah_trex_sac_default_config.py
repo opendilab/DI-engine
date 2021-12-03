@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-halfcheetah_sac_default_config = dict(
+halfcheetah_trex_sac_default_config = dict(
     exp_name='halfcheetah_trex_sac',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -63,10 +63,10 @@ halfcheetah_sac_default_config = dict(
     ),
 )
 
-halfcheetah_sac_default_config = EasyDict(halfcheetah_sac_default_config)
-main_config = halfcheetah_sac_default_config
+halfcheetah_trex_sac_default_config = EasyDict(halfcheetah_trex_sac_default_config)
+main_config = halfcheetah_trex_sac_default_config
 
-halfcheetah_sac_default_create_config = dict(
+halfcheetah_trex_sac_default_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -78,5 +78,5 @@ halfcheetah_sac_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-halfcheetah_sac_default_create_config = EasyDict(halfcheetah_sac_default_create_config)
-create_config = halfcheetah_sac_default_create_config
+halfcheetah_trex_sac_default_create_config = EasyDict(halfcheetah_trex_sac_default_create_config)
+create_config = halfcheetah_trex_sac_default_create_config

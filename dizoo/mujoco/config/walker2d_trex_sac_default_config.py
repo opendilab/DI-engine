@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-walker2d_sac_default_config = dict(
+walker2d_trex_sac_default_config = dict(
     exp_name = 'walker2d_trex_sac',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -63,10 +63,10 @@ walker2d_sac_default_config = dict(
     ),
 )
 
-walker2d_sac_default_config = EasyDict(walker2d_sac_default_config)
-main_config = walker2d_sac_default_config
+walker2d_trex_sac_default_config = EasyDict(walker2d_trex_sac_default_config)
+main_config = walker2d_trex_sac_default_config
 
-walker2d_sac_default_create_config = dict(
+walker2d_trex_sac_default_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -78,5 +78,5 @@ walker2d_sac_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-walker2d_sac_default_create_config = EasyDict(walker2d_sac_default_create_config)
-create_config = walker2d_sac_default_create_config
+walker2d_trex_sac_default_create_config = EasyDict(walker2d_trex_sac_default_create_config)
+create_config = walker2d_trex_sac_default_create_config

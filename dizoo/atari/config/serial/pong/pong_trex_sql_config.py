@@ -1,7 +1,7 @@
 from copy import deepcopy
 from easydict import EasyDict
 
-pong_sql_config = dict(
+pong_trex_sql_config = dict(
     exp_name='pong_trex_sql',
     env=dict(
         collector_env_num=8,
@@ -50,9 +50,9 @@ pong_sql_config = dict(
         ),
     ),
 )
-pong_sql_config = EasyDict(pong_sql_config)
-main_config = pong_sql_config
-pong_sql_create_config = dict(
+pong_trex_sql_config = EasyDict(pong_trex_sql_config)
+main_config = pong_trex_sql_config
+pong_trex_sql_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -60,5 +60,5 @@ pong_sql_create_config = dict(
     env_manager=dict(type='base', force_reproducibility=True),
     policy=dict(type='sql'),
 )
-pong_sql_create_config = EasyDict(pong_sql_create_config)
-create_config = pong_sql_create_config
+pong_trex_sql_create_config = EasyDict(pong_trex_sql_create_config)
+create_config = pong_trex_sql_create_config

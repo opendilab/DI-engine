@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-lunarlander_ppo_config = dict(
+lunarlander_trex_ppo_config = dict(
     exp_name='lunarlander_trex_offppo',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -49,9 +49,9 @@ lunarlander_ppo_config = dict(
         ),
     ),
 )
-lunarlander_ppo_config = EasyDict(lunarlander_ppo_config)
-main_config = lunarlander_ppo_config
-lunarlander_ppo_create_config = dict(
+lunarlander_trex_ppo_config = EasyDict(lunarlander_trex_ppo_config)
+main_config = lunarlander_trex_ppo_config
+lunarlander_trex_ppo_create_config = dict(
     env=dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
@@ -59,5 +59,5 @@ lunarlander_ppo_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
-lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
-create_config = lunarlander_ppo_create_config
+lunarlander_trex_ppo_create_config = EasyDict(lunarlander_trex_ppo_create_config)
+create_config = lunarlander_trex_ppo_create_config

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 nstep = 1
-lunarlander_dqn_default_config = dict(
+lunarlander_trex_dqn_default_config = dict(
     exp_name='lunarlander_trex_dqn',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
@@ -71,10 +71,10 @@ lunarlander_dqn_default_config = dict(
         ),
     ),
 )
-lunarlander_dqn_default_config = EasyDict(lunarlander_dqn_default_config)
-main_config = lunarlander_dqn_default_config
+lunarlander_trex_dqn_default_config = EasyDict(lunarlander_trex_dqn_default_config)
+main_config = lunarlander_trex_dqn_default_config
 
-lunarlander_dqn_create_config = dict(
+lunarlander_trex_dqn_create_config = dict(
     env=dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
@@ -82,5 +82,5 @@ lunarlander_dqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
-lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)
-create_config = lunarlander_dqn_create_config
+lunarlander_trex_dqn_create_config = EasyDict(lunarlander_trex_dqn_create_config)
+create_config = lunarlander_trex_dqn_create_config
