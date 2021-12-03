@@ -37,7 +37,9 @@ class TestPQQN:
             cont_inputs = torch.randn(B, obs_shape)
         else:
             cont_inputs = torch.randn(B, *obs_shape)
-        model = PDQN(obs_shape, act_shape, multi_pass=True, action_mask=[[1,1,0,0,0],[0,0,1,1,1],[0,0,0,0,0]])
+        model = PDQN(
+            obs_shape, act_shape, multi_pass=True, action_mask=[[1, 1, 0, 0, 0], [0, 0, 1, 1, 1], [0, 0, 0, 0, 0]]
+        )
         cont_outputs = model.forward(cont_inputs, mode='compute_continuous')
         assert isinstance(cont_outputs, dict)
         dis_inputs = {'state': cont_inputs, 'action_args': cont_outputs['action_args']}

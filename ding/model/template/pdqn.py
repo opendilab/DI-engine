@@ -57,7 +57,10 @@ class PDQN(nn.Module):
                 action_mask, list
             ), 'Please indicate action mask in list form if you set multi_pass to True'
             self.action_mask = torch.LongTensor(action_mask)
-            self.action_scatter_index = torch.nonzero(self.action_mask)[:, -1]  # (self.action_args_shape, )
+            nonzero = torch.nonzero(self.action_mask)
+            index = torch.zeros(action_shape.action_args_shape).long()
+            index.scatter_(dim=0, index=nonzero[:, 1], src=nonzero[:, 0])
+            self.action_scatter_index = index  # (self.action_args_shape, )
 
         # squeeze action shape input like (3,) to 3
         action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
@@ -174,6 +177,9 @@ class PDQN(nn.Module):
                 dtype=dis_x.dtype
             )
             index = self.action_scatter_index.view(1, -1, 1).repeat(dis_x.shape[0], 1, 1)
+            print(index.shape)
+            print(action_args.shape)
+
             # index: (B, action_args_shape, 1)  src: (B, action_args_shape, 1)
             mp_action.scatter_(dim=-1, index=index, src=action_args.unsqueeze(-1))
             mp_action = mp_action.permute(0, 2, 1)  # (B, K, action_args_shape)
