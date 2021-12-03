@@ -9,24 +9,50 @@ from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 # input shape: cur_seq x bs x input_dim
 
 
-# adapted from https://github.com/kimiyoung/transformer-xl/blob/master/pytorch/mem_transformer.py
 class PositionalEmbedding(nn.Module):
+    """
+    Overview:
+        Positional Embedding used in vanilla Transformer
+    .. note::
+        Adapted from https://github.com/kimiyoung/transformer-xl/blob/master/pytorch/mem_transformer.py
+    """
     def __init__(self, embedding_dim):
+        """
+        Arguments:
+            - embedding_dim: (:obj:`int`): dimension of embedding
+        """
         super(PositionalEmbedding, self).__init__()
         self.embedding_dim = embedding_dim
         inv_freq = 1 / (10000 ** (torch.arange(0.0, embedding_dim, 2.0) / embedding_dim))  # (embedding_dim / 2.0)
         self.register_buffer('inv_freq', inv_freq)
 
     def forward(self, pos_seq):
+        """
+        Overview:
+            Compute positional embedding
+        Arguments:
+            - pos_seq: (:obj:`torch.Tensor`): positional sequence,
+             usually a 1D integer sequence as [N-1, N-2, ..., 1, 0], N = embedding_dim
+        Returns:
+            - pos_embedding: (:obj:`torch.Tensor`): positional embedding. Shape (N, 1, N)
+        """
         sinusoid_inp = torch.outer(pos_seq, self.inv_freq)
-        # For position embedding, the order of sin/cos is negligible,
-        # simply because they are consumed by the matrix multiplication which is permutation-invariant.
-        pos_emb = torch.cat([sinusoid_inp.sin(), sinusoid_inp.cos()], dim=-1)
-        return pos_emb[:, None, :]
+        # For position embedding, the order of sin/cos is negligible.
+        # This is because tokens are consumed by the matrix multiplication which is permutation-invariant.
+        pos_embedding = torch.cat([sinusoid_inp.sin(), sinusoid_inp.cos()], dim=-1)
+        return pos_embedding[:, None, :]
 
 
 class GRUGatingUnit(torch.nn.Module):
+    """
+    Overview:
+        GRU Gating Unit used in GTrXL
+    """
     def __init__(self, input_dim, bg=0.2):
+        """
+        Arguments:
+            - input_dim: (:obj:`int`): dimension of input
+        """
         super(GRUGatingUnit, self).__init__()
         self.Wr = torch.nn.Linear(input_dim, input_dim)
         self.Ur = torch.nn.Linear(input_dim, input_dim)
@@ -39,6 +65,16 @@ class GRUGatingUnit(torch.nn.Module):
         self.tanh = torch.nn.Tanh()
 
     def forward(self, x, y):
+        """
+        Overview:
+            Compute output value with gating mechanism
+        Arguments:
+            - x: (:obj:`torch.Tensor`): first input.
+            - y: (:obj:`torch.Tensor`): first input.
+            x and y have same shape and last shape is input_dim.
+        Returns:
+            - g: (:obj:`torch.Tensor`): output of GRU. Same shape of x and y.
+        """
         r = self.sigmoid(self.Wr(y) + self.Ur(x))
         z = self.sigmoid(self.Wz(y) + self.Uz(x) - self.bg)
         h = self.tanh(self.Wg(y) + self.Ug(torch.mul(r, x)))  # element wise multiplication
@@ -47,15 +83,15 @@ class GRUGatingUnit(torch.nn.Module):
 
 
 class Memory:
-    '''
+    """
     Overview:
         Stores the hidden states computed in the previous segments
     .. note::
-
         For details refer to Transformer-XL: https://arxiv.org/abs/1901.02860
-    '''
+    """
     def __init__(
             self,
+            memory: List[torch.Tensor] = None,
             sequence_len: int = 20,
             embedding_dim: int = 256,
             batch_size: int = 64,
@@ -68,7 +104,7 @@ class Memory:
             torch.zeros(sequence_len, batch_size, embedding_dim, dtype=torch.float)
             for _ in range(layer_num + 1)
         ]  # (layer_num+1) x sequence_len x batch_size x embedding_dim'''
-        self.memory = None
+        self.memory = memory
 
     def update(self, hidden_state):
         """
@@ -139,9 +175,9 @@ class AttentionXL(torch.nn.Module):
     def forward(self,
                 inputs: torch.Tensor,
                 pos_embedding: torch.Tensor,
+                memory: torch.Tensor,
                 u: torch.nn.Parameter,
                 v: torch.nn.Parameter,
-                memory: torch.Tensor,
                 mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """
@@ -164,12 +200,11 @@ class AttentionXL(torch.nn.Module):
         # concat memory with input across sequence dimension
         full_input = torch.cat([memory, inputs], dim=0)  # full_seq x bs x input_dim
 
-        kv = self.attnetion_kv(full_input)
+        kv = self.attention_kv(full_input)
         key, value = torch.chunk(kv, 2, dim=-1)  # full_seq x bs x num_head*dim_head
         query = self.attention_q(inputs)  # cur_seq x bs x num_head*dim_head
+        print('pos_embedding:', pos_embedding.shape)
         r = self.project_pos(pos_embedding)  # full_seq x 1 x num_head*dim_head
-
-        # TODO split Wk in WkE and WkR
 
         # x_i * W^q * (W^k)^T * (x_j)^T
         content_attn = torch.einsum(
@@ -194,7 +229,7 @@ class AttentionXL(torch.nn.Module):
         if mask is not None and mask.any().item():
             # fills float('-inf') where mask is True.
             attn = attn.masked_fill(mask[..., None], -float("inf")).type_as(attn)
-        # attn = F.softmax(attn, dim=1)  #TODO test if we really need it
+        attn = F.softmax(attn, dim=1)
         attn = self.dropout(attn)
 
         # attn_weighted_values = [curr x B x n_heads.d_inner] = [20 x 5 x 96]
@@ -254,7 +289,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
                 memory: torch.Tensor,
                 mask: Optional[torch.Tensor] = None,
         ) -> torch.Tensor:
-        #TODO layernorm on input + memory
+        #TODO layernorm on cat(input + memory)
         x1 = self.layernorm1(inputs)
         a1 = self.dropout(self.attention(x1, pos_embedding, memory, u, v, mask=mask))
         o1 = self.gate1(inputs, a1) if self.gating else inputs + a1
@@ -285,6 +320,7 @@ class GTrXL(nn.Module):
             layer_num: int = 3,
             dropout_ratio: float = 0.,
             activation: nn.Module = nn.ReLU(),
+            mem_len: int = None,
     ) -> None:
         """Overview:
             Init GTrXL Model
@@ -302,16 +338,19 @@ class GTrXL(nn.Module):
 
         super(GTrXL, self).__init__()
         assert embedding_dim % 2 == 0, 'embedding_dim={} should be even'.format(input_dim)
+        self.head_num = head_num
+        self.head_dim = head_dim
+        self.layer_num = layer_num
         self.embedding = fc_block(input_dim, embedding_dim, activation=activation)
         self.activation = activation
-        self.pos_embedding = PositionalEmbedding(input_dim)
+        self.pos_embedding = PositionalEmbedding(embedding_dim)
         self.memory = Memory()  # memory to save hidden states of past segments
         layers = []
         dims = [embedding_dim] + [embedding_dim] * layer_num
         self.dropout = nn.Dropout(dropout_ratio)
         for i in range(layer_num):
             layers.append(
-                GatedTransformerXLLayer(dims[i], head_dim, embedding_dim, dims[i + 1], head_num, mlp_num, self.dropout,
+                GatedTransformerXLLayer(dims[i], head_dim, embedding_dim, head_num, mlp_num, self.dropout,
                                         self.activation)
             )
         self.layers = nn.Sequential(*layers)
@@ -322,9 +361,7 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
 
-    def forward(self,
-                x: torch.Tensor,
-                mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor,) -> torch.Tensor:
         r"""
         Overview:
             GTrXL forward
@@ -339,42 +376,57 @@ class GTrXL(nn.Module):
         memory = self.memory.get_memory()
         if memory is None:
             memory = [
-                torch.zeros(x.shape[1], x.shape[0], self.embedding_dim, dtype=torch.float)
+                torch.zeros(x.shape[0], x.shape[1], self.embedding_dim, dtype=torch.float)
                 for _ in range(self.layer_num + 1)
             ]  # (layer_num+1) x sequence_len x batch_size x embedding_dim'''
+            self.memory = Memory(memory)
+        print('memory[0]:', memory[0].shape)
 
-        x = self.embedding(x)
-        bs, cur_seq = x.shape[:2]
+        x = self.dropout(self.embedding(x))
+        cur_seq, bs = x.shape[:2]
         prev_seq = memory[0].size(0)
         full_seq = cur_seq + prev_seq
 
-        # dec_attn_mask = [curr x curr + prev x 1] = [20 x 40 x 1]
-        '''dec_attn_mask = (
+        dec_attn_mask = (
             torch.triu(
                 torch.ones((cur_seq, cur_seq + prev_seq)),
                 diagonal=1 + prev_seq,
-            )
-                .bool()[..., None]
-                .to(inputs.device)
-        )'''
+            ).bool()[..., None].to(x.device)
+        )  # cur_seq x full_seq x 1
 
         pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
-        pos_embedding = self.dropout(self.pos_embs(pos_ips))  # full_seq x 1 x embedding_dim
+        pos_embedding = self.dropout(self.pos_embedding(pos_ips))  # full_seq x 1 x embedding_dim
 
         hidden_state = [x]
         out = x
-        for mem, layer in zip(memory, self.layers.modules()):
+        for mem, layer in zip(memory, self.layers):
+            print('memory:', mem.shape)
             out = layer(
                 out,
                 pos_embedding,
                 self.u,
                 self.v,
-                mask=None,
-                mems=mem,
+                mask=dec_attn_mask,
+                memory=mem,
             )   # cur_seq x bs x embedding_dim
             hidden_state.append(out)
+        print('out:', out.shape)
 
+        out = self.dropout(out)
         memory = self.memory.update(hidden_state)
         output = {"logits": out, "memory": memory}
         return output
+
+
+if __name__ == "__main__":
+    dim_size = 128
+    seq_len = 64
+    bs = 32
+    a = torch.rand(seq_len, bs, dim_size)
+    m = GTrXL(128)
+    res = m(a)
+    o, mem = res['logits'], res['memory']
+    print(o.shape)
+    print(mem[0].shape)
+
 
