@@ -277,6 +277,7 @@ class NGUCommandModePolicy(NGUPolicy, EpsCommandModePolicy):
 class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('csql_command')
 class CSQLCommandModePolicy(ContinousSoftQLPolicy, DummyCommandModePolicy):
     pass
