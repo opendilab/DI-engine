@@ -26,6 +26,8 @@ Hands on RL
     atoc
     collaq
 
+    rnd
+
     gail
 
     vpn

@@ -475,10 +475,6 @@
 <span class="sd">                value is the cooresponding reset parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_check_closed</span><span class="p">()</span>
-        <span class="c1"># clear previous info</span>
-        <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">reset_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">reset_env_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">env_id</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)]</span>
@@ -486,6 +482,12 @@
             <span class="n">reset_env_list</span> <span class="o">=</span> <span class="n">reset_param</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">reset_param</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span>
+
+        <span class="c1"># clear previous info</span>
+        <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">reset_env_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
 
         <span class="n">sleep_count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RESET</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reset_env_list</span><span class="p">]):</span>
