@@ -271,7 +271,7 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         Overview:
             Link the ctx's finish state, in order to be easily called externally.
         """
-        return self.ctx._finish
+        return self.ctx.finish
 
     def __copy__(self):
         return Task(**self.__dict__)

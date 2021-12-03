@@ -162,7 +162,7 @@ class Pipeline:
             print('Current Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
             ctx.last_eval_iter = ctx.train_iter
             if stop_flag:
-                ctx.finish()
+                ctx.finish = True
 
         return _eval
 

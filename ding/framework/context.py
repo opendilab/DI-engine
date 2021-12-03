@@ -12,8 +12,8 @@ class Context(dict):
         self.total_step = total_step
 
         # Reserved properties
-        self._finish = False
-        self._kept_keys = {"_finish"}
+        self.finish = False
+        self._kept_keys = {"finish"}
 
     def renew(self) -> 'Context':  # noqa
         """
@@ -32,12 +32,3 @@ class Context(dict):
         """
         for key in keys:
             self._kept_keys.add(key)
-
-    def finish(self, finish: bool = True) -> None:
-        """
-        Overview:
-            Set finish flag on context
-        Arguments:
-            - finish (:obj:`bool`): Finish or not
-        """
-        self._finish = finish
