@@ -177,9 +177,7 @@ class PDQN(nn.Module):
                 dtype=dis_x.dtype
             )
             index = self.action_scatter_index.view(1, -1, 1).repeat(dis_x.shape[0], 1, 1)
-            print(index.shape)
-            print(action_args.shape)
-
+            
             # index: (B, action_args_shape, 1)  src: (B, action_args_shape, 1)
             mp_action.scatter_(dim=-1, index=index, src=action_args.unsqueeze(-1))
             mp_action = mp_action.permute(0, 2, 1)  # (B, K, action_args_shape)
