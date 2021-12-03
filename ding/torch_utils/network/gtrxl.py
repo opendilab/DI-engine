@@ -91,41 +91,47 @@ class Memory:
     """
     def __init__(
             self,
-            memory: List[torch.Tensor] = None,
-            sequence_len: int = 20,
-            embedding_dim: int = 256,
+            memory_len: int = 20,
             batch_size: int = 64,
+            embedding_dim: int = 256,
             layer_num: int = 3,
-            memory_len: int = 1,  #TODO expand memory to contain more segments
     ) -> None:
-
         super(Memory, self).__init__()
-        '''self.memory = [
-            torch.zeros(sequence_len, batch_size, embedding_dim, dtype=torch.float)
-            for _ in range(layer_num + 1)
-        ]  # (layer_num+1) x sequence_len x batch_size x embedding_dim'''
-        self.memory = memory
+        self.embedding_dim = embedding_dim
+        self.bs = batch_size
+        self.layer_num = layer_num
+        self.memory_len = memory_len
+        self.memory = None
+        self.init()
 
-    def update(self, hidden_state):
+    def init(self, memory: List[torch.Tensor] = None):
+        if memory:
+            self.memory = memory
+        else:
+            self.memory = [
+                torch.zeros(self.memory_len, self.bs, self.embedding_dim, dtype=torch.float)
+                for _ in range(self.layer_num + 1)
+            ]
+
+    def update(self, hidden_state: List[torch.Tensor]):
         """
         + Arguments
-            - previous_memory: List[torch.FloatTensor],
             - hidden_states: List[torch.FloatTensor]
         """
-        #TODO improve this function
-        mem_len, seq_len = self.memory[0].size(0), hidden_state[0].size(0)
+        if self.memory is None or hidden_state is None:
+            return None
+        sequence_len = hidden_state[0].shape[0]
         with torch.no_grad():
             new_memory = []
-            end = mem_len + seq_len
-            beg = max(0, end - mem_len)
-            #TODO do this without cycle
+            end = self.memory_len + sequence_len
+            beg = max(0, end - self.memory_len)
             for m, h in zip(self.memory, hidden_state):
                 cat = torch.cat([m, h], dim=0)
                 new_memory.append(cat[beg:end].detach())
         self.memory = new_memory
         return new_memory
 
-    def get_memory(self):
+    def get(self):
         return self.memory
 
 
@@ -318,9 +324,9 @@ class GTrXL(nn.Module):
             head_num: int = 2,
             mlp_num: int = 2,
             layer_num: int = 3,
+            memory_len: int = 64,
             dropout_ratio: float = 0.,
             activation: nn.Module = nn.ReLU(),
-            mem_len: int = None,
     ) -> None:
         """Overview:
             Init GTrXL Model
@@ -344,7 +350,10 @@ class GTrXL(nn.Module):
         self.embedding = fc_block(input_dim, embedding_dim, activation=activation)
         self.activation = activation
         self.pos_embedding = PositionalEmbedding(embedding_dim)
-        self.memory = Memory()  # memory to save hidden states of past segments
+        # memory to save hidden states of past segments
+        # it will be initialized in the forward method to get its size dynamically
+        self.memory = None
+        self.memory_len = memory_len
         layers = []
         dims = [embedding_dim] + [embedding_dim] * layer_num
         self.dropout = nn.Dropout(dropout_ratio)
@@ -373,17 +382,15 @@ class GTrXL(nn.Module):
         Returns:
             - x (:obj:`torch.Tensor`): transformer output
         """
-        memory = self.memory.get_memory()
+        cur_seq, bs = x.shape[:2]
+        memory = None if self.memory is None else self.memory.get()
         if memory is None:
-            memory = [
-                torch.zeros(x.shape[0], x.shape[1], self.embedding_dim, dtype=torch.float)
-                for _ in range(self.layer_num + 1)
-            ]  # (layer_num+1) x sequence_len x batch_size x embedding_dim'''
-            self.memory = Memory(memory)
+            self.memory = Memory(self.memory_len, bs, self.embedding_dim, self.layer_num + 1)
+            # (layer_num+1) x memory_len x batch_size x embedding_dim
+            memory = self.memory.get()
         print('memory[0]:', memory[0].shape)
 
         x = self.dropout(self.embedding(x))
-        cur_seq, bs = x.shape[:2]
         prev_seq = memory[0].size(0)
         full_seq = cur_seq + prev_seq
 
@@ -399,15 +406,15 @@ class GTrXL(nn.Module):
 
         hidden_state = [x]
         out = x
-        for mem, layer in zip(memory, self.layers):
-            print('memory:', mem.shape)
+        for memory, layer in zip(memory, self.layers):
+            print('memory:', memory.shape)
             out = layer(
                 out,
                 pos_embedding,
                 self.u,
                 self.v,
                 mask=dec_attn_mask,
-                memory=mem,
+                memory=memory,
             )   # cur_seq x bs x embedding_dim
             hidden_state.append(out)
         print('out:', out.shape)
@@ -423,7 +430,8 @@ if __name__ == "__main__":
     seq_len = 64
     bs = 32
     a = torch.rand(seq_len, bs, dim_size)
-    m = GTrXL(128)
+    print('input:', a.shape)
+    m = GTrXL(128, memory_len=49)
     res = m(a)
     o, mem = res['logits'], res['memory']
     print(o.shape)
