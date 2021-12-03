@@ -230,11 +230,12 @@ class ACERPolicy(Policy):
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
         # TODO(pu): reward norm, transform to mean 0, std 1
+        import copy
         if self._reward_running_norm:
             self._running_mean_std.update(data['reward'].cpu().numpy())
-            data['reward'] = (data['reward'] - self._running_mean_std.mean) / (self._running_mean_std.std + EPS)
+            data['reward'] = (copy.deepcopy(data['reward'] )- self._running_mean_std.mean) / (self._running_mean_std.std + EPS)
         if self._reward_batch_norm:
-            data['reward'] = (data['reward'] - data['reward'].mean()) / (data['reward'].std() +  EPS)
+            data['reward'] = (copy.deepcopy(data['reward']) - copy.deepcopy(data['reward']).mean()) / (copy.deepcopy(data['reward']).std() +  EPS)
 
         data['weight'] = torch.cat(
             data['weight'], dim=0

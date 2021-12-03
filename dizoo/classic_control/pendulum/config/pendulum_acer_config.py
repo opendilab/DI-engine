@@ -1,9 +1,13 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_rewardnorm_seed0',
+    # exp_name='debug_pendulum_ul32_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_maxuse100_seed0',
+    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_maxuse16_reward-batch-norm_seed0',
+
     # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_reward-batch-norm_seed0',
-    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_reward-runnning-norm_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_reward-runnning-norm_seed0',
 
 
     seed=0,
@@ -37,6 +41,8 @@ pendulum_acer_config = dict(
             # batch_size=16,
             batch_size=64,
             unroll_len=50,
+            # unroll_len=32,
+
             entropy_weight=0,  # 0.0001,
             discount_factor=0.99,  # 0.997,#0.9,
             load_path=None,
@@ -49,10 +55,12 @@ pendulum_acer_config = dict(
             # target_theta=0.05,  # TODO(pu)
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
-            reward_running_norm=True,
-            reward_batch_norm=False,
             # reward_running_norm=False,
-            # reward_batch_norm=True,
+            # reward_batch_norm=False,
+            # reward_running_norm=True,
+            # reward_batch_norm=False,
+            reward_running_norm=False,
+            reward_batch_norm=True,
         ),
         collect=dict(
             n_sample=16,
@@ -70,6 +78,8 @@ pendulum_acer_config = dict(
             replay_buffer_size=2000,  # 1000, 5000 TODO(pu)
             # replay_buffer_size=10000,  # 1000, 5000 TODO(pu)
             max_use=16,
+            # max_use=100,
+
         ), ),
     ),
 )
