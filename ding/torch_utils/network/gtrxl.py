@@ -6,8 +6,6 @@ from ding.torch_utils.network.nn_module import *
 from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 
-# input shape: cur_seq x bs x input_dim
-
 
 class PositionalEmbedding(nn.Module):
     """
@@ -173,15 +171,12 @@ class AttentionXL(torch.nn.Module):
         x_padded = torch.cat([zero_pad, x], dim=1)
         x_padded = x_padded.view(x.size(1) + 1, x.size(0), *x.size()[2:])
         x = x_padded[1:].view_as(x)
-        if zero_triu:
-            ones = torch.ones((x.size(0), x.size(1)))
-            x = x * torch.tril(ones, x.size(1) - x.size(0))[:, :, None, None]
         return x
 
     def forward(self,
                 inputs: torch.Tensor,
                 pos_embedding: torch.Tensor,
-                memory: torch.Tensor,
+                full_input: torch.Tensor,
                 u: torch.nn.Parameter,
                 v: torch.nn.Parameter,
                 mask: Optional[torch.Tensor] = None,
@@ -201,15 +196,13 @@ class AttentionXL(torch.nn.Module):
             - cs: current sequence length, b: batch, H: no. of heads
             - d: inner dimension, ps: previous sequence length
         """
-        bs, cur_seq, prev_seq = inputs.shape[1], inputs.shape[0], memory.shape[0]
-        full_seq = cur_seq + prev_seq
-        # concat memory with input across sequence dimension
-        full_input = torch.cat([memory, inputs], dim=0)  # full_seq x bs x input_dim
+        bs, cur_seq, full_seq = inputs.shape[1], inputs.shape[0], full_input.shape[0]
+        prev_seq = full_seq - cur_seq
 
         kv = self.attention_kv(full_input)
         key, value = torch.chunk(kv, 2, dim=-1)  # full_seq x bs x num_head*dim_head
         query = self.attention_q(inputs)  # cur_seq x bs x num_head*dim_head
-        print('pos_embedding:', pos_embedding.shape)
+        #print('pos_embedding:', pos_embedding.shape)
         r = self.project_pos(pos_embedding)  # full_seq x 1 x num_head*dim_head
 
         # x_i * W^q * (W^k)^T * (x_j)^T
@@ -286,6 +279,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
         self.mlp = nn.Sequential(*layers)
         self.layernorm1 = build_normalization('LN')(input_dim)
         self.layernorm1 = build_normalization('LN')(input_dim)
+        self.activation = activation
 
     def forward(self,
                 inputs: torch.Tensor,
@@ -295,9 +289,11 @@ class GatedTransformerXLLayer(torch.nn.Module):
                 memory: torch.Tensor,
                 mask: Optional[torch.Tensor] = None,
         ) -> torch.Tensor:
-        #TODO layernorm on cat(input + memory)
-        x1 = self.layernorm1(inputs)
-        a1 = self.dropout(self.attention(x1, pos_embedding, memory, u, v, mask=mask))
+        # concat memory with input across sequence dimension
+        full_input = torch.cat([memory.detach(), inputs], dim=0)  # full_seq x bs x input_dim
+        x1 = self.layernorm1(full_input)
+        a1 = self.dropout(self.attention(inputs, pos_embedding, x1, u, v, mask=mask))
+        a1 = self.activation(a1)  # RELU after attention
         o1 = self.gate1(inputs, a1) if self.gating else inputs + a1
         x2 = self.layernorm1(o1)
         m2 = self.dropout(self.mlp(x2))
@@ -310,12 +306,9 @@ class GTrXL(nn.Module):
     """
     Overview:
         GTrCL Transformer implementation
-
     .. note::
-
         For details refer to Stabilizing Transformer for Reinforcement Learning: https://arxiv.org/abs/1910.06764
     """
-
     def __init__(
         self,
             input_dim: int,
@@ -336,7 +329,7 @@ class GTrXL(nn.Module):
             - hidden_dim (:obj:`int`): dimension of hidden layer in mlp
             - embedding_dim (:obj:`int`): dimension of embedding (dimension of a single observation after embedding)
             - head_num (:obj:`int`): number of heads for multihead attention
-            - mlp_num (:obj:`int`): number of mlp layers
+            - mlp_num (:obj:`int`): number of mlp layers in attention layer
             - layer_num (:obj:`int`): number of transformer layers
             - dropout_ratio (:obj:`float`): dropout ratio
             - activation (:obj:`nn.Module`): activation function
@@ -388,7 +381,7 @@ class GTrXL(nn.Module):
             self.memory = Memory(self.memory_len, bs, self.embedding_dim, self.layer_num + 1)
             # (layer_num+1) x memory_len x batch_size x embedding_dim
             memory = self.memory.get()
-        print('memory[0]:', memory[0].shape)
+        #print('memory:', memory[0].shape)
 
         x = self.dropout(self.embedding(x))
         prev_seq = memory[0].size(0)
@@ -407,7 +400,6 @@ class GTrXL(nn.Module):
         hidden_state = [x]
         out = x
         for memory, layer in zip(memory, self.layers):
-            print('memory:', memory.shape)
             out = layer(
                 out,
                 pos_embedding,
@@ -417,7 +409,7 @@ class GTrXL(nn.Module):
                 memory=memory,
             )   # cur_seq x bs x embedding_dim
             hidden_state.append(out)
-        print('out:', out.shape)
+        #print('out:', out.shape)
 
         out = self.dropout(out)
         memory = self.memory.update(hidden_state)
@@ -429,12 +421,11 @@ if __name__ == "__main__":
     dim_size = 128
     seq_len = 64
     bs = 32
+    # input shape: cur_seq x bs x input_dim
     a = torch.rand(seq_len, bs, dim_size)
     print('input:', a.shape)
-    m = GTrXL(128, memory_len=49)
+    m = GTrXL(128, memory_len=50)
     res = m(a)
     o, mem = res['logits'], res['memory']
     print(o.shape)
     print(mem[0].shape)
-
-
