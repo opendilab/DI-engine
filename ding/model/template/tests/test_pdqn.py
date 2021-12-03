@@ -43,7 +43,7 @@ class TestPQQN:
         cont_outputs = model.forward(cont_inputs, mode='compute_continuous')
         assert isinstance(cont_outputs, dict)
         dis_inputs = {'state': cont_inputs, 'action_args': cont_outputs['action_args']}
-        print(dis_inputs)
+
         dis_outputs = model.forward(dis_inputs, mode='compute_discrete')
 
         assert isinstance(dis_outputs, dict)
