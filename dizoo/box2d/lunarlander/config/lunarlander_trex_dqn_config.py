@@ -5,7 +5,7 @@ lunarlander_dqn_default_config = dict(
     exp_name='lunarlander_trex_dqn',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, ),
+        manager=dict(shared_memory=True, force_reproducibility=True),
         # Env number respectively for collector and evaluator.
         collector_env_num=8,
         evaluator_env_num=5,
@@ -23,10 +23,9 @@ lunarlander_dqn_default_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path=
-        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_dqn',
-        reward_model_path='./lunarlander.params',
-        offline_data_path='lunarlander_trex_dqn/suboptimal_data.pkl',
+        expert_model_path='abs model path',
+        reward_model_path='abs data path + ./lunarlander.params',
+        offline_data_path='abs data path',
     ),
     policy=dict(
         # Whether to use cuda for network.

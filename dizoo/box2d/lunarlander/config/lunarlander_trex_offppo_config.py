@@ -20,10 +20,9 @@ lunarlander_ppo_config = dict(
         checkpoint_step=1000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path=
-        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_ppo',
-        reward_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_trex_offppo/lunarlander.params',
-        offline_data_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/box2d/lunarlander/config/lunarlander_trex_offppo',
+        expert_model_path='abs model path',
+        reward_model_path='abs data path + ./lunarlander.params',
+        offline_data_path='abs data path',
     ),
     policy=dict(
         cuda=True,

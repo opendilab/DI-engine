@@ -24,10 +24,10 @@ walker_ppo_default_config = dict(
         checkpoint_step=1000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/mujoco/config/walker2d_onppo',
-        reward_model_path='./walker2d.params',
+        expert_model_path='abs model path',
+        reward_model_path='abs data path+ ./walker2d.params',
         continuous=True,
-        offline_data_path='walker2d_trex_onppo/suboptimal_data.pkl',
+        offline_data_path='asb data path',
     ),
     policy=dict(
         cuda=True,

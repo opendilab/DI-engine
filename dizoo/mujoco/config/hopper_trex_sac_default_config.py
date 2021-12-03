@@ -24,10 +24,10 @@ hopper_sac_default_config = dict(
         checkpoint_step=1000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/mujoco/config/hopper_sac',
-        reward_model_path='./hopper.params',
+        expert_model_path='abs model path',
+        reward_model_path='abs data path + /hopper.params',
         continuous=True,
-        offline_data_path='hopper_trex_sac/suboptimal_data.pkl',
+        offline_data_path='asb data path',
     ),
     policy=dict(
         cuda=True,

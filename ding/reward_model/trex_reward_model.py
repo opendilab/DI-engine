@@ -1,31 +1,30 @@
 from collections.abc import Iterable
 from easydict import EasyDict
+import numpy as np
+import pickle
+from copy import deepcopy
+from typing import Tuple, Optional
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.distributions import Normal, Independent
+from torch.distributions.categorical import Categorical
 
 from ding.utils import REWARD_MODEL_REGISTRY
-from .base_reward_model import BaseRewardModel
 from ding.model.template.q_learning import DQN
 from ding.model.template.vac import VAC
 from ding.model.template.qac import QAC
-from torch.distributions.categorical import Categorical
-import gym
-import numpy as np
-import pickle
-from dizoo.atari.envs.atari_wrappers import wrap_deepmind
-from dizoo.mujoco.envs.mujoco_wrappers import wrap_mujoco
-from .rnd_reward_model import collect_states
 from ding.utils import SequenceType
 from ding.model.common import FCEncoder
-from torch.distributions import Normal, Independent
 from ding.utils.data import offline_data_save_type
-from copy import deepcopy
 from ding.utils import build_logger
-from typing import Tuple, Optional
+from dizoo.atari.envs.atari_wrappers import wrap_deepmind
+from dizoo.mujoco.envs.mujoco_wrappers import wrap_mujoco
 
+from .base_reward_model import BaseRewardModel
+from .rnd_reward_model import collect_states
 
 
 class ConvEncoder(nn.Module):
@@ -100,7 +99,6 @@ class ConvEncoder(nn.Module):
         Returns:
             - outputs (:obj:`torch.Tensor`): Embedding tensor
         """
-        #x = x.permute(0, 3, 1, 2)  # get into NCHW format
         x = self.main(x)
         x = self.mid(x)
         return x
@@ -199,200 +197,6 @@ class TrexRewardModel(BaseRewardModel):
         )
         self.load_expert_data()
 
-    def generate_novice_demos(self):
-        if hasattr(self.cfg.env, 'env_id'):
-            env = wrap_deepmind(self.cfg.env.env_id)
-        else:
-            env = gym.make(self.cfg.reward_model.env_id)
-        checkpoint_min = self.cfg.reward_model.checkpoint_min
-        checkpoint_max = self.cfg.reward_model.checkpoint_max
-        checkpoint_step = self.cfg.reward_model.checkpoint_step
-        checkpoints = []
-        for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
-            checkpoints.append(str(i))
-        self._logger.info(checkpoints)
-        for checkpoint in checkpoints:
-
-            model_path = self.cfg.reward_model.expert_model_path + \
-            '/ckpt/iteration_' + checkpoint + '.pth.tar'
-            if self.cfg.reward_model.algo_for_model in {'dqn', 'sql'}:
-                model = DQN(**self.cfg.policy.model)
-                model.load_state_dict(torch.load(model_path)['model'])
-                episode_count = 1
-                for i in range(episode_count):
-                    done = False
-                    traj = []
-                    gt_rewards = []
-                    data_for_save = {}
-                    self.data_for_save[int(checkpoint) // int(checkpoint_step)] = []
-                    r = 0
-                    env.seed(
-                        self.cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
-                    )  # in trex official implementation, they use the same initialisation.
-                    ob = env.reset()
-                    steps = 0
-                    acc_reward = 0
-                    while True:
-                        obs_tensor = torch.tensor(ob).unsqueeze(0)
-                        logit = model.forward(obs_tensor.float())['logit']
-                        #dist = Categorical(logits=logit)
-                        action = logit.argmax(dim=-1)
-                        action = action.numpy()
-                        if action.shape == (1, ):
-                            action = action.squeeze()  # 0-dim array
-                        ob, r, done, _ = env.step(action)
-
-                        # save data
-                        data_for_save['obs'] = obs_tensor.squeeze().float()
-                        data_for_save['next_obs'] = torch.Tensor(ob)
-                        data_for_save['action'] = torch.Tensor(np.expand_dims(action, axis=0))
-                        data_for_save['reward'] = torch.Tensor([r])
-                        data_for_save['done'] = done
-                        self.data_for_save[int(checkpoint) // int(checkpoint_step)].append(deepcopy(data_for_save))
-
-                        if isinstance(self.cfg.policy.model.get('obs_shape'), int) or len(
-                                self.cfg.policy.model.get('obs_shape')) == 1:
-                            ob_processed = ob
-                        elif len(self.cfg.policy.model.get('obs_shape')) == 3:
-                            ob_processed = torch.tensor(ob).permute(1, 2, 0).numpy()
-                        traj.append(ob_processed)
-                        gt_rewards.append(r)
-                        steps += 1
-                        acc_reward += r
-                        if done:
-                            self._logger.info(
-                                "checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward)
-                            )
-                            break
-                    self._logger.info("traj length: {}".format(len(traj)))
-                    self._logger.info("demo length: {}".format(len(self.pre_expert_data)))
-                    self.pre_expert_data.append(traj)
-                    self.learning_returns.append(acc_reward)
-                    self.learning_rewards.append(gt_rewards)
-            elif self.cfg.reward_model.algo_for_model == 'ppo':
-                model = VAC(**self.cfg.policy.model)
-                model.load_state_dict(torch.load(model_path)['model'])
-                episode_count = 1
-                for i in range(episode_count):
-                    done = False
-                    traj = []
-                    gt_rewards = []
-                    data_for_save = {}
-                    self.data_for_save[int(checkpoint) // int(checkpoint_step)] = []
-                    r = 0
-                    env.seed(self.cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step))
-                    ob = env.reset()
-                    steps = 0
-                    acc_reward = 0
-                    while True:
-                        obs_tensor = torch.tensor(ob).unsqueeze(0)
-                        logit = model.forward(obs_tensor.float(), mode='compute_actor_critic')['logit']
-                        dist = Categorical(logits=logit)
-                        #action = dist.argmax(dim=-1)
-                        action = dist.sample()
-                        action = action.numpy()
-                        if action.shape == (1, ):
-                            action = action.squeeze()  # 0-dim array
-                        ob, r, done, _ = env.step(action)
-
-                        # save data
-                        data_for_save['obs'] = obs_tensor.squeeze().float()
-                        data_for_save['next_obs'] = torch.Tensor(ob)
-                        data_for_save['action'] = torch.Tensor(np.expand_dims(action, axis=0))
-                        data_for_save['reward'] = torch.Tensor([r])
-                        data_for_save['done'] = done
-                        self.data_for_save[int(checkpoint) // int(checkpoint_step)].append(deepcopy(data_for_save))
-
-                        if isinstance(self.cfg.policy.model.get('obs_shape'), int) or len(
-                                self.cfg.policy.model.get('obs_shape')) == 1:
-                            ob_processed = ob
-                        elif len(self.cfg.policy.model.get('obs_shape')) == 3:
-                            ob_processed = torch.tensor(ob).permute(1, 2, 0).numpy()
-                        traj.append(ob_processed)
-                        gt_rewards.append(r)
-                        steps += 1
-                        acc_reward += r
-                        if done:
-                            self._logger.info(
-                                "checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward)
-                            )
-                            break
-                    self._logger.info("traj length: {}".format(len(traj)))
-                    self._logger.info("demo length: {}".format(len(self.pre_expert_data)))
-                    self.pre_expert_data.append(traj)
-                    self.learning_returns.append(acc_reward)
-                    self.learning_rewards.append(gt_rewards)
-
-        return self.pre_expert_data, self.learning_returns, self.learning_rewards
-
-    def generate_novice_demos_continuous_action_space(self):
-        env = wrap_mujoco(
-            self.cfg.env.env_id,
-            norm_obs=self.cfg.env.get('norm_obs', None),
-            norm_reward=self.cfg.env.get('norm_reward', None),
-            only_info=False
-        )
-        checkpoint_min = self.cfg.reward_model.checkpoint_min
-        checkpoint_max = self.cfg.reward_model.checkpoint_max
-        checkpoint_step = self.cfg.reward_model.checkpoint_step
-        checkpoints = []
-        for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
-            checkpoints.append(str(i))
-        self._logger.info(checkpoints)
-        for checkpoint in checkpoints:
-
-            model_path = self.cfg.reward_model.expert_model_path + \
-            '/ckpt/iteration_' + checkpoint + '.pth.tar'
-            if self.cfg.reward_model.algo_for_model == 'ppo':
-                model = VAC(**self.cfg.policy.model)
-            elif self.cfg.reward_model.algo_for_model == 'sac':
-                model = QAC(**self.cfg.policy.model)
-            model.load_state_dict(torch.load(model_path)['model'])
-            episode_count = 1
-            for i in range(episode_count):
-                done = False
-                traj = []
-                gt_rewards = []
-                data_for_save = {}
-                self.data_for_save[int(checkpoint) // int(checkpoint_step)] = []
-                r = 0
-                env.seed(
-                    self.cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
-                )  # in trex official implementation, they use the same initialisation.
-                ob = env.reset()
-                steps = 0
-                acc_reward = 0
-                while True:
-                    obs_tensor = torch.tensor(ob).unsqueeze(0)
-                    (mu, sigma) = model.compute_actor(obs_tensor.float())['logit']
-                    dist = Independent(Normal(mu, sigma), 1)
-                    action = torch.tanh(dist.rsample())
-                    action = action.detach().numpy()  # Why does mujoco need to be detached ?
-                    ob, r, done, _ = env.step(action)
-
-                    # save data
-                    data_for_save['obs'] = obs_tensor.squeeze().float()
-                    data_for_save['next_obs'] = torch.Tensor(ob)
-                    data_for_save['action'] = torch.Tensor(action.squeeze())
-                    data_for_save['reward'] = torch.Tensor([r])
-                    data_for_save['done'] = done
-                    self.data_for_save[int(checkpoint) // int(checkpoint_step)].append(deepcopy(data_for_save))
-
-                    ob_processed = ob
-                    traj.append(ob_processed)
-                    gt_rewards.append(r)
-                    steps += 1
-                    acc_reward += r
-                    if done:
-                        self._logger.info("checkpoint: {}, steps: {}, return: {}".format(checkpoint, steps, acc_reward))
-                        break
-                self._logger.info("traj length: {}".format(len(traj)))
-                self._logger.info("demo length: {}".format(len(self.pre_expert_data)))
-                self.pre_expert_data.append(traj)
-                self.learning_returns.append(acc_reward)
-                self.learning_rewards.append(gt_rewards)
-        return self.pre_expert_data, self.learning_returns, self.learning_rewards
-
     def load_expert_data(self) -> None:
         """
         Overview:
@@ -404,7 +208,7 @@ class TrexRewardModel(BaseRewardModel):
         with open(self.cfg.reward_model.offline_data_path + '/episodes_data.pkl', 'rb') as f:
             self.pre_expert_data = pickle.load(f)
         with open(self.cfg.reward_model.offline_data_path + '/learning_returns.pkl', 'rb') as f:
-            self.learning_returns= pickle.load(f)
+            self.learning_returns = pickle.load(f)
         with open(self.cfg.reward_model.offline_data_path + '/learning_rewards.pkl', 'rb') as f:
             self.learning_reward = pickle.load(f)
         with open(self.cfg.reward_model.offline_data_path + '/checkpoints.pkl', 'rb') as f:
@@ -509,14 +313,13 @@ class TrexRewardModel(BaseRewardModel):
             for i in range(len(training_labels)):
 
                 # traj_i, traj_j has the same length, however, they change as i increases
-                traj_i, traj_j = training_obs[i] # traj_i is a list of array generated by env.step
-                labels = np.array([training_labels[i]]) # training_labels[i] is a boolean integer: 0 or 1
+                traj_i, traj_j = training_obs[i]  # traj_i is a list of array generated by env.step
+                labels = np.array([training_labels[i]])  # training_labels[i] is a boolean integer: 0 or 1
                 traj_i = np.array(traj_i)
                 traj_j = np.array(traj_j)
                 traj_i = torch.from_numpy(traj_i).float().to(device)
                 traj_j = torch.from_numpy(traj_j).float().to(device)
                 labels = torch.from_numpy(labels).to(device)
-
 
                 # forward + backward + zero out gradient + optimize
                 outputs, abs_rewards = self.reward_model.forward(traj_i, traj_j)
@@ -561,11 +364,12 @@ class TrexRewardModel(BaseRewardModel):
         # torch.set_printoptions(precision=20)
         # torch.use_deterministic_algorithms(True)
         with torch.no_grad():
-            rewards_from_obs = net.cum_return(torch.from_numpy(np.array(traj)).float().to(device), mode='batch')[0].squeeze().tolist()
+            rewards_from_obs = net.cum_return(
+                torch.from_numpy(np.array(traj)).float().to(device), mode='batch'
+            )[0].squeeze().tolist()
             # rewards_from_obs1 = net.cum_return(torch.from_numpy(np.array([traj[0]])).float().to(device))[0].item()
-        # print(rewards_from_obs)
-        # print(rewards_from_obs1)
-        return sum(rewards_from_obs) # rewards_from_obs is a list of floats
+            # different precision
+        return sum(rewards_from_obs)  # rewards_from_obs is a list of floats
 
     def calc_accuracy(self, reward_network, training_inputs, training_outputs):
         device = self.device
@@ -599,12 +403,6 @@ class TrexRewardModel(BaseRewardModel):
         """
         res = collect_states(data)
         res = torch.stack(res).to(self.device)
-        '''
-        if isinstance(self.cfg.policy.model.get('obs_shape'), int) or len(self.cfg.policy.model.get('obs_shape')) == 1:
-            pass
-        elif len(self.cfg.policy.model.get('obs_shape')) == 3:
-            res = res.permute(0, 3, 2, 1)
-        '''
         with torch.no_grad():
             sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res, mode='batch')
 

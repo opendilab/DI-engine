@@ -3,6 +3,7 @@ from easydict import EasyDict
 cartpole_dqn_config = dict(
     exp_name='cartpole_trex_dqn',
     env=dict(
+        manager=dict(shared_memory=True, force_reproducibility=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
@@ -20,10 +21,9 @@ cartpole_dqn_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path=
-        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/classic_control/cartpole/config/cartpole_dqn',
-        reward_model_path='./cartpole.params',
-        offline_data_path='cartpole_trex_dqn/suboptimal_data.pkl',
+        expert_model_path='abs model path',
+        reward_model_path='abs data path + ./cartpole.params',
+        offline_data_path='abs data path',
     ),
     policy=dict(
         load_path='',
@@ -60,7 +60,7 @@ cartpole_dqn_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
 cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)

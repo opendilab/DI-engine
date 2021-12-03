@@ -23,10 +23,9 @@ pong_ppo_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path=
-        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/pong/ppo_offpolicy_pong',
-        reward_model_path='./pong.params',
-        offline_data_path='pong_trex_offppo/suboptimal_data.pkl',
+        expert_model_path='abs model path',
+        reward_model_path='abs data path + ./pong.params',
+        offline_data_path='abs data path',
     ),
     policy=dict(
         cuda=True,

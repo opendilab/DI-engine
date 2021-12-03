@@ -23,10 +23,9 @@ qbert_ppo_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path=
-        '/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/atari/config/serial/qbert/qbert_ppo_offpolcy',
-        reward_model_path='./qbert.params',
-        offline_data_path='qbert_trex_offppo/suboptimal_data.pkl',
+        expert_model_path='abs model path',
+        reward_model_path='abs data path + ./qbert.params',
+        offline_data_path='abs data path',
     ),
     policy=dict(
         cuda=True,
@@ -71,7 +70,7 @@ qbert_ppo_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
 )
 create_config = EasyDict(qbert_ppo_create_config)

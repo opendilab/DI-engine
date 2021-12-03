@@ -24,10 +24,10 @@ halfcheetah_sac_default_config = dict(
         checkpoint_max=9000,
         checkpoint_step=1000,
         update_per_collect=1,
-        expert_model_path='/Users/nieyunpeng/Documents/open-sourced-algorithms/TREX/dizoo/mujoco/config/halfcheetah_sac',
-        reward_model_path='./halfcheetah.params',
+        expert_model_path='abs model path',
+        reward_model_path='abs data path + /HalfCheetah.params',
         continuous=True,
-        offline_data_path='halfcheetah_trex_sac/suboptimal_data.pkl',
+        offline_data_path='asb data path',
     ),
     policy=dict(
         cuda=True,
