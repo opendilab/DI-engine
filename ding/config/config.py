@@ -310,7 +310,7 @@ def compile_config(
         learner: type = BaseLearner,
         collector: type = None,
         evaluator: type = InteractionSerialEvaluator,
-        buffer: type = AdvancedReplayBuffer,
+        buffer: type = None,
         env: type = None,
         reward_model: type = None,
         seed: int = 0,
@@ -330,7 +330,7 @@ def compile_config(
         - learner (:obj:`type`): Input learner class, defaults to BaseLearner
         - collector (:obj:`type`): Input collector class, defaults to BaseSerialCollector
         - evaluator (:obj:`type`): Input evaluator class, defaults to InteractionSerialEvaluator
-        - buffer (:obj:`type`): Input buffer class, defaults to BufferManager
+        - buffer (:obj:`type`): Input buffer class, defaults to IBuffer
         - env (:obj:`type`): Environment class which is to be used in the following pipeline
         - reward_model (:obj:`type`): Reward model class which aims to offer various and valuable reward
         - seed (:obj:`int`): Random number seed
@@ -348,6 +348,7 @@ def compile_config(
             create_cfg.collector = EasyDict(dict(type='sample'))
         if 'replay_buffer' not in create_cfg:
             create_cfg.replay_buffer = EasyDict(dict(type='advanced'))
+            buffer = AdvancedReplayBuffer
         if env is None:
             env = get_env_cls(create_cfg.env)
         if env_manager is None:

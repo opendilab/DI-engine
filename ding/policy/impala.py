@@ -39,7 +39,6 @@ class IMPALAPolicy(Policy):
                                                         | valid in serial training               | means more off-policy
         == ==================== ======== ============== ======================================== =======================
     """
-    unroll_len = 32
     config = dict(
         type='impala',
         cuda=False,
@@ -49,6 +48,8 @@ class IMPALAPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (int) the trajectory length to calculate v-trace target
+        unroll_len=32,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -66,8 +67,6 @@ class IMPALAPolicy(Policy):
             discount_factor=0.9,
             # (float) additional discounting parameter
             lambda_=0.95,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=unroll_len,
             # (float) clip ratio of importance weights
             rho_clip_ratio=1.0,
             # (float) clip ratio of importance weights
@@ -78,8 +77,6 @@ class IMPALAPolicy(Policy):
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=unroll_len,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             gae_lambda=0.95,
@@ -116,7 +113,7 @@ class IMPALAPolicy(Policy):
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         self._action_shape = self._cfg.model.action_shape
-        self._unroll_len = self._cfg.learn.unroll_len
+        self._unroll_len = self._cfg.unroll_len
 
         # Algorithm config
         self._priority = self._cfg.priority
@@ -290,7 +287,6 @@ class IMPALAPolicy(Policy):
             Collect mode init method. Called by ``self.__init__``, initialize algorithm arguments and collect_model.
             Use multinomial_sample to choose action.
         """
-        self._collect_unroll_len = self._cfg.collect.unroll_len
         self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         self._collect_model.reset()
 
