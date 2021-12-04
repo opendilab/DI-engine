@@ -37,7 +37,7 @@ class FakeEnv(BaseEnv):
         env_sleep(random_change(self._reset_time))
         self._step_count = 0
         self._final_eval_reward = 0
-        obs = np.random.randn(self._obs_dim)
+        obs = np.random.randn(self._obs_dim).astype(np.float32)
         return obs
 
     def close(self) -> None:
