@@ -1,10 +1,6 @@
 from typing import Union, Optional, Dict, Callable, List
-import torch
-import torch.nn as nn
 from ding.torch_utils.network.nn_module import *
-
-from ding.torch_utils import get_lstm
-from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
+from ding.utils import MODEL_REGISTRY
 
 
 class PositionalEmbedding(nn.Module):
@@ -68,7 +64,7 @@ class GRUGatingUnit(torch.nn.Module):
             Compute output value with gating mechanism
         Arguments:
             - x: (:obj:`torch.Tensor`): first input.
-            - y: (:obj:`torch.Tensor`): first input.
+            - y: (:obj:`torch.Tensor`): second input.
             x and y have same shape and last shape is input_dim.
         Returns:
             - g: (:obj:`torch.Tensor`): output of GRU. Same shape of x and y.
@@ -83,7 +79,7 @@ class GRUGatingUnit(torch.nn.Module):
 class Memory:
     """
     Overview:
-        Stores the hidden states computed in the previous segments
+        Stores the context used to add memory to Transformer.
     .. note::
         For details refer to Transformer-XL: https://arxiv.org/abs/1901.02860
     """
@@ -94,6 +90,13 @@ class Memory:
             embedding_dim: int = 256,
             layer_num: int = 3,
     ) -> None:
+        """
+        Arguments:
+            - memory_len (:obj:`int`): dimension of memory (how many past observations to use as memory)
+            - batch_size (:obj:`int`): dimension of each batch
+            - embedding_dim (:obj:`int`): dimension of embedding (dimension of a single observation after embedding)
+            - layer_num (:obj:`int`): number of transformer layers
+        """
         super(Memory, self).__init__()
         self.embedding_dim = embedding_dim
         self.bs = batch_size
@@ -102,7 +105,15 @@ class Memory:
         self.memory = None
         self.init()
 
-    def init(self, memory: List[torch.Tensor] = None):
+    def init(self, memory: Optional[List[torch.Tensor]] = None):
+        """
+        Overview:
+            Init memory with an input list of tensors or create it automatically given its dimensions.
+        Arguments:
+            - memory: (:obj:`Optional[List[torch.Tensor]]`): memory input.
+            Shape is (memory_len, bs, embedding_dim) for each layer.
+            memory_len is length of memory, bs is batch size and embedding_dim is the dimension of embedding.
+        """
         if memory:
             self.memory = memory
         else:
@@ -113,8 +124,21 @@ class Memory:
 
     def update(self, hidden_state: List[torch.Tensor]):
         """
-        + Arguments
-            - hidden_states: List[torch.FloatTensor]
+        Overview:
+            Update the memory given a sequence of hidden states.
+        Example for single layer:
+
+            memory_len=3, hidden_size_len=2, bs=3
+
+                m00 m01 m02      h00 h01 h02              m20 m21 m22
+            m = m10 m11 m12  h = h10 h11 h12  => new_m =  h00 h01 h02
+                m20 m21 m22                               h10 h11 h12
+        Arguments:
+            - hidden_state: (:obj:`List[torch.Tensor]`): hidden states to update the memory.
+            Shape is (cur_seq, bs, embedding_dim) for each layer. cur_seq is length of sequence.
+        Returns:
+            - memory: (:obj:`Optional[List[torch.Tensor]]`): output memory.
+            Shape is (memory_len, bs, embedding_dim) for each layer.
         """
         if self.memory is None or hidden_state is None:
             return None
@@ -130,25 +154,44 @@ class Memory:
         return new_memory
 
     def get(self):
+        """
+        Overview:
+            Memory getter method.
+        Returns:
+            - memory: (:obj:`Optional[List[torch.Tensor]]`): output memory.
+            Shape is (memory_len, bs, embedding_dim) for each layer.
+        """
         return self.memory
 
 
 class AttentionXL(torch.nn.Module):
+    """
+    Overview:
+        Attention of TransformerXL.
+    """
     def __init__(self, input_dim: int, head_dim: int, head_num: int, dropout: nn.Module) -> None:
+        """Overview:
+            Init AttentionXL.
+        Arguments:
+            - input_dim (:obj:`int`): dimension of input
+            - head_dim (:obj:`int`): dimension of each head
+            - head_num (:obj:`int`): number of heads for multihead attention
+            - dropout (:obj:`nn.Module`): dropout function
+        """
         super(AttentionXL, self).__init__()
         self.head_num = head_num
         self.head_dim = head_dim
         self.dropout = dropout
         self.attention_kv = fc_block(input_dim, head_dim * head_num * 2)  # key, value
         self.attention_q = fc_block(input_dim, head_dim * head_num)  # query (not computed with past hidden states)
-        self.project = fc_block(head_dim * head_num, input_dim)
+        self.project = fc_block(head_dim * head_num, input_dim)  # project attention output back to input_dim
         self.project_pos = fc_block(input_dim, head_dim * head_num)  # project the positional embedding
         self.scale = 1 / (head_dim ** 0.5)  # for scaled dot product attention
 
-    def _rel_shift(self, x, zero_triu=False):
+    def _rel_shift(self, x: torch.Tensor):
         """
         Overview:
-            Relatively shift the attention score matrix
+            Relatively shift the attention score matrix.
         Example:
             a00 a01 a02      0 a00 a01 a02       0  a00 a01      a02  0  a10     a02  0   0
             a10 a11 a12  =>  0 a10 a11 a12  =>  a02  0  a10  =>  a11 a12  0  =>  a11 a12  0
@@ -158,13 +201,14 @@ class AttentionXL(torch.nn.Module):
             2) Reshape the matrix from [3 x 4] into [4 x 3]
             3) Remove the first "row"
             4) Mask out the upper triangle
-        Note:
+        .. note::
             See the following material for better understanding:
                 https://github.com/kimiyoung/transformer-xl/issues/8
                 https://arxiv.org/pdf/1901.02860.pdf (Appendix B)
-        :param x:
-        :param zero_triu:
-        :return:
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor of shape (cur_seq, full_seq, bs, head_num).
+        Returns:
+            - x (:obj:`torch.Tensor`): input after relative shift. Shape (cur_seq, full_seq, bs, head_num).
         """
         zero_pad = torch.zeros((x.size(0), 1, *x.size()[2:]),
                                device=x.device, dtype=x.dtype)
@@ -181,20 +225,18 @@ class AttentionXL(torch.nn.Module):
                 v: torch.nn.Parameter,
                 mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        """
-        + pos_embs: positional embeddings passed separately to handle relative positions.
-        + Arguments
-            - input: torch.FloatTensor, shape - (seq, bs, self.d_input) = (20, 5, 8)
-            - pos_embs: torch.FloatTensor, shape - (seq + prev_seq, bs, self.d_input) = (40, 1, 8)
-            - memory: torch.FloatTensor, shape - (prev_seq, b, d_in) = (20, 5, 8)
-            - u: torch.FloatTensor, shape - (num_heads, inner_dim) = (3 x )
-            - v: torch.FloatTensor, shape - (num_heads, inner_dim)
-            - mask: torch.FloatTensor, Optional = (20, 40, 1)
-        + Returns
-            - output: torch.FloatTensor, shape - (seq, bs, self.d_input)
-        + symbols representing shape of the tensors
-            - cs: current sequence length, b: batch, H: no. of heads
-            - d: inner dimension, ps: previous sequence length
+        """Overview:
+            Compute AttentionXL.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`): attention input of shape (cur_seq, bs, input_dim)
+            - pos_embedding (:obj:`torch.Tensor`): positional embedding of shape (full_seq, 1, full_seq)
+            - full_input (:obj:`torch.Tensor`): memory + input concatenation of shape (full_seq, bs, input_dim)
+            - u (:obj:`torch.nn.Parameter`): content parameter of shape (head_num, head_dim)
+            - v (:obj:`torch.nn.Parameter`): position parameter of shape (head_num, head_dim)
+            - mask (:obj:`Optional[torch.Tensor]`): attention mask of shape (cur_seq, full_seq, 1)
+            full_seq = prev_seq + cur_seq
+        Returns:
+            - output (:obj:`torch.Tensor`): attention output of shape (cur_seq, bs, input_dim)
         """
         bs, cur_seq, full_seq = inputs.shape[1], inputs.shape[0], full_input.shape[0]
         prev_seq = full_seq - cur_seq
@@ -202,10 +244,9 @@ class AttentionXL(torch.nn.Module):
         kv = self.attention_kv(full_input)
         key, value = torch.chunk(kv, 2, dim=-1)  # full_seq x bs x num_head*dim_head
         query = self.attention_q(inputs)  # cur_seq x bs x num_head*dim_head
-        #print('pos_embedding:', pos_embedding.shape)
         r = self.project_pos(pos_embedding)  # full_seq x 1 x num_head*dim_head
 
-        # x_i * W^q * (W^k)^T * (x_j)^T
+        # (query + u) * key^T
         content_attn = torch.einsum(
             "ibhd,jbhd->ijbh",
             (
@@ -214,6 +255,7 @@ class AttentionXL(torch.nn.Module):
             ),
         )  # cur_seq x full_seq x bs x head_num
 
+        # (query + v) * R^T
         position_attn = torch.einsum(
             "ibhd,jhd->ijbh",
             (
@@ -226,12 +268,12 @@ class AttentionXL(torch.nn.Module):
         attn.mul_(self.scale)
 
         if mask is not None and mask.any().item():
-            # fills float('-inf') where mask is True.
+            # fills float('-inf') where mask is True to let softmax ignore those positions.
             attn = attn.masked_fill(mask[..., None], -float("inf")).type_as(attn)
         attn = F.softmax(attn, dim=1)
         attn = self.dropout(attn)
 
-        # attn_weighted_values = [curr x B x n_heads.d_inner] = [20 x 5 x 96]
+        # multiply softmax output by value
         attn_vec = torch.einsum(
                 "ijbh,jbhd->ibhd",
                 (
@@ -241,23 +283,37 @@ class AttentionXL(torch.nn.Module):
             )  # cur_seq x bs x head_num x head_dim
         attn_vec = attn_vec.contiguous().view(cur_seq, bs, self.head_num * self.head_dim)
         # cur_seq x bs x head_num * head_dim
-
         output = self.dropout(self.project(attn_vec))  # cur_seq x bs x input_dim
         return output
 
 
 class GatedTransformerXLLayer(torch.nn.Module):
+    """
+    Overview:
+        Attention layer of GTrXL
+    """
     def __init__(
-            self,
-            input_dim: int,
-            head_dim: int,
-            hidden_dim: int,
-            head_num: int,
-            mlp_num: int,
-            dropout: nn.Module,
-            activation: nn.Module,
-            gating: bool = True,
+        self,
+        input_dim: int,
+        head_dim: int,
+        hidden_dim: int,
+        head_num: int,
+        mlp_num: int,
+        dropout: nn.Module,
+        activation: nn.Module,
+        gating: bool = True,
     ) -> None:
+        """
+        Arguments:
+            - input_dim (:obj:`int`): dimension of input
+            - head_dim (:obj:`int`): dimension of each head
+            - hidden_dim (:obj:`int`): dimension of hidden layer in mlp
+            - head_num (:obj:`int`): number of heads for multihead attention
+            - mlp_num (:obj:`int`): number of mlp layers in attention layer
+            - dropout (:obj:`nn.Module`): dropout
+            - activation (:obj:`nn.Module`): activation function
+            - gating (:obj:`bool`): whether to use gating mechanism or not
+        """
         super(GatedTransformerXLLayer, self).__init__()
         self.dropout = dropout
         self.gating = gating
@@ -281,14 +337,28 @@ class GatedTransformerXLLayer(torch.nn.Module):
         self.layernorm1 = build_normalization('LN')(input_dim)
         self.activation = activation
 
-    def forward(self,
-                inputs: torch.Tensor,
-                pos_embedding: torch.Tensor,
-                u: torch.nn.Parameter,
-                v: torch.nn.Parameter,
-                memory: torch.Tensor,
-                mask: Optional[torch.Tensor] = None,
-        ) -> torch.Tensor:
+    def forward(
+        self,
+        inputs: torch.Tensor,
+        pos_embedding: torch.Tensor,
+        u: torch.nn.Parameter,
+        v: torch.nn.Parameter,
+        memory: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        """Overview:
+            Compute forward pass of GTrXL layer.
+        Arguments:
+            - inputs (:obj:`torch.Tensor`): attention input of shape (cur_seq, bs, input_dim)
+            - pos_embedding (:obj:`torch.Tensor`): positional embedding of shape (full_seq, 1, full_seq)
+            - u (:obj:`torch.nn.Parameter`): content parameter of shape (head_num, head_dim)
+            - v (:obj:`torch.nn.Parameter`): position parameter of shape (head_num, head_dim)
+            - memory (:obj:`Optional[torch.Tensor]`): memory of shape (prev_seq, bs, input_dim)
+            - mask (:obj:`Optional[torch.Tensor]`): attention mask of shape (cur_seq, full_seq, 1)
+            full_seq = prev_seq + cur_seq
+        Returns:
+            - output (:obj:`torch.Tensor`): layer output of shape (cur_seq, bs, input_dim)
+        """
         # concat memory with input across sequence dimension
         full_input = torch.cat([memory.detach(), inputs], dim=0)  # full_seq x bs x input_dim
         x1 = self.layernorm1(full_input)
@@ -305,7 +375,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
 class GTrXL(nn.Module):
     """
     Overview:
-        GTrCL Transformer implementation
+        GTrXL Transformer
     .. note::
         For details refer to Stabilizing Transformer for Reinforcement Learning: https://arxiv.org/abs/1910.06764
     """
@@ -334,7 +404,6 @@ class GTrXL(nn.Module):
             - dropout_ratio (:obj:`float`): dropout ratio
             - activation (:obj:`nn.Module`): activation function
         """
-
         super(GTrXL, self).__init__()
         assert embedding_dim % 2 == 0, 'embedding_dim={} should be even'.format(input_dim)
         self.head_num = head_num
@@ -363,17 +432,17 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
 
-    def forward(self, x: torch.Tensor,) -> torch.Tensor:
+    def forward(self, x: torch.Tensor,) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
-            GTrXL forward
+            GTrXL full forward pass.
         Arguments:
-            - x (:obj:`torch.Tensor`): input tensor. Shape (B, N, C), B is batch size, \
-                N is number of entries, C is feature dimension
-            - mask (:obj:`Optional[torch.Tensor]`): bool tensor, can be used to mask out invalid entries in attention. \
-                Shape (B, N), B is batch size, N is number of entries
+            - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).
+            - mask (:obj:`Optional[torch.Tensor]`): attention mask of shape (cur_seq, full_seq, 1)
+            seq_len is the length of the input sequence, bs is batch size, input_size is the size of the input
         Returns:
-            - x (:obj:`torch.Tensor`): transformer output
+            - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape
+             (seq_len, bs, embedding_size) and memory of shape (seq_len, bs, embedding_size)
         """
         cur_seq, bs = x.shape[:2]
         memory = None if self.memory is None else self.memory.get()
@@ -381,7 +450,7 @@ class GTrXL(nn.Module):
             self.memory = Memory(self.memory_len, bs, self.embedding_dim, self.layer_num + 1)
             # (layer_num+1) x memory_len x batch_size x embedding_dim
             memory = self.memory.get()
-        #print('memory:', memory[0].shape)
+            memory = [mem.to(x.device) for mem in memory]
 
         x = self.dropout(self.embedding(x))
         prev_seq = memory[0].size(0)
@@ -409,7 +478,6 @@ class GTrXL(nn.Module):
                 memory=memory,
             )   # cur_seq x bs x embedding_dim
             hidden_state.append(out)
-        #print('out:', out.shape)
 
         out = self.dropout(out)
         memory = self.memory.update(hidden_state)
@@ -427,5 +495,5 @@ if __name__ == "__main__":
     m = GTrXL(128, memory_len=50)
     res = m(a)
     o, mem = res['logits'], res['memory']
-    print(o.shape)
-    print(mem[0].shape)
+    print('output', o.shape)
+    print('memory', mem[0].shape)
