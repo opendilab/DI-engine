@@ -27,7 +27,7 @@ class GymSoccerEnv(BaseEnv):
 
     def reset(self) -> np.array:
         if not self._init_flag:
-            self._env = gym.make(self._env_id, replay_path=self._replay_path, port=self._cfg.port)  #TODO
+            self._env = gym.make(self._env_id, replay_path=self._replay_path, port=self._cfg.port)  # TODO
             self._init_flag = True
         self._final_eval_reward = 0
         obs = self._env.reset()
@@ -137,7 +137,7 @@ class GymSoccerEnv(BaseEnv):
         """
         cfg_list = []
         collector_env_num = cfg.pop('collector_env_num')
-        port_pool = list(range(6000,9999))
+        port_pool = list(range(6000, 9999))
         port_candidates = np.random.choice(port_pool, size=collector_env_num, replace=False)
         for i in range(collector_env_num):
             cfg_copy = copy.deepcopy(cfg)
@@ -156,11 +156,10 @@ class GymSoccerEnv(BaseEnv):
         """
         cfg_list = []
         evaluator_env_num = cfg.pop('evaluator_env_num')
-        port_pool = list(range(6000,9999))
+        port_pool = list(range(6000, 9999))
         port_candidates = np.random.choice(port_pool, size=evaluator_env_num, replace=False)
         for i in range(evaluator_env_num):
             cfg_copy = copy.deepcopy(cfg)
             cfg_copy.port = port_candidates[i]
             cfg_list.append(cfg_copy)
         return cfg_list
-
