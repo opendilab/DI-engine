@@ -19,6 +19,7 @@ from ding.torch_utils import to_ndarray, to_tensor
 from ding.rl_utils import get_epsilon_greedy_fn
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.framework import Task, Parallel
+from ding.framework.wrapper import StepTimer
 # from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
 from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
 
@@ -114,14 +115,11 @@ class Pipeline:
         def _learn(ctx):
             ctx.setdefault("train_iter", 0)
             ctx.keep("train_iter")
-            print("Get buffer size", buffer_.count())
             for i in range(self.cfg.policy.learn.update_per_collect):
                 data = buffer_.sample(self.policy.learn_mode.get_attribute('batch_size'))
                 if data is None:
                     break
-                start = time.time()
                 learn_output = self.policy.learn_mode.forward(data)
-                print("Learn time", time.time() - start)
                 if ctx.train_iter % 20 == 0:
                     print(
                         'Current Training: Train Iter({})\tLoss({:.3f})'.format(
@@ -199,57 +197,12 @@ def sample_profiler(buffer, print_per_step=1):
     return _sample_profiler
 
 
-def step_profiler(step_name, silent=False, print_per_step=1):
-    records = deque(maxlen=print_per_step * 5)
-
-    def _step_wrapper(fn):
-        # Wrap step function
-        def _step_executor(ctx):
-            # Execute step
-            start_time = time.time()
-            time_cost = 0
-            g = fn(ctx)
-            if isinstance(g, GeneratorType):
-                next(g)
-                time_cost = time.time() - start_time
-                yield
-                start_time = time.time()
-                try:
-                    next(g)
-                except StopIteration:
-                    pass
-                time_cost += time.time() - start_time
-            else:
-                time_cost = time.time() - start_time
-            records.append(time_cost * 1000)
-            if not silent and ctx.total_step % print_per_step == 0:
-                print(
-                    "    Step Profiler {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
-                        step_name, time_cost * 1000, np.mean(records)
-                    )
-                )
-
-        return _step_executor
-
-    return _step_wrapper
-
-
 def mock_pipeline(buffer):
 
     def _mock_pipeline(ctx):
         buffer.push(0)
 
     return _mock_pipeline
-
-
-def print_step(task: Task):
-    import random
-    from os import path
-    time.sleep(random.random() + 1)
-    print(
-        "Current task step on {}".format(task.parallel_mode and path.basename(task.router._bind_addr or "")),
-        task.ctx.total_step
-    )
 
 
 def main(cfg, create_cfg, seed=0):
@@ -273,26 +226,13 @@ def main(cfg, create_cfg, seed=0):
 
     start = time.time()
     with Task(async_mode=False) as task:
-        task.use(sample_profiler(replay_buffer, print_per_step=1))
-        task.use(
-            step_profiler("evaluate", silent=False, print_per_step=1)(sac.evaluate(evaluator_env)),
-            # filter_node=lambda node_id: node_id % 2 == 1
-        )
-        task.use(
-            step_profiler("collect", silent=False, print_per_step=1)(
-                task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task))
-            )
-        )
-        task.use(
-            step_profiler("learn", silent=False, print_per_step=1)(sac.learn(replay_buffer, task=task)),
-            # filter_node=lambda node_id: node_id % 8 == 0
-        )
+        task.use_step_wrapper(StepTimer(print_per_step=1))
+        # task.use(sample_profiler(replay_buffer, print_per_step=1))
+        task.use(sac.evaluate(evaluator_env), )
+        task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)))
+        task.use(sac.learn(replay_buffer, task=task))
 
-        print(task.middleware)
         task.run(max_step=10000)
-    time.sleep(1)
-    print("Threads", threading.enumerate())
-    print("Total time cost: {:.2f}s".format(time.time() - start))
 
 
 if __name__ == "__main__":
@@ -300,4 +240,3 @@ if __name__ == "__main__":
     Profiler().profile()
     main(main_config, create_config)
     # Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
-    print("Parent Threads", threading.enumerate())

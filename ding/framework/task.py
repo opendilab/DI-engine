@@ -54,13 +54,14 @@ class Task:
             async_mode: bool = False,
             n_async_workers: int = 1,
             middleware: List[Callable] = None,
+            step_wrappers: List[Callable] = None,
             event_listeners: Dict[str, List] = None,
             once_listeners: Dict[str, List] = None,
             attach_callback: Callable = None,
-            *args,
-            **kwargs
+            **_
     ) -> None:
         self.middleware = middleware or []
+        self.step_wrappers = step_wrappers or []
         self.ctx = Context()
         self._backward_stack = []
 
@@ -96,6 +97,10 @@ class Task:
         self.middleware.append(fn)
         return self
 
+    def use_step_wrapper(self, fn: Callable) -> 'Task':
+        self.step_wrappers.append(fn)
+        return self
+
     def run(self, max_step: int = 1e10) -> None:
         """
         Overview:
@@ -127,6 +132,8 @@ class Task:
             backward_stack = self._backward_stack
         if not ctx:
             ctx = self.ctx
+        for wrapper in self.step_wrappers:
+            fn = wrapper(fn)
         g = fn(ctx)
         if isinstance(g, GeneratorType):
             try:
@@ -169,6 +176,8 @@ class Task:
             yield
             self.backward(backward_stack=backward_stack, async_mode=False)
 
+        name = "|".join([fn.__name__ for fn in fns])
+        _sequence.__name__ = "sequence({})".format(name)
         return _sequence
 
     def renew(self) -> 'Task':
