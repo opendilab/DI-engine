@@ -2,10 +2,7 @@
 Main entry
 """
 from collections import deque
-import threading
-from types import GeneratorType
 import torch
-import pickle
 import numpy as np
 import time
 from rich import print
@@ -94,7 +91,7 @@ class Pipeline:
                 for t in ctx.collect_transitions:
                     buffer_.push(t)
 
-        task.on("sync_parallel_ctx", on_sync_parallel_ctx)
+        # task.on("sync_parallel_ctx", on_sync_parallel_ctx)
 
         def _collect(ctx):
             timesteps = env.step(ctx.action)
@@ -205,36 +202,45 @@ def mock_pipeline(buffer):
     return _mock_pipeline
 
 
-def main(cfg, create_cfg, seed=0):
-    cfg = compile_config(cfg, create_cfg=create_cfg, auto=True)
-
+def main(cfg, model, seed=0):
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
 
     collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
     evaluator_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager)
 
+    import random
+    seed = random.randint(0, 1000)
+    print("Random seed", seed)
+    random.seed(seed)
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     collector_env.launch()
     evaluator_env.launch()
 
-    model = DQN(**cfg.policy.model)
-    # model.share_memory()
+    print(model.state_dict()['head.V.1.0.weight'][0][:10])
     replay_buffer = DequeBuffer()
     sac = Pipeline(cfg, model)
 
     with Task(async_mode=False) as task:
         task.use_step_wrapper(StepTimer(print_per_step=1))
-        task.use(sac.evaluate(evaluator_env), )
+        task.use(sac.evaluate(evaluator_env))
         task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)))
         task.use(sac.learn(replay_buffer, task=task))
 
-        task.run(max_step=1)
+        task.run(max_step=10)
+
+    time.sleep(5)
+    print(model.state_dict()['head.V.1.0.weight'][0][:10])
+    print(replay_buffer.memory[-1]["obs"][0][0][:10])
 
 
 if __name__ == "__main__":
     from ding.utils import Profiler
     Profiler().profile()
-    main(main_config, create_config)
-    # Parallel.runner(n_parallel_workers=2)(main, main_config, create_config)
+    cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    model = DQN(**cfg.policy.model)
+    # model.share_memory()
+    print(model.state_dict()['head.V.1.0.weight'][0][:10])
+    # main(main_config, create_config)
+    Parallel.runner(n_parallel_workers=2)(main, cfg, model)
