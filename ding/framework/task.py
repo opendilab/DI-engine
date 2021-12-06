@@ -176,8 +176,8 @@ class Task:
             yield
             self.backward(backward_stack=backward_stack, async_mode=False)
 
-        name = "|".join([fn.__name__ for fn in fns])
-        _sequence.__name__ = "sequence({})".format(name)
+        name = ",".join([fn.__name__ for fn in fns])
+        _sequence.__name__ = "sequence<{}>".format(name)
         return _sequence
 
     def renew(self) -> 'Task':

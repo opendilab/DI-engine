@@ -14,7 +14,7 @@ pong_dqn_config = dict(
         manager=dict(shared_memory=False, )
     ),
     policy=dict(
-        cuda=True,
+        cuda=False,
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],

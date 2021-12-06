@@ -15,9 +15,12 @@ def test_step_timer():
     task.use_step_wrapper(step_timer)
     task.use(lambda _: None)  # Step 1
     task.use(lambda _: None)  # Step 2
+    step1 = lambda _: None  # In sequence 1
+    step2 = lambda _: None  # In sequence 2
+    task.use(task.sequence(step1, step2))
     task.run(3)
 
-    assert len(step_timer.records) == 2
+    assert len(step_timer.records) == 5
     for records in step_timer.records.values():
         assert len(records) == 3
 

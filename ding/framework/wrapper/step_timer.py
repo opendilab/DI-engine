@@ -38,11 +38,11 @@ class StepTimer:
             self.records[step_id].append(time_cost * 1000)
             if ctx.total_step % self.print_per_step == 0:
                 print(
-                    "Step Profiler [{}]: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
+                    "[Step Timer] {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
                         step_name, time_cost * 1000, np.mean(self.records[step_id])
                     )
                 )
 
-        executor.__name__ = "StepTimer({})".format(step_name)
+        executor.__name__ = "StepTimer<{}>".format(step_name)
 
         return executor

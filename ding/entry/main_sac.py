@@ -12,7 +12,7 @@ from rich import print
 from functools import partial
 from ding.model import QAC, DQN
 from ding.utils import set_pkg_seed
-from ding.envs import DingEnvWrapper, BaseEnvManager, get_vec_env_setting
+from ding.envs import DingEnvWrapper, BaseEnvManager, get_vec_env_setting, SyncSubprocessEnvManager
 from ding.config import compile_config
 from ding.policy import SACPolicy, DQNPolicy
 from ding.torch_utils import to_ndarray, to_tensor
@@ -224,15 +224,13 @@ def main(cfg, create_cfg, seed=0):
     replay_buffer = DequeBuffer()
     sac = Pipeline(cfg, model)
 
-    start = time.time()
     with Task(async_mode=False) as task:
         task.use_step_wrapper(StepTimer(print_per_step=1))
-        # task.use(sample_profiler(replay_buffer, print_per_step=1))
         task.use(sac.evaluate(evaluator_env), )
         task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)))
         task.use(sac.learn(replay_buffer, task=task))
 
-        task.run(max_step=10000)
+        task.run(max_step=1)
 
 
 if __name__ == "__main__":
