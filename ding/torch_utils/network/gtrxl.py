@@ -390,6 +390,7 @@ class GTrXL(nn.Module):
             memory_len: int = 64,
             dropout_ratio: float = 0.,
             activation: nn.Module = nn.ReLU(),
+            reduce_seq_dim: bool = True,
     ) -> None:
         """Overview:
             Init GTrXL Model
@@ -431,15 +432,28 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
+        self.reduce_seq_dim = reduce_seq_dim
 
-    def forward(self, x: torch.Tensor,) -> Dict[str, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
         Overview:
-            GTrXL full forward pass.
+            GTrXL forward pass with reshape.
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor. Shape (bs, cur_seq, input_size).
+        Returns:
+            - x (:obj:`torch.tensor`): transformer output of shape (bs, cur_seq embedding_size).
+        """
+        x = torch.transpose(x, 1, 0)  # cur_seq x bs x input_dim
+        out = self.forward_(x)
+        out = torch.transpose(out['logits'], 1, 0)  # bs x cur_seq x embedding_dim
+        return out
+
+    def forward_(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
+        r"""
+        Overview:
+            GTrXL forward pass.
         Arguments:
             - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).
-            - mask (:obj:`Optional[torch.Tensor]`): attention mask of shape (cur_seq, full_seq, 1)
-            seq_len is the length of the input sequence, bs is batch size, input_size is the size of the input
         Returns:
             - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape
              (seq_len, bs, embedding_size) and memory of shape (seq_len, bs, embedding_size)
