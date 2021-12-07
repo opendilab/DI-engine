@@ -3,8 +3,9 @@ import logging
 import time
 import asyncio
 import concurrent.futures
+import fnmatch
 from types import GeneratorType
-from typing import Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set, Union
+from typing import Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 
@@ -105,7 +106,7 @@ class Task:
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
         """
-        if not filter_labels or any([v in self.labels for v in filter_labels]):
+        if not filter_labels or any([fnmatch.filter(self.labels, v) for v in filter_labels]):
             self.middleware.append(fn)
         return self
 

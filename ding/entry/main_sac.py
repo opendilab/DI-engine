@@ -46,16 +46,58 @@ class DequeBuffer:
         return len(self.memory)
 
 
-class Differential:
+def differential(task, model, buffer: DequeBuffer, wait_n_sample: int, collect_before_wait: int):
     """
     Sync train/collect/evaluate speed
     """
 
-    def __init__(self, buffer, collect_env) -> None:
-        pass
+    cum_buffer_count = 0
+    receive_new_model = False
+    collected_before_wait = 0
+    finish = False
 
-    def __call__(self, ctx) -> None:
-        pass
+    def sync_parallel_ctx(ctx):
+        nonlocal cum_buffer_count, receive_new_model, finish
+        if ctx.finish:
+            finish = ctx.finish
+        if "collect_transitions" in ctx:
+            for transition in ctx.collect_transitions:
+                buffer.push(transition)
+                cum_buffer_count += 1
+        if "model_weight" in ctx:
+            model.load_state_dict(ctx.model_weight)
+            receive_new_model = True
+
+    task.on("sync_parallel_ctx", sync_parallel_ctx)
+
+    def _differential(ctx):
+        print("Model", task.router.node_id, model.state_dict()['head.V.1.0.weight'][0][:10])
+        nonlocal cum_buffer_count, receive_new_model, collected_before_wait, finish
+        timeout = 5
+        if finish:
+            ctx.finish = finish
+        if "train_iter" in ctx:  # On learner
+            # Wait until buffer has enough data
+            for _ in range(timeout * 100):
+                if cum_buffer_count < wait_n_sample:
+                    time.sleep(0.01)
+                else:
+                    break
+            cum_buffer_count = 0
+        elif "collect_env_step" in ctx:  # On collector
+            collected_before_wait += len(ctx.get("collect_transitions") or [])
+            # Wait until receive new model
+            for _ in range(timeout * 100):
+                if collected_before_wait > collect_before_wait and not receive_new_model:
+                    time.sleep(0.01)
+                else:
+                    break
+            if collected_before_wait > collect_before_wait:
+                collected_before_wait = 0
+            if receive_new_model:
+                receive_new_model = False
+
+    return _differential
 
 
 class Pipeline:
@@ -85,15 +127,6 @@ class Pipeline:
         return _act
 
     def collect(self, env, buffer_, task: Task):
-
-        def on_sync_parallel_ctx(ctx):
-            # if "collect_transitions" in ctx:
-            #     for t in ctx.collect_transitions:
-            #         buffer_.push(t)
-            if "model_weight" in ctx:
-                self.model.load_state_dict(ctx.model_weight)
-
-        task.on("sync_parallel_ctx", on_sync_parallel_ctx)
 
         def _collect(ctx):
             timesteps = env.step(ctx.action)
@@ -197,35 +230,35 @@ def sample_profiler(buffer, print_per_step=1):
     return _sample_profiler
 
 
-def mock_pipeline(buffer):
-
-    def _mock_pipeline(ctx):
-        buffer.push(0)
-
-    return _mock_pipeline
-
-
 def main(cfg, model, seed=0):
-    env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
-
-    collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
-    evaluator_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager)
-
-    collector_env.seed(seed)
-    evaluator_env.seed(seed, dynamic_seed=False)
-    set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
-    collector_env.launch()
-    evaluator_env.launch()
-
-    replay_buffer = DequeBuffer()
-    sac = Pipeline(cfg, model)
-
     with Task(async_mode=False) as task:
-        task.use_step_wrapper(StepTimer(print_per_step=1))
-        task.use(sac.evaluate(evaluator_env))
-        task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)))
-        task.use(sac.learn(replay_buffer, task=task))
-        task.run(max_step=10)
+        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+
+        collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
+        evaluator_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager)
+
+        collector_env.seed(seed)
+        evaluator_env.seed(seed, dynamic_seed=False)
+        set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
+        collector_env.launch()
+        evaluator_env.launch()
+
+        replay_buffer = DequeBuffer()
+        sac = Pipeline(cfg, model)
+
+        # task.use_step_wrapper(StepTimer(print_per_step=1))
+        task.use(sample_profiler(replay_buffer, print_per_step=1), filter_labels=["node.0"])
+        task.use(sac.evaluate(evaluator_env), filter_labels=["standalone", "node.0"])
+        task.use(
+            task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)),
+            filter_labels=["standalone", "node.[1-9]*"]
+        )
+        task.use(sac.learn(replay_buffer, task=task), filter_labels=["standalone", "node.0"])
+        task.use(
+            differential(task, model, replay_buffer, wait_n_sample=96, collect_before_wait=48),
+            filter_labels=["distributed"]
+        )
+        task.run(max_step=1000)
 
 
 if __name__ == "__main__":
@@ -233,6 +266,10 @@ if __name__ == "__main__":
     Profiler().profile()
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     model = DQN(**cfg.policy.model)
-    # print(model.state_dict()['head.V.1.0.weight'][0][:10])
+    print(model.state_dict()['head.V.1.0.weight'][0][:10])
     # main(cfg, model)
-    Parallel.runner(n_parallel_workers=2, topology="star")(main, cfg, model)
+
+    # Parallel
+    n_parallel_workers = 3
+    cfg["env"]["collector_env_num"] //= n_parallel_workers - 1
+    Parallel.runner(n_parallel_workers=n_parallel_workers, topology="star")(main, cfg, model)

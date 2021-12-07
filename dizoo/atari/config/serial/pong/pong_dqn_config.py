@@ -26,7 +26,7 @@ pong_dqn_config = dict(
         learn=dict(
             update_per_collect=10,
             batch_size=32,
-            learning_rate=0.0001,
+            learning_rate=0.01,
             target_update_freq=500,
         ),
         collect=dict(n_sample=96, ),
