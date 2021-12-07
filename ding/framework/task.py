@@ -85,15 +85,13 @@ class Task:
             if attach_callback:
                 self.wait_for_attach_callback(attach_callback)
 
-    def use(self, fn: Callable, filter_node: Optional[Callable] = None) -> 'Task':
+    def use(self, fn: Callable) -> 'Task':
         """
         Overview:
             Register middleware to task. The middleware will be executed by it's registry order.
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
         """
-        if self.router.is_active and filter_node and not filter_node(self.router.node_id):
-            return self
         self.middleware.append(fn)
         return self
 

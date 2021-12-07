@@ -44,3 +44,17 @@ def test_parallel_run_alone():
         Parallel.runner(n_parallel_workers=1)(parallel_main_alone, os.getpid())
     finally:
         del SingletonMetaclass.instances[Parallel]
+
+
+def star_parallel_main():
+    with Parallel() as router:
+        if router.node_id != 0:
+            assert len(router.attach_to) == 1
+
+        # Wait for other nodes
+        time.sleep(2)
+
+
+@pytest.mark.unittest
+def test_parallel_topology():
+    Parallel.runner(n_parallel_workers=3, topology="star")(star_parallel_main)

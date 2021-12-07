@@ -87,11 +87,13 @@ class Pipeline:
     def collect(self, env, buffer_, task: Task):
 
         def on_sync_parallel_ctx(ctx):
-            if "collect_transitions" in ctx:
-                for t in ctx.collect_transitions:
-                    buffer_.push(t)
+            # if "collect_transitions" in ctx:
+            #     for t in ctx.collect_transitions:
+            #         buffer_.push(t)
+            if "model_weight" in ctx:
+                self.model.load_state_dict(ctx.model_weight)
 
-        # task.on("sync_parallel_ctx", on_sync_parallel_ctx)
+        task.on("sync_parallel_ctx", on_sync_parallel_ctx)
 
         def _collect(ctx):
             timesteps = env.step(ctx.action)
@@ -124,6 +126,7 @@ class Pipeline:
                         )
                     )
                 ctx.train_iter += 1
+                ctx.model_weight = self.model.state_dict()
 
         return _learn
 
@@ -208,17 +211,12 @@ def main(cfg, model, seed=0):
     collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
     evaluator_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager)
 
-    import random
-    seed = random.randint(0, 1000)
-    print("Random seed", seed)
-    random.seed(seed)
     collector_env.seed(seed)
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
     collector_env.launch()
     evaluator_env.launch()
 
-    print(model.state_dict()['head.V.1.0.weight'][0][:10])
     replay_buffer = DequeBuffer()
     sac = Pipeline(cfg, model)
 
@@ -227,22 +225,7 @@ def main(cfg, model, seed=0):
         task.use(sac.evaluate(evaluator_env))
         task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)))
         task.use(sac.learn(replay_buffer, task=task))
-        if task.router.node_id == 0:
-            task.run(max_step=10)
-        else:
-            task.run(max_step=5)
-
-            def sync_parallel_ctx(ctx):
-                print("Sync model", ctx.train_iter, model.state_dict()['head.V.1.0.weight'][0][:10])
-
-            task.on("sync_parallel_ctx", sync_parallel_ctx)
-
-            while True:
-                time.sleep(1)
-
-    print(model.state_dict()['head.V.1.0.weight'][0][:10])
-    print("Finish")
-    # print(replay_buffer.memory[-1]["obs"][0][0][:10])
+        task.run(max_step=10)
 
 
 if __name__ == "__main__":
@@ -250,7 +233,6 @@ if __name__ == "__main__":
     Profiler().profile()
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     model = DQN(**cfg.policy.model)
-    # model.share_memory()
-    print(model.state_dict()['head.V.1.0.weight'][0][:10])
-    # main(main_config, create_config)
-    Parallel.runner(n_parallel_workers=2)(main, cfg, model)
+    # print(model.state_dict()['head.V.1.0.weight'][0][:10])
+    # main(cfg, model)
+    Parallel.runner(n_parallel_workers=2, topology="star")(main, cfg, model)

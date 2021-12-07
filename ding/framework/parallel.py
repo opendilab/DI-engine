@@ -25,7 +25,7 @@ class Parallel(metaclass=SingletonMetaclass):
     def __init__(self) -> None:
         self._listener = None
         self._sock: Socket = None
-        self._rpc = {"echo": self.echo}
+        self._rpc = {}
         self._bind_addr = None
         self._lock = threading.Lock()
         self.is_active = False
@@ -52,7 +52,8 @@ class Parallel(metaclass=SingletonMetaclass):
             attach_to: Optional[List[str]] = None,
             protocol: str = "ipc",
             address: Optional[str] = None,
-            ports: Optional[List[int]] = None
+            ports: Optional[List[int]] = None,
+            topology: str = "mesh"
     ) -> Callable:
         """
         Overview:
@@ -63,6 +64,9 @@ class Parallel(metaclass=SingletonMetaclass):
             - protocol (:obj:`str`): Network protocol.
             - address (:obj:`Optional[str]`): Bind address, ip or file path.
             - ports (:obj:`Optional[List[int]]`): Candidate ports.
+            - topology (:obj:`str`): Network topology, includes:
+                `mesh` (default): fully connected between each other;
+                `star`: only connect to the first node;
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
@@ -88,13 +92,21 @@ class Parallel(metaclass=SingletonMetaclass):
 
             atexit.register(cleanup_nodes)
 
+            def topology_network(node_id: int) -> List[str]:
+                if topology == "mesh":
+                    return nodes[:node_id] + attach_to
+                elif topology == "star":
+                    return nodes[:min(1, node_id)]
+                else:
+                    raise ValueError("Unknown topology: {}".format(topology))
+
             params_group = []
             for node_id in range(n_parallel_workers):
                 runner_args = []
                 runner_kwargs = {
                     "node_id": node_id,
                     "listen_to": nodes[node_id],
-                    "attach_to": nodes[:node_id] + attach_to
+                    "attach_to": topology_network(node_id) + attach_to
                 }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
                 params_group.append(params)
@@ -171,13 +183,6 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
                 except Exception as e:
                     logging.error("Meet exception when listening for new messages", e)
                     break
-
-    def echo(self, msg):
-        """
-        Overview:
-            Simply print out the received message
-        """
-        print("Echo on node {}".format(self._bind_addr), msg)
 
     def register_rpc(self, fn_name: str, fn: Callable) -> None:
         self._rpc[fn_name] = fn
