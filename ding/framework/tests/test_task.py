@@ -195,3 +195,15 @@ def attach_mode_main(job):
 def test_attach_mode():
     with WorkerPool(n_jobs=2, daemon=False, start_method="spawn") as pool:
         pool.map(attach_mode_main, ["run_task", "run_attach_task"])
+
+
+@pytest.mark.unittest
+def test_label():
+    task = Task()
+    result = {}
+    task.use(lambda _: result.setdefault("not_me", True), filter_labels=["async"])
+    task.use(lambda _: result.setdefault("has_me", True))
+    task.run(max_step=1)
+
+    assert "not_me" not in result
+    assert "has_me" in result

@@ -4,7 +4,7 @@ import time
 import asyncio
 import concurrent.futures
 from types import GeneratorType
-from typing import Awaitable, Callable, Dict, Generator, List, Optional, Union
+from typing import Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set, Union
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 
@@ -53,11 +53,12 @@ class Task:
             self,
             async_mode: bool = False,
             n_async_workers: int = 1,
-            middleware: List[Callable] = None,
-            step_wrappers: List[Callable] = None,
-            event_listeners: Dict[str, List] = None,
-            once_listeners: Dict[str, List] = None,
-            attach_callback: Callable = None,
+            middleware: Optional[List[Callable]] = None,
+            step_wrappers: Optional[List[Callable]] = None,
+            event_listeners: Optional[Dict[str, List]] = None,
+            once_listeners: Optional[Dict[str, List]] = None,
+            attach_callback: Optional[Callable] = None,
+            labels: Optional[Set[str]] = None,
             **_
     ) -> None:
         self.middleware = middleware or []
@@ -73,6 +74,7 @@ class Task:
         self._thread_pool = None
         self.event_listeners = event_listeners or defaultdict(list)
         self.once_listeners = once_listeners or defaultdict(list)
+        self.labels = labels or set()
 
         # Parallel segment
         self.router = Parallel()
@@ -85,14 +87,26 @@ class Task:
             if attach_callback:
                 self.wait_for_attach_callback(attach_callback)
 
-    def use(self, fn: Callable) -> 'Task':
+        self.init_labels()
+
+    def init_labels(self):
+        if self.async_mode:
+            self.labels.add("async")
+        if self.router.is_active:
+            self.labels.add("distributed")
+            self.labels.add("node.{}".format(self.router.node_id))
+        else:
+            self.labels.add("standalone")
+
+    def use(self, fn: Callable, filter_labels: Optional[Iterable[str]] = None) -> 'Task':
         """
         Overview:
             Register middleware to task. The middleware will be executed by it's registry order.
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
         """
-        self.middleware.append(fn)
+        if not filter_labels or any([v in self.labels for v in filter_labels]):
+            self.middleware.append(fn)
         return self
 
     def use_step_wrapper(self, fn: Callable) -> 'Task':
