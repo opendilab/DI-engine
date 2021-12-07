@@ -26,9 +26,9 @@ class PositionalEmbedding(nn.Module):
             Compute positional embedding
         Arguments:
             - pos_seq: (:obj:`torch.Tensor`): positional sequence,
-             usually a 1D integer sequence as [N-1, N-2, ..., 1, 0], N = embedding_dim
+             usually a 1D integer sequence as [seq_len-1, seq_len-2, ..., 1, 0],
         Returns:
-            - pos_embedding: (:obj:`torch.Tensor`): positional embedding. Shape (N, 1, N)
+            - pos_embedding: (:obj:`torch.Tensor`): positional embedding. Shape (seq_len, 1, embedding_dim)
         """
         sinusoid_inp = torch.outer(pos_seq, self.inv_freq)
         # For position embedding, the order of sin/cos is negligible.
