@@ -227,12 +227,22 @@ def main(cfg, model, seed=0):
         task.use(sac.evaluate(evaluator_env))
         task.use(task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)))
         task.use(sac.learn(replay_buffer, task=task))
+        if task.router.node_id == 0:
+            task.run(max_step=10)
+        else:
+            task.run(max_step=5)
 
-        task.run(max_step=10)
+            def sync_parallel_ctx(ctx):
+                print("Sync model", ctx.train_iter, model.state_dict()['head.V.1.0.weight'][0][:10])
 
-    time.sleep(5)
+            task.on("sync_parallel_ctx", sync_parallel_ctx)
+
+            while True:
+                time.sleep(1)
+
     print(model.state_dict()['head.V.1.0.weight'][0][:10])
-    print(replay_buffer.memory[-1]["obs"][0][0][:10])
+    print("Finish")
+    # print(replay_buffer.memory[-1]["obs"][0][0][:10])
 
 
 if __name__ == "__main__":
