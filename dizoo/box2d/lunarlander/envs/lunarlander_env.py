@@ -17,7 +17,10 @@ class LunarLanderEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make('LunarLander-v2')
+            if self._cfg.env_id == 'LunarLanderContinuous-v2':
+                self._env = gym.make('LunarLanderContinuous-v2')
+            else:
+                self._env = gym.make('LunarLander-v2')
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -58,35 +61,66 @@ class LunarLanderEnv(BaseEnv):
 
     def info(self) -> BaseEnvInfo:
         T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T(
-                (8, ),
-                {
-                    'min': [float("-inf")] * 8,
-                    'max': [float("inf")] * 8,
-                    'dtype': np.float32,
-                },
-            ),
-            # [min, max)
-            act_space=T(
-                (1, ),
-                {
-                    'min': 0,
-                    'max': 4,
-                    'dtype': int,
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                {
-                    'min': -1000.0,
-                    'max': 1000.0,
-                    'dtype': np.float32,
-                },
-            ),
-            use_wrappers=None,
-        )
+        if self._cfg.env_id == 'LunarLanderContinuous-v2':
+            return BaseEnvInfo(
+                agent_num=1,
+                obs_space=T(
+                    (8,),
+                    {
+                        'min': [float("-inf")] * 8,
+                        'max': [float("inf")] * 8,
+                        'dtype': np.float32,
+                    },
+                ),
+                # [min, max) TODO(pu)
+                act_space=T(
+                    (2,),
+                    {
+                        'min': float("-inf"),
+                        'max': float("inf"),
+                        'dtype': np.float32,
+                    },
+                ),
+                rew_space=T(
+                    (1,),
+                    {
+                        'min': -1000.0,
+                        'max': 1000.0,
+                        'dtype': np.float32,
+                    },
+                ),
+                use_wrappers=None,
+            )
+        else:
+            return BaseEnvInfo(
+                agent_num=1,
+                obs_space=T(
+                    (8, ),
+                    {
+                        'min': [float("-inf")] * 8,
+                        'max': [float("inf")] * 8,
+                        'dtype': np.float32,
+                    },
+                ),
+                # [min, max)
+                act_space=T(
+                    (1, ),
+                    {
+                        'min': 0,
+                        'max': 4,
+                        'dtype': int,
+                    },
+                ),
+                rew_space=T(
+                    (1, ),
+                    {
+                        'min': -1000.0,
+                        'max': 1000.0,
+                        'dtype': np.float32,
+                    },
+                ),
+                use_wrappers=None,
+            )
 
     def __repr__(self) -> str:
         return "DI-engine LunarLander Env"
