@@ -144,8 +144,10 @@ def collect_demo_data(
     policy.collect_mode.load_state_dict(state_dict)
     collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
-    policy_kwargs = None if not hasattr(cfg.policy.other, 'eps') \
-        else {'eps': cfg.policy.other.eps.get('collect', 0.2)}
+    if hasattr(cfg.policy.other, 'eps'):
+        policy_kwargs = {'eps': 0.}
+    else:
+        policy_kwargs = None
 
     # Let's collect some expert demonstrations
     exp_data = collector.collect(n_sample=collect_count, policy_kwargs=policy_kwargs)
@@ -215,8 +217,10 @@ def collect_episodic_demo_data(
     policy.collect_mode.load_state_dict(state_dict)
     collector = EpisodeSerialCollector(cfg.policy.collect.collector, collector_env, collect_demo_policy)
 
-    policy_kwargs = None if not hasattr(cfg.policy.other, 'eps') \
-        else {'eps': cfg.policy.other.eps.get('collect', 0.2)}
+    if hasattr(cfg.policy.other, 'eps'):
+        policy_kwargs = {'eps': 0.}
+    else:
+        policy_kwargs = None
 
     # Let's collect some expert demostrations
     exp_data = collector.collect(n_episode=collect_count, policy_kwargs=policy_kwargs)

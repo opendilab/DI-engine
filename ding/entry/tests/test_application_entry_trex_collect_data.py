@@ -17,7 +17,6 @@ from ding.entry import serial_pipeline
 @pytest.mark.unittest
 def test_collect_episodic_demo_data_for_trex():
     expert_policy_state_dict_path = './expert_policy.pth'
-    expert_policy_state_dict_path = os.path.abspath('ding/entry/expert_policy.pth')
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     expert_policy = serial_pipeline(config, seed=0)
     torch.save(expert_policy.collect_mode.state_dict(), expert_policy_state_dict_path)
@@ -40,7 +39,7 @@ def test_collect_episodic_demo_data_for_trex():
     os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 def test_trex_collecting_data():
     expert_policy_state_dict_path = './cartpole_ppo_offpolicy'
     expert_policy_state_dict_path = os.path.abspath(expert_policy_state_dict_path)
@@ -55,10 +54,9 @@ def test_trex_collecting_data():
             'device': 'cpu'
         }
     )
-    args.cfg[0].reward_model.offline_data_path = 'dizoo/classic_control/cartpole/config/cartpole_trex_offppo'
+    args.cfg[0].reward_model.offline_data_path = 'cartpole_trex_offppo_offline_data'
     args.cfg[0].reward_model.offline_data_path = os.path.abspath(args.cfg[0].reward_model.offline_data_path)
     args.cfg[0].reward_model.reward_model_path = args.cfg[0].reward_model.offline_data_path + '/cartpole.params'
-    args.cfg[0].reward_model.expert_model_path = './cartpole_ppo_offpolicy'
     args.cfg[0].reward_model.expert_model_path = os.path.abspath(args.cfg[0].reward_model.expert_model_path)
     trex_collecting_data(args=args)
     os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
