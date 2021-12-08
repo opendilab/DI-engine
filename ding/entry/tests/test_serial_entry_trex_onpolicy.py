@@ -12,7 +12,7 @@ from dizoo.mujoco.config import hopper_trex_ppo_default_config, hopper_trex_ppo_
 from ding.entry.application_entry_trex_collect_data import trex_collecting_data
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 def test_serial_pipeline_reward_model_trex():
     config = [deepcopy(hopper_ppo_default_config), deepcopy(hopper_ppo_create_default_config)]
     expert_policy = serial_pipeline_onpolicy(config, seed=0, max_iterations=90)
