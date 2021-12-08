@@ -76,7 +76,7 @@ class SACDiscretePolicy(Policy):
         # on-policy setting influences the behaviour of buffer.
         # Default False in SAC.
         on_policy=False,
-        multi_agent = True,
+        multi_agent=True,
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Default False in SAC.
         priority=False,
@@ -425,9 +425,7 @@ class SACDiscretePolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(
-                {'obs': data}, mode='compute_actor', eps=eps
-            )
+            output = self._collect_model.forward({'obs': data}, mode='compute_actor', eps=eps)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

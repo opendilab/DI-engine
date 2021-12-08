@@ -34,9 +34,10 @@ q_v_1step_td_data = namedtuple('q_v_1step_td_data', ['q', 'v', 'act', 'reward', 
 
 
 def q_v_1step_td_error(
-        data: namedtuple,
-        gamma: float,
-        criterion: torch.nn.modules = nn.MSELoss(reduction='none')  # we will use this function to calculate td error per sample
+    data: namedtuple,
+    gamma: float,
+    criterion: torch.nn.modules = nn.MSELoss(reduction='none'
+                                             )  # we will use this function to calculate td error per sample
 ) -> torch.Tensor:
     q, v, act, reward, done, weight = data
     if len(act.shape) == 1:

@@ -12,7 +12,7 @@ lunarlander_sac_default_config = dict(
         cuda=False,
         on_policy=False,
         random_collect_size=0,
-        multi_agent = False,
+        multi_agent=False,
         model=dict(
             agent_obs_shape=8,
             global_obs_shape=8,
@@ -40,9 +40,7 @@ lunarlander_sac_default_config = dict(
         ),
         command=dict(),
         eval=dict(
-            evaluator=dict(
-                eval_freq=50,
-            ),
+            evaluator=dict(eval_freq=50, ),
             env_num=5,
         ),
         other=dict(
@@ -51,8 +49,7 @@ lunarlander_sac_default_config = dict(
                 start=0.95,
                 end=0.1,
                 decay=50000,
-            ),
-            replay_buffer=dict(replay_buffer_size=100000, )
+            ), replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
 )
@@ -66,13 +63,10 @@ lunarlander_sac_default_create_config = dict(
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(
-        type='sac_discrete',
-    ),
+    policy=dict(type='sac_discrete', ),
 )
 lunarlander_sac_default_create_config = EasyDict(lunarlander_sac_default_create_config)
 create_config = lunarlander_sac_default_create_config
-
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)

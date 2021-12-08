@@ -484,11 +484,11 @@ class SMACEnv(SC2Env, BaseEnv):
                     'action_mask': self.get_avail_actions(),
                 }
             elif self.special_global_state:
-                    obs = {
-                        'agent_state': self.get_obs(),
-                        'global_state': self.get_global_special_state(),
-                        'action_mask': self.get_avail_actions(),
-                    }
+                obs = {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_global_special_state(),
+                    'action_mask': self.get_avail_actions(),
+                }
             else:
                 obs = {
                     'agent_state': self.get_obs(),

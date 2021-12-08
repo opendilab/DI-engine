@@ -309,7 +309,6 @@ class QAC(nn.Module):
         return {'q_value': x}
 
 
-
 @MODEL_REGISTRY.register('discrete_qac')
 class DiscreteQAC(nn.Module):
     r"""
@@ -377,15 +376,11 @@ class DiscreteQAC(nn.Module):
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
                 format(global_obs_shape)
             )
-        
+
         self.actor = nn.Sequential(
             encoder_cls(agent_obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
             DiscreteHead(
-                actor_head_hidden_size,
-                action_shape,
-                actor_head_layer_num,
-                activation=activation,
-                norm_type=norm_type
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
             )
         )
 
@@ -395,7 +390,9 @@ class DiscreteQAC(nn.Module):
             for _ in range(2):
                 self.critic.append(
                     nn.Sequential(
-                        global_encoder_cls(agent_obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
+                        global_encoder_cls(
+                            agent_obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                        ),
                         DiscreteHead(
                             critic_head_hidden_size,
                             action_shape,
@@ -407,7 +404,9 @@ class DiscreteQAC(nn.Module):
                 )
         else:
             self.critic = nn.Sequential(
-                global_encoder_cls(agent_obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
+                global_encoder_cls(
+                    agent_obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                ),
                 DiscreteHead(
                     critic_head_hidden_size,
                     action_shape,
