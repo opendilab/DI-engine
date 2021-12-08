@@ -453,9 +453,9 @@ class ACERPolicy(Policy):
                 q_retraces = compute_q_retraces(q_values, v_values, rewards, actions, weights, ratio, self._gamma)
 
         # the terminal states' weights are 0. it needs to be shift to count valid state
-        weights_ext = torch.ones_like(weights)
-        weights_ext[1:] = weights[0:-1]
-        weights = weights_ext
+        # weights_ext = torch.ones_like(weights)
+        # weights_ext[1:] = weights[0:-1]
+        # weights = weights_ext
         q_retraces = q_retraces[0:-1]  # shape T,B,1
         q_opc = q_opc[0:-1]  # T,B,1
         q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
@@ -515,11 +515,8 @@ class ACERPolicy(Policy):
             q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
             v_values = v_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
 
-            # critic_loss = (acer_value_error_continuous(q_values, v_values, q_retraces.clone().detach(),
-            #                                            ratio.clone().detach()) * weights.unsqueeze(
-            #     -1)).sum() / total_valid
-            critic_loss = acer_value_error_continuous(q_values, v_values, q_retraces.clone().detach(),
-                                                      ratio.clone().detach()).mean()
+            critic_loss = (acer_value_error_continuous(q_values, v_values, q_retraces.clone().detach(),
+                                                      ratio.clone().detach()) * weights.unsqueeze(-1)).mean() / total_valid
         else:
             critic_loss = (acer_value_error(q_values, q_retraces, actions) * weights.unsqueeze(-1)).sum() / total_valid
 
