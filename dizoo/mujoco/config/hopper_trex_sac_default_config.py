@@ -1,23 +1,40 @@
 from easydict import EasyDict
 
-halfcheetah_sac_default_config = dict(
-    exp_name = 'halfcheetah_sac',
+hopper_trex_sac_default_config = dict(
+    exp_name='hopper_trex_sac',
     env=dict(
-        env_id='HalfCheetah-v3',
+        manager=dict(shared_memory=True, force_reproducibility=True),
+        env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
         n_evaluator_episode=8,
-        stop_value=12000,
+        stop_value=6000,
+    ),
+    reward_model=dict(
+        type='trex',
+        algo_for_model='sac',
+        env_id='Hopper-v3',
+        min_snippet_length=30,
+        max_snippet_length=100,
+        checkpoint_min=1000,
+        checkpoint_max=9000,
+        checkpoint_step=1000,
+        learning_rate=1e-5,
+        update_per_collect=1,
+        expert_model_path='abs model path',
+        reward_model_path='abs data path + /hopper.params',
+        continuous=True,
+        offline_data_path='asb data path',
     ),
     policy=dict(
         cuda=True,
         random_collect_size=10000,
         model=dict(
-            obs_shape=17,
-            action_shape=6,
+            obs_shape=11,
+            action_shape=3,
             twin_critic=True,
             actor_head_type='reparameterization',
             actor_head_hidden_size=256,
@@ -29,7 +46,7 @@ halfcheetah_sac_default_config = dict(
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,
             learning_rate_alpha=3e-4,
-            ignore_done=True,
+            ignore_done=False,
             target_theta=0.005,
             discount_factor=0.99,
             alpha=0.2,
@@ -46,20 +63,20 @@ halfcheetah_sac_default_config = dict(
     ),
 )
 
-halfcheetah_sac_default_config = EasyDict(halfcheetah_sac_default_config)
-main_config = halfcheetah_sac_default_config
+hopper_trex_sac_default_config = EasyDict(hopper_trex_sac_default_config)
+main_config = hopper_trex_sac_default_config
 
-halfcheetah_sac_default_create_config = dict(
+hopper_trex_sac_default_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-halfcheetah_sac_default_create_config = EasyDict(halfcheetah_sac_default_create_config)
-create_config = halfcheetah_sac_default_create_config
+hopper_trex_sac_default_create_config = EasyDict(hopper_trex_sac_default_create_config)
+create_config = hopper_trex_sac_default_create_config
