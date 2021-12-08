@@ -37,7 +37,7 @@ class PPOPolicy(Policy):
         # (bool) Whether to recompurete advantages in each iteration of on-policy PPO
         recompute_adv=True,
         # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous', 'hybrid']
-        action_space='continuous',
+        action_space='discrete',
         # (bool) Whether to use nstep return to calculate value target, otherwise, use return = adv + value
         nstep_return=False,
         # (bool) Whether to enable multi-agent training, i.e.: MAPPO

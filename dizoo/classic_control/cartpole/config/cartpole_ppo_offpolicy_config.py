@@ -16,6 +16,7 @@ cartpole_ppo_offpolicy_config = dict(
             encoder_hidden_size_list=[64, 64, 128],
             critic_head_hidden_size=128,
             actor_head_hidden_size=128,
+            action_space='discrete',
         ),
         learn=dict(
             update_per_collect=6,

@@ -22,7 +22,7 @@ class VAC(nn.Module):
         self,
         obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType, EasyDict],
-        action_space: str = 'continuous',
+        action_space: str = 'discrete',
         share_encoder: bool = True,
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
         actor_head_hidden_size: int = 64,
