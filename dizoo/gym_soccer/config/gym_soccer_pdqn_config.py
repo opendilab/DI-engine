@@ -77,8 +77,8 @@ gym_soccer_pdqn_create_config = dict(
         type='gym_soccer',
         import_names=['dizoo.gym_soccer.envs.gym_soccer_env'],
     ),
-    env_manager=dict(type='base'),
-    policy=dict(type='subprocess'),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='pdqn'),
 )
 gym_soccer_pdqn_create_config = EasyDict(gym_soccer_pdqn_create_config)
 create_config = gym_soccer_pdqn_create_config
