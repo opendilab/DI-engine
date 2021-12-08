@@ -1,16 +1,9 @@
 from easydict import EasyDict
 
 pendulum_acer_config = dict(
-    # exp_name='debug_pendulum_ul32_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
-    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_seed0',
-    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_maxuse100_seed0',
-    exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_maxuse16_reward-batch-norm_seed0',
-
-    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_reward-batch-norm_seed0',
-    # exp_name='debug_pendulum_ul50_bs64_rbs2e3_tt0.005_clipnorm0.5_mubound_fixsigma0.3_reward-runnning-norm_seed0',
-
-
-    seed=0,
+    exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0_run2',
+    # exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc8_ns32_rbs1e3_maxuse1e4_df0.997_tt0.001_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc8_ns32_rbs1e4_maxuse1e4_df0.997_tt0.001_reward-batch-norm_seed0',
     env=dict(
         # collector_env_num=10,
         collector_env_num=1,
@@ -32,38 +25,44 @@ pendulum_acer_config = dict(
             noise_ratio=0,
         ),
         learn=dict(
+            # ignore_done=True,
+            ignore_done=False,
             grad_clip_type='clip_norm',
             # grad_clip_type='clip_value',
             clip_value=0.5,
-            # clip_value=10,
+            # clip_value=5,
             multi_gpu=False,
-            update_per_collect=4,
-            # batch_size=16,
+
+            update_per_collect=4,  #TODO(pu)
+            # update_per_collect=8,
+
             batch_size=64,
             unroll_len=50,
             # unroll_len=32,
-
             entropy_weight=0,  # 0.0001,
-            discount_factor=0.99,  # 0.997,#0.9,
+            discount_factor=0.99,  # TODO(pu)
+            # discount_factor=0.997,
+
             load_path=None,
-            c_clip_ratio=5,  # 10, #TODO(pu)
+            c_clip_ratio=5,  # TODO(pu)
             trust_region=True,
             trust_region_value=1.0,
             learning_rate_actor=0.0005,
             learning_rate_critic=0.0005,
+            # target_theta=0.001,
             target_theta=0.005,  # TODO(pu)
-            # target_theta=0.05,  # TODO(pu)
             # (float) Weight uniform initialization range in the last output layer
             init_w=3e-3,
+            reward_running_norm=False,
+            reward_batch_norm=False,
             # reward_running_norm=False,
-            # reward_batch_norm=False,
+            # reward_batch_norm=True,
             # reward_running_norm=True,
             # reward_batch_norm=False,
-            reward_running_norm=False,
-            reward_batch_norm=True,
         ),
         collect=dict(
             n_sample=16,
+            # n_sample=32,
             unroll_len=50,
             # unroll_len=32,
             discount_factor=0.99,
@@ -75,11 +74,11 @@ pendulum_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            replay_buffer_size=2000,  # 1000, 5000 TODO(pu)
-            # replay_buffer_size=10000,  # 1000, 5000 TODO(pu)
+            replay_buffer_size=2000,  # TODO(pu)
             max_use=16,
-            # max_use=100,
-
+            # replay_buffer_size=10000,  # TODO(pu)
+            # replay_buffer_size=1000,
+            # max_use=int(1e4),
         ), ),
     ),
 )

@@ -195,6 +195,8 @@ class ACERPolicy(Policy):
         if self._reward_running_norm:
             self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
 
+        self._ignore_done=self._cfg.learn.ignore_done
+
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
         """
         Overview:
@@ -581,9 +583,12 @@ class ACERPolicy(Policy):
         actions = data['action']  # shape T,B
 
         rewards = data['reward']  # shape T,B
-        weights_ = 1 - data['done']  # shape T,B
-        weights = torch.ones_like(rewards)  # shape T,B
-        weights = weights_
+        if self._ignore_done:
+            weights = torch.ones_like(rewards)  # shape T,B
+        else:
+            weights_ = 1 - data['done']  # shape T,B
+            weights = weights_
+
         return current_logit, behaviour_logit, avg_action_logit, actions, rewards, weights
 
     def _reshape_data_continuous(
@@ -633,9 +638,12 @@ class ACERPolicy(Policy):
         actions = data['action']  # shape T,B or (cont)T,B,action_shape
 
         rewards = data['reward']  # shape T,B
-        weights_ = 1 - data['done']  # shape T,B
-        # weights = torch.ones_like(rewards)  # shape T,B
-        weights = weights_
+
+        if self._ignore_done:
+            weights = torch.ones_like(rewards)  # shape T,B
+        else:
+            weights_ = 1 - data['done']  # shape T,B
+            weights = weights_
 
         return current_mu, current_sigma, behaviour_mu, behaviour_sigma, avg_action_mu, avg_action_sigma, actions, rewards, weights
 

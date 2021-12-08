@@ -269,16 +269,15 @@ class NormalNoisySampleWrapper(IModelWrapper):
         # action_size = mu.shape[1]
         # action_sample = torch.normal(mu, sigma)
         # sigma = torch.clamp(sigma, 0, 2)  #  TODO(pu)
-
-        dist = Independent(Normal(mu.unsqueeze(-1), sigma.unsqueeze(-1)), 1)
-        action_sample = dist.rsample()
-        output['action_pred'] = action_sample.squeeze(-1)
-        action_sample = torch.tanh(action_sample).squeeze(-1)
         # size (B, action_size)
         # noise = OUProcessNoise.sample((batch_size, action_size))
         # noise_action_sample size (B, action_size)
         # noise_action_sample = noise_ratio * noise + (1. - noise_ratio) * action_sample
         # output['action'] = noise_action_sample
+        dist = Independent(Normal(mu.unsqueeze(-1), sigma.unsqueeze(-1)), 1)
+        action_sample = dist.rsample()
+        output['action_pred'] = action_sample.squeeze(-1)
+        action_sample = torch.tanh(action_sample).squeeze(-1)
         output['action'] = action_sample
 
         return output
