@@ -13,10 +13,11 @@ slime_volley_ppo_config = dict(
     ),
     policy=dict(
         cuda=True,
-        continuous=False,
+        action_space='discrete',
         model=dict(
             obs_shape=12,
             action_shape=6,
+            action_space='discrete',
             encoder_hidden_size_list=[64, 64],
             critic_head_hidden_size=64,
             actor_head_hidden_size=64,

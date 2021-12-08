@@ -44,8 +44,6 @@ lunarlander_ngu_config = dict(
         type='episodic',
     ),
     policy=dict(
-        continuous=False,
-        on_policy=False,
         cuda=True,
         priority=True,
         priority_IS_weight=True,

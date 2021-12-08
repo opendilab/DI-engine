@@ -18,11 +18,12 @@ lunarlander_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=False,
+        action_space='discrete',
         recompute_adv=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
+            action_space='discrete',
         ),
         learn=dict(
             update_per_collect=8,

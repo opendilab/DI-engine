@@ -30,7 +30,7 @@ main_config = dict(
     policy=dict(
         cuda=True,
         multi_agent=True,
-        continuous=False,
+        action_space='discrete',
         model=dict(
             # (int) agent_num: The number of the agent.
             # For SMAC 3s5z, agent_num=8; for 2c_vs_64zg, agent_num=2.
@@ -48,6 +48,7 @@ main_config = dict(
             action_shape=12,
             # (List[int]) The size of hidden layer
             # hidden_size_list=[64],
+            action_space='discrete',
         ),
         # used in state_num of hidden_state
         learn=dict(

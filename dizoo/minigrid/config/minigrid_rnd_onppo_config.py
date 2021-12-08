@@ -4,12 +4,7 @@ import torch
 print(torch.__version__, torch.cuda.is_available())
 collector_env_num = 8
 minigrid_ppo_rnd_config = dict(
-    # exp_name='minigrid_empty8_rnd_onppo_b01_weight1000_maxlen100',
-    # exp_name='minigrid_fourrooms_rnd_onppo_b01_weight1000_maxlen100',
     exp_name='minigrid_doorkey88_rnd_onppo_b01_weight1000_maxlen300',
-    # exp_name='minigrid_doorkey_rnd_onppo_b01_weight1000_maxlen300',
-    # exp_name='minigrid_kcs3r3_rnd_onppo_b01',
-    # exp_name='minigrid_om2dlh_rnd_onppo_b01',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=5,
@@ -38,17 +33,17 @@ minigrid_ppo_rnd_config = dict(
     policy=dict(
         recompute_adv=True,
         cuda=True,
-        continuous=False,
-        on_policy=True,
+        action_space='discrete',
         model=dict(
             obs_shape=2739,
             action_shape=7,
+            action_space='discrete',
             encoder_hidden_size_list=[256, 128, 64, 64],
             critic_head_hidden_size=64,  # default=64
             actor_head_hidden_size=64,
         ),
         learn=dict(
-            epoch_per_collect=10,  # TODO(pu)
+            epoch_per_collect=10,
             update_per_collect=1,  # 4
             batch_size=320,  # 64,
             learning_rate=3e-4,
@@ -60,7 +55,7 @@ minigrid_ppo_rnd_config = dict(
         ),
         collect=dict(
             collector_env_num=collector_env_num,
-            n_sample=int(3200),
+            n_sample=3200,
             # here self.traj_length = 3200//8 = 400, because in minigrid env the max_length is 300.
             # in ding/worker/collector/sample_serial_collector.py
             #    self._traj_len = max(

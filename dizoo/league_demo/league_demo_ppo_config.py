@@ -13,10 +13,11 @@ league_demo_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=False,
+        action_space='discrete',
         model=dict(
             obs_shape=2,
             action_shape=2,
+            action_space='discrete',
             encoder_hidden_size_list=[32, 32],
             critic_head_hidden_size=32,
             actor_head_hidden_size=32,
