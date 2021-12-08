@@ -325,9 +325,9 @@ class SACDiscretePolicy(Policy):
             new_q_value = self._learn_model.forward({'obs': data['obs']}, mode='compute_critic')['q_value']
             if self._twin_critic:
                 new_q_value = torch.min(new_q_value[0], new_q_value[1])
-
         # 7. compute policy loss
-        policy_loss = (prob * (self._alpha * log_prob - new_q_value.squeeze(-1))).sum(dim=-1).mean()
+        # we need to sum different actions' policy loss and calculate the average value of a batch
+        policy_loss = (prob * (self._alpha * log_prob - new_q_value)).sum(dim=-1).mean()
 
         loss_dict['policy_loss'] = policy_loss
 

@@ -45,7 +45,15 @@ lunarlander_sac_default_config = dict(
             ),
             env_num=5,
         ),
-        other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),
+        other=dict(
+            eps=dict(
+                type='exp',
+                start=0.95,
+                end=0.1,
+                decay=50000,
+            ),
+            replay_buffer=dict(replay_buffer_size=100000, )
+        ),
     ),
 )
 
@@ -59,9 +67,8 @@ lunarlander_sac_default_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(
-        type='discrete_sac',
+        type='sac_discrete',
     ),
-    #replay_buffer=dict(type='naive', ),
 )
 lunarlander_sac_default_create_config = EasyDict(lunarlander_sac_default_create_config)
 create_config = lunarlander_sac_default_create_config
