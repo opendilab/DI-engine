@@ -37,8 +37,9 @@ def q_v_1step_td_error(
     data: namedtuple,
     gamma: float,
     criterion: torch.nn.modules = nn.MSELoss(reduction='none'
-                                             )  # we will use this function to calculate td error per sample
+                                             )
 ) -> torch.Tensor:
+    # we will use this function in discrete sac algorithm to calculate td error between q and v value.
     q, v, act, reward, done, weight = data
     if len(act.shape) == 1:
         assert len(reward.shape) == 1, reward.shape

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline
 
-cartpole_sac_default_config = dict(
+cartpole_sac_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -10,7 +10,6 @@ cartpole_sac_default_config = dict(
     ),
     policy=dict(
         cuda=False,
-        on_policy=False,
         random_collect_size=0,
         multi_agent=False,
         model=dict(
@@ -54,10 +53,10 @@ cartpole_sac_default_config = dict(
     ),
 )
 
-cartpole_sac_default_config = EasyDict(cartpole_sac_default_config)
-main_config = cartpole_sac_default_config
+cartpole_sac_config = EasyDict(cartpole_sac_config)
+main_config = cartpole_sac_config
 
-cartpole_sac_default_create_config = dict(
+cartpole_sac_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -65,8 +64,8 @@ cartpole_sac_default_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='sac_discrete', ),
 )
-cartpole_sac_default_create_config = EasyDict(cartpole_sac_default_create_config)
-create_config = cartpole_sac_default_create_config
+cartpole_sac_create_config = EasyDict(cartpole_sac_create_config)
+create_config = cartpole_sac_create_config
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)
