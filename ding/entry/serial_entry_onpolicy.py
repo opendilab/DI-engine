@@ -6,10 +6,11 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
-    create_serial_collector
+from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, BaseSerialCommander, \
+    create_buffer, create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
+from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 
 
@@ -22,7 +23,7 @@ def serial_pipeline_onpolicy(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry for onpolicy algorithm(such as PPO).
+        Serial pipeline entry on-policy version.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -68,21 +69,26 @@ def serial_pipeline_onpolicy(
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
+    commander = BaseSerialCommander(
+        cfg.policy.other.commander, learner, collector, evaluator, None, policy.command_mode
+    )
+
     # ==========
     # Main loop
     # ==========
     # Learner's before_run hook.
     learner.call_hook('before_run')
 
-    # Accumulate plenty of data at the beginning of training.
     for _ in range(max_iterations):
+        collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        new_data = collector.collect(train_iter=learner.train_iter)
+        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+
         # Learn policy from collected data
         learner.train(new_data, collector.envstep)
 

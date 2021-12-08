@@ -8,7 +8,6 @@ from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_d
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, \
     cartpole_ppo_offpolicy_create_config
-from dizoo.classic_control.cartpole.config.cartpole_a2c_config import cartpole_a2c_config, cartpole_a2c_create_config
 from dizoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
@@ -42,6 +41,8 @@ from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config
 from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
+from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
+from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_pdqn_config, gym_hybrid_pdqn_create_config
 
 
 @pytest.mark.unittest
@@ -67,9 +68,19 @@ def test_ddpg():
         assert False, "pipeline fail"
 
 
-@pytest.mark.unittest
-def test_td3():
-    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
+# @pytest.mark.unittest
+def test_hybrid_ddpg():
+    config = [deepcopy(gym_hybrid_ddpg_config), deepcopy(gym_hybrid_ddpg_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+# @pytest.mark.unittest
+def test_hybrid_pdqn():
+    config = [deepcopy(gym_hybrid_pdqn_config), deepcopy(gym_hybrid_pdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -78,8 +89,8 @@ def test_td3():
 
 
 @pytest.mark.unittest
-def test_a2c():
-    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
+def test_td3():
+    config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -188,20 +199,7 @@ def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
-    except Exception:
-        assert False, "pipeline fail"
-
-
-@pytest.mark.unittest
-def test_a2c_with_nstep_return():
-    config = [deepcopy(cartpole_a2c_config), deepcopy(cartpole_a2c_create_config)]
-    config[0].policy.learn.update_per_collect = 1
-    config[0].policy.learn.nstep_return = config[0].policy.collect.nstep_return = True
-    config[0].policy.collect.discount_factor = 0.9
-    config[0].policy.collect.nstep = 3
-    try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_iterations=5)
     except Exception:
         assert False, "pipeline fail"
 

@@ -259,6 +259,7 @@ class CollaQPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
@@ -274,6 +275,7 @@ class CollaQPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:

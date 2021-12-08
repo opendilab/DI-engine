@@ -12,12 +12,7 @@ from ding.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
 from ding.envs.env_manager.base_env_manager import EnvState
 from ding.envs.env_manager import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, to_list
-from ding.utils import WatchDog, deep_merge_dicts
-
-
-@pytest.fixture(scope='module')
-def setup_watchdog():
-    return WatchDog
+from ding.utils import deep_merge_dicts
 
 
 class FakeEnv(object):
@@ -26,17 +21,25 @@ class FakeEnv(object):
         self._target_time = random.randint(3, 6)
         self._current_time = 0
         self._name = cfg['name']
+        self._id = time.time()
         self._stat = None
         self._seed = 0
         self._data_count = 0
         self.timeout_flag = False
         self._launched = False
         self._state = EnvState.INIT
+        self._dead_once = False
 
     def reset(self, stat):
         if isinstance(stat, str) and stat == 'error':
             self.dead()
-        if isinstance(stat, str) and stat == "timeout":
+        if isinstance(stat, str) and stat == 'error_once':
+            if self._dead_once:
+                self._dead_once = False
+                self.dead()
+            else:
+                self._dead_once = True
+        if isinstance(stat, str) and stat == "wait":
             if self.timeout_flag:  # after step(), the reset can hall with status of timeout
                 time.sleep(5)
         if isinstance(stat, str) and stat == "block":
@@ -55,7 +58,7 @@ class FakeEnv(object):
             self.dead()
         if isinstance(action, str) and action == 'catched_error':
             return BaseEnvTimestep(None, None, True, {'abnormal': True})
-        if isinstance(action, str) and action == "timeout":
+        if isinstance(action, str) and action == "wait":
             if self.timeout_flag:  # after step(), the reset can hall with status of timeout
                 time.sleep(3)
         if isinstance(action, str) and action == 'block':
@@ -111,6 +114,10 @@ class FakeEnv(object):
     def name(self):
         return self._name
 
+    @property
+    def time_id(self):
+        return self._id
+
     def user_defined(self):
         pass
 
@@ -143,7 +150,7 @@ def setup_model_type():
     return FakeModel
 
 
-def get_manager_cfg(env_num=4):
+def get_base_manager_cfg(env_num=4):
     manager_cfg = {
         'env_cfg': [{
             'name': 'name{}'.format(i),
@@ -156,9 +163,24 @@ def get_manager_cfg(env_num=4):
     return EasyDict(manager_cfg)
 
 
+def get_subprecess_manager_cfg(env_num=4):
+    manager_cfg = {
+        'env_cfg': [{
+            'name': 'name{}'.format(i),
+        } for i in range(env_num)],
+        'episode_num': 2,
+        #'step_timeout': 8,
+        #'reset_timeout': 10,
+        'connect_timeout': 8,
+        'step_timeout': 5,
+        'max_retry': 2,
+    }
+    return EasyDict(manager_cfg)
+
+
 @pytest.fixture(scope='function')
 def setup_base_manager_cfg():
-    manager_cfg = get_manager_cfg(4)
+    manager_cfg = get_base_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
     return deep_merge_dicts(BaseEnvManager.default_config(), EasyDict(manager_cfg))
@@ -166,7 +188,7 @@ def setup_base_manager_cfg():
 
 @pytest.fixture(scope='function')
 def setup_sync_manager_cfg():
-    manager_cfg = get_manager_cfg(4)
+    manager_cfg = get_subprecess_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
     # TODO(nyz) test fail when shared_memory = True
     manager_cfg['shared_memory'] = False
@@ -176,9 +198,8 @@ def setup_sync_manager_cfg():
 
 @pytest.fixture(scope='function')
 def setup_async_manager_cfg():
-    manager_cfg = get_manager_cfg(4)
+    manager_cfg = get_subprecess_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
     manager_cfg['env_fn'] = [partial(FakeAsyncEnv, cfg=c) for c in env_cfg]
     manager_cfg['shared_memory'] = False
-    manager_cfg['connect_timeout'] = 30
     return deep_merge_dicts(AsyncSubprocessEnvManager.default_config(), EasyDict(manager_cfg))

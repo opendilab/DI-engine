@@ -10,7 +10,6 @@ cartpole_dqn_config = dict(
         replay_path='cartpole_dqn/video',
     ),
     policy=dict(
-        load_path='',
         cuda=False,
         model=dict(
             obs_shape=4,

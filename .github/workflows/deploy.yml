@@ -1,11 +1,13 @@
 name: deploy  # deploy docker
 
-on: [push]
+on:
+  push:
+    branches: [main, 'deploy/*']
 
 jobs:
   docker_base:
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, 'enable docker')"
+    # if: "contains(github.event.head_commit.message, 'enable docker')"
     strategy:
       matrix:
         platform: [linux/amd64]
@@ -78,7 +80,7 @@ jobs:
   docker_atari:
     runs-on: ubuntu-latest
     needs: docker_base
-    if: "contains(github.event.head_commit.message, 'enable docker')"
+    # if: "contains(github.event.head_commit.message, 'enable docker')"
     strategy:
       matrix:
         platform: [linux/amd64]
@@ -137,7 +139,7 @@ jobs:
   docker_mujoco:
     runs-on: ubuntu-latest
     needs: docker_base
-    if: "contains(github.event.head_commit.message, 'enable docker')"
+    # if: "contains(github.event.head_commit.message, 'enable docker')"
     strategy:
       matrix:
         platform: [linux/amd64]
@@ -195,9 +197,10 @@ jobs:
   docker_smac:
     runs-on: [self-hosted, smac]
     needs: docker_base
-    if: |
-      contains(github.event.head_commit.message, 'enable docker') &&
-      contains(github.event.head_commit.message, 'smac docker')
+    if: "contains(github.event.head_commit.message, 'smac docker')"
+    # if: |
+    #  contains(github.event.head_commit.message, 'enable docker') &&
+    #  contains(github.event.head_commit.message, 'smac docker')
     strategy:
       matrix:
         platform: [linux/amd64]

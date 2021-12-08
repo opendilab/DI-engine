@@ -658,6 +658,11 @@ class SACPolicy(Policy):
             init_w=3e-3,
         ),
         collect=dict(
+            # If you need the data collected by the collector to contain logit key which reflect the probability of
+            # the action, you can change the key to be True.
+            # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
+            # Default collector_logit to False.
+            collector_logit=False,
             # You can use either "n_sample" or "n_episode" in actor.collect.
             # Get "n_sample" samples per collect.
             # Default n_sample to 1.
@@ -980,13 +985,23 @@ class SACPolicy(Policy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': policy_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
+        if self._cfg.collect.collector_logit:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'logit': policy_output['logit'],
+                'action': policy_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        else:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': policy_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:

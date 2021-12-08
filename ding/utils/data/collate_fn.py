@@ -5,6 +5,7 @@ import torch
 import re
 from torch._six import string_classes
 import collections.abc as container_abcs
+from ding.compatibility import torch_gt_131
 
 int_classes = int
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
@@ -15,7 +16,9 @@ default_collate_err_msg_format = (
 )
 
 
-def default_collate(batch: Sequence, cat_1dim: bool = True) -> Union[torch.Tensor, Mapping, Sequence]:
+def default_collate(batch: Sequence,
+                    cat_1dim: bool = True,
+                    ignore_prefix: list = ['collate_ignore']) -> Union[torch.Tensor, Mapping, Sequence]:
     """
     Overview:
         Put each data field into a tensor with outer dimension batch size.
@@ -48,7 +51,7 @@ def default_collate(batch: Sequence, cat_1dim: bool = True) -> Union[torch.Tenso
     elem_type = type(elem)
     if isinstance(elem, torch.Tensor):
         out = None
-        if torch.utils.data.get_worker_info() is not None:
+        if torch_gt_131() and torch.utils.data.get_worker_info() is not None:
             # If we're in a background process, directly concatenate into a
             # shared memory tensor to avoid an extra copy
             numel = sum([x.numel() for x in batch])
@@ -77,7 +80,13 @@ def default_collate(batch: Sequence, cat_1dim: bool = True) -> Union[torch.Tenso
     elif isinstance(elem, string_classes):
         return batch
     elif isinstance(elem, container_abcs.Mapping):
-        return {key: default_collate([d[key] for d in batch], cat_1dim=cat_1dim) for key in elem}
+        ret = {}
+        for key in elem:
+            if any([key.startswith(t) for t in ignore_prefix]):
+                ret[key] = [d[key] for d in batch]
+            else:
+                ret[key] = default_collate([d[key] for d in batch], cat_1dim=cat_1dim)
+        return ret
     elif isinstance(elem, tuple) and hasattr(elem, '_fields'):  # namedtuple
         return elem_type(*(default_collate(samples, cat_1dim=cat_1dim) for samples in zip(*batch)))
     elif isinstance(elem, container_abcs.Sequence):

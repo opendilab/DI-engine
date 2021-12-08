@@ -14,8 +14,8 @@ qbert_impala_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
+        # (int) the trajectory length to calculate v-trace target
+        unroll_len=64,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -42,8 +42,6 @@ qbert_impala_config = dict(
             discount_factor=0.9,
             # (float) additional discounting parameter
             lambda_=0.95,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=64,
             # (float) clip ratio of importance weights
             rho_clip_ratio=1.0,
             # (float) clip ratio of importance weights
@@ -54,8 +52,6 @@ qbert_impala_config = dict(
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=64,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             gae_lambda=0.95,

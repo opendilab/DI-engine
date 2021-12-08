@@ -13,6 +13,7 @@ from .ppo import PPOPolicy
 from .sac import SACPolicy, SACDiscretePolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 from .impala import IMPALAPolicy
+from .ngu import NGUPolicy
 from .r2d2 import R2D2Policy
 from .ppg import PPGPolicy
 from .sqn import SQNPolicy
@@ -27,6 +28,9 @@ from .qtran import QTRANPolicy
 
 from .il import ILPolicy
 
+from .r2d3 import R2D3Policy
+
 from .command_mode_policy_instance import *
 
 from .policy_factory import PolicyFactory
+from .pdqn import PDQNPolicy
