@@ -446,7 +446,7 @@ class PPOPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         if self._cfg.multi_agent:
-            return 'mappo', ['ding.model.template.mappo']
+            return 'mavac', ['ding.model.template.mavac']
         else:
             return 'vac', ['ding.model.template.vac']
 

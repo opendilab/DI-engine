@@ -1,7 +1,6 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_guided_cost
 
-cartpole_ppo_offpolicy_config = dict(
+cartpole_gcl_ppo_onpolicy_config = dict(
     exp_name='cartpole_guided_cost',
     env=dict(
         collector_env_num=8,
@@ -53,9 +52,9 @@ cartpole_ppo_offpolicy_config = dict(
         ),
     ),
 )
-cartpole_ppo_offpolicy_config = EasyDict(cartpole_ppo_offpolicy_config)
-main_config = cartpole_ppo_offpolicy_config
-cartpole_ppo_offpolicy_create_config = dict(
+cartpole_gcl_ppo_onpolicy_config = EasyDict(cartpole_gcl_ppo_onpolicy_config)
+main_config = cartpole_gcl_ppo_onpolicy_config
+cartpole_gcl_ppo_onpolicy_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -64,8 +63,5 @@ cartpole_ppo_offpolicy_create_config = dict(
     policy=dict(type='ppo'),
     reward_model=dict(type='guided_cost'),
 )
-cartpole_ppo_offpolicy_create_config = EasyDict(cartpole_ppo_offpolicy_create_config)
-create_config = cartpole_ppo_offpolicy_create_config
-
-if __name__ == "__main__":
-    serial_pipeline_guided_cost([main_config, create_config], seed=0)
+cartpole_gcl_ppo_onpolicy_create_config = EasyDict(cartpole_gcl_ppo_onpolicy_create_config)
+create_config = cartpole_gcl_ppo_onpolicy_create_config
