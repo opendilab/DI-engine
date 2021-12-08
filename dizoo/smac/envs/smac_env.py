@@ -70,7 +70,7 @@ class SMACEnv(SC2Env, BaseEnv):
         special_global_state=False,
         # add map's center location ponit or not
         add_center_xy=True,
-        ippo=False,
+        independent_obs=False,
         # add agent's id information or not in special global state
         state_agent_id=True,
     )
@@ -187,7 +187,7 @@ class SMACEnv(SC2Env, BaseEnv):
         self.previous_ally_units = None
         self.previous_enemy_units = None
 
-        self.ippo = cfg.ippo
+        self.independent_obs = cfg.independent_obs
 
         self.action_helper = SMACAction(self.n_agents, self.n_enemies, self.two_player, self.mirror_opponent)
         self.reward_helper = SMACReward(
@@ -365,26 +365,24 @@ class SMACEnv(SC2Env, BaseEnv):
                     'global_state': self.get_state(),
                     'action_mask': self.get_avail_actions()
                 }
+            elif self.independent_obs:
+                return {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_obs(),
+                    'action_mask': self.get_avail_actions(),
+                }
+            elif self.special_global_state:
+                return {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_global_special_state(),
+                    'action_mask': self.get_avail_actions(),
+                }
             else:
-                if self.special_global_state:
-                    if self.ippo:
-                        return {
-                            'agent_state': self.get_obs(),
-                            'global_state': self.get_obs(),
-                            'action_mask': self.get_avail_actions(),
-                        }
-                    else:
-                        return {
-                            'agent_state': self.get_obs(),
-                            'global_state': self.get_global_special_state(),
-                            'action_mask': self.get_avail_actions(),
-                        }
-                else:
-                    return {
-                        'agent_state': self.get_obs(),
-                        'global_state': self.get_state(),
-                        'action_mask': self.get_avail_actions(),
-                    }
+                return {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions(),
+                }
 
         return {
             'agent_state': {
@@ -479,26 +477,24 @@ class SMACEnv(SC2Env, BaseEnv):
                     'global_state': self.get_state(),
                     'action_mask': self.get_avail_actions()
                 }
-            else:
-                if self.special_global_state:
-                    if self.ippo:
-                        obs = {
-                            'agent_state': self.get_obs(),
-                            'global_state': self.get_obs(),
-                            'action_mask': self.get_avail_actions(),
-                        }
-                    else:
-                        obs = {
-                            'agent_state': self.get_obs(),
-                            'global_state': self.get_global_special_state(),
-                            'action_mask': self.get_avail_actions(),
-                        }
-                else:
+            elif self.independent_obs:
+                obs = {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_obs(),
+                    'action_mask': self.get_avail_actions(),
+                }
+            elif self.special_global_state:
                     obs = {
                         'agent_state': self.get_obs(),
-                        'global_state': self.get_state(),
+                        'global_state': self.get_global_special_state(),
                         'action_mask': self.get_avail_actions(),
                     }
+            else:
+                obs = {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions(),
+                }
         else:
             raise NotImplementedError
 

@@ -2,8 +2,8 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 
 agent_num = 10
-collector_env_num = 1  # TODO(pu) 8
-evaluator_env_num = 1  # TODO(pu) 8
+collector_env_num = 8
+evaluator_env_num = 8
 special_global_state = True
 
 MMM_masac_default_config = dict(
@@ -16,11 +16,10 @@ MMM_masac_default_config = dict(
         agent_num=agent_num,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=8,  # TODO(pu) 16,
+        n_evaluator_episode=16,
         stop_value=0.99,
-        death_mask=True,  # TODO(pu) False
+        death_mask=True,
         special_global_state=special_global_state,
-        # save_replay_episodes = 1,
         manager=dict(
             shared_memory=False,
             reset_timeout=6000,
@@ -29,7 +28,7 @@ MMM_masac_default_config = dict(
     policy=dict(
         cuda=True,
         on_policy=False,
-        random_collect_size=0,  # TODO 10000
+        random_collect_size=0,
         model=dict(
             agent_obs_shape=186,
             global_obs_shape=389,
@@ -39,24 +38,23 @@ MMM_masac_default_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            update_per_collect=50,  # TODO(pu) 5,
-            batch_size=320,  # TODO(pu) 64,
+            update_per_collect=50,
+            batch_size=320,
             learning_rate_q=5e-4,
             learning_rate_policy=5e-4,
             learning_rate_alpha=5e-4,
             ignore_done=False,
-            target_theta=0.005,  # TODO(pu)
+            target_theta=0.005,
             discount_factor=0.99,
-            alpha=0.2,  # TODO(pu) 0.5,
-            auto_alpha=True,  # TODO(pu)True,
+            alpha=0.2,
+            auto_alpha=True,
             log_space=True,
         ),
         collect=dict(
             env_num=collector_env_num,
-            n_sample=3200,  # TODO（pu）256,
+            n_sample=1600,
             unroll_len=1,
         ),
-        command=dict(),
         eval=dict(
             evaluator=dict(eval_freq=50, ),
             env_num=evaluator_env_num,
@@ -67,7 +65,7 @@ MMM_masac_default_config = dict(
                 start=1,
                 end=0.05,
                 decay=100000,
-            ),  # TODO(pu)
+            ),
             replay_buffer=dict(replay_buffer_size=1000000, ),
         ),
     ),
@@ -83,7 +81,6 @@ MMM_masac_default_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='sac_discrete', ),
-    #replay_buffer=dict(type='naive', ),
 )
 MMM_masac_default_create_config = EasyDict(MMM_masac_default_create_config)
 create_config = MMM_masac_default_create_config
