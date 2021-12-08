@@ -127,10 +127,10 @@ class ACERPolicy(Policy):
             clip_value=self._cfg.learn.clip_value,
         )
         # TODO(pu)
-        self._optimizer_critic_v = Adam(
-            list(self._model.critic[1].V.parameters()) + list(self._model.critic[0].parameters()),
-            lr=self._cfg.learn.learning_rate_critic,
-        )
+        # self._optimizer_critic_v = Adam(
+        #     list(self._model.critic[1].V.parameters()) + list(self._model.critic[0].parameters()),
+        #     lr=self._cfg.learn.learning_rate_critic,
+        # )
         # target model
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
@@ -250,8 +250,13 @@ class ACERPolicy(Policy):
                 data_list.append(list2tensor)
             data2tensor = torch.Tensor(np.array([item.numpy() for item in data_list]))
 
-            # reshape the tensor from (T, env_action_shape, B) to (T, B, env_action_shape)
-            data2tensor = data2tensor.permute(0, 2, 1)
+            if self._action_shape>1:
+                # reshape the tensor from (T, 2, B, env_action_shape,) to (T, B, env_action_shape,2)
+                data2tensor = data2tensor.permute(0, 2, 3, 1)
+            else:
+                # reshape the tensor from (T, 2, B) to (T, B, 2)
+                data2tensor = data2tensor.permute(0, 2, 1)
+
 
             data['logit_mu'] = data2tensor[..., 0].reshape(self._unroll_len, -1,
                                                            self._action_shape)  # shape T,B,env_action_shape
@@ -317,7 +322,7 @@ class ACERPolicy(Policy):
             # cur_act_gen = current_dist.sample()
             # avg_act_gen = avg_dist.sample()
 
-            data['action_pred'] = torch.stack(data['action_pred'], dim=0).unsqueeze(-1)
+            data['action_pred'] = torch.stack(data['action_pred'], dim=0).reshape(self._unroll_len, -1, self._action_shape)
 
             current_action_plus_1_pred = torch.cat((data['action_pred'], cur_act_gen),
                                                    dim=0)  # shape (T+1),B,env_action_shape
