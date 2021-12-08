@@ -275,12 +275,12 @@ class AttentionXL(torch.nn.Module):
 
         # multiply softmax output by value
         attn_vec = torch.einsum(
-                "ijbh,jbhd->ibhd",
-                (
-                    attn,
-                    value.view(cur_seq + prev_seq, bs, self.head_num, self.head_dim),
-                ),
-            )  # cur_seq x bs x head_num x head_dim
+            "ijbh,jbhd->ibhd",
+            (
+                attn,
+                value.view(cur_seq + prev_seq, bs, self.head_num, self.head_dim),
+            ),
+        )  # cur_seq x bs x head_num x head_dim
         attn_vec = attn_vec.contiguous().view(cur_seq, bs, self.head_num * self.head_dim)
         # cur_seq x bs x head_num * head_dim
         output = self.dropout(self.project(attn_vec))  # cur_seq x bs x input_dim
@@ -431,32 +431,22 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
 
-    def forward(self, x: torch.Tensor, transpose_axis: bool = False) -> Dict[str, torch.Tensor]:
-        r"""
-        Overview:
-            GTrXL forward pass with reshape.
-        Arguments:
-            - x (:obj:`torch.Tensor`): input tensor. Shape (cur_seq, bs, input_size) or (bs, cur_seq, input_size).
-        Returns:
-            - x (:obj:`torch.tensor`): transformer output of shape (cur_seq, bs, embedding_size) or (bs, cur_seq, embedding_size).
-        """
-        if transpose_axis:
-            x = torch.transpose(x, 1, 0)  # cur_seq x bs x input_dim
-        out = self.forward_(x)['logit']
-        if transpose_axis:
-            out = torch.transpose(out, 1, 0)  # bs x cur_seq x embedding_dim
-        return out
-
-    def forward_(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def forward(self, x: torch.Tensor, batch_first: bool = False, return_mem: bool = True) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
             GTrXL forward pass.
         Arguments:
             - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).
+            - batch_first (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to 'True'
+            in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size).
+            - return_mem (:obj:`bool`): if this param is False, return only the output tensor without dict.
         Returns:
             - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape
              (seq_len, bs, embedding_size) and memory of shape (seq_len, bs, embedding_size)
         """
+        if batch_first:
+            x = torch.transpose(x, 1, 0)  # bs x cur_seq x input_dim -> cur_seq x bs x input_dim
+
         cur_seq, bs = x.shape[:2]
         memory = None if self.memory is None else self.memory.get()
         if memory is None:
@@ -494,7 +484,15 @@ class GTrXL(nn.Module):
 
         out = self.dropout(out)
         memory = self.memory.update(hidden_state)
-        output = {"logit": out, "memory": memory}
+
+        if batch_first:
+            out = torch.transpose(out, 1, 0)  # cur_seq x bs x embedding_dim -> bs x cur_seq x embedding_dim
+            memory = torch.transpose(out, 1, 0)  # memory_len x bs x embedding_dim -> bs x memory_len x embedding_dim
+
+        if not return_mem:
+            output = {"logit": out, "memory": memory}
+        else:
+            output = out
         return output
 
 
