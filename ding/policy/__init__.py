@@ -10,7 +10,7 @@ from .td3 import TD3Policy
 from .td3_bc import TD3BCPolicy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy
-from .sac import SACPolicy
+from .sac import SACPolicy, SACDiscretePolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 from .impala import IMPALAPolicy
 from .r2d2 import R2D2Policy
@@ -24,8 +24,6 @@ from .collaq import CollaQPolicy
 from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
-
-from .sac import SACDiscretePolicy
 
 from .il import ILPolicy
 

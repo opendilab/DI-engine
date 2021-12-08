@@ -187,11 +187,8 @@ class MAQAC(nn.Module):
             >>> actor_outputs['logit'][1].shape # sigma
             >>> torch.Size([4, 64])
         """
-        action_mask = inputs['obs']['action_mask']  # (1,10,16)
-        x = self.actor(inputs['obs']['agent_state'])  # # (1,10,16)
-        # x['logit'] = torch.clamp(x['logit'], -5, 2)  # TODO(pu)
-        # x['logit'][action_mask == 0.0] = -99999999
-        # x['logit'] = x['logit'] * action_mask + (1 - action_mask) * (-99999999)  # Another way to implement
+        action_mask = inputs['obs']['action_mask']
+        x = self.actor(inputs['obs']['agent_state'])
         return {'logit': x['logit'], 'action_mask': action_mask}
 
     def compute_critic(self, inputs: Dict) -> Dict:
@@ -231,7 +228,7 @@ class MAQAC(nn.Module):
 class DiscreteQAC(nn.Module):
     r"""
     Overview:
-        The MAQAC model.
+        The Discrete QAC model.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """

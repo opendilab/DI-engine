@@ -19,7 +19,7 @@ from .common_utils import default_preprocess_learn
 class SACDiscretePolicy(Policy):
     r"""
        Overview:
-           Policy class of SAC algorithm.
+           Policy class of Discrete SAC algorithm.
 
        Config:
            == ====================  ========    =============  ================================= =======================
@@ -193,19 +193,6 @@ class SACDiscretePolicy(Policy):
         # self._value_network = False  # TODO self._cfg.model.value_network
         self._twin_critic = self._cfg.model.twin_critic
 
-        # # Weight Init
-        # init_w = self._cfg.learn.init_w
-        # self._model.actor[2].weight.data.uniform_(-init_w, init_w)
-        # self._model.actor[2].bias.data.uniform_(-init_w, init_w)
-        # if self._twin_critic:
-        #     self._model.critic[0][2].last.weight.data.uniform_(-init_w, init_w)
-        #     self._model.critic[0][2].last.bias.data.uniform_(-init_w, init_w)
-        #     self._model.critic[1][2].last.weight.data.uniform_(-init_w, init_w)
-        #     self._model.critic[1][2].last.bias.data.uniform_(-init_w, init_w)
-        # else:
-        #     self._model.critic[2].last.weight.data.uniform_(-init_w, init_w)
-        #     self._model.critic[2].last.bias.data.uniform_(-init_w, init_w)
-
         self._optimizer_q = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_q,
@@ -276,12 +263,12 @@ class SACDiscretePolicy(Policy):
 
         self._learn_model.train()
         self._target_model.train()
-        obs = data['obs']  # 'agent_state': (B,A,186), 'global_state': (B,A,389), 'action_mask': (B,A,16)
+        obs = data['obs']
         next_obs = data['next_obs']
-        reward = data['reward']  # (B,)
-        done = data['done']  # (B,)
-        logit = data['logit']  # (B,A,16)
-        action = data['action']  # (B,A)
+        reward = data['reward']
+        done = data['done']
+        logit = data['logit']
+        action = data['action']
 
         # 1. predict q value
         q_value = self._learn_model.forward({'obs': obs}, mode='compute_critic')['q_value']
@@ -307,7 +294,6 @@ class SACDiscretePolicy(Policy):
                 ).sum(dim=-1)
             else:
                 target_value = (prob * (target_q_value - self._alpha * log_prob.squeeze(-1))).sum(dim=-1)
-        # target_value = target_q_value
 
         # 3. compute q loss
         if self._twin_critic:
@@ -333,12 +319,12 @@ class SACDiscretePolicy(Policy):
             policy_output['logit'][policy_output['action_mask'] == 0.0] = -1e8
         logit = policy_output['logit']
         prob = F.softmax(logit, dim=-1)
-        log_prob = torch.log(prob + 1e-8)
+        log_prob = F.log_softmax(logit, dim=-1)
 
         with torch.no_grad():
             new_q_value = self._learn_model.forward({'obs': data['obs']}, mode='compute_critic')['q_value']
             if self._twin_critic:
-                new_q_value = torch.min(new_q_value[0], new_q_value[1])  # (64,10,16)
+                new_q_value = torch.min(new_q_value[0], new_q_value[1])
 
         # 7. compute policy loss
         policy_loss = (prob * (self._alpha * log_prob - new_q_value.squeeze(-1))).sum(dim=-1).mean()
@@ -348,7 +334,6 @@ class SACDiscretePolicy(Policy):
         # 8. update policy network
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
-        # grad_norm = torch.nn.utils.clip_grad_norm_(self._model.actor.parameters(), 10)  # TODO（pu）
         self._optimizer_policy.step()
 
         # 9. compute alpha loss
@@ -370,13 +355,9 @@ class SACDiscretePolicy(Policy):
                 self._alpha_optim.step()
                 self._alpha.data = torch.where(self._alpha > 0, self._alpha,
                                                torch.zeros_like(self._alpha)).requires_grad_()
-                #print(self._alpha)
-                #(torch.where(self._alpha > 0, self._alpha, torch.zeros_like(self._alpha)))
         loss_dict['total_loss'] = sum(loss_dict.values())
 
         info_dict = {}
-        # if self._value_network:
-        #    info_dict['cur_lr_v'] = self._optimizer_value.defaults['lr']
 
         # =============
         # after update
@@ -389,16 +370,11 @@ class SACDiscretePolicy(Policy):
             'cur_lr_p': self._optimizer_policy.defaults['lr'],
             'priority': td_error_per_sample.abs().tolist(),
             'td_error': td_error_per_sample.detach().mean().item(),
-            # 'alpha': self._alpha.item(),
             'alpha': self._alpha.item(),
             'q_value_1': target_q_value[0].detach().mean().item(),
             'q_value_2': target_q_value[1].detach().mean().item(),
             'target_value': target_value.detach().mean().item(),
             'entropy': entropy.item(),
-
-            # 'policy_loss': loss_dict['policy_loss'].item(),
-            # 'critic_loss': loss_dict['critic_loss'].item(),
-            # 'twin_critic_loss': loss_dict['twin_critic_loss'].item(),
             **info_dict,
             **loss_dict
         }
@@ -409,8 +385,6 @@ class SACDiscretePolicy(Policy):
             'optimizer_q': self._optimizer_q.state_dict(),
             'optimizer_policy': self._optimizer_policy.state_dict(),
         }
-        # if self._value_network:
-        #    ret.update({'optimizer_value': self._optimizer_value.state_dict()})
         if self._auto_alpha:
             ret.update({'optimizer_alpha': self._alpha_optim.state_dict()})
         return ret
@@ -432,14 +406,8 @@ class SACDiscretePolicy(Policy):
             Use action noise for exploration.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        # self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')  # TODO(pu)
-        # self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._multi_agent = self._cfg.multi_agent
-        if self._multi_agent:
-            self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample_masac')
-        else:
-            self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
-
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -459,7 +427,7 @@ class SACDiscretePolicy(Policy):
         with torch.no_grad():
             output = self._collect_model.forward(
                 {'obs': data}, mode='compute_actor', eps=eps
-            )  # eps_greedy_sample  eps_greedy_sample_masac
+            )
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -477,7 +445,6 @@ class SACDiscretePolicy(Policy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        # print(model_output)
         transition = {
             'obs': obs,
             'next_obs': timestep.obs,
@@ -525,7 +492,7 @@ class SACDiscretePolicy(Policy):
         if self._cfg.multi_agent:
             return 'maqac', ['ding.model.template.maqac']
         else:
-            return 'discrete_qac', ['ding.model.template.maqac']
+            return 'discrete_qac', ['ding.model.template.qac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
