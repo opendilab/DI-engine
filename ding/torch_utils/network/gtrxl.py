@@ -371,7 +371,6 @@ class GatedTransformerXLLayer(torch.nn.Module):
         return o2
 
 
-@MODEL_REGISTRY.register('gtrxl')
 class GTrXL(nn.Module):
     """
     Overview:
@@ -381,16 +380,15 @@ class GTrXL(nn.Module):
     """
     def __init__(
         self,
-            input_dim: int,
-            head_dim: int = 128,
-            embedding_dim: int = 256,
-            head_num: int = 2,
-            mlp_num: int = 2,
-            layer_num: int = 3,
-            memory_len: int = 64,
-            dropout_ratio: float = 0.,
-            activation: nn.Module = nn.ReLU(),
-            reduce_seq_dim: bool = True,
+        input_dim: int,
+        head_dim: int = 128,
+        embedding_dim: int = 256,
+        head_num: int = 2,
+        mlp_num: int = 2,
+        layer_num: int = 3,
+        memory_len: int = 64,
+        dropout_ratio: float = 0.,
+        activation: nn.Module = nn.ReLU(),
     ) -> None:
         """Overview:
             Init GTrXL Model
@@ -432,20 +430,21 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
-        self.reduce_seq_dim = reduce_seq_dim
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, transpose_axis: bool = False) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
             GTrXL forward pass with reshape.
         Arguments:
-            - x (:obj:`torch.Tensor`): input tensor. Shape (bs, cur_seq, input_size).
+            - x (:obj:`torch.Tensor`): input tensor. Shape (cur_seq, bs, input_size) or (bs, cur_seq, input_size).
         Returns:
-            - x (:obj:`torch.tensor`): transformer output of shape (bs, cur_seq embedding_size).
+            - x (:obj:`torch.tensor`): transformer output of shape (cur_seq, bs, embedding_size) or (bs, cur_seq, embedding_size).
         """
-        x = torch.transpose(x, 1, 0)  # cur_seq x bs x input_dim
-        out = self.forward_(x)
-        out = torch.transpose(out['logits'], 1, 0)  # bs x cur_seq x embedding_dim
+        if transpose_axis:
+            x = torch.transpose(x, 1, 0)  # cur_seq x bs x input_dim
+        out = self.forward_(x)['logit']
+        if transpose_axis:
+            out = torch.transpose(out, 1, 0)  # bs x cur_seq x embedding_dim
         return out
 
     def forward_(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -495,19 +494,25 @@ class GTrXL(nn.Module):
 
         out = self.dropout(out)
         memory = self.memory.update(hidden_state)
-        output = {"logits": out, "memory": memory}
+        output = {"logit": out, "memory": memory}
         return output
 
 
 if __name__ == "__main__":
+    from ding.model.common.head import DiscreteHead
+
     dim_size = 128
     seq_len = 64
     bs = 32
+    action_dim = 4
+    embedding_dim = 256
     # input shape: cur_seq x bs x input_dim
-    a = torch.rand(seq_len, bs, dim_size)
+    a = torch.rand(bs, seq_len, dim_size)
     print('input:', a.shape)
-    m = GTrXL(128, memory_len=50)
-    res = m(a)
-    o, mem = res['logits'], res['memory']
+    m = GTrXL(128, memory_len=50, embedding_dim=embedding_dim)
+    o = m(a)
     print('output', o.shape)
-    print('memory', mem[0].shape)
+    #print('memory', mem[0].shape)
+    head = DiscreteHead(embedding_dim, action_dim)
+    o = head(o)
+    print('head_out:', o['logit'].shape)
