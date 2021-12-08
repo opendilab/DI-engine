@@ -69,8 +69,9 @@ BaseEnv
 
     类继承关系如下图所示：
     
-        .. image:: images/baseenv_code.jpg
+        .. image:: images/baseenv_class_uml.png
             :align: center
+            :scale: 60%
 
 
 EnvElement

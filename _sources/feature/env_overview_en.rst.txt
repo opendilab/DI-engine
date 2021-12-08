@@ -72,8 +72,9 @@ Implementation:
 
     The class inheritance relationship is shown in the following figure:
 
-        .. image:: images/baseenv_code.jpg
+        .. image:: images/baseenv_class_uml.png
             :align: center
+            :scale: 60%
 
 EnvElement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

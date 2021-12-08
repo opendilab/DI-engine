@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Overcooked" href="overcooked.html" />
-    <link rel="prev" title="RL Environment Tutorial" href="index.html" />
+    <link rel="prev" title="RL Environments Tutorial" href="index.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -90,7 +90,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Environment Tutorial</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Environments Tutorial</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Atari</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
@@ -126,9 +126,49 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="overcooked.html">Overcooked</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bsuite.html">Bsuite</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Environments Tutorial</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Atari</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#installation-methods">Installation Methods</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installation-check">Installation Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#di-engine-mirror">DI-engine Mirror</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#space-before-transformation-original-environment">Space before transformation (Original environment)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#observation-space">Observation Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#action-space">Action Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reward-space">Reward Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#others">Others</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#key-facts">Key Facts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#space-after-transformation-rl-environment">Space after transformation (RL environment)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Observation Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">Action Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">Reward Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#other">Other</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Other</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#lazy-initialization">Lazy initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#random-seed">Random Seed</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#difference-between-training-env-and-evaluation-env">Difference between training env and evaluation env</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#save-the-replay-video">Save the replay video</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#di-zoo-code-example">DI-zoo code example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-benchmark">Algorithm Benchmark</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="overcooked.html">Overcooked</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bsuite.html">Bsuite</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
@@ -184,7 +224,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="index.html">RL Environment Tutorial</a> &raquo;</li>
+          <li><a href="index.html">RL Environments Tutorial</a> &raquo;</li>
         
       <li>Atari</li>
     
@@ -474,7 +514,7 @@ For specific configuration file, e.g. <code class="docutils literal notranslate"
         <a href="overcooked.html" class="btn btn-neutral float-right" title="Overcooked" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="RL Environment Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="RL Environments Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -88,8 +88,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environment Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api_doc/index.html">API Doc</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq/index_en.html">FAQ</a></li>
@@ -255,7 +256,10 @@
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
     <span class="k">if</span> <span class="s1">&#39;import_names&#39;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">:</span>
         <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">))</span>
-    <span class="n">reward_model_type</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s1">&#39;reward_model&#39;</span><span class="p">):</span>
+        <span class="n">reward_model_type</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">reward_model_type</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">reward_model_type</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">tb_logger</span><span class="o">=</span><span class="n">tb_logger</span><span class="p">)</span>
 
 

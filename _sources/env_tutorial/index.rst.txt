@@ -1,4 +1,4 @@
-RL Environment Tutorial
+RL Environments Tutorial
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -7,3 +7,4 @@ RL Environment Tutorial
 
    atari
    overcooked
+   bsuite
