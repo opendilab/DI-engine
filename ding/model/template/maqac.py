@@ -187,7 +187,7 @@ class MAQAC(nn.Module):
             >>> actor_outputs['logit'][1].shape # sigma
             >>> torch.Size([4, 64])
         """
-        action_mask = inputs['obs']['action_mask']  #(B, A, action_num)
+        action_mask = inputs['obs']['action_mask']
         x = self.actor(inputs['obs']['agent_state'])
         return {'logit': x['logit'], 'action_mask': action_mask}
 

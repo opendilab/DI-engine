@@ -52,7 +52,7 @@ class MAVAC(nn.Module):
             - norm_type (:obj:`Optional[str]`):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
         """
-        super(MAPPO, self).__init__()
+        super(MAVAC, self).__init__()
         agent_obs_shape: int = squeeze(agent_obs_shape)
         global_obs_shape: int = squeeze(global_obs_shape)
         action_shape: int = squeeze(action_shape)
