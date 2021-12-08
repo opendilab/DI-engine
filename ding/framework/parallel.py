@@ -114,7 +114,7 @@ class Parallel(metaclass=SingletonMetaclass):
             if n_parallel_workers == 1:
                 Parallel.subprocess_runner(*params_group[0])
             else:
-                with WorkerPool(n_jobs=n_parallel_workers, start_method="spawn") as pool:
+                with WorkerPool(n_jobs=n_parallel_workers, start_method="spawn", daemon=False) as pool:
                     # Cleanup the pool just in case the program crashes.
                     atexit.register(pool.__exit__)
                     pool.map(Parallel.subprocess_runner, params_group)

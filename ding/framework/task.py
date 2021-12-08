@@ -53,7 +53,7 @@ class Task:
     def __init__(
             self,
             async_mode: bool = False,
-            n_async_workers: int = 1,
+            n_async_workers: int = 3,
             middleware: Optional[List[Callable]] = None,
             step_wrappers: Optional[List[Callable]] = None,
             event_listeners: Optional[Dict[str, List]] = None,
@@ -128,9 +128,9 @@ class Task:
             for fn in self.middleware:
                 self.forward(fn)
             self.backward()
+            self.renew()
             if self.finish:
                 break
-            self.renew()
 
     @enable_async
     def forward(self, fn: Callable, ctx: Context = None, backward_stack: List[Generator] = None) -> 'Task':
