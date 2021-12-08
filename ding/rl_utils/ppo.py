@@ -179,11 +179,11 @@ def ppo_error_continuous(
     if weight is None:
         weight = torch.ones_like(adv)
 
-    dist_new = Independent(Normal(mu_sigma_new[0], mu_sigma_new[1]), 1)
-    if len(mu_sigma_old[0].shape) == 1:
-        dist_old = Independent(Normal(mu_sigma_old[0].unsqueeze(-1), mu_sigma_old[1].unsqueeze(-1)), 1)
+    dist_new = Independent(Normal(mu_sigma_new['mu'], mu_sigma_new['sigma']), 1)
+    if len(mu_sigma_old['mu'].shape) == 1:
+        dist_old = Independent(Normal(mu_sigma_old['mu'].unsqueeze(-1), mu_sigma_old['sigma'].unsqueeze(-1)), 1)
     else:
-        dist_old = Independent(Normal(mu_sigma_old[0], mu_sigma_old[1]), 1)
+        dist_old = Independent(Normal(mu_sigma_old['mu'], mu_sigma_old['sigma']), 1)
     logp_new = dist_new.log_prob(action)
     logp_old = dist_old.log_prob(action)
     entropy_loss = (dist_new.entropy() * weight).mean()

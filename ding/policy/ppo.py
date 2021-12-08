@@ -32,11 +32,15 @@ class PPOPolicy(Policy):
         on_policy=True,
         # (bool) Whether to use priority(priority sample, IS weight, update priority)
         priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
+        # (bool) Whether to use Importance Sampling Weight to correct biased update due to priority. If True, priority must be True.
         priority_IS_weight=False,
+        # (bool) Whether to recompurete advantages in each iteration of on-policy PPO
         recompute_adv=True,
-        continuous=True,
+        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous', 'hybrid']
+        action_space='continuous',
+        # (bool) Whether to use nstep return to calculate value target, otherwise, use return = adv + value
         nstep_return=False,
+        # (bool) Whether to enable multi-agent training, i.e.: MAPPO
         multi_agent=False,
         # (bool) Whether to need policy data in process transition
         transition_with_policy_data=True,
@@ -89,16 +93,22 @@ class PPOPolicy(Policy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
 
-        self._continuous = self._cfg.continuous
+        self._action_space = self._cfg.action_space
         if self._cfg.learn.ppo_param_init:
             for n, m in self._model.named_modules():
                 if isinstance(m, torch.nn.Linear):
                     torch.nn.init.orthogonal_(m.weight)
                     torch.nn.init.zeros_(m.bias)
-            if self._continuous:
+            if self._action_space in ['continuous', 'hybrid']:
                 # init log sigma
-                if hasattr(self._model.actor_head, 'log_sigma_param'):
-                    torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
+                if self._action_space == 'continuous':
+                    if hasattr(self._model.actor_head, 'log_sigma_param'):
+                        torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
+                elif self._action_space == 'hybrid':
+                    if hasattr(self._model.actor_head[1], 'log_sigma_param'):
+                        torch.nn.init.constant_(self._model.actor_head[1].log_sigma_param, -0.5)
+                        print('init ok')
+
                 for m in list(self._model.critic.modules()) + list(self._model.actor.modules()):
                     if isinstance(m, torch.nn.Linear):
                         # orthogonal initialization
@@ -194,18 +204,43 @@ class PPOPolicy(Policy):
                     adv = (adv - adv.mean()) / (adv.std() + 1e-8)
 
                 # Calculate ppo error
-                if self._continuous:
+                if self._action_space == 'continuous':
                     ppo_batch = ppo_data(
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
                         batch['return'], batch['weight']
                     )
                     ppo_loss, ppo_info = ppo_error_continuous(ppo_batch, self._clip_ratio)
-                else:
+                elif self._action_space == 'discrete':
                     ppo_batch = ppo_data(
                         output['logit'], batch['logit'], batch['action'], output['value'], batch['value'], adv,
                         batch['return'], batch['weight']
                     )
                     ppo_loss, ppo_info = ppo_error(ppo_batch, self._clip_ratio)
+                elif self._action_space == 'hybrid':
+                    # discrete part (discrete policy loss and entropy loss)
+                    ppo_discrete_batch = ppo_policy_data(
+                        output['logit']['action_type'], batch['logit']['action_type'], batch['action']['action_type'],
+                        adv, batch['weight']
+                    )
+                    ppo_discrete_loss, ppo_discrete_info = ppo_policy_error(ppo_discrete_batch, self._clip_ratio)
+                    # continuous part (continuous policy loss and entropy loss, value loss)
+                    ppo_continuous_batch = ppo_data(
+                        output['logit']['action_args'], batch['logit']['action_args'], batch['action']['action_args'],
+                        output['value'], batch['value'], adv, batch['return'], batch['weight']
+                    )
+                    ppo_continuous_loss, ppo_continuous_info = ppo_error_continuous(
+                        ppo_continuous_batch, self._clip_ratio
+                    )
+                    # sum discrete and continuous loss
+                    ppo_loss = ppo_continuous_loss
+                    ppo_loss = type(ppo_continuous_loss)(
+                        ppo_continuous_loss.policy_loss + ppo_discrete_loss.policy_loss, ppo_continuous_loss.value_loss,
+                        ppo_continuous_loss.entropy_loss + ppo_discrete_loss.entropy_loss
+                    )
+                    ppo_info = type(ppo_continuous_info)(
+                        max(ppo_continuous_info.approx_kl, ppo_discrete_info.approx_kl),
+                        max(ppo_continuous_info.clipfrac, ppo_discrete_info.clipfrac)
+                    )
                 wv, we = self._value_weight, self._entropy_weight
                 total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
 
@@ -225,13 +260,13 @@ class PPOPolicy(Policy):
                     'value_max': output['value'].max().item(),
                     'approx_kl': ppo_info.approx_kl,
                     'clipfrac': ppo_info.clipfrac,
-                    'act': batch['action'].float().mean().item(),
                 }
-                if self._continuous:
+                if self._action_space == 'continuous':
                     return_info.update(
                         {
-                            'mu_mean': output['logit'][0].mean().item(),
-                            'sigma_mean': output['logit'][1].mean().item(),
+                            'act': batch['action'].float().mean().item(),
+                            'mu_mean': output['logit']['mu'].mean().item(),
+                            'sigma_mean': output['logit']['sigma'].mean().item(),
                         }
                     )
                 return_infos.append(return_info)
@@ -254,11 +289,13 @@ class PPOPolicy(Policy):
             Init traj and unroll length, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._continuous = self._cfg.continuous
-        if self._continuous:
-            self._collect_model = model_wrap(self._model, wrapper_name='base')
-        else:
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
+        elif self._action_space == 'discrete':
             self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        elif self._action_space == 'hybrid':
+            self._collect_model = model_wrap(self._model, wrapper_name='hybrid_reparam_multinomial_sample')
         self._collect_model.reset()
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
@@ -283,10 +320,6 @@ class PPOPolicy(Policy):
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor_critic')
-            if self._continuous:
-                (mu, sigma), value = output['logit'], output['value']
-                dist = Independent(Normal(mu, sigma), 1)
-                output['action'] = dist.sample()
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -378,11 +411,13 @@ class PPOPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._continuous = self._cfg.continuous
-        if self._continuous:
-            self._eval_model = model_wrap(self._model, wrapper_name='base')
-        else:
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
+        elif self._action_space == 'discrete':
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        elif self._action_space == 'hybrid':
+            self._eval_model = model_wrap(self._model, wrapper_name='hybrid_deterministic_argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
@@ -404,9 +439,6 @@ class PPOPolicy(Policy):
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
-            if self._continuous:
-                (mu, sigma) = output['logit']
-                output.update({'action': mu})
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -430,7 +462,7 @@ class PPOPolicy(Policy):
             'value_max',
             'value_mean',
         ]
-        if self._continuous:
+        if self._action_space == 'continuous':
             variables += ['mu_mean', 'sigma_mean', 'sigma_grad', 'act']
         return variables
 

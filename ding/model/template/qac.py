@@ -22,7 +22,7 @@ class QAC(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType, EasyDict],
-            actor_head_type: str,
+            action_space: str,
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
@@ -38,7 +38,7 @@ class QAC(nn.Module):
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's space, such as 4, (3, ),
                 EasyDict({'action_type_shape': 3, 'action_args_shape': 4}).
-            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization`` or ``hybrid`` .
+            - action_space (:obj:`str`): Whether choose ``regression`` or ``reparameterization`` or ``hybrid`` .
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
@@ -56,9 +56,9 @@ class QAC(nn.Module):
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
-        self.actor_head_type = actor_head_type
-        assert self.actor_head_type in ['regression', 'reparameterization', 'hybrid']
-        if self.actor_head_type == 'regression':  # DDPG, TD3
+        self.action_space = action_space
+        assert self.action_space in ['regression', 'reparameterization', 'hybrid']
+        if self.action_space == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 RegressionHead(
@@ -70,7 +70,7 @@ class QAC(nn.Module):
                     norm_type=norm_type
                 )
             )
-        elif self.actor_head_type == 'reparameterization':  # SAC
+        elif self.action_space == 'reparameterization':  # SAC
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 ReparameterizationHead(
@@ -82,7 +82,7 @@ class QAC(nn.Module):
                     norm_type=norm_type
                 )
             )
-        elif self.actor_head_type == 'hybrid':  # PADDPG
+        elif self.action_space == 'hybrid':  # PADDPG
             # hybrid action space: action_type(discrete) + action_args(continuous),
             # such as {'action_type_shape': torch.LongTensor([0]), 'action_args_shape': torch.FloatTensor([0.1, -0.27])}
             action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
@@ -110,7 +110,7 @@ class QAC(nn.Module):
             )
             self.actor = nn.ModuleList([actor_action_type, actor_action_args])
         self.twin_critic = twin_critic
-        if self.actor_head_type == 'hybrid':
+        if self.action_space == 'hybrid':
             critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
         else:
             critic_input_size = obs_shape + action_shape
@@ -195,7 +195,7 @@ class QAC(nn.Module):
 
         Critic Examples:
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
+            >>> model = QAC(obs_shape=(N, ),action_shape=1,action_space='regression')
             >>> model(inputs, mode='compute_critic')['q_value'] # q value
             tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
 
@@ -246,13 +246,13 @@ class QAC(nn.Module):
             >>> actor_outputs['logit'][1].shape # sigma
             >>> torch.Size([4, 64])
         """
-        if self.actor_head_type == 'regression':
+        if self.action_space == 'regression':
             x = self.actor(inputs)
             return {'action': x['pred']}
-        elif self.actor_head_type == 'reparameterization':
+        elif self.action_space == 'reparameterization':
             x = self.actor(inputs)
             return {'logit': [x['mu'], x['sigma']]}
-        elif self.actor_head_type == 'hybrid':
+        elif self.action_space == 'hybrid':
             logit = self.actor[0](inputs)
             action_args = self.actor[1](inputs)
             return {'logit': logit['logit'], 'action_args': action_args['pred']}
@@ -283,14 +283,14 @@ class QAC(nn.Module):
 
         Examples:
             >>> inputs = {'obs': torch.randn(4, N), 'action': torch.randn(4, 1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
+            >>> model = QAC(obs_shape=(N, ),action_shape=1,action_space='regression')
             >>> model(inputs, mode='compute_critic')['q_value']  # q value
             >>> tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
         """
 
         obs, action = inputs['obs'], inputs['action']
         assert len(obs.shape) == 2
-        if self.actor_head_type == 'hybrid':
+        if self.action_space == 'hybrid':
             action_type_logit = inputs['logit']
             action_type_logit = torch.softmax(action_type_logit, dim=-1)
             action_args = action['action_args']

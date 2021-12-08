@@ -1,4 +1,5 @@
 from typing import Union, Dict, Optional
+from easydict import EasyDict
 import torch
 import torch.nn as nn
 
@@ -20,9 +21,9 @@ class VAC(nn.Module):
     def __init__(
         self,
         obs_shape: Union[int, SequenceType],
-        action_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType, EasyDict],
+        action_space: str = 'continuous',
         share_encoder: bool = True,
-        continuous: bool = False,
         encoder_hidden_size_list: SequenceType = [128, 128, 64],
         actor_head_hidden_size: int = 64,
         actor_head_layer_num: int = 1,
@@ -39,8 +40,8 @@ class VAC(nn.Module):
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
+            - action_space (:obj:`str`): Choose action head in ['discrete', 'continuous', 'hybrid']
             - share_encoder (:obj:`bool`): Whether share encoder.
-            - continuous (:obj:`bool`): Whether collect continuously.
             - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
@@ -56,7 +57,7 @@ class VAC(nn.Module):
         """
         super(VAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
-        action_shape: int = squeeze(action_shape)
+        action_shape = squeeze(action_shape)
         self.obs_shape, self.action_shape = obs_shape, action_shape
         # Encoder Type
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
@@ -81,8 +82,9 @@ class VAC(nn.Module):
         self.critic_head = RegressionHead(
             critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
         )
-        self.continuous = continuous
-        if self.continuous:
+        self.action_space = action_space
+        assert self.action_space in ['discrete', 'continuous', 'hybrid'], self.action_space
+        if self.action_space == 'continuous':
             self.multi_head = False
             self.actor_head = ReparameterizationHead(
                 actor_head_hidden_size,
@@ -93,7 +95,7 @@ class VAC(nn.Module):
                 norm_type=norm_type,
                 bound_type=bound_type
             )
-        else:
+        elif self.action_space == 'discrete':
             actor_head_cls = DiscreteHead
             multi_head = not isinstance(action_shape, int)
             self.multi_head = multi_head
@@ -114,6 +116,29 @@ class VAC(nn.Module):
                     activation=activation,
                     norm_type=norm_type
                 )
+        elif self.action_space == 'hybrid':  # HPPO
+            # hybrid action space: action_type(discrete) + action_args(continuous),
+            # such as {'action_type_shape': torch.LongTensor([0]), 'action_args_shape': torch.FloatTensor([0.1, -0.27])}
+            action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
+            action_shape.action_type_shape = squeeze(action_shape.action_type_shape)
+            actor_action_args = ReparameterizationHead(
+                actor_head_hidden_size,
+                action_shape.action_args_shape,
+                actor_head_layer_num,
+                sigma_type=sigma_type,
+                activation=activation,
+                norm_type=norm_type,
+                bound_type=bound_type
+            )
+            actor_action_type = DiscreteHead(
+                actor_head_hidden_size,
+                action_shape.action_type_shape,
+                actor_head_layer_num,
+                activation=activation,
+                norm_type=norm_type,
+            )
+            self.actor_head = nn.ModuleList([actor_action_type, actor_action_args])
+
         # must use list, not nn.ModuleList
         if self.share_encoder:
             self.actor = [self.encoder, self.actor_head]
@@ -203,10 +228,16 @@ class VAC(nn.Module):
             x = self.encoder(x)
         else:
             x = self.actor_encoder(x)
-        x = self.actor_head(x)
-        if self.continuous:
-            x = {'logit': [x['mu'], x['sigma']]}
-        return x
+
+        if self.action_space == 'discrete':
+            return self.actor_head(x)
+        elif self.action_space == 'continuous':
+            x = self.actor_head(x)  # mu, sigma
+            return {'logit': x}
+        elif self.action_space == 'hybrid':
+            action_type = self.actor_head[0](x)
+            action_args = self.actor_head[1](x)
+            return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}}
 
     def compute_critic(self, x: torch.Tensor) -> Dict:
         r"""
@@ -278,10 +309,16 @@ class VAC(nn.Module):
         else:
             actor_embedding = self.actor_encoder(x)
             critic_embedding = self.critic_encoder(x)
-        value = self.critic_head(critic_embedding)
-        actor_output = self.actor_head(actor_embedding)
-        if self.continuous:
-            logit = [actor_output['mu'], actor_output['sigma']]
-        else:
-            logit = actor_output['logit']
-        return {'logit': logit, 'value': value['pred']}
+
+        value = self.critic_head(critic_embedding)['pred']
+
+        if self.action_space == 'discrete':
+            logit = self.actor_head(actor_embedding)['logit']
+            return {'logit': logit, 'value': value}
+        elif self.action_space == 'continuous':
+            x = self.actor_head(actor_embedding)
+            return {'logit': x, 'value': value}
+        elif self.action_space == 'hybrid':
+            action_type = self.actor_head[0](actor_embedding)
+            action_args = self.actor_head[1](actor_embedding)
+            return {'logit': {'action_type': action_type['logit'], 'action_args': action_args}, 'value': value}
