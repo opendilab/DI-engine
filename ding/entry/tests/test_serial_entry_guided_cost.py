@@ -3,7 +3,8 @@ import torch
 from copy import deepcopy
 from ding.entry import serial_pipeline_onpolicy, serial_pipeline_guided_cost
 from dizoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config
-from dizoo.classic_control.cartpole.config import cartpole_gcl_ppo_onpolicy_config, cartpole_gcl_ppo_onpolicy_create_config
+from dizoo.classic_control.cartpole.config import cartpole_gcl_ppo_onpolicy_config, \
+    cartpole_gcl_ppo_onpolicy_create_config
 
 
 @pytest.mark.unittest
