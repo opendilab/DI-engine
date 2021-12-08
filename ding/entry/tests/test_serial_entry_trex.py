@@ -14,7 +14,7 @@ from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import 
 from ding.entry.application_entry_trex_collect_data import trex_collecting_data
 
 
-@pytest.mark.unittest
+# @pytest.mark.unittest
 def test_serial_pipeline_reward_model_trex():
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     expert_policy = serial_pipeline(config, seed=0)
