@@ -12,7 +12,7 @@ from .atoc import ATOC
 from .sqn import SQN
 from .acer import ACER
 from .qtran import QTran
-from .mappo import MAPPO
+from .mavac import MAVAC
 from .ngu import NGU
 from .qac_dist import QACDIST
 from .maqac import MAQAC

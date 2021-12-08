@@ -7,11 +7,11 @@ from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, Multi
     FCEncoder, ConvEncoder
 
 
-@MODEL_REGISTRY.register('mappo')
-class MAPPO(nn.Module):
+@MODEL_REGISTRY.register('mavac')
+class MAVAC(nn.Module):
     r"""
     Overview:
-        The MAPPO model.
+        The MAVAC model.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
