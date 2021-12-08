@@ -579,7 +579,7 @@
 
     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;mappo&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.mappo&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="s1">&#39;mavac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.mavac&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;vac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.vac&#39;</span><span class="p">]</span>
 

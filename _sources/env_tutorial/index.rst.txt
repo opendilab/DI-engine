@@ -6,3 +6,4 @@ RL Environment Tutorial
    :maxdepth: 1
 
    atari
+   overcooked

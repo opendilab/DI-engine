@@ -1,0 +1,451 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Overcooked &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Hands on RL" href="../hands_on/index.html" />
+    <link rel="prev" title="Atari" href="atari.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Environment Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="atari.html">Atari</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Overcooked</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#installation-methods">Installation Methods</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#installation-check">Installation Check</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#rl-environment-space">RL Environment Space</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#observation-space">Observation Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#action-space">Action Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reward-space">Reward Space</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#others">Others</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#key-facts">Key Facts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other">Other</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#different-layouts">Different layouts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#di-zoo-code-example">DI-zoo code example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-benchmark">Algorithm Benchmark</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">RL Environment Tutorial</a> &raquo;</li>
+        
+      <li>Overcooked</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/env_tutorial/overcooked.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="overcooked">
+<h1>Overcooked<a class="headerlink" href="#overcooked" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/HumanCompatibleAI/overcooked_ai">Overcooked-AI</a> is a benchmark environment for fully cooperative human-AI task performance, based on the wildly popular video game <a class="reference external" href="http://www.ghosttowngames.com/overcooked/">Overcooked</a> .</p>
+<p>The goal of the game is to deliver soups as fast as possible.
+Each soup requires placing up to 3 ingredients in a pot, waiting for the soup to cook, and then having an agent pick up the soup and delivering it.</p>
+<p>This environment can be used to test out the robustness of collaborative agents, the interaction between RL agents and humans, etc.</p>
+<p>The environment is still under development, but right now half a dozen research papers are already using <code class="docutils literal notranslate"><span class="pre">Overcooked-AI</span></code>, you can find these papers in the original <a class="reference external" href="https://github.com/HumanCompatibleAI/overcooked_ai">Overcooked-AI</a> repo.</p>
+<p>The original overcooked-ai repo contained 5 available layout, as shown below:</p>
+<img alt="../_images/overcooked_layouts.gif" class="align-center" src="../_images/overcooked_layouts.gif" />
+<p>New layouts are easy to hardcode or generate programmatically.</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="installation-methods">
+<h3>Installation Methods<a class="headerlink" href="#installation-methods" title="Permalink to this headline">¶</a></h3>
+<p>Install <code class="docutils literal notranslate"><span class="pre">overcooked-ai</span></code>. You can install by command <code class="docutils literal notranslate"><span class="pre">pip</span></code> or build from source.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
+pip install overcooked-ai
+<span class="c1"># Method2: Build from source</span>
+git clone https://github.com/HumanCompatibleAI/overcooked_ai.git
+pip install -e overcooked_ai/
+</pre></div>
+</div>
+</div>
+<div class="section" id="installation-check">
+<h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this headline">¶</a></h3>
+<p>After completing installation, you can check whether it is succesful by the following commands:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> DI-engine
+pytest -sv dizoo<span class="se">\o</span>vercooked<span class="se">\e</span>nvs<span class="se">\t</span>est_overcooked_env.py
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="rl-environment-space">
+<h2>RL Environment Space<a class="headerlink" href="#rl-environment-space" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="observation-space">
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Right now we use cramped_room setting to describe the observation space of overcooked env. The layout of the cramped_room is of shape``(5, 4)``.</p></li>
+<li><p>Contain 2 agents.</p></li>
+<li><p>Each agent’s obs shape is <code class="docutils literal notranslate"><span class="pre">(layout_width,</span> <span class="pre">layout_height,</span> <span class="pre">26)</span></code> , i.e. <code class="docutils literal notranslate"><span class="pre">(5,</span> <span class="pre">4,</span> <span class="pre">26)</span></code> for cramped_room.</p></li>
+<li><p>If use <code class="docutils literal notranslate"><span class="pre">concat_obs</span></code> in environment, then the obs shape will be <code class="docutils literal notranslate"><span class="pre">(2*layout_width,</span> <span class="pre">layout_height,</span> <span class="pre">26)</span></code>, otherwise the obs shape will be <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">(layout_width,</span> <span class="pre">layout_height,</span> <span class="pre">26))</span></code> .</p></li>
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">action_mask</span></code> is enabled, the observation will also return an action_mask, which mask the unavailable action to zero (and one means action is available). The action_mask is of shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">6)</span></code>.</p></li>
+</ul>
+</div>
+<div class="section" id="action-space">
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The action space is also containing 2 agents.</p></li>
+<li><p>Buttons used in the game. In general 6 discrete action (N is different in different sub environments).</p></li>
+<li><p>Meaning of the actions.
+-  0：North (Up)</p>
+<ul>
+<li><p>1：South (Down)</p></li>
+<li><p>2：East (Left)</p></li>
+<li><p>3：West (Right)</p></li>
+<li><p>4：Stay</p></li>
+<li><p>5：Interact</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="reward-space">
+<h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Game score of overcooked.</p></li>
+<li><p>Note that we used reward shapingin order to ease the training process. You can turn up/down shape reward by setting <code class="docutils literal notranslate"><span class="pre">use_shaped_reward</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> .</p></li>
+</ul>
+</div>
+<div class="section" id="others">
+<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The game end after a fixed number of steps (default set to 400 steps).</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="key-facts">
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>The environment contains two agent.</p></li>
+<li><p>Discrete action space.</p></li>
+<li><p>The reward can be sparse if we set <code class="docutils literal notranslate"><span class="pre">use_shaped_reward</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> .</p></li>
+</ol>
+</div>
+<div class="section" id="other">
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="different-layouts">
+<h3>Different layouts<a class="headerlink" href="#different-layouts" title="Permalink to this headline">¶</a></h3>
+<p>You can change the layout used by changing <code class="docutils literal notranslate"><span class="pre">env_name</span></code> in environment config. However, the overcooked env is still under development, so not all layout is supported.</p>
+<p>You can also hand code your own layout, referencing this link for layouts <a class="reference external" href="https://github.com/HumanCompatibleAI/overcooked_ai/tree/master/src/overcooked_ai_py/data/layouts">files</a>.</p>
+</div>
+</div>
+<div class="section" id="di-zoo-code-example">
+<h2>DI-zoo code example<a class="headerlink" href="#di-zoo-code-example" title="Permalink to this headline">¶</a></h2>
+<p>Complete training configuration is at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/overcooked/entry/overcooked_selfplay_ppo_main.py">github
+link</a>.
+You can run the demo as shown below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.config</span> <span class="kn">import</span> <span class="n">compile_config</span>
+<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">Episode1v1Collector</span><span class="p">,</span> <span class="n">OnevOneEvaluator</span><span class="p">,</span> <span class="n">NaiveReplayBuffer</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">DingEnvWrapper</span>
+<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">PPOPolicy</span>
+<span class="kn">from</span> <span class="nn">dizoo.overcooked.models.overcooked_vac</span> <span class="kn">import</span> <span class="n">BaselineVAC</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">set_pkg_seed</span>
+<span class="kn">from</span> <span class="nn">dizoo.overcooked.envs</span> <span class="kn">import</span> <span class="n">OvercookGameEnv</span>
+<span class="kn">from</span> <span class="nn">dizoo.overcooked.config</span> <span class="kn">import</span> <span class="n">overcooked_demo_ppo_config</span>
+
+
+<span class="k">def</span> <span class="nf">wrapped_overcookgame</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">OvercookGameEnv</span><span class="p">({})</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">)):</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;selfplay_demo_ppo&#39;</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">compile_config</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">,</span>
+        <span class="n">BaseEnvManager</span><span class="p">,</span>
+        <span class="n">PPOPolicy</span><span class="p">,</span>
+        <span class="n">BaseLearner</span><span class="p">,</span>
+        <span class="n">Episode1v1Collector</span><span class="p">,</span>
+        <span class="n">OnevOneEvaluator</span><span class="p">,</span>
+        <span class="n">NaiveReplayBuffer</span><span class="p">,</span>
+        <span class="n">save_cfg</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">collector_env_num</span><span class="p">,</span> <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">collector_env_num</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">evaluator_env_num</span>
+    <span class="n">collector_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_overcookgame</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collector_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+    <span class="n">evaluator_env1</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span>
+        <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_overcookgame</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+    <span class="p">)</span>
+    <span class="n">evaluator_env2</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span>
+        <span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_overcookgame</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span>
+    <span class="p">)</span>
+
+    <span class="n">collector_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">evaluator_env1</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">evaluator_env2</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">cuda</span><span class="p">)</span>
+
+    <span class="n">model1</span> <span class="o">=</span> <span class="n">BaselineVAC</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">policy1</span> <span class="o">=</span> <span class="n">PPOPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model1</span><span class="p">)</span>
+    <span class="n">model2</span> <span class="o">=</span> <span class="n">BaselineVAC</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">policy2</span> <span class="o">=</span> <span class="n">PPOPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model2</span><span class="p">)</span>
+
+    <span class="n">tb_logger</span> <span class="o">=</span> <span class="n">SummaryWriter</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;./</span><span class="si">{}</span><span class="s1">/log/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">),</span> <span class="s1">&#39;serial&#39;</span><span class="p">))</span>
+    <span class="n">learner1</span> <span class="o">=</span> <span class="n">BaseLearner</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span><span class="p">,</span> <span class="n">policy1</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">instance_name</span><span class="o">=</span><span class="s1">&#39;learner1&#39;</span>
+    <span class="p">)</span>
+    <span class="n">learner2</span> <span class="o">=</span> <span class="n">BaseLearner</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span><span class="p">,</span> <span class="n">policy2</span><span class="o">.</span><span class="n">learn_mode</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">instance_name</span><span class="o">=</span><span class="s1">&#39;learner2&#39;</span>
+    <span class="p">)</span>
+    <span class="n">collector</span> <span class="o">=</span> <span class="n">Episode1v1Collector</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector</span><span class="p">,</span>
+        <span class="n">collector_env</span><span class="p">,</span> <span class="p">[</span><span class="n">policy1</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">policy2</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">],</span>
+        <span class="n">tb_logger</span><span class="p">,</span>
+        <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span>
+    <span class="p">)</span>
+    <span class="c1"># collect_mode ppo use multimonial sample for selecting action</span>
+    <span class="n">evaluator1_cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="p">)</span>
+    <span class="n">evaluator1_cfg</span><span class="o">.</span><span class="n">stop_value</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">stop_value</span>
+    <span class="n">evaluator1</span> <span class="o">=</span> <span class="n">OnevOneEvaluator</span><span class="p">(</span>
+        <span class="n">evaluator1_cfg</span><span class="p">,</span>
+        <span class="n">evaluator_env1</span><span class="p">,</span> <span class="p">[</span><span class="n">policy1</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">policy2</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">],</span>
+        <span class="n">tb_logger</span><span class="p">,</span>
+        <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span>
+        <span class="n">instance_name</span><span class="o">=</span><span class="s1">&#39;selfplay_evaluator1&#39;</span>
+    <span class="p">)</span>
+    <span class="n">evaluator2_cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="p">)</span>
+    <span class="n">evaluator2_cfg</span><span class="o">.</span><span class="n">stop_value</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">stop_value</span>
+    <span class="n">evaluator2</span> <span class="o">=</span> <span class="n">OnevOneEvaluator</span><span class="p">(</span>
+        <span class="n">evaluator2_cfg</span><span class="p">,</span>
+        <span class="n">evaluator_env2</span><span class="p">,</span> <span class="p">[</span><span class="n">policy2</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">,</span> <span class="n">policy1</span><span class="o">.</span><span class="n">collect_mode</span><span class="p">],</span>
+        <span class="n">tb_logger</span><span class="p">,</span>
+        <span class="n">exp_name</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span>
+        <span class="n">instance_name</span><span class="o">=</span><span class="s1">&#39;selfplay_evaluator2&#39;</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iterations</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">evaluator1</span><span class="o">.</span><span class="n">should_eval</span><span class="p">(</span><span class="n">learner1</span><span class="o">.</span><span class="n">train_iter</span><span class="p">):</span>
+            <span class="n">stop_flag1</span><span class="p">,</span> <span class="n">reward</span> <span class="o">=</span> <span class="n">evaluator1</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">learner1</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">,</span> <span class="n">learner1</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+            <span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;selfplay1_evaluator_step/reward_mean&#39;</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">evaluator2</span><span class="o">.</span><span class="n">should_eval</span><span class="p">(</span><span class="n">learner1</span><span class="o">.</span><span class="n">train_iter</span><span class="p">):</span>
+            <span class="n">stop_flag2</span><span class="p">,</span> <span class="n">reward</span> <span class="o">=</span> <span class="n">evaluator2</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">learner1</span><span class="o">.</span><span class="n">save_checkpoint</span><span class="p">,</span> <span class="n">learner1</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+            <span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;selfplay2_evaluator_step/reward_mean&#39;</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stop_flag1</span> <span class="ow">and</span> <span class="n">stop_flag2</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">train_data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">collect</span><span class="p">(</span><span class="n">train_iter</span><span class="o">=</span><span class="n">learner1</span><span class="o">.</span><span class="n">train_iter</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_per_collect</span><span class="p">):</span>
+            <span class="n">learner1</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+            <span class="n">learner2</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">(</span><span class="n">overcooked_demo_ppo_config</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="algorithm-benchmark">
+<h2>Algorithm Benchmark<a class="headerlink" href="#algorithm-benchmark" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>TODO</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../hands_on/index.html" class="btn btn-neutral float-right" title="Hands on RL" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="atari.html" class="btn btn-neutral float-left" title="Atari" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
