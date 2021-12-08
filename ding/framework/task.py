@@ -65,6 +65,7 @@ class Task:
         self.middleware = middleware or []
         self.step_wrappers = step_wrappers or []
         self.ctx = Context()
+        self.parallel_ctx = Context()
         self._backward_stack = []
 
         # Async segment
@@ -87,6 +88,7 @@ class Task:
             self.router.register_rpc("task.emit", self.emit)
             if attach_callback:
                 self.wait_for_attach_callback(attach_callback)
+            self.on("sync_parallel_ctx", self.sync_parallel_ctx)
 
         self.init_labels()
 
@@ -124,10 +126,12 @@ class Task:
         """
         if len(self.middleware) == 0:
             return
-        for _ in range(max_step):
+        for i in range(max_step):
             for fn in self.middleware:
                 self.forward(fn)
             self.backward()
+            if i == max_step - 1:
+                self.ctx.finish = True
             self.renew()
             if self.finish:
                 break
@@ -297,3 +301,12 @@ be thrown after the timeout {}s is reached".format(n_timeout)
 
     def __copy__(self):
         return Task(**self.__dict__)
+
+    def sync_parallel_ctx(self, ctx):
+        """
+        Overview:
+            Sync parallel ctx
+        """
+        self.parallel_ctx = ctx
+        if self.parallel_ctx.finish:
+            self.ctx.finish = True

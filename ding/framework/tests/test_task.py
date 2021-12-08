@@ -207,3 +207,20 @@ def test_label():
 
     assert "not_me" not in result
     assert "has_me" in result
+
+
+def sync_parallel_ctx_main():
+    with Task() as task:
+        task.use(lambda _: time.sleep(0.1))
+        if task.router.node_id == 0:  # Fast
+            task.run(max_step=2)
+        else:  # Slow
+            task.run(max_step=20)
+    assert task.parallel_ctx
+    assert task.ctx.finish
+    assert task.ctx.total_step < 10
+
+
+@pytest.mark.unittest
+def test_sync_parallel_ctx():
+    Parallel.runner(n_parallel_workers=2)(sync_parallel_ctx_main)
