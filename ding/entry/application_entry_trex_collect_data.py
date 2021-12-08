@@ -3,6 +3,7 @@ import torch
 from typing import Union, Optional, List, Any
 from functools import partial
 import os
+from copy import deepcopy
 
 from ding.config import compile_config, read_config
 from ding.worker import EpisodeSerialCollector
@@ -40,6 +41,7 @@ def collect_episodic_demo_data_for_trex(
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
+        - state_dict_path (:obj:'str') the abs path of the state dict
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
@@ -102,7 +104,7 @@ def trex_collecting_data(args=trex_get_args()):
     if isinstance(args.cfg, str):
         cfg, create_cfg = read_config(args.cfg)
     else:
-        cfg, create_cfg = args.cfg
+        cfg, create_cfg = deepcopy(args.cfg)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     compiled_cfg = compile_config(cfg, seed=args.seed, auto=True, create_cfg=create_cfg, save_cfg=False)
     offline_data_path = compiled_cfg.reward_model.offline_data_path
@@ -122,7 +124,7 @@ def trex_collecting_data(args=trex_get_args()):
         '/ckpt/iteration_' + checkpoint + '.pth.tar'
         seed = args.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
         exp_data = collect_episodic_demo_data_for_trex(
-            args.cfg,
+            deepcopy(args.cfg),
             seed,
             state_dict_path=model_path,
             save_cfg_path=offline_data_path,

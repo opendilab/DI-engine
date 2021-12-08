@@ -180,6 +180,7 @@ def collect_episodic_demo_data(
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - state_dict (:obj:`Optional[dict]`): The state_dict of policy or model.
+        - state_dict_path (:obj:'str') the abs path of the state dict
     """
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
