@@ -225,7 +225,7 @@ class TestModelWrappers:
         assert out['input_seq'].shape == (seq_len, bs, obs_shape)
         assert sum(out['input_seq'][1:].flatten()) == 0
         for i in range(1, seq_len-1):
-            out = model.forward(obs[i], return_sequence=True)
+            out = model.forward(obs[i], return_sequence=True, batch_first=True)
         assert out['input_seq'].shape == (seq_len, bs, obs_shape)
         assert sum(out['input_seq'][seq_len-1:].flatten()) == 0
         assert sum(out['input_seq'][:seq_len-1].flatten()) != 0

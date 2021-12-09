@@ -54,7 +54,7 @@ class GRUGatingUnit(torch.nn.Module):
         self.Uz = torch.nn.Linear(input_dim, input_dim)
         self.Wg = torch.nn.Linear(input_dim, input_dim)
         self.Ug = torch.nn.Linear(input_dim, input_dim)
-        self.bg = bg  # constant bias
+        self.bg = nn.Parameter(torch.zeros(input_dim).fill_(bg))  # bias
         self.sigmoid = torch.nn.Sigmoid()
         self.tanh = torch.nn.Tanh()
 
@@ -438,7 +438,8 @@ class GTrXL(nn.Module):
         Arguments:
             - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).
             - batch_first (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to 'True'
-            in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size).
+            in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size). This
+            also affects the output memory
             - return_mem (:obj:`bool`): if this param is False, return only the output tensor without dict.
         Returns:
             - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape
@@ -459,6 +460,7 @@ class GTrXL(nn.Module):
         prev_seq = memory[0].size(0)
         full_seq = cur_seq + prev_seq
 
+        # TODO: add padding to attention mask, https://huggingface.co/docs/transformers/preprocessing
         dec_attn_mask = (
             torch.triu(
                 torch.ones((cur_seq, cur_seq + prev_seq)),
