@@ -4,7 +4,7 @@ import random
 from typing import Callable
 from ding.worker.buffer import DequeBuffer
 from ding.worker.buffer.buffer import BufferedData
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
 
 class RateLimit:
@@ -17,14 +17,10 @@ class RateLimit:
         self.window_seconds = window_seconds
         self.buffered = []
 
-    def handler(self) -> Callable:
-
-        def _handler(action: str, chain: Callable, *args, **kwargs):
-            if action == "push":
-                return self.push(chain, *args, **kwargs)
-            return chain(*args, **kwargs)
-
-        return _handler
+    def __call__(self, action: str, chain: Callable, *args, **kwargs):
+        if action == "push":
+            return self.push(chain, *args, **kwargs)
+        return chain(*args, **kwargs)
 
     def push(self, chain, data, *args, **kwargs) -> None:
         current = time.time()
@@ -83,8 +79,7 @@ def test_naive_push_sample():
 
 @pytest.mark.unittest
 def test_rate_limit_push_sample():
-    ratelimit = RateLimit(max_rate=5)
-    buffer = DequeBuffer(size=10).use(ratelimit.handler())
+    buffer = DequeBuffer(size=10).use(RateLimit(max_rate=5))
     for i in range(10):
         buffer.push(i)
     assert buffer.count() == 5
@@ -98,8 +93,7 @@ def test_buffer_view():
         buf1.push(i)
     assert buf1.count() == 1
 
-    ratelimit = RateLimit(max_rate=5)
-    buf2 = buf1.view().use(ratelimit.handler()).use(add_10())
+    buf2 = buf1.view().use(RateLimit(max_rate=5)).use(add_10())
 
     for i in range(10):
         buf2.push(i)
@@ -131,12 +125,12 @@ def test_sample_with_index():
 
 
 @pytest.mark.unittest
-def test_update_delete():
+def test_update():
     buf = DequeBuffer(size=10)
     for i in range(1):
         buf.push({"data": i}, {"meta": i})
 
-    # Update data
+    # Update one data
     [item] = buf.sample(1)
     item.data["new_prop"] = "any"
     meta = None
@@ -150,10 +144,36 @@ def test_update_delete():
     success = buf.update("invalidindex", {}, None)
     assert not success
 
+    # When exceed buffer size
+    for i in range(20):
+        buf.push({"data": i})
+    assert len(buf.indices) == 10
+    assert len(buf.storage) == 10
+    for i in range(10):
+        index = buf.storage[i].index
+        assert buf.indices.get(index) == i
+
+
+@pytest.mark.unittest
+def test_delete():
+    maxlen = 100
+    cumlen = 40
+    dellen = 20
+    buf = DequeBuffer(size=maxlen)
+    for i in range(cumlen):
+        buf.push(i)
     # Delete data
-    [item] = buf.sample(1)
-    buf.delete(item.index)
-    assert buf.count() == 0
+    del_indices = [item.index for item in buf.sample(dellen)]
+    buf.delete(del_indices)
+    # Reappend
+    for i in range(10):
+        buf.push(i)
+    remlen = min(cumlen, maxlen) - dellen + 10
+    assert len(buf.indices) == remlen
+    assert len(buf.storage) == remlen
+    for i in range(remlen):
+        index = buf.storage[i].index
+        assert buf.indices.get(index) == i
 
 
 @pytest.mark.unittest
@@ -208,13 +228,25 @@ def test_groupby():
     assert "b" in data
     assert "c" in data
 
-    # Push new data and swap out a
+    # Push new data and swap out a, the result will all in group 2
     buffer.push("d", {"group": 2})
     sampled_data = buffer.sample(1, groupby="group")
     assert len(sampled_data) == 1
     assert len(sampled_data[0]) == 3
     data = [buffered.data for buffered in sampled_data[0]]
     assert "d" in data
+
+    # Update meta, set first data's group to 1
+    first: BufferedData = buffer.storage[0]
+    buffer.update(first.index, first.data, {"group": 1})
+    sampled_data = buffer.sample(2, groupby="group")
+    assert len(sampled_data) == 2
+
+    # Delete last record, each group will only have one record
+    last: BufferedData = buffer.storage[-1]
+    buffer.delete(last.index)
+    sampled_data = buffer.sample(2, groupby="group")
+    assert len(sampled_data) == 2
 
 
 @pytest.mark.unittest

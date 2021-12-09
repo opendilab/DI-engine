@@ -3,7 +3,8 @@ import numpy as np
 import torch
 from itertools import product
 
-from ding.model import MAPPO
+from ding.model import mavac
+from ding.model.template.mavac import MAVAC
 from ding.torch_utils import is_differentiable
 
 B = 32
@@ -31,7 +32,7 @@ class TestVAC:
             'global_state': torch.randn(B, agent_num, global_obs_shape),
             'action_mask': torch.randint(0, 2, size=(B, agent_num, action_shape))
         }
-        model = MAPPO(agent_obs_shape, global_obs_shape, action_shape, agent_num)
+        model = MAVAC(agent_obs_shape, global_obs_shape, action_shape, agent_num)
 
         logit = model(data, mode='compute_actor_critic')['logit']
         value = model(data, mode='compute_actor_critic')['value']

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Callable, Any, List, Union
+from typing import Callable, Any, List, Optional, Union
 from ding.worker.buffer import BufferedData
 
 
@@ -11,13 +11,21 @@ def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable: 
     """
     use_count = defaultdict(int)
 
-    def _check_use_count(item: BufferedData):
+    def _need_delete(item: BufferedData) -> bool:
         nonlocal use_count
         idx = item.index
         use_count[idx] += 1
+        item.meta['use_count'] = use_count[idx]
         if use_count[idx] >= max_use:
-            buffer_.delete(idx)
-            del use_count[idx]
+            return True
+        else:
+            return False
+
+    def _check_use_count(sampled_data: List[BufferedData]):
+        delete_indices = [item.index for item in filter(_need_delete, sampled_data)]
+        buffer_.delete(delete_indices)
+        for index in delete_indices:
+            del use_count[index]
 
     def sample(chain: Callable, *args, **kwargs) -> Union[List[BufferedData], List[List[BufferedData]]]:
         sampled_data = chain(*args, **kwargs)
@@ -25,12 +33,10 @@ def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable: 
             return sampled_data
 
         if isinstance(sampled_data[0], BufferedData):
-            for item in sampled_data:
-                _check_use_count(item)
+            _check_use_count(sampled_data)
         else:
             for grouped_data in sampled_data:
-                for item in grouped_data:
-                    _check_use_count(item)
+                _check_use_count(grouped_data)
         return sampled_data
 
     def _use_time_check(action: str, chain: Callable, *args, **kwargs) -> Any:

@@ -54,8 +54,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     '--mode',
     type=click.Choice(
         [
-            'serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'parallel', 'dist', 'eval',
-            'serial_reward_model', 'serial_gail'
+            'serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'serial_trex', 'serial_trex_onpolicy',
+            'parallel', 'dist', 'eval', 'serial_reward_model', 'serial_gail'
         ]
     ),
     help='serial-train or parallel-train or dist-train or eval'
@@ -193,6 +193,16 @@ def cli(
         + "the models used in q learning now; However, one should still type the DQFD config in this "\
         + "place, i.e., {}{}".format(config[:config.find('_dqfd')], '_dqfd_config.py')
         serial_pipeline_dqfd(config, expert_config, seed, max_iterations=train_iter)
+    elif mode == 'serial_trex':
+        from .serial_entry_trex import serial_pipeline_reward_model_trex
+        if config is None:
+            config = get_predefined_config(env, policy)
+        serial_pipeline_reward_model_trex(config, seed, max_iterations=train_iter)
+    elif mode == 'serial_trex_onpolicy':
+        from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
+        if config is None:
+            config = get_predefined_config(env, policy)
+        serial_pipeline_reward_model_trex_onpolicy(config, seed, max_iterations=train_iter)
     elif mode == 'parallel':
         from .parallel_entry import parallel_pipeline
         parallel_pipeline(config, seed, enable_total_log, disable_flask_log)

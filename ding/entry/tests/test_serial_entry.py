@@ -16,6 +16,7 @@ from dizoo.classic_control.cartpole.config.cartpole_qrdqn_config import cartpole
 from dizoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_acer_config import cartpole_acer_config, cartpole_acer_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_sac_config import cartpole_sac_config, cartpole_sac_create_config  # noqa
 from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
 from dizoo.classic_control.cartpole.entry.cartpole_ppo_main import main as ppo_main
 from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
@@ -43,6 +44,7 @@ from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config i
 from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
 from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_pdqn_config, gym_hybrid_pdqn_create_config
+from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_config, gym_hybrid_mpdqn_create_config
 
 
 @pytest.mark.unittest
@@ -81,6 +83,16 @@ def test_hybrid_ddpg():
 # @pytest.mark.unittest
 def test_hybrid_pdqn():
     config = [deepcopy(gym_hybrid_pdqn_config), deepcopy(gym_hybrid_pdqn_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+# @pytest.mark.unittest
+def test_hybrid_mpdqn():
+    config = [deepcopy(gym_hybrid_mpdqn_config), deepcopy(gym_hybrid_mpdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -185,6 +197,18 @@ def test_sac_auto_alpha():
 @pytest.mark.unittest
 def test_sac_log_space():
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = True
+    config[0].policy.learn.log_space = True
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_discrete_sac():
+    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.learn.auto_alpha = True
     config[0].policy.learn.log_space = True

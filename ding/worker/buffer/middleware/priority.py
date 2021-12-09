@@ -14,7 +14,7 @@ class PriorityExperienceReplay:
             IS_weight: bool = True,
             priority_power_factor: float = 0.6,
             IS_weight_power_factor: float = 0.4,
-            IS_weight_anneal_train_iter: int = int(1e5)
+            IS_weight_anneal_train_iter: int = int(1e5),
     ) -> None:
         self.buffer = buffer
         self.buffer_idx = {}
@@ -75,9 +75,10 @@ class PriorityExperienceReplay:
             self.IS_weight_power_factor = min(1.0, self.IS_weight_power_factor + self.delta_anneal)
         return data
 
-    def update(self, chain: Callable, index: str, data: Any, meta: dict, *args, **kwargs) -> None:
+    def update(self, chain: Callable, index: str, data: Any, meta: Any, *args, **kwargs) -> None:
         update_flag = chain(index, data, meta, *args, **kwargs)
         if update_flag:  # when update succeed
+            assert meta is not None, "Please indicate dict-type meta in priority update"
             new_priority, idx = meta['priority'], meta['priority_idx']
             assert new_priority >= 0, "new_priority should greater than 0, but found {}".format(new_priority)
             new_priority += 1e-5  # Add epsilon to avoid priority == 0
@@ -106,7 +107,8 @@ class PriorityExperienceReplay:
     def _update_tree(self, priority: float, idx: int) -> None:
         weight = priority ** self.priority_power_factor
         self.sum_tree[idx] = weight
-        self.min_tree[idx] = weight
+        if self.IS_weight:
+            self.min_tree[idx] = weight
 
     def state_dict(self) -> Dict:
         return {
@@ -124,13 +126,7 @@ class PriorityExperienceReplay:
             else:
                 setattr(self, '{}'.format(k), v)
 
-
-def priority(*per_args, **per_kwargs):
-    per = PriorityExperienceReplay(*per_args, **per_kwargs)
-
-    def _priority(action: str, chain: Callable, *args, **kwargs) -> Any:
+    def __call__(self, action: str, chain: Callable, *args, **kwargs) -> Any:
         if action in ["push", "sample", "update", "delete", "clear"]:
-            return getattr(per, action)(chain, *args, **kwargs)
-        return chain(chain, *args, **kwargs)
-
-    return _priority
+            return getattr(self, action)(chain, *args, **kwargs)
+        return chain(*args, **kwargs)
