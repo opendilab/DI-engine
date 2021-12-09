@@ -1,7 +1,6 @@
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple
 import copy
-from pyglet.window.key import O
 
 import torch
 import numpy as np
@@ -220,10 +219,12 @@ class ACERPolicy(Policy):
         if self._cfg.model.continuous_action_space:
             # change a nested list&tensor structure to pure tensor form
             data_list = []
+            print(data['logit'])
+            print(data['logit'][1].shape)
             for i in range(len(data['logit'])):
-                list2tensor = torch.Tensor(np.array([item.numpy() for item in data['logit'][i]]))
+                list2tensor = torch.Tensor(np.array([item.cpu().numpy() for item in data['logit'][i]]))
                 data_list.append(list2tensor)
-            data2tensor = torch.Tensor(np.array([item.numpy() for item in data_list]))
+            data2tensor = torch.Tensor(np.array([item.cpu().numpy() for item in data_list]))
 
             # reshape the tensor from (T, env_action_shape, B) to (T, B, env_action_shape)
             data2tensor = data2tensor.permute(0, 2, 1)
