@@ -647,7 +647,7 @@ class StochasticDuelingHead(nn.Module):
                                             dim=-1)  # size (B, sample_size, action_size + hidden_size)
         a_val_sample = self.A(state_cat_action_sample)  # size (B, sample_size, 1)
         a_val_sample = torch.squeeze(a_val_sample, -1)  # (B, sample_size)
-        q_value = v_value + a_value - a_val_sample.mean(dim=-1, keepdim=True)  # size (B,1)
+        q_value = v_value + a_value - a_val_sample.mean(dim=-1, keepdim=True) # size (B,1)
 
         return {'q_value': q_value, 'v_value': v_value}
 

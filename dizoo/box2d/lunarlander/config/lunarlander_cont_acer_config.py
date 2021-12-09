@@ -2,8 +2,10 @@
 from easydict import EasyDict
 
 lunarlander_acer_config = dict(
-    # exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
-    exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
+    exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm10_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_qvss5_seed0',
+    # exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_qvss5_seed1',
+    # exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_qvss5_seed2',
+
     # exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs1e4_maxuse100_df0.99_tt0.005_seed0',
 
     env=dict(
@@ -20,11 +22,13 @@ lunarlander_acer_config = dict(
         cuda=True,
         priority=False,
         priority_IS_weight=False,
+        continuous=True,
         model=dict(
             obs_shape=8,
             action_shape=2,
             continuous_action_space=True,
-            q_value_sample_size=20,  # 5
+            # q_value_sample_size=5,
+            q_value_sample_size=20,
             noise_ratio=0,
         ),
         learn=dict(
@@ -33,7 +37,9 @@ lunarlander_acer_config = dict(
             grad_clip_type='clip_norm',
             # grad_clip_type='clip_value',
             # clip_value=0.5,
-            clip_value=5,
+            # clip_value=5,
+            clip_value=10,
+
             multi_gpu=False,
 
             update_per_collect=4,  #TODO(pu)
