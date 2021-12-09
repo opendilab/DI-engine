@@ -32,7 +32,8 @@ class PPOPolicy(Policy):
         on_policy=True,
         # (bool) Whether to use priority(priority sample, IS weight, update priority)
         priority=False,
-        # (bool) Whether to use Importance Sampling Weight to correct biased update due to priority. If True, priority must be True.
+        # (bool) Whether to use Importance Sampling Weight to correct biased update due to priority.
+        # If True, priority must be True.
         priority_IS_weight=False,
         # (bool) Whether to recompurete advantages in each iteration of on-policy PPO
         recompute_adv=True,
