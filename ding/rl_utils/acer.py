@@ -2,7 +2,31 @@ from typing import Tuple, List
 from collections import namedtuple
 import torch
 import torch.nn.functional as F
+
 EPS = 1e-8
+
+
+def compute_q_opc(
+        q_values: torch.Tensor,
+        v_pred: torch.Tensor,
+        rewards: torch.Tensor,
+        actions: torch.Tensor,
+        weights: torch.Tensor,
+        gamma: float = 0.9
+) -> torch.Tensor:
+    rewards = rewards.unsqueeze(-1)  # shape T,B,1
+    actions = actions.unsqueeze(-1)  # shape T,B,1
+    weights = weights.unsqueeze(-1)  # shape T,B,1
+    q_opc = torch.zeros_like(v_pred)  # shape (T+1),B,1
+    n_len = q_opc.size()[0]  # T+1
+    tmp_opc = v_pred[-1, ...]  # shape B,1
+    q_opc[-1, ...] = v_pred[-1, ...]
+    q_values = q_values[0:-1, ...]  # shape T,B,1
+
+    for idx in reversed(range(n_len - 1)):
+        q_opc[idx, ...] = rewards[idx, ...] + gamma * weights[idx, ...] * tmp_opc
+        tmp_opc = (q_opc[idx, ...] - q_values[idx, ...]) + v_pred[idx, ...]
+    return q_opc  # shape (T+1),B,1
 
 
 def acer_policy_error(
@@ -47,8 +71,8 @@ def acer_policy_error(
                                                                            EPS).log()  # shape T,B,1
 
     # bias correction term, the first target_pi will not calculate gradient flow
-    bias_correction_loss = (1.0-c_clip_ratio/(ratio+EPS)).clamp(min=0.0)*target_pi.detach() * \
-        advantage_native*(target_pi+EPS).log()  # shape T,B,env_action_shape
+    bias_correction_loss = (1.0 - c_clip_ratio / (ratio + EPS)).clamp(min=0.0) * target_pi.detach() * \
+                           advantage_native * (target_pi + EPS).log()  # shape T,B,env_action_shape
     bias_correction_loss = bias_correction_loss.sum(-1, keepdim=True)
     return actor_loss, bias_correction_loss
 
@@ -130,18 +154,17 @@ def acer_value_error_continuous(q_values: torch.Tensor,
     # return critic_loss
 
     # loss v2 -200 1400 iter
-    critic_loss_q = -(q_retraces.detach() - q_values).detach() * q_values
-    critic_loss_v = -ratio.clamp(max=1) * (q_retraces.detach() - q_values).detach() * v_values  # shape T,B,1
-    critic_loss = critic_loss_q + critic_loss_v
-    return critic_loss
+    # critic_loss_q = -(q_retraces.detach() - q_values).detach() * q_values
+    # critic_loss_v = -ratio.clamp(max=1) * (q_retraces.detach() - q_values).detach() * v_values  # shape T,B,1
+    # critic_loss = critic_loss_q + critic_loss_v
+    # return critic_loss
 
     # loss v3
-    # critic_loss_q = 0.5*(q_retraces.detach() - q_values).pow(2)
-    # critic_loss_v = 0.5*ratio.clamp(max=1) * (q_retraces.detach() - q_values).pow(2)  # shape T,B,1
-
+    critic_loss_q = 0.5 * (q_retraces.detach() - q_values).pow(2)
+    critic_loss_v = 0.5 * ((ratio.clamp(max=1) * (q_retraces - q_values) + v_values).detach() - v_values).pow(2)
     # critic_loss = critic_loss_q + critic_loss_v
     # return [critic_loss_q, critic_loss_v, critic_loss]
-    # return critic_loss_q + critic_loss_v
+    return critic_loss_q + critic_loss_v
 
 
 def acer_policy_error_continuous(
@@ -183,6 +206,7 @@ def acer_policy_error_continuous(
     actor_loss = ratio.clamp(max=c_clip_ratio) * advantage_retraces * (target_pi + EPS).log()  # shape T,B,1
 
     # bias correction term, the first target_pi will not calculate gradient flow
-    bias_correction_loss = (1.0-c_clip_ratio/(ratio_prime+EPS)).clamp(min=0.0) * advantage_native * (target_pi_prime + EPS).log()  # shape T,B,env_action_shape
+    bias_correction_loss = (1.0 - c_clip_ratio / (ratio_prime + EPS)).clamp(min=0.0) * advantage_native * (
+                target_pi_prime + EPS).log()  # shape T,B,env_action_shape
     bias_correction_loss = bias_correction_loss.sum(-1, keepdim=True)
     return actor_loss, bias_correction_loss

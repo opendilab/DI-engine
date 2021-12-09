@@ -29,8 +29,8 @@ class ACER(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
             continuous_action_space: bool = False,
-            q_value_sample_size : int = 20,
-            noise_ratio : float = 0.,
+            q_value_sample_size: int = 20,
+            noise_ratio: float = 0.,
     ) -> None:
         r"""
         Overview:
@@ -71,35 +71,51 @@ class ACER(nn.Module):
         self.critic_encoder = encoder_cls(
             obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
         )
-        
 
         if self.continuous_action_space:
             # when the action space is continuous, we use ReparameterizationHead.
             # the action_shape of continuous action space is a int, indicating the num of action dim.
+            # TODO(pu)
+            # self.actor_head = ReparameterizationHead(
+            #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned',
+            #     activation=activation, norm_type=norm_type, bound_type=None,
+            # )
+            # self.actor_head = ReparameterizationHead(
+            #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned',
+            #     activation=activation, norm_type=norm_type, bound_type='tanh',
+            # )
+            # self.actor_head = ReparameterizationHead(
+            #     actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed', fixed_sigma_value=0.3,
+            #     activation=activation, norm_type=norm_type, bound_type=None,
+            # )
+
             self.actor_head = ReparameterizationHead(
-                actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='conditioned', activation=activation, norm_type=norm_type
+                actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed', fixed_sigma_value=0.3,
+                activation=activation, norm_type=norm_type, bound_type='tanh',
             )
+
             self.critic_head = StochasticDuelingHead(
-                critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type,
+                critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation,
+                norm_type=norm_type,
             )
-            
-        else: 
+
+        else:
             # when the action space is continuous, we use DiscreteHead.
             # the action_shape of discrete action space is a list, indicating the num of action dim and action choice num K.
             self.actor_head = DiscreteHead(
                 actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
             )
-            
+
             self.critic_head = RegressionHead(
                 critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
             )
-            
+
         self.actor = [self.actor_encoder, self.actor_head]
         self.critic = [self.critic_encoder, self.critic_head]
         self.actor = nn.ModuleList(self.actor)
         self.critic = nn.ModuleList(self.critic)
 
-    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str, action: Optional[torch.Tensor] = None) -> Dict:
+    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         r"""
         Overview:
         Use observation to predict output.
@@ -151,10 +167,14 @@ class ACER(nn.Module):
 
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
-        if action is not None:
-            return getattr(self, mode)(inputs, action)
+        if 'action' in inputs.keys():
+            return getattr(self, mode)(inputs['obs'], inputs['action'])
         else:
-            return getattr(self, mode)(inputs)
+            return getattr(self, mode)(inputs['obs'])
+        # if action is not None:
+        #     return getattr(self, mode)(inputs, action)
+        # else:
+        #     return getattr(self, mode)(inputs)
 
     def compute_actor(self, inputs: torch.Tensor) -> Dict:
         r"""
@@ -189,11 +209,11 @@ class ACER(nn.Module):
         if self.continuous_action_space:
             # for continuous action space, we use ReparametrizationHead
             # the return is mu and sigma for normal distribution
-            return {'logit': [x['mu'], x['sigma']] }
+            return {'logit': [x['mu'], x['sigma']]}
         else:
             # for discrete action space, we use DiscreteHead
             # the return is prob_val_before_softmax of each action
-            return {'logit': x['logit'] }
+            return {'logit': x['logit']}
 
     def compute_critic(self, obs_inputs: torch.Tensor, act_inputs: Optional[torch.Tensor] = None) -> Dict:
         r"""
@@ -229,11 +249,13 @@ class ACER(nn.Module):
                 encoded_action = act_inputs
                 # mu_t.shape = (B, action_size)
                 mu_t, sigma_t = self.compute_actor(obs_inputs)['logit']
-                q_val = self.critic_head(encoded_state, encoded_action, mu_t, sigma_t, self.q_value_sample_size)
+                q_val = self.critic_head(encoded_state, encoded_action, mu_t.clone().detach(), sigma_t.clone().detach(), self.q_value_sample_size)
             else:
                 raise RuntimeError(
                     "If you indicate continuous action space, please add act_inputs when computing critic."
                 )
+            return {"q_value": q_val['q_value'], 'v_value': q_val['v_value']}
+
         else:
             q_val = self.critic_head(encoded_state)
-        return {"q_value": q_val['pred'], 'v_value': q_val['v']}
+            return {"q_value": q_val['pred']}

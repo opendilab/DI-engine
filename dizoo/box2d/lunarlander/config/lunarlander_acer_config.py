@@ -3,7 +3,9 @@ from ding.entry import serial_pipeline
 
 nstep = 3
 lunarlander_acer_default_config = dict(
+    exp_name='debug_lunarlander_disc',
     env=dict(
+        env_id='LunarLander-v2',
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, ),
         # Env number respectively for collector and evaluator.
@@ -20,6 +22,7 @@ lunarlander_acer_default_config = dict(
             obs_shape=8,
             action_shape=4,
             encoder_hidden_size_list=[512, 64],
+            continuous_action_space=False,
             # Whether to use dueling head.
         ),
         # Reward's future discount facotr, aka. gamma.
@@ -71,7 +74,8 @@ lunarlander_acer_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='acer'),
 )
 lunarlander_acer_create_config = EasyDict(lunarlander_acer_create_config)

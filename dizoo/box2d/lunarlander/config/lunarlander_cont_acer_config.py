@@ -1,28 +1,28 @@
+
 from easydict import EasyDict
 
-pendulum_acer_config = dict(
-    # exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0_run2',
-    # exp_name='debug_pendulum_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
-    exp_name='debug_pendulum_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs1e4_maxuse100_df0.99_tt0.005_seed0',
+lunarlander_acer_config = dict(
+    # exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
+    exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
+    # exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs1e4_maxuse100_df0.99_tt0.005_seed0',
 
-    # exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc8_ns32_rbs1e3_maxuse1e4_df0.997_tt0.001_seed0',
-    # exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc8_ns32_rbs1e4_maxuse1e4_df0.997_tt0.001_reward-batch-norm_seed0',
     env=dict(
+        env_id='LunarLanderContinuous-v2',
         # collector_env_num=10,
         collector_env_num=1,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
         act_scale=True,
         n_evaluator_episode=5,
-        stop_value=-150,
+        stop_value=200,
     ),
     policy=dict(
         cuda=True,
         priority=False,
         priority_IS_weight=False,
         model=dict(
-            obs_shape=3,
-            action_shape=1,
+            obs_shape=8,
+            action_shape=2,
             continuous_action_space=True,
             q_value_sample_size=20,  # 5
             noise_ratio=0,
@@ -41,7 +41,10 @@ pendulum_acer_config = dict(
 
             batch_size=64,
             unroll_len=50,
+
+            # batch_size=32,
             # unroll_len=32,
+
             entropy_weight=0,  # 0.0001,
             discount_factor=0.99,  # TODO(pu)
             # discount_factor=0.997,
@@ -77,28 +80,28 @@ pendulum_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            # replay_buffer_size=2000,  # TODO(pu)
-            # max_use=16,
-            replay_buffer_size=10000,  # TODO(pu)
-            max_use=int(1e4),
+            replay_buffer_size=2000,  # TODO(pu)
+            max_use=16,
+            # replay_buffer_size=10000,  # TODO(pu)
+            # max_use=int(1e4),
         ), ),
     ),
 )
-pendulum_acer_config = EasyDict(pendulum_acer_config)
-main_config = pendulum_acer_config
+lunarlander_acer_config = EasyDict(lunarlander_acer_config)
+main_config = lunarlander_acer_config
 
-pendulum_acer_create_config = dict(
+lunarlander_acer_create_config = dict(
     env=dict(
-        type='pendulum',
-        import_names=['dizoo.classic_control.pendulum.envs.pendulum_env'],
+        type='lunarlander',
+        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(type='acer'),
 )
-pendulum_acer_create_config = EasyDict(pendulum_acer_create_config)
-create_config = pendulum_acer_create_config
+lunarlander_acer_create_config = EasyDict(lunarlander_acer_create_config)
+create_config = lunarlander_acer_create_config
 
 from ding.entry import serial_pipeline
 
 if __name__ == "__main__":
-    serial_pipeline([pendulum_acer_config, pendulum_acer_create_config], seed=0)
+    serial_pipeline([lunarlander_acer_config, lunarlander_acer_create_config], seed=0)
