@@ -12,7 +12,7 @@ hopper_csql_default_config = dict(
         stop_value=6000,
     ),
     policy=dict(
-        cuda=False,
+        cuda=False, # False
         random_collect_size=10000,
         model=dict(
             obs_shape=11,

@@ -302,7 +302,7 @@ class ContinousSoftQLPolicy(Policy):
             obs_expand = next_obs.unsqueeze(1)
             obs_expand = obs_expand.expand([batch_size, sample_size, obs_size])
             obs_expand = obs_expand.reshape(batch_size * sample_size, obs_size)
-            action_expand = torch.rand(batch_size * sample_size, action_size)
+            action_expand = torch.rand(batch_size * sample_size, action_size).to(self._device)
             sample_data = {'obs': obs_expand, 'action': action_expand}
             next_q_expand = self._target_model.forward(sample_data, mode='compute_critic')['q_value']
             next_q_expand = next_q_expand.reshape(batch_size, -1)
@@ -321,7 +321,7 @@ class ContinousSoftQLPolicy(Policy):
         # dist = Independent(Normal(mu, sigma), 1)
         # sample_list = dist.sample_n(batch_size * sample_size)
         # sample_list = torch.randn(batch_size * sample_size)
-        sample_list = torch.randn((batch_size * sample_size, action_size))
+        sample_list = torch.randn((batch_size * sample_size, action_size)).to(self._device)
         latent_sample = sample_list.view(batch_size, sample_size, -1)
         # latent sample shape: [batch_size, sample_size, action_size]
         obs_expand = obs.unsqueeze(1)
@@ -480,16 +480,13 @@ class ContinousSoftQLPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
+        action_size = self._model.action_shape
+        sample_list = torch.randn((data.shape[0], action_size))
         if self._cuda:
             data = to_device(data, self._device)
+            sample_list = to_device(sample_list, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            action_size = 3
-            # mu = torch.zeros(action_size)
-            # sigma = torch.ones(action_size)
-            # dist = Independent(Normal(mu, sigma), 1)
-            # sample_list = dist.sample(data.shape[0])
-            sample_list = torch.randn((data.shape[0], action_size))
             stochastic_list = torch.cat([data, sample_list], dim=1)
             stochastic_data = {'obs': stochastic_list}
             sample_action = self._collect_model.forward(stochastic_list, mode='compute_actor')
@@ -547,16 +544,18 @@ class ContinousSoftQLPolicy(Policy):
         """
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
+        action_size = self._model.action_shape
+        sample_list = torch.randn((data.shape[0], action_size))
         if self._cuda:
             data = to_device(data, self._device)
+            sample_list = to_device(sample_list, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            action_size = 3
             # mu = torch.zeros(action_size)
             # sigma = torch.ones(action_size)
             # dist = Independent(Normal(mu, sigma), 1)
             # sample_list = dist.sample(data.shape[0])
-            sample_list = torch.randn((data.shape[0], action_size))
+            #sample_list = torch.randn((data.shape[0], action_size))
             stochastic_list = torch.cat([data, sample_list], dim=1)
             #stochastic_data = {'obs': stochastic_list}
             sample_action = self._collect_model.forward(stochastic_list, mode='compute_actor')
