@@ -9,14 +9,23 @@ from ding.framework.wrapper import StepTimer
 
 @pytest.mark.unittest
 def test_step_timer():
+
+    def step1(_):
+        1
+
+    def step2(_):
+        2
+
+    def step3(_):
+        3
+
+    def step4(_):
+        4
+
     # Lazy mode (with use statment)
     step_timer = StepTimer()
     task = Task()
     task.use_step_wrapper(step_timer)
-    step1 = lambda _: 1
-    step2 = lambda _: 2
-    step3 = lambda _: 3
-    step4 = lambda _: 4
     task.use(step1)
     task.use(step2)
     task.use(task.sequence(step3, step4))
@@ -30,8 +39,6 @@ def test_step_timer():
     step_timer = StepTimer()
     task = Task()
     task.use_step_wrapper(step_timer)
-    step1 = lambda _: 1
-    step2 = lambda _: 2
     for _ in range(3):
         task.forward(step1)  # Step 1
         task.forward(step2)  # Step 2
@@ -47,8 +54,6 @@ def test_step_timer():
     task = Task()
     task.use_step_wrapper(step_timer1)
     task.use_step_wrapper(step_timer2)
-    step1 = lambda _: 1
-    step2 = lambda _: 2
     task.use(step1)
     task.use(step2)
     task.run(3)
