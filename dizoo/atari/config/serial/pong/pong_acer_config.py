@@ -15,7 +15,9 @@ pong_acer_config = dict(
     policy=dict(
         cuda=True,
         priority=False,
+        continuous=False,
         model=dict(
+            continuous_action_space=False,
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
@@ -26,6 +28,7 @@ pong_acer_config = dict(
         ),
         unroll_len=32,
         learn=dict(
+            ignore_done=False,
             # (int) collect n_sample data, train model update_per_collect times
             # here we follow impala serial pipeline
             update_per_collect=10,
@@ -45,6 +48,13 @@ pong_acer_config = dict(
             # (float) clip ratio of importance weights
             # (float) clip ratio of importance weights
             c_clip_ratio=10,
+            init_w=3e-3,
+            reward_running_norm=False,
+            reward_batch_norm=False,
+            # reward_running_norm=False,
+            # reward_batch_norm=True,
+            # reward_running_norm=True,
+            # reward_batch_norm=False,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
@@ -55,7 +65,7 @@ pong_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(replay_buffer=dict(
-            type='naive',
+            # type='naive',
             replay_buffer_size=10000,
         ), ),
     ),
@@ -67,7 +77,8 @@ pong_acer_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='acer'),
 )
 create_config = EasyDict(pong_acer_create_config)

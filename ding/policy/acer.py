@@ -818,7 +818,10 @@ class ACERPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward({'obs': data}, tanh_squash=True, mode='compute_actor')
+            if self._cfg.continuous:
+                output = self._eval_model.forward({'obs': data}, tanh_squash=True, mode='compute_actor')
+            else:
+                output = self._eval_model.forward({'obs': data}, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
