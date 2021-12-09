@@ -640,7 +640,7 @@ class StochasticDuelingHead(nn.Module):
         dist = Independent(Normal(mu_t, sigma_t), 1)
         action_sample_pred = dist.rsample(sample_shape=(sample_size,))
         action_sample = torch.tanh(action_sample_pred)  # TODO(pu)
-
+        # 20,3264,2->3264,20,2  (sample_size, B, action_size)->(B, sample_size, action_size)
         action_sample = action_sample.permute(1, 0, 2)
 
         state_cat_action_sample = torch.cat((expand_s, action_sample),

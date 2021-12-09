@@ -2,7 +2,8 @@ from easydict import EasyDict
 
 pendulum_acer_config = dict(
     # exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0_run2',
-    exp_name='debug_pendulum_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
+    # exp_name='debug_pendulum_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
+    exp_name='debug_pendulum_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs1e4_maxuse100_df0.99_tt0.005_seed0',
 
     # exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc8_ns32_rbs1e3_maxuse1e4_df0.997_tt0.001_seed0',
     # exp_name='debug_pendulum_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc8_ns32_rbs1e4_maxuse1e4_df0.997_tt0.001_reward-batch-norm_seed0',
@@ -76,11 +77,10 @@ pendulum_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=200, ), ),
         other=dict(replay_buffer=dict(
-            replay_buffer_size=2000,  # TODO(pu)
-            max_use=16,
-            # replay_buffer_size=10000,  # TODO(pu)
-            # replay_buffer_size=1000,
-            # max_use=int(1e4),
+            # replay_buffer_size=2000,  # TODO(pu)
+            # max_use=16,
+            replay_buffer_size=10000,  # TODO(pu)
+            max_use=int(1e4),
         ), ),
     ),
 )

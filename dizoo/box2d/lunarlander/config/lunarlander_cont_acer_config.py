@@ -4,6 +4,7 @@ from easydict import EasyDict
 lunarlander_acer_config = dict(
     # exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm0.5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
     exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs2e3_maxuse16_df0.99_tt0.005_seed0',
+    # exp_name='debug_lunarlander_cont_ul50_bs64_clipnorm5_mubound_fixsigma0.3_upc4_ns16_rbs1e4_maxuse100_df0.99_tt0.005_seed0',
 
     env=dict(
         env_id='LunarLanderContinuous-v2',
@@ -40,7 +41,10 @@ lunarlander_acer_config = dict(
 
             batch_size=64,
             unroll_len=50,
+
+            # batch_size=32,
             # unroll_len=32,
+
             entropy_weight=0,  # 0.0001,
             discount_factor=0.99,  # TODO(pu)
             # discount_factor=0.997,
@@ -79,7 +83,6 @@ lunarlander_acer_config = dict(
             replay_buffer_size=2000,  # TODO(pu)
             max_use=16,
             # replay_buffer_size=10000,  # TODO(pu)
-            # replay_buffer_size=1000,
             # max_use=int(1e4),
         ), ),
     ),
