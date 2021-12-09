@@ -317,13 +317,13 @@ class MujocoEnv(BaseEnv):
         obs = to_ndarray(obs).astype('float32')
         if self._delay_reward_step > 1:
             self._current_delay_reward += rew
-            if self._delay_reward_duration >= self._delay_reward_step:
+            self._delay_reward_duration += 1
+            if done or self._delay_reward_duration >= self._delay_reward_step:
                 rew = to_ndarray([self._current_delay_reward])
                 self._current_delay_reward = 0.
                 self._delay_reward_duration = 0
             else:
                 rew = to_ndarray([0.])
-            self._delay_reward_duration += 1
         else:
             rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
