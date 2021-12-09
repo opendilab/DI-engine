@@ -38,7 +38,5 @@ class TestProfilerModule:
             self.assertIsFile(file_path)
             file_path = os.path.join(dir, "profile.prof")
             self.assertIsFile(file_path)
-            file_path = os.path.join(dir, "profile.svg")
-            self.assertIsFile(file_path)
 
         clean_up(dir)
