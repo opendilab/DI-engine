@@ -10,9 +10,10 @@ from ding.rl_utils import get_train_sample, compute_q_retraces, compute_q_opc, a
     acer_value_error, acer_trust_region_update, acer_policy_error_continuous, \
     acer_value_error_continuous, compute_q_retraces_continuous
 from ding.torch_utils import Adam, to_device
-from ding.utils import POLICY_REGISTRY
+from ding.utils import POLICY_REGISTRY, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from ding.policy.base_policy import Policy
+from torch.distributions import Normal, Independent
 
 EPS = 1e-8
 
@@ -117,20 +118,18 @@ class ACERPolicy(Policy):
             lr=self._cfg.learn.learning_rate_actor,
             grad_clip_type=self._cfg.learn.grad_clip_type,
             clip_value=self._cfg.learn.clip_value,
-            weight_decay=1e-5, optim_type='adamw'
         )
         self._optimizer_critic = Adam(
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_critic,
             grad_clip_type=self._cfg.learn.grad_clip_type,
             clip_value=self._cfg.learn.clip_value,
-            weight_decay=1e-5, optim_type='adamw'
         )
         # TODO(pu)
-        self._optimizer_critic_v = Adam(
-            list(self._model.critic[1].V.parameters()) + list(self._model.critic[0].parameters()),
-            lr=self._cfg.learn.learning_rate_critic,
-        )
+        # self._optimizer_critic_v = Adam(
+        #     list(self._model.critic[1].V.parameters()) + list(self._model.critic[0].parameters()),
+        #     lr=self._cfg.learn.learning_rate_critic,
+        # )
         # target model
         self._target_model = copy.deepcopy(self._model)
         self._target_model = model_wrap(
@@ -161,6 +160,16 @@ class ACERPolicy(Policy):
                     torch.nn.init.zeros_(m.bias)
                     m.weight.data.copy_(0.01 * m.weight.data)
 
+        # if self._cfg.model.continuous_action_space:
+        #     # Learn from the practice of sac
+        #     # Weight Init for the last output layer
+        #     init_w = self._cfg.learn.init_w
+        #     self._model.actor[1].mu.weight.data.uniform_(-init_w, init_w)
+        #     self._model.actor[1].mu.bias.data.uniform_(-init_w, init_w)
+        #     if hasattr(self._model.actor[1], 'log_sigma_param'):  # self._model.actor[1]:actor_head
+        #         self._model.actor[1].log_sigma_layer.weight.data.uniform_(-init_w, init_w)
+        #         self._model.actor[1].log_sigma_layer.bias.data.uniform_(-init_w, init_w)
+
         self._action_shape = self._cfg.model.action_shape
         self._unroll_len = self._cfg.learn.unroll_len
 
@@ -178,6 +187,14 @@ class ACERPolicy(Policy):
         # Main model
         self._learn_model.reset()
         self._target_model.reset()
+        self.train_cnt = 0
+        self._reward_running_norm = self._cfg.learn.reward_running_norm
+        self._reward_batch_norm = self._cfg.learn.reward_batch_norm
+
+        if self._reward_running_norm:
+            self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
+
+        self._ignore_done=self._cfg.learn.ignore_done
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
         """
@@ -213,6 +230,14 @@ class ACERPolicy(Policy):
                                                                   self._action_shape)  # shape T,B, or T,B,action_shape (cont)
         data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
         data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        # TODO(pu): reward norm, transform to mean 0, std 1
+        import copy
+        if self._reward_running_norm:
+            self._running_mean_std.update(data['reward'].cpu().numpy())
+            data['reward'] = (copy.deepcopy(data['reward'] )- self._running_mean_std.mean) / (self._running_mean_std.std + EPS)
+        if self._reward_batch_norm:
+            data['reward'] = (copy.deepcopy(data['reward']) - copy.deepcopy(data['reward']).mean()) / (copy.deepcopy(data['reward']).std() +  EPS)
+
         data['weight'] = torch.cat(
             data['weight'], dim=0
         ).reshape(self._unroll_len, -1) if data['weight'] else None  # shape T,B
@@ -226,8 +251,13 @@ class ACERPolicy(Policy):
                 data_list.append(list2tensor)
             data2tensor = torch.Tensor(np.array([item.cpu().numpy() for item in data_list]))
 
-            # reshape the tensor from (T, env_action_shape, B) to (T, B, env_action_shape)
-            data2tensor = data2tensor.permute(0, 2, 1)
+            if self._action_shape>1:
+                # reshape the tensor from (T, 2, B, env_action_shape,) to (T, B, env_action_shape,2)
+                data2tensor = data2tensor.permute(0, 2, 3, 1)
+            else:
+                # reshape the tensor from (T, 2, B) to (T, B, 2)
+                data2tensor = data2tensor.permute(0, 2, 1)
+
 
             data['logit_mu'] = data2tensor[..., 0].reshape(self._unroll_len, -1,
                                                            self._action_shape)  # shape T,B,env_action_shape
@@ -258,92 +288,127 @@ class ACERPolicy(Policy):
             - necessary: ``cur_lr_actor``, ``cur_lr_critic``, ``actor_loss`,``bc_loss``,``policy_loss``,\
                 ``critic_loss``,``entropy_loss``
         """
+        self.train_cnt += 1
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
-        action_data = self._learn_model.forward(data['obs_plus_1'], mode='compute_actor')  # (T+1),B,env_action_shape
-        avg_action_data = self._target_model.forward(data['obs_plus_1'], mode='compute_actor')
+        current_action_data = self._learn_model.forward({'obs': data['obs_plus_1']},
+                                                        mode='compute_actor')  # (T+1),B,env_action_shape
+        avg_action_data = self._target_model.forward({'obs': data['obs_plus_1']}, mode='compute_actor')
 
         if self._cfg.model.continuous_action_space:
-
-            target_mu, target_sigma, behaviour_mu, behaviour_sigma, avg_action_mu, avg_action_sigma, actions, rewards, weights = self._reshape_data_continuous(
-                action_data, avg_action_data, data
+            current_mu, current_sigma, behaviour_mu, behaviour_sigma, avg_action_mu, avg_action_sigma, actions, rewards, weights = self._reshape_data_continuous(
+                current_action_data, avg_action_data, data
             )
 
-            # shape (T+1),B,env_action_shape
-            target_dist = torch.distributions.normal.Normal(target_mu, target_sigma)
-            # shape T,B,env_action_shape
-            behaviour_dist = torch.distributions.normal.Normal(behaviour_mu, behaviour_sigma)
-            # shape (T+1),B,env_action_shape
-            avg_dist = torch.distributions.normal.Normal(avg_action_mu, avg_action_sigma)
+            # # shape (T+1),B,env_action_shape
+            # current_dist = torch.distributions.normal.Normal(current_mu, current_sigma)
+            # # shape T,B,env_action_shape
+            # behaviour_dist = torch.distributions.normal.Normal(behaviour_mu, behaviour_sigma)
+            # # shape (T+1),B,env_action_shape
+            # avg_dist = torch.distributions.normal.Normal(avg_action_mu, avg_action_sigma)
+
+            current_dist = Independent(Normal(current_mu, current_sigma), 1)
+            behaviour_dist = Independent(Normal(behaviour_mu, behaviour_sigma), 1)
+            avg_dist = Independent(Normal(avg_action_mu, avg_action_sigma), 1)
+
+            # action_sample = dist.rsample(sample_shape=(sample_size,))  # in case for gradient back propagation
+            # action_sample = action_sample.permute(1, 0, 2)
 
             # TODO: here we bruteforce generate a T+1 dimenstional target pi because the data['action'] is T dimention
-            # tar_act_gen = target_dist.sample()[0].reshape(1, -1, self._action_shape)
+            # cur_act_gen = current_dist.sample()[0].reshape(1, -1, self._action_shape)
             # avg_act_gen = avg_dist.sample()[0].reshape(1, -1, self._action_shape)
-            tar_act_gen = target_dist.sample()[-1].reshape(1, -1, self._action_shape)
-            avg_act_gen = avg_dist.sample()[-1].reshape(1, -1, self._action_shape)
+            cur_act_gen = current_dist.rsample()[-1].reshape(1, -1, self._action_shape)
+            avg_act_gen = avg_dist.rsample()[-1].reshape(1, -1, self._action_shape)
 
-            # tar_act_gen = target_dist.sample()
+            # cur_act_gen = current_dist.sample()
             # avg_act_gen = avg_dist.sample()
 
-            target_action_plus_1 = torch.cat((data['action'], tar_act_gen), dim=0)  # shape (T+1),B,env_action_shape
-            avg_action_plus_1 = torch.cat((data['action'], avg_act_gen), dim=0)  # shape (T+1),B,env_action_shape
+            data['action_pred'] = torch.stack(data['action_pred'], dim=0).reshape(self._unroll_len, -1, self._action_shape)
 
-            log_target_pi = target_dist.log_prob(target_action_plus_1)  # shape (T+1),B,env_action_shape
-            target_pi = torch.exp(log_target_pi)  # shape (T+1),B,env_action_shape
+            current_action_plus_1_pred = torch.cat((data['action_pred'], cur_act_gen),
+                                                   dim=0)  # shape (T+1),B,env_action_shape
+            avg_action_plus_1_pred = torch.cat((data['action_pred'], avg_act_gen),
+                                               dim=0)  # shape (T+1),B,env_action_shape
 
-            log_avg_pi = avg_dist.log_prob(avg_action_plus_1)  # shape (T+1),B,env_action_shape
+            # 1. current_pi
+            # log_current_pi = current_dist.log_prob(current_action_plus_1)  # shape (T+1),B,env_action_shape
+            tmp = torch.tanh(current_action_plus_1_pred)
+            y = 1 - tmp.pow(2) + EPS
+            # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
+            log_prob = current_dist.log_prob(current_action_plus_1_pred).unsqueeze(-1)
+            log_current_pi = log_prob - torch.log(y).sum(-1, keepdim=True)
+
+            current_pi = torch.exp(log_current_pi)  # shape (T+1),B,env_action_shape
+            # current_pi = current_pi.unsqueeze(-1)  # shape T,B,1
+
+            # 2. avg_pi
+            # log_avg_pi = avg_dist.log_prob(avg_action_plus_1_pred)  # shape (T+1),B,env_action_shape
+            tmp = torch.tanh(avg_action_plus_1_pred)
+            y = 1 - tmp.pow(2) + EPS
+            # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
+            log_prob = avg_dist.log_prob(avg_action_plus_1_pred).unsqueeze(-1)
+            log_avg_pi = log_prob - torch.log(y).sum(-1, keepdim=True)
+
             avg_pi = torch.exp(log_avg_pi)  # shape (T+1),B,env_action_shape
 
-            log_behaviour_pi = behaviour_dist.log_prob(data['action'])  # shape T,B,env_action_shape
+            # 3. behaviour_pi
+            # log_behaviour_pi = behaviour_dist.log_prob(data['action'])  # shape T,B,env_action_shape
+            # TODO(pu) data['action'] have been processed by tanh
+            tmp = torch.tanh(data['action_pred'])
+            y = 1 - tmp.pow(2) + EPS
+            # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
+            log_prob = behaviour_dist.log_prob(data['action_pred']).unsqueeze(-1)
+            log_behaviour_pi = log_prob - torch.log(y).sum(-1, keepdim=True)
+
             behaviour_pi = torch.exp(log_behaviour_pi)  # shape T,B,env_action_shape
 
+            # 4. current_pi_prime
             # shape (T+1),B, env_action_shape
-            action_prime = target_dist.sample()
-            log_target_pi_prime = target_dist.log_prob(action_prime)
-            target_pi_prime = torch.exp(log_target_pi_prime)
-            # shape T,B, env_action_shape
-            log_behaviour_pi_prime = behaviour_dist.log_prob(action_prime[0:-1, ...])
-            behaviour_pi_prime = torch.exp(log_behaviour_pi_prime)
+            action_prime_pred = current_dist.rsample()
+            # log_current_pi_prime = current_dist.log_prob(action_prime)
+            # TODO(pu)
+            tmp = torch.tanh(action_prime_pred)
+            y = 1 - tmp.pow(2) + EPS
+            log_prob = current_dist.log_prob(action_prime_pred).unsqueeze(-1)
+            log_current_pi_prime = log_prob - torch.log(y).sum(-1, keepdim=True)
+
+            current_pi_prime = torch.exp(log_current_pi_prime)  # shape T,B, env_action_shape
+
+            # 5. behaviour_pi_prime
+            # log_behaviour_pi_prime = behaviour_dist.log_prob(action_prime[0:-1, ...])
+            # TODO(pu)
+            tmp = torch.tanh(action_prime_pred[0:-1, ...])
+            y = 1 - tmp.pow(2) + EPS
+            log_prob = behaviour_dist.log_prob(action_prime_pred[0:-1, ...]).unsqueeze(-1)
+            log_behaviour_pi_prime = log_prob - torch.log(y).sum(-1, keepdim=True)
+            behaviour_pi_prime = torch.exp(log_behaviour_pi_prime)  # shape T,B,1
 
             # Reshape the tensor from (T, B, N) to (T*B, N) to match the SDN head computation
-            obs_data_view = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
-            target_action_view = target_action_plus_1.view(-1, target_action_plus_1.shape[-1])  # (T+1)*B, 1
+            obs_data = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
+            current_action_pred = current_action_plus_1_pred.view(-1,
+                                                                  current_action_plus_1_pred.shape[-1])  # (T+1)*B, 1
+            current_action = torch.tanh(current_action_pred)
 
-            # mu_t = (torch.unsqueeze(mu_t, 1)).expand(
-            #     (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
-            # sigma_t = (torch.unsqueeze(sigma_t, 1)).expand(
-            #     (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
-            #
-            # expand_s = (torch.unsqueeze(s, 1)).expand(
-            #     (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
-            # action_sample = torch.normal(mu_t, sigma_t)  # size (B, sample_size, action_size)
+            q_value_data = self._learn_model.forward({'obs': obs_data, 'action': current_action},
+                                                     mode='compute_critic')  # (T+1)*B,1
 
-            q_value_data = self._learn_model.forward(obs_data_view, mode='compute_critic',
-                                                     action=target_action_view)  # (T+1)*B,1
             #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
-            q_values = q_value_data['q_value'].reshape(
-                self._unroll_len + 1, -1, 1
-            )  # shape (T+1),B,1
+            q_values = q_value_data['q_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
             #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
-            v_values = q_value_data['v_value'].reshape(
-                self._unroll_len + 1, -1, 1
-            )  # shape (T+1),B,1
-
-
+            v_values = q_value_data['v_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
         else:  # discrete case
 
-            target_logit, behaviour_logit, avg_logit, actions, rewards, weights = self._reshape_data(
-                action_data, avg_action_data, data
+            current_logit, behaviour_logit, avg_logit, actions, rewards, weights = self._reshape_data(
+                current_action_data, avg_action_data, data
             )
-
-            q_value_data = self._learn_model.forward(data['obs_plus_1'],
+            q_value_data = self._learn_model.forward({'obs': data['obs_plus_1']},
                                                      mode='compute_critic')  # (T+1),B,env_action_shape
             q_values = q_value_data['q_value'].reshape(
                 self._unroll_len + 1, -1, self._action_shape
             )  # shape (T+1),B,env_action_shape
 
             # shape (T+1),B,env_action_shape
-            target_pi = torch.softmax(target_logit, dim=-1)
+            current_pi = torch.softmax(current_logit, dim=-1)
             # shape T,B,env_action_shape
             behaviour_pi = torch.softmax(behaviour_logit, dim=-1)
             # shape (T+1),B,env_action_shape
@@ -351,28 +416,34 @@ class ACERPolicy(Policy):
 
         with torch.no_grad():
             # shape (T+1),B,1
-            # v_pred = (q_values * target_pi).sum(-1).unsqueeze(-1)
-            v_pred = v_values  # TODO(pu)
+            # v_pred = (q_values * current_pi).sum(-1).unsqueeze(-1)
             # shape T,B,env_action_shape
-            ratio = target_pi[0:-1, ...] / (behaviour_pi + EPS)
+            ratio = current_pi[0:-1, ...] / (behaviour_pi + EPS)
 
             if self._cfg.model.continuous_action_space:
                 ratio_dim = torch.pow(ratio, 1 / self._action_shape)  # T,B,env_action_shape
-                ratio_prime = target_pi_prime[0:-1, ...] / (behaviour_pi_prime + EPS)  # T,B,env_action_shape
+                # ratio_dim = ratio_dim.unsqueeze(-1)  # shape T,B,1
+
+                ratio_prime = current_pi_prime[0:-1, ...] / (behaviour_pi_prime + EPS)  # T,B,env_action_shape
+                # ratio_prime = current_pi_prime / (behaviour_pi_prime + EPS)  # T,B,env_action_shape
+
                 # Calculate retrace
                 # q_retraces = compute_q_retraces_continuous(q_values, v_pred, rewards, weights, ratio_dim, self._gamma)
-                q_retraces = compute_q_retraces_continuous(q_values, v_pred, rewards, weights, ratio_dim, self._gamma)
+                q_retraces = compute_q_retraces_continuous(q_values, v_values, rewards, weights, ratio_dim, self._gamma)
 
                 # Calculate opc
-                q_opc = compute_q_opc(q_values, v_pred, rewards, actions, weights, self._gamma)
+                q_opc = compute_q_opc(q_values, v_values, rewards, actions, weights, self._gamma)
 
                 # Reshape the tensor from (T, B, N) to (B', N) to match the SDN head computation
-                obs_data_view = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
-                action_prime_view = action_prime.view(-1, action_prime.shape[-1])  # (T+1)*B, 1
+                obs_data = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
+                action_prime_pred = action_prime_pred.view(-1, action_prime_pred.shape[-1])  # (T+1)*B, 1
+                action_prime = torch.tanh(action_prime_pred)
 
                 # Calculate q_value_data_prime
-                q_value_data_prime = self._learn_model.forward(obs_data_view, mode='compute_critic',
-                                                               action=action_prime_view, )  # (T+1)*B,1
+                q_value_data_prime = self._learn_model.forward({'obs': obs_data, 'action': action_prime},
+                                                               mode='compute_critic')  # (T+1)*B,1
+                # q_value_data_prime = self._learn_model.forward(obs_data, mode='compute_critic',
+                #                                                action=action_prime, )  # (T+1)*B,1
                 #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
                 q_values_prime = q_value_data_prime['q_value'].reshape(
                     self._unroll_len + 1, -1, 1
@@ -380,19 +451,19 @@ class ACERPolicy(Policy):
             else:
 
                 # Calculate retrace
-                q_retraces = compute_q_retraces(q_values, v_pred, rewards, actions, weights, ratio, self._gamma)
+                q_retraces = compute_q_retraces(q_values, v_values, rewards, actions, weights, ratio, self._gamma)
 
         # the terminal states' weights are 0. it needs to be shift to count valid state
-        weights_ext = torch.ones_like(weights)
-        weights_ext[1:] = weights[0:-1]
-        weights = weights_ext
+        # weights_ext = torch.ones_like(weights)
+        # weights_ext[1:] = weights[0:-1]
+        # weights = weights_ext
         q_retraces = q_retraces[0:-1]  # shape T,B,1
         q_opc = q_opc[0:-1]  # T,B,1
         q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
         q_values_prime = q_values_prime[0:-1]  # shape T,B,1
-        v_pred = v_pred[0:-1]  # shape T,B,1
-        target_pi = target_pi[0:-1]  # shape T,B,env_action_shape
-        target_pi_prime = target_pi_prime[0:-1]  # shape T,B,env_action_shape
+        v_values = v_values[0:-1]  # shape T,B,1
+        current_pi = current_pi[0:-1]  # shape T,B,env_action_shape
+        current_pi_prime = current_pi_prime[0:-1]  # shape T,B,env_action_shape
         avg_pi = avg_pi[0:-1]  # shape T,B,env_action_shape
         total_valid = weights.sum()  # 1
         # ====================
@@ -400,49 +471,53 @@ class ACERPolicy(Policy):
         # ====================
         if self._cfg.model.continuous_action_space:
             actor_loss, bc_loss = acer_policy_error_continuous(
-                q_values_prime, q_opc, v_pred, target_pi, target_pi_prime, ratio, ratio_prime, self._c_clip_ratio
+                q_values_prime, q_opc, v_values, current_pi, current_pi_prime, ratio, ratio_prime, self._c_clip_ratio
             )
-            dist_new = torch.distributions.normal.Normal(target_mu[:-1], target_sigma[:-1])
+            # dist_new = torch.distributions.normal.Normal(current_mu[:-1], current_sigma[:-1])
+            dist_new = Independent(Normal(current_mu[:-1], current_sigma[:-1]), 1)
+
         else:
             actor_loss, bc_loss = acer_policy_error(
-                q_values, q_retraces, v_pred, target_pi, actions, ratio, self._c_clip_ratio
+                q_values, q_retraces, v_values, current_pi, actions, ratio, self._c_clip_ratio
             )
-            dist_new = torch.distributions.categorical.Categorical(probs=target_pi)
+            dist_new = torch.distributions.categorical.Categorical(probs=current_pi)
 
         actor_loss = actor_loss * weights.unsqueeze(-1)
         bc_loss = bc_loss * weights.unsqueeze(-1)
-        # entropy_loss = (dist_new.entropy().unsqueeze(-1) * weights).unsqueeze(-1)  # shape T,B,1
+        entropy_loss = (dist_new.entropy() * weights).unsqueeze(-1)
+        if self._cfg.model.continuous_action_space:
+            actor_update_freq = 1
+        else:
+            actor_update_freq = 1
 
-        entropy_loss = dist_new.entropy() * weights.unsqueeze(-1)  # shape T,B,1 TODO(pu)
+        if self.train_cnt % actor_update_freq == 0:
+            total_actor_loss = (actor_loss + bc_loss + self._entropy_weight * entropy_loss).sum() / total_valid
+            self._optimizer_actor.zero_grad()
+            actor_gradients = torch.autograd.grad(-total_actor_loss, current_pi, retain_graph=True)
 
-        total_actor_loss = (actor_loss + bc_loss + self._entropy_weight * entropy_loss).sum() / total_valid
-        self._optimizer_actor.zero_grad()
-        actor_gradients = torch.autograd.grad(-total_actor_loss, target_pi, retain_graph=True)
-
-        if self._use_trust_region:
-            actor_gradients = acer_trust_region_update(actor_gradients, target_pi, avg_pi, self._trust_region_value)
-        target_pi.backward(actor_gradients)
-        self._optimizer_actor.step()
+            if self._use_trust_region:
+                actor_gradients = acer_trust_region_update(actor_gradients, current_pi, avg_pi,
+                                                           self._trust_region_value)
+            current_pi.backward(actor_gradients, retain_graph=True)
+            self._optimizer_actor.step()
+        else:
+            total_actor_loss = torch.Tensor([0])
 
         # ====================
         # critic update
         # ====================
 
         if self._cfg.model.continuous_action_space:
-            q_value_data = self._learn_model.forward(obs_data_view, mode='compute_critic',
-                                                     action=target_action_view)  # (T+1)*B,1
-            #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
-            q_values = q_value_data['q_value'].reshape(
-                self._unroll_len + 1, -1, 1
-            )  # shape (T+1),B,1
+            q_value_data = self._learn_model.forward({'obs': obs_data, 'action': current_action.clone().detach()},
+                                                     mode='compute_critic')  # (T+1)*B,1
+            # Restore the shape from (T+1)*B, 1 to (T+1), B, 1
+            q_values = q_value_data['q_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
+            v_values = q_value_data['v_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
             q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
+            v_values = v_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
 
-            # critic_loss = (acer_value_error_continuous(q_values, q_retraces, ratio) * weights.unsqueeze(
-            #     -1)).sum() / total_valid
-
-            critic_loss = (acer_value_error_continuous(q_values, v_pred, q_retraces, ratio) * weights.unsqueeze(
-                -1)).sum() / total_valid
-
+            critic_loss = (acer_value_error_continuous(q_values, v_values, q_retraces.clone().detach(),
+                                                      ratio.clone().detach()) * weights.unsqueeze(-1)).mean() / total_valid
         else:
             critic_loss = (acer_value_error(q_values, q_retraces, actions) * weights.unsqueeze(-1)).sum() / total_valid
 
@@ -461,7 +536,7 @@ class ACERPolicy(Policy):
         self._target_model.update(self._learn_model.state_dict())
 
         with torch.no_grad():
-            kl_div = avg_pi * ((avg_pi + EPS).log() - (target_pi + EPS).log())
+            kl_div = avg_pi * ((avg_pi + EPS).log() - (current_pi + EPS).log())
             kl_div = (kl_div.sum(-1) * weights).sum() / total_valid
 
         return {
@@ -490,10 +565,10 @@ class ACERPolicy(Policy):
              Values are torch.Tensor or np.ndarray or dict/list combinations. Keys includes at \
              least ['logit', 'action', 'reward', 'done',]
         Returns:
-            - data (:obj:`Tuple[Any]`): Tuple of target_logit, behaviour_logit, actions, \
+            - data (:obj:`Tuple[Any]`): Tuple of current_logit, behaviour_logit, actions, \
              values, rewards, weights
         ReturnsShapes:
-            - target_logit (:obj:`torch.FloatTensor`): :math:`((T+1), B, Obs_Shape)`, where T is timestep,\
+            - current_logit (:obj:`torch.FloatTensor`): :math:`((T+1), B, Obs_Shape)`, where T is timestep,\
              B is batch size and Obs_Shape is the shape of single env observation.
             - behaviour_logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim.
             - avg_action_logit (:obj:`torch.FloatTensor`): :math: `(T+1, B, N)`, where N is action dim.
@@ -501,7 +576,7 @@ class ACERPolicy(Policy):
             - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
             - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        target_logit = action_data['logit'].reshape(
+        current_logit = action_data['logit'].reshape(
             self._unroll_len + 1, -1, self._action_shape
         )  # shape (T+1),B,env_action_shape
         behaviour_logit = data['logit']  # shape T,B,env_action_shape
@@ -511,10 +586,13 @@ class ACERPolicy(Policy):
         actions = data['action']  # shape T,B
 
         rewards = data['reward']  # shape T,B
-        weights_ = 1 - data['done']  # shape T,B
-        weights = torch.ones_like(rewards)  # shape T,B
-        weights = weights_
-        return target_logit, behaviour_logit, avg_action_logit, actions, rewards, weights
+        if self._ignore_done:
+            weights = torch.ones_like(rewards)  # shape T,B
+        else:
+            weights_ = 1 - data['done']  # shape T,B
+            weights = weights_
+
+        return current_logit, behaviour_logit, avg_action_logit, actions, rewards, weights
 
     def _reshape_data_continuous(
             self, action_data: Dict[str, Any], avg_action_data: Dict[str, Any],
@@ -531,10 +609,10 @@ class ACERPolicy(Policy):
              Values are torch.Tensor or np.ndarray or dict/list combinations. Keys includes at \
              least ['logit', 'action', 'reward', 'done',]
         Returns:
-            - data (:obj:`Tuple[Any]`): Tuple of target_logit, behaviour_logit, actions, \
+            - data (:obj:`Tuple[Any]`): Tuple of current_logit, behaviour_logit, actions, \
              values, rewards, weights
         ReturnsShapes:
-            - target_logit (:obj:`torch.FloatTensor`): :math:`((T+1), B, act_shape)`, where T is timestep,\
+            - current_logit (:obj:`torch.FloatTensor`): :math:`((T+1), B, act_shape)`, where T is timestep,\
              B is batch size
             - behaviour_logit (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where N is action dim.
             - avg_action_logit (:obj:`torch.FloatTensor`): :math: `(T+1, B, N)`, where N is action dim.
@@ -543,15 +621,16 @@ class ACERPolicy(Policy):
             - rewards (:obj:`torch.FloatTensor`): :math:`(T, B)`
             - weights (:obj:`torch.FloatTensor`): :math:`(T, B)`
         """
-        target_mu = action_data['logit'][0].reshape(
+        current_mu = action_data['logit'][0].reshape(
             self._unroll_len + 1, -1, self._action_shape
         )  # shape (T+1),B,env_action_shape
-        target_sigma = action_data['logit'][1].reshape(
+        current_sigma = action_data['logit'][1].reshape(
             self._unroll_len + 1, -1, self._action_shape
         )  # shape (T+1),B,env_action_shape
 
         behaviour_mu = data['logit_mu']  # shape T,B,env_action_shape
         behaviour_sigma = data['logit_sigma']  # shape T,B,env_action_shape
+
         avg_action_mu = avg_action_data['logit'][0].reshape(
             self._unroll_len + 1, -1, self._action_shape
         )  # shape (T+1),B,env_action_shape
@@ -562,10 +641,14 @@ class ACERPolicy(Policy):
         actions = data['action']  # shape T,B or (cont)T,B,action_shape
 
         rewards = data['reward']  # shape T,B
-        weights_ = 1 - data['done']  # shape T,B
-        weights = torch.ones_like(rewards)  # shape T,B
-        weights = weights_
-        return target_mu, target_sigma, behaviour_mu, behaviour_sigma, avg_action_mu, avg_action_sigma, actions, rewards, weights
+
+        if self._ignore_done:
+            weights = torch.ones_like(rewards)  # shape T,B
+        else:
+            weights_ = 1 - data['done']  # shape T,B
+            weights = weights_
+
+        return current_mu, current_sigma, behaviour_mu, behaviour_sigma, avg_action_mu, avg_action_sigma, actions, rewards, weights
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         r"""
@@ -632,9 +715,9 @@ class ACERPolicy(Policy):
         self._collect_model.eval()
         with torch.no_grad():
             if self._cfg.model.continuous_action_space:
-                output = self._collect_model.forward(self._cfg.model.noise_ratio, data, mode='compute_actor')
+                output = self._collect_model.forward(self._cfg.model.noise_ratio, {'obs': data}, mode='compute_actor')
             else:
-                output = self._collect_model.forward(data, mode='compute_actor')
+                output = self._collect_model.forward({'obs': data}, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -671,14 +754,25 @@ class ACERPolicy(Policy):
                - transition (:obj:`dict`): Dict type transition data, including at least ['obs','next_obs', 'logit',\
                'action','reward', 'done']
         """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'logit': policy_output['logit'],
-            'action': policy_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
+        if self._cfg.model.continuous_action_space:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'logit': policy_output['logit'],
+                'action_pred': policy_output['action_pred'],  # before tanh
+                'action': policy_output['action'],  # after tanh
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        else:
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'logit': policy_output['logit'],
+                'action': policy_output['action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         return transition
 
     def _init_eval(self) -> None:
@@ -689,9 +783,7 @@ class ACERPolicy(Policy):
             For continuous action, we pass the mu to tanh funtion and got actions
         """
         if self._cfg.model.continuous_action_space:
-            # self._eval_model = model_wrap(self._model, wrapper_name='tanh_sample')
-            self._eval_model = model_wrap(self._model, wrapper_name='mu_sample')  # TODO(pu)
-
+            self._eval_model = model_wrap(self._model, wrapper_name='tanh_sample')
         else:
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._eval_model.reset()
@@ -717,7 +809,7 @@ class ACERPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, mode='compute_actor')
+            output = self._eval_model.forward({'obs': data}, tanh_squash=True, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -737,4 +829,4 @@ class ACERPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return ['actor_loss', 'bc_loss', 'entropy_loss','total_actor_loss', 'critic_loss',  'kl_div']
+        return ['actor_loss', 'bc_loss', 'entropy_loss', 'total_actor_loss', 'critic_loss', 'kl_div']

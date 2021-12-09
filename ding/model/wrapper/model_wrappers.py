@@ -7,6 +7,7 @@ from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
 from ding.torch_utils.math_helper import OrnsteinUhlenbeckProcess
 from torch.distributions import Categorical
+from torch.distributions import Normal, Independent
 
 
 class IModelWrapper(ABC):
@@ -177,6 +178,7 @@ class ArgmaxSampleWrapper(IModelWrapper):
         output['action'] = action
         return output
 
+
 class TanhSampleWrapper(IModelWrapper):
     r"""
     Overview:
@@ -184,26 +186,16 @@ class TanhSampleWrapper(IModelWrapper):
     """
 
     def forward(self, *args, **kwargs):
+        tanh_squash = kwargs.pop('tanh_squash')
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         (mu, sigma) = output['logit']
-        action = torch.tanh(mu)  # deterministic_eval
-        output['action'] = action
+        if tanh_squash is True:
+            output['action'] = torch.tanh(mu)  # deterministic_eval
+        else:
+            output['action'] = mu
         return output
 
-class MuSampleWrapper(IModelWrapper):
-    r"""
-    Overview:
-        Used to help the model to sample action via tanh funtion
-    """
-
-    def forward(self, *args, **kwargs):
-        output = self._model.forward(*args, **kwargs)
-        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-        (mu, sigma) = output['logit']
-        # action = torch.tanh(mu)  # deterministic_eval
-        output['action'] = mu
-        return output
 
 class HybridArgmaxSampleWrapper(IModelWrapper):
     r"""
@@ -259,32 +251,35 @@ class MultinomialSampleWrapper(IModelWrapper):
         output['action'] = action
         return output
 
+
 class NormalNoisySampleWrapper(IModelWrapper):
-    
     r"""
     Overview:
         Used to helper the model get the corresponding action from the output['mu','sigma']
     Interfaces:
         register
     """
+
     def forward(self, noise_ratio: float = 0.1, *args, **kwargs):
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         (mu, sigma) = output['logit']
-        OUProcessNoise = OrnsteinUhlenbeckProcess()
-        batch_size = mu.shape[0]
-        action_size = mu.shape[1]
-        action_sample = torch.normal(mu, sigma)
-        noise = OUProcessNoise.sample((batch_size,action_size)) # size (B, action_size)
+        # OUProcessNoise = OrnsteinUhlenbeckProcess()
+        # batch_size = mu.shape[0]
+        # action_size = mu.shape[1]
+        # action_sample = torch.normal(mu, sigma)
+        # sigma = torch.clamp(sigma, 0, 2)  #  TODO(pu)
+        # size (B, action_size)
+        # noise = OUProcessNoise.sample((batch_size, action_size))
         # noise_action_sample size (B, action_size)
-        noise_action_sample = noise_ratio * noise + (1. - noise_ratio) * action_sample
+        # noise_action_sample = noise_ratio * noise + (1. - noise_ratio) * action_sample
+        # output['action'] = noise_action_sample
+        dist = Independent(Normal(mu.unsqueeze(-1), sigma.unsqueeze(-1)), 1)
+        action_sample = dist.rsample()
+        output['action_pred'] = action_sample.squeeze(-1)
+        action_sample = torch.tanh(action_sample).squeeze(-1)
+        output['action'] = action_sample
 
-        # # scaled_action_sample size (B, action_size)
-        # scaled_action_sample = -1 + 2*torch.sigmoid(noise_action_sample) # (-1,1) wrong should be [-2,2]
-        # output['action'] = scaled_action_sample
-        # return output
-
-        output['action'] = noise_action_sample
         return output
 
 
@@ -632,12 +627,12 @@ class TeacherNetworkWrapper(IModelWrapper):
         super().__init__(model)
         self._model._teacher_cfg = teacher_cfg
 
+
 wrapper_name_map = {
     'base': BaseModelWrapper,
     'hidden_state': HiddenStateWrapper,
     'argmax_sample': ArgmaxSampleWrapper,
     'tanh_sample': TanhSampleWrapper,
-    'mu_sample': MuSampleWrapper,
     'hybrid_argmax_sample': HybridArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
     'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
