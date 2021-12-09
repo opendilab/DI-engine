@@ -141,7 +141,7 @@ class ACERPolicy(Policy):
         # learn model
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
-        if self._cfg.model.continuous_action_space:
+        if self._cfg.continuous:
             # Learn from the practice of ppo
             # init log sigma
             if hasattr(self._model.actor[1], 'log_sigma_param'):  # self._model.actor[1]:actor_head
@@ -160,7 +160,7 @@ class ACERPolicy(Policy):
                     torch.nn.init.zeros_(m.bias)
                     m.weight.data.copy_(0.01 * m.weight.data)
 
-        # if self._cfg.model.continuous_action_space:
+        # if self._cfg.continuous:
         #     # Learn from the practice of sac
         #     # Weight Init for the last output layer
         #     init_w = self._cfg.learn.init_w
@@ -194,7 +194,7 @@ class ACERPolicy(Policy):
         if self._reward_running_norm:
             self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
 
-        self._ignore_done=self._cfg.learn.ignore_done
+        self._ignore_done = self._cfg.learn.ignore_done
 
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]):
         """
@@ -234,14 +234,16 @@ class ACERPolicy(Policy):
         import copy
         if self._reward_running_norm:
             self._running_mean_std.update(data['reward'].cpu().numpy())
-            data['reward'] = (copy.deepcopy(data['reward'] )- self._running_mean_std.mean) / (self._running_mean_std.std + EPS)
+            data['reward'] = (copy.deepcopy(data['reward']) - self._running_mean_std.mean) / (
+                    self._running_mean_std.std + EPS)
         if self._reward_batch_norm:
-            data['reward'] = (copy.deepcopy(data['reward']) - copy.deepcopy(data['reward']).mean()) / (copy.deepcopy(data['reward']).std() +  EPS)
+            data['reward'] = (copy.deepcopy(data['reward']) - copy.deepcopy(data['reward']).mean()) / (
+                    copy.deepcopy(data['reward']).std() + EPS)
 
         data['weight'] = torch.cat(
             data['weight'], dim=0
         ).reshape(self._unroll_len, -1) if data['weight'] else None  # shape T,B
-        if self._cfg.model.continuous_action_space:
+        if self._cfg.continuous:
             # change a nested list&tensor structure to pure tensor form
             data_list = []
             print(data['logit'])
@@ -251,13 +253,12 @@ class ACERPolicy(Policy):
                 data_list.append(list2tensor)
             data2tensor = torch.Tensor(np.array([item.cpu().numpy() for item in data_list]))
 
-            if self._action_shape>1:
+            if self._action_shape > 1:
                 # reshape the tensor from (T, 2, B, env_action_shape,) to (T, B, env_action_shape,2)
                 data2tensor = data2tensor.permute(0, 2, 3, 1)
             else:
                 # reshape the tensor from (T, 2, B) to (T, B, 2)
                 data2tensor = data2tensor.permute(0, 2, 1)
-
 
             data['logit_mu'] = data2tensor[..., 0].reshape(self._unroll_len, -1,
                                                            self._action_shape)  # shape T,B,env_action_shape
@@ -295,8 +296,8 @@ class ACERPolicy(Policy):
                                                         mode='compute_actor')  # (T+1),B,env_action_shape
         avg_action_data = self._target_model.forward({'obs': data['obs_plus_1']}, mode='compute_actor')
 
-        if self._cfg.model.continuous_action_space:
-            current_mu, current_sigma, behaviour_mu, behaviour_sigma, avg_action_mu, avg_action_sigma, actions, rewards, weights = self._reshape_data_continuous(
+        if self._cfg.continuous:
+            current_mu, current_sigma, behaviour_mu, behaviour_sigma, avg_mu, avg_action_sigma, actions, rewards, weights = self._reshape_data_continuous(
                 current_action_data, avg_action_data, data
             )
 
@@ -305,11 +306,11 @@ class ACERPolicy(Policy):
             # # shape T,B,env_action_shape
             # behaviour_dist = torch.distributions.normal.Normal(behaviour_mu, behaviour_sigma)
             # # shape (T+1),B,env_action_shape
-            # avg_dist = torch.distributions.normal.Normal(avg_action_mu, avg_action_sigma)
+            # avg_dist = torch.distributions.normal.Normal(avg_mu, avg_action_sigma)
 
             current_dist = Independent(Normal(current_mu, current_sigma), 1)
             behaviour_dist = Independent(Normal(behaviour_mu, behaviour_sigma), 1)
-            avg_dist = Independent(Normal(avg_action_mu, avg_action_sigma), 1)
+            avg_dist = Independent(Normal(avg_mu, avg_action_sigma), 1)
 
             # action_sample = dist.rsample(sample_shape=(sample_size,))  # in case for gradient back propagation
             # action_sample = action_sample.permute(1, 0, 2)
@@ -323,7 +324,8 @@ class ACERPolicy(Policy):
             # cur_act_gen = current_dist.sample()
             # avg_act_gen = avg_dist.sample()
 
-            data['action_pred'] = torch.stack(data['action_pred'], dim=0).reshape(self._unroll_len, -1, self._action_shape)
+            data['action_pred'] = torch.stack(data['action_pred'], dim=0).reshape(self._unroll_len, -1,
+                                                                                  self._action_shape)
 
             current_action_plus_1_pred = torch.cat((data['action_pred'], cur_act_gen),
                                                    dim=0)  # shape (T+1),B,env_action_shape
@@ -420,7 +422,7 @@ class ACERPolicy(Policy):
             # shape T,B,env_action_shape
             ratio = current_pi[0:-1, ...] / (behaviour_pi + EPS)
 
-            if self._cfg.model.continuous_action_space:
+            if self._cfg.continuous:
                 ratio_dim = torch.pow(ratio, 1 / self._action_shape)  # T,B,env_action_shape
                 # ratio_dim = ratio_dim.unsqueeze(-1)  # shape T,B,1
 
@@ -469,7 +471,7 @@ class ACERPolicy(Policy):
         # ====================
         # policy update
         # ====================
-        if self._cfg.model.continuous_action_space:
+        if self._cfg.continuous:
             actor_loss, bc_loss = acer_policy_error_continuous(
                 q_values_prime, q_opc, v_values, current_pi, current_pi_prime, ratio, ratio_prime, self._c_clip_ratio
             )
@@ -485,7 +487,7 @@ class ACERPolicy(Policy):
         actor_loss = actor_loss * weights.unsqueeze(-1)
         bc_loss = bc_loss * weights.unsqueeze(-1)
         entropy_loss = (dist_new.entropy() * weights).unsqueeze(-1)
-        if self._cfg.model.continuous_action_space:
+        if self._cfg.continuous:
             actor_update_freq = 1
         else:
             actor_update_freq = 1
@@ -507,7 +509,7 @@ class ACERPolicy(Policy):
         # critic update
         # ====================
 
-        if self._cfg.model.continuous_action_space:
+        if self._cfg.continuous:
             q_value_data = self._learn_model.forward({'obs': obs_data, 'action': current_action.clone().detach()},
                                                      mode='compute_critic')  # (T+1)*B,1
             # Restore the shape from (T+1)*B, 1 to (T+1), B, 1
@@ -517,7 +519,8 @@ class ACERPolicy(Policy):
             v_values = v_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
 
             critic_loss = (acer_value_error_continuous(q_values, v_values, q_retraces.clone().detach(),
-                                                      ratio.clone().detach()) * weights.unsqueeze(-1)).mean() / total_valid
+                                                       ratio.clone().detach()) * weights.unsqueeze(
+                -1)).mean() / total_valid
         else:
             critic_loss = (acer_value_error(q_values, q_retraces, actions) * weights.unsqueeze(-1)).sum() / total_valid
 
@@ -547,7 +550,13 @@ class ACERPolicy(Policy):
             'entropy_loss': (entropy_loss.sum() / total_valid).item(),
             'total_actor_loss': total_actor_loss.item(),
             'critic_loss': critic_loss.item(),
-            'kl_div': kl_div.item()
+            'kl_div': kl_div.item(),
+            'q_values': (q_values.sum() / total_valid).item(),
+            'v_values': (v_values.sum() / total_valid).item(),
+            # take the the fist timestep, the fist action dim
+            'current_mu': ((current_mu[:-1] * weights.unsqueeze(-1))[0, :, 0].sum() / self.cfg.learn.batch_size).item(),
+            'behaviour_mu': ((behaviour_mu * weights.unsqueeze(-1))[0, :, 0].sum() / self.cfg.learn.batch_size).item(),
+            'avg_mu': ((avg_mu[:-1] * weights.unsqueeze(-1))[0, :, 0].sum() / self.cfg.learn.batch_size).item(),
         }
 
     def _reshape_data(
@@ -631,7 +640,7 @@ class ACERPolicy(Policy):
         behaviour_mu = data['logit_mu']  # shape T,B,env_action_shape
         behaviour_sigma = data['logit_sigma']  # shape T,B,env_action_shape
 
-        avg_action_mu = avg_action_data['logit'][0].reshape(
+        avg_mu = avg_action_data['logit'][0].reshape(
             self._unroll_len + 1, -1, self._action_shape
         )  # shape (T+1),B,env_action_shape
         avg_action_sigma = avg_action_data['logit'][1].reshape(
@@ -648,7 +657,7 @@ class ACERPolicy(Policy):
             weights_ = 1 - data['done']  # shape T,B
             weights = weights_
 
-        return current_mu, current_sigma, behaviour_mu, behaviour_sigma, avg_action_mu, avg_action_sigma, actions, rewards, weights
+        return current_mu, current_sigma, behaviour_mu, behaviour_sigma, avg_mu, avg_action_sigma, actions, rewards, weights
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         r"""
@@ -689,7 +698,7 @@ class ACERPolicy(Policy):
                 and then add some noise to the action via OU process)
         """
         self._collect_unroll_len = self._cfg.collect.unroll_len
-        if self._cfg.model.continuous_action_space:
+        if self._cfg.continuous:
             self._collect_model = model_wrap(self._model, wrapper_name='normal_noisy_sample')
         else:
             self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
@@ -714,7 +723,7 @@ class ACERPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            if self._cfg.model.continuous_action_space:
+            if self._cfg.continuous:
                 output = self._collect_model.forward(self._cfg.model.noise_ratio, {'obs': data}, mode='compute_actor')
             else:
                 output = self._collect_model.forward({'obs': data}, mode='compute_actor')
@@ -754,7 +763,7 @@ class ACERPolicy(Policy):
                - transition (:obj:`dict`): Dict type transition data, including at least ['obs','next_obs', 'logit',\
                'action','reward', 'done']
         """
-        if self._cfg.model.continuous_action_space:
+        if self._cfg.continuous:
             transition = {
                 'obs': obs,
                 'next_obs': timestep.obs,
@@ -782,7 +791,7 @@ class ACERPolicy(Policy):
             For discrete action, use argmax_sample to choose action.
             For continuous action, we pass the mu to tanh funtion and got actions
         """
-        if self._cfg.model.continuous_action_space:
+        if self._cfg.continuous:
             self._eval_model = model_wrap(self._model, wrapper_name='tanh_sample')
         else:
             self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
@@ -829,4 +838,5 @@ class ACERPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return ['actor_loss', 'bc_loss', 'entropy_loss', 'total_actor_loss', 'critic_loss', 'kl_div']
+        return ['actor_loss', 'bc_loss', 'entropy_loss', 'total_actor_loss', 'critic_loss', 'kl_div', 'q_values',
+                'v_values', 'current_mu', 'behaviour_mu', 'avg_mu']
