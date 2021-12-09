@@ -73,7 +73,7 @@ lunarlander_acer_config = dict(
             # reward_batch_norm=False,
         ),
         collect=dict(
-            n_sample=16,
+            n_sample=128,
             # n_sample=32,
             unroll_len=50,
             # unroll_len=32,

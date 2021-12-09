@@ -4,6 +4,7 @@ import copy
 
 import torch
 import numpy as np
+from torch.functional import Tensor
 from ding import model
 from ding.model import model_wrap
 from ding.rl_utils import get_train_sample, compute_q_retraces, compute_q_opc, acer_policy_error, \
@@ -224,12 +225,41 @@ class ACERPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
-        # shape (T+1)*B,env_obs_shape
-        data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)
-        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1,
+        
+        # observation
+        if isinstance(data['obs'], list):
+            data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1), B,env_obs_shape
+        elif isinstance(data['obs'], Tensor):
+            data['obs_plus_1'] = torch.cat((data['obs'], data['next_obs'][-1:]), dim=0)  # shape (T+1), B,env_obs_shape
+        else:
+            raise RuntimeError("Only support list or Tensor type observation format")
+
+        # action
+        if isinstance(data['action'], list):
+            data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1,
                                                                   self._action_shape)  # shape T,B, or T,B,action_shape (cont)
-        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
-        data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        elif isinstance(data['action'], Tensor):
+            data['action'] = data['action'].reshape(self._unroll_len, -1,
+                                                                  self._action_shape)  # shape T,B, or T,B,action_shape (cont)
+        else:
+            raise RuntimeError("Only support list or Tensor type action format")
+
+        # done
+        if isinstance(data['done'], list):
+            data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
+        elif isinstance(data['done'], Tensor):
+            data['done'] = data['done'].reshape(self._unroll_len, -1).float()  # shape T,B,
+        else:
+            raise RuntimeError("Only support list or Tensor type")
+        
+        # reward
+        if isinstance(data['reward'], list):
+            data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
+        elif isinstance(data['reward'], Tensor):
+            data['reward'] = data['reward'].reshape(self._unroll_len, -1)  # shape T,B,
+        else:
+            raise RuntimeError("Only support list or Tensor type")
+
         # TODO(pu): reward norm, transform to mean 0, std 1
         import copy
         if self._reward_running_norm:
@@ -246,8 +276,6 @@ class ACERPolicy(Policy):
         if self._cfg.continuous:
             # change a nested list&tensor structure to pure tensor form
             data_list = []
-            print(data['logit'])
-            print(data['logit'][1].shape)
             for i in range(len(data['logit'])):
                 list2tensor = torch.Tensor(np.array([item.cpu().numpy() for item in data['logit'][i]]))
                 data_list.append(list2tensor)

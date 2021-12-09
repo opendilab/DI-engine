@@ -630,11 +630,6 @@ class StochasticDuelingHead(nn.Module):
         v_value = self.V(s)  # size (B,1)
         expand_s = (torch.unsqueeze(s, 1)).expand(
             (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
-<<<<<<< HEAD
-        action_sample = Independent(Normal(mu_t, sigma_t), 1)  # size (B, sample_size, action_size)
-        action_sample = action_sample.sample()
-        
-=======
 
         # mu_t = (torch.unsqueeze(mu_t, 1)).expand(
         #     (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
@@ -649,7 +644,6 @@ class StochasticDuelingHead(nn.Module):
         # 20,3264,2->3264,20,2  (sample_size, B, action_size)->(B, sample_size, action_size)
         action_sample = action_sample.permute(1, 0, 2)
 
->>>>>>> cc723f9d1c0de2ca0ac55e70afc610bea71de04c
         state_cat_action_sample = torch.cat((expand_s, action_sample),
                                             dim=-1)  # size (B, sample_size, action_size + hidden_size)
         a_val_sample = self.A(state_cat_action_sample)  # size (B, sample_size, 1)
