@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Callable, Optional, List
+from typing import Any, Tuple, Callable, Optional, List, Dict
 from abc import ABC
 
 import numpy as np
@@ -6,6 +6,7 @@ import torch
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
 from torch.distributions import Categorical
+from ding.utils.data import default_collate
 
 
 class IModelWrapper(ABC):
@@ -70,7 +71,7 @@ class BaseModelWrapper(IModelWrapper):
 class HiddenStateWrapper(IModelWrapper):
 
     def __init__(
-            self, model: Any, state_num: int, save_prev_state: bool = False, init_fn: Callable = lambda: None
+            self, model: Any, state_num: int, save_prev_state: bool = False, init_fn: Callable = lambda: None,
     ) -> None:
         """
         Overview:
@@ -138,6 +139,63 @@ class HiddenStateWrapper(IModelWrapper):
             else:
                 if idx in valid_id:
                     self._state[idx] = h[i]
+
+
+class TransformerWrapper(IModelWrapper):
+
+    def __init__(
+            self, model: Any, seq_len: int, init_fn: Callable = lambda: None
+    ) -> None:
+        """
+        Overview:
+            Given N the length of the sequences received by a Transformer model, maintain the last N-1 input
+            observations. In this way we can provide at each step all the observations needed by Transformer to
+            compute its output. We need this because some methods such as 'collect' and 'evaluate' only provide the
+            model 1 observation per step and don't have memory of past observations, but Transformer needs a sequence
+            of N observations. The wrapped ``model.forward`` will save the input observation in a FIFO memory of length
+            N and the wrapped ``model.reset`` will reset the memory. The empty memory spaces will be initialized with
+            'init_fn' or the input sequence.
+        Arguments:
+            - model (:obj:`Any`): Wrapped model class, should contain forward method.
+            - seq_len (:obj:`int`): Number of past observations to remember.
+            - init_fn (:obj:`Callable`): The function which is used to init every memory locations when init and reset.
+        """
+        super().__init__(model)
+        self.seq_len = seq_len
+        self._init_fn = init_fn
+        self.obs_memory = None
+
+    def forward(self, input_obs: torch.Tensor, return_sequence: bool = False, **kwargs) -> Dict[str, torch.Tensor]:
+        """
+        Arguments:
+            - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: (bs, *obs_shape)
+            - return_sequence (:obj:`torch.Tensor`): if True return also include the input sequence
+        """
+        assert self.obs_memory.shape[0] == self.seq_len
+        assert self.obs_memory is not None, "Call the 'reset' method to initialize this wrapper"
+        # shift the memory 1 step forward along the sequence dimension (1 dimension)
+        self.obs_memory = torch.roll(self.obs_memory, 1, 1)
+        #input_obs = input_obs.unsqueeze(0)  # (1, bs, *obs_shape)
+        print(self.obs_memory[0].shape)
+        self.obs_memory[0] = input_obs
+        kwargs['batch_first'] = False
+        output = self._model.forward(self.obs_memory, **kwargs)
+        out = {'output': output}
+        if return_sequence:
+            out['input_seq'] = self.obs_memory
+        return out
+
+    def reset(self, *args, **kwargs):
+        obs = kwargs.pop('init_obs', None)
+        print(obs.shape)
+        self.obs_memory = []  # List(bs, *obs_shape)
+        for i in range(self.seq_len):
+            self.obs_memory.append(obs.clone() if obs is not None else self._init_fn())
+        print('memory', self.obs_memory[0].shape)
+        self.obs_memory = default_collate(self.obs_memory)  # shape (N, bs, *obs_shape)
+        print('memory', self.obs_memory[0].shape)
+        if hasattr(self._model, 'reset'):
+            return self._model.reset(*args, **kwargs)
 
 
 def sample_action(logit=None, prob=None):
@@ -635,6 +693,7 @@ wrapper_name_map = {
     'hybrid_eps_greedy_multinomial_sample': HybridEpsGreedyMultinomialSampleWrapper,
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
+    'transformer': TransformerWrapper,
     # model wrapper
     'target': TargetNetworkWrapper,
     'teacher': TeacherNetworkWrapper,

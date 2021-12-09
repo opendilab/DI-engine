@@ -8,6 +8,7 @@ import torch.nn as nn
 import logging
 
 from ding.torch_utils import get_lstm
+from ding.torch_utils.network.gtrxl import GTrXL
 from ding.model import model_wrap, register_wrapper, IModelWrapper, BaseModelWrapper
 
 
@@ -208,3 +209,23 @@ class TestModelWrappers:
         action = output['action']
         assert action.shape == (4, 6)
         assert action.eq(action.clamp(-0.05, 0.05)).all()
+
+    def test_transformer_wrapper(self):
+
+        seq_len, bs, obs_shape = 4, 8, 32
+        emb_dim = 64
+        model = GTrXL(input_dim=obs_shape, embedding_dim=emb_dim)
+        model = model_wrap(model, wrapper_name='transformer', seq_len=seq_len)
+        model.reset(init_obs=torch.zeros((bs, obs_shape)))
+        obs = []
+        for i in range(seq_len):
+            obs.append(torch.randn((bs, obs_shape)))
+        out = model.forward(obs[0], return_sequence=True)
+        assert out['output'].shape == (seq_len, bs, emb_dim)
+        assert out['input_seq'].shape == (seq_len, bs, obs_shape)
+        assert sum(out['input_seq'][1:].flatten()) == 0
+        for i in range(1, seq_len-1):
+            out = model.forward(obs[i], return_sequence=True)
+        assert out['input_seq'].shape == (seq_len, bs, obs_shape)
+        assert sum(out['input_seq'][seq_len-1:].flatten()) == 0
+        assert sum(out['input_seq'][:seq_len-1].flatten()) != 0
