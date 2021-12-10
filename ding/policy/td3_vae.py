@@ -12,6 +12,7 @@ from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 from ding.utils import POLICY_REGISTRY
 from .ddpg import DDPGPolicy
+from ding.model.template.vae import VanillaVAE
 
 
 @POLICY_REGISTRY.register('td3-vae')
@@ -95,6 +96,7 @@ class TD3VAEPolicy(DDPGPolicy):
         action_space='continuous',  # ['continuous', 'hybrid']
         # (bool) Whether use batch normalization for reward
         reward_batch_norm=False,
+        original_action_shape=2,
         model=dict(
             # (bool) Whether to use two critic networks or only one.
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
@@ -216,6 +218,13 @@ class TD3VAEPolicy(DDPGPolicy):
 
         self._forward_learn_cnt = 0  # count iterations
 
+        self._vae_model = VanillaVAE(2, 8, 64, [256, 256, 256])  # action_shape, latent_dim, hidden_size_list
+        self._optimizer_vae = Adam(
+            self._vae_model.parameters(),
+            lr=self._cfg.learn.learning_rate_vae,
+        )
+        # self.vae_model = VanillaVAE(self._cfg.original_action_shape, self._cfg.obs_shape, self._cfg.model.action_shape, [256, 256])
+        # action_shape,  self.state_dim latent_dim, hidden_size_list
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -226,101 +235,192 @@ class TD3VAEPolicy(DDPGPolicy):
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including at least actor and critic lr, different losses.
         """
-        loss_dict = {}
-        data = default_preprocess_learn(
-            data,
-            use_priority=self._cfg.priority,
-            use_priority_IS_weight=self._cfg.priority_IS_weight,
-            ignore_done=self._cfg.learn.ignore_done,
-            use_nstep=False
-        )
-        if self._cuda:
-            data = to_device(data, self._device)
-        # ====================
-        # critic learn forward
-        # ====================
-        self._learn_model.train()
-        self._target_model.train()
-        next_obs = data['next_obs']
-        reward = data['reward']
-        if self._reward_batch_norm:
-            reward = (reward - reward.mean()) / (reward.std() + 1e-8)
-        # current q value
-        q_value = self._learn_model.forward(data, mode='compute_critic')['q_value']
-        q_value_dict = {}
-        if self._twin_critic:
-            q_value_dict['q_value'] = q_value[0].mean()
-            q_value_dict['q_value_twin'] = q_value[1].mean()
+        if 'warm_up' in data[0].keys() and data[0]['warm_up'] is True:
+            loss_dict = {}
+            data = default_preprocess_learn(
+                data,
+                use_priority=self._cfg.priority,
+                use_priority_IS_weight=self._cfg.priority_IS_weight,
+                ignore_done=self._cfg.learn.ignore_done,
+                use_nstep=False
+            )
+            if self._cuda:
+                data = to_device(data, self._device)
+
+            # ====================
+            # train vae
+            # ====================
+            result = self._vae_model(
+                {'action': data['action'],
+                 'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
+
+            data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action
+            result.pop(-1)  # remove z
+            result[2] = data['action']
+            true_residual = data['next_obs'] - data['obs']
+            result = result + [true_residual]
+
+            vae_loss = self._vae_model.loss_function(*result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
+            # recons = args[0]
+            # prediction_residual = args[1]
+            # input_action = args[2]
+            # mu = args[3]
+            # log_var = args[4]
+            # true_residual = args[5]
+            # print(vae_loss)
+            loss_dict['vae_loss'] = vae_loss['loss'].item()
+            loss_dict['reconstruction_ross'] = vae_loss['reconstruction_loss'].item()
+            loss_dict['kld_loss'] = vae_loss['kld_loss'].item()
+            loss_dict['predict_loss'] = vae_loss['predict_loss'].item()
+
+            # vae update
+            self._optimizer_vae.zero_grad()
+            vae_loss['loss'].backward()
+            self._optimizer_vae.step()
+            # For compatibility
+            loss_dict['actor_loss'] = torch.Tensor([0]).item()
+            loss_dict['critic_loss'] = torch.Tensor([0]).item()
+            loss_dict['critic_twin_loss'] = torch.Tensor([0]).item()
+            loss_dict['total_loss'] = torch.Tensor([0]).item()
+            q_value_dict = {}
+            q_value_dict['q_value'] = torch.Tensor([0]).item()
+            q_value_dict['q_value_twin'] = torch.Tensor([0]).item()
+            return {
+                'cur_lr_actor': self._optimizer_actor.defaults['lr'],
+                'cur_lr_critic': self._optimizer_critic.defaults['lr'],
+                'action': torch.Tensor([0]).item(),
+                'priority': torch.Tensor([0]).item(),
+                'td_error': torch.Tensor([0]).item(),
+                **loss_dict,
+                **q_value_dict,
+            }
         else:
-            q_value_dict['q_value'] = q_value.mean()
-        # target q value.
-        with torch.no_grad():
-            next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')
-            next_actor_data['obs'] = next_obs
-            target_q_value = self._target_model.forward(next_actor_data, mode='compute_critic')['q_value']
-        if self._twin_critic:
-            # TD3: two critic networks
-            target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
-            # critic network1
-            td_data = v_1step_td_data(q_value[0], target_q_value, reward, data['done'], data['weight'])
-            critic_loss, td_error_per_sample1 = v_1step_td_error(td_data, self._gamma)
-            loss_dict['critic_loss'] = critic_loss
-            # critic network2(twin network)
-            td_data_twin = v_1step_td_data(q_value[1], target_q_value, reward, data['done'], data['weight'])
-            critic_twin_loss, td_error_per_sample2 = v_1step_td_error(td_data_twin, self._gamma)
-            loss_dict['critic_twin_loss'] = critic_twin_loss
-            td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
-        else:
-            # DDPG: single critic network
-            td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
-            critic_loss, td_error_per_sample = v_1step_td_error(td_data, self._gamma)
-            loss_dict['critic_loss'] = critic_loss
-        # ================
-        # critic update
-        # ================
-        self._optimizer_critic.zero_grad()
-        for k in loss_dict:
-            if 'critic' in k:
-                loss_dict[k].backward()
-        self._optimizer_critic.step()
-        # ===============================
-        # actor learn forward and update
-        # ===============================
-        # actor updates every ``self._actor_update_freq`` iters
-        if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-            actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')
-            actor_data['obs'] = data['obs']
+            loss_dict = {}
+            data = default_preprocess_learn(
+                data,
+                use_priority=self._cfg.priority,
+                use_priority_IS_weight=self._cfg.priority_IS_weight,
+                ignore_done=self._cfg.learn.ignore_done,
+                use_nstep=False
+            )
+            if self._cuda:
+                data = to_device(data, self._device)
+
+            # ====================
+            # train vae
+            # ====================
+            result = self._vae_model(
+                {'action': data['action'],
+                 'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
+
+            data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action
+            result.pop(-1)  # remove z
+            result[2] = data['action']
+            true_residual = data['next_obs'] - data['obs']
+            result = result + [true_residual]
+
+            vae_loss = self._vae_model.loss_function(*result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
+            # recons = args[0]
+            # prediction_residual = args[1]
+            # input_action = args[2]
+            # mu = args[3]
+            # log_var = args[4]
+            # true_residual = args[5]
+            # print(vae_loss)
+            loss_dict['vae_loss'] = vae_loss['loss']
+            loss_dict['reconstruction_ross'] = vae_loss['reconstruction_loss']
+            loss_dict['kld_loss'] = vae_loss['kld_loss']
+
+            # vae update
+            self._optimizer_vae.zero_grad()
+            vae_loss['loss'].backward()
+            self._optimizer_vae.step()
+
+            # ====================
+            # critic learn forward
+            # ====================
+            self._learn_model.train()
+            self._target_model.train()
+            next_obs = data['next_obs']
+            reward = data['reward']
+            if self._reward_batch_norm:
+                reward = (reward - reward.mean()) / (reward.std() + 1e-8)
+
+            # current q value
+            q_value = self._learn_model.forward({'obs': data['obs'],'action': data['latent_action']}, mode='compute_critic')['q_value']
+            q_value_dict = {}
             if self._twin_critic:
-                actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'][0].mean()
+                q_value_dict['q_value'] = q_value[0].mean()
+                q_value_dict['q_value_twin'] = q_value[1].mean()
             else:
-                actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'].mean()
+                q_value_dict['q_value'] = q_value.mean()
+            # target q value.
+            with torch.no_grad():
+                next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')  # latent action
+                next_actor_data['obs'] = next_obs
+                target_q_value = self._target_model.forward(next_actor_data, mode='compute_critic')['q_value']
+            if self._twin_critic:
+                # TD3: two critic networks
+                target_q_value = torch.min(target_q_value[0], target_q_value[1])  # find min one as target q value
+                # critic network1
+                td_data = v_1step_td_data(q_value[0], target_q_value, reward, data['done'], data['weight'])
+                critic_loss, td_error_per_sample1 = v_1step_td_error(td_data, self._gamma)
+                loss_dict['critic_loss'] = critic_loss
+                # critic network2(twin network)
+                td_data_twin = v_1step_td_data(q_value[1], target_q_value, reward, data['done'], data['weight'])
+                critic_twin_loss, td_error_per_sample2 = v_1step_td_error(td_data_twin, self._gamma)
+                loss_dict['critic_twin_loss'] = critic_twin_loss
+                td_error_per_sample = (td_error_per_sample1 + td_error_per_sample2) / 2
+            else:
+                # DDPG: single critic network
+                td_data = v_1step_td_data(q_value, target_q_value, reward, data['done'], data['weight'])
+                critic_loss, td_error_per_sample = v_1step_td_error(td_data, self._gamma)
+                loss_dict['critic_loss'] = critic_loss
+            # ================
+            # critic update
+            # ================
+            self._optimizer_critic.zero_grad()
+            for k in loss_dict:
+                if 'critic' in k:
+                    loss_dict[k].backward()
+            self._optimizer_critic.step()
+            # ===============================
+            # actor learn forward and update
+            # ===============================
+            # actor updates every ``self._actor_update_freq`` iters
+            if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
+                actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')  # latent action
+                actor_data['obs'] = data['obs']
+                if self._twin_critic:
+                    actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'][0].mean()
+                else:
+                    actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'].mean()
 
-            loss_dict['actor_loss'] = actor_loss
-            # actor update
-            self._optimizer_actor.zero_grad()
-            actor_loss.backward()
-            self._optimizer_actor.step()
-        # =============
-        # after update
-        # =============
-        loss_dict['total_loss'] = sum(loss_dict.values())
-        self._forward_learn_cnt += 1
-        self._target_model.update(self._learn_model.state_dict())
-        if self._cfg.action_space == 'hybrid':
-            action_log_value = -1.  # TODO(nyz) better way to viz hybrid action
-        else:
-            action_log_value = data['action'].mean()
-        return {
-            'cur_lr_actor': self._optimizer_actor.defaults['lr'],
-            'cur_lr_critic': self._optimizer_critic.defaults['lr'],
-            # 'q_value': np.array(q_value).mean(),
-            'action': action_log_value,
-            'priority': td_error_per_sample.abs().tolist(),
-            'td_error': td_error_per_sample.abs().mean(),
-            **loss_dict,
-            **q_value_dict,
-        }
-
+                loss_dict['actor_loss'] = actor_loss
+                # actor update
+                self._optimizer_actor.zero_grad()
+                actor_loss.backward()
+                self._optimizer_actor.step()
+            # =============
+            # after update
+            # =============
+            loss_dict['total_loss'] = sum(loss_dict.values())
+            self._forward_learn_cnt += 1
+            self._target_model.update(self._learn_model.state_dict())
+            if self._cfg.action_space == 'hybrid':
+                action_log_value = -1.  # TODO(nyz) better way to viz hybrid action
+            else:
+                action_log_value = data['action'].mean()
+            return {
+                'cur_lr_actor': self._optimizer_actor.defaults['lr'],
+                'cur_lr_critic': self._optimizer_critic.defaults['lr'],
+                # 'q_value': np.array(q_value).mean(),
+                'action': action_log_value,
+                'priority': td_error_per_sample.abs().tolist(),
+                'td_error': td_error_per_sample.abs().mean(),
+                **loss_dict,
+                **q_value_dict,
+            }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
@@ -330,13 +430,11 @@ class TD3VAEPolicy(DDPGPolicy):
             'optimizer_critic': self._optimizer_critic.state_dict(),
         }
 
-
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
-
 
     def _init_collect(self) -> None:
         r"""
@@ -360,7 +458,6 @@ class TD3VAEPolicy(DDPGPolicy):
             self._collect_model = model_wrap(self._collect_model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
         self._collect_model.reset()
 
-
     def _forward_collect(self, data: dict, **kwargs) -> dict:
         r"""
         Overview:
@@ -381,11 +478,14 @@ class TD3VAEPolicy(DDPGPolicy):
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor', **kwargs)
+            output['latent_action'] = output['action']
+            # TODO(pu): decode into original hybrid actions
+            output['action'] = self._vae_model.decode(output['action'])[0]
+
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
-
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> Dict[str, Any]:
         r"""
@@ -399,21 +499,31 @@ class TD3VAEPolicy(DDPGPolicy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        transition = {
-            'obs': obs,
-            'next_obs': timestep.obs,
-            'action': model_output['action'],
-            'reward': timestep.reward,
-            'done': timestep.done,
-        }
+        # if hasattr(model_output, 'latent_action'):
+        if 'latent_action' in model_output.keys():
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': model_output['action'],
+                'latent_action': model_output['latent_action'],
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        else:  # if random collect at fist
+            transition = {
+                'obs': obs,
+                'next_obs': timestep.obs,
+                'action': model_output['action'],
+                'latent_action': False,
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
         if self._cfg.action_space == 'hybrid':
             transition['logit'] = model_output['logit']
         return transition
 
-
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         return get_train_sample(data, self._unroll_len)
-
 
     def _init_eval(self) -> None:
         r"""
@@ -425,7 +535,6 @@ class TD3VAEPolicy(DDPGPolicy):
         if self._cfg.action_space == 'hybrid':
             self._eval_model = model_wrap(self._eval_model, wrapper_name='hybrid_argmax_sample')
         self._eval_model.reset()
-
 
     def _forward_eval(self, data: dict) -> dict:
         r"""
@@ -447,15 +556,16 @@ class TD3VAEPolicy(DDPGPolicy):
         self._eval_model.eval()
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
+            output['latent_action'] = output['action']
+            # TODO(pu): decode into original hybrid actions
+            output['action'] = self._vae_model.decode(output['action'])[0]
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
-
     def default_model(self) -> Tuple[str, List[str]]:
         return 'qac', ['ding.model.template.qac']
-
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
@@ -466,7 +576,7 @@ class TD3VAEPolicy(DDPGPolicy):
         """
         ret = [
             'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
-            'action', 'td_error'
+            'action', 'td_error', 'vae_loss', 'reconstruction_loss', 'kld_loss'
         ]
         if self._twin_critic:
             ret += ['critic_twin_loss']

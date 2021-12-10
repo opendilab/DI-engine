@@ -7,6 +7,8 @@ from .rainbow import RainbowDQNPolicy
 from .ddpg import DDPGPolicy
 from .d4pg import D4PGPolicy
 from .td3 import TD3Policy
+from .td3_vae import TD3VAEPolicy
+
 from .td3_bc import TD3BCPolicy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy
