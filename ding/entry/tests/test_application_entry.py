@@ -3,10 +3,14 @@ import pytest
 import os
 import pickle
 
-from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, \
+    cartpole_ppo_offpolicy_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_ppo_offpolicy_config,\
+     cartpole_trex_ppo_offpolicy_create_config
 from dizoo.classic_control.cartpole.envs import CartPoleEnv
 from ding.entry import serial_pipeline, eval, collect_demo_data
 from ding.config import compile_config
+from ding.entry.application_entry import collect_episodic_demo_data, epsiode_to_transitions
 
 
 @pytest.fixture(scope='module')
@@ -54,6 +58,30 @@ class TestApplication:
             collect_count=collect_count,
             expert_data_path=expert_data_path
         )
+        with open(expert_data_path, 'rb') as f:
+            exp_data = pickle.load(f)
+        assert isinstance(exp_data, list)
+        assert isinstance(exp_data[0], dict)
+
+    def test_collect_episodic_demo_data(self, setup_state_dict):
+        config = deepcopy(cartpole_trex_ppo_offpolicy_config), deepcopy(cartpole_trex_ppo_offpolicy_create_config)
+        collect_count = 16
+        expert_data_path = './expert.data'
+        collect_episodic_demo_data(
+            config,
+            seed=0,
+            state_dict=setup_state_dict['collect'],
+            expert_data_path=expert_data_path,
+            collect_count=collect_count,
+        )
+        with open(expert_data_path, 'rb') as f:
+            exp_data = pickle.load(f)
+        assert isinstance(exp_data, list)
+        assert isinstance(exp_data[0][0], dict)
+
+    def test_epsiode_to_transitions(self):
+        expert_data_path = './expert.data'
+        epsiode_to_transitions(data_path=expert_data_path, expert_data_path=expert_data_path, nstep=3)
         with open(expert_data_path, 'rb') as f:
             exp_data = pickle.load(f)
         assert isinstance(exp_data, list)

@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 halfcheetah_sac_default_config = dict(
+    exp_name = 'halfcheetah_sac',
     env=dict(
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
