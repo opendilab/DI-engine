@@ -71,6 +71,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             self._logger, self._tb_logger = build_logger(
                 path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
             )
+        self._launched = False
         self.reset(policy, env)
 
         self._timer = EasyTimer()
@@ -91,7 +92,6 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
         """
         if _env is not None:
             self._env = _env
-            self._env.launch()
             self._env_num = self._env.env_num
         else:
             self._env.reset()
@@ -188,6 +188,9 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             - eval_reward (:obj:`float`): Current eval_reward.
             - return_info (:obj:`list`): Environment information of each finished episode
         '''
+        if not self._launched:
+            self._env.launch()
+            self._launched = True
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
