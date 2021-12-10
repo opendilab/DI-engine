@@ -14,11 +14,15 @@ hopper_acer_config = dict(
         stop_value=3000,
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
+        reward_running_norm=True,
+        reward_batch_norm=True,
+        ignore_done=False,
     ),
     policy=dict(
         cuda=True,
         priority=True,
         n_step=5,
+        continuous=True,
         model=dict(
             obs_shape=11,
             action_shape=3,
