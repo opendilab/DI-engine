@@ -64,9 +64,12 @@ DataDistributedParallel(DDP) Mode
 DataDistributedParallel(DDP) is mainly used for single-machine multi-GPUs and multi-machine multi-GPUs. 
 It adopts multi-process to control multi-GPUs and adopts ring allreduce to synchronize gradient.
 
-In DataDistributedParallel(DDP) Mode, we should simply set ``config.policy.learn.multi_gpu`` as `True` in the config file under ``dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config_multi_gpu_ddp.py``.
+In DataDistributedParallel(DDP) Mode, we should simply set ``config.policy.learn.multi_gpu`` as ``True`` in the config file under ``dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config_multi_gpu_ddp.py``.
 
-We re-implement the data-parallel training module with APIs in ``torch.distributed`` for high scalability.
+Principle
+~~~~~~~~~~~~~
+
+We re-implement the data-parallel training module with APIs in ``torch.distributed`` for high scalability. The detailed principle is shonw as follows:
 
 1. Parameters on Rank-0 GPU are broadcasted to all devices, so that models on different devices share the same initialization.
 
@@ -79,14 +82,14 @@ We re-implement the data-parallel training module with APIs in ``torch.distribut
         for name, param in model.named_parameters():
             setattr(param, 'grad', torch.zeros_like(param))
 
-2. Gradients on different devices should be synchronized after the backward function.
+2. Gradients on different devices should be synchronized after the backward procedure.
 
 .. code-block:: python
 
         self._optimizer.zero_grad()
         loss.backward()
         if self._cfg.learn.multi_gpu:
-            self.sync_gradients(self._learn_model)
+            self.sync_gradients(self._learn_model)  # sync gradients
         self._optimizer.step()
 
 .. code-block:: python
@@ -96,35 +99,48 @@ We re-implement the data-parallel training module with APIs in ``torch.distribut
             if param.requires_grad:
                 allreduce(param.grad.data)
 
-Information including loss and reward should be aggregated among devices when applying data-parallel training. DI-engine achieves this with AllReduce operator in a hook, and only saves log files on process with rank 0.
+3. Information including loss and reward should be aggregated among devices when applying data-parallel training.
+DI-engine achieves this with allreduce operator in learner and evaluator, and only saves log files on process with rank 0.
+
 For more related functions, please refer to ``ding/utils/pytorch_ddp_dist_helper.py``
 
-3. Training
 
-When using it, firstly we set ``config.policy.learn.multi_gpu`` as `True` in the config file. Secondly, we need to Initialize the current experimental environment.
-Please refer to ``dizoo/atari/entry/spaceinvaders_dqn_main_multi_gpu_ddp.py``
+Usage
+~~~~~~~
+
+To enable DDP training in DI-engine existing codes, you just need to add modifications by following steps:
+
+1. Set ``config.policy.learn.multi_gpu`` as ``True``
+
+2. Add DDP training context liks this:
 
 .. code-block:: python
 
     from ding.utils import DistContext
+    from ding.entry import serial_pipeline
 
-    with DistContext():
-        main(space_invaders_dqn_config,create_config)
+    # define main_config and create_config
+    main_config = (...)
+    create_config = (...)
 
+    if __name__ == "__main__":
+        # call serial_pipeline with DDP
+        with DistContext():
+            serial_pipeline(main_config, create_config)
 
-For DPP, the runnable script demo is demonstrated as follows.
+.. tip::
+    The whole example is located in ``dizoo/atari/entry/spaceinvaders_dqn_main_multi_gpu_ddp.py``
+
+3. Execute launch shell script
+
+For DDP, the runnable script demo is demonstrated as follows.
 
 .. code-block:: bash
 
     CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nnodes=1 --node_rank=0 --nproc_per_node=2 spaceinvaders_dqn_main_multi_gpu_ddp.py
 
-or (on cluster managed by Slurm)
+Or on cluster managed by Slurm
 
 .. code-block:: bash
 
     srun -p PARTITION_NAME --mpi=pmi2 --gres=gpu:2 -n2 --ntasks-per-node=2 python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
-
-
-
-
-
