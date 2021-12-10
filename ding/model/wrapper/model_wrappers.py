@@ -164,6 +164,7 @@ class TransformerWrapper(IModelWrapper):
         self.seq_len = seq_len
         self._init_fn = init_fn
         self.obs_memory = None
+        self.memory_idx = 0
 
     def forward(self, input_obs: torch.Tensor, only_last_logit: bool = True, **kwargs) -> Dict[str, torch.Tensor]:
         """
@@ -177,13 +178,18 @@ class TransformerWrapper(IModelWrapper):
         if self.obs_memory is None:
             self.reset_memory(torch.zeros_like(input_obs))  # init the memory with the size of the input observation
         assert self.obs_memory.shape[0] == self.seq_len
-        # shift the memory 1 step forward along the sequence dimension (1 dimension)
-        self.obs_memory = torch.roll(self.obs_memory, 1, 1)
-        self.obs_memory[0] = input_obs
+        # implements a fifo queue, self.memory_idx is index where to put the last element
+        if self.memory_idx == self.seq_len-1:
+            self.memory_idx = torch.roll(self.memory_idx, -1, 1)  # roll back of 1 position along dim 1 (sequence dim)
+            self.obs_memory[self.memory_idx] = input_obs
+        if self.memory_idx < self.seq_len:
+            self.obs_memory[self.memory_idx] = input_obs
+            if self.memory_idx != self.seq_len-1:
+                self.memory_idx += 1
         out = self._model.forward(self.obs_memory, **kwargs)
         out['input_seq'] = self.obs_memory
         if only_last_logit:
-            out['logit'] = out['logit'][0]
+            out['logit'] = out['logit'][self.memory_idx-1]
         return out
 
     def reset_memory(self, input_obs: torch.Tensor = None):
@@ -192,9 +198,11 @@ class TransformerWrapper(IModelWrapper):
         for i in range(self.seq_len):
             self.obs_memory.append(init_obs.clone() if init_obs is not None else self._init_fn())
         self.obs_memory = default_collate(self.obs_memory)  # shape (N, bs, *obs_shape)
+        self.memory_idx = 0
 
     def reset(self, *args, **kwargs):
         self.obs_memory = None
+        self.memory_idx = 0
         if hasattr(self._model, 'reset'):
             return self._model.reset(*args, **kwargs)
 

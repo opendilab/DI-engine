@@ -431,12 +431,17 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
 
-    def reset(self):
+    def reset(self, state: Optional[torch.Tensor] = None):
         r"""
         Overview:
-            Clear the memory of GTrXL
+            Clear or set the memory of GTrXL.
+         Arguments:
+            - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).
+            - state (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to 'True'
+            in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size). This
+            param doesn't affects the output memory
         """
-        self.memory = None
+        self.memory = state
 
     def forward(self, x: torch.Tensor, batch_first: bool = False, return_mem: bool = True) -> Dict[str, torch.Tensor]:
         r"""
