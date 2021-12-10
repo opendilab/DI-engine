@@ -154,7 +154,7 @@ class TransformerWrapper(IModelWrapper):
             model 1 observation per step and don't have memory of past observations, but Transformer needs a sequence
             of N observations. The wrapped ``model.forward`` will save the input observation in a FIFO memory of length
             N and the wrapped ``model.reset`` will reset the memory. The empty memory spaces will be initialized with
-            'init_fn' or the input sequence.
+            'init_fn' or the input observation by calling the method ``model.reset_memory``.
         Arguments:
             - model (:obj:`Any`): Wrapped model class, should contain forward method.
             - seq_len (:obj:`int`): Number of past observations to remember.
@@ -165,35 +165,36 @@ class TransformerWrapper(IModelWrapper):
         self._init_fn = init_fn
         self.obs_memory = None
 
-    def forward(self, input_obs: torch.Tensor, return_sequence: bool = False, **kwargs) -> Dict[str, torch.Tensor]:
+    def forward(self, input_obs: torch.Tensor, only_last_logit: bool = True, **kwargs) -> Dict[str, torch.Tensor]:
         """
         Arguments:
             - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: (bs, *obs_shape)
-            - return_sequence (:obj:`torch.Tensor`): if True return also include the input sequence
+            - only_last_logit (:obj:`bool`): if True 'logit' only contains the output corresponding to the current
+            observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)
+        Returns:
+            - Dictionary containing the input_sequence 'input_seq' stored in memory and the transformer output 'logit'.
         """
+        if self.obs_memory is None:
+            self.reset_memory(torch.zeros_like(input_obs))  # init the memory with the size of the input observation
         assert self.obs_memory.shape[0] == self.seq_len
-        assert self.obs_memory is not None, "Call the 'reset' method to initialize this wrapper"
         # shift the memory 1 step forward along the sequence dimension (1 dimension)
         self.obs_memory = torch.roll(self.obs_memory, 1, 1)
-        #input_obs = input_obs.unsqueeze(0)  # (1, bs, *obs_shape)
-        print(self.obs_memory[0].shape)
         self.obs_memory[0] = input_obs
-        kwargs['batch_first'] = False
-        output = self._model.forward(self.obs_memory, **kwargs)
-        out = {'output': output}
-        if return_sequence:
-            out['input_seq'] = self.obs_memory
+        out = self._model.forward(self.obs_memory, **kwargs)
+        out['input_seq'] = self.obs_memory
+        if only_last_logit:
+            out['logit'] = out['logit'][0]
         return out
 
-    def reset(self, *args, **kwargs):
-        obs = kwargs.pop('init_obs', None)
-        print(obs.shape)
+    def reset_memory(self, input_obs: torch.Tensor = None):
+        init_obs = torch.zeros_like(input_obs)
         self.obs_memory = []  # List(bs, *obs_shape)
         for i in range(self.seq_len):
-            self.obs_memory.append(obs.clone() if obs is not None else self._init_fn())
-        print('memory', self.obs_memory[0].shape)
+            self.obs_memory.append(init_obs.clone() if init_obs is not None else self._init_fn())
         self.obs_memory = default_collate(self.obs_memory)  # shape (N, bs, *obs_shape)
-        print('memory', self.obs_memory[0].shape)
+
+    def reset(self, *args, **kwargs):
+        self.obs_memory = None
         if hasattr(self._model, 'reset'):
             return self._model.reset(*args, **kwargs)
 

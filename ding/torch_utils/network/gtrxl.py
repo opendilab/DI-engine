@@ -439,7 +439,7 @@ class GTrXL(nn.Module):
             - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).
             - batch_first (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to 'True'
             in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size). This
-            also affects the output memory
+            param doesn't affects the output memory
             - return_mem (:obj:`bool`): if this param is False, return only the output tensor without dict.
         Returns:
             - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape
@@ -489,18 +489,15 @@ class GTrXL(nn.Module):
 
         if batch_first:
             out = torch.transpose(out, 1, 0)  # cur_seq x bs x embedding_dim -> bs x cur_seq x embedding_dim
-            memory = torch.transpose(out, 1, 0)  # memory_len x bs x embedding_dim -> bs x memory_len x embedding_dim
 
-        if not return_mem:
+        if return_mem:
             output = {"logit": out, "memory": memory}
         else:
-            output = out
+            output = {"logit": out}
         return output
 
 
 if __name__ == "__main__":
-    from ding.model.common.head import DiscreteHead
-
     dim_size = 128
     seq_len = 64
     bs = 32
@@ -511,8 +508,5 @@ if __name__ == "__main__":
     print('input:', a.shape)
     m = GTrXL(128, memory_len=50, embedding_dim=embedding_dim)
     o = m(a)
-    print('output', o.shape)
+    print('output', o['logit'].shape)
     #print('memory', mem[0].shape)
-    head = DiscreteHead(embedding_dim, action_dim)
-    o = head(o)
-    print('head_out:', o['logit'].shape)

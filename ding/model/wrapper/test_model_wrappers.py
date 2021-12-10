@@ -216,16 +216,17 @@ class TestModelWrappers:
         emb_dim = 64
         model = GTrXL(input_dim=obs_shape, embedding_dim=emb_dim)
         model = model_wrap(model, wrapper_name='transformer', seq_len=seq_len)
-        model.reset(init_obs=torch.zeros((bs, obs_shape)))
+        model.reset()
         obs = []
         for i in range(seq_len):
             obs.append(torch.randn((bs, obs_shape)))
-        out = model.forward(obs[0], return_sequence=True)
-        assert out['output'].shape == (seq_len, bs, emb_dim)
+        out = model.forward(obs[0], only_last_logit=False)
+        assert out['logit'].shape == (seq_len, bs, emb_dim)
         assert out['input_seq'].shape == (seq_len, bs, obs_shape)
         assert sum(out['input_seq'][1:].flatten()) == 0
         for i in range(1, seq_len-1):
-            out = model.forward(obs[i], return_sequence=True, batch_first=True)
+            out = model.forward(obs[i])
+        assert out['logit'].shape == (bs, emb_dim)
         assert out['input_seq'].shape == (seq_len, bs, obs_shape)
         assert sum(out['input_seq'][seq_len-1:].flatten()) == 0
         assert sum(out['input_seq'][:seq_len-1].flatten()) != 0
