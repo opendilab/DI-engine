@@ -4,11 +4,12 @@ ant_sac_default_config = dict(
     env=dict(
         scenario='Ant-v2',
         agent_conf= "2x4d",
+        add_agent_id=False,
         agent_obsk= 1,
         episode_limit= 1000,
         collector_env_num=1,
-        evaluator_env_num=8,
-        n_evaluator_episode=8,
+        evaluator_env_num=1,
+        n_evaluator_episode=1,
         stop_value=6000,
     ),
     policy=dict(

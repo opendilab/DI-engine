@@ -30,6 +30,7 @@ class MujocoMulti(MultiAgentEnv):
 
     def __init__(self, batch_size=None, **kwargs):
         super().__init__(batch_size, **kwargs)
+        self.add_agent_id = kwargs["env_args"]["add_agent_id"]
         self.scenario = kwargs["env_args"]["scenario"] # e.g. Ant-v2
         self.agent_conf = kwargs["env_args"]["agent_conf"] # e.g. '2x3'
 
@@ -154,8 +155,16 @@ class MujocoMulti(MultiAgentEnv):
     def get_state(self, team=None):
         # TODO: May want global states for different teams (so cannot see what the other team is communicating e.g.)
         state_n = []
-        for a in range(self.n_agents):
-            state_n.append(self.env._get_obs())
+        if self.add_agent_id:
+            state = self.env._get_obs()
+            for a in range(self.n_agents):
+                agent_id_feats = np.zeros(self.n_agents, dtype=np.float32)
+                agent_id_feats[a] = 1.0
+                state_i = np.concatenate([state, agent_id_feats])
+                state_n.append(state_i)
+        else:
+            for a in range(self.n_agents):
+                state_n.append(self.env._get_obs())
         return np.array(state_n).astype(np.float32)
 
     def get_state_size(self):
