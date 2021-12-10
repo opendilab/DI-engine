@@ -27,7 +27,7 @@ lunarlander_td3vae_config = dict(
         ),
         learn=dict(
             # warm_up_update=1,
-            warm_up_update=100,
+            warm_up_update=1000,
             update_per_collect=2,
             batch_size=128,
             learning_rate_actor=0.001,

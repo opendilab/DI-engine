@@ -269,7 +269,7 @@ class TD3VAEPolicy(DDPGPolicy):
             # true_residual = args[5]
             # print(vae_loss)
             loss_dict['vae_loss'] = vae_loss['loss'].item()
-            loss_dict['reconstruction_ross'] = vae_loss['reconstruction_loss'].item()
+            loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss'].item()
             loss_dict['kld_loss'] = vae_loss['kld_loss'].item()
             loss_dict['predict_loss'] = vae_loss['predict_loss'].item()
 
@@ -328,7 +328,7 @@ class TD3VAEPolicy(DDPGPolicy):
             # true_residual = args[5]
             # print(vae_loss)
             loss_dict['vae_loss'] = vae_loss['loss']
-            loss_dict['reconstruction_ross'] = vae_loss['reconstruction_loss']
+            loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss']
             loss_dict['kld_loss'] = vae_loss['kld_loss']
 
             # vae update
