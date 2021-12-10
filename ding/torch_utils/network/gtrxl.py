@@ -431,6 +431,13 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
 
+    def reset(self):
+        r"""
+        Overview:
+            Clear the memory of GTrXL
+        """
+        self.memory = None
+
     def forward(self, x: torch.Tensor, batch_first: bool = False, return_mem: bool = True) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
