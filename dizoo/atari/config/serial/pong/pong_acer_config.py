@@ -58,7 +58,7 @@ pong_acer_config = dict(
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=16,
+            n_sample=128,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.9,
             collector=dict(collect_print_freq=1000, ),
