@@ -86,7 +86,7 @@ class DQNILPolicy(ILPolicy):
         self._collect_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: dict):
+    def _forward_collect(self, data: dict, eps: float):
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
