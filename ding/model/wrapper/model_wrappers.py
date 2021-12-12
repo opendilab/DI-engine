@@ -89,18 +89,19 @@ class HiddenStateWrapper(IModelWrapper):
         """
         super().__init__(model)
         self._state_num = state_num
+        # This is to maintain hidden states （when it comes to this wrapper, map self._state into data['prev_value] and update next_state, store in self._state)
         self._state = {i: init_fn() for i in range(state_num)}
         self._save_prev_state = save_prev_state
         self._init_fn = init_fn
 
     def forward(self, data, **kwargs):
         state_id = kwargs.pop('data_id', None)
-        valid_id = kwargs.pop('valid_id', None)
-        data, state_info = self.before_forward(data, state_id)
+        valid_id = kwargs.pop('valid_id', None)  # None, not used in any code in DI-engine
+        data, state_info = self.before_forward(data, state_id)  # update data['prev_state'] with self._state
         output = self._model.forward(data, **kwargs)
         h = output.pop('next_state', None)
         if h is not None:
-            self.after_forward(h, state_info, valid_id)
+            self.after_forward(h, state_info, valid_id)  # this is to store the 'next hidden state' for each time step
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
             output['prev_state'] = prev_state

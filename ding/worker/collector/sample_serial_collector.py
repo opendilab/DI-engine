@@ -257,6 +257,11 @@ class SampleSerialCollector(ISerialCollector):
                     self._total_envstep_count += 1
                     # prepare data
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
+                        # for r2d2:
+                        # for each collect_env, we want to collect data of the length self._traj_len except when it comes to a done
+                        # but even if timestep is done and we only collected 9 transitions, by going through self._policy.get_train_sample, it will be padded automatically
+                        # So, a unit of train transition for r2d2 will have seq len (burnin + nstep) (collected_sample=1), and we need to collect n_sample
+
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])
                         train_sample = self._policy.get_train_sample(transitions)

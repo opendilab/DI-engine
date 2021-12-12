@@ -229,11 +229,13 @@ class R2D2Policy(Policy):
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
             # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
 
-        data['action'] = data['action'][bs:-self._nstep]
-        data['reward'] = data['reward'][bs:-self._nstep]
+        data['action'] = data['action'][bs:-self._nstep]  # cut the seq_len from burn_in step to nstep
+        data['reward'] = data['reward'][bs:-self._nstep]  # cut the seq_len from burn_in step to nstep
 
         # the burnin_nstep_obs is used to calculate the init hidden state of rnn for the calculation of the q_value,
         # target_q_value, and target_q_action
+
+        # these slicing are all done in the outermost layer, which is the seq_len dim
         data['burnin_nstep_obs'] = data['obs'][:bs + self._nstep]
         # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from
         # [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
@@ -259,10 +261,11 @@ class R2D2Policy(Policy):
                 - total_loss (:obj:`float`): The calculated loss
         """
         # forward
-        data = self._data_preprocess_learn(data)
+        data = self._data_preprocess_learn(data)  # output datatype: Dict
         self._learn_model.train()
         self._target_model.train()
         # use the hidden state in timestep=0
+        # note the reset method is performed at the hidden state wrapper, to reset self._state.
         self._learn_model.reset(data_id=None, state=data['prev_state'][0])
         self._target_model.reset(data_id=None, state=data['prev_state'][0])
 
@@ -271,7 +274,7 @@ class R2D2Policy(Policy):
                 inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
                 burnin_output = self._learn_model.forward(
                     inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
-                )
+                )  # keys include 'logit', 'hidden_state' 'saved_hidden_state', 'action', for their specific dim, please refer to DRQN model
                 burnin_output_target = self._target_model.forward(
                     inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
@@ -307,6 +310,7 @@ class R2D2Policy(Policy):
             else:
                 l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
+                # td will be a list of the length (self._unroll_len_add_burnin_step - self._burnin_step - self._nstep) and each value is a tensor of the size batch_size
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
 
@@ -314,6 +318,7 @@ class R2D2Policy(Policy):
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
         )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
+        # torch.max(torch.stack(td_error), dim=0) will return tuple like thing, please refer to torch.max
         # td_error shape list(<self._unroll_len_add_burnin_step-self._burnin_step-self._nstep>, B), for example, (75,64)
         # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
 
@@ -332,7 +337,7 @@ class R2D2Policy(Policy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
-            'priority': td_error_per_sample.abs().tolist(),
+            'priority': td_error_per_sample.abs().tolist(),  # TODO no need to add abs actually
             # the first timestep in the sequence, may not be the start of episode
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
@@ -365,6 +370,7 @@ class R2D2Policy(Policy):
         self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step
         self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
 
+        # for r2d2, this hidden_state wrapper is to add the 'prev hidden state' for each transition. Note that collect env forms a batch and the key is added for the batch simultaneously.
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
