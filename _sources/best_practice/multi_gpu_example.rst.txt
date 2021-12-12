@@ -49,13 +49,13 @@ For DP, the runnable script demo is demonstrated as follows.
 
 .. code-block:: bash
 
-    CUDA_VISIBLE_DEVICES=0,1 python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+    CUDA_VISIBLE_DEVICES=0,1 python -u spaceinvaders_dqn_config_multi_gpu_ddp.py
 
 or (on cluster managed by Slurm)
 
 .. code-block:: bash
 
-    srun -p PARTITION_NAME --mpi=pmi2 --gres=gpu:2 -n1 --ntasks-per-node=1 python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+    srun -p PARTITION_NAME --mpi=pmi2 --gres=gpu:2 -n1 --ntasks-per-node=1 python -u spaceinvaders_dqn_config_multi_gpu_ddp.py
 
 
 
@@ -129,7 +129,7 @@ To enable DDP training in DI-engine existing codes, you just need to add modific
             serial_pipeline(main_config, create_config)
 
 .. tip::
-    The whole example is located in ``dizoo/atari/entry/spaceinvaders_dqn_main_multi_gpu_ddp.py``
+    The whole example is located in ``dizoo/atari/entry/spaceinvaders_dqn_config_multi_gpu_ddp.py``
 
 3. Execute launch shell script
 
@@ -137,10 +137,10 @@ For DDP, the runnable script demo is demonstrated as follows.
 
 .. code-block:: bash
 
-    CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nnodes=1 --node_rank=0 --nproc_per_node=2 spaceinvaders_dqn_main_multi_gpu_ddp.py
+    CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch --nnodes=1 --node_rank=0 --nproc_per_node=2 spaceinvaders_dqn_config_multi_gpu_ddp.py
 
 Or on cluster managed by Slurm
 
 .. code-block:: bash
 
-    srun -p PARTITION_NAME --mpi=pmi2 --gres=gpu:2 -n2 --ntasks-per-node=2 python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+    srun -p PARTITION_NAME --mpi=pmi2 --gres=gpu:2 -n2 --ntasks-per-node=2 python -u spaceinvaders_dqn_config_multi_gpu_ddp.py

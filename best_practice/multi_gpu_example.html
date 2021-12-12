@@ -237,11 +237,11 @@ and then the parameters are synchronized with other GPUs.</p>
 </div>
 <p>We don’t need to change any other code, just simply encapsulate the policy. Please refer to <code class="docutils literal notranslate"><span class="pre">dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config_multi_gpu_dp.py</span></code></p>
 <p>For DP, the runnable script demo is demonstrated as follows.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1 python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1 python -u spaceinvaders_dqn_config_multi_gpu_ddp.py
 </pre></div>
 </div>
 <p>or (on cluster managed by Slurm)</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun -p PARTITION_NAME --mpi<span class="o">=</span>pmi2 --gres<span class="o">=</span>gpu:2 -n1 --ntasks-per-node<span class="o">=</span><span class="m">1</span> python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun -p PARTITION_NAME --mpi<span class="o">=</span>pmi2 --gres<span class="o">=</span>gpu:2 -n1 --ntasks-per-node<span class="o">=</span><span class="m">1</span> python -u spaceinvaders_dqn_config_multi_gpu_ddp.py
 </pre></div>
 </div>
 </div>
@@ -306,17 +306,17 @@ DI-engine achieves this with allreduce operator in learner and evaluator, and on
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>The whole example is located in <code class="docutils literal notranslate"><span class="pre">dizoo/atari/entry/spaceinvaders_dqn_main_multi_gpu_ddp.py</span></code></p>
+<p>The whole example is located in <code class="docutils literal notranslate"><span class="pre">dizoo/atari/entry/spaceinvaders_dqn_config_multi_gpu_ddp.py</span></code></p>
 </div>
 <ol class="arabic simple" start="3">
 <li><p>Execute launch shell script</p></li>
 </ol>
 <p>For DDP, the runnable script demo is demonstrated as follows.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1 python -m torch.distributed.launch --nnodes<span class="o">=</span><span class="m">1</span> --node_rank<span class="o">=</span><span class="m">0</span> --nproc_per_node<span class="o">=</span><span class="m">2</span> spaceinvaders_dqn_main_multi_gpu_ddp.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CUDA_VISIBLE_DEVICES</span><span class="o">=</span><span class="m">0</span>,1 python -m torch.distributed.launch --nnodes<span class="o">=</span><span class="m">1</span> --node_rank<span class="o">=</span><span class="m">0</span> --nproc_per_node<span class="o">=</span><span class="m">2</span> spaceinvaders_dqn_config_multi_gpu_ddp.py
 </pre></div>
 </div>
 <p>Or on cluster managed by Slurm</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun -p PARTITION_NAME --mpi<span class="o">=</span>pmi2 --gres<span class="o">=</span>gpu:2 -n2 --ntasks-per-node<span class="o">=</span><span class="m">2</span> python -u spaceinvaders_dqn_main_multi_gpu_ddp.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun -p PARTITION_NAME --mpi<span class="o">=</span>pmi2 --gres<span class="o">=</span>gpu:2 -n2 --ntasks-per-node<span class="o">=</span><span class="m">2</span> python -u spaceinvaders_dqn_config_multi_gpu_ddp.py
 </pre></div>
 </div>
 </div>
