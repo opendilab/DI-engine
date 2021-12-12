@@ -89,7 +89,8 @@ class HiddenStateWrapper(IModelWrapper):
         """
         super().__init__(model)
         self._state_num = state_num
-        # This is to maintain hidden states （when it comes to this wrapper, map self._state into data['prev_value] and update next_state, store in self._state)
+        # This is to maintain hidden states （when it comes to this wrapper, \
+        # map self._state into data['prev_value] and update next_state, store in self._state)
         self._state = {i: init_fn() for i in range(state_num)}
         self._save_prev_state = save_prev_state
         self._init_fn = init_fn

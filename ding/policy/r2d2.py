@@ -274,7 +274,8 @@ class R2D2Policy(Policy):
                 inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
                 burnin_output = self._learn_model.forward(
                     inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
-                )  # keys include 'logit', 'hidden_state' 'saved_hidden_state', 'action', for their specific dim, please refer to DRQN model
+                )  # keys include 'logit', 'hidden_state' 'saved_hidden_state', \
+                # 'action', for their specific dim, please refer to DRQN model
                 burnin_output_target = self._target_model.forward(
                     inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
                 )
@@ -310,7 +311,8 @@ class R2D2Policy(Policy):
             else:
                 l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
-                # td will be a list of the length (self._unroll_len_add_burnin_step - self._burnin_step - self._nstep) and each value is a tensor of the size batch_size
+                # td will be a list of the length (self._unroll_len_add_burnin_step - self._burnin_step - self._nstep)
+                # and each value is a tensor of the size batch_size
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
 
@@ -370,7 +372,8 @@ class R2D2Policy(Policy):
         self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step
         self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
 
-        # for r2d2, this hidden_state wrapper is to add the 'prev hidden state' for each transition. Note that collect env forms a batch and the key is added for the batch simultaneously.
+        # for r2d2, this hidden_state wrapper is to add the 'prev hidden state' for each transition.
+        # Note that collect env forms a batch and the key is added for the batch simultaneously.
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
