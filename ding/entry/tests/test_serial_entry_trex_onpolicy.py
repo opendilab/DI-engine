@@ -19,7 +19,7 @@ def test_serial_pipeline_reward_model_trex():
     expert_policy = serial_pipeline_onpolicy(config, seed=0, max_iterations=90)
 
     config = [deepcopy(cartpole_trex_ppo_onpolicy_config), deepcopy(cartpole_trex_ppo_onpolicy_create_config)]
-    config[0].reward_model.offline_data_path = 'dizoo/classic_control/cartpole/config/cartpole_trex_onppo'
+    config[0].reward_model.offline_data_path = './cartpole_trex_onppo'
     config[0].reward_model.offline_data_path = os.path.abspath(config[0].reward_model.offline_data_path)
     config[0].reward_model.reward_model_path = config[0].reward_model.offline_data_path + '/cartpole.params'
     config[0].reward_model.expert_model_path = './cartpole_ppo'
@@ -29,5 +29,6 @@ def test_serial_pipeline_reward_model_trex():
     try:
         serial_pipeline_reward_model_trex_onpolicy(config, seed=0, max_iterations=1)
         os.popen('rm -rf {}'.format(config[0].reward_model.offline_data_path))
+        os.popen('rm -rf {}'.format(config[0].reward_model.expert_model_path))
     except Exception:
         assert False, "pipeline fail"
