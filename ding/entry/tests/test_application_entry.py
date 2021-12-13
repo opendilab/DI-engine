@@ -81,14 +81,13 @@ class TestApplication:
         assert isinstance(exp_data, list)
         assert isinstance(exp_data[0][0], dict)
 
-
-@pytest.mark.unittest
-def test_episode_to_transitions():
-    expert_data_path = './test_episode/expert.data'
-    episode_to_transitions(data_path=expert_data_path, expert_data_path=expert_data_path, nstep=3)
-    with open(expert_data_path, 'rb') as f:
-        exp_data = pickle.load(f)
-    assert isinstance(exp_data, list)
-    assert isinstance(exp_data[0], dict)
-    os.popen('rm -rf ./test_episode/expert.data ckpt* log')
-    os.popen('rm -rf ./test_episode')
+    def test_episode_to_transitions(self, setup_state_dict):
+        self.test_collect_episodic_demo_data(setup_state_dict)
+        expert_data_path = './test_episode/expert.data'
+        episode_to_transitions(data_path=expert_data_path, expert_data_path=expert_data_path, nstep=3)
+        with open(expert_data_path, 'rb') as f:
+            exp_data = pickle.load(f)
+        assert isinstance(exp_data, list)
+        assert isinstance(exp_data[0], dict)
+        os.popen('rm -rf ./test_episode/expert.data ckpt* log')
+        os.popen('rm -rf ./test_episode')
