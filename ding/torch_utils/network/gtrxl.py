@@ -105,22 +105,20 @@ class Memory:
         self.memory = None
         self.init()
 
-    def init(self, memory: Optional[List[torch.Tensor]] = None):
+    def init(self, memory: Optional[torch.Tensor] = None):
         """
         Overview:
             Init memory with an input list of tensors or create it automatically given its dimensions.
         Arguments:
-            - memory: (:obj:`Optional[List[torch.Tensor]]`): memory input.
-            Shape is (memory_len, bs, embedding_dim) for each layer.
+            - memory: (:obj:`Optional[torch.Tensor]`): memory input.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
             memory_len is length of memory, bs is batch size and embedding_dim is the dimension of embedding.
         """
-        if memory:
+        if memory is not None:
             self.memory = memory
         else:
-            self.memory = [
-                torch.zeros(self.memory_len, self.bs, self.embedding_dim, dtype=torch.float)
-                for _ in range(self.layer_num + 1)
-            ]
+            self.memory = torch.zeros(self.layer_num + 1, self.memory_len,
+                                      self.bs, self.embedding_dim, dtype=torch.float)
 
     def update(self, hidden_state: List[torch.Tensor]):
         """
@@ -137,8 +135,8 @@ class Memory:
             - hidden_state: (:obj:`List[torch.Tensor]`): hidden states to update the memory.
             Shape is (cur_seq, bs, embedding_dim) for each layer. cur_seq is length of sequence.
         Returns:
-            - memory: (:obj:`Optional[List[torch.Tensor]]`): output memory.
-            Shape is (memory_len, bs, embedding_dim) for each layer.
+            - memory: (:obj:`Optional[torch.Tensor]`): output memory.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
         """
         if self.memory is None or hidden_state is None:
             return None
@@ -147,9 +145,12 @@ class Memory:
             new_memory = []
             end = self.memory_len + sequence_len
             beg = max(0, end - self.memory_len)
-            for m, h in zip(self.memory, hidden_state):
+            for i in range(self.layer_num):
+                m = self.memory[i]
+                h = hidden_state[i]
                 cat = torch.cat([m, h], dim=0)
                 new_memory.append(cat[beg:end].detach())
+        new_memory = torch.stack(new_memory, dim=0)
         self.memory = new_memory
         return new_memory
 
@@ -158,8 +159,8 @@ class Memory:
         Overview:
             Memory getter method.
         Returns:
-            - memory: (:obj:`Optional[List[torch.Tensor]]`): output memory.
-            Shape is (memory_len, bs, embedding_dim) for each layer.
+            - memory: (:obj:`Optional[torch.Tensor]`): output memory.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
         """
         return self.memory
 
@@ -431,17 +432,18 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
 
-    def reset(self, state: Optional[torch.Tensor] = None):
+    def reset(self, batch_size, state: Optional[torch.Tensor] = None):
         r"""
         Overview:
             Clear or set the memory of GTrXL.
          Arguments:
-            - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).
             - state (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to 'True'
             in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size). This
             param doesn't affects the output memory
         """
-        self.memory = state
+        self.memory = Memory(self.memory_len, batch_size, self.embedding_dim, self.layer_num + 1)
+        if state is not None:
+            self.memory.init(state)
 
     def forward(self, x: torch.Tensor, batch_first: bool = False, return_mem: bool = True) -> Dict[str, torch.Tensor]:
         r"""
@@ -455,21 +457,20 @@ class GTrXL(nn.Module):
             - return_mem (:obj:`bool`): if this param is False, return only the output tensor without dict.
         Returns:
             - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape
-             (seq_len, bs, embedding_size) and memory of shape (seq_len, bs, embedding_size)
+             (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size)
         """
         if batch_first:
             x = torch.transpose(x, 1, 0)  # bs x cur_seq x input_dim -> cur_seq x bs x input_dim
 
         cur_seq, bs = x.shape[:2]
         memory = None if self.memory is None else self.memory.get()
-        if memory is None:
+        if memory is None or bs != self.memory.get().shape[1]:  # TODO if the old memory has a different bs, reset the memory (replace this with a wrapper: TransformerXLWrapper
             self.memory = Memory(self.memory_len, bs, self.embedding_dim, self.layer_num + 1)
             # (layer_num+1) x memory_len x batch_size x embedding_dim
-            memory = self.memory.get()
-            memory = [mem.to(x.device) for mem in memory]
+            memory = self.memory.get().to(x.device)
 
         x = self.dropout(self.embedding(x))
-        prev_seq = memory[0].size(0)
+        prev_seq = self.memory_len
         full_seq = cur_seq + prev_seq
 
         # TODO: add padding to attention mask, https://huggingface.co/docs/transformers/preprocessing
@@ -485,23 +486,23 @@ class GTrXL(nn.Module):
 
         hidden_state = [x]
         out = x
-        for memory, layer in zip(memory, self.layers):
+        for i in range(self.layer_num):
+            layer = self.layers[i]
             out = layer(
                 out,
                 pos_embedding,
                 self.u,
                 self.v,
                 mask=dec_attn_mask,
-                memory=memory,
+                memory=memory[i],  # (layer_num+1) x memory_len x batch_size x embedding_dim
             )   # cur_seq x bs x embedding_dim
             hidden_state.append(out)
 
         out = self.dropout(out)
-        memory = self.memory.update(hidden_state)
+        self.memory.update(hidden_state)  # (layer_num+1) x memory_len x batch_size x embedding_dim
 
         if batch_first:
             out = torch.transpose(out, 1, 0)  # cur_seq x bs x embedding_dim -> bs x cur_seq x embedding_dim
-
         if return_mem:
             output = {"logit": out, "memory": memory}
         else:
@@ -521,4 +522,4 @@ if __name__ == "__main__":
     m = GTrXL(128, memory_len=50, embedding_dim=embedding_dim)
     o = m(a)
     print('output', o['logit'].shape)
-    #print('memory', mem[0].shape)
+    print('memory', o['memory'].shape)
