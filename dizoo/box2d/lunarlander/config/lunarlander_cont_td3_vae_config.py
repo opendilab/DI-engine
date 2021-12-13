@@ -2,7 +2,8 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_td3_vae
 
 lunarlander_td3vae_config = dict(
-    exp_name='lunarlander_cont_td3_vae',
+    # exp_name='lunarlander_cont_td3_vae_wu0_vae5rl5_tvtpc1',
+    exp_name='lunarlander_cont_td3_vae_wu0_vae5rl5_tvtpc5',
     env=dict(
         env_id='LunarLanderContinuous-v2',
         # collector_env_num=8,
@@ -17,18 +18,24 @@ lunarlander_td3vae_config = dict(
     policy=dict(
         cuda=False,
         priority=False,
-        random_collect_size=12800,
+        # random_collect_size=1280,
+        random_collect_size=0,
         original_action_shape=2,
         model=dict(
             obs_shape=8,
-            action_shape=64,  # latent_action_shape
+            action_shape=2,  # 64,  # action_latent_shape
             twin_critic=True,
             actor_head_type='regression',
         ),
         learn=dict(
-            # warm_up_update=1,
-            warm_up_update=1000,
-            update_per_collect=2,
+            warm_up_update=0,
+            # warm_up_update=100,
+            vae_update_freq=10,  # TODO(pu)
+            rl_update_freq=10,
+
+            train_vae_times_per_update=5,   # TODO(pu)
+
+            update_per_collect=10,  # train vae 5 times, rl 5 times
             batch_size=128,
             learning_rate_actor=0.001,
             learning_rate_critic=0.001,
@@ -44,7 +51,9 @@ lunarlander_td3vae_config = dict(
         ),
         collect=dict(
             # n_sample=48,
-            each_iter_n_sample=48,
+            # each_iter_n_sample=48,
+            # each_iter_n_sample=128,
+            each_iter_n_sample=256,
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
         ),

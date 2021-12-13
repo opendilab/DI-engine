@@ -46,9 +46,9 @@ class VanillaVAE(BaseVAE):
                  **kwargs) -> None:
         super(VanillaVAE, self).__init__()
 
-        self.latent_dim = latent_dim
         self.action_dim = in_channels_1
         self.obs_dim = in_channels_2
+        self.latent_dim = latent_dim
         self.hidden_dims = hidden_dims
 
         modules = []
