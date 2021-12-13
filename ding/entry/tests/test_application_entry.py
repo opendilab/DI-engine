@@ -81,6 +81,7 @@ class TestApplication:
         assert isinstance(exp_data, list)
         assert isinstance(exp_data[0][0], dict)
 
+
 @pytest.mark.unittest
 def test_episode_to_transitions():
     expert_data_path = './test_episode/expert.data'
