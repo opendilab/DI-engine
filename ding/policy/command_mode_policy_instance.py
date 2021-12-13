@@ -8,6 +8,7 @@ from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
 from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
+from .r2d2_gtrxl import R2D2GTrXLPolicy
 from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
@@ -117,6 +118,11 @@ class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('r2d2_command')
 class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('r2d2_gtrxl_command')
+class R2D2CommandModePolicy(R2D2GTrXLPolicy, EpsCommandModePolicy):
     pass
 
 

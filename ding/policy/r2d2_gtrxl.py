@@ -2,8 +2,6 @@ import copy
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple, Union, Optional
 
-import torch
-
 from ding.model import model_wrap
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
@@ -12,9 +10,66 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
+from ding.model.common.head import *
+from ding.torch_utils.network.gtrxl import GTrXL
 
-@POLICY_REGISTRY.register('r2d2')
-class R2D2Policy(Policy):
+from ding.utils import MODEL_REGISTRY
+
+
+@MODEL_REGISTRY.register('gtrxl_discrete')
+class GTrXLDiscreteHead(nn.Module):
+    def __init__(
+        self,
+        obs_shape: int,
+        action_shape: int,
+        head_layer_num: int = 1,
+        att_head_dim: int = 16,
+        embedding_dim: int = 16,
+        att_head_num: int = 2,
+        att_mlp_num: int = 2,
+        att_layer_num: int = 3,
+        memory_len: int = 64,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        head_norm_type: Optional[str] = None,
+        head_noise: Optional[bool] = False,
+        dropout: float = 0.,
+    ) -> None:
+        super(GTrXLDiscreteHead, self).__init__()
+        self.core = GTrXL(
+            input_dim=obs_shape,
+            head_dim=att_head_dim,
+            embedding_dim=embedding_dim,
+            head_num=att_head_num,
+            mlp_num=att_mlp_num,
+            layer_num=att_layer_num,
+            memory_len=memory_len,
+            activation=activation,
+            dropout_ratio=dropout,
+        )
+        self.head = DiscreteHead(
+            hidden_size=embedding_dim,
+            output_size=action_shape,
+            layer_num=head_layer_num,
+            activation=activation,
+            norm_type=head_norm_type,
+            noise=head_noise
+        )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        o1 = self.core(x)
+        o2 = self.head(o1['logit'])
+        o2['memory'] = torch.permute(o1['memory'], (2, 0, 1, 3))  # bs first
+        o2['transformer_out'] = o1['logit']
+        return o2
+
+    def reset(self, state: Optional[torch.Tensor] = None):
+        print('reset')
+        self.core.reset(state)
+        print(self.core.memory)
+
+
+@POLICY_REGISTRY.register('r2d2_gtrxl')
+class R2D2GTrXLPolicy(Policy):
     r"""
     Overview:
         Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
@@ -80,12 +135,8 @@ class R2D2Policy(Policy):
         discount_factor=0.997,
         # (int) N-step reward for target q_value estimation
         nstep=5,
-        # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
-        # caused by off-policy
-        burnin_step=2,
-        # (int) the trajectory length to unroll the RNN network minus
-        # the timestep of burnin operation
-        unroll_len=80,
+        # (int) the trajectory length to unroll the RNN network
+        unroll_len=20,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -98,8 +149,6 @@ class R2D2Policy(Policy):
             # (int) Frequence of target network update.
             # target_update_freq=100,
             target_update_theta=0.001,
-            # (bool) whether use value_rescale function for predicted value
-            value_rescale=True,
             ignore_done=False,
         ),
         collect=dict(
@@ -139,15 +188,14 @@ class R2D2Policy(Policy):
             - gamma (:obj:`float`): The discount factor
             - nstep (:obj:`int`): The num of n step return
             - value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
-            - burnin_step (:obj:`int`): The num of step of burnin
         """
+        print('gtrxl')
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
-        self._burnin_step = self._cfg.burnin_step
-        self._value_rescale = self._cfg.learn.value_rescale
+        self._batch_size = self._cfg.learn.batch_size
 
         self._target_model = copy.deepcopy(self._model)
         # here we should not adopt the 'assign' mode of target network here because the reset bug
@@ -164,17 +212,7 @@ class R2D2Policy(Policy):
             update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
 
-        self._target_model = model_wrap(
-            self._target_model,
-            wrapper_name='hidden_state',
-            state_num=self._cfg.learn.batch_size,
-        )
-        self._learn_model = model_wrap(
-            self._model,
-            wrapper_name='hidden_state',
-            state_num=self._cfg.learn.batch_size,
-        )
-        self._learn_model = model_wrap(self._learn_model, wrapper_name='argmax_sample')
+        self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._learn_model.reset()
         self._target_model.reset()
 
@@ -188,11 +226,15 @@ class R2D2Policy(Policy):
 
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, including at least \
-                ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
+                ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
             - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
         # data preprocess
+        from copy import deepcopy
+        prev_mem = [b.pop('prev_memory')[0] for b in deepcopy(data)]  # retrieve the memory corresponding to the first observation in each trajectory
+        prev_mem = torch.stack(prev_mem, 0).permute(1, 2, 0, 3)  # (layer_num, memory_len, bs, embedding_dim)
         data = timestep_collate(data)
+        data['prev_memory'] = prev_mem
         if self._cuda:
             data = to_device(data, self._device)
 
@@ -203,43 +245,36 @@ class R2D2Policy(Policy):
         else:
             data['weight'] = data.get('weight', None)
 
-        bs = self._burnin_step
-
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]
+        # the q_nstep_td_error, should be length of [self._unroll_len]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+            data['done'] = [None for _ in range(self._unroll_len)]
         else:
-            data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
+            data['done'] = data['done'].float()  # for computation of online model self._learn_model
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
-            # the data['done'] [t] is already the n-step done
+            # the data['done'][t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
         # with length of [self._unroll_len_add_burnin_step-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+            data['value_gamma'] = [None for _ in range(self._unroll_len)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs:]
+            data['value_gamma'] = data['value_gamma']
 
         if 'weight' not in data or data['weight'] is None:
-            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+            data['weight'] = [None for _ in range(self._unroll_len)]
         else:
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
             # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
 
-        data['action'] = data['action'][bs:-self._nstep]
-        data['reward'] = data['reward'][bs:-self._nstep]
+        data['action'] = data['action'][:-self._nstep]
+        data['reward'] = data['reward'][:-self._nstep]
 
-        # the burnin_nstep_obs is used to calculate the init hidden state of rnn for the calculation of the q_value,
-        # target_q_value, and target_q_action
-        data['burnin_nstep_obs'] = data['obs'][:bs + self._nstep]
-        # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from
-        # [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
-        data['main_obs'] = data['obs'][bs:-self._nstep]
+        data['main_obs'] = data['obs'][:-self._nstep]
         # the target_obs is used to calculate the target_q_value
-        data['target_obs'] = data['obs'][bs + self._nstep:]
+        data['target_obs'] = data['obs'][self._nstep:]
 
         return data
 
@@ -251,7 +286,7 @@ class R2D2Policy(Policy):
 
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least \
-                ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
+                ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
 
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including cur_lr and total_loss
@@ -259,30 +294,17 @@ class R2D2Policy(Policy):
                 - total_loss (:obj:`float`): The calculated loss
         """
         # forward
-        data = self._data_preprocess_learn(data)
+        data = self._data_preprocess_learn(data)  # shape (seq_len, bs, obs_dim)
         self._learn_model.train()
         self._target_model.train()
-        # use the hidden state in timestep=0
-        self._learn_model.reset(data_id=None, state=data['prev_state'][0])
-        self._target_model.reset(data_id=None, state=data['prev_state'][0])
+        # use the previous hidden state memory
+        self._learn_model._model.core.reset(len(data), data['prev_memory'])
+        self._target_model._model.core.reset(len(data), data['prev_memory'])
 
-        if len(data['burnin_nstep_obs']) != 0:
-            with torch.no_grad():
-                inputs = {'obs': data['burnin_nstep_obs'], 'enable_fast_timestep': True}
-                burnin_output = self._learn_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
-                )
-                burnin_output_target = self._target_model.forward(
-                    inputs, saved_hidden_state_timesteps=[self._burnin_step, self._burnin_step + self._nstep]
-                )
+        inputs = data['main_obs']
+        q_value = self._learn_model.forward(inputs)['logit']  # shape (seq_len, bs, act_dim)
 
-        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][0])
-        inputs = {'obs': data['main_obs'], 'enable_fast_timestep': True}
-        q_value = self._learn_model.forward(inputs)['logit']
-        self._learn_model.reset(data_id=None, state=burnin_output['saved_hidden_state'][1])
-        self._target_model.reset(data_id=None, state=burnin_output_target['saved_hidden_state'][1])
-
-        next_inputs = {'obs': data['target_obs'], 'enable_fast_timestep': True}
+        next_inputs = data['target_obs']
         with torch.no_grad():
             target_q_value = self._target_model.forward(next_inputs)['logit']
             # argmax_action double_dqn
@@ -294,20 +316,15 @@ class R2D2Policy(Policy):
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
+        for t in range(self._unroll_len - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
             # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
-            if self._value_rescale:
-                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
-                loss.append(l)
-                td_error.append(e.abs())
-            else:
-                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
-                loss.append(l)
-                td_error.append(e.abs())
+            l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+            loss.append(l)
+            td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
 
         # using the mixture of max and mean absolute n-step TD-errors as the priority of the sequence
@@ -340,7 +357,7 @@ class R2D2Policy(Policy):
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._learn_model.reset(data_id=data_id)
+        self._learn_model.reset()
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
@@ -358,16 +375,11 @@ class R2D2Policy(Policy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, collect model.
         """
-        assert 'unroll_len' not in self._cfg.collect, "r2d2 use default unroll_len"
+        assert 'unroll_len' not in self._cfg.collect, "Use default unroll_len"
         self._nstep = self._cfg.nstep
-        self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
-        self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step
-        self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
-
-        self._collect_model = model_wrap(
-            self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
-        )
+        self._unroll_len = self._cfg.unroll_len
+        self._collect_model = model_wrap(self._model, wrapper_name='transformer', seq_len=self._unroll_len)
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -388,19 +400,16 @@ class R2D2Policy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
-        data = {'obs': data}
         self._collect_model.eval()
         with torch.no_grad():
-            # in collect phase, inference=True means that each time we only pass one timestep data,
-            # so the we can get the hidden state of rnn: <prev_state> at each timestep.
-            output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
+            output = self._collect_model.forward(data, eps=eps)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        self._collect_model.reset(data_id=data_id)
+        self._collect_model.reset()
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -417,7 +426,8 @@ class R2D2Policy(Policy):
         transition = {
             'obs': obs,
             'action': model_output['action'],
-            'prev_state': model_output['prev_state'],
+            'prev_memory': model_output['memory'],
+            'prev_state': None,
             'reward': timestep.reward,
             'done': timestep.done,
         }
@@ -435,7 +445,7 @@ class R2D2Policy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len_add_burnin_step)
+        return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:
         r"""
@@ -443,7 +453,7 @@ class R2D2Policy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.eval.env_num)
+        self._eval_model = model_wrap(self._model, wrapper_name='transformer', seq_len=self._unroll_len)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
@@ -463,20 +473,19 @@ class R2D2Policy(Policy):
         data = default_collate(list(data.values()))
         if self._cuda:
             data = to_device(data, self._device)
-        data = {'obs': data}
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data, data_id=data_id, inference=True)
+            output = self._eval_model.forward(data)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        self._eval_model.reset(data_id=data_id)
+        self._eval_model.reset()
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'drqn', ['ding.model.template.q_learning']
+        return 'gtrxl_discrete', ['ding.policy.r2d2_gtrxl']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
