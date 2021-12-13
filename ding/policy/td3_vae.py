@@ -218,13 +218,12 @@ class TD3VAEPolicy(DDPGPolicy):
 
         self._forward_learn_cnt = 0  # count iterations
         # action_shape, obs_shape, action_latent_dim, hidden_size_list
-        self._vae_model = VanillaVAE(self._cfg.original_action_shape, self._cfg.model.obs_shape, self._cfg.model.action_shape, [256, 256, 256])
-        # self._vae_model = VanillaVAE(2, 8, 2, [256, 256, 256])
+        # self._vae_model = VanillaVAE(self._cfg.original_action_shape, self._cfg.model.obs_shape, self._cfg.model.action_shape, [256, 256, 256])
+        self._vae_model = VanillaVAE(2, 8, 6, [256, 256, 256])
         self._optimizer_vae = Adam(
             self._vae_model.parameters(),
             lr=self._cfg.learn.learning_rate_vae,
         )
-
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -306,53 +305,57 @@ class TD3VAEPolicy(DDPGPolicy):
                 ignore_done=self._cfg.learn.ignore_done,
                 use_nstep=False
             )
-            if (self._forward_learn_cnt + 1) % self._cfg.learn.vae_update_freq in [0,1,2,3,4]:
-                for i in range(self._cfg.learn.train_vae_times_per_update):
-                    if self._cuda:
-                        data = to_device(data, self._device)
+            # if (self._forward_learn_cnt + 1) % self._cfg.learn.vae_rl_update_circle in range(10,15):
+            # if (self._forward_learn_cnt + 1) % self._cfg.learn.vae_update_freq == 0:
+            if data['vae_phase'][0] is True:
+                # for i in range(self._cfg.learn.vae_train_times_per_update):
+                if self._cuda:
+                    data = to_device(data, self._device)
 
-                    # ====================
-                    # train vae
-                    # ====================
-                    result = self._vae_model(
-                        {'action': data['action'],
-                         'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
+                # ====================
+                # train vae
+                # ====================
+                result = self._vae_model(
+                    {'action': data['action'],
+                     'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
 
-                    data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action
-                    result.pop(-1)  # remove z
-                    result[2] = data['action']
-                    true_residual = data['next_obs'] - data['obs']
-                    result = result + [true_residual]
+                data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action
+                result.pop(-1)  # remove z
+                result[2] = data['action']
+                true_residual = data['next_obs'] - data['obs']
+                result = result + [true_residual]
 
-                    vae_loss = self._vae_model.loss_function(*result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
-                    # recons = args[0]
-                    # prediction_residual = args[1]
-                    # input_action = args[2]
-                    # mu = args[3]
-                    # log_var = args[4]
-                    # true_residual = args[5]
-                    # print(vae_loss)
-                    loss_dict['vae_loss'] = vae_loss['loss']
-                    loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss']
-                    loss_dict['kld_loss'] = vae_loss['kld_loss']
+                vae_loss = self._vae_model.loss_function(*result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
+                # recons = args[0]
+                # prediction_residual = args[1]
+                # input_action = args[2]
+                # mu = args[3]
+                # log_var = args[4]
+                # true_residual = args[5]
+                # print(vae_loss)
+                loss_dict['vae_loss'] = vae_loss['loss']
+                loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss']
+                loss_dict['kld_loss'] = vae_loss['kld_loss']
 
-                    # vae update
-                    self._optimizer_vae.zero_grad()
-                    vae_loss['loss'].backward()
-                    self._optimizer_vae.step()
+                # vae update
+                self._optimizer_vae.zero_grad()
+                vae_loss['loss'].backward()
+                self._optimizer_vae.step()
 
-                    return {
-                        'cur_lr_actor': self._optimizer_actor.defaults['lr'],
-                        'cur_lr_critic': self._optimizer_critic.defaults['lr'],
-                        # 'q_value': np.array(q_value).mean(),
-                        'action': torch.Tensor([0]).item(),
-                        'priority': torch.Tensor([0]).item(),
-                        'td_error': torch.Tensor([0]).item(),
-                        **loss_dict,
-                        **q_value_dict,
-                    }
+                return {
+                    'cur_lr_actor': self._optimizer_actor.defaults['lr'],
+                    'cur_lr_critic': self._optimizer_critic.defaults['lr'],
+                    # 'q_value': np.array(q_value).mean(),
+                    'action': torch.Tensor([0]).item(),
+                    'priority': torch.Tensor([0]).item(),
+                    'td_error': torch.Tensor([0]).item(),
+                    **loss_dict,
+                    **q_value_dict,
+                }
 
-            if (self._forward_learn_cnt + 1) % self._cfg.learn.rl_update_freq in [5,6,7,8,9]:
+            # if (self._forward_learn_cnt + 1) % self._cfg.learn.vae_rl_update_circle  in range(0,10):
+            # if data[0]['rl_phase'] is True:
+            else:
                 # ====================
                 # critic learn forward
                 # ====================

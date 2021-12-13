@@ -2,8 +2,11 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_td3_vae
 
 lunarlander_td3vae_config = dict(
-    # exp_name='lunarlander_cont_td3_vae_wu0_vae5rl5_tvtpc1',
-    exp_name='lunarlander_cont_td3_vae_wu0_vae5rl5_tvtpc5',
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc11_upcv10',
+    exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc11_upcv20',
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc21_upcv40',
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc3_upcv4',
+
     env=dict(
         env_id='LunarLanderContinuous-v2',
         # collector_env_num=8,
@@ -23,23 +26,22 @@ lunarlander_td3vae_config = dict(
         original_action_shape=2,
         model=dict(
             obs_shape=8,
-            action_shape=2,  # 64,  # action_latent_shape
+            action_shape=6,  # 64,  # latent_action_dim
             twin_critic=True,
             actor_head_type='regression',
         ),
         learn=dict(
             warm_up_update=0,
             # warm_up_update=100,
-            vae_update_freq=10,  # TODO(pu)
-            rl_update_freq=10,
+            rl_vae_update_circle=11,  # train rl 10 iter, vae 1 iter
+            # vae_train_times_per_update=1,  # TODO(pu)
+            update_per_collect_rl=2,
+            update_per_collect_vae=20,
 
-            train_vae_times_per_update=5,   # TODO(pu)
-
-            update_per_collect=10,  # train vae 5 times, rl 5 times
             batch_size=128,
-            learning_rate_actor=0.001,
-            learning_rate_critic=0.001,
-            learning_rate_vae=0.001,
+            learning_rate_actor=3e-4,
+            learning_rate_critic=3e-4,
+            learning_rate_vae=3e-4,
             ignore_done=False,  # TODO(pu)
             actor_update_freq=2,
             noise=True,
@@ -51,7 +53,6 @@ lunarlander_td3vae_config = dict(
         ),
         collect=dict(
             # n_sample=48,
-            # each_iter_n_sample=48,
             # each_iter_n_sample=128,
             each_iter_n_sample=256,
             noise_sigma=0.1,
