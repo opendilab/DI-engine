@@ -683,7 +683,7 @@ class DRQN(nn.Module):
         if inference:
             x = self.encoder(x)
             x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
-            # prev_state: DataType: {list{tuple{Tensor}}}; Initially, it is a list of None
+            # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
             x, next_state = self.rnn(x, prev_state)
             x = x.squeeze(0)  # to delete the seq_len dim to match head network input
             x = self.head(x)
@@ -707,7 +707,7 @@ class DRQN(nn.Module):
                 hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
             x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
-            # the last timestep state including h and c, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
+            # the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
             x['next_state'] = prev_state
             # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
             x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
