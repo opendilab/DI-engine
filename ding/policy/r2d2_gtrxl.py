@@ -119,7 +119,7 @@ class R2D2GTrXLPolicy(Policy):
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='r2d2',
+        type='r2d2_gtrxl',
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy.
@@ -346,7 +346,7 @@ class R2D2GTrXLPolicy(Policy):
         q_s_a_t0 = q_value[0][batch_range, action[0]]
         target_q_s_a_t0 = target_q_value[0][batch_range, target_q_action[0]]
 
-        return {
+        ret = {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
             'priority': td_error_per_sample.abs().tolist(),
@@ -355,6 +355,9 @@ class R2D2GTrXLPolicy(Policy):
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),
         }
+        print(ret)
+
+        return ret
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         self._learn_model.reset()

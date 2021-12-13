@@ -117,7 +117,7 @@ class Memory:
         if memory is not None:
             self.memory = memory
         else:
-            self.memory = torch.zeros(self.layer_num + 1, self.memory_len,
+            self.memory = torch.zeros(self.layer_num, self.memory_len,
                                       self.bs, self.embedding_dim, dtype=torch.float)
 
     def update(self, hidden_state: List[torch.Tensor]):
@@ -432,14 +432,14 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
 
-    def reset(self, batch_size, state: Optional[torch.Tensor] = None):
+    def reset(self, batch_size: int, state: Optional[torch.Tensor] = None):
         r"""
         Overview:
             Clear or set the memory of GTrXL.
          Arguments:
-            - state (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to 'True'
-            in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size). This
-            param doesn't affects the output memory
+            - batch_size (:obj:`int`): batch size
+            - state (:obj:`Optional[torch.Tensor]`): input memory.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
         """
         self.memory = Memory(self.memory_len, batch_size, self.embedding_dim, self.layer_num + 1)
         if state is not None:
@@ -464,10 +464,13 @@ class GTrXL(nn.Module):
 
         cur_seq, bs = x.shape[:2]
         memory = None if self.memory is None else self.memory.get()
-        if memory is None or bs != self.memory.get().shape[1]:  # TODO if the old memory has a different bs, reset the memory (replace this with a wrapper: TransformerXLWrapper
-            self.memory = Memory(self.memory_len, bs, self.embedding_dim, self.layer_num + 1)
-            # (layer_num+1) x memory_len x batch_size x embedding_dim
-            memory = self.memory.get().to(x.device)
+        if memory is None:
+            self.reset(bs)  # (layer_num+1) x memory_len x batch_size x embedding_dim
+        elif memory.shape[-2] != bs or memory.shape[-1] != self.embedding_dim:
+            print("Memory and Input dimensions don't match,"
+                  " this will cause the memory to be initialized to fit your input!")
+            self.reset(bs)
+        memory = self.memory.get().to(x.device)
 
         x = self.dropout(self.embedding(x))
         prev_seq = self.memory_len
@@ -504,7 +507,7 @@ class GTrXL(nn.Module):
         if batch_first:
             out = torch.transpose(out, 1, 0)  # cur_seq x bs x embedding_dim -> bs x cur_seq x embedding_dim
         if return_mem:
-            output = {"logit": out, "memory": memory}
+            output = {"logit": out, "memory": memory}  # return the content of the memory before the last update
         else:
             output = {"logit": out}
         return output
