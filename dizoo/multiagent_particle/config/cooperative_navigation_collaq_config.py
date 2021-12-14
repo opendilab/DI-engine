@@ -11,9 +11,9 @@ cooperative_navigation_collaq_config = dict(
         max_step=100,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        manager=dict(shared_memory=False, ),
-        n_evaluator_episode=5,
+        n_evaluator_episode=10,
         stop_value=0,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
