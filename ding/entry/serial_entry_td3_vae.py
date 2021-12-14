@@ -131,10 +131,10 @@ def serial_pipeline_td3_vae(
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
 
         #  rl phase
-        # if iter % cfg.policy.learn.rl_vae_update_circle in range(0,10):
-        if iter % cfg.policy.learn.rl_vae_update_circle in range(0, cfg.policy.learn.rl_vae_update_circle-1):
+        # if iter % cfg.policy.learn.rl_vae_update_circle in range(0,20):
+        if iter % cfg.policy.learn.rl_vae_update_circle in range(0, cfg.policy.learn.rl_vae_update_circle):
             # Learn policy from collected data
-            for i in range(cfg.policy.learn.update_per_collect_rl):
+            for i in range(cfg.policy.learn.update_per_collect_rl):#2->12
                 # Learner will train ``update_per_collect`` times in one iteration.
                 train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
                 for item in train_data:
@@ -151,11 +151,14 @@ def serial_pipeline_td3_vae(
                 if learner.policy.get_attribute('priority'):
                     replay_buffer.update(learner.priority_info)
         #  vae phase
-        # if iter % cfg.policy.learn.rl_vae_update_circle in range(10, 11):
-        if iter % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1, cfg.policy.learn.rl_vae_update_circle):
-            for i in range(cfg.policy.learn.update_per_collect_vae):
+        # if iter % cfg.policy.learn.rl_vae_update_circle in range(19, 20):
+        # if iter % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1, cfg.policy.learn.rl_vae_update_circle):
+        if iter % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1,
+                                                                     cfg.policy.learn.rl_vae_update_circle):
+            for i in range(cfg.policy.learn.update_per_collect_vae):#40
                 # Learner will train ``update_per_collect`` times in one iteration.
                 train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+                train_data= train_data + new_data  # TODO(pu)
                 for item in train_data:
                     item['rl_phase'] = False
                     item['vae_phase'] = True

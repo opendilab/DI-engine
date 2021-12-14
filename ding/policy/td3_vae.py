@@ -219,7 +219,10 @@ class TD3VAEPolicy(DDPGPolicy):
         self._forward_learn_cnt = 0  # count iterations
         # action_shape, obs_shape, action_latent_dim, hidden_size_list
         # self._vae_model = VanillaVAE(self._cfg.original_action_shape, self._cfg.model.obs_shape, self._cfg.model.action_shape, [256, 256, 256])
+        # self._vae_model = VanillaVAE(2, 8, 6, [256, 256, 256])
         self._vae_model = VanillaVAE(2, 8, 6, [256, 256, 256])
+        # self._vae_model = VanillaVAE(2, 8, 2, [256, 256, 256])
+
         self._optimizer_vae = Adam(
             self._vae_model.parameters(),
             lr=self._cfg.learn.learning_rate_vae,
@@ -254,7 +257,8 @@ class TD3VAEPolicy(DDPGPolicy):
                 {'action': data['action'],
                  'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
 
-            data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action
+            data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action mu
+            # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
             result.pop(-1)  # remove z
             result[2] = data['action']
             true_residual = data['next_obs'] - data['obs']
@@ -307,7 +311,7 @@ class TD3VAEPolicy(DDPGPolicy):
             )
             # if (self._forward_learn_cnt + 1) % self._cfg.learn.vae_rl_update_circle in range(10,15):
             # if (self._forward_learn_cnt + 1) % self._cfg.learn.vae_update_freq == 0:
-            if data['vae_phase'][0] is True:
+            if data['vae_phase'][0].item() is True:
                 # for i in range(self._cfg.learn.vae_train_times_per_update):
                 if self._cuda:
                     data = to_device(data, self._device)
@@ -319,7 +323,8 @@ class TD3VAEPolicy(DDPGPolicy):
                     {'action': data['action'],
                      'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
 
-                data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action
+                data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
+                # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
                 result.pop(-1)  # remove z
                 result[2] = data['action']
                 true_residual = data['next_obs'] - data['obs']
@@ -336,6 +341,7 @@ class TD3VAEPolicy(DDPGPolicy):
                 loss_dict['vae_loss'] = vae_loss['loss']
                 loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss']
                 loss_dict['kld_loss'] = vae_loss['kld_loss']
+                loss_dict['predict_loss'] = vae_loss['predict_loss']
 
                 # vae update
                 self._optimizer_vae.zero_grad()
@@ -597,7 +603,7 @@ class TD3VAEPolicy(DDPGPolicy):
         """
         ret = [
             'cur_lr_actor', 'cur_lr_critic', 'critic_loss', 'actor_loss', 'total_loss', 'q_value', 'q_value_twin',
-            'action', 'td_error', 'vae_loss', 'reconstruction_loss', 'kld_loss'
+            'action', 'td_error', 'vae_loss', 'reconstruction_loss', 'kld_loss', 'predict_loss'
         ]
         if self._twin_critic:
             ret += ['critic_twin_loss']
