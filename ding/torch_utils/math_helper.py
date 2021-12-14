@@ -2,6 +2,7 @@ from typing import Optional
 import torch
 import math
 
+
 def cov(
         x: torch.Tensor,
         rowvar: bool = False,
@@ -70,18 +71,19 @@ def cov(
 
 
 class OrnsteinUhlenbeckProcess:
+
     def __init__(self, theta=0.15, mu=-0.1, sigma=1.0, time_scale=1e-1):
         self.theta = theta
         self.mu = mu
         self.sigma = sigma
         self.time_scale = time_scale
 
-    def sample(self,size):
+    def sample(self, size):
         self.size = size
         self.previous_value = torch.zeros(size)
         value = self.previous_value
         value += self.theta * (self.mu - self.previous_value) * self.time_scale
-        value += self.sigma * math.sqrt(self.time_scale) * torch.normal(0,1,size=size)
+        value += self.sigma * math.sqrt(self.time_scale) * torch.normal(0, 1, size=size)
         return value
 
     def reset(self):

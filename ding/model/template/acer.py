@@ -18,19 +18,19 @@ class ACER(nn.Module):
     mode = ['compute_actor', 'compute_critic']
 
     def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType],
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 1,
-            critic_head_hidden_size: int = 64,
-            critic_head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            continuous_action_space: bool = False,
-            q_value_sample_size: int = 20,
-            noise_ratio: float = 0.,
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        actor_head_hidden_size: int = 64,
+        actor_head_layer_num: int = 1,
+        critic_head_hidden_size: int = 64,
+        critic_head_layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        continuous_action_space: bool = False,
+        q_value_sample_size: int = 20,
+        noise_ratio: float = 0.,
     ) -> None:
         r"""
         Overview:
@@ -90,12 +90,22 @@ class ACER(nn.Module):
             # )
 
             self.actor_head = ReparameterizationHead(
-                actor_head_hidden_size, action_shape, actor_head_layer_num, sigma_type='fixed', fixed_sigma_value=0.3,
-                activation=activation, norm_type=norm_type, bound_type='tanh',
+                actor_head_hidden_size,
+                action_shape,
+                actor_head_layer_num,
+                sigma_type='fixed',
+                fixed_sigma_value=0.3,
+                activation=activation,
+                norm_type=norm_type,
+                bound_type='tanh',
             )
 
             self.critic_head = StochasticDuelingHead(
-                critic_head_hidden_size, 1, action_shape, critic_head_layer_num, activation=activation,
+                critic_head_hidden_size,
+                1,
+                action_shape,
+                critic_head_layer_num,
+                activation=activation,
                 norm_type=norm_type,
             )
 
@@ -107,7 +117,11 @@ class ACER(nn.Module):
             )
 
             self.critic_head = RegressionHead(
-                critic_head_hidden_size, action_shape, critic_head_layer_num, activation=activation, norm_type=norm_type
+                critic_head_hidden_size,
+                action_shape,
+                critic_head_layer_num,
+                activation=activation,
+                norm_type=norm_type
             )
 
         self.actor = [self.actor_encoder, self.actor_head]
@@ -249,7 +263,11 @@ class ACER(nn.Module):
                 encoded_action = act_inputs
                 # mu_t.shape = (B, action_size)
                 mu_t, sigma_t = self.compute_actor(obs_inputs)['logit']
-                q_val = self.critic_head(encoded_state, encoded_action, mu_t.clone().detach(), sigma_t.clone().detach(), self.q_value_sample_size)
+                q_val = self.critic_head(
+                    encoded_state, encoded_action,
+                    mu_t.clone().detach(),
+                    sigma_t.clone().detach(), self.q_value_sample_size
+                )
             else:
                 raise RuntimeError(
                     "If you indicate continuous action space, please add act_inputs when computing critic."

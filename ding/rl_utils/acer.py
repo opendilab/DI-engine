@@ -128,11 +128,12 @@ def acer_trust_region_update(
     return update_gradients
 
 
-def acer_value_error_continuous(q_values: torch.Tensor,
-                                v_values: torch.Tensor,
-                                q_retraces: torch.Tensor,
-                                ratio: torch.Tensor,
-                                ):
+def acer_value_error_continuous(
+    q_values: torch.Tensor,
+    v_values: torch.Tensor,
+    q_retraces: torch.Tensor,
+    ratio: torch.Tensor,
+):
     """
     Overview:
         Get ACER critic loss
@@ -206,7 +207,8 @@ def acer_policy_error_continuous(
     actor_loss = ratio.clamp(max=c_clip_ratio) * advantage_retraces * (target_pi + EPS).log()  # shape T,B,1
 
     # bias correction term, the first target_pi will not calculate gradient flow
-    bias_correction_loss = (1.0 - c_clip_ratio / (ratio_prime + EPS)).clamp(min=0.0) * advantage_native * (
-                target_pi_prime + EPS).log()  # shape T,B,env_action_shape
+    bias_correction_loss = (1.0 - c_clip_ratio / (ratio_prime + EPS)).clamp(
+        min=0.0
+    ) * advantage_native * (target_pi_prime + EPS).log()  # shape T,B,env_action_shape
     bias_correction_loss = bias_correction_loss.sum(-1, keepdim=True)
     return actor_loss, bias_correction_loss

@@ -52,5 +52,5 @@ def compute_q_retraces_continuous(
     q_values_ = q_values[0:-1, ...]  # shape (T+1),B,1
     for idx in reversed(range(n_len - 1)):
         q_retraces[idx, ...] = rewards[idx, ...] + gamma * weights[idx, ...] * tmp_retraces
-        tmp_retraces = ratio[idx, ...].clamp(max=1.0) * (q_retraces[idx, ...] -  q_values_[idx, ...]) + v_pred[idx, ...]
+        tmp_retraces = ratio[idx, ...].clamp(max=1.0) * (q_retraces[idx, ...] - q_values_[idx, ...]) + v_pred[idx, ...]
     return q_retraces  # shape (T+1),B,1

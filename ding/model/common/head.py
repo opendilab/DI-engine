@@ -15,13 +15,13 @@ from torch.distributions import Normal, Independent
 class DiscreteHead(nn.Module):
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: Optional[bool] = False,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
@@ -81,17 +81,17 @@ class DiscreteHead(nn.Module):
 class DistributionHead(nn.Module):
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 1,
-            n_atom: int = 51,
-            v_min: float = -10,
-            v_max: float = 10,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: Optional[bool] = False,
-            eps: Optional[float] = 1e-6,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        n_atom: int = 51,
+        v_min: float = -10,
+        v_max: float = 10,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
+        eps: Optional[float] = 1e-6,
     ) -> None:
         r"""
         Overview:
@@ -162,17 +162,17 @@ class DistributionHead(nn.Module):
 class RainbowHead(nn.Module):
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 1,
-            n_atom: int = 51,
-            v_min: float = -10,
-            v_max: float = 10,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: Optional[bool] = True,
-            eps: Optional[float] = 1e-6,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        n_atom: int = 51,
+        v_min: float = -10,
+        v_max: float = 10,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = True,
+        eps: Optional[float] = 1e-6,
     ) -> None:
         r"""
         Overview:
@@ -257,14 +257,14 @@ class RainbowHead(nn.Module):
 class QRDQNHead(nn.Module):
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 1,
-            num_quantiles: int = 32,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: Optional[bool] = False,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        num_quantiles: int = 32,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
@@ -335,16 +335,16 @@ class QRDQNHead(nn.Module):
 class QuantileHead(nn.Module):
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 1,
-            num_quantiles: int = 32,
-            quantile_embedding_size: int = 128,
-            beta_function_type: Optional[str] = 'uniform',
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: Optional[bool] = False,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        num_quantiles: int = 32,
+        quantile_embedding_size: int = 128,
+        beta_function_type: Optional[str] = 'uniform',
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
@@ -456,15 +456,15 @@ class QuantileHead(nn.Module):
 class DuelingHead(nn.Module):
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 1,
-            a_layer_num: Optional[int] = None,
-            v_layer_num: Optional[int] = None,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: Optional[bool] = False,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        a_layer_num: Optional[int] = None,
+        v_layer_num: Optional[int] = None,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
@@ -541,17 +541,16 @@ class DuelingHead(nn.Module):
 class StochasticDuelingHead(nn.Module):
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            action_shape: int,
-            layer_num: int = 1,
-            a_layer_num: Optional[int] = None,
-            v_layer_num: Optional[int] = None,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: Optional[bool] = False,
-
+        self,
+        hidden_size: int,
+        output_size: int,
+        action_shape: int,
+        layer_num: int = 1,
+        a_layer_num: Optional[int] = None,
+        v_layer_num: Optional[int] = None,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
@@ -598,8 +597,14 @@ class StochasticDuelingHead(nn.Module):
             ), block(hidden_size, 1)
         )
 
-    def forward(self, s: torch.Tensor, a: torch.Tensor, mu_t: torch.Tensor, sigma_t: torch.Tensor,
-                sample_size: int = 10) -> Dict:
+    def forward(
+            self,
+            s: torch.Tensor,
+            a: torch.Tensor,
+            mu_t: torch.Tensor,
+            sigma_t: torch.Tensor,
+            sample_size: int = 10
+    ) -> Dict:
         r"""
         Overview:
             Use encoded embedding tensor to predict Dueling output.
@@ -629,7 +634,8 @@ class StochasticDuelingHead(nn.Module):
         a_value = self.A(state_cat_action)  # size (B, 1)
         v_value = self.V(s)  # size (B,1)
         expand_s = (torch.unsqueeze(s, 1)).expand(
-            (batch_size, sample_size, hidden_size))  # size (B, sample_size, hidden_size)
+            (batch_size, sample_size, hidden_size)
+        )  # size (B, sample_size, hidden_size)
 
         # mu_t = (torch.unsqueeze(mu_t, 1)).expand(
         #     (batch_size, sample_size, action_size))  # size (B, sample_size, action_size)
@@ -639,16 +645,17 @@ class StochasticDuelingHead(nn.Module):
 
         # in case for gradient back propagation
         dist = Independent(Normal(mu_t, sigma_t), 1)
-        action_sample_pred = dist.rsample(sample_shape=(sample_size,))
+        action_sample_pred = dist.rsample(sample_shape=(sample_size, ))
         action_sample = torch.tanh(action_sample_pred)  # TODO(pu)
         # 20,3264,2->3264,20,2  (sample_size, B, action_size)->(B, sample_size, action_size)
         action_sample = action_sample.permute(1, 0, 2)
 
-        state_cat_action_sample = torch.cat((expand_s, action_sample),
-                                            dim=-1)  # size (B, sample_size, action_size + hidden_size)
+        state_cat_action_sample = torch.cat(
+            (expand_s, action_sample), dim=-1
+        )  # size (B, sample_size, action_size + hidden_size)
         a_val_sample = self.A(state_cat_action_sample)  # size (B, sample_size, 1)
         a_val_sample = torch.squeeze(a_val_sample, -1)  # (B, sample_size)
-        q_value = v_value + a_value - a_val_sample.mean(dim=-1, keepdim=True) # size (B,1)
+        q_value = v_value + a_value - a_val_sample.mean(dim=-1, keepdim=True)  # size (B,1)
 
         return {'q_value': q_value, 'v_value': v_value}
 
@@ -720,15 +727,15 @@ class ReparameterizationHead(nn.Module):
     default_bound_type = ['tanh', None]
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 2,
-            sigma_type: Optional[str] = None,
-            fixed_sigma_value: Optional[float] = 1.0,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            bound_type: Optional[str] = None,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 2,
+        sigma_type: Optional[str] = None,
+        fixed_sigma_value: Optional[float] = 1.0,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        bound_type: Optional[str] = None,
     ) -> None:
         r"""
         Overview:
