@@ -151,5 +151,3 @@ class TD3Policy(DDPGPolicy):
             ),
         ),
     )
-
-

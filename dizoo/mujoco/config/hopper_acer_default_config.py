@@ -14,9 +14,6 @@ hopper_acer_config = dict(
         stop_value=3000,
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        reward_running_norm=True,
-        reward_batch_norm=True,
-        ignore_done=False,
     ),
     policy=dict(
         cuda=True,
@@ -35,7 +32,6 @@ hopper_acer_config = dict(
             # clip_value=None,
             grad_clip_type='clip_norm',
             clip_value=0.5,
-
             multi_gpu=False,
             update_per_collect=4,
             batch_size=16,

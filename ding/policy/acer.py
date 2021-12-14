@@ -4,7 +4,6 @@ import copy
 
 import torch
 import numpy as np
-from torch.functional import Tensor
 from ding import model
 from ding.model import model_wrap
 from ding.rl_utils import get_train_sample, compute_q_retraces, compute_q_opc, acer_policy_error, \
@@ -85,7 +84,10 @@ class ACERPolicy(Policy):
             trust_region_value=1.0,
             learning_rate_actor=0.0005,
             learning_rate_critic=0.0005,
-            target_theta=0.01
+            target_theta=0.01,
+            reward_running_norm=False,
+            reward_batch_norm=False,
+            ignore_done=False,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
@@ -225,50 +227,30 @@ class ACERPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         data['weight'] = data.get('weight', None)
-        
+
         # observation
-        if isinstance(data['obs'], list):
-            data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1), B,env_obs_shape
-        elif isinstance(data['obs'], Tensor):
-            data['obs_plus_1'] = torch.cat((data['obs'], data['next_obs'][-1:]), dim=0)  # shape (T+1), B,env_obs_shape
-        else:
-            raise RuntimeError("Only support list or Tensor type observation format")
+
+        data['obs_plus_1'] = torch.cat((data['obs'] + data['next_obs'][-1:]), dim=0)  # shape (T+1), B, env_obs_shape
 
         # action
-        if isinstance(data['action'], list):
-            data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1,
-                                                                  self._action_shape)  # shape T,B, or T,B,action_shape (cont)
-        elif isinstance(data['action'], Tensor):
-            data['action'] = data['action'].reshape(self._unroll_len, -1,
-                                                                  self._action_shape)  # shape T,B, or T,B,action_shape (cont)
-        else:
-            raise RuntimeError("Only support list or Tensor type action format")
+        # shape T, B, or T, B, action_shape (cont)
+        data['action'] = torch.cat(data['action'], dim=0).reshape(self._unroll_len, -1, self._action_shape)
 
         # done
-        if isinstance(data['done'], list):
-            data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
-        elif isinstance(data['done'], Tensor):
-            data['done'] = data['done'].reshape(self._unroll_len, -1).float()  # shape T,B,
-        else:
-            raise RuntimeError("Only support list or Tensor type")
-        
+        data['done'] = torch.cat(data['done'], dim=0).reshape(self._unroll_len, -1).float()  # shape T,B,
+
         # reward
-        if isinstance(data['reward'], list):
-            data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
-        elif isinstance(data['reward'], Tensor):
-            data['reward'] = data['reward'].reshape(self._unroll_len, -1)  # shape T,B,
-        else:
-            raise RuntimeError("Only support list or Tensor type")
+        data['reward'] = torch.cat(data['reward'], dim=0).reshape(self._unroll_len, -1)  # shape T,B,
 
         # TODO(pu): reward norm, transform to mean 0, std 1
         import copy
         if self._reward_running_norm:
             self._running_mean_std.update(data['reward'].cpu().numpy())
-            data['reward'] = (copy.deepcopy(data['reward']) - self._running_mean_std.mean) / (
-                    self._running_mean_std.std + EPS)
+            data['reward'] = (copy.deepcopy(data['reward']) -
+                              self._running_mean_std.mean) / (self._running_mean_std.std + EPS)
         if self._reward_batch_norm:
-            data['reward'] = (copy.deepcopy(data['reward']) - copy.deepcopy(data['reward']).mean()) / (
-                    copy.deepcopy(data['reward']).std() + EPS)
+            data['reward'] = (copy.deepcopy(data['reward']) -
+                              copy.deepcopy(data['reward']).mean()) / (copy.deepcopy(data['reward']).std() + EPS)
 
         data['weight'] = torch.cat(
             data['weight'], dim=0
@@ -288,10 +270,12 @@ class ACERPolicy(Policy):
                 # reshape the tensor from (T, 2, B) to (T, B, 2)
                 data2tensor = data2tensor.permute(0, 2, 1)
 
-            data['logit_mu'] = data2tensor[..., 0].reshape(self._unroll_len, -1,
-                                                           self._action_shape)  # shape T,B,env_action_shape
-            data['logit_sigma'] = data2tensor[..., 1].reshape(self._unroll_len, -1,
-                                                              self._action_shape)  # shape T,B,env_action_shape
+            data['logit_mu'] = data2tensor[..., 0].reshape(
+                self._unroll_len, -1, self._action_shape
+            )  # shape T,B,env_action_shape
+            data['logit_sigma'] = data2tensor[..., 1].reshape(
+                self._unroll_len, -1, self._action_shape
+            )  # shape T,B,env_action_shape
 
         else:
             data['logit'] = torch.cat(
@@ -320,8 +304,9 @@ class ACERPolicy(Policy):
         self.train_cnt += 1
         data = self._data_preprocess_learn(data)
         self._learn_model.train()
-        current_action_data = self._learn_model.forward({'obs': data['obs_plus_1']},
-                                                        mode='compute_actor')  # (T+1),B,env_action_shape
+        current_action_data = self._learn_model.forward(
+            {'obs': data['obs_plus_1']}, mode='compute_actor'
+        )  # (T+1),B,env_action_shape
         avg_action_data = self._target_model.forward({'obs': data['obs_plus_1']}, mode='compute_actor')
 
         if self._cfg.continuous:
@@ -352,13 +337,16 @@ class ACERPolicy(Policy):
             # cur_act_gen = current_dist.sample()
             # avg_act_gen = avg_dist.sample()
 
-            data['action_pred'] = torch.stack(data['action_pred'], dim=0).reshape(self._unroll_len, -1,
-                                                                                  self._action_shape)
+            data['action_pred'] = torch.stack(
+                data['action_pred'], dim=0
+            ).reshape(self._unroll_len, -1, self._action_shape)
 
-            current_action_plus_1_pred = torch.cat((data['action_pred'], cur_act_gen),
-                                                   dim=0)  # shape (T+1),B,env_action_shape
-            avg_action_plus_1_pred = torch.cat((data['action_pred'], avg_act_gen),
-                                               dim=0)  # shape (T+1),B,env_action_shape
+            current_action_plus_1_pred = torch.cat(
+                (data['action_pred'], cur_act_gen), dim=0
+            )  # shape (T+1),B,env_action_shape
+            avg_action_plus_1_pred = torch.cat(
+                (data['action_pred'], avg_act_gen), dim=0
+            )  # shape (T+1),B,env_action_shape
 
             # 1. current_pi
             # log_current_pi = current_dist.log_prob(current_action_plus_1)  # shape (T+1),B,env_action_shape
@@ -415,12 +403,17 @@ class ACERPolicy(Policy):
 
             # Reshape the tensor from (T, B, N) to (T*B, N) to match the SDN head computation
             obs_data = data['obs_plus_1'].view(-1, data['obs_plus_1'].shape[-1])  # (T+1)*B, 1
-            current_action_pred = current_action_plus_1_pred.view(-1,
-                                                                  current_action_plus_1_pred.shape[-1])  # (T+1)*B, 1
+            current_action_pred = current_action_plus_1_pred.view(
+                -1, current_action_plus_1_pred.shape[-1]
+            )  # (T+1)*B, 1
             current_action = torch.tanh(current_action_pred)
 
-            q_value_data = self._learn_model.forward({'obs': obs_data, 'action': current_action},
-                                                     mode='compute_critic')  # (T+1)*B,1
+            q_value_data = self._learn_model.forward(
+                {
+                    'obs': obs_data,
+                    'action': current_action
+                }, mode='compute_critic'
+            )  # (T+1)*B,1
 
             #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
             q_values = q_value_data['q_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
@@ -431,8 +424,9 @@ class ACERPolicy(Policy):
             current_logit, behaviour_logit, avg_logit, actions, rewards, weights = self._reshape_data(
                 current_action_data, avg_action_data, data
             )
-            q_value_data = self._learn_model.forward({'obs': data['obs_plus_1']},
-                                                     mode='compute_critic')  # (T+1),B,env_action_shape
+            q_value_data = self._learn_model.forward(
+                {'obs': data['obs_plus_1']}, mode='compute_critic'
+            )  # (T+1),B,env_action_shape
             q_values = q_value_data['q_value'].reshape(
                 self._unroll_len + 1, -1, self._action_shape
             )  # shape (T+1),B,env_action_shape
@@ -470,14 +464,16 @@ class ACERPolicy(Policy):
                 action_prime = torch.tanh(action_prime_pred)
 
                 # Calculate q_value_data_prime
-                q_value_data_prime = self._learn_model.forward({'obs': obs_data, 'action': action_prime},
-                                                               mode='compute_critic')  # (T+1)*B,1
+                q_value_data_prime = self._learn_model.forward(
+                    {
+                        'obs': obs_data,
+                        'action': action_prime
+                    }, mode='compute_critic'
+                )  # (T+1)*B,1
                 # q_value_data_prime = self._learn_model.forward(obs_data, mode='compute_critic',
                 #                                                action=action_prime, )  # (T+1)*B,1
                 #  Restore the shape from (T+1)*B, 1 to (T+1), B, 1
-                q_values_prime = q_value_data_prime['q_value'].reshape(
-                    self._unroll_len + 1, -1, 1
-                )  # shape (T+1),B,1
+                q_values_prime = q_value_data_prime['q_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
             else:
 
                 # Calculate retrace
@@ -526,8 +522,9 @@ class ACERPolicy(Policy):
             actor_gradients = torch.autograd.grad(-total_actor_loss, current_pi, retain_graph=True)
 
             if self._use_trust_region:
-                actor_gradients = acer_trust_region_update(actor_gradients, current_pi, avg_pi,
-                                                           self._trust_region_value)
+                actor_gradients = acer_trust_region_update(
+                    actor_gradients, current_pi, avg_pi, self._trust_region_value
+                )
             current_pi.backward(actor_gradients, retain_graph=True)
             self._optimizer_actor.step()
         else:
@@ -538,17 +535,23 @@ class ACERPolicy(Policy):
         # ====================
 
         if self._cfg.continuous:
-            q_value_data = self._learn_model.forward({'obs': obs_data, 'action': current_action.clone().detach()},
-                                                     mode='compute_critic')  # (T+1)*B,1
+            q_value_data = self._learn_model.forward(
+                {
+                    'obs': obs_data,
+                    'action': current_action.clone().detach()
+                }, mode='compute_critic'
+            )  # (T+1)*B,1
             # Restore the shape from (T+1)*B, 1 to (T+1), B, 1
             q_values = q_value_data['q_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
             v_values = q_value_data['v_value'].reshape(self._unroll_len + 1, -1, 1)  # shape (T+1),B,1
             q_values = q_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
             v_values = v_values[0:-1]  # shape T,B,env_action_shape or T,B,1(cont)
 
-            critic_loss = (acer_value_error_continuous(q_values, v_values, q_retraces.clone().detach(),
-                                                       ratio.clone().detach()) * weights.unsqueeze(
-                -1)).mean() / total_valid
+            critic_loss = (
+                acer_value_error_continuous(q_values, v_values,
+                                            q_retraces.clone().detach(),
+                                            ratio.clone().detach()) * weights.unsqueeze(-1)
+            ).mean() / total_valid
         else:
             critic_loss = (acer_value_error(q_values, q_retraces, actions) * weights.unsqueeze(-1)).sum() / total_valid
 
@@ -587,10 +590,8 @@ class ACERPolicy(Policy):
             'avg_mu': ((avg_mu[:-1] * weights.unsqueeze(-1))[0, :, 0].sum() / self.cfg.learn.batch_size).item(),
         }
 
-    def _reshape_data(
-            self, action_data: Dict[str, Any], avg_action_data: Dict[str, Any],
-            data: Dict[str, Any]
-    ) -> Tuple[Any, Any, Any, Any, Any, Any]:
+    def _reshape_data(self, action_data: Dict[str, Any], avg_action_data: Dict[str, Any],
+                      data: Dict[str, Any]) -> Tuple[Any, Any, Any, Any, Any, Any]:
         r"""
         Overview:
             Obtain weights for loss calculating, where should be 0 for done positions
@@ -632,8 +633,7 @@ class ACERPolicy(Policy):
         return current_logit, behaviour_logit, avg_action_logit, actions, rewards, weights
 
     def _reshape_data_continuous(
-            self, action_data: Dict[str, Any], avg_action_data: Dict[str, Any],
-            data: Dict[str, Any]
+            self, action_data: Dict[str, Any], avg_action_data: Dict[str, Any], data: Dict[str, Any]
     ) -> Tuple[Any, Any, Any, Any, Any, Any]:
         r"""
         Overview:
@@ -869,5 +869,7 @@ class ACERPolicy(Policy):
             The user can define and use customized network model but must obey the same interface definition indicated \
             by import_names path. For IMPALA, ``ding.model.interface.IMPALA``
         """
-        return ['actor_loss', 'bc_loss', 'entropy_loss', 'total_actor_loss', 'critic_loss', 'kl_div', 'q_values',
-                'v_values', 'current_mu', 'behaviour_mu', 'avg_mu']
+        return [
+            'actor_loss', 'bc_loss', 'entropy_loss', 'total_actor_loss', 'critic_loss', 'kl_div', 'q_values',
+            'v_values', 'current_mu', 'behaviour_mu', 'avg_mu'
+        ]
