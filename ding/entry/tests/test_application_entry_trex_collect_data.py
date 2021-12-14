@@ -45,6 +45,7 @@ def test_trex_collecting_data():
     expert_policy_state_dict_path = './cartpole_ppo_offpolicy'
     expert_policy_state_dict_path = os.path.abspath(expert_policy_state_dict_path)
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    config[0].policy.learn.learner.hook.save_ckpt_after_iter = 100
     expert_policy = serial_pipeline(config, seed=0)
 
     args = EasyDict(
@@ -60,6 +61,9 @@ def test_trex_collecting_data():
     args.cfg[0].reward_model.reward_model_path = args.cfg[0].reward_model.offline_data_path + '/cartpole.params'
     args.cfg[0].reward_model.expert_model_path = './cartpole_ppo_offpolicy'
     args.cfg[0].reward_model.expert_model_path = os.path.abspath(args.cfg[0].reward_model.expert_model_path)
+    args.cfg[0].reward_model.checkpoint_max = 100
+    args.cfg[0].reward_model.checkpoint_step = 100
+    args.cfg[0].reward_model.num_snippets = 100
     trex_collecting_data(args=args)
     os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
     os.popen('rm -rf {}'.format(args.cfg[0].reward_model.offline_data_path))

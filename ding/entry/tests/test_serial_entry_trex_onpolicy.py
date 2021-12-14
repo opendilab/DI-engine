@@ -24,6 +24,9 @@ def test_serial_pipeline_reward_model_trex():
     config[0].reward_model.reward_model_path = config[0].reward_model.offline_data_path + '/cartpole.params'
     config[0].reward_model.expert_model_path = './cartpole_ppo'
     config[0].reward_model.expert_model_path = os.path.abspath(config[0].reward_model.expert_model_path)
+    config[0].reward_model.checkpoint_max = 100
+    config[0].reward_model.checkpoint_step = 100
+    config[0].reward_model.num_snippets = 100
     args = EasyDict({'cfg': deepcopy(config), 'seed': 0, 'device': 'cpu'})
     trex_collecting_data(args=args)
     try:
