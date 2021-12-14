@@ -30,7 +30,7 @@ cartpole_r2d2_config = dict(
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
-            # samples, the length of each samlpe sequence is <burnin_step> + <unroll_len>,
+            # samples, the length of each sample sequence is <burnin_step> + <unroll_len>,
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
             update_per_collect=8,

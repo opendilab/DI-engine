@@ -4,7 +4,7 @@ from ding.entry import serial_pipeline_onpolicy
 collector_env_num = 1
 evaluator_env_num = 1
 halfcheetah_ppo_default_config = dict(
-    exp_name="result_mujoco/halfcheetah_onppo_noig",
+    exp_name="Halfcheetah_onppo",
     # exp_name="debug/debug_halfcheetah_onppo_ig",
 
     env=dict(

@@ -10,6 +10,10 @@ from .serial_entry_mbrl import serial_pipeline_mbrl
 from .serial_entry_dqfd import serial_pipeline_dqfd
 from .serial_entry_r2d3 import serial_pipeline_r2d3
 from .serial_entry_sqil import serial_pipeline_sqil
+from .serial_entry_trex import serial_pipeline_reward_model_trex
+from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
 from .parallel_entry import parallel_pipeline
-from .application_entry import eval, collect_demo_data
+from .application_entry import eval, collect_demo_data, collect_episodic_demo_data, \
+      episode_to_transitions
+from .application_entry_trex_collect_data import trex_collecting_data, collect_episodic_demo_data_for_trex
 from .serial_entry_guided_cost import serial_pipeline_guided_cost
