@@ -339,7 +339,7 @@ class R2D2Policy(Policy):
         return {
             'cur_lr': self._optimizer.defaults['lr'],
             'total_loss': loss.item(),
-            'priority': td_error_per_sample.tolist(), # note abs operation has been performed above
+            'priority': td_error_per_sample.tolist(),  # note abs operation has been performed above
             # the first timestep in the sequence, may not be the start of episode
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
