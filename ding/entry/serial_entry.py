@@ -83,7 +83,6 @@ def serial_pipeline(
         if cfg.policy.get('transition_with_policy_data', False):
             collector.reset_policy(policy.collect_mode)
         else:
-            #print(collector_env.env_info())
             action_space = collector_env.env_info().act_space
             random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
             collector.reset_policy(random_policy)
