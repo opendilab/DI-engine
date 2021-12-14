@@ -58,14 +58,13 @@ class GTrXLDiscreteHead(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         o1 = self.core(x)
         o2 = self.head(o1['logit'])
-        o2['memory'] = torch.permute(o1['memory'], (2, 0, 1, 3))  # bs first
+        o2['memory'] = torch.permute(o1['memory'], (2, 0, 1, 3))  # bs x layer_num+1 x memory_len, embedding_dim
         o2['transformer_out'] = o1['logit']
         return o2
 
     def reset(self, state: Optional[torch.Tensor] = None):
-        print('reset')
-        self.core.reset(state)
-        print(self.core.memory)
+        print('gtrxl+head reset')
+        self.core.reset(state=state)
 
 
 @POLICY_REGISTRY.register('r2d2_gtrxl')
@@ -189,7 +188,6 @@ class R2D2GTrXLPolicy(Policy):
             - nstep (:obj:`int`): The num of n step return
             - value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
         """
-        print('gtrxl')
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
@@ -230,10 +228,11 @@ class R2D2GTrXLPolicy(Policy):
             - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
         # data preprocess
+        # TODO find a better way to code this part, priority low for now
         from copy import deepcopy
         prev_mem = [b.pop('prev_memory')[0] for b in deepcopy(data)]  # retrieve the memory corresponding to the first observation in each trajectory
         prev_mem = torch.stack(prev_mem, 0).permute(1, 2, 0, 3)  # (layer_num, memory_len, bs, embedding_dim)
-        data = timestep_collate(data)
+        data = timestep_collate(data)  # each sequence should be divided into segments
         data['prev_memory'] = prev_mem
         if self._cuda:
             data = to_device(data, self._device)
@@ -294,12 +293,13 @@ class R2D2GTrXLPolicy(Policy):
                 - total_loss (:obj:`float`): The calculated loss
         """
         # forward
+        #print('_forward_learn')
         data = self._data_preprocess_learn(data)  # shape (seq_len, bs, obs_dim)
         self._learn_model.train()
         self._target_model.train()
         # use the previous hidden state memory
-        self._learn_model._model.core.reset(len(data), data['prev_memory'])
-        self._target_model._model.core.reset(len(data), data['prev_memory'])
+        self._learn_model._model.core.reset(state=data['prev_memory'])
+        self._target_model._model.core.reset(state=data['prev_memory'])
 
         inputs = data['main_obs']
         q_value = self._learn_model.forward(inputs)['logit']  # shape (seq_len, bs, act_dim)
@@ -360,6 +360,7 @@ class R2D2GTrXLPolicy(Policy):
         return ret
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
+        #print(' _reset_learn')
         self._learn_model.reset()
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -399,6 +400,7 @@ class R2D2GTrXLPolicy(Policy):
         ReturnsKeys
             - necessary: ``action``
         """
+        #print('_forward_collect')
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -412,6 +414,7 @@ class R2D2GTrXLPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
+        #print('_reset_collect')
         self._collect_model.reset()
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
@@ -437,6 +440,7 @@ class R2D2GTrXLPolicy(Policy):
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
+        #print('_get_train_sample')
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
@@ -461,6 +465,7 @@ class R2D2GTrXLPolicy(Policy):
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
+        #print('forward_eval')
         r"""
         Overview:
             Forward function of eval mode, similar to ``self._forward_collect``.
@@ -485,6 +490,7 @@ class R2D2GTrXLPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
+        #print('_reset_eval')
         self._eval_model.reset()
 
     def default_model(self) -> Tuple[str, List[str]]:

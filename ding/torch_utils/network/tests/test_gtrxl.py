@@ -11,12 +11,11 @@ class TestGTrXL:
         dim_size = 128
         seq_len = 64
         bs = 32
-        action_dim = 4
         embedding_dim = 256
         layer_num = 5
         mem_len = 40
         # input shape: cur_seq x bs x input_dim
-        memory = [None, torch.rand(layer_num, mem_len, bs, embedding_dim)]
+        memory = [None, torch.rand(layer_num+1, mem_len, bs, embedding_dim)]
         batch_first = [False, True]
         for i in range(2):
             m = memory[i]
@@ -34,8 +33,10 @@ class TestGTrXL:
             if bf:
                 input = torch.transpose(input, 1, 0)
             input.requires_grad_(True)
-            if m is not None:
-                model.reset(bs)
+            if m is None:
+                model.reset(batch_size=bs)
+            else:
+                model.reset(state=m)
             output = model(input, batch_first=bf)
             loss = output['logit'].mean()
             loss.backward()

@@ -89,6 +89,7 @@ class Memory:
             batch_size: int = 64,
             embedding_dim: int = 256,
             layer_num: int = 3,
+            memory: Optional[torch.Tensor] = None
     ) -> None:
         """
         Arguments:
@@ -103,7 +104,7 @@ class Memory:
         self.layer_num = layer_num
         self.memory_len = memory_len
         self.memory = None
-        self.init()
+        self.init(memory)
 
     def init(self, memory: Optional[torch.Tensor] = None):
         """
@@ -116,8 +117,12 @@ class Memory:
         """
         if memory is not None:
             self.memory = memory
+            self.embedding_dim = memory.shape[-1]
+            self.bs = memory.shape[-2]
+            self.layer_num = memory.shape[-4]-1
+            self.memory_len = memory.shape[-3]
         else:
-            self.memory = torch.zeros(self.layer_num, self.memory_len,
+            self.memory = torch.zeros(self.layer_num+1, self.memory_len,
                                       self.bs, self.embedding_dim, dtype=torch.float)
 
     def update(self, hidden_state: List[torch.Tensor]):
@@ -145,7 +150,7 @@ class Memory:
             new_memory = []
             end = self.memory_len + sequence_len
             beg = max(0, end - self.memory_len)
-            for i in range(self.layer_num):
+            for i in range(self.layer_num+1):
                 m = self.memory[i]
                 h = hidden_state[i]
                 cat = torch.cat([m, h], dim=0)
@@ -432,7 +437,7 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
         )
 
-    def reset(self, batch_size: int, state: Optional[torch.Tensor] = None):
+    def reset(self, batch_size: int = None, state: Optional[torch.Tensor] = None):
         r"""
         Overview:
             Clear or set the memory of GTrXL.
@@ -441,8 +446,10 @@ class GTrXL(nn.Module):
             - state (:obj:`Optional[torch.Tensor]`): input memory.
             Shape is (layer_num, memory_len, bs, embedding_dim).
         """
-        self.memory = Memory(self.memory_len, batch_size, self.embedding_dim, self.layer_num + 1)
-        if state is not None:
+        self.memory = Memory()
+        if batch_size is not None:
+            self.memory = Memory(self.memory_len, batch_size, self.embedding_dim, self.layer_num)
+        elif state is not None:
             self.memory.init(state)
 
     def forward(self, x: torch.Tensor, batch_first: bool = False, return_mem: bool = True) -> Dict[str, torch.Tensor]:
@@ -467,8 +474,9 @@ class GTrXL(nn.Module):
         if memory is None:
             self.reset(bs)  # (layer_num+1) x memory_len x batch_size x embedding_dim
         elif memory.shape[-2] != bs or memory.shape[-1] != self.embedding_dim:
-            print("Memory and Input dimensions don't match,"
-                  " this will cause the memory to be initialized to fit your input!")
+            print("Memory {} and Input {} dimensions don't match,"
+                  " this will cause the memory to be initialized to fit your input!"
+                  .format(list(memory.shape[-2:]), [x.shape[-2]] + [self.embedding_dim]))
             self.reset(bs)
         memory = self.memory.get().to(x.device)
 

@@ -180,7 +180,7 @@ class TransformerWrapper(IModelWrapper):
         assert self.obs_memory.shape[0] == self.seq_len
         # implements a fifo queue, self.memory_idx is index where to put the last element
         if self.memory_idx == self.seq_len-1:
-            self.memory_idx = torch.roll(self.memory_idx, -1, 1)  # roll back of 1 position along dim 1 (sequence dim)
+            self.obs_memory = torch.roll(self.obs_memory, -1, 1)  # roll back of 1 position along dim 1 (sequence dim)
             self.obs_memory[self.memory_idx] = input_obs
         if self.memory_idx < self.seq_len:
             self.obs_memory[self.memory_idx] = input_obs
@@ -192,7 +192,7 @@ class TransformerWrapper(IModelWrapper):
             out['logit'] = out['logit'][self.memory_idx-1]
         return out
 
-    def reset_memory(self, input_obs: torch.Tensor = None):
+    def reset_memory(self, input_obs: torch.Tensor):
         init_obs = torch.zeros_like(input_obs)
         self.obs_memory = []  # List(bs, *obs_shape)
         for i in range(self.seq_len):
