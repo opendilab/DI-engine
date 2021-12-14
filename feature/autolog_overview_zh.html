@@ -1,0 +1,331 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Autolog模块介绍 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Loader模块介绍" href="loader_overview_zh.html" />
+    <link rel="prev" title="Interaction模块介绍" href="interaction_overview_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index_zh.html">强化学习环境示例手册</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">特性介绍</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview_zh.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview_zh.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview_zh.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview_zh.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview_zh.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview_zh.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview_zh.html">HPC_RL Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview_zh.html">Interaction模块介绍</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Autolog模块介绍</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#time">Time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#loggedmodel">LoggedModel</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview_zh.html">Loader模块介绍</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dataloader_overview_zh.html">DataLoader Overview</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index_zh.html">特性介绍</a> &raquo;</li>
+        
+      <li>Autolog模块介绍</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/feature/autolog_overview_zh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="autolog">
+<h1>Autolog模块介绍<a class="headerlink" href="#autolog" title="Permalink to this headline">¶</a></h1>
+<dl>
+<dt>概述：</dt><dd><p>Autolog模块的主要用途为解决在模型训练等数据动态场景下，数据在有效时间窗口内的自动记录与分析。</p>
+<p>在我们的Autolog中，将时间窗口内的数据及其变化情况进行了完整的记录，并且可供访问，也可供更进一步的封装，为一种方便易用且易配置的日志架构，主打通用性、扩展性和易用性。</p>
+<p>Autolog整体分为两部分：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Time：用于将两种时间系统进行封装，供LoggedModel使用。支持以继承等形式的扩展。</p></li>
+<li><p>LoggedModel：用于基于时间系统，以及相关数据字段，进行各个字段的记录和分析。支持以继承等形式的扩展。</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+<div class="section" id="time">
+<h2>Time<a class="headerlink" href="#time" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>概述：</dt><dd><p>时间系统是Autolog系统的关键要素。其用来支撑一个日志模型的记录方式。</p>
+<p>具体来说，Time分为以下两类，均继承自BaseTime类：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>NaturalTime：自然时间。即系统时间，实型，单位为秒。</p></li>
+<li><p>TickTime：步进时间。即以次数为单位的时间，整型，单位为次。</p></li>
+</ul>
+</div></blockquote>
+<p>BaseTime均提供time()方法以获取时间对象内的时间。</p>
+<p>此外，如有需要，可以自己定义Time类，只需要继承BaseTime并实现time()方法即可用于LoggedModel。</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="loggedmodel">
+<h2>LoggedModel<a class="headerlink" href="#loggedmodel" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>概述：</dt><dd><p>日志模型系统是Autolog的核心，也是关键所在。其基本用法为继承LoggedModel类，在内部定义LoggedValue的descriptor，并注册一些统计方法，来实现方便易用的统计功能。</p>
+<p>一个简单的demo：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.utils.autolog</span> <span class="kn">import</span> <span class="n">LoggedValue</span><span class="p">,</span> <span class="n">LoggedModel</span>
+<span class="k">class</span> <span class="nc">AvgList</span><span class="p">(</span><span class="n">LoggedModel</span><span class="p">):</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">LoggedValue</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">__property_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_</span><span class="p">:</span> <span class="n">BaseTime</span><span class="p">,</span> <span class="n">expire</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]):</span>
+        <span class="n">LoggedModel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_</span><span class="p">,</span> <span class="n">expire</span><span class="p">)</span>
+
+        <span class="c1"># attention, original value must be set in __init__ function, or it will not</span>
+        <span class="c1"># be activated, the timeline of this value will also be unexpectedly affected.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__register</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__register</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__avg_func</span><span class="p">(</span><span class="n">prop_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>  <span class="c1"># function to calculate average value of properties</span>
+            <span class="n">records</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">range_values</span><span class="p">[</span><span class="n">prop_name</span><span class="p">]()</span>
+            <span class="p">(</span><span class="n">_start_time</span><span class="p">,</span> <span class="n">_</span><span class="p">),</span> <span class="n">_</span> <span class="o">=</span> <span class="n">records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">_end_time</span><span class="p">),</span> <span class="n">_</span> <span class="o">=</span> <span class="n">records</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="n">_duration</span> <span class="o">=</span> <span class="n">_end_time</span> <span class="o">-</span> <span class="n">_start_time</span>
+            <span class="n">_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">_value</span> <span class="o">*</span> <span class="p">(</span><span class="n">_end_time</span> <span class="o">-</span> <span class="n">_begin_time</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">_begin_time</span><span class="p">,</span> <span class="n">_end_time</span><span class="p">),</span> <span class="n">_value</span> <span class="ow">in</span> <span class="n">records</span><span class="p">])</span>
+
+            <span class="k">return</span> <span class="n">_sum</span> <span class="o">/</span> <span class="n">_duration</span>
+
+        <span class="k">for</span> <span class="n">_prop_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__property_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">register_attribute_value</span><span class="p">(</span><span class="s1">&#39;avg&#39;</span><span class="p">,</span> <span class="n">_prop_name</span><span class="p">,</span> <span class="n">partial</span><span class="p">(</span><span class="n">__avg_func</span><span class="p">,</span> <span class="n">prop_name</span><span class="o">=</span><span class="n">_prop_name</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>在这样的一个demo中，AvgList类会自动记录对value值的更改，并且结合传入的时间对象进行记录，其内置过期机制，仅保留expire时间内的数据。在__register()函数中，注册了一个用于进行平均值计算的函数。</p>
+<p>以下是上述日志模型的调用例子</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.utils.autolog</span> <span class="kn">import</span> <span class="n">NaturalTime</span><span class="p">,</span> <span class="n">TimeMode</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">_time</span> <span class="o">=</span> <span class="n">NaturalTime</span><span class="p">()</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">AvgList</span><span class="p">(</span><span class="n">_time</span><span class="p">,</span> <span class="n">expire</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># just do something here ...</span>
+    <span class="c1"># Such as</span>
+    <span class="c1">#</span>
+    <span class="c1"># l.value = 11</span>
+    <span class="c1"># time.sleep(1.0)  # please add &quot;import time&quot; if you want to use this line</span>
+    <span class="c1"># l.value = 22</span>
+    <span class="c1"># time.sleep(1.2)</span>
+    <span class="c1"># l.value = 33</span>
+    <span class="c1">#</span>
+    <span class="c1"># ...</span>
+    <span class="c1">#</span>
+    <span class="c1"># These values (such as 11, 22 and 33) will be automatically recorded in l with the natural time (in form of timestamps).</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">range_values</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]())</span> <span class="c1"># original range_values function in LoggedModel of last 10 secs</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">range_values</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">](</span><span class="n">TimeMode</span><span class="o">.</span><span class="n">ABSOLUTE</span><span class="p">))</span>  <span class="c1"># use absolute time</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">avg</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]())</span>  <span class="c1"># average value of last 10 secs</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="loader_overview_zh.html" class="btn btn-neutral float-right" title="Loader模块介绍" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="interaction_overview_zh.html" class="btn btn-neutral float-left" title="Interaction模块介绍" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -63,7 +63,7 @@ The network interface C51 used is defined as follows:
 
 The bellman updates of C51 is implemented as:
 
-The Benchmark result of C51 implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview_en.html>`_
+The Benchmark result of C51 implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 QRDQN
 ^^^^^^^
@@ -131,7 +131,7 @@ The network interface QRDQN used is defined as follows:
 
 The bellman updates of QRDQN is implemented in the function ``qrdqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
-The Benchmark result of QRDQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview_en.html>`_
+The Benchmark result of QRDQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 IQN
 ^^^^^^^
@@ -200,7 +200,7 @@ The network interface IQN used is defined as follows:
 
 The bellman updates of IQN used is defined in the function ``iqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
-The Benchmark result of IQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview_en.html>`_
+The Benchmark result of IQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 
 References

@@ -66,7 +66,7 @@ DQN can be combined with:
 
     - Dueling head
 
-      In `Dueling Network Architectures for Deep Reinforcement Learning <https://arxiv.org/abs/1511.06581>`_, dueling head architecture is utilized to implement the decomposition of state-value and advantage for taking each action, and use these two parts to construct the final q_value, which is better for evaluating the value of some states in which not all actions can be sampled 
+      In `Dueling Network Architectures for Deep Reinforcement Learning <https://arxiv.org/abs/1511.06581>`_, dueling head architecture is utilized to implement the decomposition of state-value and advantage for taking each action, and use these two parts to construct the final q_value, which is better for evaluating the value of some states in which not all actions can be sampled
 
         The specific architecture is shown in the following graph:
 
@@ -89,7 +89,7 @@ The network interface DQN used is defined as follows:
    :members: __init__, forward
    :noindex:
 
-The Benchmark result of DQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview_en.html>`_
+The Benchmark result of DQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 
 Reference

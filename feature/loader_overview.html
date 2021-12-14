@@ -37,6 +37,8 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Developer Guide" href="../guide/index.html" />
+    <link rel="prev" title="Interaction Overview" href="interaction_overview.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -83,18 +85,42 @@
             
             
               <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Feature</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="policy_overview.html">Policy Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replay_buffer_overview.html">Replay Buffer Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="league_overview.html">League Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hpc_rl_overview.html">DI-hpc Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="orchestrator_overview.html">DI-orchestrator Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview.html">Interaction Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Loader Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#faq">FAQ</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#q-what-is-the-difference-and-relationship-between-loader-and-norm">Q：What is the difference and relationship between loader and norm?</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#q-loader-sometimes-feels-too-long-to-write-and-it-is-all-repetitive-is-there-a-better-format">Q：Loader sometimes feels too long to write, and it is all repetitive. Is there a better format?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
@@ -146,6 +172,8 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
+          <li><a href="index.html">Feature</a> &raquo;</li>
+        
       <li>Loader Overview</li>
     
     
@@ -167,72 +195,72 @@
             
   <div class="section" id="loader-overview">
 <span id="header-n50"></span><h1>Loader Overview<a class="headerlink" href="#loader-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="header-n52">
-<span id="id1"></span><h2>概述<a class="headerlink" href="#header-n52" title="Permalink to this headline">¶</a></h2>
-<p>Loader为一个轻量化、自由、灵活的数据组合框架组件。</p>
-<p>Loader组件<strong>原计划用于配置数据的转化与验证</strong>，然而实际开发中探索出了其更多的用法以及更大的功能潜力，故作为一个独立模块存在。</p>
+<div class="section" id="overview">
+<span id="header-n52"></span><h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Loader is a light, independent, and flexible data assembling module in our framework.</p>
+<p>Loader Module <strong>though is originally for data configurations, conversions, and verifications</strong>, had been found to have more potential for features and usages. Therefore Loader Module have been set to be an independent module.</p>
 </div>
-<div class="section" id="header-n55">
-<span id="id2"></span><h2>示例<a class="headerlink" href="#header-n55" title="Permalink to this headline">¶</a></h2>
-<p>Loader的基本设计思路是将一些常见的小规模转化与验证模块，通过逻辑组合等方式，形成复杂的验证转换结构。</p>
-<p>以下是一些具体的简单例子：</p>
+<div class="section" id="examples">
+<span id="header-n55"></span><h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Loader’s basic design idea is to operate common, small-scaled conversions and verifications. It uses methods such as assembly of logic units to form complex verifiable conversion structures.</p>
+<p>Followings are some specific simple cases：</p>
 <ul class="simple">
-<li><p>字符串枚举验证</p></li>
+<li><p>String Enumerate Verification</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">colors</span> <span class="o">=</span> <span class="n">enum</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span>  <span class="c1"># 构建一个枚举loader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">colors</span> <span class="o">=</span> <span class="n">enum</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span>  <span class="c1"># Enum loader built</span>
 <span class="n">colors</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>   <span class="c1"># &#39;red&#39;</span>
 <span class="n">colors</span><span class="p">(</span><span class="s1">&#39;Red&#39;</span><span class="p">)</span>   <span class="c1"># ValueError</span>
 <span class="n">colors</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>  <span class="c1"># ValueError</span>
 
-<span class="n">ucolors</span> <span class="o">=</span> <span class="n">enum</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># 构建一个大小写不敏感的枚举loader</span>
+<span class="n">ucolors</span> <span class="o">=</span> <span class="n">enum</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">case_sensitive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Case-insensitive enum loader build</span>
 <span class="n">ucolors</span><span class="p">(</span><span class="s1">&#39;red&#39;</span><span class="p">)</span>   <span class="c1"># &#39;red&#39;</span>
 <span class="n">ucolors</span><span class="p">(</span><span class="s1">&#39;Red&#39;</span><span class="p">)</span>   <span class="c1"># &#39;red&#39;</span>
 <span class="n">ucolors</span><span class="p">(</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>  <span class="c1"># ValueError</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>类型判断与转换</p></li>
+<li><p>Type Verification and Conversion</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">itype</span> <span class="o">=</span> <span class="n">is_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># 构建一个类型验证loader</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">itype</span> <span class="o">=</span> <span class="n">is_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># Verifiable Type loader built</span>
 <span class="n">itype</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>    <span class="c1"># 1.2</span>
 <span class="n">itype</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>      <span class="c1"># TypeError</span>
 <span class="n">itype</span><span class="p">(</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>  <span class="c1"># TypeError</span>
 
-<span class="n">otype</span> <span class="o">=</span> <span class="n">to_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># 构建一个类型转换loader</span>
+<span class="n">otype</span> <span class="o">=</span> <span class="n">to_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># Convertable Type loader built</span>
 <span class="n">otype</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>    <span class="c1"># 1.2</span>
 <span class="n">otype</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>      <span class="c1"># 1</span>
 <span class="n">otype</span><span class="p">(</span><span class="s1">&#39;1.5&#39;</span><span class="p">)</span>  <span class="c1"># 1.5</span>
-<span class="n">otype</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>  <span class="c1"># inf （没错，python真支持这个，即float(&#39;inf&#39;)或math.inf）</span>
+<span class="n">otype</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>  <span class="c1"># inf （Yes, python support this inf i.e. float(&#39;inf&#39;) or math.inf）</span>
 <span class="n">otype</span><span class="p">(</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>  <span class="c1"># ValueError</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>区间验证</p></li>
+<li><p>Interval Verification</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">it</span> <span class="o">=</span> <span class="n">interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">right_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># 验证是否在区间[1, 5)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">it</span> <span class="o">=</span> <span class="n">interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">right_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Verify whether in interval [1, 5)</span>
 <span class="n">it</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># 1</span>
 <span class="n">it</span><span class="p">(</span><span class="mf">3.8</span><span class="p">)</span>  <span class="c1"># 3.8</span>
 <span class="n">it</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>    <span class="c1"># ValueError</span>
 <span class="n">it</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># ValueError</span>
 
-<span class="n">it</span> <span class="o">=</span> <span class="n">interval</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1"># 验证是否在区间(-inf, 10]</span>
+<span class="n">it</span> <span class="o">=</span> <span class="n">interval</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1"># Verify whether in interval (-inf, 10]</span>
 <span class="n">it</span><span class="p">(</span><span class="o">-</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># -100</span>
 <span class="n">it</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>    <span class="c1"># 10</span>
 <span class="n">it</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>    <span class="c1"># ValueError</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>简单数学运算</p></li>
+<li><p>Simple Math</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pl</span> <span class="o">=</span> <span class="n">plus</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 恒真，加一</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pl</span> <span class="o">=</span> <span class="n">plus</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Tautology，add to 1</span>
 <span class="n">pl</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># 2</span>
 <span class="n">pl</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>  <span class="c1"># 2.2</span>
 
-<span class="n">mi</span> <span class="o">=</span> <span class="n">minus</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># 恒真，减二</span>
+<span class="n">mi</span> <span class="o">=</span> <span class="n">minus</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Tautology，sub by 1</span>
 <span class="n">mi</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># -1</span>
 <span class="n">mi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># 1</span>
 
-<span class="n">cp</span> <span class="o">=</span> <span class="n">mcmp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="n">keep</span><span class="p">(),</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1"># 判断是否大于1且不大于10</span>
+<span class="n">cp</span> <span class="o">=</span> <span class="n">mcmp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="n">keep</span><span class="p">(),</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1"># Judge whether larger than 1, not larger than 10</span>
 <span class="n">cp</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># ValueError</span>
 <span class="n">cp</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>   <span class="c1"># 2</span>
 <span class="n">cp</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># 10</span>
@@ -240,26 +268,26 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>列表元组</p></li>
+<li><p>List Element Verification</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cl</span> <span class="o">=</span> <span class="n">collection</span><span class="p">(</span><span class="n">is_type</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>  <span class="c1"># 判断是否为int构成的list</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cl</span> <span class="o">=</span> <span class="n">collection</span><span class="p">(</span><span class="n">is_type</span><span class="p">(</span><span class="nb">int</span><span class="p">))</span>  <span class="c1"># Judge whether is list of int type element</span>
 <span class="n">cl</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>     <span class="c1"># [1, 2, 3]</span>
 <span class="n">cl</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>  <span class="c1"># TypeError</span>
 
-<span class="n">co</span> <span class="o">=</span> <span class="n">contains</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># 判断是否包含2</span>
+<span class="n">co</span> <span class="o">=</span> <span class="n">contains</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Judge whether has element 2</span>
 <span class="n">co</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># [1, 2, 3]</span>
 <span class="n">co</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># ValueError</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>字典映射</p></li>
+<li><p>Dict Mapping Verification</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">itt</span> <span class="o">=</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>  <span class="c1"># 检查并提取&#39;a&#39;字段</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">itt</span> <span class="o">=</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span>  <span class="c1"># Inspect and extract charater &#39;a&#39;</span>
 <span class="n">itt</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>  <span class="c1"># 1</span>
 <span class="n">itt</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>          <span class="c1"># 2</span>
 <span class="n">itt</span><span class="p">({</span><span class="s1">&#39;aa&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>         <span class="c1"># KeyError</span>
 
-<span class="n">dt</span> <span class="o">=</span> <span class="n">dict_</span><span class="p">(</span>  <span class="c1"># 构建dict格式数据</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="n">dict_</span><span class="p">(</span>  <span class="c1"># Build data of Dict format</span>
     <span class="n">a</span><span class="o">=</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">),</span>
     <span class="n">b</span><span class="o">=</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">),</span>
 <span class="p">)</span>
@@ -268,68 +296,68 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>逻辑组合（与、或、传递）</p></li>
+<li><p>Assembling Logic Units (and, or, pass-on)</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">iit</span> <span class="o">=</span> <span class="n">is_type</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">right_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># 验证是否为在[1, 5)的整数</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">iit</span> <span class="o">=</span> <span class="n">is_type</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">right_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Whether is an int type value with interval [1, 5)</span>
 <span class="n">iit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># 1</span>
 <span class="n">iit</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>    <span class="c1"># 4</span>
 <span class="n">iit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>    <span class="c1"># ValueError</span>
 <span class="n">iit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># ValueError</span>
 <span class="n">iit</span><span class="p">(</span><span class="mf">3.8</span><span class="p">)</span>  <span class="c1"># TypeError</span>
 
-<span class="n">iit</span> <span class="o">=</span> <span class="n">interval</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># 验证是否为(-inf, -1] | [1, +inf)</span>
+<span class="n">iit</span> <span class="o">=</span> <span class="n">interval</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># Whether is with interval (-inf, -1] | [1, +inf)</span>
 <span class="n">iit</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># -2</span>
 <span class="n">iit</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># -1</span>
 <span class="n">iit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>   <span class="c1"># ValueError</span>
 <span class="n">iit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># 1</span>
 <span class="n">iit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>   <span class="c1"># 2</span>
 
-<span class="n">iit</span> <span class="o">=</span> <span class="n">to_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="n">interval</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>  <span class="c1"># 是否在转为float后在区间(-inf, -1] | [1, +inf)上</span>
+<span class="n">iit</span> <span class="o">=</span> <span class="n">to_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="n">interval</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">interval</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>  <span class="c1"># Whether is with interval (-inf, -1] | [1, +inf) after converting to float type value</span>
 <span class="n">iit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>     <span class="c1"># 1.0</span>
 <span class="n">iit</span><span class="p">(</span><span class="s1">&#39;-1&#39;</span><span class="p">)</span>  <span class="c1"># -1.0</span>
-<span class="n">iit</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>   <span class="c1"># ValueError （注意，这里是ValueError，不是TypeError）</span>
+<span class="n">iit</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>   <span class="c1"># ValueError (Note that it is ValueError here, not TypeError)</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>基础组件</p></li>
+<li><p>Basic Modules</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">kp</span> <span class="o">=</span> <span class="n">keep</span><span class="p">()</span>  <span class="c1"># 恒真，且保留原值</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">kp</span> <span class="o">=</span> <span class="n">keep</span><span class="p">()</span>  <span class="c1"># Tautology, preserve old value</span>
 <span class="n">kp</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>     <span class="c1"># 1</span>
 <span class="n">kp</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># None</span>
 
-<span class="n">r</span> <span class="o">=</span> <span class="n">raw</span><span class="p">(</span><span class="mi">233</span><span class="p">)</span>  <span class="c1"># 恒真，常量</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">raw</span><span class="p">(</span><span class="mi">233</span><span class="p">)</span>  <span class="c1"># Tautology, constant</span>
 <span class="n">r</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>     <span class="c1"># 233</span>
 <span class="n">r</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># 233</span>
 
-<span class="n">r</span> <span class="o">=</span> <span class="n">optional</span><span class="p">(</span><span class="n">is_type</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">|</span> <span class="n">is_type</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span>  <span class="c1"># 可选类型，等价于int, float, None三选一</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">optional</span><span class="p">(</span><span class="n">is_type</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">|</span> <span class="n">is_type</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span>  <span class="c1"># Option type, equivalent to any of {int, float, None} types</span>
 <span class="n">r</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>      <span class="c1"># 1</span>
 <span class="n">r</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>    <span class="c1"># 1.2</span>
 <span class="n">r</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>   <span class="c1"># None</span>
 <span class="n">r</span><span class="p">(</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>  <span class="c1"># TypeError</span>
 
-<span class="n">ck</span> <span class="o">=</span> <span class="n">check_only</span><span class="p">(</span><span class="n">to_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">plus</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>  <span class="c1"># 转换值还原</span>
+<span class="n">ck</span> <span class="o">=</span> <span class="n">check_only</span><span class="p">(</span><span class="n">to_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">plus</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>  <span class="c1"># Revert converted value</span>
 <span class="n">ck</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># 1</span>
 <span class="n">ck</span><span class="p">(</span><span class="mf">2.2</span><span class="p">)</span>  <span class="c1"># 2.2</span>
 
-<span class="n">ckx</span> <span class="o">=</span> <span class="n">to_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">plus</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># 如果不加还原的效果</span>
+<span class="n">ckx</span> <span class="o">=</span> <span class="n">to_type</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">plus</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># if without reversion</span>
 <span class="n">ck</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># 3.0</span>
 <span class="n">ck</span><span class="p">(</span><span class="mf">2.2</span><span class="p">)</span>  <span class="c1"># 4.2</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>norm机制（用于支持中等复杂数学运算）</p></li>
+<li><p>norm mechanism (to support moderately complex mathematical operations)</p></li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mt</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">keep</span><span class="p">())</span> <span class="o">*</span> <span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">keep</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">10</span> <span class="o">/</span> <span class="n">norm</span><span class="p">(</span><span class="n">keep</span><span class="p">())</span>  <span class="c1"># 计算x * (x + 1) - 10 / x</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mt</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">keep</span><span class="p">())</span> <span class="o">*</span> <span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">keep</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">10</span> <span class="o">/</span> <span class="n">norm</span><span class="p">(</span><span class="n">keep</span><span class="p">())</span>  <span class="c1"># Calculate x * (x + 1) - 10 / x</span>
 <span class="n">mt</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># -8</span>
 <span class="n">mt</span><span class="p">(</span><span class="mf">3.5</span><span class="p">)</span>  <span class="c1"># 12.8929</span>
 
-<span class="n">tt</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">interval</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1"># 判断x * (x + 1) - 10 / x是否在区间(-inf, 10]上</span>
+<span class="n">tt</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">interval</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>  <span class="c1"># Judge whether x * (x + 1) - 10 / x is in interval (-inf, 10]</span>
 <span class="n">tt</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>    <span class="c1"># -8</span>
 <span class="n">tt</span><span class="p">(</span><span class="mf">3.5</span><span class="p">)</span>  <span class="c1"># ValueError</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>normfunc机制（用于支持高复杂数学计算或不可控计算逻辑）</p></li>
+<li><p>normfunc mechanism (used to support highly complex mathematical calculations or uncontrollable calculation logic)</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_calculate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">y</span><span class="p">)</span>
@@ -338,35 +366,35 @@
 <span class="k">def</span> <span class="nf">_calculate2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span>
 
-<span class="n">nf</span> <span class="o">=</span> <span class="n">normfunc</span><span class="p">(</span><span class="n">_calculate</span><span class="p">)(</span><span class="n">norm</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)),</span> <span class="n">norm</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)))</span>  <span class="c1"># 计算 a ** (1 / b)</span>
+<span class="n">nf</span> <span class="o">=</span> <span class="n">normfunc</span><span class="p">(</span><span class="n">_calculate</span><span class="p">)(</span><span class="n">norm</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)),</span> <span class="n">norm</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)))</span>  <span class="c1"># Calculate  a ** (1 / b)</span>
 <span class="n">nf</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">})</span>  <span class="c1"># 1.1699</span>
 
-<span class="n">nf2</span> <span class="o">=</span> <span class="n">_calculate2</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">norm</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)))</span>  <span class="c1"># 计算(a - 1) / (1 + b)</span>
+<span class="n">nf2</span> <span class="o">=</span> <span class="n">_calculate2</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">norm</span><span class="p">(</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)))</span>  <span class="c1"># Calculate (a - 1) / (1 + b)</span>
 <span class="n">nf2</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">})</span>  <span class="c1"># 0.25</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="header-n98">
-<span id="id3"></span><h2>常见问题<a class="headerlink" href="#header-n98" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="q-loadernorm">
-<span id="header-n100"></span><h3>Q：loader和norm的区别和关系是什么？<a class="headerlink" href="#q-loadernorm" title="Permalink to this headline">¶</a></h3>
-<p>A：这两者的差异在于：</p>
+<div class="section" id="faq">
+<span id="header-n98"></span><h2>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="q-what-is-the-difference-and-relationship-between-loader-and-norm">
+<span id="header-n100"></span><h3>Q：What is the difference and relationship between loader and norm?<a class="headerlink" href="#q-what-is-the-difference-and-relationship-between-loader-and-norm" title="Permalink to this headline">¶</a></h3>
+<p>A：The difference between the two is:</p>
 <ul class="simple">
-<li><p>loader专注于逻辑的构建、转换与验证</p></li>
-<li><p>norm专注于数学计算，尤其指数学计算逻辑的构建</p></li>
+<li><p>Loader focuses on the construction, conversion and verification of logic</p></li>
+<li><p>Norm focuses on mathematical calculations, especially the construction of math calculation logic</p></li>
 </ul>
-<p>其中，通过<code class="docutils literal notranslate"><span class="pre">Loader</span></code>函数可以将任意类型（包括norm）转为loader，而<code class="docutils literal notranslate"><span class="pre">norm</span></code>函数可以将loader类型转为norm。请注意在实际使用的时候，为了避免歧义，<strong>当loader和norm放在一块使用的时候，请注意加上``norm``或者``Loader``函数以明确身份，以避免系统使用预期外的运算重载。</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">Loader</span></code> can convert any type (including norm) to loader, <code class="docutils literal notranslate"><span class="pre">norm</span></code>can convert the loader type to norm. Please note that in usage practices, in order to avoid ambiguity，<strong>when loader and norm are used together, please pay attention to adding</strong><code class="docutils literal notranslate"><span class="pre">norm</span></code> or <code class="docutils literal notranslate"><span class="pre">Loader</span></code><strong>fn to identify, to prevent the system from using unexpected computing overloads.</strong></p>
 </div>
-<div class="section" id="q-loader">
-<h3>Q：感觉loader有些时候写起来太长了，而且都是重复的，有没有更好的解决方案？<a class="headerlink" href="#q-loader" title="Permalink to this headline">¶</a></h3>
-<p>A：很简单，可以考虑重用。例如</p>
+<div class="section" id="q-loader-sometimes-feels-too-long-to-write-and-it-is-all-repetitive-is-there-a-better-format">
+<h3>Q：Loader sometimes feels too long to write, and it is all repetitive. Is there a better format?<a class="headerlink" href="#q-loader-sometimes-feels-too-long-to-write-and-it-is-all-repetitive-is-there-a-better-format" title="Permalink to this headline">¶</a></h3>
+<p>A：Simply, you can consider reuse. E.g</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l1</span> <span class="o">=</span> <span class="n">dict_</span><span class="p">(</span>
     <span class="n">a</span><span class="o">=</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">),</span>
     <span class="n">b</span><span class="o">=</span><span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">),</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>这样的写法，可以简化为</p>
+<p>which can be simplified to</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">find_ab</span> <span class="o">=</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
 <span class="n">l1</span> <span class="o">=</span> <span class="n">dict_</span><span class="p">(</span>
     <span class="n">a</span><span class="o">=</span><span class="n">find_ab</span> <span class="o">&gt;&gt;</span> <span class="n">item</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">),</span>
@@ -374,8 +402,8 @@
 <span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>loader进行逻辑组合的原理，是基于两个loader，计算得出一个新的loader</strong> ，故可以支持重用。</p>
-<p>实际上操作中，也更建议各位使用者充分利用这一特性，使得代码更加优美。</p>
+<p><strong>The principle of logical combination of loader is computing a new loader based on the two old loaders.</strong> Therefore reusing is appropriate.</p>
+<p>In operations, it is also recommended that users make full use of this feature to implement more elegant codes.</p>
 </div>
 </div>
 </div>
@@ -385,6 +413,15 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../guide/index.html" class="btn btn-neutral float-right" title="Developer Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="interaction_overview.html" class="btn btn-neutral float-left" title="Interaction Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

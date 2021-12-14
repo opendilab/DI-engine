@@ -1,5 +1,5 @@
-Hands on RL
-~~~~~~~~~~~~~~~~~~~~~~~
+RL Algorithm Cheat Sheet
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 .. toctree::

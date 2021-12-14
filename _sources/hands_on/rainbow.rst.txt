@@ -32,9 +32,9 @@ Prioritized Experience Replay(PER)
 DQN samples uniformly from the replay buffer. Ideally, we want to sample more frequently those transitions from which there is much to learn. As a proxy for learning potential, prioritized experience replay samples transitions with probabilities relative to the last encountered absolute TD error, formally:
 
 .. math::
-   
+
    p_{t} \propto\left|R_{t+1}+\gamma_{t+1} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+1}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right|^{\omega}
-   
+
 
 In the original paper of PER, the authors show that PER achieve improvements on most of the 57 Atari games, especially on Gopher, Atlantis, James Bond 007, Space Invaders, etc.
 
@@ -46,7 +46,7 @@ streams, sharing a convolutional encoder, and merged by a special aggregator. Th
 .. math::
 
    q_{\theta}(s, a)=v_{\eta}\left(f_{\xi}(s)\right)+a_{\psi}\left(f_{\xi}(s), a\right)-\frac{\sum_{a^{\prime}} a_{\psi}\left(f_{\xi}(s), a^{\prime}\right)}{N_{\text {actions }}}
-   
+
 The network architecture of Rainbow is a dueling network architecture adapted for use with return distributions. The network has a shared representation, which is then fed into a value stream :math:`v_\eta` with :math:`N_{atoms}` outputs, and into an advantage stream :math:`a_{\psi}` with :math:`N_{atoms} \times N_{actions}` outputs, where :math:`a_{\psi}^i(a)` will denote the output corresponding to atom i and action a. For each atom :math:`z_i`, the value and advantage streams are aggregated, as in dueling DQN, and then passed through a softmax layer to obtain the normalized parametric distributions used to estimate the returns’ distributions:
 
 .. math::
@@ -60,7 +60,7 @@ Multi-step Learning
 -------------------
 A multi-step variant of DQN is then defined by minimizing the alternative loss:
 
-   
+
 .. math::
 
    \left(R_{t}^{(n)}+\gamma_{t}^{(n)} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+n}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}
@@ -79,7 +79,7 @@ Noisy Net
 Noisy Nets use a noisy linear layer that combines a deterministic and noisy stream:
 
 .. math::
-   
+
    \boldsymbol{y}=(\boldsymbol{b}+\mathbf{W} \boldsymbol{x})+\left(\boldsymbol{b}_{\text {noisy }} \odot \epsilon^{b}+\left(\mathbf{W}_{\text {noisy }} \odot \epsilon^{w}\right) \boldsymbol{x}\right)
 
 Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements against epsilon-greedy when the action space is large, e.g. Montezuma's Revenge, because epsilon-greedy tends to quickly converge to a one-hot distribution before the rewards of the large numbers of actions are collected enough.
@@ -103,14 +103,14 @@ The network interface Rainbow used is defined as follows:
    :members: __init__, forward
    :noindex:
 
-The Benchmark result of Rainbow implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview_en.html>`_
+The Benchmark result of Rainbow implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 
 
 Experiments on Rainbow Tricks
 -----------------------------
 We conduct experiments on the lunarlander environment using rainbow (dqn) policy to compare the performance of n-step, dueling, priority, and priority_IS tricks with baseline. The code link for the experiments is `here <https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/lunarlander_dqn_config.py>`_.
-Note that the config file is set for ``dqn`` by default. If we want to adopt ``rainbow`` policy, we need to change the 
+Note that the config file is set for ``dqn`` by default. If we want to adopt ``rainbow`` policy, we need to change the
 type of policy as below.
 
 .. code-block:: python
@@ -125,7 +125,7 @@ type of policy as below.
     policy=dict(type='rainbow'),
    )
 
-   
+
 The detailed experiments setting is stated below.
 
 +---------------------+---------------------------------------------------------------------------------------------------+
@@ -146,7 +146,7 @@ The detailed experiments setting is stated below.
 
 
 1. ``reward_mean`` over ``training iteration`` is used as an evaluation metric.
-   
+
 2. Each experiment setting is done for three times with random seed 0, 1, 2 and average the results to ensure stochasticity.
 
 .. code-block:: python
@@ -170,9 +170,9 @@ The detailed experiments setting is stated below.
 
 
 
-The result is shown in the figure below. As we can see, with tricks on, the speed of convergence is increased by a large amount. In this experiment setting, dueling trick contributes most to the performance. 
+The result is shown in the figure below. As we can see, with tricks on, the speed of convergence is increased by a large amount. In this experiment setting, dueling trick contributes most to the performance.
 
-.. image:: 
+.. image::
    images/rainbow_exp.png
    :align: center
 

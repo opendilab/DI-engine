@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Git 协作指南 &mdash; DI-engine 0.1.0 documentation</title>
+  <title>Git Collaboration Guide &mdash; DI-engine 0.1.0 documentation</title>
   
 
   
@@ -37,6 +37,8 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Documentation Contribution Guide" href="doc_contribution.html" />
+    <link rel="prev" title="Developer Guide" href="index.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -88,17 +90,25 @@
 <li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Developer Guide</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Git Collaboration Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#collaboration-processg">Collaboration Processg</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#git-standards">Git Standards</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="doc_contribution.html">Documentation Contribution Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="code_comment.html">Code Comment</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
 </ul>
@@ -146,7 +156,9 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Git 协作指南</li>
+          <li><a href="index.html">Developer Guide</a> &raquo;</li>
+        
+      <li>Git Collaboration Guide</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -165,21 +177,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="git">
-<h1>Git 协作指南<a class="headerlink" href="#git" title="Permalink to this headline">¶</a></h1>
-<p>这份文档旨在给了解 git 基本使用方法的小伙伴们一些规范 git 协作开发流程的建议。如果你还不熟悉 git ，可以 <strong>依次</strong> 阅读 <a class="reference external" href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/">廖雪峰的 git 教程</a> 和 <a class="reference external" href="https://git-scm.com/book/zh/v2">Pro Git v2</a> 。廖的教程方便一小时入门，pro git 讲得足够深入，是 git 官方的推荐教程。</p>
-<div class="section" id="id2">
-<h2>协作流程<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<p>1.初始化你的代码仓库。这里主要分两种情况：从新开始创建一个仓库（比如自己造轮子），或是打算修改现有代码。</p>
+  <div class="section" id="git-collaboration-guide">
+<h1>Git Collaboration Guide<a class="headerlink" href="#git-collaboration-guide" title="Permalink to this headline">¶</a></h1>
+<p>This document aims to provide collaborative development standardization suggestions on git for developers with understandings on the basic usage of git. If you are not familiar with git, you can <strong>in order</strong> read <a class="reference external" href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/">Liao Xue Feng’s git Tutorials</a> and <a class="reference external" href="https://git-scm.com/book/zh/v2">Pro Git v2</a> . Liao’s tutorial is suitable for one-hour-getting-started, and pro git is in-depth enough as the official recommended tutorial for git.</p>
+<div class="section" id="collaboration-processg">
+<h2>Collaboration Processg<a class="headerlink" href="#collaboration-processg" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Init your code repo. There are mainly two cases: creating a repository from scratch (e.g. for making your own wheels), or planning to modify existing code.</p></li>
+</ol>
 <blockquote>
 <div><ul class="simple">
-<li><p>创建新代码仓库：一般建议把新的代码库放到各自的小组 (Group) 下，例如 <code class="docutils literal notranslate"><span class="pre">XLab/Cell</span></code> ，这样的话，同组成员会直接有访问和编辑的权限。如果是自己开发使用，或还没有准备好发布到小组内，则把代码仓库创建在自己的用户名下。例如 <code class="docutils literal notranslate"><span class="pre">niuyazhe/my_test_project</span></code> 。所有新代码仓库 <strong>务必</strong> 设置为 <code class="docutils literal notranslate"><span class="pre">private</span></code> 。</p></li>
-<li><p>修改现有代码：对现有代码的修改，建议fork出一个新代码仓库至自己的用户名下（跨组仓库推荐用fork），在上面做修改，最后再在原仓库上提 <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> 。或者也可以在原repo下创建一个自己的开发分支（同组仓库推荐用新分支），然后同样通过 <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> 来提交改动， <strong>禁止</strong> 项目维护者之外的人直接更新 <code class="docutils literal notranslate"><span class="pre">master</span></code> 分支，一般情况下也 <strong>禁止</strong> 使用 <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">-f</span></code> 强行覆盖推送本地改动到远程分支。</p></li>
+<li><p>Create a new code repository: It is generally recommended to put the new code repository in their respective team (Group), such as <code class="docutils literal notranslate"><span class="pre">XLab/Cell</span></code>, so that members of the same group have direct accesing &amp; editing permissions. If it is developed and used by yourself, or is not ready to be released to the team, create the code repository under your own user name. For example, <code class="docutils literal notranslate"><span class="pre">niuyazhe/my_test_project</span></code>. All new code repositories <strong>must</strong> be set to <code class="docutils literal notranslate"><span class="pre">private</span></code>.</p></li>
+<li><p>Modify existing codes: For modification, it is recommended to fork a new code repository with owner’s username (fork is recommended for cross-group repositories), modify the above, and submit <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> on the original repository. Or you can create your own dev branch under the original repo (a new branch is recommended for the same repo group), and then submit the changes through the <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> as well. <strong>It is forbidden</strong> to update directly by people other than the project maintainer. The <code class="docutils literal notranslate"><span class="pre">master</span></code> branch is generally <strong>forbidden</strong> to use <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">-f</span></code> to forcibly overwrite and push local changes to the remote branch.</p></li>
 </ul>
 </div></blockquote>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>在使用fork方式时，为保持fork代码库和原代码库同步，可以在本地将原代码库添加至 <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">remote</span></code> ， 并单独用一个 branch 保持追踪原始代码库的 master 分支，实例如下：</p>
+<p>When using the fork method, in order to keep the fork code base synchronized with the original code base, the original code base can be added locally to <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">remote</span></code>  and use a branch to keep track of the master branch of the original code base. Examples are as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># after forking `group_foo/proj_bar.git` to `user_baz/proj_bar.git`</span>
 git clone &lt;forked_path&gt;
 git remote add base &lt;origin_path&gt;  <span class="c1"># base is user-defined name referred to origin remote</span>
@@ -188,29 +202,29 @@ git checkout -b base-master base/master  <span class="c1"># use `base-master` to
 </pre></div>
 </div>
 </div>
-<ol class="arabic simple" start="2">
-<li><p>本地代码仓库开发。在创建好代码仓库并 clone 至本地之后，即可开始代码开发。这里有下面几个建议：</p>
+<ol class="arabic simple">
+<li><p>For Local repo development, as creating the repo and cloning to local, you can start. Following are some suggestions:</p>
 <ul class="simple">
-<li><p>任何一个较大的代码改动或功能更新，需要通过 GitLab Issue 来描述具体要做的工作或跟同事讨论相关解决方案，同时新开一个 <code class="docutils literal notranslate"><span class="pre">WIP(Work</span> <span class="pre">In</span> <span class="pre">Progress)</span></code> 的 <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> 跟进自己的进展，其他同事也可以在该MR下comment，进行讨论或code review。</p></li>
-<li><p>如果是修复 bug, 建议现在 issue 页面描述 bug 的表现及触发场景，以防其他同事踩雷，且为这个issue 打上 <code class="docutils literal notranslate"><span class="pre">Bug</span> <span class="pre">Report</span></code> label。</p></li>
-<li><p>如果是打算添加新功能，那么 <strong>在开始写代码之前</strong> ，请先线下和代码库的负责人聊一下你的意图、添加这个功能的原因和打算使用的实现方式，确定加这个功能是必须且可行的。之后，请仍然在原代码仓库提一个 issue，描述你准备加入的功能和具体的 TODO 列表，且为这个issue打上相应label，比如算法更新使用 <code class="docutils literal notranslate"><span class="pre">Algorithm</span></code> 。</p></li>
-<li><p>在进行每一个 issue 对应的开发任务时，可以在本地按照自己的工作节奏 commit ，尽量保证每个commit只对应一种相关的代码改动，也可以把这些做到一半的 commits 推送进自己的 fork 仓库内以防止工作丢失。但是，在完成发起的 issue 的目标（或某一条 TODO）前， <strong>不要把不完整的 commit 推送至原始仓库</strong> 。</p></li>
+<li><p>For any major code changes or feature updates, you should use <code class="docutils literal notranslate"><span class="pre">GitLab</span> <span class="pre">Issue</span></code> to describe the specific work to be done or discuss related possible resolution with colleagues and open at the same time a new <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> with <code class="docutils literal notranslate"><span class="pre">WIP(Work</span> <span class="pre">In</span> <span class="pre">Progress)</span></code>. Follow up your progress, and other colleagues can also comment, discuss or add code reviews to the MR.</p></li>
+<li><p>If the repo is to fix a bug, it is recommended to describe the performance and triggering conditions of the bug on the <code class="docutils literal notranslate"><span class="pre">Issue</span></code> page to prevent other colleagues from stepping on the pit, and label this issue <code class="docutils literal notranslate"><span class="pre">Bug</span> <span class="pre">Report</span></code>.</p></li>
+<li><p>If you plan to add a new feature to repo, <strong>before starting to implement</strong>, please chat with the repo manager about your intention and reason for adding this feature as well as the implementation method you intend to use, and then make sure that adding this feature is necessary and feasible. After that, please still raise an issue in the original code repository to describe the feature to add and the specific <code class="docutils literal notranslate"><span class="pre">TODO</span></code> list and label the issue accordingly, for example, use <code class="docutils literal notranslate"><span class="pre">Algorithm</span></code> for algorithm updates.</p></li>
+<li><p>In progress of the corresponding development tasks to each issue, you can commit locally according to your own work schedule but try to ensure that each commit corresponds to only one type of related code changes, or you can push half of these commits into your forked repo to avoid loss of work. However, before completing resolving a issue (or a TODO), <strong>do not push the incomplete commit to the original repo base</strong>.</p></li>
 </ul>
 </li>
-<li><p>完成本地开发之后, 同步上游代码，整合自己的本地 commits，处理 conflicts。简单在conflicts可以直接在 <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> 对应的gitlab网页上直接进行操作，较为复杂的需要在本地fetch目标分支的改动之后，手动进行merge，一些较复杂的情形可以使用 <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">rebase</span></code> 来完成，（具体细节可以参考 <a class="reference external" href="https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA">Pro Git-分支-变基</a> 一节</p></li>
-<li><p>冲突解决后，在MR或Issue里描述代码改动对应的工作内容，由项目负责人或指定相关同事进行 code review。代码合并成功后，关闭相应的 GitLab Issue。</p></li>
+<li><p>After making local changes, the developer should sync with the upstream code, integrate your own local commits, and resolve conflicts. Simple conflicts can be resolved directly on the gitlab <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> page. For more complex cases, you should manually merge after the local fetched target branch changed. For further complicated situations, you can consider using <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">rebase</span></code>, (please refer to <a class="reference external" href="https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA">Pro Git-Branch-Rebase</a> for details.</p></li>
+<li><p>After the conflict is resolved, the developer should descibe corresponding code changes in the MR or Issue, and later manager or a designated colleague will review the changes. After the code is merged successfully, close the corresponding GitLab Issue.</p></li>
 </ol>
 </div>
-<div class="section" id="id3">
-<h2>git规范<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<p>这一节主要列一些在使用 git 时，应该特别注意的点:</p>
+<div class="section" id="git-standards">
+<h2>Git Standards<a class="headerlink" href="#git-standards" title="Permalink to this headline">¶</a></h2>
+<p>This section lists some points that should be paid special attention to when using git:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>提交至 master 分支的 merge request，其代码必须是确保能够 <strong>正确运行</strong> 的。具体的开发者需要做好本地的代码风格检查和单元测试，推荐引入自动测试和持续集成(CI)来确保 master 分支的稳定性；</p></li>
-<li><p>在编辑 git repository 中的文件时，请特别留意 <strong>换行符</strong> 。默认情况下，Windows 系统使用 <code class="docutils literal notranslate"><span class="pre">CRLF</span></code> 换行，Unix 系统使用 <code class="docutils literal notranslate"><span class="pre">LF</span></code> 换行。我们强制要求所有签入 git repository 文件 <strong>必须使用 LF 换行</strong> ，以避免潜在的系统级 bug。Windows下可以使用 <code class="docutils literal notranslate"><span class="pre">dos2unix</span></code> <a class="reference external" href="https://stackoverflow.com/questions/11929461/how-can-i-run-dos2unix-on-an-entire-directory">批量处理</a> 整个文件夹内的换行;</p></li>
-<li><p>开发完成后无用的分支请在远程仓库中删除。这样主要是为了防止公共代码库分支混乱、clone 耗时；</p></li>
-<li><p>注意编写合适的 <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> ，不要把任何与项目实现无关的文件签入 git，例如 macOS 下的 <code class="docutils literal notranslate"><span class="pre">.DS_Store</span></code> 文件夹，IDE 配置文件夹 <code class="docutils literal notranslate"><span class="pre">.vscode</span></code> 、 <code class="docutils literal notranslate"><span class="pre">.idea</span></code> ，运行日志文件等；</p></li>
-<li><p>除非必要， <strong>绝对不要把大容量二进制文件嵌入git repo中</strong> ，例如训练的模型文件、二进制库文件等，这些文件可能会带来多种多样的问题。 如果要引入这些文件，可使用 <code class="docutils literal notranslate"><span class="pre">gif</span> <span class="pre">lfs</span></code></p></li>
+<li><p>The code of the merge request submitted to the master branch must be able to <strong>run correctly</strong>. Specifically, developers should perform style-checks and unit tests for the repo. It is recommended to include automatic testing and continuous integration (CI) to ensure stability for the master branch;</p></li>
+<li><p>When editing files in the git repo, please pay special attention to the <strong>Line Breaks</strong>. By default, Win sys use <code class="docutils literal notranslate"><span class="pre">CRLF</span></code> for line breaks, and Unix use <code class="docutils literal notranslate"><span class="pre">LF</span></code> for line breaks. We force all files adding to git repository to <strong>use LF line breaks</strong> to avoid potential sys-level bugs. With Win sys, you can use <code class="docutils literal notranslate"><span class="pre">dos2unix</span></code> to perform <a class="reference external" href="https://stackoverflow.com/questions/11929461/how-can-i-run-dos2unix-on-an-entire-directory">batch processing</a> the entire folder’s Line breaks;</p></li>
+<li><p>After the dev completed, archived branches should be deleted in remote. This is mainly to avoid the code base from branching confusion or cloning to be overly time-consuming;</p></li>
+<li><p>Note to write appropriate <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> and do not add any files irrelevant to the implementation of the project into git, e.g. <code class="docutils literal notranslate"><span class="pre">.DS_Store</span></code> folder under macOS, IDE configuration folders with <code class="docutils literal notranslate"><span class="pre">.vscode</span></code>, <code class="docutils literal notranslate"><span class="pre">.idea</span></code>, running log files, etc.;</p></li>
+<li><p>Unless necessary, <strong>Never embed large-capacity binary files in a git repo</strong>, such as model files, binary lib, etc. These files may cause a variety of problems. If you want to import these, use the <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">lfs</span></code></p></li>
 </ul>
 </div></blockquote>
 </div>
@@ -221,6 +235,15 @@ git checkout -b base-master base/master  <span class="c1"># use `base-master` to
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="doc_contribution.html" class="btn btn-neutral float-right" title="Documentation Contribution Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Developer Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

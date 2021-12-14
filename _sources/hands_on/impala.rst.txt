@@ -322,7 +322,7 @@ The network interface IMPALA used is defined as follows:
         :members: __init__, forward
         :noindex:
 
-The Benchmark result of IMPALA implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview_en.html>`_
+The Benchmark result of IMPALA implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
 
 
 Reference

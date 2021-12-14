@@ -22,5 +22,6 @@ Best Practice
     episode_buffer
     multi_buffer
     registry
+    maac
     
     customization1_dynamic_update_step

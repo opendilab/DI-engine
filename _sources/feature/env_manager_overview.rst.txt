@@ -5,20 +5,24 @@ Env Manager Overview
 Env Manager
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-概述：
-    env manager 是一个环境管理器，可以管理多个相同类型不同配置的环境。env manager 可以实现多个 env 同时运行，同时获取环境中的信息，并且提供与 env 相似的接口，可以大大简化 code，加速运行。
-    目前支持的类型有单进程串行和多进程并行两种模式。BaseEnvManager 通过循环串行（伪并行）来维护多个环境实例，Async(Sync)SubprocessEnvManager 通过子进程向量化的方式，即调用
-    multiprocessing，通过在子进程中运行 env，以进程间通信的方式对环境进行管理和运行。DI-engine 的 env manager 需使用 DI-engine 格式的 env 定义（或者由 EnvWrapper装饰过的 Gym env)，
-    其初始化时需提供每个 env 的实例化接口，通过 config 设定具体的运行细节。
+Overview:
+    env manager is an environment manager that can manage multiple environments of the same type with different configurations. The env manager can run multiple envs at the same time,
+    obtain information in the environment at the same time, and provide an interface similar to env, which can greatly simplify the code and speed up the operation.
+    The currently supported types are single-process serial and multi-process parallel modes. BaseEnvManager maintains multiple environment instances through cyclic serial (pseudo-parallel),
+    and Async(Sync)SubprocessEnvManager uses subprocess vectorization, that is, call multiprocessing, by running env in a child process, manages and runs the environment by means of inter-process communication.
+    DI-engine's env manager needs to use the env definition in DI-engine format (or Gym env decorated by EnvWrapper),
+    It needs to provide the instantiation interface of each env when it is initialized, and set the specific operation details through config.
+    
+    Generally speaking, :class:`BaseEnvManager <ding.envs.BaseEnvManager>` is used to run in some simple environments or to debug, and it is recommended to run
+    :class:`SyncSubProcessEnvManager <ding.envs.SyncSubProcessEnvManager>` and :class:`AsyncSubProcessEnvManager <ding.envs.AsyncSubProcessEnvManager>`
+    in complex environments or a large number of environments for acceleration.
 
-    一般来说，:class:`BaseEnvManager <ding.envs.BaseEnvManager>` 用于一些简单环境的运行或 debug，复杂环境或大数量环境的运行推荐采用 
-    :class:`SyncSubProcessEnvManager <ding.envs.SyncSubProcessEnvManager>` 和 :class:`AsyncSubProcessEnvManager <ding.envs.AsyncSubProcessEnvManager>` 进行加速。
+    If you don’t know enough about the env module yet, it is recommended to consult DI-engine's `Env Overview <./env_overview.html>`_
 
-    如果对 env 模块还不够了解，建议先查阅 DI-engine 的 `Env Overview <./env_overview.html>`_
-
-用法：
+Usage:
     - init
-        env manager 的初始化需要传入每个 env 的实例化调用接口和 config 字典，可通过 lambda 函数或者偏函数 ``functools.partial`` 来对 env 的实例化函数进行包装，指定其运行参数。
+        The initialization of the env manager needs to pass in the instantiation call interface of each env and the config dictionary.
+        The lambda function or partial function ``functools.partial`` can be used to wrap the instantiation function of env and specify its operating parameters.
 
 
         .. code:: python
@@ -43,47 +47,52 @@ Env Manager
             env_manager = BaseEnvManager(env_fn=[partial(env_fn, *args, **kwargs) for _ in range(4)], cfg=config.env.manager)
 
     - launch/reset
-        env manager 初始化后并不会立即实例化每个环境，此时 env manager 会被标记为 `closed` 状态。首次初始化环境需调用 ``launch`` 方法，该方法会按照传入的 env 实例化调用接口
-        构造每个 env 实例（对 SubprocessEnvManager 来说则是运行每个环境的子进程，建立通信管道），构造一些环境运行时的状态变量等，同时调用各子环境的 ``reset`` 方法，将环境运行起来。
-
+        After the env manager's initialization, each environment will not be instantiated immediately. At this time, the env manager will be marked as a `closed` state.
+        To initialize the environment for the first time, you need to call the ``launch`` method, which will construct each env instance according to the incoming env instantiation call interface
+        (for SubprocessEnvManager, it is to run the subprocess of each environment and establish a communication channel), construct Some of the state variables of the environment are running,
+        and the ``reset`` method of each sub-environment is called at the same time to run the environment.
+        
         .. warning::
 
-            调用在 `closed` 状态的 env_manager 的 ``step`` 和 ``reset`` 方法会引发异常。
+            Calling the ``step`` and ``reset`` methods of env_manager in the `closed` state will cause an exception.
 
-        在调用过 ``launch`` 方法之后便可通过调用 env manager 的 ``reset`` 方法来手动 reset 子环境。当不传入任何参数时，默认会 reset 所有子环境。当传入 ``reset_param`` 
-        参数时，会 reset ``reset_param`` 中的键对应的子环境，并将其键值作为子环境 ``reset`` 方法的参数。由于不确定每个子环境 reset 需要的时间，env manager 不会返回子环境的 step
-        运行结束后对应的 observation，而是会在 reset 结束时将返回值保存起来，通过调用 ``ready_obs`` 属性获得当前运行完成 step 或 reset 方法的子环境的
-        observation，此举可以加快 SubprocessEnvManager 的运行效率。
+        After calling the ``launch`` method, you can manually reset the sub-environment by calling the ``reset`` method of the env manager.
+        When no parameters are passed in, all sub-environments will be reset by default.
+        When the ``reset_param`` parameter is passed in, the sub-environment corresponding to the key in ``reset_param`` will be reset, and its key value will be used as the parameter of the sub-environment ``reset`` method.
+        Due to the uncertainty of the time required for each sub-environment reset, the env manager will not return the corresponding observation after the step of the sub-environment ends.
+        Instead, it will save the return value at the end of the reset and obtain the current value by calling the ``ready_obs`` property.
+        Run the observation of the sub-environment that completes the step or reset method, which can speed up the operating efficiency of the SubprocessEnvManager.
         
         .. note::
 
-            当 SubprocessEnvManager 需要 reset 正在进行 reset 的子环境时，该方法会等待这些子环境的上一次 reset 运行完毕再运行此次 reset。
+            When SubprocessEnvManager needs to reset the sub-environments that are being reset, this method will wait for the last reset of these sub-environments to complete before running this reset.
 
     - step
-        step 方法会串行地（BaseEnvManager）或并行地（SubprocessEnvManager）调用 env manager 中子环境的 step 方法，并返回 step 的结果，将 observation 存入 ``ready_obs``
-        属性中。该方法传入的参数是一个 ``actions`` 字典，其键指定了需要运行 ``step`` 的 env_id，键值为该子环境的 ``step`` 运行的 action。依据不同的 env manager 类型和 config 设置，
-        当有一定数量的子环境返回 step 结果后，该方法会检查运行结果，根据这些结果修改子环境的运行状态，并返回结果或抛出异常。
+        The step method will serially (BaseEnvManager) or parallel (SubprocessEnvManager) call the step method of the sub-environment of the env manager, and return the result of the step, and store the observation in the ``ready_obs`` attribute.
+        The parameter passed in this method is an ``actions`` dictionary, the key of which specifies the env_id that needs to run the ``step``, and the key value is the action to be run by the ``step`` of the sub-environment.
+        According to different env manager types and config settings, when a certain number of sub-environments return step results, this method will check the running results,
+        modify the running status of the sub-environments based on these results, and return the result or throw an exception.
 
         .. warning::
 
-            ``actions`` 包含正在运行其他命令或已经完成 episode 的子环境 id 时会引发异常。
+            When ``actions`` contains the sub-environment id that is running other commands or has completed the episode, it will throw an exception.
     
     - ready_obs
-        ``ready_obs`` 属性返回一个字典，内容为环境的 env_id 和最新返回的 observation 的键值对。对 SubprocessEnvManager 来说 ``ready_obs`` 属性返回的环境 id 一定是完成了 reset
-        或 step 方法，正在等待新命令的子环境，因此可以安全地继续调用这些子环境的 ``reset`` 和 ``step`` 方法。当所有仍在运行（未运行至 done）的子环境都没有完成 ``reset`` 和 ``step`` 
-        方法的运行时，调用 ``ready_obs`` 属性会等待至少一个子环境完成运行，并返回其 observation。
+        The ``ready_obs`` attribute returns a dictionary containing the env_id of the environment and the key-value pair of the latest observation returned.
+        For SubprocessEnvManager, the environment id returned by the ``ready_obs`` attribute must be a sub-environment that has completed the reset or step method and is waiting for a new command.
+        Therefore, it is safe to continue to call the ``reset`` and ``step`` of these sub-environments. ``Method. When all sub-environments that are still running (not running to done) have not completed the ``reset`` and ``step`` methods, calling the ``ready_obs`` property will wait for at least one sub-environment to finish running, and Return its observation.
 
-        在使用 SubprocessEnvManager 时，只要给 step 和 reset 方法传入参数的 env_id 均是来自 ready_obs 属性返回的 env_id ，就不会出现为子环境重复发送命令的情况。
+        When using SubprocessEnvManager, as long as the env_id passed to the step and reset methods is the env_id returned by the ready_obs property, there will be no repeated commands for the sub-environment.
     
     - done
-        该属性会判断所有子环境的完成情况（是否运行至 done），若是，返回 ``True``，否则返回 ``False``
+        This attribute will judge the completion of all sub-environments (whether it runs to done), if it is, it returns ``True``, otherwise it returns ``False``.
     
     - close
-        同 Gym env 的 ``close`` 方法一样，该方法会安全地关闭所有的子环境，销毁子环境开辟的进程，释放全部资源。调用该方法后，env manager 会被标记为 ``closed``，除非重新 ``launch``
-        才能继续使用。
+        Like Gym env's ``close`` method, this method will safely close all sub-environments, destroy the processes created by the sub-environments, and release all resources.
+        After calling this method, the env manager will be marked as ``closed``, unless it is ``launch`` again to continue using it.
 
-样例：
-    以下为一个 env manager 运行多个环境的实例
+Examples:
+    The following is an example of an env manager running multiple environments.
 
     .. code:: python
 
@@ -101,87 +110,90 @@ Env Manager
 
         my_env_manager.close()
 
-高级特性：
+Advanced features:
     - auto_reset
-        
-        DI-engine 的 env manager 默认会进行自动 reset，即当某个环境运行至 done 之后会自动 reset 以继续运行，reset 时的参数为上次手动 reset 时为该子环境设置的参数，
-        除非累计运行的 episode 数量达到 config 中指定的 episode_num。若要关闭该特性,可在 config 中指定 ``auto_reset=False``
-
+        The env manager of DI-engine will automatically reset by default, that is, when an environment runs to done, it will automatically reset to continue running.
+        The parameters of reset are the parameters set for the sub-environment during the last manual reset, unless the number of episodes run is accumulated Reach the episode_num specified in config.
+        To turn off this feature, you can specify ``auto_reset=False`` in config
+    
     - env state
+        In order to facilitate the management of the status of each sub-environment and facilitate debugging, the env manager of DI-engine provides an enumerated type of environment status to grasp the running status of all sub-environments in real time.
+        The specific meaning is as follows:
 
-        为方便管理各子环境的状态并便于 debug，DI-engine 的 env manager 提供了环境状态的枚举类型来实时掌握所有子环境的运行状态，其具体含义如下：
-
-        - VOID: 初始化了 env manager，尚未实例化子环境
-        - INIT: 实例化了子环境，尚未进行 launch 或 reset
-        - RUN: 完成了 reset 或 step ，正在运行中的子环境
-        - RESET: 正在进行 reset 的子环境
-        - DONE: 运行至 done 的子环境
-        - ERROR: 发生异常的子环境
+        - VOID: The env manager has been initialized, but the sub-environment has not yet been instantiated
+        - INIT: The sub-environment has been instantiated and has not yet been launched or reset
+        - RUN: sub-environment reset or step completed, running in progress
+        - RESET: sub-environment resetting
+        - DONE: sub-environment running to done
+        - ERROR: The sub-environment has an exception occurred
         
-        各状态间的转换关系如图示：
+        The conversion between each state is as shown in the figure:
 
             .. image:: images/env_state.png
 
     - max_retry 和 timeout
-  
-        为防止有些子环境因连接问题短暂地报错，或子进程卡死时程序不会正常退出，DI-engine 的 env manager 添加了 retry 保护和 timeout 检测机制。用户可在 config 中指定最大 retry 次数，
-        和 reset、step、 子进程间通信的最大等待时间，当超过等待时间时会抛出异常，以便提前终止运行。config 中这些参数的设置和默认值如下：
-
+        In order to prevent some sub-environments from reporting errors temporarily due to connection problems, or the program will not exit normally when the sub-processes are stuck, the env manager of DI-engine has added retry protection and timeout detection mechanisms.
+        The user can specify the maximum number of retry and the maximum waiting time for communication between reset, step and sub-processes in config. When the waiting time is exceeded, an exception will be thrown in order to terminate the operation early.
+        The settings and default values of these parameters in config are as follows:
+        
         .. code-block:: python
 
             manager_config = dict(
-                max_retry=1, # step 和 reset 的最大重试次数，默认为 1
-                reset_timeout=60, # reset 方法的等待时间，默认为 60s
-                retry_waiting_time=0.1, # reset 方法 retry 的间隔时间，默认为 0.1s
-                step_timeout=60, # step 方法的等待时间，默认为 60s
-                step_wait_timeout=0.01, # step 方法 retry 的间隔时间，默认为 0.01s
-                connect_timeout=60, # 子进程之间通信的等待时间，默认为 60s
+                max_retry=1, # max retry times for step and reset, default to 1
+                reset_timeout=60, # max waiting time for reset, default to 60s
+                retry_waiting_time=0.1, # retry interval time for reset, default to 0.1s
+                step_timeout=60, # max waiting time for rstep, default to 60s
+                step_wait_timeout=0.01, # retry interval time for step, default to 0.1s
+                connect_timeout=60, # max waiting time for communication between child processes, default to 60s
             )
 
-    - Sync 和 Async SubprocessEnvManager 的区别
+    - difference between Sync ans Async SubprocessEnvManager
+        Pending
   
     - shared_memory
-        shared_memory 可以加速传递环境返回的大向量数据，当环境返回的obs等变量大小超过100kB时，推荐设置为True。使用shared_memory时，需要在环境info函数中，用BaseEnvInfo和EnvElementInfo template来指定对应obs、act和rew的shape和value的dtype。
+        shared_memory can speed up the transfer of large vector data returned by the environment. When the size of variables such as obs returned by the environment exceeds 100kB, it is recommended to set it to True.
+        When using shared_memory, you need to use BaseEnvInfo and EnvElementInfo template in the environment info function to specify the dtype corresponding to the shape and value of obs, act, and rew.
   
     - get_attribute
+        Pending
 
 
 BaseEnvManager (ding/envs/env_manager/base_env_manager.py)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-概述：
-    使用循环串行的方式运行多个环境的管理器。
+Overview:
+    Run multiple environment managers in a cyclic serial manner.
 
-类接口方法：
-    1. __init__: 初始化
-    2. launch: 初始化所有子环境，初始化子环境状态管理所需的资源
-    3. reset: 不传入参数时默认 reset 所有环境，传入 dict 结构的 env_id 和 reset_param 时，对 env_id 所指定的子环境按照 reset_param 进行 reset，并在运行结束时返回
-    4. step: 环境执行输入的动作，完成一个时间步，同 reset 一样，可以传入 dict 结构的 env_id 和 action 对某几个环境进行操作，返回全部运行结果
-    5. seed: 设置环境随机种子，可以传入 list 结构的 env_id 对 manager 持有的某几个环境设置特定的 seed
-    6. close: 关闭环境，释放资源，close 所有环境
+Interfaces:
+    1. __init__: Initialization
+    2. launch: Initialize all sub-environments and resources required for state management of sub-environments
+    3. reset: Reset all environments by default. When reset_param passed in, the sub-environment specified by env_id will be reset. It returns all running results
+    4. step: Executes the input action and run a time step. Like reset, you can pass an action dict to operate on certain environments. It returns all running results
+    5. seed: Set the environment random seed, you can pass an env_id list to set specific seeds for certain environments
+    6. close: Close all environments, release resources
 
-类属性方法：
-    1. env_num: manager 中子环境的数量
-    2. active_env: 所有未运行结束的环境 list
-    3. ready_obs: 返回所有未运行结束的环境 env_id 和最新返回的 observation
-    4. done: 是否所有持有的环境已经运行结束
+Properties:
+    1. env_num: The number of sub-environments
+    2. active_env: List of all unfinished environments
+    3. ready_obs: Return all the env_id that are not running with the latest observation
+    4. done: Whether all the environments have been completed
 
 SubprocessEnvManager (ding/envs/env_manager/subprocess_env_manager.py)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-概述：
-    继承了BaseEnvManager，通过 multiprocessing 模块为每个环境创建单独的进程，使用并行的方式运行多个环境的管理器。
+Overview:
+    Inherit BaseEnvManager, create subprocess for each environment using multiprocessing to run multiple environments in paralle.
 
-类接口方法：
-    以下只列出与 BaseEnvManager 不同或新增的方法
+Interfaces:
+    Only the methods that are different or new from BaseEnvManager are listed below
 
-    1. launch: 初始化运行每个子环境的进程，初始化子环境状态管理所需的资源
-    2. reset: 不传入参数时默认 reset 所有环境，传入 dict 结构的 env_id 和 reset_param 时，对 env_id 所指定的子环境进程按照 reset_param 发送 reset 命令
-    3. step: 为环境进程发送动作命令，同 reset 一样，可以传入 dict 结构的 env_id 和 action 对某几个环境进行操作，待全部或部分环境运行结束时返回结果
-    4. close: close 所有环境，销毁环境子进程，释放资源
+    1. launch: Initialize the process of running each sub-environment, and initialize the resources required for state management of the sub-environment
+    2. reset: Send reset command to environmental processes. When reset_param passed in, the reset command is sent to the subprocess specified by env_id. It returns after sending.
+    3. step: Send action commands to environmental processes. Like reset, you can pass an action dict to operate on certain environments. It returns all running results.
+    4. close: Destroy all sub-process, release resources
 
-类属性方法：
-    以下只列出与 BaseEnvManager 不同或新增的属性
+Properties:
+    Only the attributes that are different or new from BaseEnvManager are listed below
 
-    1. ready_obs: 返回完成了上一个 step 或 reset 命令的子环境 env_id 和返回的 observation，若所有环境均在运行上一个命令，等待直到至少一个环境返回了运行结果
-    2. active_env: 所有在运行状态的环境 list
+    1. ready_obs: Return all the env_id that finish running step and reset with the latest observation. If all environments are running previous command, wait until at least one finish running
+    2. active_env: List of all running environments

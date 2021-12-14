@@ -30,7 +30,7 @@ Last but not least, ``config`` is the recommended tool to control and record the
 
 Environment
 ~~~~~~~~~~~~~
-DI-engine environment is a superset of ``gym.Env``, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, `Env Overview <../feature/env_overview_en.html>`_
+DI-engine environment is a superset of ``gym.Env``, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, `Env Overview <../feature/env_overview.html>`_
 
 ``EnvManager``, usually called Vectorized Environments in other frameworks, aims to implement parallel environment simulation to speed up data collection. Instead of interacting with 1 environment per collect step, it allows the collector to interact with N homogeneous environments per step, which means that ``action`` passed to ``env.step`` is a vector with a length of N, and the return value of ``env.step`` (obs, reward, done) is the same as it.
 
@@ -41,7 +41,7 @@ For the convenience of **asynchronous reset** and **unifying asynchronous/synchr
    # DI-engine EnvManager                                                         # pseudo code in the other RL papers
    env.launch()                                                                   # obs = env.reset()
    while True:                                                                    # while True:
-       obs = env.ready_obs                                                              
+       obs = env.ready_obs
        action = random_policy.forward(obs)                                        #     action = random_policy.forward(obs)
        timestep = env.step(action)                                                #     obs_, reward, done, info = env.step(action)
        # maybe some env_id matching when enable asynchronous
@@ -72,12 +72,12 @@ For the subprocess-type env manager, DI-engine uses shared memory among differen
 
 Besides, for robustness in practical usage, like IPC error(broken pipe, EOF) and environment runtime error, DI-engine also provides a series of **Error Tolerance** tools, e.g.: watchdog and auto-retry.
 
-For all the mentioned features, the users can refer to `EnvManager Overview <../feature/env_manager_overview_en.html>`_ for more details.
+For all the mentioned features, the users can refer to `EnvManager Overview <../feature/env_manager_overview.html>`_ for more details.
 
 Policy
 ~~~~~~~
 To unify the design pattern and modularization of RL and other machine learning algorithms, DI-engine abstracts and defines the general policy interfaces with multi-mode design.
-With these abstractions, plenty of the AI decision algorithms can be summarized in only one python file, i.e.: corresponding policy class. And the user's customized algorithms only need to inherit and extend :class:`Policy <ding.policy.Policy>` or just have the same interface definition with it. 
+With these abstractions, plenty of the AI decision algorithms can be summarized in only one python file, i.e.: corresponding policy class. And the user's customized algorithms only need to inherit and extend :class:`Policy <ding.policy.Policy>` or just have the same interface definition with it.
 
 The Multi-Mode of Policy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -90,7 +90,7 @@ prepares some simple interface methods, and combines them into 3 common modes—
 
 Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
 own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training, and so on. For more details,
-the users can refer to `Policy Overview <../feature/policy_overview_en.html>`_.
+the users can refer to `Policy Overview <../feature/policy_overview.html>`_.
 
 .. note::
    ``policy.learn_mode`` is not the instance of :class:`Policy <ding.policy.Policy>` but a pure interface collection(implemented by namedtuple), which means the users can implement their policy class just ensuring the same method names and input/output arguments as the corresponding modes.
@@ -109,14 +109,14 @@ Neural network, often called model, is the one of most important components in t
     collector_model = model_wrap(model, wrapper_name='multinomial_sample')
     eval_model = model_wrap(model, wrapper_name='argmax_sample')
 
-If you want to know more about pre-defined models for each algorithms and customize you model, please refer to `Model Overview <../feature/model_overview_en.html>`_.
+If you want to know more about pre-defined models for each algorithms and customize you model, please refer to `Model Overview <../feature/model_overview.html>`_.
 
-If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, `Wrapper Overview <../feature/wrapper_hook_overview_en.html>`_ can help you a lot.
+If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, `Wrapper Overview <../feature/wrapper_hook_overview.html>`_ can help you a lot.
 
 Processing Function
 ^^^^^^^^^^^^^^^^^^^^^^
 In practical algorithm implementations, the users often need to many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
-algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, DI-engine has provided some common processing functions, which can be called as a pure function. And the users can utilize these functions both in collect mode and in learning mode. 
+algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, DI-engine has provided some common processing functions, which can be called as a pure function. And the users can utilize these functions both in collect mode and in learning mode.
 
 For example, where should we calculate advantages for some on-policy algorithms, such as A2C/PPO, learn mode or collect mode? The former can distribute computation to different collector nodes in distributed
 training for saving time, and the latter can usually gain better performance due to more accurate approximation, just a trade-off. For a framework, it is more wiser to offer some powerful and efficient tools rather
@@ -148,7 +148,7 @@ Config module is a component for users to determine what kind of parameters they
 The overall design is as follows:
 
 .. image:: images/config.png
-   :alt: 
+   :alt:
 
 As you can see from above diagram, the entire config is mainly from two parts. One is called Default Config,
 which is our recommended setting for policy and env, and may not change a lot. The other is called User Config,
@@ -260,18 +260,18 @@ to `Quick Start <../quick_start/index.html>`_.
 
 Worker-Collector
 ~~~~~~~~~~~~~~~~~~
-Collector is one of the most important components among all the workers, which is often called ``actor`` in other frameworks and DI-engine renames it to distinguish with actor-critic. It aims to offer sufficient 
-quantity and quality data for policy training (learner). And collector is only responsible for data collection but decoupled with data management, that is to say, it returns collected trajectories directly and 
+Collector is one of the most important components among all the workers, which is often called ``actor`` in other frameworks and DI-engine renames it to distinguish with actor-critic. It aims to offer sufficient
+quantity and quality data for policy training (learner). And collector is only responsible for data collection but decoupled with data management, that is to say, it returns collected trajectories directly and
 these data can be used for training directly or pushed into replay buffer.
 
-There are 3 core parts for a collector——env manager, policy(collect_mode), collector controller, and these parts can be implemented in a 
+There are 3 core parts for a collector——env manager, policy(collect_mode), collector controller, and these parts can be implemented in a
 single process or located in several machines. Usually, DI-engine use a multi-process env_manager and another main loop controller process with policy to construct a collector, which may be extended in the future.
 
 Due to different send/receive data logic, the collector now is divided into two patterns——serial and parallel, we will introduce them separately.
 
 Serial Collector
 ^^^^^^^^^^^^^^^^^^^
-From the viewpoint of the basic unit of collecting data, sample(step) and episode are two mainly used types. Therefore, DI-engine defines the abstract interfaces ``ISerialCollector`` for a serial collector and 
+From the viewpoint of the basic unit of collecting data, sample(step) and episode are two mainly used types. Therefore, DI-engine defines the abstract interfaces ``ISerialCollector`` for a serial collector and
 implements ``SampleCollector`` and ``EpisodeCollector``, which covers almost RL usages but the users can also easily customize when encountering some special demands.
 
 .. image::
@@ -293,7 +293,7 @@ The core usage of collector is quite simple, the users just need to create a cor
     # prepare components
     cfg: EasyDict  # config after `compile_config`
     normal_env = BaseEnvManager(...)  # normal vectorized env
-    
+
     dqn_policy = DQNPolicy(cfg.policy)
     sample_collector = SampleCollector(cfg.policy.collect.collector, normal_env, dqn_policy.collect_mode)
     episode_collector = EpisodeCollector(cfg.policy.collect.collector, normal_env, dqn_policy.collect_mode)
@@ -314,18 +314,18 @@ The core usage of collector is quite simple, the users just need to create a cor
 
 
 The structure and main loop of collector can be summarized as the next image, the interaction of policy and env consists of ``policy.forward``, ``env.step`` and the related support codes. Then ``policy.process_transition`` and
-``policy.get_train_sample`` contributes to process data into training samples and pack them to a list. For ``EpisodeCollector``, which is usually used in some cases that need to do special post-processing, 
+``policy.get_train_sample`` contributes to process data into training samples and pack them to a list. For ``EpisodeCollector``, which is usually used in some cases that need to do special post-processing,
 ``policy.get_train_sample`` is disabled and the users can do anything after receiving the collected data.
 
 .. image::
    images/collector_pipeline.svg
    :align: center
 
-Sometimes, we use different policies even different envs to collect data, such as using random policy at the beginning of training to prepare warmup data, and calculate distillation loss with the probability of 
+Sometimes, we use different policies even different envs to collect data, such as using random policy at the beginning of training to prepare warmup data, and calculate distillation loss with the probability of
 expert policy. And all the demands can be implemented by ``reset_policy``, ``reset_env``, ``reset`` method like this:
 
 .. code:: python
-   
+
     # prepare components
     dqn_policy = DQNPolicy(...)
     random_policy = RandomPolicy(...)
@@ -349,10 +349,10 @@ expert policy. And all the demands can be implemented by ``reset_policy``, ``res
         ...
 
 
-Besides, serial collector shows less difference between on-policy and off-policy algorithms, the only thing is to reset some statistics and temporal buffers, which can be automatically executed by collector, the 
+Besides, serial collector shows less difference between on-policy and off-policy algorithms, the only thing is to reset some statistics and temporal buffers, which can be automatically executed by collector, the
 users just need to ensure the correct value of ``config.policy.on_policy``.
 
-Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to `Collector Overview <../feature/collector_overview_en.html>`_.
+Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to `Collector Overview <../feature/collector_overview.html>`_.
 
 Parallel Collector
 ^^^^^^^^^^^^^^^^^^^
@@ -387,10 +387,10 @@ Based on ``NaiveReplayBuffer``, ``AdvancedReplayBuffer`` and ``EpisodeReplayBuff
    - **Monitor data quality(use_count and staleness)**. If a piece of data is used too many times or is too stale to optimize policy, it will be removed out of the buffer.
 
    .. note::
-      **use_count**: Count how many times a piece of data is sampled. 
+      **use_count**: Count how many times a piece of data is sampled.
 
       **staleness**: Model iteration gap between the time when it is collected and the time when it is sampled
-   
+
    - **Throughput monitor and control**. In a fixed period, count how many pieces of data are pushed into, sampled out of, removed out of the buffer. Control the ratio "Pushed in" / "Sampled out" in a range, in case the dataflow speed does not match.
    - **Logger**. Sampled data attributes and throughput are shown in text logger and tensorboard logger.
 
@@ -398,7 +398,7 @@ Based on ``NaiveReplayBuffer``, ``AdvancedReplayBuffer`` and ``EpisodeReplayBuff
    images/advanced_buffer.png
    :align: center
    :scale: 65%
-   
+
 
 .. tip::
    By default, most policies in DI-engine adopt ``AdvancedReplayBuffer``, because we think monitor and logger are rather important in debugging and policy tuning. However, if you are sure that you do not need all the features above, you can feel free to switch to simpler and faster ``NaiveReplayBuffer``.
@@ -407,7 +407,7 @@ Based on ``NaiveReplayBuffer``, ``AdvancedReplayBuffer`` and ``EpisodeReplayBuff
 
 In DI-engine, we define **full data** and **meta data**. **Full data** is often a dict, with keys ``['obs', 'action', 'next_obs', 'reward', 'info']`` and some optional keys like ``['priority', 'use_count', 'collect_iter', ...]``. However, in some complex environments(Usually we run them in parallel mode), ``['obs', 'action', 'next_obs', 'reward', 'info']`` can be too big to store in memory. Therefore, we store them in file system, and only store **meta data** including ``'file_path'`` and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.
 
-If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to `Replay Buffer Overview <../feature/replay_buffer_overview_en.html>`_
+If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to `Replay Buffer Overview <../feature/replay_buffer_overview.html>`_
 
 Worker-Evaluator
 ~~~~~~~~~~~~~~~~
@@ -446,7 +446,7 @@ The following is an example of how to use serial evaluator:
     # prepare components
     cfg: EasyDict  # config after `compile_config`
     normal_env = BaseEnvManager(...)  # normal vectorized env
-    
+
     dqn_policy = DQNPolicy(cfg.policy)
     evaluator = BaseSerialEvaluator(cfg.policy.eval.evaluator, normal_env, dqn_policy.eval_mode)
 
@@ -469,7 +469,7 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 .. code:: python
 
     for _ in range(max_iterations):
-        
+
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             #load model
@@ -504,7 +504,7 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 .. tip::
 
    **How to solve the problem that different environment in evaluator may collect different length episode?**
-   
+
    In some cases, this is really a big problem. For example, suppose we want to collect 12 episodes in evaluator
    but only have 5 environments, if we didn't do any thing, it is likely that we will get more short episodes than long
    episodes. As a result, our average reward will have a bias and may not be accurate. This is obvious since short
@@ -530,9 +530,9 @@ Besides ``train`` and ``start``, learner also provides a useful interface called
 
 In learner, there is a special concept called ``Hook``. Hook is responsible for doing some fixed jobs at specific timings, including "before_run"(at the beginning of ``start`` ), "after_run"(at the ending of ``start`` ), "before_iter"(at the beginning of ``train`` ), "after_iter"(at the ending of ``train`` ).
 
-Hook has many different types. DI-engine now has hooks to save checkpoint( ``save_checkpoint`` also uses this hook), load checkpoint, print log(text & tb), reduce log from multiple learners. Users can also implement their own hooks easily. If you want to know more about hook mechanism, you can refer to `Wrapper & Hook Overview <../feature/wrapper_hook_overview_en.html>`_.
+Hook has many different types. DI-engine now has hooks to save checkpoint( ``save_checkpoint`` also uses this hook), load checkpoint, print log(text & tb), reduce log from multiple learners. Users can also implement their own hooks easily. If you want to know more about hook mechanism, you can refer to `Wrapper & Hook Overview <../feature/wrapper_hook_overview.html>`_.
 
-For more details about learner, please refer to `Learner Overview <../feature/learner_overview_en.html>`_.
+For more details about learner, please refer to `Learner Overview <../feature/learner_overview.html>`_.
 
 Entry
 ~~~~~~~~~~~~~~~~~
@@ -541,11 +541,11 @@ DI-engine offers 3 training entries for different usage, users can choose any on
 
 Serial Pipeline
 ^^^^^^^^^^^^^^^^
-    
+
     There 3 types entries, and users can select anyone they like in practice. Different entries are designed for various demand.
 
     1. CLI
-        
+
         **Simply run a training program, validate correctness, acquire RL model or expert data.**
 
         .. code:: bash
@@ -556,7 +556,7 @@ Serial Pipeline
             ding -m serial -c cartpole_dqn_config.py -s 0
 
         You can enter in ``ding -h`` for more information.
-        
+
     2. Customized Main Function
 
         **Customize you RL training pipeline, design algorithm or apply it in your environment.**
@@ -573,7 +573,7 @@ Serial Pipeline
 
     3. Unified Entry Function
 
-        **Config-mode entry, just adjust hyper-parameters and do comparsion experiements in the existing algorithms and pipelines.** 
+        **Config-mode entry, just adjust hyper-parameters and do comparsion experiements in the existing algorithms and pipelines.**
 
         .. code:: python
 
@@ -589,7 +589,7 @@ Parallel Pipeline
     1. CLI
 
     .. code:: bash
-        
+
         # config path: dizoo/classic_control/cartpole/config/parallel/cartpole_dqn_config.py
         ding -m parallel -c cartpole_dqn_config.py -s 0
 
@@ -637,7 +637,7 @@ Dist Pipeline
         TBD
 
 .. tip::
-  If you want to know more details about algorithm implementation, framework design, and efficiency optimization, we also provide the documentation of `Feature <../feature/index.html>`_, 
+  If you want to know more details about algorithm implementation, framework design, and efficiency optimization, we also provide the documentation of `Feature <../feature/index.html>`_,
 
 Computation Pattern
 ----------------------

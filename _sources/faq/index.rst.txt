@@ -4,39 +4,38 @@ FAQ
 .. toctree::
    :maxdepth: 1
 
-Q1: 关于使用时出现的warning
-****************************
+Q1: Import packages warning
+********************************************************
 
 :A1:
 
-对于运行DI-engine时命令行中显示的import linlink, ceph, memcache, redis的相关warning，一般使用者忽略即可，DI-engine会在import时自动进行寻找相应的替代库或代码实现。
+Regarding import linlink, ceph, memcache, redis related warnings displayed on the command line when running DI-engine, generally users can ignore it, and DI-engine will automatically search for corresponding alternative libraries or code implementations during import.
 
-
-Q2: 安装之后无法使用DI-engine命令行工具(CLI)
-********************************************
+Q2: Cannot use DI-engine command line tool (CLI) after installation
+****************************************************************************************
 
 :A2:
 
-- 部分运行环境使用pip安装时指定 ``-e`` 选项会导致无法使用CLI，一般非开发者无需指定该选项，去掉该选项重新安装即可
-- 部分运行环境会将CLI安装在用户目录下，需要验证CLI的安装目录是否在使用者的环境变量中 （如 linux 的 ``$PATH`` 中）
+- pip with ``-e`` flag might sometimes make CLI not available. Generally, non-developers do not need to install with ``-e`` flag, removing the flag and reinstall is sufficient.
+- Part of the operating environment will install the CLI in the user directory, you need to verify whether the CLI installation directory is in the user's environment variable (such as ``$PATH`` in Linux).
 
 
-Q3: 安装时出现"没有权限"相关错误
-***********************************
+Q3: "No permission" error occurred during installation
+**********************************************************************
 
 :A3:
 
-由于某些运行环境中缺少相应权限，pip安装时可能出现"没有权限"(Permission denied)，具体原因及解决方法如下：
- - pip添加 ``--user`` 选项，安装在用户目录下
- - 将仓库根目录下的 ``.git`` 文件夹移动出去，执行pip安装命令，再将其移动回来，具体原因可参见  `<https://github.com/pypa/pip/issues/4525>`_
+Due to the lack of corresponding permissions in some operating environments, "Permission denied" may appear during pip installation. The specific reasons and solutions are as follows:
+ - pip with ``--user`` flag and install in user's directory
+ - Move the ``.git`` folder in the root directory out, execute the pip installation command, and then move it back. For specific reasons, see `<https://github.com/pypa/pip/issues/4525>`_
 
 
-Q4: 如何设置SyncSubprocessEnvManager的相关运行参数
-**************************************************
+Q4: How to set the relevant operating parameters of ``SyncSubprocessEnvManager``
+****************************************************************************************************
 
 :A4:
 
-在配置文件的env字段添加manager字段，可以指定是否使用shared_memory，多进程multiprocessing启动的上下文，下面的代码提供了一个简单样例，详细的参数信息可参考 ``SyncSubprocessEnvManager``
+Add ``manager`` field to the ``env`` field in cfg file, you can specify whether to use ``shared_memory`` as well as the context of multiprocessing launch. The following code provides a simple example. For detailed parameter information, please refer to ``SyncSubprocessEnvManager``.
 
 .. code::
 

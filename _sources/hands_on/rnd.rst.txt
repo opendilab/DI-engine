@@ -72,7 +72,7 @@ and `Agent57: Outperforming the Atari Human Benchmark <https://arxiv.org/abs/200
 
 
 The implementation details that matters
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. **intrinsic reward normalization and weight factors**.
 Normalize the intrinsic reward by the min-max normalization method, i.e.,
@@ -108,7 +108,7 @@ Pseudo-Code
    :alt:
 
 Code Implementation
----------------
+---------------------
 
 The interface of RND reward model is defined as follows:
 
@@ -174,7 +174,7 @@ Then, we initialize reward model, optimizer and self._running_mean_std_rnd in ``
                 self._running_mean_std_rnd = RunningMeanStd(epsilon=1e-4)
 
 Train RndRewardModel
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 Afterwards, we calculate the reward model loss and update the RND predictor network: ``self.reward_model.predictor``.  Note that, according to the
 original paper, we adopt the observation normalization trick that is transforming the original observations to mean 0, std 1, and clip the normalized observations
 to be between -5 and 5, which is empirically important especially when using a random network as a target, for the detailed explanation, please refer the chapter 2.4 in the RND paper.
@@ -197,7 +197,7 @@ to be between -5 and 5, which is empirically important especially when using a r
                 self.opt.step()
 
 Calculate RND Reward
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 Finally, we calculate MSE loss according to the RND reward model and do the necessary subsequent processing
 and rewrite the reward key in the data in ``estimate`` method of class ``RndRewardModel``. And note that
 we adapt the reward normalization trick that is transforming the original RND reward to (mean 0, std 1), empirically we found this normalization way works well
@@ -271,6 +271,7 @@ and corresponding optimal reward is also different, when the mean of eval_reward
 
    - green line is rnd-onppo-weight100
    - grey line is rnd-onppo-noweight
+
    .. image:: images/rnd_empty8_weight100_vs_noweight_collect_mean.png
      :align: center
      :scale: 50%
@@ -306,7 +307,7 @@ and corresponding optimal reward is also different, when the mean of eval_reward
     How to determine the relative weight between the intrinsic reward and the original extrinsic reward can be valuable work in the future.
 
 Author's Tensorflow Implementation
-----------------------------
+-------------------------------------
 
 - RND_
 

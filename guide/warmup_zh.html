@@ -1,0 +1,613 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>DI-engine入门 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Git 协作指南" href="git_guide_zh.html" />
+    <link rel="prev" title="开发者指南" href="index_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index_zh.html">强化学习环境示例手册</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index_zh.html">特性介绍</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">开发者指南</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DI-engine入门</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#rl">RL入门</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#quick-start-demo">1. Quick Start Demo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id7">2. 尝试新算法</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">3. 经典算法精读</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11">4. 复现</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">工程协作入门</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#git">1. git使用</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#github">2. github使用</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id25">3. 代码风格</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pytest">4. pytest单元测试</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id36">5. 画图</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="git_guide_zh.html">Git 协作指南</a></li>
+<li class="toctree-l2"><a class="reference internal" href="doc_contribution.html">Documentation Contribution Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="code_comment.html">Code Comment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index_zh.html">开发者指南</a> &raquo;</li>
+        
+      <li>DI-engine入门</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/guide/warmup_zh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="di-engine">
+<h1>DI-engine入门<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="rl">
+<h2>RL入门<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="quick-start-demo">
+<span id="id1"></span><h3>1. Quick Start Demo<a class="headerlink" href="#quick-start-demo" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id2">
+<span id="id3"></span><h4>1.1 安装DI-engine<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<p>根据文档安装：<a class="reference external" href="https://opendilab.github.io/DI-engine/installation/index.html">英文</a>、<a class="reference external" href="https://di-engine-docs.readthedocs.io/en/main-zh/installation/index_zh.html">中文</a></p>
+<p><strong>提示</strong>：如果是在服务器上，记得将
+<code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code>加入环境变量<code class="docutils literal notranslate"><span class="pre">$PATH</span></code>，否则会无法使用命令行<code class="docutils literal notranslate"><span class="pre">ding</span></code>。Linux上配置环境变量的方法可以参考这份<a class="reference external" href="https://www.cnblogs.com/youyoui/p/10680329.html">教程</a>，重点关注方法一（临时性）和方法二（永久性）即可。</p>
+</div>
+<div class="section" id="cartpole-dqn-demo">
+<span id="id4"></span><h4>1.2 cartpole DQN demo<a class="headerlink" href="#cartpole-dqn-demo" title="Permalink to this headline">¶</a></h4>
+<p>根据文档教程（<a class="reference external" href="https://opendilab.github.io/DI-engine/quick_start/index.html#">英文</a>、<a class="reference external" href="https://di-engine-docs.readthedocs.io/en/main-zh/quick_start/index_zh.html">中文</a>）跑通cartpole
+DQN demo</p>
+<p>分为config, env, policy, model, worker(learner, collector, evaluator,
+buffer),
+pipeline几个部分。<strong>config</strong>是整个实验的配置文件，<strong>env</strong>是根据config建立起来的环境（分为collect环境和evaluate环境），<strong>policy</strong>也是根据config建立起来的算法策略，<strong>model</strong>为其中使用的神经网络；<strong>四个worker</strong>根据policy建立起来，它们分别会使用policy中不同的方法（对应不同的模式mode）。最后，将上述所有组件连接在一起，就可以得到一个完整的RL训练和验证的<strong>pipeline</strong>。</p>
+<p>在demo成功跑起来并收敛后，尝试按照教程添加可视化功能，保存evaluate录像。</p>
+</div>
+<div class="section" id="id5">
+<span id="id6"></span><h4>1.3 理解环境<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<a class="reference internal image-reference" href="../_images/cartpole-ui.png"><img alt="../_images/cartpole-ui.png" class="align-center" src="../_images/cartpole-ui.png" style="width: 419.76000000000005px; height: 146.52px;" /></a>
+<p>上述demo中用到的<strong>cartpole</strong>环境，是RL中最基础常用的离散动作环境。cartpole的目标是利用cart（小车）左右移动来平衡画面中pole（竖杆），竖杆保持平衡的时间越长，得分reward越高。竖杆起初是竖直的。</p>
+<a class="reference internal image-reference" href="../_images/cartpole_x_theta.png"><img alt="../_images/cartpole_x_theta.png" class="align-center" src="../_images/cartpole_x_theta.png" style="width: 438.24px; height: 298.32px;" /></a>
+<p><strong>observation</strong></p>
+<p>四维向量：</p>
+<p><span class="math notranslate nohighlight">\(x\)</span>: 小车的位置，取值范围[-4.8, 4.8]</p>
+<p><span class="math notranslate nohighlight">\(\frac{dx}{dt}\)</span> : 小车的速度，取值范围(-Inf, Inf)</p>
+<p><span class="math notranslate nohighlight">\(\theta\)</span>: 竖杆的角度，取值范围[-24 degree, 24 degree]</p>
+<p><span class="math notranslate nohighlight">\(\frac{d\theta}{dt}\)</span> : 竖杆顶端的速度，取值范围(-Inf, Inf)</p>
+<p><strong>action</strong></p>
+<p>离散的一维动作。0表示小车向左移动，1表示小车向右移动。</p>
+<p>注：action施加的力的大小是固定的，但作用在小车上，使得校车减小或增大的速度不是固定的，它取决于当时竖杆的角度。</p>
+<p><strong>reward</strong></p>
+<p>智能体每次给出一个action时，都得到值为1的奖励，包括终止状态（即给出action后episode结束时，也会得到值为1的reward）。</p>
+<p><strong>初始状态</strong></p>
+<p>所有观测直都从[-0.05,0.05]中随机取值，作为初始状态。</p>
+<p><strong>终止条件</strong></p>
+<p>达到下列条件之一时，当前episode终止：</p>
+<ul class="simple">
+<li><p>竖杆与竖直方向角度超过12度</p></li>
+<li><p>小车位置距离中心超过2.4（小车中心超出画面）</p></li>
+<li><p>episode长度超过200(cartpole-v0，在DI-engine中使用的环境) /
+500(cartpole-v1)</p></li>
+</ul>
+<p><strong>收敛判断条件</strong></p>
+<p>判断n个episode（n可自定义）的累积reward的平均值是否到达设定值<code class="docutils literal notranslate"><span class="pre">stop_val</span></code>，我们设定cartpole-v0该值为195。</p>
+<p>目前常用的cartpole环境已经集成在OpenAI Gym中，如果想了解如何通过gym的API使用环境，可以参考这个<a class="reference external" href="https://blog.csdn.net/qq_32892383/article/details/89576003">链接</a>。</p>
+</div>
+</div>
+<div class="section" id="id7">
+<span id="id8"></span><h3>2. 尝试新算法<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>在离散与连续环境中调试新的算法，在serial
+pipeline下调收敛，并进行可视化。</p>
+<p>离散环境使用<a class="reference external" href="https://gym.openai.com/envs/LunarLander-v2/">box2d/lunarlander</a>，连续环境使用<a class="reference external" href="https://gym.openai.com/envs/BipedalWalker-v2/">box2d/bipedalwalker</a>。</p>
+<p>算法采用DI-engine中已经实现的算法，故只需要写一个新的config，使用<code class="docutils literal notranslate"><span class="pre">ding</span></code>命令行启动运行，调试至收敛即可，例如<code class="docutils literal notranslate"><span class="pre">ding</span> <span class="pre">-m</span> <span class="pre">serial</span> <span class="pre">-c</span> <span class="pre">NEW-CONFIG</span> <span class="pre">-s</span> <span class="pre">0</span></code>。</p>
+<p><strong>提示</strong>：进行本步骤时，需要对离散型与连续型的动作空间、对应环境和常用算法有一个基本的了解。在具体尝试某种算法的时候，需要通读其论文和代码实现，对算法原理和涉及到的超参数有一个基本的认识</p>
+</div>
+<div class="section" id="id9">
+<span id="id10"></span><h3>3. 经典算法精读<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>精读一些经典算法，如DQN, C51, IQN, Rainbow, A2C, PPO, IMPALA, DDPG, TD3,
+SAC, QMIX, COMA, MAPPO……横向对比，纵向深入探究。</p>
+<p>具体产出形式：针对算法给出一些问题，有意思的QA可以整合进文档Hands-on RL部分，举例：</p>
+<ul class="simple">
+<li><p>对比PPO, SAC, TD3在连续动作空间上，动作输出时的处理方式（如何优化，如何探索和利用）</p></li>
+<li><p>对比distributional RL算法的一系列版本，C51，QRDQN，IQN</p></li>
+<li><p>priority在不同的算法中该如何定义，DQN，R2D2，TD3</p></li>
+<li><p>哪些算法在收集训练数据时必须保持整个episode的时序关系</p></li>
+</ul>
+</div>
+<div class="section" id="id11">
+<span id="id12"></span><h3>4. 复现<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>复现某个DI-engine中尚未实现的RL算法</p>
+<p><strong>paper list</strong>：</p>
+<ul class="simple">
+<li><p>SQL连续动作空间版本</p></li>
+<li><p>MPO</p></li>
+<li><p>PSRO (MARL)</p></li>
+<li><p>FQF</p></li>
+<li><p>BeBold (exploration)</p></li>
+<li><p>QPLEX (MARL)</p></li>
+<li><p>BCQ (offline RL)</p></li>
+<li><p>Decision Transformer</p></li>
+<li><p>LICA (MARL)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="id13">
+<h2>工程协作入门<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="git">
+<span id="id14"></span><h3>1. git使用<a class="headerlink" href="#git" title="Permalink to this headline">¶</a></h3>
+<p>如果对git几乎不了解，那么推荐看一下<a class="reference external" href="https://www.liaoxuefeng.com/wiki/896043488029600">廖雪峰git教程</a>，号称一小时上手git命令，会对相关概念和命令有一个正确且充分的认识。下面罗列一下实际开发中常用的知识。</p>
+<div class="section" id="id15">
+<span id="id16"></span><h4>1.1 基础概念和命令<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
+<p>原始代码
+、工作区、暂存区、本地仓库、远程仓库的<strong>概念</strong>，和它们之间<strong>互相转换的命令</strong>：</p>
+<a class="reference internal image-reference" href="../_images/git_command1.png"><img alt="../_images/git_command1.png" class="align-center" src="../_images/git_command1.png" style="width: 724.02px; height: 366.3px;" /></a>
+<p><strong>git
+stash命令</strong>：如果正在开发分支A，此时突然来了个工作需要切换到分支B，而A又还没有到可以提交一个commit的程度，就可以使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">stash</span></code>保存下对分支A的修改（如果希望像commit一样留下一些信息，可以使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">stash</span> <span class="pre">save</span> <span class="pre">&quot;STASH-MESSAGE&quot;</span></code>），然后切换到分支B（如果不<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">stash</span></code>或<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span></code>会报错）。在分支B施工完成后，可以切换回分支B，然后利用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">stash</span> <span class="pre">pop</span></code>将暂存的内容恢复。</p>
+<p>stash是一个栈式结构，如果需要pop某个非栈顶元素，可以先使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">stash</span> <span class="pre">list</span></code>查看所有的stash记录，然后使用命令<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">stash</span> <span class="pre">pop</span> <span class="pre">stash&#64;{0}</span></code>，其中0可以替换为任何存在的stash记录编号。</p>
+<a class="reference internal image-reference" href="../_images/git_command2_stash.png"><img alt="../_images/git_command2_stash.png" class="align-center" src="../_images/git_command2_stash.png" style="width: 413.16px; height: 366.96000000000004px;" /></a>
+<p><strong>git
+log命令</strong>：可以显示提交commit的信息，可参考<a class="reference external" href="https://www.yiibai.com/git/git_log.html">教程</a></p>
+<p><strong>git cherry-pick命令</strong>：可以将某个commit应用到其它的分支上，其和git
+merge的区别是，git merge会将整个分支合并进其它分支，而git
+cherry-pick只会将某个commit应用在其它分支，可参考<a class="reference external" href="https://ruanyifeng.com/blog/2020/04/git-cherry-pick.html">教程</a></p>
+</div>
+<div class="section" id="git-commit">
+<span id="id17"></span><h4>1.2 git commit规范<a class="headerlink" href="#git-commit" title="Permalink to this headline">¶</a></h4>
+<p>我们对commit进行了一些规定：</p>
+<ol class="arabic">
+<li><p>尽量每一个独立的功能对应一个commit</p></li>
+<li><div class="line-block">
+<div class="line">模板：feature/fix/polish/test/style(commiter_name or project_name):
+commit message</div>
+<div class="line">举例：fix(zlx): add tb logger in naive buffer</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="id18">
+<span id="id19"></span><h4>1.3 举例<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h4>
+<p>下面以一次实际开发过程为例，讲解最基本的可能用到的git命令。</p>
+<ol class="arabic simple">
+<li><p>clone repo：<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">REPO-URL</span></code>；</p></li>
+<li><p>切换到自己的开发分支：<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">-b</span> <span class="pre">YOUR-BRANCH-NAME</span></code></p></li>
+<li><p>进行一些修改，每完成一个功能后，就将希望提交的内容<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span></code>进来（这里可以先利用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code>查看所有的改动，如果想添加所有修改的文件，可以使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">-u</span></code>命令）；然后提交一个commit：<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">-m</span> <span class="pre">COMMIT-MESSAGE</span></code>。</p></li>
+<li><p>然后将本地仓库推送到远程仓库：<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code>。如果是首次推送，会提示远程仓库没有与之关联的分支，按照提示修改命令即可，一般为<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">--set-upstream</span> <span class="pre">origin</span> <span class="pre">YOUR-BRANCH-NAME</span></code>。如果在你checkout新的分支后，别人也修改了代码并推送到了远程仓库，会提示存在冲突，需要利用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>命令将最新的代码拉取下来，并解决最新代码与自己的代码之间的冲突（若有），然后才可push。</p></li>
+<li><p>分支合并命令：<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">BRANCH-NAME</span></code>。在我们的开发中，如果单独切出分支并提了pull
+request，则必须保证该分支可以无冲突地合并进master。故merge命令常常使用在以下场景：A同学与B同学分别从master分支切出C分支和D分支进行开发，A同学完成了C分支并将其merge进了master分支，B同学在开发的最后，需要<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">master</span></code>并解决全部冲突。</p></li>
+</ol>
+</div>
+<div class="section" id="gitignore">
+<span id="id20"></span><h4>1.4 .gitignore文件<a class="headerlink" href="#gitignore" title="Permalink to this headline">¶</a></h4>
+<p>我们本地的开发路径下，有很多不想提交到远程仓库的文件，比如项目的本地配置信息、pycache、log文件、checkpoint等等。这时，使用.gitignore文件可以通过字符匹配的方式忽略掉这些文件
+，就可以更加愉快地使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">.</span></code>或<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">-u</span></code>命令了（当然，此时还是需要先<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code>查看一下都增加/删除/修改了哪些文件）。</p>
+<p>.gitignore文件中常见的写法如下：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># 忽略指定文件
+HelloWrold.class
+# 忽略指定文件夹
+pkg/
+__pycache__/
+# *是通配符，可以匹配任何字符串
+# 忽略.jpg的所有文件
+*.jpg
+# 忽略名称中末尾为ignore的文件夹
+*ignore/
+# 忽略名称中间包含ignore的文件夹
+*ignore*/
+</pre></div>
+</div>
+<p>由于DI-engine的.gitignore文件中禁止了图片类型文件（.jpg, .jpeg,
+.png文件等），而文档部分又必须上传图片，此时可以使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">-f</span> <span class="pre">PICTURE-FILE</span></code>来上传图片。同理，如果有其它被禁止的文件，也可以利用这个命令上传。</p>
+</div>
+</div>
+<div class="section" id="github">
+<span id="id21"></span><h3>2. github使用<a class="headerlink" href="#github" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="pr">
+<span id="id22"></span><h4>2.1 PR工作流程<a class="headerlink" href="#pr" title="Permalink to this headline">¶</a></h4>
+<ol class="arabic simple">
+<li><p>在discussion中进行讨论，某人总结并提了issue，开发者现在需要针对issue进行开发</p></li>
+<li><p>在github提Pull Request</p></li>
+<li><p>代码开发</p></li>
+<li><p>保证通过github CI</p></li>
+<li><p>merge最新main分支，解决冲突，根据code review结果进行迭代，最终被合并</p></li>
+</ol>
+</div>
+<div class="section" id="github-actions">
+<span id="id23"></span><h4>2.2 github actions<a class="headerlink" href="#github-actions" title="Permalink to this headline">¶</a></h4>
+<a class="reference internal image-reference" href="../_images/github_actions_all.png"><img alt="../_images/github_actions_all.png" class="align-center" src="../_images/github_actions_all.png" style="width: 701.5px; height: 274.0px;" /></a>
+<p>GitHub
+actions是一种持续式集成，用于自动化完成各种任务。如果想进一步了解可以移步<a class="reference external" href="http://www.ruanyifeng.com/blog/2019/09/getting-started-with-github-actions.html">教程</a>（不具体了解也没关系）。DI-engine
+repo中主要使用actions进行各种测试（算法测试、平台测试、风格测试、单元测试等），只有当一个pr通过了所有的测试，它才可能会被merge。假如有actions没有通过，pr会显示如下图：</p>
+<a class="reference internal image-reference" href="../_images/github_actions_all.png"><img alt="../_images/github_actions_all.png" class="align-center" src="../_images/github_actions_all.png" style="width: 701.5px; height: 274.0px;" /></a>
+<p>此时就需要点击Details进入查看具体失败原因。如果本地可以通过测试，但CI不通过，可以尝试rerun：</p>
+<a class="reference internal image-reference" href="../_images/github_actions_rerun.png"><img alt="../_images/github_actions_rerun.png" class="align-center" src="../_images/github_actions_rerun.png" style="width: 711.5px; height: 239.5px;" /></a>
+</div>
+<div class="section" id="issue-pull-request">
+<span id="id24"></span><h4>2.3 issue &amp; pull request<a class="headerlink" href="#issue-pull-request" title="Permalink to this headline">¶</a></h4>
+<p><strong>模板</strong></p>
+<p>issue和pr都有自己的模板。</p>
+<p>issue需要选择类别，确保已经阅读过文档和所有的issue,
+pr，并指明版本号、操作系统，然后才是正式描述这个issue。详细见下：</p>
+<ul>
+<li><p>I have marked all applicable categories:</p>
+<ul class="simple">
+<li><p>exception-raising bug</p></li>
+<li><p>RL algorithm bug</p></li>
+<li><p>system worker bug</p></li>
+<li><p>system utils bug</p></li>
+<li><p>code design/refactor</p></li>
+<li><p>documentation request</p></li>
+<li><p>new feature request</p></li>
+</ul>
+</li>
+<li><p>I have visited the
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/github-dev/README.md">readme</a>
+and <a href="#id41"><span class="problematic" id="id42">`doc &lt;&gt;`__</span></a></p></li>
+<li><p>I have searched through the <a class="reference external" href="https://github.com/opendilab/DI-engine/issues">issue
+tracker</a> and <a class="reference external" href="https://github.com/opendilab/DI-engine/pulls">pr
+tracker</a></p></li>
+<li><p>I have mentioned version numbers, operating system and environment,
+where applicable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ding</span><span class="o">,</span> <span class="nn">torch</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ding</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>pr的模板中，Description用于描述当前pr的作用和功能，Related
+Issue用于列出相关的issue，TODO用于列出目前还没有完成的工作，Check
+List用于确保融合了源分支并解决冲突，通过代码风格检查，通过所有测试。详细见下：</p>
+<ul class="simple">
+<li><p>merge the latest version source branch/repo, and resolve all the
+conflicts</p></li>
+<li><p>pass style check</p></li>
+<li><p>pass all the tests</p></li>
+</ul>
+<p>pr的命名规范可以参考git
+commit。此外，如果当前pr仍在开发中，可以在pr名字的开头加上<code class="docutils literal notranslate"><span class="pre">WIP:</span></code>标记，它是Work
+In Progess的缩写。</p>
+<p><strong>label和milestone</strong></p>
+<p>每个issue和pr都需要被打上标签label，并注明相关的重要时间节点milestone，milestone的意义是追踪每个具体任务对应的中长期目标，二者需要在界面的这个位置进行指定：</p>
+<a class="reference internal image-reference" href="../_images/github_label_milestone.png"><img alt="../_images/github_label_milestone.png" class="align-center" src="../_images/github_label_milestone.png" style="width: 636.5px; height: 342.5px;" /></a>
+<p>DI-engine repo中目前的label支持：</p>
+<a class="reference internal image-reference" href="../_images/github_label1.png"><img alt="../_images/github_label1.png" class="align-center" src="../_images/github_label1.png" style="width: 799.9200000000001px; height: 400.62px;" /></a>
+<a class="reference internal image-reference" href="../_images/github_label2.png"><img alt="../_images/github_label2.png" class="align-center" src="../_images/github_label2.png" style="width: 795.3000000000001px; height: 361.02000000000004px;" /></a>
+<p>目前的milestone支持：</p>
+<a class="reference internal image-reference" href="../_images/github_milestone.png"><img alt="../_images/github_milestone.png" class="align-center" src="../_images/github_milestone.png" style="width: 792.0px; height: 378.18px;" /></a>
+<p><strong>review</strong></p>
+<p>PR review要求：主要是从以下五个角度去看，代码风格，算法原理，计算效率，接口易用性，兼容性。任何问题都可以提comment。推荐每天抽出一定时间看看github上的PR看看整个开发社区在做什么，有什么可以学习或者互相提升的地方。</p>
+<p>如果需要review别人的PR，一般有两种评论的方式：</p>
+<p>一是直接在pr的conversation中评论，通常是针对整体进行评论，如下图：</p>
+<a class="reference internal image-reference" href="../_images/github_review11.png"><img alt="../_images/github_review11.png" class="align-center" src="../_images/github_review11.png" style="width: 859.32px; height: 355.08000000000004px;" /></a>
+<a class="reference internal image-reference" href="../_images/github_review12.png"><img alt="../_images/github_review12.png" class="align-center" src="../_images/github_review12.png" style="width: 670.5600000000001px; height: 229.68px;" /></a>
+<p>二是针对具体某行或某段代码进行评论，可以在Files
+Changed中点击加号新建评论，如下图：</p>
+<a class="reference internal image-reference" href="../_images/github_review2.png"><img alt="../_images/github_review2.png" class="align-center" src="../_images/github_review2.png" style="width: 854.0400000000001px; height: 382.8px;" /></a>
+</div>
+</div>
+<div class="section" id="id25">
+<span id="id26"></span><h3>3. 代码风格<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id27">
+<span id="id28"></span><h4>3.1 命名规范<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h4>
+<p><strong>文件名</strong>：全小写，可使用下划线，如<code class="docutils literal notranslate"><span class="pre">my_policy.py</span></code></p>
+<p><strong>类</strong>：首字母大写单词串，如<code class="docutils literal notranslate"><span class="pre">MyClass</span></code>；内部类可使用额外的前导下划线</p>
+<p><strong>函数&amp;方法</strong>：全小写，可使用下划线，如<code class="docutils literal notranslate"><span class="pre">my_function</span></code></p>
+<ul class="simple">
+<li><p>函数和方法的参数：实例方法的第一个参数使用<code class="docutils literal notranslate"><span class="pre">self</span></code>，类方法的第一个参数使用<code class="docutils literal notranslate"><span class="pre">cls</span></code>；列表参数使用<code class="docutils literal notranslate"><span class="pre">*args</span></code>，键值对参数使用<code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></li>
+</ul>
+<p><strong>变量</strong>：全小写，可使用下划线，如<code class="docutils literal notranslate"><span class="pre">my_variable</span></code></p>
+<p>对于函数、方法、变量，如果是proceted或private，可以前加一个或两个下划线，如<code class="docutils literal notranslate"><span class="pre">_my_protected_function</span></code>,
+<code class="docutils literal notranslate"><span class="pre">__my_private_function</span></code>。</p>
+<p>在实际命名中，如果名称和保留的关键字冲突，可以后加下划线，比如<code class="docutils literal notranslate"><span class="pre">type_</span></code>。</p>
+<p><strong>分支</strong>：一般使用2-4个英文单词，中间以<code class="docutils literal notranslate"><span class="pre">-</span></code>分割，表明这个分支主要内容的类别（如dev/test/doc/fix等）+简单描述具体内容。</p>
+</div>
+<div class="section" id="id29">
+<span id="id30"></span><h4>3.2 自动化检查工具<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h4>
+<p><strong>Format</strong></p>
+<ul class="simple">
+<li><p>依赖：yapf, pep8</p></li>
+<li><p>配置文件： .style.yapf</p></li>
+<li><p>检查方法：<code class="docutils literal notranslate"><span class="pre">sh</span> <span class="pre">format.sh</span> <span class="pre">PATH</span></code>，如：<code class="docutils literal notranslate"><span class="pre">sh</span> <span class="pre">format.sh</span> <span class="pre">./</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sh</span> <span class="pre">format.sh</span> <span class="pre">ding/utils</span></code></p></li>
+<li><p>修改方法：大部分会直接帮助修改，无需手动修改</p></li>
+</ul>
+<p><strong>Grammar</strong></p>
+<ul class="simple">
+<li><p>依赖：flake8</p></li>
+<li><p>配置文件：.flake8</p></li>
+<li><p>检查方法：<code class="docutils literal notranslate"><span class="pre">flake8</span> <span class="pre">PATH</span></code></p></li>
+<li><p>修改方法：手动修改，或autoflake8</p></li>
+</ul>
+<p><strong>常见的代码风格错误</strong></p>
+<p>注释行的最后不能有空格</p>
+<p>文件的最后要有换行（即要有一个空行）</p>
+</div>
+</div>
+<div class="section" id="pytest">
+<span id="id31"></span><h3>4. pytest单元测试<a class="headerlink" href="#pytest" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id32">
+<span id="id33"></span><h4>4.1 如何写<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h4>
+<p>可参考很多目录下的<code class="docutils literal notranslate"><span class="pre">tests</span></code>文件夹，例如<code class="docutils literal notranslate"><span class="pre">ding/envs/env_manager/tests</span></code>。</p>
+<p><strong>命名要求</strong></p>
+<p>可以构建一个函数用于测试，要求函数以test开头；</p>
+<p>或者可以构建一个类用于测试，要求类以Test开头，方法以test开头。</p>
+<p><strong>assert断言</strong></p>
+<p>若assert不成立，会展示非常细粒度的信息</p>
+<a class="reference internal image-reference" href="../_images/pytest_assert.png"><img alt="../_images/pytest_assert.png" class="align-center" src="../_images/pytest_assert.png" style="width: 472.56px; height: 301.62px;" /></a>
+<p>也支持异常断言：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="k">def</span> <span class="nf">test_zero_division</span><span class="p">():</span>
+     <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ZeroDivisionError</span><span class="p">):</span>
+             <span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p><strong>fixture和conftest机制</strong></p>
+<p><strong>fixture</strong>是pytest中非常重要的机制，可以完成测试所需资源的初始化，并作为测试函数的参数传入，供测试函数使用，此外也可以进行资源的回收和清理。通过定义作用域，可以轻松实现代码的复用。这个<a class="reference external" href="https://www.cnblogs.com/linuxchao/p/linuxchao-pytest-fixture.html">教程</a>写的很详细。DI-engine中的实例，可以参考<code class="docutils literal notranslate"><span class="pre">ding/league/tests/test_player.py</span></code>。</p>
+<p>fixture一般使用在一个文件中，即同文件下，定义fixture，然后使用。如果需要跨文件使用fixture，可以使用<strong>conftest</strong>机制。conftest是config
+of
+test的缩写。在测试文件中不需要显示地import，pytest会自动寻找。可以参考同一个作者的这个<a class="reference external" href="https://www.cnblogs.com/linuxchao/p/linuxchao-pytest-conftest.html">教程</a>。DI-engine中可以参考<code class="docutils literal notranslate"><span class="pre">ding/league/tests/conftest.py</span></code>。</p>
+<p><strong>mark装饰器</strong></p>
+<p>可以通过添加<code class="docutils literal notranslate"><span class="pre">pytest.mark(&quot;XXXX&quot;)</span></code>装饰器来让测试分类执行。</p>
+<p>运行时使用<code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">–m</span> <span class="pre">MARK-NAME</span></code>来执行被标记的测试。</p>
+<a class="reference internal image-reference" href="../_images/pytest_mark.png"><img alt="../_images/pytest_mark.png" class="align-center" src="../_images/pytest_mark.png" style="width: 410.52000000000004px; height: 356.40000000000003px;" /></a>
+<p><strong>approx</strong></p>
+<p>近似函数，支持数值, list, dict, numpy.ndarray</p>
+<a class="reference internal image-reference" href="../_images/pytest_approx.png"><img alt="../_images/pytest_approx.png" class="align-center" src="../_images/pytest_approx.png" style="width: 359.7px; height: 105.60000000000001px;" /></a>
+<p><strong>parameterize</strong></p>
+<p>pytest 中可以使用
+<code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.paramtrize(argsnames,</span> <span class="pre">argsvalues,</span> <span class="pre">ids=None)</span></code>
+来方便多组测试的参数配置，其中：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">argsnames</span></code>
+：参数名，是个字符串，如中间用逗号分隔则表示为多个参数名</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">argsvalues</span></code>
+：参数值，参数组成的列表，列表中每个元素就是为参数赋的值，如果是多个参数，值将与名字按照顺序一一对应。</p></li>
+</ul>
+<p>例如，若<code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.paramtrize('data',</span> <span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3])</span></code>，则会为<code class="docutils literal notranslate"><span class="pre">data</span></code>变量分别赋值为1、2、3进行测试；若<code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.paramtrize('var1,</span> <span class="pre">var2',</span> <span class="pre">[[1,</span> <span class="pre">2],</span> <span class="pre">[2,</span> <span class="pre">3],</span> <span class="pre">[3,</span> <span class="pre">4]])</span></code>，则会为<code class="docutils literal notranslate"><span class="pre">(var1,</span> <span class="pre">var2)</span></code>变量分别赋值为(1,
+2)、(2, 3)、(3, 4)进行测试。</p>
+<p>可以参考<code class="docutils literal notranslate"><span class="pre">ding/utils/data/tests/test_dataloader.py</span></code>中的写法。</p>
+</div>
+<div class="section" id="id34">
+<span id="id35"></span><h4>4.2 如何测<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h4>
+<p>如果是单纯的测试，可以直接使用命令<code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">-sv</span> <span class="pre">TEST-PATH</span></code></p>
+<p>但有时，我们希望可以知道测试的覆盖率是多少，就需要用到如下命令：</p>
+<p><code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">-sv</span> <span class="pre">./</span> <span class="pre">-m</span> <span class="pre">unittest</span> <span class="pre">--cov-report</span> <span class="pre">term-missing</span> <span class="pre">--cov=../</span></code></p>
+<p>其中的参数含义如下：</p>
+<ul class="simple">
+<li><p>-m: mark分支</p></li>
+<li><p>-sv：报告陈列方式</p></li>
+<li><p>–cov-report term-missing：指示“检测未覆盖的部分”</p></li>
+<li><p>–cov：检测覆盖哪个路径下的代码，这里测试父级（<code class="docutils literal notranslate"><span class="pre">../</span></code>）目录下代码覆盖率的原因是，例如，<code class="docutils literal notranslate"><span class="pre">rl_utils</span></code>目录下存放具体代码和<code class="docutils literal notranslate"><span class="pre">tests</span></code>文件夹，即<code class="docutils literal notranslate"><span class="pre">tests</span></code>和要测试的代码同级</p></li>
+</ul>
+<p>命令执行完成后，会得到<code class="docutils literal notranslate"><span class="pre">.coverage</span></code>文件，执行命令
+<code class="docutils literal notranslate"><span class="pre">coverage</span> <span class="pre">html</span></code>后，得到 <code class="docutils literal notranslate"><span class="pre">htmlcov</span></code>文件夹，打开其路径下的
+<code class="docutils literal notranslate"><span class="pre">index.html</span></code>文件，就可以看到对应文件的测试覆盖率了。</p>
+</div>
+</div>
+<div class="section" id="id36">
+<span id="id37"></span><h3>5. 画图<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="uml">
+<span id="id38"></span><h4>5.1 UML图<a class="headerlink" href="#uml" title="Permalink to this headline">¶</a></h4>
+<p>UML（Unified Modeling
+Language）是一种统一建模语言，为面向对象开发系统的产品进行说明、可视化、和编制文档的一种标准语言。不了解的同学可以移步<a class="reference external" href="https://www.cnblogs.com/jiangds/p/6596595.html">链接</a>。比较常用的有<strong>类图，活动图，顺序图</strong>等，比如</p>
+<p>串行模式下learner的活动图：</p>
+<a class="reference internal image-reference" href="../_images/uml_serial_learner_activity.png"><img alt="../_images/uml_serial_learner_activity.png" class="align-center" src="../_images/uml_serial_learner_activity.png" style="width: 475.03000000000003px; height: 363.14000000000004px;" /></a>
+<p>串行模式下整个pipeline的顺序图：</p>
+<a class="reference internal image-reference" href="../_images/uml_serial_main_sequence.png"><img alt="../_images/uml_serial_main_sequence.png" class="align-center" src="../_images/uml_serial_main_sequence.png" style="width: 747.0px; height: 643.0px;" /></a>
+</div>
+<div class="section" id="id39">
+<span id="id40"></span><h4>5.2 画图工具<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h4>
+<p><strong>PlantUML</strong></p>
+<p>特点：代码式，不需要关心排版，好维护</p>
+<p>示例：<code class="docutils literal notranslate"><span class="pre">ding/design</span></code>。<code class="docutils literal notranslate"><span class="pre">sequence</span></code>为顺序图，<code class="docutils literal notranslate"><span class="pre">activity</span></code>为活动图
+。</p>
+<p>代码十分直观且通俗易懂，看了示例就能八九不离十地写出来。但如果想进一步学习或有高级需求，可以移步<a class="reference external" href="http://archive.3zso.com/archives/plantuml-quickstart.html#orgcada071">教程</a>，或者<a class="reference external" href="https://plantuml.com/zh/">中文官网</a>。</p>
+<p>PlantUML从代码到图片的转换过程，可以像教程中所述利用Emacs，或者利用<a class="reference external" href="https://plantuml.buaaoo.top/uml/">在线网站</a>（更加推荐）。</p>
+<p><strong>draw.io/ProcessOn</strong></p>
+<p>拖动式作图，所见即所得</p>
+<p>官网：<a class="reference external" href="https://drawio-app.com/">draw.io</a>、<a class="reference external" href="https://www.processon.com/">ProcessOn</a></p>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="git_guide_zh.html" class="btn btn-neutral float-right" title="Git 协作指南" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index_zh.html" class="btn btn-neutral float-left" title="开发者指南" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

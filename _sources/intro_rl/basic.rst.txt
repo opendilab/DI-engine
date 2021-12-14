@@ -1,9 +1,9 @@
 Basic Concepts
 ^^^^^^^^^^^^^^^
 
-强化学习 (RL) 方法被用于解决智能体与环境的交互问题。简单的描述交互 (interaction) 的过程，智能体从环境中接收观察到的信息 (observation)，根据接收到的信息选择动作 (action)，环境会因为智能体采取的动作发生改变，并给予智能体动作的反馈奖励 (reward)。这个过程循环发生，智能体的目标是最大化积累自己接收到的奖励。强化学习的目标也就是让智能体学会一种策略 (policy) ，使奖励最大化。
+Reinforcement learning (RL) has been used to solve the interaction problem between agents and environments. The interaction process can be simply described as follows: An agent receives observation from the environment, and acts accordingly. The environment will change due to the action taken by the agent and send a reward to the agent. This process runs repeatedly and the goal of the agent is to maximise the cumulative reward (sum of (discounted) rewards) received. The objective of reinforcement learning is to enable agents to learning strategies which we call 'policy' and maximise the cumulative reward. 
 
-为了更详细地介绍强化学习的理论细节与技术，我们会解释以下的基础概念：
+To have a basic understanding for reinforcement learning, we explain the following basic concepts：
 
 - Markov Decision Processes 
 - State and action spaces
@@ -11,7 +11,7 @@ Basic Concepts
 - Trajectory
 - Return and reward
 
-为了更好地理解各种强化学习的方法，我们会进一步解释以下的方法概念：
+To understand reinforcement learning better, we further explain the following concepts:
 
 - RL optimization problem
 - Value function
@@ -19,196 +19,198 @@ Basic Concepts
 - Actor Critic
 - Model-based RL
 
-最后我们还解答了一些强化学习领域中常见的概念性问题，以供参考。
+In the end, we will list and answer some common questions raised in the domain of reinforcement learning for reference.
 
-马尔可夫决策过程/MDP
+Markov Decision Process/MDP
+---------------------------
+**Markov Decision Process (MDP)** is the ideal mathematical model of reinforcement learning and the commonest one.
+
+- Markov property：State :math:`s_t` is Markov, iff :math:`P[s_{t+1}|s_t] = P[s_{t+1}|s_1, ..., s_t]` .
+- A Markov process is a memoryless random process, i.e., a sequence of random states S_1,　S_2... with the Markov process.
+- Markov process is a binary tuple :math:`(S, P)` , satisfying: :math:`S` a finite set of states, :math:`P` is a probability transition matrix. There are no rewards or actions in a Markov process. A Markov process that takes actions and rewards into account is called a MDP.
+- MDP is a tuple :math:`(S, A, P, R, \gamma)`， :math:`S` is a finite set of states, :math:`A` is a finite set of actions， :math:`P` is a state transition probability matrix, :math:`R` is a reward function， :math:`\gamma` is a discount factor used to calculate the accumulated rewards. Unlike the Markov process, the state transfer probability of the Markov decision process is :math:`P(s_{t+1}|s_t, a_t)` . :math:`P(s_{t+1}|s_t, a_t)` .
+- The goal of reinforcement learning is to seek an optimal policy based on a MDP.  The so-called policy :math:`\pi(a|s)` refers to the mapping of states to actions. In reinforcement learning, we only discuss Markov decision processes with finite state space.
+
+Common methods for solving MDP problems:
+
+1. **Dynamic programming (DP)** is an optimization method that can compute the optimal policy given an MDP. However, for reinforcement learning problems, traditional DP is of limited use and prone to dimensional catastrophe problems.
+
+
+   DP has the following characteristics:
+
+   - Update is based on currently existing estimates: the value estimate of a current state is updated with the value estimate of each of its subsequent states
+   - Asymptotic convergence
+   - Advantages: reduced variance and faster learning
+   - Disadvantages: bias dependent on the quality of the function approximation
+
+
+
+2. **Monte Carlo methods (MC)**  are based directly on the definition of the optimal value function and provide an unbiased estimate of the optimal value function by sampling. MC replaces the actual expected return with the sample return and solves the optimal strategy empirically only.
+   
+   MC do not need an environmental model. Data simulation and sampling models can be applied to MC and MC can only evaluate a certain state of interest. In comparison with DP, MC performs better when the Markov property does not hold.
+ 
+
+3. **Temperal-Differnece learning (TD)**, TD error: :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
+
+   Comparison between TD and MC: The target for MC is :math:`G_t`, namely, the real return from time t onwards. However, the target for TD (single step TD, TD(0)) is  :math:`R_{t+1} + \gamma V(S_{t+1})` .
+
+
+State Spaces
 --------------------
-**马尔可夫决策过程 (Markov Decision Processes)** 是强化学习在数学上的理想化形式，也是最常见的常见模型。
+State :math:`s` is a global description of the environment，observation :math:`o` is a partial description of the environment. States and observations from an environment can be represented by real vectors, matrix or tensors. For example, RGB pictures are used in Atari games to represent information about the game environment, and vectors are used in MuJoCo control tasks to represent the state of an intelligent body.
 
-- 马尔可夫性：状态 :math:`s_t` 是马尔科夫的，当且仅当 :math:`P[s_{t+1}|s_t] = P[s_{t+1}|s_1, ..., s_t]` .
-- 若随机变量序列中的每个状态都是马尔科夫的则称此随机过程为马尔科夫随机过程。
-- 马尔科夫过程是一个二元组 :math:`(S, P)` ，且满足： :math:`S` 是有限状态集合， :math:`P` 是状态转移概率。马尔科夫过程中不存在动作和奖励。将动作（策略）和回报考虑在内的马尔科夫过程称为马尔科夫决策过程。
-- 马尔科夫决策过程由元组 :math:`(S, A, P, R, \gamma)` 定义， :math:`S` 为有限的状态集， :math:`A` 为有限的动作集， :math:`P` 为状态转移概率， :math:`R` 为回报函数， :math:`\gamma` 为折扣因子，用来计算累积的奖励。跟马尔科夫过程不同的是，马尔科夫决策过程的状态转移概率为 :math:`P(s_{t+1}|s_t, a_t)` 。
-- 强化学习的目标是给定一个马尔科夫决策过程，寻找最优策略。所谓策略 :math:`\pi(a|s)` 是指状态到动作的映射。在强化学习中，我们只讨论有限状态的马可夫决策过程。
-
-解决MDP问题的常用方法：
-
-1. **动态规划 (DP)** 是一类优化方法，在给定一个MDP完备环境的情况下，可以计算最优的策略。但是对于强化学习问题，传统DP的作用有限，容易出现维度灾难问题。
-
-   DP具有以下的特点：
-
-   - 更新时基于当前已存在的估计：用后继各个状态的价值估计值来更新当前某个状态的价值估计值
-   - 渐进性收敛
-   - 优点：降低了方差并加快了学习
-   - 缺点：存在依赖于函数逼近质量的偏差
+When an agent can receive all information of states in an environment :math:`s` ，we call its learning process fully observable. When an agent can only receive partial information of states in an environment :math:`o`，we call its learning process partially observable，namely, partially observable Markov decision processes (POMDP) :math:`(O, A, P, R, \gamma)`.
 
 
-2. **蒙特卡洛方法 (Monte Carlo methods)** 直接从最优价值函数的定义出发，通过采样来直接对于最优价值函数进行无偏估计。MC用样本回报代替实际的期望回报，仅仅需要经验就可以求解最优策略。
+Action Spaces
+---------------------
+Different environments allow different action space. The set of all valid actions :math:`a` in an environment is generally referred to as the Action Space. The action space can be classified into a discrete action space or a continuous action space.
 
-   MC不需要环境模型，可以使用数据仿真和采样模型，并且可以只评估关注的某个状态，相比较DP在马尔可夫性不成立时损失较小。
-
-
-3. **时序差分学习(TD)**, TD loss的基本形式: :math:`\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)`
-   TD与MC的对比: MC更新的目标是 :math:`G_t` 即时刻t的真实回报， 而TD(此时讨论单步TD即TD(0))更新的目标是 :math:`R_{t+1} + \gamma V(S_{t+1})` .
+For example, in Atari games and SMAC games, the action spaces are both discrete and only a limited number of actions can be selected from each space. However, in some robot continuous control tasks such as MuJoCo, the action space is continuous and generally belong to a real-valued vector interval.
 
 
-状态空间/State Spaces
-----------------------
-State :math:`s` 是对环境的global性描述，observation :math:`o` 是对环境的部分性描述。一般的环境会使用实值向量、矩阵或高阶张量来表示状态和观察的结果。例如，Atari游戏中使用RGB图片来表示游戏环境的信息，MuJoCo控制任务中使用向量来表示智能体的状态。
-
-当智能体能够接收到环境全部的状态信息 :math:`s` 时，我们称智能体的学习过程为fully observable，当智能体只能接收部分环境信息 :math:`o`时，我们称这个过程为partial observable的，即部分可观察的马尔可夫决策过程 (partially observable Markov decision processes，POMDP)，组成部分为  :math:`(O, A, P, R, \gamma)` .
-
-
-动作空间/Action Spaces
------------------------
-不同的环境所允许的动作空间不同。一般将环境中所有有效动作 :math:`a` 的集合称之为动作空间 (Action Space)。其中，动作空间又分为离散 (discrete) 动作空间与连续 (continuous) 动作空间。
-
-如在Atari游戏与SMAC星际游戏中为离散的动作空间，只可以从有限数量的动作中进行选择，而MuJoCo等一些机器人连续控制任务中为连续动作空间，动作空间一般为实值向量区间。
-
-
-策略/Policy
+Policy
 -----------
-**策略 (policy)** 决定了智能体面对不同的环境状态时采取的动作，当策略为确定的 (deterministic)，我们一般用 :math:`a_t = \mu(s_t)` 来表示。
-当策略为随机的 (stochastic)，一般表示为 :math:`a_t ~ \pi(·｜s_t')` .
+**Policy** determines actions an agent takes when facing different states. If a policy is deterministic, it is usually denoted by :math:`a_t = \mu(s_t)` .
+when a policy is stochastic，it is usually denoted by :math:`a_t ~ \pi(·｜s_t')`.
 
-在强化学习中，策略梯度的方法需要学习参数化表示的策略 (Parameterized policy)，用参数拟合策略函数，经常使用 :math:`\theta` 表示参数。另一种基于价值函数的方法则不一定需要策略函数。下面的章节我们会更详细地介绍强化学习中学习策略的方法。
+In reinforcement learning，the policy gradient approach requires to learn a parametric representation of the policy (parameterized policy) by fitting a policy function with parameters. :math:`\theta` is often used as the parameters. Another approach based on value functions does not necessarily require a policy gradient function. In the following sections we describe in a more detail the approach to learning polices in reinforcement learning.
 
 
-轨迹/Trajectory
+Trajectory
 ---------------
-强化学习中将马尔可夫决策过程的一个序列称为 **轨迹 (trajectory)** :math:`(s_0, a_0, ..., s_n, a_n)` 。轨迹数据中包含了环境的transition方程，即 :math:`s_{t+1} = f(s_t, a_t)` （transition可能是确定的也可能是随机的）以及智能体采取的策略。强化学习中包含了如何使用策略来采样轨迹数据，以及如何利用轨迹数据来更新学习目标两个部分。两个部分的不同也造成了强化学习方法的区别。
+In reinforcement learning, a sample learning sequence in a MDP is called **trajectory** :math:`(s_0, a_0, ..., s_n, a_n)`. Trajectory data includes a state transition function，namely, :math:`s_{t+1} = f(s_t, a_t)` and a policy followed by the agents. Reinforcement learning contains two parts: how to use the policy to sample the trajectory data and how to use the trajectory data to update the learning target. The difference between the two components creates a difference in reinforcement learning methods.
 
-由于轨迹中也包含了环境的dynamics模型的信息，因此利用策略数据也可以学习到环境的信息，用来帮助智能体的学习。
+As the trajectory also contains information about the dynamics of the model in the environment, it is possible to use the policy data to learn information about the environment as well, which can be used to help the learning of the intelligence. \
 
+Note that the transition function can be deterministic or stochastic. In a grid world, the trainsition function is determistic, i.e., an agent is going to go to a certain state given its current state and action. On the contrary, the state function is stochastic if an agent's current state and action are given, but the agent may end up with more than one states with each probability samller than one. A stochastic state function is random in nature and cannot be determined completely by an agent. 
+This case can be easily illustrated in a simple MDP environment.
 
-奖励/Return and reward
-------------------------
-**奖励 (reward)** 是智能体所处的环境给强化学习方法的一个学习信号 (signal)，当环境发生变化时，奖励函数也会发生变化。奖励函数由当前的状态与智能体的动作决定，表示为 :math:`r_t = R(s_t, a_t)`
+Return and reward
+---------------------
+**Reward** is learning signal assigned to an agent by its surrounding environment. When the enironment changes，the reward function also changes. The reward function is determined by the current state and the action taken by the agent，and can be written as :math:`r_t = R(s_t, a_t)`
 
-**累积奖励**，Return的定义为在一个马尔可夫过程中上从t时刻开始往后所有的奖励的有衰减的收益总和。
+**Cumulative Reward** is the sum of the decaying returns from moment t onwards in a MDP.
 
 :math:`G_t = R_{t+1}+\gamma * R_{t+2}+{\gamma}^2 * R_{t+3}+ ...`
 
-:math:`\gamma` 衰减因子体现的是未来的奖励在当前时刻的价值比例，接近0，则表明趋向于“近视”性评估，接近于1时表明更考虑远期的利益，对未来的信心。衰减因子的引入不但在数学表达上更方便，可以避免陷入无限循环，降低远期利益的不确定性。
+:math:`\gamma` The discount factor reflects the ratio between the value of future rewards and that at the present moment. A value close to 0 indicates a tendency towards a 'myopic' assessment and a value close to 1 indicating a more forward-looking interest and confidence in the future. The introduction of the discount factor not only easy to express mathematically, but also avoids falling into an infinite loop and reduces the uncertainty of future benefits.
 
-不同的环境中可能存在其他难以处理的奖励函数，如稀疏奖励，并不是每一个状态下环境都会给予反馈，只有在一段轨迹过后才会获取奖励。因此强化学习中，对奖励函数的设计与加工也是一个重要的方向，对强化学习方法的效果有很大的影响。
-
-
-优化/RL optimization problem
------------------------------
-简单的来说，强化学习问题的优化目标就是找到一个策略，使得收益最大。那么，如果我们可以计算出每个状态或者采取某个行动之后收益，我们每次行动就只需要采取收益较大的行动或者采取能够到达收益较大状态的行动。因此，对期望收益 (expected return) 的估计也是强化学习方法的一个优化方向。另一种方法则是直接进行策略空间上的搜索。无论是哪一种方法，最终的优化目标都是return的最大化。
+Other difficulties in dealing with reward functions may exist in different environments, such as sparse rewards where the environment does not give feedback in every state and only acquires rewards after a period of trajectory has elapsed. Therefore, the design and processing of reward functions in reinforcement learning are important directions that have a significant impact on the effectiveness of reinforcement learning.
 
 
-价值函数/Value functions
--------------------------
-**状态价值函数 (state value function)** 是指智能体采用策略 :math:`\pi` 的收益return在状态 :math:`s` 处的期望值。状态价值函数是评价策略函数优劣的标准之一
+RL optimization problem
+------------------------
+In simple terms, the goal of a reinforcement learning problem is to find a policy that maximizes the expected total reward. Then, if we can calculate the return after each state by taking some action, we only need to take the action with the higher reward or the action that will lead to the states with the higher reward. Thus, the estimation of expected reward is also an optimisation direction for reinforcement learning. Another approach is to search directly over the action space. In either case, the ultimate optimisation goal is to maximise the reward.
+
+
+
+Value functions
+-----------------------
+**State Value Function** refers to a long-term expected reward by following a policy :math:`\pi` under a state :math:`s` . The state value function is one of the criteria for evaluating a policy function
+
 
 :math:`V_{\pi}(s) = E_{\pi}[G_t|s_t=s]`
 
-**行为价值函数 (action value function)** 是指是策略 :math:`\pi` 在状态 :math:`s` 下，采取动作 :math:`a` 的长期期望收益。
+**Action Value Function** refers to a long-term expected reward by following a policy :math:`\pi` under a state :math:`s` ,  and an action :math:`a` 
 
 :math:`Q_{\pi}(s, a) = E_{\pi}[G_t|s_t=s, a_t=a]`
 
-状态价值函数和行为价值函数的关系：
+The relationship between the state-valued function and the action-valued function：
 
 :math:`V_{\pi}(s) = \sum \pi(a|s)Q_{\pi}(s,a)`
 
-我们可以进一步得到最优的状态价值函数与最优的行为价值函数的关系：
+We can further obtain the relationship between the optimal state value function and the optimal behavioural value function as follows.
 
 :math:`V*(s)=max_a Q*(s, a)`
 
 
-**Bellman Equations**，贝尔曼方程是强化学习方法的基础。贝尔曼方程表示当前状态的价值与下一个状态的价值，以及当前的奖励有关。
-
-我们可以将状态价值函数与行为价值函数表示为：
+**Bellman Equations**，The Bellman's equation is the basis of reinforcement learning. The Bellman equation represents the value of the current state in relation to the value of the next state, and the current reward.
+We can express the state value function and the action value function as:
 
 :math:`V_{\pi}(s) = E_{\pi}[R_{t+1}+\gamma * v_{\pi}(s_{t+1})|s_t=s]`
 
 :math:`Q_{\pi}(s, a) = E_{\pi}[R_{t+1}+\gamma * Q(s_{t+1},a_{t+1})|s_t=s, a_t=a]`
 
-**Bellman Optimality Equations**，可以得到最优状态值函数与行为价值函数的贝尔曼方程。
+**Bellman Optimality Equations**，
 
 :math:`V*(s)=E[R_{t+1} + \gamma * max_{\pi}V(s_{t+1})|s_t=s]`
 
 :math:`Q*(s, a) = E_{\pi}[R_{t+1}+\gamma * max_{a'}Q(s_{t+1},a')|s_t=s, a_t=a]`
 
-基于价值函数 (value based) 的强化学习方法包括两个步骤：策略评估与策略优化。强化学习方法先估计策略的值函数，再根据值函数改进策略。若认为当值函数最优时，策略是最优的，此时最优策略是贪婪策略。
+Value based reinforcement learning approach includes two steps：policy evalution and policy improvement. Reinforcement learning first estimate the value function based on the policy，then, improves the policy according to the value function. When the value function reaches the optima, the policy is considered as the optimal policy. This optimal policy is a greedy policy.
 
-对于模型已知的系统，值函数可以利用动态规划的方法得到；对于模型未知的系统，可以利用蒙特卡洛的方法或者时间差分的方法得到。
+For systems where the model is known, the value function can be obtained using DPs; For systems where the model is unknown, it can be obtained using MC or TD.
 
-对于表格型的强化学习方法，我们通过迭代更新值函数的表格即可完成对值函数的估计。而很多情况下，如状态空间或动作空间不为离散空间时，值函数无法用一张表格来表示。此时，我们需要利用函数逼近的方法对值函数进行表示。
-
-
-策略梯度/Policy Gradients
----------------------------
-在一些情况下，随机策略将会优于确定性的策略，那么基于值函数的强化学习方法无法学习到这样的策略。因此提出了基于策略的强化学习方法。
-
-与基于值函数的强化学习方法不同，policy based的强化学习方法是将策略进行参数化，利用线性或非线性函数对策略进行表示，寻找最优的参数使得强化学习的目标：累积回报的期望最大。
-
-在值函数的方法中，我们迭代计算的是值函数，然后根据值函数对策略进行改进；而在策略搜索方法中，我们直接使用 **策略梯度 (policy gradient)** 进行策略迭代的计算，也就是计算得到动作上策略梯度，沿着梯度方法，迭代更新策略参数值，直到累积回报的期望最大，此时的参数所对应的策略为最优策略。
-
-与值函数的方法相比，策略梯度的方法容易收敛到局部最小值，评估单个策略时并不充分，方差较大。
-
-更多的policy based的方法的详细理解参考我们文档中的具体算法。
+For a grid reinforcement learning environment，the estimation of the value function is obtained by iteratively updating the table of value functions. In many cases，say, state space and action space are not discrete，the value function cannot be represented by a table. In this situation, we need to take advantage of function approximation to approximate the value function.
 
 
-演员-评论家/Actor Critic
--------------------------
-**Critic**，参数化行为价值函数，进行策略的价值评估。
-
-**Actor**，参数化的策略函数，按照Critic部分得到的价值，利用策略梯度进行策略函数参数的更新。
-
-总结来说，Actor Critic是一种既学习价值函数也学习策略函数的方法，结合了以上两种方法的优点。基于这个框架下的各种算法，既可以去适应不同的动作空间与状态空间的问题，也可以对不同的策略空间中找到最优策略。
-
-更多的Actor Critic算法如A2C, DDPG, TD3等参考我们文档中对算法的解释。
-
-
-基于模型/Model-based RL
+Policy Gradients
 ------------------------
-在以上的model-free的方法中，value-based方法先学习值函数（MC或TD）再更新策略，policy-based方法直接更新策略。而model-based方法的重点在于环境模型(environment dynamics)，通过采样先学习一个对环境的建模，再根据学习到的环境模型做值函数/策略优化。
+In some situations，a stocatic policy is better than a deterministic policy. As a result, value-based reinforcement learning cannot learn such policy and a policy-based approach to reinforcement learning is therefore proposed.
 
-在完成了对环境的建模后，在model-based大类方法中同样有两种路径，一种是通过学到的model生成一些仿真轨迹，通过仿真轨迹估计值函数进而优化策略；另一种是通过学到的model直接优化策略，这也是目前model-based方法常走的路线。先学习一个环境模型，可以帮助我们解决强化学习方法中样本效率的问题 (sample efficiency)。
+Unlike value-based reinforcement learning, policy-based reinforcement learning parameterise the policy and represent it by using linear or non-linear functions to find the optimal parameters that maximise the expectation of the cumulative reward, the goal of reinforcement learning.
 
-Model的定义可以用数学表示为状态转移分布和奖励函数组成的元组： 
+In the value-based approach, we iteratively compute the value function and then improve the policy based on the value function, whereas in the policy search approach, we directly compute the policy iteration using **policy gradient**, i.e. we compute the policy gradient on the action, and iteratively update the policy parameter values along the gradient until the expectation of cumulative return is maximised, at which point the policy corresponding to the parameter is the optimal policy.
+
+Comparing to the value-based approach, the policy gradient reinforcement learning tends to converge to a local minimum, which is not sufficient when evaluating an individual policy and has a large variance.
+
+For a more detailed understanding of the policy based approach, please refer to the specific algorithms in our documentation：　`Hans On
+RL <../hands_on/index.html>`__
+
+
+
+Actor Critic
+-----------------------
+**Critic**, parametrized behavioural value function; performs the value evaluation of the policy.
+
+**Actor**, parametrized policy function, performs an update of the policy function parameters using the policy gradient according to the value obtained in the Critic part.
+
+In summary, Actor Critic is an approach that learns both the value function and the policy function, combining the advantages of both of these approaches. Various algorithms based on this framework can adapt to problems in different action and state spaces as well as to find optimal policies in different policy spaces.
+
+More Actor Critic algorithms such as A2C, DDPG, TD3, etc. are explained in our documentation.
+
+Model-based RL
+----------------------
+Of the above model-free approaches, the value-based approach learns the value function (MC or TD) before updating the policy, while the policy-based approach updates the policy directly. The model-based approach focuses on the environment dynamics, where a model of the environment is learned through sampling, and then the value function/ policy is optimised based on the learned environment model.
+
+Once the modeling of the environment has been completed, there are also two paths in the model-based approach: one is to generate some simulation trajectories from the learned model and estimate the value function from the simulation trajectories to optimise the strategy; the other is to optimise the policy directly from the learned model, which is the route the model-based approach is usually taking. Learning a model of the environment first can help us to solve the problem of sample efficiency in reinforcement learning methods.
+
+The definition of a model can be expressed mathematically as a tuple of state transfer distributions and reward functions. 
 
 :math:`M=(P,R), s_{t+1}~P(s_{t+1}|s_t, a_t), r_{t+1}~R(r_{t+1}|s_t, a_t)`
 
-Model的学习可以根据模型构造的不同，延伸出不同的算法。
+The learning of a model can be extended to different algorithms depending on the model construction.
 
-Model-based的策略优化：一种经典的方法是，先通过某种策略采样大量的数据，再学习一个模型来最小化误差，运用学到的模型来进行planning获取新的数据，循环上述的步骤。正是通过在learned model基础上做planning，model-based才提高了整个强化学习算法迭代的效率。
+Model-based policy optimisation: A classical approach is to first sample a large amount of data by some strategy, then learn a model to minimise the error, apply the learned model to planning to obtain new data, and repeat the above steps. It is by doing planning on top of the learned model that model-based improves the efficiency of the entire iteration of the reinforcement learning algorithm.
 
 
 Q&A
 ----
-Q0: 强化学习 (Reinforcement Learning) 与监督学习 (Supervised Learning) 的本质区别在于？
- - Answer：监督学习是从有标签的数据集中进行模式和特征的学习，从而可以对新的样本进行预测；强化学习不需要带标签的数据集，而是建立在环境feedback的基础上。强化学习主要针对的问题是在一个可能不断演化的环境中，训练一个能主动选择自己的动作，并根据动作所返回的不同类型的环境反馈，动态调整自己接下来的动作，以达到在一个比较长期的时间段内平均获得的反馈最好。
-
-Q1: 什么是exploration and exploitation？我们通常使用哪些方法平衡exploration and exploitation？
- - Answer：Exploration即是RL中的agent需要不断的去探索环境的不同状态，而Exploitation则是agent需要去选择当前状态下尽可能的收益高的动作。所以平衡exploitation和exploration的目的就是获得一种长期收益最高的策略，这个过程可能对short-term reward有损失。如果exploitation太多，那么模型比较容易陷入局部最优，但是exploration太多，模型收敛速度太慢。这就是exploitation-exploration困境。
-
-Q2: 什么是model based和model free，两者区别是什么？
+Q1: What are model-based and model-free methods，what are the differences？Which category should MC、TD、DP, etc. belong to?
  - Answer：
-   model based算法指该算法会学习环境的转移过程并对环境进行建模，并利用环境模型来进行学习，而model free算法则不需要对环境进行建模。
-   蒙特卡洛和TD算法隶属于model-free，因为这两个算法不需要算法建模具体环境。
-   而动态规划属于model-based，因为使用动态规划需要完备的环境模型。
+   model based algorithm means that the algorithm learns the state transition process of the environment and models the environment, whereas a model free algorithm does not require the environment to be modelled.
+   Monte Carlo and TD algorithms are model-free because they do not require the algorithm to model a specific environment.
+   Dynamic programming, on the other hand, is model-based, as the use of dynamic programming requires a complete model of the environment.
 
-Q3: 什么是value-based， policy-based，两者区别是什么？
- - Answer：
-   所谓value-based就是在学习评价一个输入状态的价值，policy-based对应的是学习在一个输入状态应该采取什么行动，而actor-critic就是一边去学习critic，一边去训练actor网络，是两者的结合，被广泛应用于强化学习算法中，该框架集成了值函数估计算法和策略搜索算法，是解决实际问题时最常考虑的框架。
-   具体关系用下图就能很好解释：
-      
+Q2: What do we mean by value-based， policy-based and collector-critic？ which algorithms can be classified as value-based，policy-based or actor-critic？what advantages do they have？what about the disadvantages？
+ - Answer：Value-based is to learn how to do critic (judging the value of an input state). Policy-based is to learn how to do actor (judging what action should be taken in an input state), and actor-critic is to learn decide critic while training the actor network.
+   The relationship of these three classes can be well explained by the following diagram.
+   
 .. image:: images/actor-critic.jpg
    :scale: 30 %
 
-Q4: 什么是on-policy和off-policy，两者区别是什么？
- - Answer：on-policy是使用当前的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是相同的。 
-   off-policy则是可以使用之前过程中的策略进行训练，用于生成采样数据序列的策略和用于实际决策的待评估和改进策略是不同的，即生成的数据“离开”了待优化的策略锁决定的决策序列轨迹。on-policy很难平衡探索与利用的问题，容易学习到局部最优解，虽然对整体策略的更新更稳定但是降低了学习的效率。off-policy的优势在于重复利用数据进行训练，但是收敛速度与稳定性不如on-policy的算法。Soft Actor Critic提出的最大熵强化学习算法极大的提高了off-policy的稳定性和性能。
+Q3: What are on-policy and off-policy？
+ - Answer：The on-policy algorithms are trained using the current policy. The policy used to generate sampled data is the same as the policy to be evaluated and improved. 
+   Off-policy algorithm, on the other hand, can be trained using the policy from the previous process, and the policy used to generate the sampled data is different from the policy to be evaluated and improved, i.e., the data generated is "off" the trajectory of the decision series determined by the policy to be optimised.
+   On-policy and off-policy simply means how training is done, and sometimes an algorithm may even have different ways of  implementation of on-policy and off-policy.
 
-Q5: 什么是online training和offline training？我们通常如何实现offline training？
- - Answer： Offline training即是training时不使用collector与环境进行交互，而是直接使用fixed dataset作为算法的输入， 比如behavior cloning就是经典的Offline training算法。 我们通常使用batch为单位将fixed dataset输入，因此offline RL又称Batch RL。
+Q4: What are online training and offline training？ How do we implement ffline training？
+ - Answer： Offline training means the training uses fixed datasets as input  instead of using a collector to interact with the environment. For example, behavioural cloning is a classic offline training algorithm. We usually input batch data in a fixed dataset, hence, offline RL is also called batch RL.
 
-Q6: 为什么要使用replay buffer？experience replay作用在哪里？
- - Answer：通过使用replay buffer我们可以将experience存入buffer，而在之后的训练中取出buffer中的experience使用。由于梯度下降要求用于批次训练的数据符合i.i.d.，然而与环境交互后产生的数据不能直接用于训练。因此，经验回放技术（experience replay）就是将系统探索环境获得的样本保存起来，当缓存中的数据足够多时，随机抽样得到的数据就能接近i.i.d.，即可从中采样出样本以更新模型参数，使得训练更加稳定。Experience replay提出的思想就是为了让agent从过去经历的transitions中进行学习，从而提高了data efficiency。
+Q5: What are expolration and expolitation？What methods do we use to balance expolration and expolitation？
+ - Answer：Exploration is when an agent in RL is constantly exploring different states of the environment, while exploitation is when the agent selects the most rewarding action possible for the current state.
+   There are many ways to balance exploration and exploitation. There are also different ways of implementations in different algorithms. With respect to sampling in discrete action spaces, one can follow a probability distribution or select randomly. With respect to sampling in continuous action spaces, one can follow a coutinuous distribution or add NOISE.
 
-Q7: 强化学习目前的应用场景有哪些？
- - Answer：强化学习已经在游戏领域（星际争霸，围棋，王者荣耀等）取得了比肩人类甚至超越人类的成就。在现实应用中，强化学习在互联网推荐，搜索方面有丰富的应用场景。除此之外，强化学习也被应用于自动驾驶，机器人控制等控制系统中。在医疗，交通，量化交易等领域，强化学习可以用于处理更多复杂的决策问题。
+Q6: Why do we use replay buffer？ why do we neew experience replay？
+ - AnswerBy using the replay buffer, we can store the experiences in the buffer and sample the experiences in the buffer during subsequent training. Experience replay is a technique that saves samples from the system's exploration of the environment and then samples them to update the model parameters.

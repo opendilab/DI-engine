@@ -1,16 +1,16 @@
 Collector Overview
 ====================
 
-Profile Experiment 测速实验
+Profile of Speed
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-我们对 DI-engine 中的 collector 进行了测速实验，测试其在不同规模的环境与不同类型的环境管理器下，收集一定量数据所需的时间，并与 tianshou 进行了对比。
+We conduct speed tests of our collector in comparison with Tianshou, under environments with different scales and environment managers with different types.
 
-**结果表明，DI-engine collector 性能上整体优于 tianshou collector，且在大规模环境或长 reset time 环境中优势更加明显。**
+**As the results show, our collector generally outperforms Tianshou's, especially under environments with large scales or long reset times.**
 
-- 实验准备
+- Settings
 
-    我们准备了三个规模不同的环境，参数如下表：
+    We design three environments with different scales, whose parameters are as follows:
 
         +------------------------+---------------+--------------+--------------+-------------+
         |                        |Observation Dim| Reset Time   |  Step Time   |  Infer Time |
@@ -22,11 +22,10 @@ Profile Experiment 测速实验
         |         Big Env        |      3000     |       2      |      0.1     |     0.02    |
         +------------------------+---------------+--------------+--------------+-------------+
 
-    
-        其中，Observation Dim 是状态维度，Reset Time 是环境 reset 所需的时间，Step Time 是环境 step 一步所需的时间，Infer Time 是 Collector 内部 policy inference 的时间，由于其与环境相关，故也放在此处列出。
-        以上三个时间均会在原值的 ``[0.4, 1.6]`` 这一倍率范围内随机浮动，该扰动服从平均分布。
-    
-    我们设定一个 collector 会在环境管理器中开启 **8** 个环境。对于环境管理器的参数 ``wait_num``，我们设定 sync 需要等待全部 **8** 个环境，而 async 需要等待 **7** 个环境；对于参数 ``timeout``，由于 DI-engine 和 tianshou 的 async 的实现逻辑不同，我们分别保留了两者的默认值。
+    where Observation Dim means the dimension of the observation, Reset Time, Step Time and Infer Time are the times the collector needs to reset the environment, execute a step of the environment and use the policy to infer a step. In our tests, the three types of Time uniformly fluctuate in ``[0.4, 1.6]`` times of their original values in the above table.
+
+
+    We conducts tests under sync and async modes, where the collector runs **8** environments in the environment manager. Under sync mode, we set ``wait_num`` as 8 and the collector waits for all **8** environments, while under async mode, it is **7**. We retain the default values of ``timeout`` for both our and Tianshou's  env managers due to the different implementations of the async mode.
 
         +------------------------+---------------+--------------------+
         |                        |    Wait Num   |    Timeout         |
@@ -36,16 +35,16 @@ Profile Experiment 测速实验
         |         Async          |      7        | 0.01(nx) / None(ts)|
         +------------------------+---------------+--------------------+
 
-        DI-engine 和 tianshou 两个框架中，sync 和 async 的 env manager 组成四个待测试的组件，分别简写为 **nx-sync, nx-async, ts-sync, ts-async** 。此外，我们还添加了 DI-engine 中的 base 环境管理器用作 baseline，简写为 **nx-base** 。
-    
-    我们设定一次实验中会模拟 **300** 次 collect 过程，每次 collect 需要收集至少 **80** 个训练样本（由于设定 nstep=1，所以可认为是与环境总共交互 80 次）。重复 **3** 次实验取平均。实验开始前跑了一个纯 cpu 任务，该任务可以保证 cpu 负载稳定保持在 60% 左右，模拟真实场景。
+    Basically, for each environment, we conduct 4 tests with the env managers under sync and async modes in ours and Tianshou, namely **ours-sync, ours-async, ts-sync, ts-async**. Additionally, we include our base env manager as baseline, namely **ours-base**.
 
-- 实验结果
+    We simulate **300** collections during one test with each collection producing at least **80** samples, and repeat each test 3 times to get the averages and standard variances. To approximate the real-world scenes, we run a pure cpu task to raise the utilization of cpu to ~60% before each test.
 
-    测速结果如下表所示：（单位：秒）
+- Results
+
+    The results of speed tests are as follows(unit: second):
 
         +------------------------+---------------+--------------+--------------+-------------+-------------+
-        |                        |    ts-async   |   ts-sync    |    nx-base   |   nx-async  |   nx-sync   |
+        |                        |    ts-async   |   ts-sync    |   ours-base  |  ours-async |  ours-sync  |
         +========================+===============+==============+==============+=============+=============+
         |       Small Env        |  49.54+0.35   |  44.63+0.09  | 157.70+0.30  | 47.60+0.62  | 47.19+1.13  |
         +------------------------+---------------+--------------+--------------+-------------+-------------+
@@ -54,15 +53,15 @@ Profile Experiment 测速实验
         |         Big Env        | 545.07+1.55   | 520.52+0.30  | 2592.77+0.25 | 519.05+1.05 | 467.50+2.18 |
         +------------------------+---------------+--------------+--------------+-------------+-------------+
 
-        可以发现：
-        
-            1. DI-engine subprocess collector 的速度是 base collector 的 3 至 5 倍左右
-            2. 对比 DI-engine 与 tianshou 的 sync collector 和 async collecotr，除了在 small env 上 DI-engine sync collecotor 略慢于 tianshou sync collector 之外，其余五组 DI-engine 均快于 tianshou。
-    
-    针对 Carla, StarCraft2 这类环境，reset time 可能会非常大，所以我们又做了一组实验，将所有的 reset time 乘以 **5** ，总体用时如下表：（单位：秒）
+        We conclude the findings as:
+
+            1. The speeds of our subprocess collector is 3~5 times of the base collector's.
+            2. Our collector is faster than Tianshou's in all of the six settings except the Small Env under sync mode.
+
+    To approximate some environments with large reset times, e.g. Carla and StarCraft2, we further conduct a group of tests with all reset times multiplied by **5** (unit: second):
 
         +------------------------+---------------+--------------+--------------+-------------+-------------+
-        |                        |    ts-async   |   ts-sync    |    nx-base   |   nx-async  |   nx-sync   |
+        |                        |    ts-async   |   ts-sync    |  ours-base   |  ours-async |  ours-sync  |
         +========================+===============+==============+==============+=============+=============+
         |       Small Env        |  55.11+0.10   |  45.10+0.08  | 176.55+0.05  | 50.71+0.80  | 50.55+1.39  |
         +------------------------+---------------+--------------+--------------+-------------+-------------+
@@ -71,4 +70,4 @@ Profile Experiment 测速实验
         |         Big Env        | 703.49+0.61   | 577.92+0.30  | 2976.80+0.39 | 555.15+1.90 | 520.31+1.05 |
         +------------------------+---------------+--------------+--------------+-------------+-------------+
 
-        可以发现：tianshou collector 在长 reset time 的环境中性能下降得非常明显，而 DI-engine collector 由于使用了 reset 线程来避免程序盲等，使得在长 reset time 环境中也保持了较高的性能。
+        As shown above, Tianshou's collector bears drastic speed decreases in such environments compared with our collector, which uses reset threads to avoid busy waiting and remain high performance under large reset times.

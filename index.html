@@ -89,12 +89,11 @@
 <li class="toctree-l1"><a class="reference internal" href="quick_start/index.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="key_concept/index.html">Key Concept</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="env_tutorial/index.html">RL Environments Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="env_tutorial/index.html">RL Environments Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq/index.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
@@ -168,12 +167,13 @@
             
   <div class="section" id="welcome-to-di-engine-s-documentation">
 <h1>Welcome to DI-engine’s documentation!<a class="headerlink" href="#welcome-to-di-engine-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="./index_zh.html">中文</a></p>
 <a class="reference internal image-reference" href="_images/di_engine_logo.svg"><img alt="_images/di_engine_logo.svg" class="align-center" src="_images/di_engine_logo.svg" width="300" /></a>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine is a generalized Decision Intelligence engine. It supports most basic deep reinforcement learning (DRL) algorithms,
 such as DQN, PPO, SAC, and domain-specific algorithms like QMIX in multi-agent RL, GAIL in inverse RL, and RND in exploration problems.
-The whole supported algorithms introduction can be found in <a class="reference external" href="./feature/algorithm_overview_en.html">Algorithm</a>.</p>
+The whole supported algorithms introduction can be found in <a class="reference external" href="./feature/algorithm_overview.html">Algorithm</a>.</p>
 <p>For scalability, DI-engine supports three different training pipeline:</p>
 <blockquote>
 <div><ul class="simple">
@@ -203,7 +203,7 @@ The whole supported algorithms introduction can be found in <a class="reference 
 <h2>Main Features<a class="headerlink" href="#main-features" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ul class="simple">
-<li><p>DI-zoo: High performance DRL algorithm zoo, algorithm support list. <a class="reference external" href="feature/algorithm_overview_en.html">Link</a></p></li>
+<li><p>DI-zoo: High performance DRL algorithm zoo, algorithm support list. <a class="reference external" href="feature/algorithm_overview.html">Link</a></p></li>
 <li><p>Generalized decision intelligence algorithms: DRL family, IRL family, MARL family, searching family(MCTS) and etc.</p></li>
 <li><p>Customized DRL demand implementation, such as Inverse RL/RL hybrid training; Multi-buffer training; League self-play training</p></li>
 <li><p>Large scale DRL training demonstration and application</p></li>
@@ -239,16 +239,10 @@ If you want to deeply customize your algorithm and application with DI-engine, a
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="intro_rl/index.html">Introduction to RL</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_rl/basic_en.html">Basic Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro_rl/basic.html">Basic Concepts</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="env_tutorial/index.html">RL Environments Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="env_tutorial/atari.html">Atari</a></li>
-<li class="toctree-l2"><a class="reference internal" href="env_tutorial/overcooked.html">Overcooked</a></li>
-<li class="toctree-l2"><a class="reference internal" href="env_tutorial/bsuite.html">Bsuite</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="hands_on/index.html">Hands on RL</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="hands_on/index.html">RL Algorithm Cheat Sheet</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="hands_on/dqn.html">DQN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hands_on/c51_qrdqn_iqn.html">C51</a></li>
 <li class="toctree-l2"><a class="reference internal" href="hands_on/c51_qrdqn_iqn.html#qrdqn">QRDQN</a></li>
@@ -299,6 +293,7 @@ If you want to deeply customize your algorithm and application with DI-engine, a
 <li class="toctree-l2"><a class="reference internal" href="best_practice/episode_buffer.html">How to use Episode Replay Buffer?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="best_practice/multi_buffer.html">How to use multiple buffers?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="best_practice/registry.html">Registry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="best_practice/maac.html">Multi-Agent Actor-Critic RL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="best_practice/customization1_dynamic_update_step.html">Customization 1: Dynamic Update Step</a></li>
 </ul>
 </li>
@@ -319,28 +314,28 @@ If you want to deeply customize your algorithm and application with DI-engine, a
 <li class="toctree-l2"><a class="reference internal" href="api_doc/interaction/index.html">Interaction</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="faq/index_en.html">FAQ</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="faq/index_en.html#q1-import-packages-warning">Q1: Import packages warning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq/index_en.html#q2-cannot-use-di-engine-command-line-tool-cli-after-installation">Q2: Cannot use DI-engine command line tool (CLI) after installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq/index_en.html#q3-no-permission-error-occurred-during-installation">Q3: “No permission” error occurred during installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq/index_en.html#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq/index.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q1-import-packages-warning">Q1: Import packages warning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q2-cannot-use-di-engine-command-line-tool-cli-after-installation">Q2: Cannot use DI-engine command line tool (CLI) after installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q3-no-permission-error-occurred-during-installation">Q3: “No permission” error occurred during installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="feature/algorithm_overview_en.html">Algorithm Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/policy_overview_en.html">Policy Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/model_overview_en.html">Model Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/env_overview_en.html">Env Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/collector_overview_en.html">Collector Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/env_manager_overview_en.html">Env Manager Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/replay_buffer_overview_en.html">Replay Buffer Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/learner_overview_en.html">Learner Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/wrapper_hook_overview_en.html">Wrapper &amp; Hook Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/league_overview_en.html">League Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/hpc_rl_overview_en.html">DI-hpc Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/orchestrator_overview_en.html">DI-orchestrator Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/interaction_overview_en.html">Interaction Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/loader_overview_en.html">Loader Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/algorithm_overview.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/policy_overview.html">Policy Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/model_overview.html">Model Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/env_overview.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/collector_overview.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/env_manager_overview.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/replay_buffer_overview.html">Replay Buffer Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/learner_overview.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/league_overview.html">League Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/hpc_rl_overview.html">DI-hpc Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/orchestrator_overview.html">DI-orchestrator Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/interaction_overview.html">Interaction Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="feature/loader_overview.html">Loader Overview</a></li>
 </ul>
 </li>
 </ul>
@@ -349,9 +344,9 @@ If you want to deeply customize your algorithm and application with DI-engine, a
 <p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="guide/index.html">Developer Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="guide/git_guide_en.html">Git Collaboration Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guide/doc_contribution_en.html">Documentation Contribution Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guide/code_comment_en.html">Code Comment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/git_guide.html">Git Collaboration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/doc_contribution.html">Documentation Contribution Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/code_comment.html">Code Comment</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_dev/index.html">Tutorial-Developer</a><ul>

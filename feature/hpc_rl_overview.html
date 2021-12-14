@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>HPC_RL Overview &mdash; DI-engine 0.1.0 documentation</title>
+  <title>DI-hpc Overview &mdash; DI-engine 0.1.0 documentation</title>
   
 
   
@@ -37,6 +37,8 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DI-orchestrator Overview" href="orchestrator_overview.html" />
+    <link rel="prev" title="League Overview" href="league_overview.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -83,18 +85,40 @@
             
             
               <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Feature</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="algorithm_overview.html">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="policy_overview.html">Policy Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_overview.html">Env Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collector_overview.html">Collector Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_manager_overview.html">Env Manager Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replay_buffer_overview.html">Replay Buffer Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="learner_overview.html">Learner Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="league_overview.html">League Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">DI-hpc Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-use">How to use</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#currently-supported-operators">Currently supported operators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-comparison">Performance comparison</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#others">Others</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="orchestrator_overview.html">DI-orchestrator Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="interaction_overview.html">Interaction Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loader_overview.html">Loader Overview</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
 <ul>
@@ -146,7 +170,9 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>HPC_RL Overview</li>
+          <li><a href="index.html">Feature</a> &raquo;</li>
+        
+      <li>DI-hpc Overview</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -165,31 +191,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="hpc-rl-overview">
-<h1>HPC_RL Overview<a class="headerlink" href="#hpc-rl-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
-<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>HPC_RL 组件是一个加速算子组件，全称是 High Performance Computation。针对强化学习算法中较通用的算法模块，例如 <code class="docutils literal notranslate"><span class="pre">GAE</span></code> ，<code class="docutils literal notranslate"><span class="pre">n-step</span> <span class="pre">TD</span></code> 以及 <code class="docutils literal notranslate"><span class="pre">LSTM</span></code> 等，主要是针对DI-engine rl_utils，torch_utils/network, torch_utils/loss下的算子进行优化，算子支持前向+反向传播，训练，数据收集，测试模块中均可使用，对于各类算子，在不同输入尺寸下均有10-100倍的速度提升。</p>
+  <div class="section" id="di-hpc-overview">
+<h1>DI-hpc Overview<a class="headerlink" href="#di-hpc-overview" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The HPC_RL component (High Performance Computation) is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as <code class="docutils literal notranslate"><span class="pre">GAE</span></code>, <code class="docutils literal notranslate"><span class="pre">n-step</span> <span class="pre">TD</span></code> and <code class="docutils literal notranslate"><span class="pre">LSTM</span></code>, etc., mainly for the operators in ding <code class="docutils literal notranslate"><span class="pre">rl_utils</span></code>, <code class="docutils literal notranslate"><span class="pre">torch_utils/network</span></code> and <code class="docutils literal notranslate"><span class="pre">torch_utils/loss</span></code>. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.</p>
 </div>
-<div class="section" id="id2">
-<h2>如何使用<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="how-to-use">
+<h2>How to use<a class="headerlink" href="#how-to-use" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ol class="arabic">
-<li><p>安装</p>
+<li><p>Installation</p>
 <blockquote>
-<div><p>HPC_RL 目前支持的环境版本是：</p>
+<div><p>The environment version currently supported by HPC_RL is:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>系统：linux</p></li>
-<li><p>CUDA：CUDA9.2</p></li>
-<li><p>Python：py3.6</p></li>
+<li><p>System: linux</p></li>
+<li><p>CUDA: CUDA9.2</p></li>
+<li><p>Python: py3.6</p></li>
 </ul>
 </div></blockquote>
-<p>由于 HPC_RL 目前依赖于特定的环境版本，所以我们现在会单独提供对应版本下 HPC_RL 组件打包好的 whl 文件，可通过 <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&lt;whl_name&gt;</span></code> 安装。在 PROJECT_PATH/ding/hpc_rl 目录下有我们已经提供好的 whl 文件可供安装。</p>
-<p>安装成功后，在python终端中如果可以成功 <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">hpc_rl</span></code> ，则说明安装成功</p>
+<p>Since HPC_RL currently depends on a specific environment version, we will now provide the .whl file of the HPC_RL component under the corresponding version separately, which can be installed through <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">&lt;whl_name&gt;</span></code>. In the PROJECT_PATH/ding/hpc_rl directory, there is a whl file that we have provided for installation.</p>
+<p>If you can successfully <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">hpc_rl</span></code> in the python terminal, the installation is successful</p>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>使用新版本时，可能会出现某些不匹配问题，建议删除老版本后重新安装新版本，如安装目录在 <code class="docutils literal notranslate"><span class="pre">~/.local/lib/python3.6/site-packages</span></code> 下，则执行如下的命令即可删除：</p>
+<p>When using the new version, some mismatch problems may occur. It is recommended to delete the old version and reinstall the new version. If the installation directory is under <code class="docutils literal notranslate"><span class="pre">~/.local/lib/python3.6/site-packages</span></code>, execute The following command can be deleted:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm ~/.local/lib/python3.6/site-packages/hpc_*.so
 rm ~/.local/lib/python3.6/site-packages/hpc_rl* -rf
 </pre></div>
@@ -197,8 +223,9 @@ rm ~/.local/lib/python3.6/site-packages/hpc_rl* -rf
 </div>
 </div></blockquote>
 </li>
-<li><p>验证</p>
-<p>当安装成功后，使用者可以通过DI-engine/hpc_rl/tests下的单元测试来验证精度和效率，这些测试会运行原始版本基于pytorch api的实现+ HPC_RL优化后的实现，例如运行该目录下的test_gae.py，在 <code class="docutils literal notranslate"><span class="pre">Tesla</span> <span class="pre">V100</span> <span class="pre">32G</span></code> 上的运行结果如下：</p>
+<li><p>Verification</p>
+<blockquote>
+<div><p>After the installation, users can verify the accuracy and efficiency through the unit tests under ding/hpc_rl/tests. These tests will run the original version based on the pytorch api implementation and the HPC_RL optimized implementation. For example, run the <code class="docutils literal notranslate"><span class="pre">test_gae.py</span></code> in this directory, the results of running on <code class="docutils literal notranslate"><span class="pre">Tesla</span> <span class="pre">V100</span> <span class="pre">32G</span></code> are as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>target problem: <span class="nv">T</span> <span class="o">=</span> <span class="m">1024</span>, <span class="nv">B</span> <span class="o">=</span> <span class="m">64</span>
 gae mean_relative_error: -1.0645836e-07
 <span class="o">================</span>run gae performance <span class="nv">test</span><span class="o">================</span>
@@ -216,10 +243,11 @@ epoch: <span class="m">4</span>, hpc gae cost time: <span class="m">0</span>.002
 epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002432107925415039
 </pre></div>
 </div>
+</div></blockquote>
 </li>
-<li><p>使用</p>
+<li><p>Usage</p>
 <blockquote>
-<div><p>DI-engine中默认关闭HPC_RL的使用（因为目前仅支持部分运行环境），若成功安装后，可在入口程序最开始处加上一行代码 <code class="docutils literal notranslate"><span class="pre">ding.enable_hpc_rl</span> <span class="pre">=</span> <span class="pre">True</span></code> ，即会自动启用HPC_RL相关算子，demo如下：</p>
+<div><p>The usage of HPC_RL is disabled by default in ding (because only part of the operating environment is currently supported). After installation, you can add a line of code <code class="docutils literal notranslate"><span class="pre">ding.enable_hpc_rl</span> <span class="pre">=</span> <span class="pre">True</span></code> at the beginning of the entry program, and HPC_RL related calculations will be automatically enabled. The demo is as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ding</span>
 <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
 <span class="kn">from</span> <span class="nn">dizoo.classic_control.cartpole.config.cartpole_a2c_config</span> <span class="kn">import</span> <span class="n">cartpole_a2c_config</span><span class="p">,</span> <span class="n">cartpole_a2c_create_config</span>
@@ -233,9 +261,9 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 </div>
 </div></blockquote>
 </li>
-<li><p>demo</p>
+<li><p>Demo</p>
 <blockquote>
-<div><p>在qbert上使用dqn算法时，在 <code class="docutils literal notranslate"><span class="pre">main.py</span></code> 中设置 <code class="docutils literal notranslate"><span class="pre">ding.enable_hpc_rl</span> <span class="pre">=</span> <span class="pre">True</span></code>，可以看到训练时间从9.7ms降低到8.8ms。运行平台是16GV100，CUDA9.2。</p>
+<div><p>We provide a demo on qbert using dqn algorithm. With setting <code class="docutils literal notranslate"><span class="pre">ding.enable_hpc_rl</span> <span class="pre">=</span> <span class="pre">True</span></code> in <code class="docutils literal notranslate"><span class="pre">main.py</span></code>, the training time will drop from 9.7ms to 8.8ms on 16GV100 with CUDA9.2.</p>
 <p>Pytorch:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -283,18 +311,18 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 </ol>
 </div></blockquote>
 </div>
-<div class="section" id="id3">
-<h2>目前支持的算子<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="currently-supported-operators">
+<h2>Currently supported operators<a class="headerlink" href="#currently-supported-operators" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">rl_utils</span></code> : GAE, PPO, q_value n-step TD, dist n_step TD(C51), q_value n-step TD with rescale(R2D2)，TD-lambda, vtrace, UPGO</p>
 <p><code class="docutils literal notranslate"><span class="pre">torch_utils/network</span></code> : LSTM，scatter_connection</p>
 </div></blockquote>
 </div>
-<div class="section" id="id4">
-<h2>性能对比<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="performance-comparison">
+<h2>Performance comparison<a class="headerlink" href="#performance-comparison" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><table class="colwidths-given docutils align-default" id="id6">
-<caption><span class="caption-text">Performance on Pytorch and HPC_RL</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<div><table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Performance between Pytorch and HPC_RL</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 12%" />
 <col style="width: 32%" />
@@ -651,20 +679,19 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 </table>
 </div></blockquote>
 </div>
-<div class="section" id="id5">
-<h2>其他<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>为了提升性能，HPC_RL在内部默认会预先分配算子所需要的内存，因此需要知道数据的具体尺寸，DI-engine的相关wrapper会自动根据数据尺寸进行调整，但要注意，如果是可变输入尺寸，反复重新分配内存会造成一定的时间损耗，从而降低加速比。</p></li>
-<li><p>对于部分算子，例如当映射关系有重叠时，GPU上并行执行，映射结果是不确定的，会存在一定的数值精度波动，但基本不影响常规训练。</p></li>
-<li><p>对于部分算子，HPC_RL只支持其中某些常见的参数组合，具体如下：</p></li>
-</ol>
-<blockquote>
-<div><ul class="simple">
-<li><p>q_value n-step TD 的 criterion 仅支持MSE</p></li>
-<li><p>q_value n-step TD with rescale 的 criterion 仅支持MSE，trans_fn, inv_trans_fn仅支持R2D2中的相关变换形式</p></li>
-<li><p>LSTM中的normalization仅支持LN</p></li>
+<li><p>In order to improve performance, HPC_RL will pre-allocate the memory required by the operator internally by default, so you need to know the specific size of the data. The relevant wrapper of ding will automatically adjust according to the data size, but note that if it is a variable input size , Repeated reallocation of memory will cause a certain amount of time loss, thereby reducing the speedup.</p></li>
+<li><p>For some operators, for example, when the mapping relationship overlaps, they are executed in parallel on the GPU, and the mapping result is uncertain, and there will be certain numerical accuracy fluctuations, but it basically does not affect conventional training.</p></li>
+<li><p>For some operators, HPC_RL only supports some common parameter combinations, as follows:</p>
+<ul class="simple">
+<li><p>q_value n-step TD criterion only supports MSE</p></li>
+<li><p>The criterion of q_value n-step TD with rescale only supports MSE, trans_fn, inv_trans_fn only support the relevant transformation form in R2D2</p></li>
+<li><p>Normalization in LSTM only supports LN</p></li>
 </ul>
-</div></blockquote>
+</li>
+</ol>
 </div>
 </div>
 
@@ -673,6 +700,15 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="orchestrator_overview.html" class="btn btn-neutral float-right" title="DI-orchestrator Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="league_overview.html" class="btn btn-neutral float-left" title="League Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

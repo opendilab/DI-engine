@@ -7,37 +7,37 @@ DQN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.model.template.q_learning.DQN
-    :members: __init__, forward
+    :members: forward
 
 C51DQN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.model.template.q_learning.C51DQN
-    :members: __init__, forward
+    :members: forward
 
 
 QRDQN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.model.template.q_learning.QRDQN
-    :members: __init__, forward
+    :members: forward
 
 IQN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.model.template.q_learning.IQN
-    :members: __init__, forward
+    :members: forward
 
 
 RainbowDQN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.model.template.q_learning.RainbowDQN
-    :members: __init__, forward
+    :members: forward
 
 
 DRQN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.model.template.q_learning.RainbowDQN
-    :members: __init__, forward
+    :members: forward

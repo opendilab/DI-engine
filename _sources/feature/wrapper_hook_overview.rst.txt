@@ -4,80 +4,82 @@ Wrapper & Hook Overview
 
 Wrapper
 --------------------
-概述：
-    Wrapper，即装饰器。一般来说，当我们希望在某个函数执行的时候额外执行一些自定义的操作时，Wrapper 就可以被派上用场。用 Wrapper 对函数进行包装，可以方便地对函数的输入输出进行操作，或者是计算函数相关的一些状态。对于 model 方面的操作，例如 ``.cuda()`` 或者 train/eval 模式切换以及不同 mode 下是否共享模型本身，交给用户在 policy 中直接对 model 进行操作。
 
-用处：
-    DI-engine 中用到 wrapper 的地方有三个，分别是 env，model，以及 learner
+Overview:
+    Wrapper, the decorator. Generally speaking, if we want to perform some custom operations when a certain function is executed, Wrapper can come in handy. Use Wrapper to wrap the function, you can conveniently operate the input and output of the function, or calculate some state related to the function. For model operations, such as ``.cuda()`` or train/eval mode switching and whether to share the model itself in different modes, it is left to the user to directly adjust the model in the policy.
+
+Usage:
+    There are three places where wrapper is used in DI-engine: env, model, and learner.
 
     - env
 
-        env 里面用到的 wrapper，实际上就是 ``gym.Wrapper`` 的子类。为了方便地对环境类的输入输出做一些操作或者适配，Wrapper 是非常方便且有效的工具。可以简单地理解为，这部分的 Wrapper 是对环境类的一个包装。env_wrapper 中只对常用的 `gym` 库的一些 wrapper 做了封装。
+        The wrapper used in env is actually a subclass of ``gym.Wrapper``. In order to conveniently do some operations or adaptations to the input and output of the environment, Wrapper is a very convenient and effective tool. It can be simply understood that this part of the Wrapper is a wrapper for the environment class. Only some commonly used wrappers in gym are encapsulated in env_wrapper.
 
-        - 使用：
+        - Usage:
+
             .. code:: python
 
-                env = gym.make('PongNoFrameskip-v4')
-                env = NoopResetEnv(env)
-            
-        - 定义自己的 env wrapper, 对于用户自定义的 ``MyWrapper``，需要完成以下几步（与使用 ``gym.Wrapper`` 完全一致）：
+                    env = gym.make('PongNoFrameskip-v4')
+                    env = NoopResetEnv(env)
 
-            1. ``MyWrapper`` 继承 ``gym.Wrapper``，依据需求实现其中的 ``step``, ``reset`` 等函数
-            2. 使用 ``env = MyWrapper(env)`` 来得到新的经过包装的环境
+        - Define your owned env wrapper. Please complete the following steps to implement customed ``MyWrapper`` (the same as using ``gym.Wrapper``):
+
+            1. ``MyWrapper`` inherits ``gym.Wrapper``, and implements ``step()``, ``reset()`` and other functions according to requirements.
+            2. Use ``env = MyWrapper(env)`` to get a new wrapped environment.
 
     - model
 
-        对于 policy 中使用的 model，我们对其也实现了和 ``gym.Wrapper`` 相似的封装，以实现对 ``model`` 类更为快速方便的更改。
+        For the model used in the policy, we also implemented a encapsulation similar to ``gym.Wrapper`` to achieve faster and more convenient changes to the ``model`` class.
 
-        - 使用：
+        - Usage:
 
-            已经定义好的 wrapper 统一放在 ``ding.model.model_wrappers.py`` 下以方便查看。对于使用 wrapper，可以按照如下规则得到新的model：
+            The defined wrappers are placed under ``ding.model.model_wrappers.py`` for easy viewing. For the usage of wrapper, a new model can be obtained according to the following rules:
             
             .. code:: python
 
                 model = model_wrap(model, wrapper_name='your_wrapper_name', **kwargs)
 
-            * wrapper 可以是所需要使用的任何 wrapper
-                * 自定义 wrapper 使用参考下一节
-            * ``wrapper_name`` 为已经注册的任意 wrapper 的名称。如果是自定义的 wrapper，注册的时候需要提供名称。
-            * ``kwargs`` 部分为该 wrapper 所需要的参数
-            * 在此情况下，得到的 ``model`` 可以像原本的 model 那样去使用。例如，当调用 ``model.forward`` 的时候，会优先调用 wrapper 中定义的 ``forward`` 函数。如果没有定义的话，会到下一层的 wrapper 中继续寻找。
+            * wrapper can be any wrapper that needs to be used.
+                * Refer to the next section for custom wrapper usage.
+            * ``wrapper_name`` is the name of any wrapper that has been registered. If it is a custom wrapper, you need to provide a name when registering.
+            * ``kwargs`` is the parameters required by the wrapper.
+            * In this case, the resulting ``model`` can be used like the original model. For example, when calling ``model.forward``, the ``forward`` function defined in the wrapper will be called first. If it is not defined, it will continue to look for it in the wrapper of the next layer.
 
-        - 定义自己的 model wrapper：
+        - Define your own model wrapper:
 
-            对于用户自定义的 ``MyWrapper``，需要完成以下几步：
-
-            1. 继承 ``ding.model.model_wrappers.IModelWrapper``，该类是 model 所使用的 wrapper 的基类。
+            For user-defined ``MyWrapper``, the following steps need to be completed:
             
-            2. 在 ``MyWrapper`` 中，依据需求实现所需要的 forward 等函数。
+            1. Inherit from ``ding.model.model_wrappers.IModelWrapper``, which is the base class of the wrapper used by the model.
             
-            3. 将 ``MyWrapper`` 通过 ``register_wrapper()`` 的方法添加到 ``model_wrappers.wrapper_name_map`` 这个字典中。如此一来，便可以通过 ``add_wrapper`` 方便地对 model 进行添加 wrapper 的操作。
-        
-        - 调用流程：
+            2. In ``MyWrapper``, implement the required forward and other functions according to requirements.
+            
+            3. Add ``MyWrapper`` to the ``model_wrappers.wrapper_name_map`` dictionary through the ``register_wrapper()`` method. In this way, you can easily add wrapper operations to the model through ``add_wrapper``.
+
+         - Calling process:
 
             .. image:: images/wrapper_structure.jpg
 
             .. image:: images/wrapper_call.jpg
 
-        - 目前已经支持的 wrapper：
+        - Currently supported wrappers:
 
-            .. csv-table:: 
+            .. csv-table:: Accessible Model Wrapper in DI-engine
                 :header: "Wrapper Name", "Wrapper Class Name", "Wrapper Usage"
                 :widths: 50, 50, 60
 
-                "base", "BaseModelWrapper", "最基础的wrapper，提供简单的reset方法"
-                "hidden_state", "HiddenStateWrapper", "控制 ``forward`` 时隐状态的行为，在实例内部根据训练batch样本数维护对应的隐状态，每次 ``forward`` 前输入上一次迭代的输出隐状态，而 ``forward`` 后保存该次的输出隐状态为下一次做准备"
-                "argmax_sample", "ArgmaxSampleWrapper", "对于 logit 输入，找到最大值所在的的 index，作为动作。用于离散动作"
-                "eps_greedy_sample", "EpsGreedySampleWrapper", "对于 q value 输入，利用Epsilon贪婪策略采样动作。用于离散动作"
-                "multinomial_sample", "MultinomialSampleWrapper", "对于 logit 输入，根据概率采样动作。用于离散动作"
-                "action_noise", "ActionNoiseWrapper", "为动作加上指定种类（如高斯、OU）的噪声。用于连续动作"
-                "target", "TargetNetworkWrapper", "用于实现 target network"
-                "teacher", "TeacherNetworkWrapper", "用于实现 teacher network"
+                "base", "BaseModelWrapper", "The most basic wrapper, providing a simple reset method"
+                "hidden_state", "HiddenStateWrapper", "Control the behavior of the hidden state during ``forward``, maintain the corresponding hidden state according to the number of training batch samples within the instance, and enter the output hidden of the previous iteration before each ``forward``, and save the hidden state of the output after ``forward`` to prepare for the next time"
+                "argmax_sample", "ArgmaxSampleWrapper", "For logit input, find the index where the maximum value is located as an action. Used for discrete actions"
+                "eps_greedy_sample", "EpsGreedySampleWrapper", "For q value input, use Epsilon greedy strategy to sample actions. Used for discrete actions"
+                "multinomial_sample", "MultinomialSampleWrapper", "For logit input, sample actions based on probability. Used for discrete actions"
+                "action_noise", "ActionNoiseWrapper", "Add noise of the specified type (such as Gauss, OU) to the action. Used for continuous action"
+                "target", "TargetNetworkWrapper", "Used to implement target network"
+                "teacher", "TeacherNetworkWrapper", "Used to implement teacher network"
 
-        - 查看Wrapper嵌套情况
+        - View Wrapper nesting situation
 
-            调用最外层的model.info()方法即可看到所有当前model所添加的wrapper嵌套情况。
-            
+            Call the outermost model.info() method to see the nesting status of all wrappers added by the current model.
+
             .. code:: python
 
 
@@ -88,19 +90,23 @@ Wrapper
                 # MultinomialSampleWrapper ArgmaxSampleWrapper MLP 依次打印出forward方法调用情况
 
     - learner
-        model 中用到 wrapper 的地方比较少，主要表现为计时相关的 ``time wrapper``。
 
+        There are relatively few places where wrapper is used in the model, which is mainly manifested as the ``time wrapper`` related to timing.
 
 Hook
 --------------------
-概述：
-    Hook，钩子，可以通过在钩子内使得外部函数在被调用的时候，自动调用钩子内定义好的函数。在程序中，对于一段封装得较好的代码，如果需要修改的话，也许要花费相当的精力。Hook 函数就是由此被创造出来的。代码作者可以在一段代码中的任意位置暴露出钩子，而用户可以在钩子中实现自己所需要的功能，这样当代码运行到指定位置的时候，钩子会被触发，钩子中定义好的函数会被自动调用，从而实现快速修改代码的功能。
-用处：
-    DI-engine 中使用 hook 主要是在 learner 中。
+
+Overview:
+
+    Hook can automatically call the function defined in the hook when the external function is called. In the program, for a well-encapsulated code, if it needs to be modified, it may take considerable effort. The Hook function was created from this. The code author can expose the hook at any position in a piece of code, and the user can implement the functions they need in the hook, so that when the code runs to the specified position, the hook will be triggered and the functions defined in the hook will be Automatic call, so as to realize the function of quickly modifying the code.
+
+Usage:
+    
+    The hook used in DI-engine is mainly in learner.
 
     - learner
 
-        在DI-engine中，learner 的训练部分可以简化如下：
+        In DI-engine, the training part of the learner can be simplified as follows:
 
         .. code:: python
 
@@ -111,19 +117,19 @@ Hook
                 # after_iter
             # after_run
 
-        从代码可以看出，learner 里面用到的 hook 定义了四个位置，分别为
+        As can be seen from the code, the hook used in the learner defines four positions, namely
 
-        * before_run：训练任务开始之前
-        * after_run：训练任务完成之后
-        * before_iter：在训练任务的每个 iter 之前
-        * after_iter：在训练任务的每个 iter 之后
+         * before_run: before the start of the training task
+         * after_run: After the training task is completed
+         * before_iter: before each iter of the training task
+         * after_iter: after each iter of the training task
 
-        当程序运行到指定位置的时候，在此位置注册的 hook 上的所有函数将会被调用。
+        When the program runs to the specified location, all functions on the hook registered at this location will be called.
 
-        - 使用：
+        - Usage:
 
-            DI-engine 已经实现了许多常用的 hook，并提供了简单的调用方法。可以通过 cfg 去调用 hook，cfg 配置与使用如下：
-            
+            DI-engine has implemented many commonly used hooks and provides simple calling methods. The hook can be called through cfg. The configuration and use of cfg are as follows:
+
             .. code:: python
 
                 # hook:
@@ -153,57 +159,57 @@ Hook
                 #         type: save_ckpt
                 hooks = build_learner_hook_by_cfg(cfg)
 
-            至此，DI-engine 在初始化 learner 的时候会自动根据 cfg 的内容进行 hook 注册，以保证相关功能能够正常进行。
+            So far, DI-engine will automatically register hooks according to the content of cfg when initializing learner to ensure that related functions can be performed normally.
 
-        - 定义自己的 hook, 对于用户自定义的 ``MyHook``，需要完成以下几步：
+         - Define your own hook: For custom ``MyHook``, you need to complete the following steps:
 
-            1. 继承 ``ding.worker.learner.learner_hook.LearnerHook``。该类是所有 learner 中使用的 hook 的基类。
-            2. 在 ``MyHook`` 中实现 ``__call__`` 方法。``__call__`` 方法的输入是一个 learner 的实例。通过该实例，hook 可以对 learner 中的任意变量进行操作。
-            3. 调用 ``register_learner_hook()`` 对自定义的 ``MyHook`` 进行注册，需要提供 hook 名称。
-            4. 现在已经可以在 cfg 中使用自定义的 ``MyHook`` 了。
+            1. Inherit ``ding.worker.learner.learner_hook.LearnerHook``. This class is the base class of all hooks used in learner.
+            2. Implement the ``__call__`` method in ``MyHook``. The input of the ``__call__`` method is an instance of learner. Through this instance, hook can operate on any variable in learner.
+            3. Call ``register_learner_hook()`` to register the custom ``MyHook``, you need to provide the hook name.
+            4. Now you can use the customized ``MyHook`` in cfg.
 
-        - 调用流程：
+        - Calling process:
 
             .. image:: images/hook_call.jpg
 
-        - 目前已经支持的 hook：
+        - Currently supported hooks:
 
-            .. csv-table:: 
+            .. csv-table:: Accessible Hook in DI-engine
                 :header: "Hook Name", "Hook Class Name", "Hook Usage"
                 :widths: 50, 50, 60
 
-                "load_ckpt", "LoadCkptHook", "读取模型的检查点"
-                "save_ckpt", "SaveCkptHook", "保存模型到检查点"
-                "log_show", "LogShowHook", "打印日志"
-                "log_reduce", "LogReduceHook", "集合处理日志"
+                "load_ckpt", "LoadCkptHook", "Load the model from checkpoint"
+                "save_ckpt", "SaveCkptHook", "Save model to checkpoint"
+                "log_show", "LogShowHook", "Print log"
+                "log_reduce", "LogReduceHook", "Processing log"
 
-        - 简化调用的 hook：
-
-            由于前面提到的 hook 存在参数复杂，不利于初学者上手等原因，DI-engine 提供了更为简单的调用方法：
+        - Simplified calling hook:
+        
+            Due to the complex parameters of the hook mentioned earlier, which is not conducive for beginners to get started, DI-engine provides a simpler calling method:
 
             .. csv-table:: Simplified Hook in DI-engine
                 :header: "Hook Name", "Params", "Hook Usage"
                 :widths: 50, 50, 60
 
-                "log_show_after_iter", "freq", "根据参数给定的freq每隔一定数量个iter之后打印日志"
-                "load_ckpt_before_run", "None", "在训练程序运行之前读取检查点"
-                "save_ckpt_after_iter", "freq", "根据参数给定的freq每隔一定数量个iter之后保存模型"
-                "save_ckpt_after_run", "None", "在训练程序运行完全之后保存模型"
+                "log_show_after_iter", "freq", "Print log after a certain number of iters according to the ``freq`` given by the parameter"
+                "load_ckpt_before_run", "None", "Read the checkpoint before the training program runs"
+                "save_ckpt_after_iter", "freq", "Save the model after a certain number of iters according to the ``freq`` given by the parameter"
+                "save_ckpt_after_run", "None", "Save the model after the training program has run completely"
 
-            调用方法也更为简单，通过下面的代码即可得到所需 hooks:
-            
+            The calling method is also simpler, and the required hooks can be obtained by the following code:
+
             .. code:: python
 
                 hook_cfg = dict(
-                    save_ckpt_after_iter=20, # 在 after_iter 位置添加了名称为 save_ckpt 的 hook，每隔20个iter会存一次ckpt
-                    save_ckpt_after_run=True, # 在 after_run 位置添加了名称为 save_ckpt 的 hook，训练完毕的时候会存一次ckpt
+                    save_ckpt_after_iter=20, # A hook named save_ckpt is added to the after_iter position, ckpt will be saved every 20 iters
+                    save_ckpt_after_run=True, # A hook named save_ckpt is added at the after_run position, and ckpt will be saved once when the training is completed
                 ) 
                 hooks = build_learner_hook_by_cfg(hook_cfg)
 
-        - 查看 hook 调用情况：
-
-            DI-engine 提供了 ``show_hooks()`` 方法以便查看各个位置的 hook 调用情况，具体如下：
+        - View status of the calling of hooks:
             
+            DI-engine provides the ``show_hooks()`` method in order to view the status of the calling of hooks at various locations, as follows:
+
             .. code:: python  
 
                 from ding.worker.learner.learner_hook import show_hooks
@@ -217,11 +223,10 @@ Hook
                 # after_iter: ['SaveCkptHook']
 
 .. note::
-    Wrapper 和 Hook 的区别？
 
-    * Wrapper 是对原始函数的封装，支持一层一层的复用，如果在当前层没有找到对应的函数方法，会在更上一层去寻找。
-    * Hook 是在原始方法的基础上，在某个位置插入一个新的方法。
+    What is the difference between Wrapper and Hook?
+
+    * Wrapper is an encapsulation of the original method and supports layer-by-layer reuse. If the corresponding method is not found in the current layer, it will be searched on a higher layer.
+    * Hook is to insert a new method in a certain position on the basis of the original method.
     
     .. image:: images/wrapper_hook_call.jpg
-
-

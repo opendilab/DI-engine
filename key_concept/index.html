@@ -138,12 +138,11 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">Hands on RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../faq/index_en.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
@@ -236,7 +235,7 @@ modules are general in many RL algorithms, but the users can also override their
 </div>
 <div class="section" id="environment">
 <h3>Environment<a class="headerlink" href="#environment" title="Permalink to this headline">¶</a></h3>
-<p>DI-engine environment is a superset of <code class="docutils literal notranslate"><span class="pre">gym.Env</span></code>, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, <a class="reference external" href="../feature/env_overview_en.html">Env Overview</a></p>
+<p>DI-engine environment is a superset of <code class="docutils literal notranslate"><span class="pre">gym.Env</span></code>, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, <a class="reference external" href="../feature/env_overview.html">Env Overview</a></p>
 <p><code class="docutils literal notranslate"><span class="pre">EnvManager</span></code>, usually called Vectorized Environments in other frameworks, aims to implement parallel environment simulation to speed up data collection. Instead of interacting with 1 environment per collect step, it allows the collector to interact with N homogeneous environments per step, which means that <code class="docutils literal notranslate"><span class="pre">action</span></code> passed to <code class="docutils literal notranslate"><span class="pre">env.step</span></code> is a vector with a length of N, and the return value of <code class="docutils literal notranslate"><span class="pre">env.step</span></code> (obs, reward, done) is the same as it.</p>
 <p>For the convenience of <strong>asynchronous reset</strong> and <strong>unifying asynchronous/synchronous step</strong>, DI-engine modifies the interface of env manager like this:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># DI-engine EnvManager                                                         # pseudo code in the other RL papers</span>
@@ -273,7 +272,7 @@ modules are general in many RL algorithms, but the users can also override their
 <p>If there are some pre-defined neural networks in the environment using GPU, like the feature extractor VAE trained by self-supervised training before RL training, DI-engine recommends to utilize parallel executions in each subprocess rather than stack all the data in the main process and then forward this network. Moreover, it is not an elegant method, DI-engine will try to find some new flexible and general solution.</p>
 </div>
 <p>Besides, for robustness in practical usage, like IPC error(broken pipe, EOF) and environment runtime error, DI-engine also provides a series of <strong>Error Tolerance</strong> tools, e.g.: watchdog and auto-retry.</p>
-<p>For all the mentioned features, the users can refer to <a class="reference external" href="../feature/env_manager_overview_en.html">EnvManager Overview</a> for more details.</p>
+<p>For all the mentioned features, the users can refer to <a class="reference external" href="../feature/env_manager_overview.html">EnvManager Overview</a> for more details.</p>
 </div>
 <div class="section" id="policy">
 <h3>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h3>
@@ -286,7 +285,7 @@ the model forward without gradient computation and use epsilon-greedy to select 
 prepares some simple interface methods, and combines them into 3 common modes——<strong>learn_mode, collect_mode, eval_mode</strong>, as is shown in the next image:</p>
 <img alt="../_images/policy_mode.svg" src="../_images/policy_mode.svg" /><p>Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
 own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training, and so on. For more details,
-the users can refer to <a class="reference external" href="../feature/policy_overview_en.html">Policy Overview</a>.</p>
+the users can refer to <a class="reference external" href="../feature/policy_overview.html">Policy Overview</a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code class="docutils literal notranslate"><span class="pre">policy.learn_mode</span></code> is not the instance of <code class="xref py py-class docutils literal notranslate"><span class="pre">Policy</span></code> but a pure interface collection(implemented by namedtuple), which means the users can implement their policy class just ensuring the same method names and input/output arguments as the corresponding modes.</p>
@@ -304,8 +303,8 @@ the users can refer to <a class="reference external" href="../feature/policy_ove
 <span class="n">eval_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;argmax_sample&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If you want to know more about pre-defined models for each algorithms and customize you model, please refer to <a class="reference external" href="../feature/model_overview_en.html">Model Overview</a>.</p>
-<p>If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, <a class="reference external" href="../feature/wrapper_hook_overview_en.html">Wrapper Overview</a> can help you a lot.</p>
+<p>If you want to know more about pre-defined models for each algorithms and customize you model, please refer to <a class="reference external" href="../feature/model_overview.html">Model Overview</a>.</p>
+<p>If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, <a class="reference external" href="../feature/wrapper_hook_overview.html">Wrapper Overview</a> can help you a lot.</p>
 </div>
 <div class="section" id="processing-function">
 <h4>Processing Function<a class="headerlink" href="#processing-function" title="Permalink to this headline">¶</a></h4>
@@ -554,7 +553,7 @@ expert policy. And all the demands can be implemented by <code class="docutils l
 </div>
 <p>Besides, serial collector shows less difference between on-policy and off-policy algorithms, the only thing is to reset some statistics and temporal buffers, which can be automatically executed by collector, the
 users just need to ensure the correct value of <code class="docutils literal notranslate"><span class="pre">config.policy.on_policy</span></code>.</p>
-<p>Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to <a class="reference external" href="../feature/collector_overview_en.html">Collector Overview</a>.</p>
+<p>Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to <a class="reference external" href="../feature/collector_overview.html">Collector Overview</a>.</p>
 </div>
 <div class="section" id="parallel-collector">
 <h4>Parallel Collector<a class="headerlink" href="#parallel-collector" title="Permalink to this headline">¶</a></h4>
@@ -604,7 +603,7 @@ users just need to ensure the correct value of <code class="docutils literal not
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code> is designed for some special cases where they need a whole episode rather than separated samples. For example: In chess, go or card games, players get reward only when the game is over; In some algorithms like <a class="reference external" href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a>, must sample out a whole episode and operate on it. Therefore, in <code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code>, each element is no longer a training sample, but an episode.</p>
 <p>In DI-engine, we define <strong>full data</strong> and <strong>meta data</strong>. <strong>Full data</strong> is often a dict, with keys <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> and some optional keys like <code class="docutils literal notranslate"><span class="pre">['priority',</span> <span class="pre">'use_count',</span> <span class="pre">'collect_iter',</span> <span class="pre">...]</span></code>. However, in some complex environments(Usually we run them in parallel mode), <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> can be too big to store in memory. Therefore, we store them in file system, and only store <strong>meta data</strong> including <code class="docutils literal notranslate"><span class="pre">'file_path'</span></code> and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.</p>
-<p>If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to <a class="reference external" href="../feature/replay_buffer_overview_en.html">Replay Buffer Overview</a></p>
+<p>If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to <a class="reference external" href="../feature/replay_buffer_overview.html">Replay Buffer Overview</a></p>
 </div>
 <div class="section" id="worker-evaluator">
 <h3>Worker-Evaluator<a class="headerlink" href="#worker-evaluator" title="Permalink to this headline">¶</a></h3>
@@ -703,8 +702,8 @@ environments but only two for each of the remaining environments.</p>
 <p><strong>Parallel pipeline</strong> would call learner’s <code class="docutils literal notranslate"><span class="pre">start</span></code> method for a complete process of training. <code class="docutils literal notranslate"><span class="pre">start</span></code> method has a loop, which includes fetching data from source(Often file system), and calling <code class="docutils literal notranslate"><span class="pre">train</span></code> for one-iteration training. <code class="docutils literal notranslate"><span class="pre">start</span></code> will train for a specific number of iterations, which is set by use config.</p>
 <p>Besides <code class="docutils literal notranslate"><span class="pre">train</span></code> and <code class="docutils literal notranslate"><span class="pre">start</span></code>, learner also provides a useful interface called <code class="docutils literal notranslate"><span class="pre">save_checkpoint</span></code>, which can save current state_dict as a checkpoint during training.</p>
 <p>In learner, there is a special concept called <code class="docutils literal notranslate"><span class="pre">Hook</span></code>. Hook is responsible for doing some fixed jobs at specific timings, including “before_run”(at the beginning of <code class="docutils literal notranslate"><span class="pre">start</span></code> ), “after_run”(at the ending of <code class="docutils literal notranslate"><span class="pre">start</span></code> ), “before_iter”(at the beginning of <code class="docutils literal notranslate"><span class="pre">train</span></code> ), “after_iter”(at the ending of <code class="docutils literal notranslate"><span class="pre">train</span></code> ).</p>
-<p>Hook has many different types. DI-engine now has hooks to save checkpoint( <code class="docutils literal notranslate"><span class="pre">save_checkpoint</span></code> also uses this hook), load checkpoint, print log(text &amp; tb), reduce log from multiple learners. Users can also implement their own hooks easily. If you want to know more about hook mechanism, you can refer to <a class="reference external" href="../feature/wrapper_hook_overview_en.html">Wrapper &amp; Hook Overview</a>.</p>
-<p>For more details about learner, please refer to <a class="reference external" href="../feature/learner_overview_en.html">Learner Overview</a>.</p>
+<p>Hook has many different types. DI-engine now has hooks to save checkpoint( <code class="docutils literal notranslate"><span class="pre">save_checkpoint</span></code> also uses this hook), load checkpoint, print log(text &amp; tb), reduce log from multiple learners. Users can also implement their own hooks easily. If you want to know more about hook mechanism, you can refer to <a class="reference external" href="../feature/wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a>.</p>
+<p>For more details about learner, please refer to <a class="reference external" href="../feature/learner_overview.html">Learner Overview</a>.</p>
 </div>
 <div class="section" id="entry">
 <h3>Entry<a class="headerlink" href="#entry" title="Permalink to this headline">¶</a></h3>

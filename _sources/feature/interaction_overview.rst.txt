@@ -5,21 +5,22 @@ Interaction Overview
 
 .. _header-n2:
 
-概述
-----
+Overview
+---------
 
-Interaction为一个独立于任何具体业务的交互式服务框架，用于支持简单非阻塞单线程任务。在DI-engine中为分布式环境下的多机多卡训练提供支持。
+Interaction module is an interactive service framework independent of any specific business, which used to support simple non-blocking single-thread tasks. It provides support for training(multi-machine multi-card) in a distributed environment based on ding.
 
-Interaction分为两个端，是Master端和Slave端，分别为任务下达端和任务执行端。
+Interaction module is divided into two ends, the ``Master`` and the ``Slave``, which are the task release end and the task execution end respectively.
+
 
 .. _header-n9:
 
-Slave端
--------
+Slave
+------
 
-Slave端的任务是从Master端接收任务信息，通过重写\ ``_process_task``\ 方法来执行任务，并通过返回值以及异常抛出来进行消息回传。
+``Slave`` receives task information from ``Master``, executes the task by rewriting the ``_process_task`` method, and returns the message through the return value and exception raising.
 
-一个简单的例子，可以通过如下的方式来构建属于自己的\ ``Slave``\ 类：
+Here is a simple example for building your own ``Slave`` class by following way:
 
 .. code:: python
 
@@ -30,9 +31,9 @@ Slave端的任务是从Master端接收任务信息，通过重写\ ``_process_ta
            else:
                raise TaskFail(result={'message': 'ab not found'}, message='A or B not found in task data.')
 
-这个类的业务逻辑为，如果\ ``a``\ 和\ ``b``\ 参数全部存在，则以json格式返回两者的和，不然通过抛出\ ``TaskFail``\ 异常来表示任务执行失败。
+The logical of this class is that if all parameters ``a`` and ``b`` exist, the sum of the two is returned in json format, otherwise the ``TaskFail`` exception will be  raised to indicates that the task execution failed.
 
-而对于Slave类的调用，有两种方式。首先是通过常规方式启动和关闭slave端：
+There are two ways to call the ``Slave`` class. The first is to start and close the ``Slave`` in a normal way:
 
 .. code:: python
 
@@ -46,7 +47,7 @@ Slave端的任务是从Master端接收任务信息，通过重写\ ``_process_ta
 
    print("slave has been stopped")
 
-或者通过\ ``with``\ 进行快速调用
+Or using ``with`` for quick call:
 
 .. code:: python
 
@@ -56,29 +57,29 @@ Slave端的任务是从Master端接收任务信息，通过重写\ ``_process_ta
 
    print("slave has been stopped")  # after quit the slave with block, all the resources will be automatically released, and wait until slave completely stopped
 
-通过上述调用后，在\ ``master``\ 端连接\ ``slave``\ 的8080端口，选择频道\ ``233``\ 即可完成连接。
+After the calling above, connecting port(``8080``) of the slave on the master and select channel ``233`` to complete the connection.
 
-值得注意的是：
+Attention:
 
--  为了方便对任务逻辑的实现，\ **请继承Slave类并实现\ ``_task_process``\ 方法**\ ，不要直接使用Slave类创建Slave端。
+- In order to facilitate the realization of the task logic clearly, **please inherit the Slave class and implement the _task_process method**. Do not directly use the Slave class to create the Slave end.
 
--  关于channel，可以视为对不同具体业务的一种标识，其概念类似于无线电频道、网络端口等。\ **建议对于特定的业务设定特定的channel值**\ ，不要直接使用0或缺省等容易碰撞的值，以确保当发生误连的时候可以立刻得到反馈。
+- Channel can be regarded as a kind of identification for different specific services, and its concept is similar to radio channel, network port, etc. **It is recommended to set a specific channel value for a specific task**. Do not directly use a value that is easy to collide, such as 0 or the default, to ensure that you can get feedback immediately when a misconnection occurs.
 
 .. _header-n57:
 
-Master端
+Master
 --------
 
-Master端的主要任务是对Slave端进行连接，并通过建立的连接对Slave进行任务的下达和接收。
+The main job of the ``Master`` is to connect to the ``Slave``, and to issue tasks to the ``Slave`` through the established connection.
 
-一个简单的例子，可以通过如下方式来构建属于自己的\ ``Master``\ 类：
+Here is a simple example to build your own ``Master`` class in the following way:
 
 .. code:: python
 
    class MyMaster(Master):  # build a master class, inherit from master base class
        pass
 
-与Slave类似，Master端有两种启动方式。首先是通过常规方式启动和停止Master：
+Similar to ``Slave``, there are two ways to start the ``Master``. The first is to start and stop the ``Master`` in the common way:
 
 .. code:: python
 
@@ -92,7 +93,7 @@ Master端的主要任务是对Slave端进行连接，并通过建立的连接对
 
    print("master has been stopped")
 
-或通过\ ``with``\ 进行快速调用：
+Or make a quick call using ``with``:
 
 .. code:: python
 
@@ -102,7 +103,7 @@ Master端的主要任务是对Slave端进行连接，并通过建立的连接对
 
    print("master has been stopped")  # after quit the master with block, all the resources will be automatically released, and wait until master completely stopped
 
-基于\ ``with``\ 的使用，我们可以通过以下方式进行任务的下达、管理以及结果的获取。结合上文中Slave的例子，举例如下：
+By using ``with``, we can issue tasks, manage tasks, and obtain results in the following ways in ``Master``. Combining the ``Slave`` example above, an example is as follows:
 
 .. code:: python
 
@@ -110,7 +111,7 @@ Master端的主要任务是对Slave端进行连接，并通过建立的连接对
        pass
 
    if __name__ == '__main__':
-   	with MyMaster('0.0.0.0', 8088, channel=233) as master:
+    with MyMaster('0.0.0.0', 8088, channel=233) as master:
            master.ping()  # True if master launch success, otherwise False
            
            with master.new_connection('conn', '127.0.0.1', 8080) as conn:  # establish a connection to slave end
@@ -137,74 +138,75 @@ Master端的主要任务是对Slave端进行连接，并通过建立的连接对
                    nonlocal _result_value
                    _result_value = result
                
-   			task = conn.new_task({'a': 2, 'b': 3}).on_complete(_print_result)  # create a new task with callback
+            task = conn.new_task({'a': 2, 'b': 3}).on_complete(_print_result)  # create a new task with callback
                task.start().join()
                assert _result_value == {'sum': 5}  # the callback has been triggered
-               
 
-此外，还有更多的一些功能和用法，后续会考虑进一步介绍，同时欢迎阅读源代码。
 
-值得注意的有以下几点：
+In addition, there are more functions and usages, which will be further introduced in the follow-up, and welcome to read the source code.
 
--  为了方便对功能的扩展，\ **请继承Master类，且在需要的时候实现诸如\ ``_before_new_task``\ 等的一系列方法**\ ，不要直接使用Master类创建Master端。
+Attentions:
 
--  **Master和Slave端的channel务必设置为同一个整数**\ ，否则将导致无法正常建立连接。
+- In order to make it convient for the extension of functions, please inherit the Master class and implement a series of methods such as ``_before_new_task`` when needed. Do not directly use the ``Master`` class to create the ``Master``.
+
+- **The channel of the Master and Slave must be set to the same**, otherwise the connection cannot be established normally.
+
 
 .. _header-n54:
 
-常见问题
+Q & A
 --------
 
 .. _header-n13:
 
-Q：何为非阻塞单线程任务？以及何故作此设计？
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Q: What is a non-blocking single-threaded task? Why make this design?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A：即为\ **当Master端下达任务时，如果Slave端空闲，则执行任务；若果Slave端已经有一个任务正在运行，则拒绝该任务请求**\ 。
+A: That is, **when Master issues a task, if the Slave is idle, the task will be executed; if there is already a task running on the Slave, the task request will be rejected**.
 
-与之类似的也有类似几个任务模式，定义如下：
+Similarly, there are several task modes, which are defined as follows:
 
--  非阻塞多线程任务：Slave端设有最大任务数量，当Master下达任务时，如果正在执行的任务已经达到最大数量，则拒绝新任务请求。
+- Non-blocking multi-thread task: The ``Slave`` has a maximum number of tasks to excute. When the ``Master`` issues a task, if the number of tasks being executed has reached the maximum number, the new task request will be rejected.
 
--  阻塞单线程任务：当Master端下达任务时，如果Slave端空闲，则执行任务；若果Slave端已经有一个任务正在运行，则将新任务加入任务队列，等待之前的任务完成后再执行。
+- Blocking single-thread task: When the ``Master`` sends a task, if the ``Slave`` is idle, the task will be executed; if there is already a task running on the Slave side, the new task will be added to the task queue, and the task will be executed after the previous task is completed.
 
--  阻塞多线程任务：Slave端设有最大任务数量，当Master下达任务时，如果正在执行的任务已经达到最大数量，则将新任务加入任务队列，等待之前的任务完成后再执行。
+- Blocking multi-thread task: The ``Slave`` has a maximum number of tasks. When the Master issues a task, if the number of tasks being executed has reached the maximum number, the new task will be added to the task queue and wait for the completion of the previous task before executing.
 
-考虑到\ **强化学习训练并发计算量大，不宜在节点上分散算力**\ ，且需要方便业务层调度管理的实际需求，故此处设计为非阻塞单线程任务模式。
+Considering **the large amount of concurrent computing in reinforcement learning training, it is not appropriate to disperse computing power on nodes**, and the actual needs of facilitating business-level scheduling management, so the design here is switched to non-blocking single-threaded task mode.
 
 .. _header-n122:
 
-Q：Interaction模块适合使用的问题有哪些？
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Q: What are the issues that the Interaction module is suitable for use?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A：实际上根据目前的初步调研，训练任务会分为如下几种情况：
+A: Actually, according to the current preliminary investigation, the training tasks will be divided into the following situations:
 
--  **单机轻型**\ 。即在单个具备或不具备GPU的普通计算机上进行训练任务，例如在自己的工作机、笔记本上运行demo。
+- **Stand-alone light**. That is, training tasks are performed on a single ordinary computer with or without GPU, such as running demos on their own work machines and laptops.
 
--  **单机分布式**\ 。即在单个算力较高的计算机或集群上进行训练任务，例如在配备GPU的高配工作站、常见的slurm集群等环境上运行一般的训练任务。
+- **Stand-alone distributed**. That is, training tasks are performed on a single computer or cluster with higher computing power. For example, general training tasks are run on environments such as workstations equipped with GPUs and common slurm clusters.
 
--  **多机规模化分布式**\ 。即在多个计算节点上进行协同训练任务，例如在处于共同内网的100台GPU服务器上运行一个具备规模的训练任务。
+- **Multi-machine large-scale distributed**. That is, a collaborative training task is performed on multiple computing nodes. For example, a large-scale training task is run on 100 GPU servers in a common intranet.
 
-实际上对于单机轻型来说，一般的运行即可完成；而\ **对于单机分布式而言，Interaction是完全不必要的**\ ，因为单机分布式环境下完全可以通过fork开启子进程的方式启动各端，并通过进程锁（Lock）和事件（Event）进行阻塞控制，其传输性能和稳定性必然超过基于http服务的Interaction。
+In fact, for a single-machine light-duty, the general operation can be completed. For a single-machine distributed, Interaction is completely unnecessary, because in a single-machine distributed environment, it is possible to start each end by forking the child processes, and do blocking control through ``Lock`` and ``Event``. Its transmission performance and stability will inevitably exceed the HTTP service-based Interaction.
 
-因此\ **对于Interaction而言，真正的优势环境为多机规模化分布式环境**\ ，具体来说，因为在多机环境下开启fork或者基于远程启动来启动训练任务是不现实的，因而必须基于Interaction构建服务体系。并且实际上在这样的环境下，\ **最佳实践为预先开启全部的服务节点（即Slave节点），保持长期待机状态，并有专人对这些算力进行维护（类比对slurm集群的维护），当有使用者有训练任务时，会对现有大量节点进行连接，安排并运行训练任务**\ 。
+Therefore, **for Interaction, the best environment to show its advantage is a multi-machine large-scale distributed environment**. Specifically, because it is unrealistic to start a fork in a multi-machine environment or start training tasks based on remote startup, it is necessary to build services based on Interaction. In fact, in such an environment, **the best practice is to turn on all service nodes (Slave nodes) in advance, keep them in a long-term standby state, and have dedicated personnel to maintain these computing nodes (analogous to the maintenance of the slurm cluster). When users have training tasks, they will connect a large number of existing nodes, arrange and run training tasks**.
 
 .. _header-n120:
 
-Q：Master和Slave在发送网络请求时出现错误，抛出异常，应该如何处理？
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Q: What should I do if an error occurs when the Master and Slave are sending network requests?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A：抛出的网络请求异常在Interaction框架中，基于错误代码（非HTTP状态码）进行了异常类的归类。在实际使用的时候请\ **注意不要直接使用HTTPError进行异常的捕捉**\ ，该异常只能捕捉非业务异常（例如DNS故障、连接超时等），而对于业务异常，请使用对应的异常类已经捕捉，并且\ **建议根据不同的业务异常类型使用对应的异常类**\ ，以实现精确捕捉和处理问题。
+A: The network exception thrown is classified in the Interaction framework based on the error code (non-HTTP status code). In actual use, **please be careful not to directly use HTTPError to capture exceptions**. This exception can only capture non-business exceptions (such as DNS failures, connection timeouts, etc.). For business exceptions, please use the corresponding exception class that has been captured, and **it is recommended to use corresponding exception classes according to different business exception types** to accurately capture and handle problems.
 
 .. _header-n110:
 
-Q：如何正确将Master和Slave整合进现有业务服务中？
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Q: How to correctly integrate Master and Slave into existing business services?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A：比较推荐的一种方式——**将Master/Slave作为类的一个私有属性，整合进类内部**\ ，并且\ **建议类本身也对生命周期进行妥善管理**\ （例如设立start、shutdown、join等生命周期管理方法），且建议实现\ ``__enter__``\ 、\ ``__exit__``\ 方法，使得类可以通过\ ``with``\ 进行快速创建和资源回收。
+A: A more recommended way is **to treat Master/Slave as a private attribute of the class and integrated into the class**, and **it is also recommended to properly manage the life cycle for the class itself** (for example, set up start, shutdown, join and other life cycle management methods ), and it is recommended to implement the ``__enter__`` and ``__exit__`` methods, so that the class can be quickly created and recycled through ``with``.
 
-此处\ **强烈不建议直接对Master和Slave类进行二次继承**\ ，因为这会导致Master/Slave本身的结构和生命周期受到干扰，并且影响其内部的逻辑与数据约束，从而造成不可预期的结果。
+**It is strongly not recommended to directly carry out secondary inheritance of the Master and Slave classes**, because this will cause the structure and life cycle of the Master/Slave itself to be disturbed, and affect its internal logic and data constraints, resulting in unpredictable results.
 
 .. tip::
 
-  这里说的二次继承是指: MyMaster --> Master, Controller --> MyMaster. Controller作为业务逻辑相关的类应和MyMaster是组合关系，切忌滥用继承。如果要为Master做更多功能拓展的话，也可定义相应的功能类，然后MyMaster多重继承Master和新的功能类。
+    The secondary inheritance mentioned here refers to: ``MyMaster`` --> ``Master``, ``Controller`` --> ``MyMaster``. ``Controller`` as a class related to business logic should have a composite relationship with ``MyMaster``, and avoid abuse of inheritance. If you want to expand more functions for ``Master``, you can also define corresponding function classes, and then let ``MyMaster`` multiple inherits ``Master`` and new function classes.

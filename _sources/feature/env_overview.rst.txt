@@ -6,129 +6,129 @@ BaseEnv
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 (ding/envs/env/base_env.py)
 
-概述：
-    环境模块，是强化学习中重要的模块之一。在一些常见的强化学习任务中，例如 `atari <https://gym.openai.com/envs/#atari>`_ 相关任务，`mujoco <https://gym.openai.com/envs/#mujoco>`_ 相关任务，我们所训练的智能体就是在这样的环境中去进行探索和学习。通常，定义一个环境需要从环境的输入输出入手，并充分考虑其中可能的 ``observation space`` 与 ``action space``。OpenAI 所出品的 `gym` 模块已经帮我们定义了绝大多数常用的学术环境。`DI-engine` 也遵循 `gym.Env` 的定义，并在其基础上增加了一系列更为方便的功能，使得环境的调用更为简单易懂。
+Overview:
+    The Environment module is one of the important modules in reinforcement learning (RL). In some common RL tasks, such as `atari <https://gym.openai.com/envs/#atari>`_ tasks and `mujoco <https://gym.openai.com/envs/#mujoco>`_ tasks, the agent we train is to explore and learn in such an environment. Generally, to define an environment, you need to start with the input and output of the environment, and fully consider the possible observation space and action space. The `gym` module produced by OpenAI has helped us define most of the commonly used academic environments. `DI-engine` also follows the definition of `gym.Env`, and adds a series of more convenient functions to it, making the call of the environment easier to understand.
 
-具体实现：
-    我们可以很方便的查阅到，`gym.Env` 的 `定义 <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ 中，最为关键的部分在于 ``step`` 和 ``reset`` 方法。通过给定的 ``observation``, ``step()`` 方法依据输入的 ``action`` 并与环境产生交互，从而得到相应的 ``reward``。``reset()`` 方法则是对环境进行重置。`ding.envs.BaseEnv` 继承了 `gym.Env`，并实现了：
+Implementation:
+    The key concepts of the defination of `gym.Env <https://github.com/openai/gym/blob/master/gym/core.py#L8>`_ are methods including ``step()`` and ``reset()``. According to the given ``observation``, ``step()`` interacts with the environment based on the input ``action``, and return related ``reward``. The environment is reset when we call ``reset()``. Inherited from `gym.Env`，`ding.envs.BaseEnv` also implements:
 
-    1. ``BaseEnvTimestep(namedtuple)``：定义了环境每运行一步返回的内容，一般包括 ``obs``，``act``，``reward``，``done``，``info`` 五部分，子类可以自定义自己的该变量，但注意必须包含上述五个字段。
+    1. ``BaseEnvTimestep(namedtuple)``:
+    It defines what environment returns when ``step()`` is called, usually including ``obs``, ``act``,  ``reward``,  ``done`` and ``info``. You can inherit from ``BaseEnvTimestep`` and define your owned variables.
 
-    2. ``BaseEnvInfo(namedlist)``：定义了环境的基本信息，例如环境中智能体的数量，观察空间的维度等等，一般包括 ``agent_num``，``obs_space``，``act_space``，``rew_space`` 四部分，其中 ``xxx_space`` 必须使用 `envs/common/env_element.py` 中的 ``EnvElementInfo`` 进行创建，子类可以自定义自己的该变量，为其增加新的字段。
-
-    .. note::
-
-        ``obs_space`` 和 ``subprocess_env_manager`` 中 ``shared_memory`` 的相关使用存在强依赖，如要使用则必须按照 ``EnvElementInfo`` 来实现。
-
-    3. ``info()``：快速查阅当前环境的各种 shape，并显示启用的 wrapper 种类
-
-    .. note:: 
-
-        注意，``info()`` 中会根据 wrapper 的种类自动修改对应的 ``obs_shape`` / ``act_shape`` / ``rew_shape``。如果用户需要添加新的 env wrapper，需要在 wrapper 中实现静态函数 ``new_shape(obs_shape, act_shape, rew_shape)`` 并返回此 wrapper 修改之后的各个 shape。
-
-    4. ``create_collector_env_cfg()``：为数据收集创建相应的环境配置文件，与 ``create_evaluator_env_cfg`` 互相独立，便于使用者对数据收集和性能评测设置不同的环境参数，根据传入的初始配置为每个具体的环境生成相应的配置文件，默认情况会获取配置文件中的环境个数，然后将默认环境配置复制相应份数返回
-
-    5. ``create_evaluator_env_cfg()``：为性能评测创建相应的环境配置文件，功能同上说明
-
-    6. ``enable_save_replay()``：使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用，功能上代替常见环境中的 render 方法。（该方法可选实现）
-
-    此外，`ding.envs.BaseEnv` 还针对细节做了一些改动，例如
-
-    1. ``seed()``: 对于环境内各种处理函数和 wrapper 的种子控制，外界设定的是种子的种子
-
-    2. 默认都使用 lazy init，即 init 只设置参数，第一次 reset 时启动环境设定种子
-
-    3. episode 结束时，在 info 这个 dict 中返回 ``final_eval_reward`` 键值对
+    2. ``BaseEnvInfo(namedlist)``:
+    It defines the basic information of the environment, usually including the number of agents, the dimension of the observation space. DI-engine now implements it with ``agent_num``, ``obs_space``, ``act_space`` and ``rew_space``, and ``xxx_space`` must be inherited from ``EnvElementInfo`` in ``envs/common/env_element.py``. You can add new variables in your ``BaseEnvInfo``.
 
     .. note::
 
-        对于一个环境的具体创建（例如打开其他模拟器客户端），该行为不应该在 ``__init__`` 方法中实现，因为存在创建模型实例但不运行的使用场景（比如获取环境observation的维度等信息），推荐在 ``reset`` 方法中实现，即判断运行环境是否已创建，如果没有则进行创建再reset，如果有则直接reset已有环境。如果使用者依然想要在 ``__init__`` 方法中完成该功能，请自行确认不会有资源浪费或冲突的情况发生。
+        ``shared_memory`` in ``subprocess_env_manager`` depends on ``obs_space``. If you want to use ``shared_memory``, you must use ``EnvElementInfo`` or its subclass.
+
+    3. ``info()``:
+    It is used to check the shape in environment quickly
 
     .. note::
 
-        关于 ``BaseEnvInfo`` 和 ``BaseEnvTimestep``，如无特殊需求可以直接调用 `DI-engine` 提供的默认定义，即：
+        ``info()`` will change ``obs_shape`` / ``act_shape`` / ``rew_shape`` according to the used wrappers. If you want to add new env wrapper, you need to override static method ``new_shape(obs_shape, act_shape, rew_shape)`` and return new shape.
+
+    4. ``create_collector_env_cfg()``:
+    It is used to create config for collectors. It is independent of ``create_evaluator_env_cfg``, which is convenient for users to set different environmental parameters for data collection and performance evaluation. According to the incoming initial configuration, a corresponding configuration file is generated for each specific environment. By default, The number of environments in the configuration file will be obtained, and then copy the corresponding number of copies of the default environment configuration to return.
+
+    5. ``create_evaluator_env_cfg():``
+    It is to create a corresponding environment configuration file for performance evaluation. The function is the same as the above description.
+
+    6. ``enable_save_replay()``:
+    The environment can save the running process as a video file, which is convenient for debugging and visualization. It is generally called before the actual running of the environment, and functionally replaces the render method in the common environment. (This method is optional to implement).
+
+    Besides, some changes have also been made to the details in `ding.envs.BaseEnv`, such as:
+
+    1. seed(): For the seed control of various processing functions and wrappers in the environment, the external setting is the seed of the seed
+    2. Lazy init is used by default, which means, init only sets the parameters, and the environment sets seed at the first reset.
+    3. At the end of the episode, return the final_eval_reward key-value pair in the info dict 
+
+    .. note::
+
+        For the specific creation of an environment (such as opening other simulator clients), this behavior should not be implemented in the ``__init__`` method, because there are  scenarios that create model instances but do not run (such as obtaining information such as the dimensions of the environment observation) ). It is recommended to implement in the ``reset`` method, which means to determine whether the operating environment has been created, if not, create and then reset, or directly reset the existing environment. If the user still wants to complete this function in the ``__init__`` method, please confirm by yourself that there will be no waste of resources or conflicts.
+
+     .. note::
+
+        Regarding BaseEnvInfo and BaseEnvTimestep, if there is no special requirement, you can directly call the default definition provided by DI-engine, namely:
 
         .. code:: python
 
             from ding.envs import BaseEnvTimestep, BaseEnvInfo
 
-        如果需要自定义，按照上文的要求使用 ``namedtuple(BaseEnvTimestep)`` / ``namedlist(BaseEnvInfo)`` 实现即可。
+        If you need to customize it, use ``namedtuple(BaseEnvTimestep)`` / ``namedlist(BaseEnvInfo)`` to achieve it in accordance with the above requirements.
 
     .. tip::
 
-        ``seed`` 方法的调用一般在 ``__init__`` 方法之后，``reset`` 方法之前。如果将模型的创建放在 ``reset`` 方法中，则 ``seed`` 方法只需要记录下这个值，在 ``reset`` 方法执行时设置随机种子即可。
+        The ``seed()`` method is usually called after the ``__init__`` method and before the ``reset()`` method. If the creation of the model is placed in the ``reset()`` method, the ``seed()`` method only needs to record this value and set the random seed when the ``reset()`` method is executed.
 
-    .. warning::
+     .. warning::
 
-        `DI-engine` 对于环境返回的 ``info`` 字段有一些依赖关系, ``info`` 是一个 dict，其中某些键值对会有相关依赖要求：
+        DI-engine has some dependencies on the ``info()`` field returned by the environment. ``info()`` returns a dict, and some key-value pairs have related dependencies:
         
-        1. ``final_eval_reward``: 环境一个 episode 结束时（done=True）必须包含该键值，值为 float 类型，表示环境跑完一个 episode 性能的度量
-        
-        2. ``abnormal``: 环境每个时间步都可包含该键值，该键值非必须，是可选键值，值为 bool 类型，表示环境运行该步是是否发生了错误，如果为真 `DI-engine` 的相关模块会进行相应处理（比如将相关数据移除）。
+        1. ``final_eval_reward``: The key value must be included at the end of an episode of the environment (done=True), and the value is of type float, which means that the environment runs an episode performance measurement
 
+        2. ``abnormal``: Each time step of the environment can contain the key value, the key value is not required, it is an optional key value, and the value is of type bool, indicating whether an error occurred during the operation of the environment, and if it is true, the relevant modules of the will process the step (for example, the relevant data will be removed).
 
-    类继承关系如下图所示：
-    
+    The class inheritance relationship is shown in the following figure:
+
         .. image:: images/baseenv_class_uml.png
             :align: center
             :scale: 60%
-
 
 EnvElement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 (ding/envs/common/env_element.py)
 
-概述：
-    环境元素基类，``observation``，``action``，``reward`` 等可以视为环境元素，该类及其子类负责某一具体环境元素的基本信息和处理函数定义。该类及其子类是 stateless 的，维护静态的属性和方法。
+Overview:
+    EnvElement is the base class of environment elements. ``Observation``, ``action``, ``reward``, etc. can be regarded as environmental elements. This class and its subclasses are responsible for the basic information and processing function definitions of a specific environmental element. This class and its subclasses are stateless and maintain static properties and methods.
 
-类变量：
-    1. ``info_template``：环境元素信息模板，一般包括维度，取值情况，发送给智能体数据的处理函数，从智能体接收到数据的处理函数
-    2. ``_instance``：实现单例模型所用的类变量，指向该类的唯一实例
-    3. ``_name``：该类的唯一标识名
+Variables:
+    1. ``info_template``: Environment elements information template, generally including dimensions, value conditions, processing functions for data sent to the agent, and processing functions for data received from the agent.
+    2. ``_instance``: The class variable used to implement the singleton model, pointing to the only instance of the class.
+    3. ``_name``: The unique identification name of the class.
 
-类接口方法：
-    1. ``__init__``: 初始化，注意初始化完成后会调用 ``_check`` 方法检查是否合法
-    2. ``info```: 返回该元素类的基本信息和处理函数
-    3. ``__repr__``: 返回提供元素说明的字符串
+Class interface method:
+    1. ``__init__``: Initialization, note that after the initialization is completed, the ``_check()`` method will be called to check whether it is legal.
+    2. ``info``: return the basic information and processing function of the element class.
+    3. ``__repr__``: Returns a string that provides an element description.
 
-子类需继承重写方法：
-    1. ``_init``: 实际上的初始化方法，这样实现是为了让子类调用方法 ``__init__`` 时也必须调用 ``_check`` 方法，相当于 ``__init__`` 只是一层 wrapper
-    2. ``_check``: 检查合法性方法，检查一个环境元素类是否实现了必需属性，子类可以拓展该方法，即重写该方法等价于调用父类的该方法以及实现自身需要检查的部分
-    3. ``_details``: 元素类详细信息
+The override methods need to be inherited in subclasses:
+    1. ``_init``: The actual initialization method, which is implemented so that the subclass must also call the ``_check`` method when calling the method ``__init__``, which is equivalent to ``__init__`` is just a layer of wrapper.
+    2. ``_check``: Check the legitimacy method, check whether an environment element class implements the required attributes, the subclass can extend the method, that is, override the method-call the method of the parent class and implement the part that needs to be checked by itself.
+    3. ``_details``: element class details.
 
 
 EnvElementRunner
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 (ding/envs/common/env_element_runner.py)
 
-概述：
-    环境元素运行时基类，使用装饰模式实现，负责运行时相关的状态管理（比如维护一些状态记录变量）和提供可能的多态机制（对静态处理函数返回的结果进行再加工）。
-    在静态环境元素接口基础上，新增了 ``get`` 和 ``reset`` 接口。该类将对应的静态环境元素实例作为自己的一个成员变量 ``_core`` 进行管理。
+Overview:
+    The runtime base class of environment elements is implemented using decoration patterns, responsible for runtime-related state management (such as maintaining some state record variables) and providing possible polymorphic mechanisms (reprocessing the results returned by static processing functions).
+    On the basis of the static environment element interface, the ``get()`` and ``reset()`` interfaces have been added. This class manages the corresponding static environment element instance as its own member variable ``_core``.
 
-类变量：
-    无
+Class variables:
+    None.
 
-类接口方法：
-    1. ``info``：来源于接口的父类，实际使用时调用静态元素的相应方法
-    2. ``__repr__``：来源于接口的父类，实际使用时调用静态元素的相应方法
-    3. ``get``：得到实际运行时的元素值，需要传入具体 env 对象，所有对 env 信息的访问集中在 ``get`` 方法中，建议访问信息通过 env 的 property 实现
-    4. ``reset``：重启状态，一般需要在 env 重启时对应进行调用
+Class interface method:
+    1. ``info``: derived from the parent class of the interface, call the corresponding method of the static element in actual use.
+    2. ``__repr__``: derived from the parent class of the interface, call the corresponding method of the static element in actual use.
+    3. ``get``: To get the element value at actual runtime, you need to pass in the specific env object. All access to env information is concentrated in the ``get`` method. It is recommended that the access information be implemented through the env property.
+    4. ``reset``: restart state, generally need to be called when env restarts.
 
-子类需继承重写方法：
-    1. ``_init``：实际上的初始化方法，这样实现是为了让子类调用方法 ``__init__`` 时也必须调用 ``_check`` 方法，相当于 ``__init__`` 只是一层 wrapper
-    2. ``_check``：检查合法性方法，检查一个环境元素类是否实现了必需属性，子类可以拓展该方法，即重写该方法——调用父类的该方法 + 实现自身需要检查的部分
+The override method need to inherit in subclasses:
+    1. ``_init``: The actual initialization method, which is implemented so that the subclass must also call the ``_check`` method when calling the method ``__init__``, which is equivalent to ``__init__`` is just a layer of wrapper.
+    2. ``_check``: Check the legitimacy method, check whether an environment element class implements the required attributes, the subclass can extend the method, that is, override the method-call the method of the parent class + implement the part that needs to be checked by itself
 
 .. note::
 
 
-    1. ``EnvElement`` 和 ``EnvElementRunner`` 两个类构成完整的环境元素，其中前者代表静态不变的信息（stateless），后者负责运行时变化的信息（stateful），建议与特定环境元素相关的状态变量一律放在这里维护，env 中只维护通用的状态变量
-    2. 环境元素部分简易的类逻辑图如下：
+    1. The two classes of ``EnvElement`` and ``EnvElementRunner`` constitute a complete environment element. The former represents static information (stateless), and the latter is responsible for information that changes at runtime (stateful). It is recommended to state related to specific environmental elements. Variables are always maintained here, and only general state variables are maintained in env.
+    2. The simple logic diagram of the environment element part is as follows:
 
         .. image:: images/env_element_class.png
 
 .. note::
 
-    1. 所有代码实现中命名建议一般情况使用单数，但如果使用复数可以使某局部代码块逻辑更清晰，该部分也可自由选择。
-    2. 所有代码实现秉承 **自身对外界输入质疑，自身对外界输出负责** 的思想，对输入参数做必要的 check，对输出（返回值）明确规定其格式
-    3. 环境元素的键值如果为空时，一律使用 ``None``
-
+    1. All code implementations to the idea of ​​** questioning external input and being responsible for external output**, do necessary checks on input parameters, and clearly define the format of output (return value).
+    2. If the key value of the environment element is empty, always use ``None``.

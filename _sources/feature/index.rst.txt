@@ -9,19 +9,19 @@ Feature
 .. toctree::
     :maxdepth: 3
 
-    algorithm_overview_en
-    policy_overview_en
-    model_overview_en
-    env_overview_en
+    algorithm_overview
+    policy_overview
+    model_overview
+    env_overview
 
-    collector_overview_en
-    env_manager_overview_en
-    replay_buffer_overview_en
-    learner_overview_en
-    wrapper_hook_overview_en
-    league_overview_en
+    collector_overview
+    env_manager_overview
+    replay_buffer_overview
+    learner_overview
+    wrapper_hook_overview
+    league_overview
 
-    hpc_rl_overview_en
-    orchestrator_overview_en
-    interaction_overview_en
-    loader_overview_en
+    hpc_rl_overview
+    orchestrator_overview
+    interaction_overview
+    loader_overview

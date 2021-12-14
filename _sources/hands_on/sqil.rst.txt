@@ -11,7 +11,7 @@ Quick Facts
 -------------
 1. SQIL is a **model-free** and **value-based** RL algorithm.
 
-2. SQIL is SQL incorporated with Imitation learning 
+2. SQIL is SQL incorporated with Imitation learning
 
 3. SQIL supports both **discrete** and **continuous** action spaces.
 
@@ -29,7 +29,7 @@ SQL considers a more general maximum entropy policy, such that the optimal polic
 
 .. image:: images/policy_sqil_2.png
 
-where :math:`{\alpha}`   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, :math:`{\alpha}`  is a hyperparameter that has to be tuned (This is not a parameter to learn). 
+where :math:`{\alpha}`   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, :math:`{\alpha}`  is a hyperparameter that has to be tuned (This is not a parameter to learn).
 
 With respect to discrete action spaces, one can write down the Bellman's equation for action-value function:
 
@@ -59,7 +59,7 @@ SQIL performs SQL with three small but important, modifications:
 
 3. It balances the number of demonstration experiences and new experiences (50% each) in each sample from the replay buffer
 
-BC is a simple approach that seeks to imitate the expert’s actions using supervised learning – in particular, greedily maximizing the conditional likelihood of the demonstrated actions given the demonstrated states, without reasoning about the consequences of actions. 
+BC is a simple approach that seeks to imitate the expert’s actions using supervised learning – in particular, greedily maximizing the conditional likelihood of the demonstrated actions given the demonstrated states, without reasoning about the consequences of actions.
 Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a regularization term that incorporates information about the state transition dynamics into the imitation policy, and thus enables long-horizon imitation.
 
 Pseudo-code
@@ -83,7 +83,7 @@ The bellman updates of SQIL/SQL and the Q-value function updates are defined in 
 
     .. code-block:: python
 
-        
+
          def q_nstep_sql_td_error(
                data: namedtuple,
                gamma: float,
@@ -127,7 +127,7 @@ The bellman updates of SQIL/SQL and the Q-value function updates are defined in 
             q_s_a = q[batch_range, action]
             target_v = alpha * torch.log(torch.sum(torch.exp(next_n_q / alpha), 1))
             target_v[target_v == float("Inf")] = 20
-            target_v[target_v == float("-Inf")] = -20 
+            target_v[target_v == float("-Inf")] = -20
             # For an appropriate hyper-parameter alpha, these hardcodes can be removed.
             # However, algorithms may face the danger of explosion for other alphas.
             # The hardcodes above are to prevent this situation from happening
@@ -218,7 +218,6 @@ Regrading the demonstration data, we can leave these rewards as they were. For a
 
 Regrading its performance, we drew a table below to compare with DQN, SQL in lunarlander and pong environments
 
-.. table::
 +-------------+---------------------------------+-----------------------------------+------------------------------------+--------+
 | env / method| DQN                             |SQL                                | SQIL                               | alpha  |
 +=============+=================================+===================================+====================================+========+
@@ -227,19 +226,20 @@ Regrading its performance, we drew a table below to compare with DQN, SQL in lun
 +-------------+---------------------------------+-----------------------------------+------------------------------------+--------+
 | Pong        | 765848 / 482 / 80000 (both on)  | 2682144 / 1750 / 278250 (both on) | 2390608 / 1665 / 247700 (both on)  |  0.12  |
 +-------------+---------------------------------+-----------------------------------+------------------------------------+--------+
-Note: 
 
-| *The stopping values for Lunarlander and Pong are 200 and 20 respectively.
+.. note::
 
-| *both on：cuda = True； base env manger = subprocess
+ - The stopping values for Lunarlander and Pong are 200 and 20 respectively.
 
-| *both off：cuda = False； base env manager = base 
+ - both on：cuda = True； base env manger = subprocess
+
+ - both off：cuda = False； base env manager = base
 
 
 
 .. image:: images/pong.png
 
-The  above tensorboard diagram corresponds to the convergence of SQIL in the pong environment when alpha = 0.12, as shown in the above table.  
+The  above tensorboard diagram corresponds to the convergence of SQIL in the pong environment when alpha = 0.12, as shown in the above table.
 
 References
 -----------
