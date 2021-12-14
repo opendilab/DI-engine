@@ -116,7 +116,7 @@ def parallel_main():
         sync_count += 1
 
     task.on("sync_parallel_ctx", on_sync_parallel_ctx)
-    task.use(lambda _: time.sleep(0.01 + random.random() / 10))
+    task.use(lambda _: time.sleep(0.2 + random.random() / 10))
     task.run(max_step=10)
     assert sync_count > 0
 
@@ -132,7 +132,7 @@ def parallel_main_eager():
 
     task.on("sync_parallel_ctx", on_sync_parallel_ctx)
     for _ in range(10):
-        task.forward(lambda _: time.sleep(0.01 + random.random() / 10))
+        task.forward(lambda _: time.sleep(0.2 + random.random() / 10))
         task.renew()
     assert sync_count > 0
 
