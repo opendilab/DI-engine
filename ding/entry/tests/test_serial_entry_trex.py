@@ -34,6 +34,5 @@ def test_serial_pipeline_reward_model_trex():
     try:
         serial_pipeline_reward_model_trex(config, seed=0, max_iterations=1)
         os.popen('rm -rf {}'.format(config[0].reward_model.offline_data_path))
-        os.popen('rm -rf {}'.format(config[0].reward_model.expert_model_path))
     except Exception:
         assert False, "pipeline fail"
