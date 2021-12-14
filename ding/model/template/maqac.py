@@ -8,11 +8,11 @@ from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import RegressionHead, ReparameterizationHead, DiscreteHead
 
 
-@MODEL_REGISTRY.register('maqac')
-class MAQAC(nn.Module):
+@MODEL_REGISTRY.register('maqac_continuous')
+class ContinuousMAQAC(nn.Module):
     r"""
     Overview:
-        The QAC model.
+        The Continuous MAQAC model.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -53,7 +53,7 @@ class MAQAC(nn.Module):
             - norm_type (:obj:`Optional[str]`):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
         """
-        super(MAQAC, self).__init__()
+        super(ContinuousMAQAC, self).__init__()
         obs_shape: int = squeeze(agent_obs_shape)
         global_obs_shape: int = squeeze(global_obs_shape)
         action_shape = squeeze(action_shape)

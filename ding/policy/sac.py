@@ -86,6 +86,7 @@ class SACPolicy(Policy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 10000 in SAC.
         random_collect_size=10000,
+        multi_agent = False,
         model=dict(
             # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
@@ -545,7 +546,10 @@ class SACPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'maqac', ['ding.model.template.maqac']
+        if self._cfg.multi_agent:
+            return 'maqac_continuous', ['ding.model.template.maqac']
+        else:
+            return 'qac', ['ding.model.template.qac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""
