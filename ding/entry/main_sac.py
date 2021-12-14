@@ -159,7 +159,6 @@ class Pipeline:
                         )
                     )
                 ctx.train_iter += 1
-                ctx.model_weight = self.model.state_dict()
 
         return _learn
 
@@ -230,8 +229,33 @@ def sample_profiler(buffer, print_per_step=1):
     return _sample_profiler
 
 
-def main(cfg, model, seed=0):
-    with Task(async_mode=False) as task:
+class Reporter():
+
+    def __init__(self, task_name, async_mode, parallel_mode, seed):
+        # Calculate execution time
+        # Save statistics to report.txt
+        self.start = time.time()
+        self.task_name = task_name
+        self.async_mode = async_mode
+        self.parallel_mode = parallel_mode
+        self.seed = seed
+        self.train_iter = 0
+        self.collect_env_step = 0
+
+    def record(self):
+        duration = time.time() - self.start
+        template = "task:{},seed:{},async:{},parallel:{},train_iter:{},env_step:{},duration:{:.2f}"
+        with open("./tmp/report.txt", "a+") as f:
+            report = template.format(
+                self.task_name, self.seed, self.async_mode, self.parallel_mode, self.train_iter, self.collect_env_step,
+                self.duration
+            )
+            print(report)
+            f.write(report + "\n")
+
+
+def main(cfg, model, async_mode, seed=0):
+    with Task(async_mode=async_mode) as task:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
 
         collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
@@ -246,8 +270,7 @@ def main(cfg, model, seed=0):
         replay_buffer = DequeBuffer()
         sac = Pipeline(cfg, model)
 
-        # task.use_step_wrapper(StepTimer(print_per_step=1))
-        task.use(sample_profiler(replay_buffer, print_per_step=1), filter_labels=["node.0"])
+        task.use_step_wrapper(StepTimer(print_per_step=1))
         task.use(sac.evaluate(evaluator_env), filter_labels=["standalone", "node.0"])
         task.use(
             task.sequence(sac.act(collector_env), sac.collect(collector_env, replay_buffer, task=task)),
@@ -258,18 +281,29 @@ def main(cfg, model, seed=0):
             differential(task, model, replay_buffer, wait_n_sample=96, collect_before_wait=48),
             filter_labels=["distributed"]
         )
-        task.run(max_step=1000)
+        task.run(max_step=10000)
+        r.train_iter = task.ctx.train_iter
+        r.collect_env_step = task.ctx.collect_env_step
 
 
 if __name__ == "__main__":
     from ding.utils import Profiler
     Profiler().profile()
+
+    import os
+    task_name = "Pong/DQN"
+    async_mode = False
+    parallel_mode = False
+    seed = int(os.environ.get("SEED")) if os.environ.get("SEED") else 0
+
+    r = Reporter(task_name, async_mode, parallel_mode, seed)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
     model = DQN(**cfg.policy.model)
-    print(model.state_dict()['head.V.1.0.weight'][0][:10])
-    # main(cfg, model)
 
-    # Parallel
-    n_parallel_workers = 3
-    cfg["env"]["collector_env_num"] //= n_parallel_workers - 1
-    Parallel.runner(n_parallel_workers=n_parallel_workers, topology="star")(main, cfg, model)
+    if not parallel_mode:
+        main(cfg, model, async_mode, seed)
+    else:
+        n_parallel_workers = 3
+        cfg["env"]["collector_env_num"] //= n_parallel_workers - 1
+        Parallel.runner(n_parallel_workers=n_parallel_workers, topology="star")(main, cfg, model, async_mode, seed)
+    r.record()
