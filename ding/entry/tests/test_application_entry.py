@@ -65,6 +65,7 @@ class TestApplication:
 
     def test_collect_episodic_demo_data(self, setup_state_dict):
         config = deepcopy(cartpole_trex_ppo_offpolicy_config), deepcopy(cartpole_trex_ppo_offpolicy_create_config)
+        config[0].exp_name = 'cartpole_trex_offppo_episodic'
         collect_count = 16
         if not os.path.exists('./test_episode'):
             os.mkdir('./test_episode')
