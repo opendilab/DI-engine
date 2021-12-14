@@ -2,10 +2,18 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_td3_vae
 
 lunarlander_td3vae_config = dict(
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc11_upcv10',
-    exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc11_upcv20',
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc21_upcv40',
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc3_upcv4',
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc2_upcv4',  # worse
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc10_upcv20',  # worse
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc20_upcv40',  # TODO(pu)
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc30_upcv60',  # worse
+
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_mu_rvuc20_upcv40',  # TODO(pu)
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_mu_rvuc20_upcv150',  # TODO(pu) eval reward_mean -132.63不变
+
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_mu_rvuc20_upcr12_upcv40',  # TODO(pu)
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_z_rvuc20_upcr12_upcv40',  # TODO(pu)
+    exp_name='lunarlander_cont_td3_vae_lad6_wu1000_z_rvuc20_upcr12_upcv40_noisefalse',  # TODO(pu)
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_z_rvuc20_upcr12_upcv150',  # TODO(pu)
 
     env=dict(
         env_id='LunarLanderContinuous-v2',
@@ -21,8 +29,8 @@ lunarlander_td3vae_config = dict(
     policy=dict(
         cuda=False,
         priority=False,
-        # random_collect_size=1280,
-        random_collect_size=0,
+        random_collect_size=12800,
+        # random_collect_size=0,
         original_action_shape=2,
         model=dict(
             obs_shape=8,
@@ -31,12 +39,15 @@ lunarlander_td3vae_config = dict(
             actor_head_type='regression',
         ),
         learn=dict(
-            warm_up_update=0,
-            # warm_up_update=100,
-            rl_vae_update_circle=11,  # train rl 10 iter, vae 1 iter
+            # warm_up_update=0,
+            warm_up_update=1000,
             # vae_train_times_per_update=1,  # TODO(pu)
-            update_per_collect_rl=2,
-            update_per_collect_vae=20,
+
+            rl_vae_update_circle=20,  # train rl 20 iter, vae 1 iter
+            # update_per_collect_rl=2,
+            update_per_collect_rl=12,
+            update_per_collect_vae=40,
+            # update_per_collect_vae=150,
 
             batch_size=128,
             learning_rate_actor=3e-4,
@@ -44,7 +55,8 @@ lunarlander_td3vae_config = dict(
             learning_rate_vae=3e-4,
             ignore_done=False,  # TODO(pu)
             actor_update_freq=2,
-            noise=True,
+            # noise=True,
+            noise=False,  # TODO(pu)
             noise_sigma=0.1,
             noise_range=dict(
                 min=-0.5,
