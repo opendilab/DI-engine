@@ -583,7 +583,7 @@ class SACPolicy(Policy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 10000 in SAC.
         random_collect_size=10000,
-        multi_agent = False,
+        multi_agent=False,
         model=dict(
             # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .

@@ -5,8 +5,11 @@ import os
 
 
 class CoupledHalfCheetah(mujoco_env.MujocoEnv, utils.EzPickle):
+
     def __init__(self, **kwargs):
-        mujoco_env.MujocoEnv.__init__(self, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'coupled_half_cheetah.xml'), 5)
+        mujoco_env.MujocoEnv.__init__(
+            self, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'coupled_half_cheetah.xml'), 5
+        )
         utils.EzPickle.__init__(self)
 
     def step(self, action):
@@ -14,16 +17,17 @@ class CoupledHalfCheetah(mujoco_env.MujocoEnv, utils.EzPickle):
         xposbefore2 = self.sim.data.qpos[len(self.sim.data.qpos) // 2]
         self.do_simulation(action, self.frame_skip)
         xposafter1 = self.sim.data.qpos[0]
-        xposafter2 = self.sim.data.qpos[len(self.sim.data.qpos)//2]
+        xposafter2 = self.sim.data.qpos[len(self.sim.data.qpos) // 2]
         ob = self._get_obs()
-        reward_ctrl1 = - 0.1 * np.square(action[0:len(action)//2]).sum()
-        reward_ctrl2 = - 0.1 * np.square(action[len(action)//2:]).sum()
-        reward_run1 = (xposafter1 - xposbefore1)/self.dt
+        reward_ctrl1 = -0.1 * np.square(action[0:len(action) // 2]).sum()
+        reward_ctrl2 = -0.1 * np.square(action[len(action) // 2:]).sum()
+        reward_run1 = (xposafter1 - xposbefore1) / self.dt
         reward_run2 = (xposafter2 - xposbefore2) / self.dt
-        reward = (reward_ctrl1 + reward_ctrl2)/2.0 + (reward_run1 + reward_run2)/2.0
+        reward = (reward_ctrl1 + reward_ctrl2) / 2.0 + (reward_run1 + reward_run2) / 2.0
         done = False
-        return ob, reward, done, dict(reward_run1=reward_run1, reward_ctrl1=reward_ctrl1,
-                                      reward_run2=reward_run2, reward_ctrl2=reward_ctrl2)
+        return ob, reward, done, dict(
+            reward_run1=reward_run1, reward_ctrl1=reward_ctrl1, reward_run2=reward_run2, reward_ctrl2=reward_ctrl2
+        )
 
     def _get_obs(self):
         return np.concatenate([

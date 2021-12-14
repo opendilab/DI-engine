@@ -8,6 +8,7 @@ from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, MultiHead, \
     FCEncoder, ConvEncoder
 
+
 @MODEL_REGISTRY.register('maqac')
 class MAQAC(nn.Module):
     r"""
@@ -211,6 +212,7 @@ class MAQAC(nn.Module):
         else:
             x = self.critic(inputs['obs']['global_state'])['logit']
         return {'q_value': x}
+
 
 @MODEL_REGISTRY.register('maqac_continuous')
 class ContinuousMAQAC(nn.Module):

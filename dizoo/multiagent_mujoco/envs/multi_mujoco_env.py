@@ -9,6 +9,7 @@ from ding.torch_utils import to_ndarray, to_list
 from .mujoco_multi import MujocoMulti
 from ding.utils import ENV_REGISTRY
 
+
 @ENV_REGISTRY.register('mujoco_multi')
 class MujocoEnv(BaseEnv):
 
@@ -53,13 +54,13 @@ class MujocoEnv(BaseEnv):
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
-        env_info=self._env.get_env_info()
+        env_info = self._env.get_env_info()
         info = BaseEnvInfo(
             agent_num=env_info['n_agents'],
             obs_space=EnvElementInfo(
                 shape={
-                    'agent_state':env_info['obs_shape'],
-                    'global_state':env_info['state_shape'],
+                    'agent_state': env_info['obs_shape'],
+                    'global_state': env_info['state_shape'],
                 },
                 value={
                     'min': np.float64("-inf"),
@@ -83,7 +84,7 @@ class MujocoEnv(BaseEnv):
                 },
             ),
             use_wrappers=None,
-        ),        
+        ),
         return info
 
     def __repr__(self) -> str:

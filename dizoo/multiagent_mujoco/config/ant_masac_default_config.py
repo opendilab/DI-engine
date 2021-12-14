@@ -1,13 +1,13 @@
 from easydict import EasyDict
 from ding.entry.serial_entry import serial_pipeline
 ant_sac_default_config = dict(
-    exp_name='ma_ant_t2',
+    exp_name='multi_mujoco_ant_2x4',
     env=dict(
         scenario='Ant-v2',
-        agent_conf= "2x4d",
-        agent_obsk= 2,
+        agent_conf="2x4d",
+        agent_obsk=2,
         add_agent_id=False,
-        episode_limit= 1000,
+        episode_limit=1000,
         collector_env_num=1,
         evaluator_env_num=8,
         n_evaluator_episode=8,
