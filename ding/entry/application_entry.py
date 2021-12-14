@@ -231,7 +231,7 @@ def collect_episodic_demo_data(
     print('Collect episodic demo data successfully')
 
 
-def epsiode_to_transitions(data_path: str, expert_data_path: str, nstep: int) -> None:
+def episode_to_transitions(data_path: str, expert_data_path: str, nstep: int) -> None:
     r"""
     Overview:
         Transfer episoded data into nstep transitions

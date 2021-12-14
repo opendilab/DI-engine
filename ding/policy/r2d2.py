@@ -229,10 +229,10 @@ class R2D2Policy(Policy):
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
             # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
 
-        data['action'] = data['action'][burnin_step:-self._nstep
-                                        ]  # cut the seq_len from burn_in step to (seq_len - nstep) step
-        data['reward'] = data['reward'][burnin_step:-self._nstep
-                                        ]  # cut the seq_len from burn_in step to (seq_len - nstep) step
+        # cut the seq_len from burn_in step to (seq_len - nstep) step
+        data['action'] = data['action'][burnin_step:-self._nstep]
+        # cut the seq_len from burn_in step to (seq_len - nstep) step
+        data['reward'] = data['reward'][burnin_step:-self._nstep]
 
         # the burnin_nstep_obs is used to calculate the init hidden state of rnn for the calculation of the q_value,
         # target_q_value, and target_q_action

@@ -25,6 +25,9 @@ cartpole_ppo_config = dict(
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
+            learner=dict(
+                hook=dict(save_ckpt_after_iter=100)
+            ),
         ),
         collect=dict(
             n_sample=256,

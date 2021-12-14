@@ -55,7 +55,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         cfg.policy.other.replay_buffer.value, tb_logger, exp_name=cfg.exp_name, instance_name='value_buffer'
     )
 
-    while True:
+    for _ in range(max_iterations):
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
