@@ -34,6 +34,7 @@ cartpole_ppo_offpolicy_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
+        eval=dict(evaluator=dict(eval_freq=40, )),
         other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )
