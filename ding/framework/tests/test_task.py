@@ -211,14 +211,14 @@ def test_label():
 
 def sync_parallel_ctx_main():
     with Task() as task:
-        task.use(lambda _: time.sleep(0.1))
+        task.use(lambda _: time.sleep(1))
         if task.router.node_id == 0:  # Fast
             task.run(max_step=2)
         else:  # Slow
-            task.run(max_step=20)
+            task.run(max_step=10)
     assert task.parallel_ctx
     assert task.ctx.finish
-    assert task.ctx.total_step < 10
+    assert task.ctx.total_step < 9
 
 
 @pytest.mark.unittest
