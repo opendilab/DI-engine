@@ -2,18 +2,8 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_td3_vae
 
 lunarlander_td3vae_config = dict(
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc2_upcv4',  # worse
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc10_upcv20',  # worse
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc20_upcv40',  # TODO(pu)
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu0_rvuc30_upcv60',  # worse
-
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_mu_rvuc20_upcv40',  # TODO(pu)
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_mu_rvuc20_upcv150',  # TODO(pu) eval reward_mean -132.63不变
-
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_mu_rvuc20_upcr12_upcv40',  # TODO(pu)
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_z_rvuc20_upcr12_upcv40',  # TODO(pu)
-    exp_name='lunarlander_cont_td3_vae_lad6_wu1000_z_rvuc20_upcr12_upcv40_noisefalse',  # TODO(pu)
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_z_rvuc20_upcr12_upcv150',  # TODO(pu)
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_zrelabel_rvuc10_upcr20_upcv100_noisefalse_rbs1e5',  # TODO(pu)
+    exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_rvuc10_upcr20_upcv100_noisefalse_rbs1e5',  # TODO(pu)
 
     env=dict(
         env_id='LunarLanderContinuous-v2',
@@ -43,12 +33,10 @@ lunarlander_td3vae_config = dict(
             warm_up_update=1000,
             # vae_train_times_per_update=1,  # TODO(pu)
 
-            rl_vae_update_circle=20,  # train rl 20 iter, vae 1 iter
-            # update_per_collect_rl=2,
-            update_per_collect_rl=12,
-            update_per_collect_vae=40,
-            # update_per_collect_vae=150,
+            rl_vae_update_circle=10,  # train rl 10 iter, vae 1 iter
 
+            update_per_collect_rl=20,
+            update_per_collect_vae=100,  # each mini-batch: replay_buffer_recent sample 128, replay_buffer sample 128
             batch_size=128,
             learning_rate_actor=3e-4,
             learning_rate_critic=3e-4,
@@ -65,13 +53,15 @@ lunarlander_td3vae_config = dict(
         ),
         collect=dict(
             # n_sample=48,
-            # each_iter_n_sample=128,
-            each_iter_n_sample=256,
+            # each_iter_n_sample=256,
+            each_iter_n_sample=1280,
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(replay_buffer_size=20000, ), ),
+        # other=dict(replay_buffer=dict(replay_buffer_size=20000, ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=int(1e5), ), ),
+
     ),
 )
 lunarlander_td3vae_config = EasyDict(lunarlander_td3vae_config)
