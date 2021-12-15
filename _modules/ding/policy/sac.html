@@ -749,6 +749,7 @@
         <span class="c1"># (int) Number of training samples(randomly collected) in replay buffer when training starts.</span>
         <span class="c1"># Default 10000 in SAC.</span>
         <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.</span>
             <span class="c1"># Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .</span>
@@ -1208,7 +1209,10 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">d</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data_id</span><span class="p">,</span> <span class="n">output</span><span class="p">)}</span>
 
     <span class="k">def</span> <span class="nf">default_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-        <span class="k">return</span> <span class="s1">&#39;qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">multi_agent</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;maqac_continuous&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.maqac&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
