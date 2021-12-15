@@ -1,4 +1,5 @@
 import copy
+import sys
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple, Union, Optional
 
@@ -18,6 +19,11 @@ from ding.utils import MODEL_REGISTRY
 
 @MODEL_REGISTRY.register('gtrxl_discrete')
 class GTrXLDiscreteHead(nn.Module):
+    """
+    Overview:
+        Add a discrete head on top of the GTrXL module
+    """
+    # TODO put this model in a separate file, for now for convenience we leave it here
     def __init__(
         self,
         obs_shape: int,
@@ -31,9 +37,29 @@ class GTrXLDiscreteHead(nn.Module):
         memory_len: int = 64,
         activation: Optional[nn.Module] = nn.ReLU(),
         head_norm_type: Optional[str] = None,
-        head_noise: Optional[bool] = False,
+        head_noise: Optional[str] = False,
         dropout: float = 0.,
     ) -> None:
+        r"""
+        Overview:
+            Init the model according to arguments.
+        Arguments:
+            - obs_shape (:obj:`int`): Used by Transformer
+            - action_shape (:obj:`int`): Used by Head
+            - head_layer_num (:obj:`int`): Used by Head
+            - att_head_dim (:obj:`int`): Used by Transformer
+            - embedding_dim (:obj:`int`): Used by Transformer and Head
+            - att_head_num (:obj:`int`): Used by Transformer
+            - att_mlp_num (:obj:`int`): Used by Transformer
+            - att_layer_num (:obj:`int`): Used by Transformer
+            - action_shape (:obj:`int`): Used by Head
+            - head_layer_num (:obj:`int`): Used by Head
+            - memory_len (:obj:`int`): Used by Transformer
+            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head
+            - head_norm_type (:obj:`Optional[str]`): Used by Head
+            - head_noise (:obj:`Optional[str]`): Used by Head
+            - dropout (:obj:`bool`): Used by Transformer
+        """
         super(GTrXLDiscreteHead, self).__init__()
         self.core = GTrXL(
             input_dim=obs_shape,
@@ -56,14 +82,34 @@ class GTrXLDiscreteHead(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            Let input tensor go through GTrXl and the Head sequentially.
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor of shape (seq_len, bs, obs_shape).
+        Returns:
+            - out (:obj:`Dict`): run ``GTrXL`` with ``DiscreteHead`` setups and return the result prediction dictionary.
+            Necessary Keys:
+                - logit (:obj:`torch.Tensor`): output tensor of Head with same size as input ``x``.
+                - memory (:obj:`torch.Tensor`):
+                memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``
+                - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.
+        """
         o1 = self.core(x)
-        o2 = self.head(o1['logit'])
-        o2['memory'] = torch.permute(o1['memory'], (2, 0, 1, 3))  # bs x layer_num+1 x memory_len, embedding_dim
-        o2['transformer_out'] = o1['logit']
-        return o2
+        out = self.head(o1['logit'])  # DEBUG: change gtrxl with a simple mlp layer and ignore memory
+        # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim
+        out['memory'] = torch.permute(o1['memory'], (2, 0, 1, 3)).contiguous()
+        out['transformer_out'] = o1['logit']  # output of gtrxl
+        return out
 
     def reset(self, state: Optional[torch.Tensor] = None):
-        print('gtrxl+head reset')
+        """
+        Overview:
+            Reset or initialize the internal memory of GTrXL.
+        Arguments:
+            - state (:obj:`Optional[torch.Tensor]`): input memory.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
+        """
         self.core.reset(state=state)
 
 
@@ -134,7 +180,7 @@ class R2D2GTrXLPolicy(Policy):
         discount_factor=0.997,
         # (int) N-step reward for target q_value estimation
         nstep=5,
-        # (int) the trajectory length to unroll the RNN network
+        # (int) trajectory length
         unroll_len=20,
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -176,7 +222,7 @@ class R2D2GTrXLPolicy(Policy):
     def _init_learn(self) -> None:
         r"""
         Overview:
-            Init the learner model of R2D2Policy
+            Init the learner model of GTrXLR2D2Policy
 
         Arguments:
             .. note::
@@ -233,6 +279,7 @@ class R2D2GTrXLPolicy(Policy):
         prev_mem = [b.pop('prev_memory')[0] for b in deepcopy(data)]  # retrieve the memory corresponding to the first observation in each trajectory
         prev_mem = torch.stack(prev_mem, 0).permute(1, 2, 0, 3)  # (layer_num, memory_len, bs, embedding_dim)
         data = timestep_collate(data)  # each sequence should be divided into segments
+        # TODO n-step and memory
         data['prev_memory'] = prev_mem
         if self._cuda:
             data = to_device(data, self._device)
