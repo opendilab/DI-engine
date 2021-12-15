@@ -378,8 +378,8 @@ class TD3VAEPolicy(DDPGPolicy):
                 result = self._vae_model(
                     {'action': data['action'],
                      'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
-                # data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
-                data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
+                data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
+                # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
 
                 if self._reward_batch_norm:
                     reward = (reward - reward.mean()) / (reward.std() + 1e-8)
