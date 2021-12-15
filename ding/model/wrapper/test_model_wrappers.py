@@ -218,15 +218,19 @@ class TestModelWrappers:
         model = model_wrap(model, wrapper_name='transformer', seq_len=seq_len)
         model.reset()
         obs = []
-        for i in range(seq_len):
+        for i in range(seq_len + 1):
             obs.append(torch.randn((bs, obs_shape)))
         out = model.forward(obs[0], only_last_logit=False)
         assert out['logit'].shape == (seq_len, bs, emb_dim)
         assert out['input_seq'].shape == (seq_len, bs, obs_shape)
         assert sum(out['input_seq'][1:].flatten()) == 0
-        for i in range(1, seq_len-1):
+        for i in range(1, seq_len - 1):
             out = model.forward(obs[i])
         assert out['logit'].shape == (bs, emb_dim)
         assert out['input_seq'].shape == (seq_len, bs, obs_shape)
-        assert sum(out['input_seq'][seq_len-1:].flatten()) == 0
-        assert sum(out['input_seq'][:seq_len-1].flatten()) != 0
+        assert sum(out['input_seq'][seq_len - 1:].flatten()) == 0
+        assert sum(out['input_seq'][:seq_len - 1].flatten()) != 0
+        out = model.forward(obs[seq_len - 1])
+        prev_memory = out['input_seq']
+        out = model.forward(obs[seq_len])
+        assert torch.all(torch.eq(out['input_seq'][seq_len - 2], prev_memory[seq_len - 1]))
