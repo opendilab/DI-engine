@@ -444,9 +444,6 @@ class ContinuousMAQAC(nn.Module):
         """
 
         obs, action = inputs['obs']['global_state'], inputs['action']
-        #print(obs)
-        #print(action)
-        #assert len(obs.shape) == 2
         if len(action.shape) == 1:  # (B, ) -> (B, 1)
             action = action.unsqueeze(1)
         x = torch.cat([obs, action], dim=-1)
