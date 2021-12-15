@@ -3,6 +3,8 @@ import sys
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple, Union, Optional
 
+import torch
+
 from ding.model import model_wrap
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
@@ -81,6 +83,19 @@ class GTrXLDiscreteHead(nn.Module):
             noise=head_noise
         )
 
+        self.core2 = nn.Sequential(
+            MLP(
+                obs_shape,
+                embedding_dim,
+                embedding_dim,
+                att_layer_num,
+                layer_fn=nn.Linear,
+                activation=activation,
+                norm_type=head_norm_type
+            )
+        )
+        self.embedding_dim = embedding_dim
+
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
@@ -98,8 +113,21 @@ class GTrXLDiscreteHead(nn.Module):
         o1 = self.core(x)
         out = self.head(o1['logit'])  # DEBUG: change gtrxl with a simple mlp layer and ignore memory
         # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim
-        out['memory'] = torch.permute(o1['memory'], (2, 0, 1, 3)).contiguous()
+        out['memory'] = o1['memory'].permute((2, 0, 1, 3)).contiguous()
         out['transformer_out'] = o1['logit']  # output of gtrxl
+        #print(out['logit'].shape)
+
+        # simple RNN without memory
+        '''a, b = x.shape[0], x.shape[1]
+        logit = []
+        for i in range(x.shape[0]):
+            o1 = self.core2(x[i])
+            out = self.head(o1)
+            logit.append(out['logit'])
+        out['memory'] = torch.zeros(b, 3, 5, self.embedding_dim)
+        logit = torch.stack(logit, 0)
+        out['logit'] = logit'''
+
         return out
 
     def reset(self, state: Optional[torch.Tensor] = None):
@@ -402,7 +430,7 @@ class R2D2GTrXLPolicy(Policy):
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),
         }
-        print(ret)
+        #print(ret)
 
         return ret
 
@@ -455,6 +483,7 @@ class R2D2GTrXLPolicy(Policy):
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, eps=eps)
+        del output['input_seq']
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

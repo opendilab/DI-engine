@@ -1,13 +1,13 @@
 from easydict import EasyDict
 
-collector_env_num = 1
-evaluator_env_num = 1
+collector_env_num = 8
+evaluator_env_num = 5
 cartpole_r2d2_gtrxl_config = dict(
     exp_name='cartpole_r2d2_gtrxl',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=1,
+        n_evaluator_episode=5,
         stop_value=195,
     ),
     policy=dict(
@@ -18,12 +18,12 @@ cartpole_r2d2_gtrxl_config = dict(
             obs_shape=4,
             action_shape=2,
             memory_len=5,
-            embedding_dim=16
+            embedding_dim=128,
         ),
         discount_factor=0.997,
         nstep=2,
-        unroll_len=10,  # trajectory len
-        seq_len=10,  # transformer input sequence length (not used yet)
+        unroll_len=12,  # trajectory len
+        seq_len=5,  # transformer input sequence length (not used yet)
         learn=dict(
             update_per_collect=8,
             batch_size=64,
