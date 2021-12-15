@@ -7,7 +7,7 @@ import pathlib as pl
 import os
 import shutil
 
-from ding.utils.profiler_helper import Profiler, regist_profiler
+from ding.utils.profiler_helper import Profiler, register_profiler
 
 
 @pytest.mark.unittest
@@ -30,7 +30,7 @@ class TestProfilerModule:
         dir = "./tmp_test/"
         clean_up(dir)
 
-        with patch('ding.utils.profiler_helper.regist_profiler', register_mock):
+        with patch('ding.utils.profiler_helper.register_profiler', register_mock):
             profiler.profile(dir)
             file_path = os.path.join(dir, "profile_tottime.txt")
             self.assertIsFile(file_path)

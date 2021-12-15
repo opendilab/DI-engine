@@ -5,7 +5,7 @@ import cProfile
 import os
 
 
-def regist_profiler(write_profile, pr, folder_path):
+def register_profiler(write_profile, pr, folder_path):
     atexit.register(write_profile, pr, folder_path)
 
 
@@ -38,4 +38,4 @@ class Profiler:
     def profile(self, folder_path="./tmp"):
         self.mkdir(folder_path)
         self.pr.enable()
-        regist_profiler(self.write_profile, self.pr, folder_path)
+        register_profiler(self.write_profile, self.pr, folder_path)

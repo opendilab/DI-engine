@@ -14,19 +14,19 @@ pong_dqn_config = dict(
         manager=dict(shared_memory=False, )
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
-        nstep=1,
+        nstep=3,
         discount_factor=0.99,
         learn=dict(
             update_per_collect=10,
             batch_size=32,
-            learning_rate=0.01,
+            learning_rate=0.0001,
             target_update_freq=500,
         ),
         collect=dict(n_sample=96, ),

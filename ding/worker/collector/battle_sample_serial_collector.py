@@ -60,7 +60,6 @@ class BattleSampleSerialCollector(ISerialCollector):
                 path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
             )
         self._traj_len = float("inf")
-        self._launched = False
         self.reset(policy, env)
 
     def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
@@ -76,6 +75,7 @@ class BattleSampleSerialCollector(ISerialCollector):
         """
         if _env is not None:
             self._env = _env
+            self._env.launch()
             self._env_num = self._env.env_num
         else:
             self._env.reset()
@@ -214,9 +214,6 @@ class BattleSampleSerialCollector(ISerialCollector):
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """
-        if not self._launched:
-            self._env.launch()
-            self._launched = True
         if n_sample is None:
             if self._default_n_sample is None:
                 raise RuntimeError("Please specify collect n_sample")
