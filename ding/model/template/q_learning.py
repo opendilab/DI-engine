@@ -686,17 +686,13 @@ class DRQN(nn.Module):
         if inference:
             x = self.encoder(x)
             if self.res_link:
-                a = x.clone()
-                x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
-                # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
-                x, next_state = self.rnn(x, prev_state)
-                x = x.squeeze(0)  # to delete the seq_len dim to match head network input
+                a = x
+            x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
+            # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
+            x, next_state = self.rnn(x, prev_state)
+            x = x.squeeze(0)  # to delete the seq_len dim to match head network input
+            if self.res_link:
                 x = x + a
-            else:
-                x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
-                # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
-                x, next_state = self.rnn(x, prev_state)
-                x = x.squeeze(0)  # to delete the seq_len dim to match head network input
             x = self.head(x)
             x['next_state'] = next_state
             return x
@@ -704,37 +700,23 @@ class DRQN(nn.Module):
             assert len(x.shape) in [3, 5], x.shape
             x = parallel_wrapper(self.encoder)(x)  # (T, B, N)
             if self.res_link:
-                a = x.clone()  # TODO delete deepcopy
-                lstm_embedding = []
-                # TODO(nyz) how to deal with hidden_size key-value
-                hidden_state_list = []
-                if saved_hidden_state_timesteps is not None:
-                    saved_hidden_state = []
-                for t in range(x.shape[0]):  # T timesteps
-                    output, prev_state = self.rnn(x[t:t + 1], prev_state)  # output: (1,B, head_hidden_size)
-                    if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
-                        saved_hidden_state.append(prev_state)
-                    lstm_embedding.append(output)
-                    hidden_state = list(zip(*prev_state))  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
-                    # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
-                    hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
-                x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
+                a = x
+            lstm_embedding = []
+            # TODO(nyz) how to deal with hidden_size key-value
+            hidden_state_list = []
+            if saved_hidden_state_timesteps is not None:
+                saved_hidden_state = []
+            for t in range(x.shape[0]):  # T timesteps
+                output, prev_state = self.rnn(x[t:t + 1], prev_state)  # output: (1,B, head_hidden_size)
+                if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
+                    saved_hidden_state.append(prev_state)
+                lstm_embedding.append(output)
+                hidden_state = list(zip(*prev_state))  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
+                # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
+                hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
+            x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
+            if self.res_link:
                 x = x + a
-            else:
-                lstm_embedding = []
-                # TODO(nyz) how to deal with hidden_size key-value
-                hidden_state_list = []
-                if saved_hidden_state_timesteps is not None:
-                    saved_hidden_state = []
-                for t in range(x.shape[0]):  # T timesteps
-                    output, prev_state = self.rnn(x[t:t + 1], prev_state)  # output: (1,B, head_hidden_size)
-                    if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
-                        saved_hidden_state.append(prev_state)
-                    lstm_embedding.append(output)
-                    hidden_state = list(zip(*prev_state))  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
-                    # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
-                    hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
-                x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
             # the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
             x['next_state'] = prev_state
