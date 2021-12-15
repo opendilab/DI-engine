@@ -369,6 +369,18 @@ class TD3VAEPolicy(DDPGPolicy):
                 self._target_model.train()
                 next_obs = data['next_obs']
                 reward = data['reward']
+
+                # ====================
+                # relabel latent action
+                # ====================
+                if self._cuda:
+                    data = to_device(data, self._device)
+                result = self._vae_model(
+                    {'action': data['action'],
+                     'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
+                # data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
+                data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
+
                 if self._reward_batch_norm:
                     reward = (reward - reward.mean()) / (reward.std() + 1e-8)
 
