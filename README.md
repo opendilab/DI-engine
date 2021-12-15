@@ -35,11 +35,7 @@ Updated on 2021.12.03 DI-engine-v0.2.2 (beta)
 
 
 ## Introduction to DI-engine (beta)
-<<<<<<< HEAD
-[DI-engine doc](https://opendilab.github.io/DI-engine/) | [中文文档](https://di-engine-docs.readthedocs.io/en/main-zh/)
-=======
 [DI-engine doc](https://opendilab.github.io/DI-engine/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
->>>>>>> aa6124430099b1b95398558019823fae1f7b2d9d
 
 **DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://opendilab.github.io/DI-engine/intro_rl/basic_en.html) algorithms** ([link](https://github.com/opendilab/DI-engine#algorithm-versatility)):
 
@@ -93,11 +89,7 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 - mujoco: opendilab/ding:nightly-mujoco
 - smac: opendilab/ding:nightly-smac
 
-<<<<<<< HEAD
-The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-engine/) | [中文文档](https://di-engine-docs.readthedocs.io/en/main-zh/).
-=======
 The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-engine/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
->>>>>>> aa6124430099b1b95398558019823fae1f7b2d9d
 
 ## Quick Start
 
