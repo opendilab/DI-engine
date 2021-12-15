@@ -404,7 +404,6 @@ class ContinuousMAQAC(nn.Module):
             >>> torch.Size([4, 64])
         """
         inputs = inputs['agent_state']
-        #print(inputs)
         if self.actor_head_type == 'regression':
             x = self.actor(inputs)
             return {'action': x['pred']}
