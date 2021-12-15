@@ -108,8 +108,7 @@ class MAQAC(nn.Module):
             - outputs (:obj:`Dict`): Outputs of network forward.
                 Forward with ``'compute_actor'``, Necessary Keys (either):
                     - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.
-                    - logit (:obj:`torch.Tensor`):
-                        Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.
+                    - logit (:obj:`torch.Tensor`): Action's probabilities.
                 Forward with ``'compute_critic'``, Necessary Keys:
                     - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
         Actor Shapes:
@@ -117,28 +116,8 @@ class MAQAC(nn.Module):
             - action (:obj:`torch.Tensor`): :math:`(B, N0)`
             - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
         Critic Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``
-        Actor Examples:
-            >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
-            >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> actor_outputs['logit'][0].shape # mu
-            >>> torch.Size([4, 64])
-            >>> actor_outputs['logit'][1].shape # sigma
-            >>> torch.Size([4, 64])
-        Critic Examples:
-            >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
-            >>> model(inputs, mode='compute_critic')['q_value'] # q value
-            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
+            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``global_obs_shape``
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
@@ -265,7 +244,7 @@ class ContinuousMAQAC(nn.Module):
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
         self.actor_head_type = actor_head_type
-        assert self.actor_head_type in ['regression', 'reparameterization', 'hybrid']
+        assert self.actor_head_type in ['regression', 'reparameterization']
         if self.actor_head_type == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
@@ -278,7 +257,7 @@ class ContinuousMAQAC(nn.Module):
                     norm_type=norm_type
                 )
             )
-        elif self.actor_head_type == 'reparameterization':  # SAC
+        else:  # SAC
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 ReparameterizationHead(
@@ -290,38 +269,8 @@ class ContinuousMAQAC(nn.Module):
                     norm_type=norm_type
                 )
             )
-        elif self.actor_head_type == 'hybrid':  # PADDPG
-            # hybrid action space: action_type(discrete) + action_args(continuous),
-            # such as {'action_type_shape': torch.LongTensor([0]), 'action_args_shape': torch.FloatTensor([0.1, -0.27])}
-            action_shape.action_args_shape = squeeze(action_shape.action_args_shape)
-            action_shape.action_type_shape = squeeze(action_shape.action_type_shape)
-            actor_action_args = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
-                RegressionHead(
-                    actor_head_hidden_size,
-                    action_shape.action_args_shape,
-                    actor_head_layer_num,
-                    final_tanh=True,
-                    activation=activation,
-                    norm_type=norm_type
-                )
-            )
-            actor_action_type = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
-                DiscreteHead(
-                    actor_head_hidden_size,
-                    action_shape.action_type_shape,
-                    actor_head_layer_num,
-                    activation=activation,
-                    norm_type=norm_type,
-                )
-            )
-            self.actor = nn.ModuleList([actor_action_type, actor_action_args])
         self.twin_critic = twin_critic
-        if self.actor_head_type == 'hybrid':
-            critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
-        else:
-            critic_input_size = global_obs_shape + action_shape
+        critic_input_size = global_obs_shape + action_shape
         if self.twin_critic:
             self.critic = nn.ModuleList()
             for _ in range(2):
@@ -459,13 +408,9 @@ class ContinuousMAQAC(nn.Module):
         if self.actor_head_type == 'regression':
             x = self.actor(inputs)
             return {'action': x['pred']}
-        elif self.actor_head_type == 'reparameterization':
+        else:
             x = self.actor(inputs)
             return {'logit': [x['mu'], x['sigma']]}
-        elif self.actor_head_type == 'hybrid':
-            logit = self.actor[0](inputs)
-            action_args = self.actor[1](inputs)
-            return {'logit': logit['logit'], 'action_args': action_args['pred']}
 
     def compute_critic(self, inputs: Dict) -> Dict:
         r"""
@@ -502,17 +447,9 @@ class ContinuousMAQAC(nn.Module):
         #print(obs)
         #print(action)
         #assert len(obs.shape) == 2
-        if self.actor_head_type == 'hybrid':
-            action_type_logit = inputs['logit']
-            action_type_logit = torch.softmax(action_type_logit, dim=-1)
-            action_args = action['action_args']
-            if len(action_args.shape) == 1:
-                action_args = action_args.unsqueeze(1)
-            x = torch.cat([obs, action_type_logit, action_args], dim=1)
-        else:
-            if len(action.shape) == 1:  # (B, ) -> (B, 1)
-                action = action.unsqueeze(1)
-            x = torch.cat([obs, action], dim=-1)
+        if len(action.shape) == 1:  # (B, ) -> (B, 1)
+            action = action.unsqueeze(1)
+        x = torch.cat([obs, action], dim=-1)
         if self.twin_critic:
             x = [m(x)['pred'] for m in self.critic]
         else:

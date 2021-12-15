@@ -63,16 +63,16 @@ class MujocoEnv(BaseEnv):
                     'global_state': env_info['state_shape'],
                 },
                 value={
-                    'min': np.float64("-inf"),
-                    'max': np.float64("inf"),
+                    'min': np.float32("-inf"),
+                    'max': np.float32("inf"),
                     'dtype': np.float32
                 },
             ),
             act_space=EnvElementInfo(
                 shape=env_info['action_spaces'],
                 value={
-                    'min': np.float64("-inf"),
-                    'max': np.float64("inf"),
+                    'min': np.float32("-inf"),
+                    'max': np.float32("inf"),
                     'dtype': np.float32
                 },
             ),
@@ -88,4 +88,4 @@ class MujocoEnv(BaseEnv):
         return info
 
     def __repr__(self) -> str:
-        return "DI-engine Mujoco Env({})".format(self._cfg.env_id)
+        return "DI-engine Multi-agent Mujoco Env({})".format(self._cfg.env_id)
