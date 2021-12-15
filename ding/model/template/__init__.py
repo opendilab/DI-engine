@@ -15,5 +15,5 @@ from .qtran import QTran
 from .mavac import MAVAC
 from .ngu import NGU
 from .qac_dist import QACDIST
-from .maqac import MAQAC
+from .maqac import MAQAC, ContinuousMAQAC
 from .model_based import EnsembleDynamicsModel

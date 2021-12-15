@@ -197,6 +197,26 @@ def test_v_1step_td():
 
 
 @pytest.mark.unittest
+def test_v_1step_multi_agent_td():
+    batch_size = 5
+    agent_num = 2
+    v = torch.randn(batch_size, agent_num).requires_grad_(True)
+    next_v = torch.randn(batch_size, agent_num)
+    reward = torch.rand(batch_size)
+    done = torch.zeros(batch_size)
+    data = v_1step_td_data(v, next_v, reward, done, None)
+    loss, td_error_per_sample = v_1step_td_error(data, 0.99)
+    assert loss.shape == ()
+    assert v.grad is None
+    loss.backward()
+    assert isinstance(v.grad, torch.Tensor)
+    data = v_1step_td_data(v, next_v, reward, None, None)
+    loss, td_error_per_sample = v_1step_td_error(data, 0.99)
+    loss.backward()
+    assert isinstance(v.grad, torch.Tensor)
+
+
+@pytest.mark.unittest
 def test_v_nstep_td():
     batch_size = 5
     v = torch.randn(batch_size).requires_grad_(True)
