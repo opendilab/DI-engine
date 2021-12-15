@@ -678,11 +678,14 @@ class DRQN(nn.Module):
         """
 
         x, prev_state = inputs['obs'], inputs['prev_state']
+        # for both inference and other cases, the network structure is encoder -> rnn network -> head
+        # the difference is inference take the data with seq_len=1 (or T = 1)
         if inference:
             x = self.encoder(x)
-            x = x.unsqueeze(0)
+            x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
+            # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
             x, next_state = self.rnn(x, prev_state)
-            x = x.squeeze(0)
+            x = x.squeeze(0)  # to delete the seq_len dim to match head network input
             x = self.head(x)
             x['next_state'] = next_state
             return x
@@ -700,11 +703,14 @@ class DRQN(nn.Module):
                     saved_hidden_state.append(prev_state)
                 lstm_embedding.append(output)
                 hidden_state = list(zip(*prev_state))  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
+                # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
                 hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
             x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
-            x['next_state'] = prev_state  # the last timestep state including h and c
-            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)  # the all hidden state h
+            # the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
+            x['next_state'] = prev_state
+            # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
+            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
             if saved_hidden_state_timesteps is not None:
                 x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
             return x

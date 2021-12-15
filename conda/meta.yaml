@@ -1,0 +1,31 @@
+{% set data = load_setup_py_data() %}
+package:
+  name: di-engine
+  version: v0.2.2
+
+source:
+  path: ..
+
+build:
+  number: 0
+  script: python -m pip install . -vv
+  entry_points:
+    - ding = ding.entry.cli:cli
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+
+test:
+  imports:
+    - ding
+    - dizoo
+
+about:
+  url: https://github.com/opendilab/DI-engine
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: DI-engine is a generalized Decision Intelligence engine.
