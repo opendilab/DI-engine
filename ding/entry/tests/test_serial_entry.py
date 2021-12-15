@@ -48,7 +48,6 @@ from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_con
 
 
 @pytest.mark.unittest
-@pytest.mark.dqn
 def test_dqn():
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -154,6 +153,7 @@ def test_qrdqn():
 def test_ppo():
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'ppo_offpolicy_unittest'
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
