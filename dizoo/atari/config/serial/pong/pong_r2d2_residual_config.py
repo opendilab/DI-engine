@@ -3,8 +3,8 @@ from ding.entry import serial_pipeline
 
 collector_env_num = 8
 evaluator_env_num = 5
-pong_r2d2_config = dict(
-    exp_name='debug_pong_r2d2_n5_bs2_ul40_rbs1e4_seed0',
+pong_r2d2_residual_config = dict(
+    exp_name='pong_r2d2_residual_link',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -21,6 +21,7 @@ pong_r2d2_config = dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
+            res_link=True,
         ),
         discount_factor=0.997,
         burnin_step=2,
@@ -63,9 +64,9 @@ pong_r2d2_config = dict(
         ),
     ),
 )
-pong_r2d2_config = EasyDict(pong_r2d2_config)
-main_config = pong_r2d2_config
-pong_r2d2_create_config = dict(
+pong_r2d2_residual_config = EasyDict(pong_r2d2_residual_config)
+main_config = pong_r2d2_residual_config
+pong_r2d2_residual_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -73,8 +74,8 @@ pong_r2d2_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='r2d2'),
 )
-pong_r2d2_create_config = EasyDict(pong_r2d2_create_config)
-create_config = pong_r2d2_create_config
+pong_r2d2_residual_create_config = EasyDict(pong_r2d2_residual_create_config)
+create_config = pong_r2d2_residual_create_config
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)

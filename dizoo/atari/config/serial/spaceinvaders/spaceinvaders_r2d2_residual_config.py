@@ -3,24 +3,26 @@ from ding.entry import serial_pipeline
 
 collector_env_num = 8
 evaluator_env_num = 5
-pong_r2d2_config = dict(
-    exp_name='debug_pong_r2d2_n5_bs2_ul40_rbs1e4_seed0',
+space_invaders_r2d2_residual_config = dict(
+    exp_name='space_invaders_r2d2_residual_link',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
-        stop_value=20,
-        env_id='PongNoFrameskip-v4',
+        n_evaluator_episode=8,
+        stop_value=10000000000,
+        env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
-        priority=True,
-        priority_IS_weight=True,
+        priority=False,
+        priority_IS_weight=False,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
+            res_link=True,
         ),
         discount_factor=0.997,
         burnin_step=2,
@@ -63,9 +65,9 @@ pong_r2d2_config = dict(
         ),
     ),
 )
-pong_r2d2_config = EasyDict(pong_r2d2_config)
-main_config = pong_r2d2_config
-pong_r2d2_create_config = dict(
+space_invaders_r2d2_residual_config = EasyDict(space_invaders_r2d2_residual_config)
+main_config = space_invaders_r2d2_residual_config
+space_invaders_r2d2_residual_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -73,8 +75,8 @@ pong_r2d2_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='r2d2'),
 )
-pong_r2d2_create_config = EasyDict(pong_r2d2_create_config)
-create_config = pong_r2d2_create_config
+space_invaders_r2d2_residual_create_config = EasyDict(space_invaders_r2d2_residual_create_config)
+create_config = space_invaders_r2d2_residual_create_config
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)
