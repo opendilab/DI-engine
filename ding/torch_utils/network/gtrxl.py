@@ -1,6 +1,7 @@
 from typing import Union, Optional, Dict, Callable, List
 from ding.torch_utils.network.nn_module import *
 from ding.utils import MODEL_REGISTRY
+import warnings
 
 
 class PositionalEmbedding(nn.Module):
@@ -10,17 +11,17 @@ class PositionalEmbedding(nn.Module):
     .. note::
         Adapted from https://github.com/kimiyoung/transformer-xl/blob/master/pytorch/mem_transformer.py
     """
-    def __init__(self, embedding_dim):
+    def __init__(self, embedding_dim: int):
         """
         Arguments:
             - embedding_dim: (:obj:`int`): dimension of embedding
         """
         super(PositionalEmbedding, self).__init__()
         self.embedding_dim = embedding_dim
-        inv_freq = 1 / (10000 ** (torch.arange(0.0, embedding_dim, 2.0) / embedding_dim))  # (embedding_dim / 2.0)
+        inv_freq = 1 / (10000 ** (torch.arange(0.0, embedding_dim, 2.0) / embedding_dim))  # (embedding_dim / 2)
         self.register_buffer('inv_freq', inv_freq)
 
-    def forward(self, pos_seq):
+    def forward(self, pos_seq: torch.Tensor):
         """
         Overview:
             Compute positional embedding
@@ -34,18 +35,21 @@ class PositionalEmbedding(nn.Module):
         # For position embedding, the order of sin/cos is negligible.
         # This is because tokens are consumed by the matrix multiplication which is permutation-invariant.
         pos_embedding = torch.cat([sinusoid_inp.sin(), sinusoid_inp.cos()], dim=-1)
-        return pos_embedding[:, None, :]
+        return pos_embedding.unsqueeze(1)
 
 
 class GRUGatingUnit(torch.nn.Module):
     """
     Overview:
-        GRU Gating Unit used in GTrXL
+        GRU Gating Unit used in GTrXL.
     """
-    def __init__(self, input_dim, bg=0.2):
+    def __init__(self, input_dim: int, bg: float = 1.):
         """
         Arguments:
-            - input_dim: (:obj:`int`): dimension of input
+            - input_dim: (:obj:`int`): dimension of input.
+            - bg (:obj:`bg`): gate bias. By setting bg > 0 we can explicitly initialize the gating mechanism to
+            be close to the identity map. This can greatly improve the learning speed and stability since it
+            initializes the agent close to a Markovian policy (ignore attention at the beginning).
         """
         super(GRUGatingUnit, self).__init__()
         self.Wr = torch.nn.Linear(input_dim, input_dim)
@@ -54,11 +58,11 @@ class GRUGatingUnit(torch.nn.Module):
         self.Uz = torch.nn.Linear(input_dim, input_dim)
         self.Wg = torch.nn.Linear(input_dim, input_dim)
         self.Ug = torch.nn.Linear(input_dim, input_dim)
-        self.bg = nn.Parameter(torch.zeros(input_dim).fill_(bg))  # bias
+        self.bg = nn.Parameter(torch.full([input_dim], bg))  # bias
         self.sigmoid = torch.nn.Sigmoid()
         self.tanh = torch.nn.Tanh()
 
-    def forward(self, x, y):
+    def forward(self, x: torch.Tensor, y: torch.Tensor):
         """
         Overview:
             Compute output value with gating mechanism
@@ -117,10 +121,8 @@ class Memory:
         """
         if memory is not None:
             self.memory = memory
-            self.embedding_dim = memory.shape[-1]
-            self.bs = memory.shape[-2]
-            self.layer_num = memory.shape[-4]-1
-            self.memory_len = memory.shape[-3]
+            layer_num_plus1, self.memory_len, self.bs, self.embedding_dim = memory.shape
+            self.layer_num = layer_num_plus1 - 1
         else:
             self.memory = torch.zeros(self.layer_num+1, self.memory_len,
                                       self.bs, self.embedding_dim, dtype=torch.float)
@@ -144,7 +146,7 @@ class Memory:
             Shape is (layer_num, memory_len, bs, embedding_dim).
         """
         if self.memory is None or hidden_state is None:
-            return None
+            raise ValueError('Failed to update memory! Memory would be None')  # TODO add support of no memory
         sequence_len = hidden_state[0].shape[0]
         with torch.no_grad():
             new_memory = []
@@ -218,9 +220,11 @@ class AttentionXL(torch.nn.Module):
         """
         zero_pad = torch.zeros((x.size(0), 1, *x.size()[2:]),
                                device=x.device, dtype=x.dtype)
-        x_padded = torch.cat([zero_pad, x], dim=1)
-        x_padded = x_padded.view(x.size(1) + 1, x.size(0), *x.size()[2:])
-        x = x_padded[1:].view_as(x)
+        x_padded = torch.cat([zero_pad, x], dim=1)  # step 1
+        x_padded = x_padded.view(x.size(1) + 1, x.size(0), *x.size()[2:])  # step 2
+        x = x_padded[1:].view_as(x)  # step 3
+        ones = torch.ones((x.size(0), x.size(1))).unsqueeze(-1).unsqueeze(-1)
+        x = x * torch.tril(ones, x.size(1) - x.size(0))  # step 4
         return x
 
     def forward(self,
@@ -274,8 +278,9 @@ class AttentionXL(torch.nn.Module):
         attn.mul_(self.scale)
 
         if mask is not None and mask.any().item():
+            assert mask.shape[:2] == attn.shape[:2]  # check shape of mask
             # fills float('-inf') where mask is True to let softmax ignore those positions.
-            attn = attn.masked_fill(mask[..., None], -float("inf")).type_as(attn)
+            attn = attn.masked_fill(mask.unsqueeze(-1), -float("inf")).type_as(attn)
         attn = F.softmax(attn, dim=1)
         attn = self.dropout(attn)
 
@@ -323,8 +328,9 @@ class GatedTransformerXLLayer(torch.nn.Module):
         super(GatedTransformerXLLayer, self).__init__()
         self.dropout = dropout
         self.gating = gating
-        self.gate1 = GRUGatingUnit(input_dim)
-        self.gate2 = GRUGatingUnit(input_dim)
+        if self.gating is True:
+            self.gate1 = GRUGatingUnit(input_dim)
+            self.gate2 = GRUGatingUnit(input_dim)
         self.attention = AttentionXL(
             input_dim,
             head_dim,
@@ -340,7 +346,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
         layers.append(self.dropout)
         self.mlp = nn.Sequential(*layers)
         self.layernorm1 = build_normalization('LN')(input_dim)
-        self.layernorm1 = build_normalization('LN')(input_dim)
+        self.layernorm2 = build_normalization('LN')(input_dim)
         self.activation = activation
 
     def forward(
@@ -371,7 +377,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
         a1 = self.dropout(self.attention(inputs, pos_embedding, x1, u, v, mask=mask))
         a1 = self.activation(a1)  # RELU after attention
         o1 = self.gate1(inputs, a1) if self.gating else inputs + a1
-        x2 = self.layernorm1(o1)
+        x2 = self.layernorm2(o1)
         m2 = self.dropout(self.mlp(x2))
         o2 = self.gate2(o1, m2) if self.gating else o1 + m2
         return o2
@@ -423,7 +429,7 @@ class GTrXL(nn.Module):
         self.memory_len = memory_len
         layers = []
         dims = [embedding_dim] + [embedding_dim] * layer_num
-        self.dropout = nn.Dropout(dropout_ratio)
+        self.dropout = nn.Dropout(dropout_ratio) if dropout_ratio > 0 else nn.Identity()
         for i in range(layer_num):
             layers.append(
                 GatedTransformerXLLayer(dims[i], head_dim, embedding_dim, head_num, mlp_num, self.dropout,
@@ -433,8 +439,8 @@ class GTrXL(nn.Module):
         self.embedding_dim = embedding_dim
         # u and v are the parameters to compute global content bias and global positional bias
         self.u, self.v = (
-            torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
-            torch.nn.Parameter(torch.Tensor(self.head_num, self.head_dim)),
+            torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
+            torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
         )
 
     def reset(self, batch_size: int = None, state: Optional[torch.Tensor] = None):
@@ -474,9 +480,9 @@ class GTrXL(nn.Module):
         if memory is None:
             self.reset(bs)  # (layer_num+1) x memory_len x batch_size x embedding_dim
         elif memory.shape[-2] != bs or memory.shape[-1] != self.embedding_dim:
-            print("Memory {} and Input {} dimensions don't match,"
-                  " this will cause the memory to be initialized to fit your input!"
-                  .format(list(memory.shape[-2:]), [x.shape[-2]] + [self.embedding_dim]))
+            warnings.warn("Memory {} and Input {} dimensions don't match,"
+                          " this will cause the memory to be initialized to fit your input!"
+                          .format(list(memory.shape[-2:]), [x.shape[-2]] + [self.embedding_dim]))
             self.reset(bs)
         memory = self.memory.get().to(x.device)
 
@@ -492,6 +498,7 @@ class GTrXL(nn.Module):
             ).bool()[..., None].to(x.device)
         )  # cur_seq x full_seq x 1
 
+        # TODO understand why incremental order of pos_ips doesn't work
         pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
         pos_embedding = self.dropout(self.pos_embedding(pos_ips))  # full_seq x 1 x embedding_dim
 
@@ -507,7 +514,7 @@ class GTrXL(nn.Module):
                 mask=dec_attn_mask,
                 memory=memory[i],  # (layer_num+1) x memory_len x batch_size x embedding_dim
             )   # cur_seq x bs x embedding_dim
-            hidden_state.append(out)
+            hidden_state.append(out.clone().detach())
 
         out = self.dropout(out)
         self.memory.update(hidden_state)  # (layer_num+1) x memory_len x batch_size x embedding_dim
@@ -528,7 +535,7 @@ if __name__ == "__main__":
     action_dim = 4
     embedding_dim = 256
     # input shape: cur_seq x bs x input_dim
-    a = torch.rand(bs, seq_len, dim_size)
+    a = torch.rand(seq_len, bs, dim_size)
     print('input:', a.shape)
     m = GTrXL(128, memory_len=50, embedding_dim=embedding_dim)
     o = m(a)

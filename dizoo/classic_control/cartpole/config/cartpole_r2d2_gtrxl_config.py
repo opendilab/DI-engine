@@ -17,7 +17,7 @@ cartpole_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            memory_len=5,
+            memory_len=2,
             embedding_dim=128,
         ),
         discount_factor=0.997,
@@ -28,7 +28,7 @@ cartpole_r2d2_gtrxl_config = dict(
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
-            target_update_freq=2500,
+            target_update_freq=500,
         ),
         collect=dict(
             n_sample=32,
