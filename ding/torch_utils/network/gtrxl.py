@@ -43,7 +43,7 @@ class GRUGatingUnit(torch.nn.Module):
     Overview:
         GRU Gating Unit used in GTrXL.
     """
-    def __init__(self, input_dim: int, bg: float = 1.):
+    def __init__(self, input_dim: int, bg: float = 2.):
         """
         Arguments:
             - input_dim: (:obj:`int`): dimension of input.
@@ -312,7 +312,8 @@ class GatedTransformerXLLayer(torch.nn.Module):
         mlp_num: int,
         dropout: nn.Module,
         activation: nn.Module,
-        gating: bool = True,
+        gru_gating: bool = True,
+        gru_bias: float = 2.
     ) -> None:
         """
         Arguments:
@@ -323,14 +324,15 @@ class GatedTransformerXLLayer(torch.nn.Module):
             - mlp_num (:obj:`int`): number of mlp layers in attention layer
             - dropout (:obj:`nn.Module`): dropout
             - activation (:obj:`nn.Module`): activation function
-            - gating (:obj:`bool`): whether to use gating mechanism or not
+            - gru_gating (:obj:`bool`): if False replace GRU gates with residual connections
+            - gru_bias (:obj:`float`): GRU gate bias
         """
         super(GatedTransformerXLLayer, self).__init__()
         self.dropout = dropout
-        self.gating = gating
+        self.gating = gru_gating
         if self.gating is True:
-            self.gate1 = GRUGatingUnit(input_dim)
-            self.gate2 = GRUGatingUnit(input_dim)
+            self.gate1 = GRUGatingUnit(input_dim, gru_bias)
+            self.gate2 = GRUGatingUnit(input_dim, gru_bias)
         self.attention = AttentionXL(
             input_dim,
             head_dim,
@@ -401,6 +403,8 @@ class GTrXL(nn.Module):
         memory_len: int = 64,
         dropout_ratio: float = 0.,
         activation: nn.Module = nn.ReLU(),
+        gru_gating: bool = True,
+        gru_bias: float = 2.
     ) -> None:
         """Overview:
             Init GTrXL Model
@@ -414,6 +418,8 @@ class GTrXL(nn.Module):
             - layer_num (:obj:`int`): number of transformer layers
             - dropout_ratio (:obj:`float`): dropout ratio
             - activation (:obj:`nn.Module`): activation function
+            - gru_gating (:obj:`bool`): if False replace GRU gates with residual connections
+            - gru_bias (:obj:`float`): GRU gate bias
         """
         super(GTrXL, self).__init__()
         assert embedding_dim % 2 == 0, 'embedding_dim={} should be even'.format(input_dim)
@@ -433,7 +439,7 @@ class GTrXL(nn.Module):
         for i in range(layer_num):
             layers.append(
                 GatedTransformerXLLayer(dims[i], head_dim, embedding_dim, head_num, mlp_num, self.dropout,
-                                        self.activation)
+                                        self.activation, gru_gating, gru_bias)
             )
         self.layers = nn.Sequential(*layers)
         self.embedding_dim = embedding_dim

@@ -19,6 +19,7 @@ cartpole_r2d2_gtrxl_config = dict(
             action_shape=2,
             memory_len=2,
             embedding_dim=128,
+            gru_bias=1.
         ),
         discount_factor=0.997,
         nstep=2,

@@ -41,6 +41,8 @@ class GTrXLDiscreteHead(nn.Module):
         head_norm_type: Optional[str] = None,
         head_noise: Optional[str] = False,
         dropout: float = 0.,
+        gru_gating: bool = True,
+        gru_bias: float = 2.
     ) -> None:
         r"""
         Overview:
@@ -61,6 +63,8 @@ class GTrXLDiscreteHead(nn.Module):
             - head_norm_type (:obj:`Optional[str]`): Used by Head
             - head_noise (:obj:`Optional[str]`): Used by Head
             - dropout (:obj:`bool`): Used by Transformer
+            - gru_gating (:obj:`bool`): Used by Transformer
+            - gru_bias (:obj:`float`): Used by Transformer
         """
         super(GTrXLDiscreteHead, self).__init__()
         self.core = GTrXL(
@@ -73,6 +77,8 @@ class GTrXLDiscreteHead(nn.Module):
             memory_len=memory_len,
             activation=activation,
             dropout_ratio=dropout,
+            gru_gating=gru_gating,
+            gru_bias=gru_bias,
         )
         self.head = DiscreteHead(
             hidden_size=embedding_dim,
@@ -83,7 +89,7 @@ class GTrXLDiscreteHead(nn.Module):
             noise=head_noise
         )
 
-        self.core2 = nn.Sequential(
+        '''self.core2 = nn.Sequential(
             MLP(
                 obs_shape,
                 embedding_dim,
@@ -94,7 +100,7 @@ class GTrXLDiscreteHead(nn.Module):
                 norm_type=head_norm_type
             )
         )
-        self.embedding_dim = embedding_dim
+        self.embedding_dim = embedding_dim'''
 
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
@@ -111,7 +117,7 @@ class GTrXLDiscreteHead(nn.Module):
                 - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.
         """
         o1 = self.core(x)
-        out = self.head(o1['logit'])  # DEBUG: change gtrxl with a simple mlp layer and ignore memory
+        out = self.head(o1['logit'])
         # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim
         out['memory'] = o1['memory'].permute((2, 0, 1, 3)).contiguous()
         out['transformer_out'] = o1['logit']  # output of gtrxl
