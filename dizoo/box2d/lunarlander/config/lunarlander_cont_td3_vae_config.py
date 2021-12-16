@@ -2,10 +2,10 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_td3_vae
 
 lunarlander_td3vae_config = dict(
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_zrelabel_ein1280_rvuc10_upcr20_upcv100_noisefalse_rbs1e5',  # TODO(pu)
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_ein1280_rvuc10_upcr20_upcv100_noisefalse_rbs1e5',  # TODO(pu)
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_zrelabel_eins1280_rvuc10_upcr20_upcv100_noisefalse_rbs1e5',  # TODO(pu)
+    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_eins1280_rvuc10_upcr20_upcv100_noisefalse_rbs1e5',  # TODO(pu)
     # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_eins48_rvuc100_upcr2_upcv100_noisefalse_rbs2e4',  # TODO(pu): lr 1e-3 loss diverge
-    exp_name='lunarlander_cont_td3_vae_lad6_wu1000_zrelabel_ein1280_rvuc1_upcr20_upcv20_rbs2e4',  # TODO(pu)
+    exp_name='lunarlander_cont_td3_vae_lad6_wu1000_zrelabel_eins1280_rvuc1_upcr20_upcv20_rbs2e4',  # TODO(pu)
 
     env=dict(
         env_id='LunarLanderContinuous-v2',
@@ -26,7 +26,7 @@ lunarlander_td3vae_config = dict(
         original_action_shape=2,
         model=dict(
             obs_shape=8,
-            action_shape=6,  # 64,  # latent_action_dim
+            action_shape=6,  # latent_action_dim
             twin_critic=True,
             actor_head_type='regression',
         ),
