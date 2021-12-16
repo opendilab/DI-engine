@@ -721,8 +721,8 @@ class DRQN(nn.Module):
             # the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
             x['next_state'] = prev_state
             # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
-            # x['hidden_state'] = torch.cat(hidden_state_list, dim=-3) This key is unused currently, if someone need
-            # to retain all h_{t} during training, please uncomment this
+            # This key is used in qtran, the algorithm requires to retain all h_{t} during training
+            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
             if saved_hidden_state_timesteps is not None:
                 x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
             return x
