@@ -227,6 +227,7 @@ class Task:
     def stop(self) -> None:
         if self._thread_pool:
             self._thread_pool.shutdown()
+        self.emit("exit")
 
     def sync(self) -> 'Task':
         if self._loop:

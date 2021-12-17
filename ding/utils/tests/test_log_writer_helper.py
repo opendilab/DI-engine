@@ -1,4 +1,3 @@
-from mpire.pool import WorkerPool
 import pytest
 import time
 import tempfile
@@ -17,7 +16,9 @@ def main_distributed_writer(tempdir):
         tblogger = DistributedWriter(tempdir).plugin(task, is_writer=("node.0" in task.labels))
 
         def _add_scalar(ctx):
-            tblogger.add_scalar(str(task.router.node_id), task.router.node_id, ctx.total_step)
+            n = 10
+            for i in range(n):
+                tblogger.add_scalar(str(task.router.node_id), task.router.node_id, ctx.total_step * n + i)
 
         task.use(_add_scalar)
         task.use(lambda _: time.sleep(0.2))
@@ -29,9 +30,11 @@ def main_distributed_writer(tempdir):
 @pytest.mark.unittest
 def test_distributed_writer():
     tempdir = path.join(tempfile.gettempdir(), "tblogger")
+    # TODO
     try:
         Parallel.runner(n_parallel_workers=2)(main_distributed_writer, tempdir)
+        assert path.exists(tempdir)
+        assert len(os.listdir(tempdir)) == 1
     finally:
         if path.exists(tempdir):
-            print("DIRS", os.listdir(tempdir))
             shutil.rmtree(tempdir)
