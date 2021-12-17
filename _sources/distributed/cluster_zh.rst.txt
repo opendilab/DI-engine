@@ -6,7 +6,7 @@
 
 如果我们有多台服务器或者 k8s 集群，如何启动并将他们连接起来是一个比较麻烦的问题，这时借助 ``ding`` 命令将使网络配置变得更简单。
 
-``ding`` 中新增了 ``-m cluster`` 模式来启用新的主流程下的并行模式，在此模式下你需要通过 ``--entry main.py`` 指定你的主入口文件，\
+``ding`` 中新增了 ``-m cluster`` 模式来启用新的主流程下的并行模式，在此模式下你需要通过 ``--package my_module``, ``--entry MyModule.main`` 指定你的代码包和主函数，\
 并可忽略掉 ``-c`` 配置文件参数。
 
 关于主入口文件可参考 `分布式 <./index_zh.html>`_ 章节中的示例，下面是一个极简示例：
@@ -22,12 +22,13 @@
 
    if __name__ == "__main__":
       main()
+      # Parallel.runner(n_parallel_workers=3)(main)
 
 这样你既可以单独运行这个文件，同时也能利用 ``ding`` 的 ``cluster`` 模式将它启动起来：
 
 .. code-block:: shell
 
-   $ ding -m cluster --entry main.py
+   $ ding -m cluster --package my_module --entry MyModule.main
 
 ``ding`` 会主动在你指定的主入口文件中寻找 ``main`` 方法，并且加入到并行模式中，而关于并行模式（ ``Parallel`` 模块）的参数，如果阅读过前面的章节，\
 你应该已经很熟悉了。
@@ -39,7 +40,7 @@
 
 .. code-block:: shell
 
-   $ ding -m cluster --entry main.py --n_parallel_workers 1 --protocol tcp --ports 50515  --node_ids 0
+   $ ding -m cluster --package my_module --entry MyModule.main --n_parallel_workers 1 --protocol tcp --ports 50515  --node_ids 0
 
 这表示将在这台服务器上启动一个监听 50515 端口的 worker，并且指定他的 node_id 为 0，关于可用的参数可查看 ``Parallel`` 模块的文档或者以下简单说明：
 
@@ -56,9 +57,9 @@
 .. code-block:: shell
 
    # 在服务器 1
-   $ ding -m cluster --entry main.py --n_parallel_workers 1 --protocol tcp --ports 50515  --node_ids 1 --attach_to 192.168.0.1:50515
+   $ ding -m cluster --package my_module --entry MyModule.main --n_parallel_workers 1 --protocol tcp --ports 50515  --node_ids 1 --attach_to 192.168.0.1:50515
    # 在服务器 2
-   $ ding -m cluster --entry main.py --n_parallel_workers 1 --protocol tcp --ports 50515  --node_ids 2 --attach_to 192.168.0.1:50515
+   $ ding -m cluster --package my_module --entry MyModule.main --n_parallel_workers 1 --protocol tcp --ports 50515  --node_ids 2 --attach_to 192.168.0.1:50515
 
 这样我们就得到了三台运行 ``main.py`` 的服务器，并且后面两台都能和第一台保持双向通讯。至于内部的训练逻辑，就和单机下的并行模式一样啦。参考 `分布式 <./index_zh.html>`_
 
@@ -69,7 +70,7 @@
 
 .. code-block:: shell
 
-   $ xxx --n_workers 3 --entry main.py --topology star
+   $ xxx --n_workers 3 --package my_module --entry MyModule.main --topology star
 
 这个命令会帮助你自动执行上述的三条命令，即实现了和多机部署一模一样的效果，即三个 pod，以星型拓扑方式连接。
 
@@ -77,6 +78,6 @@
 
 .. code-block:: shell
 
-   $ xxx --n_workers 3 --n_gpus 2 --entry main.py --topology star
+   $ xxx --n_workers 3 --n_gpus 2 --package my_module --entry MyModule.main --topology star
 
 这样就会按顺序给头部的 2 个 pod 挂载 gpu，并在 ``ding`` 任务中增加 ``gpu`` 标签，在主入口文件中就可以根据标签来决定是否训练等等了。

@@ -174,28 +174,34 @@
 <h1>ACER<a class="headerlink" href="#acer" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>ACER, short for actor-critic with experience replay, is an off-policy actor-critic algorithm with experience replay. It greatly increases
-the sample efficiency and decreases the data correlation. ACER uses retrace Q-value estimation,  an efficient TRPO (Trust Region Policy Optimization) and truncates importance sample weights with
-bias correction to control the stability of the off-policy estimator. You can find more details in this paper
-<a class="reference external" href="https://arxiv.org/abs/1611.01224">Sample Efficient Actor-Critic with Experience Replay</a>.</p>
+<p>ACER, short for actor-critic with experience replay, presents an actor-critic deep reinforcement learning agent with experience replay that is stable, sample efficient, and performs remarkably well on
+challenging environments, including the discrete 57-game Atari domain and several continuous control problems. It greatly increases
+the sample efficiency and decreases the data correlation by using the following tricks:</p>
+<ul class="simple">
+<li><p><strong>Truncated importance sampling with bias correction</strong>, which controls the stability of the off-policy estimator</p></li>
+<li><p><strong>Retrace Q-value estimation</strong>, which is an off-policy, low variance, and return-based algorithm, and has been proven to converge</p></li>
+<li><p><strong>Efficient TRPO (Trust Region Policy Optimization)</strong>, which scales well to large problems</p></li>
+<li><p><strong>Stochastic Dueling Networks (SDNs)</strong>, which is designed to estimate both <span class="math notranslate nohighlight">\(V^\pi\)</span> and <span class="math notranslate nohighlight">\(Q^\pi\)</span> off-policy while maintaining consistency between the two estimates</p></li>
+</ul>
+<p>You can find more details in the paper <a class="reference external" href="https://arxiv.org/abs/1611.01224">Sample Efficient Actor-Critic with Experience Replay</a>.</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>ACER  is a <strong>model-free</strong> and <strong>off-policy</strong> RL algorithm.</p></li>
-<li><p>ACER can support both <strong>discrete</strong> action spaces and <strong>continuous</strong> action spaces with several differences.</p></li>
-<li><p>ACER is an actor-critic RL algorithm, which optimizes the actor and critic networks respectively.</p></li>
-<li><p>ACER decouples acting from learning. Collectors in ACER needs to record behavior probability distributions.</p></li>
+<li><p>ACER is a <strong>model-free</strong> and <strong>off-policy</strong> RL algorithm.</p></li>
+<li><p>ACER supports both <strong>discrete</strong> action spaces and <strong>continuous</strong> action spaces with several differences.</p></li>
+<li><p>ACER is an <strong>actor-critic</strong> RL algorithm, which optimizes the actor and critic networks respectively.</p></li>
+<li><p>ACER decouples acting from learning. Collectors in ACER need to record <strong>behavior probability distributions</strong>.</p></li>
 </ol>
+<p>In the following sections, we take the discrete case as an example to elaborate on ACER algorithm.</p>
 </div>
 <div class="section" id="key-equations">
 <h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
-<p>Loss used in ACER contains policy loss and value loss. They often update separately, so it’s necessary to control their relative update speed.</p>
+<p>Loss used in ACER contains policy loss and value loss. They are updated separately, so it’s necessary to control their relative update speeds.</p>
 <div class="section" id="retrace-q-value-estimation">
 <h3>Retrace Q-value estimation<a class="headerlink" href="#retrace-q-value-estimation" title="Permalink to this headline">¶</a></h3>
 <p>Given a trajectory generated under the behavior policy <span class="math notranslate nohighlight">\(\mu\)</span>,  we retrieve a trajectory <span class="math notranslate nohighlight">\({x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}\)</span>
-the Retrace estimator can be
-expressed recursively as follows:</p>
+the Retrace estimator can be expressed recursively as follows:</p>
 <div class="math notranslate nohighlight">
 \[Q^{\text{ret}}(x_t,a_t)=r_t+\gamma\bar{\rho}_{t+1}[Q^{\text{ret}}(x_{t+
 1},a_{t+1})]+\gamma V(x_{t+1})\]</div>
@@ -204,16 +210,15 @@ Retrace is an off-policy, return based algorithm which has low variance and is p
 We approximate the Q value by neural network <span class="math notranslate nohighlight">\(Q_{\theta}\)</span>. We use a mean squared error loss:</p>
 <blockquote>
 <div><div class="math notranslate nohighlight">
-\[L_{\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2.\]</div>
+\[{\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2.\]</div>
 </div></blockquote>
 </div>
 <div class="section" id="policy-gradient">
-<h3>policy gradient<a class="headerlink" href="#policy-gradient" title="Permalink to this headline">¶</a></h3>
+<h3>Policy Gradient<a class="headerlink" href="#policy-gradient" title="Permalink to this headline">¶</a></h3>
 <p>To safe-guard against high variance, ACER uses truncated importance weights and introduces
 correction term via the following decomposition of <span class="math notranslate nohighlight">\(g^{acer}\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[g^{\text{acer}}=\bar{\rho_t}\nabla_\theta\log\pi_{\theta}(a_t|x_t)[Q^{\text{ret}}(x_t,a_t)-V_{\theta}(x_t)]+\mathbb{E}_{a\sim \pi}\left([\frac{\rho_t(a)-c}{\rho_t(a)}]_+\nabla_{\theta}\log\pi_{\theta}(a|x_t)[Q_\theta(x_t,a)-V_{\theta}(x_t)\right)\right].\]</div>
-<p>To ensure more stability, ACER limits the per-step change to the policy by solving the following linearized KL divergence constraint:</p>
+<a class="reference internal image-reference" href="../_images/ACER_gacer.png"><img alt="../_images/ACER_gacer.png" class="align-center" src="../_images/ACER_gacer.png" style="width: 635.0px; height: 112.0px;" /></a>
+<p>To ensure stability, ACER limits the per-step change to the policy by solving the following linearized KL divergence constraint:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{split}
 &amp;\text{minimize}_z\quad\frac{1}{2}\|g_t^{\text{acer}}-z\|_2^2\\
@@ -225,13 +230,19 @@ By letting <span class="math notranslate nohighlight">\(k=\nabla_{\phi_{\theta}(
 \[z^*=g_{t}^{\text{acer}}-\max\{0,\frac{k^\top g_t^{\text{acer}}-\delta}{\|k\|_2^2}\}k\]</div>
 </div>
 </div>
+<div class="section" id="key-graph-or-network-structure">
+<h2>Key Graph or Network Structure<a class="headerlink" href="#key-graph-or-network-structure" title="Permalink to this headline">¶</a></h2>
+<p>The following graph depicts the SDN structure (picture from paper Sample Efficient Actor-Critic with Experience Replay). In the drawing, <span class="math notranslate nohighlight">\([u_1, .... , u_n]\)</span> are assumed
+to be samples from <span class="math notranslate nohighlight">\(\pi_\theta(·|x_t)\)</span>.</p>
+<a class="reference internal image-reference" href="../_images/ACER_SDN.png"><img alt="../_images/ACER_SDN.png" class="align-center" src="../_images/ACER_SDN.png" style="width: 692.1px; height: 423.90000000000003px;" /></a>
+</div>
 <div class="section" id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
 <p>There are a few changes between ACER applied to discrete action spaces and that applied to continuous action space.</p>
-<a class="reference internal image-reference" href="../_images/ACER_alg1.png"><img alt="../_images/ACER_alg1.png" class="align-center" src="../_images/ACER_alg1.png" style="width: 458.49999999999994px; height: 135.79999999999998px;" /></a>
-<a class="reference internal image-reference" href="../_images/ACER_alg2.png"><img alt="../_images/ACER_alg2.png" class="align-center" src="../_images/ACER_alg2.png" style="width: 467.59999999999997px; height: 466.2px;" /></a>
+<a class="reference internal image-reference" href="../_images/ACER_algo1_1.png"><img alt="../_images/ACER_algo1_1.png" class="align-center" src="../_images/ACER_algo1_1.png" style="width: 750.0px; height: 203.0px;" /></a>
+<a class="reference internal image-reference" href="../_images/ACER_algo1_2.png"><img alt="../_images/ACER_algo1_2.png" class="align-center" src="../_images/ACER_algo1_2.png" style="width: 742.0px; height: 720.0px;" /></a>
 <p>In continuous action space, it is impossible to enumerate all actions q value. So ACER uses sampled actions to replace the expectation.</p>
-<a class="reference internal image-reference" href="../_images/ACER_alg3.png"><img alt="../_images/ACER_alg3.png" class="align-center" src="../_images/ACER_alg3.png" style="width: 469.7px; height: 457.09999999999997px;" /></a>
+<a class="reference internal image-reference" href="../_images/ACER_algo2.png"><img alt="../_images/ACER_algo2.png" class="align-center" src="../_images/ACER_algo2.png" style="width: 737.0px; height: 716.0px;" /></a>
 </div>
 <div class="section" id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>

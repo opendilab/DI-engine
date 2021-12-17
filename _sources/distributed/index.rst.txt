@@ -11,7 +11,7 @@ DI-engine designed a unique set of horizontal scaling methods that allow your co
 Task
 -------------------------------
 
-First assume you already have a piece of code like this (if not please go back to `Quick Start <../quick_start/index_zh.html>`_):
+First assume you already have a piece of code like this (if not please go back to `Quick Start <../quick_start/index.html>`_):
 
 .. code-block:: python
 
@@ -358,7 +358,7 @@ let us split it out and put it on other processes:
 
 The above mainly updated two parts of the code:
 
-Part of the filter_labels parameter is added to ``task.use``. This is to determine which middleware should be executed on the corresponding hardware in distributed mode. \
+The ``filter_labels`` parameter is added to ``task.use``. This is to determine which middleware should be executed on the corresponding hardware in distributed mode. \
 DI-engine will write ``standalone``, ``distributed``, ``async``, ``node.*`` by default. You can also pass in different labels through environment variables.
 
 The second part is to add two pieces of code to ``evaluate`` and ``train`` respectively. ``state_dict`` is written to ``ctx`` in train, \

@@ -9,7 +9,7 @@ Quick Facts
 -----------
 1. A2C is a **model-free** and **policy-based** RL algorithm.
 
-2. A2C supports both **discrete** and **continuous action spaces**.
+2. A2C supports both **discrete** and **continuous** action spaces.
 
 3. A2C supports both **off-policy** and **on-policy** modes.
 

@@ -3,32 +3,40 @@ ACER
 
 Overview
 ---------
-ACER, short for actor-critic with experience replay, is an off-policy actor-critic algorithm with experience replay. It greatly increases
-the sample efficiency and decreases the data correlation. ACER uses retrace Q-value estimation,  an efficient TRPO (Trust Region Policy Optimization) and truncates importance sample weights with
-bias correction to control the stability of the off-policy estimator. You can find more details in this paper
-`Sample Efficient Actor-Critic with Experience Replay <https://arxiv.org/abs/1611.01224>`_.
+ACER, short for actor-critic with experience replay, presents an actor-critic deep reinforcement learning agent with experience replay that is stable, sample efficient, and performs remarkably well on
+challenging environments, including the discrete 57-game Atari domain and several continuous control problems. It greatly increases
+the sample efficiency and decreases the data correlation by using the following tricks:
+
+-  **Truncated importance sampling with bias correction**, which controls the stability of the off-policy estimator
+-  **Retrace Q-value estimation**, which is an off-policy, low variance, and return-based algorithm, and has been proven to converge
+-  **Efficient TRPO (Trust Region Policy Optimization)**, which scales well to large problems
+-  **Stochastic Dueling Networks (SDNs)**, which is designed to estimate both :math:`V^\pi` and :math:`Q^\pi` off-policy while maintaining consistency between the two estimates
+
+You can find more details in the paper `Sample Efficient Actor-Critic with Experience Replay <https://arxiv.org/abs/1611.01224>`_.
 
 
 Quick Facts
 -------------
-1. ACER  is a **model-free** and **off-policy** RL algorithm.
+1. ACER is a **model-free** and **off-policy** RL algorithm.
 
-2. ACER can support both **discrete** action spaces and **continuous** action spaces with several differences.
+2. ACER supports both **discrete** action spaces and **continuous** action spaces with several differences.
 
-3. ACER is an actor-critic RL algorithm, which optimizes the actor and critic networks respectively.
+3. ACER is an **actor-critic** RL algorithm, which optimizes the actor and critic networks respectively.
 
-4. ACER decouples acting from learning. Collectors in ACER needs to record behavior probability distributions.
+4. ACER decouples acting from learning. Collectors in ACER need to record **behavior probability distributions**.
 
+In the following sections, we take the discrete case as an example to elaborate on ACER algorithm.
 
 Key Equations
 ---------------------------
-Loss used in ACER contains policy loss and value loss. They often update separately, so it's necessary to control their relative update speed.
+
+Loss used in ACER contains policy loss and value loss. They are updated separately, so it's necessary to control their relative update speeds.
 
 Retrace Q-value estimation
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 Given a trajectory generated under the behavior policy :math:`\mu`,  we retrieve a trajectory :math:`{x_0, a_0, r_0, \mu(\cdot|x_0),..., x_k, a_k, r_k, \mu(\cdot|x_k)}`
-the Retrace estimator can be
-expressed recursively as follows:
+the Retrace estimator can be expressed recursively as follows:
 
 .. math::
 
@@ -40,19 +48,20 @@ Retrace is an off-policy, return based algorithm which has low variance and is p
 We approximate the Q value by neural network :math:`Q_{\theta}`. We use a mean squared error loss:
 
  .. math::
-    L_{\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2.
+    {\text{value}}=\frac{1}{2}(Q^{\text{ret}}(x_t,a_t)-Q_{\theta}(x_t,a_t))^2.
 
 
-policy gradient
+Policy Gradient
 >>>>>>>>>>>>>>>>>>>>>>
 
 To safe-guard against high variance, ACER uses truncated importance weights and introduces
 correction term via the following decomposition of :math:`g^{acer}`:
 
-.. math::
-    g^{\text{acer}}=\bar{\rho_t}\nabla_\theta\log\pi_{\theta}(a_t|x_t)[Q^{\text{ret}}(x_t,a_t)-V_{\theta}(x_t)]+\mathbb{E}_{a\sim \pi}\left([\frac{\rho_t(a)-c}{\rho_t(a)}]_+\nabla_{\theta}\log\pi_{\theta}(a|x_t)[Q_\theta(x_t,a)-V_{\theta}(x_t)\right)\right].
+.. image:: images/ACER_gacer.png
+   :align: center
+   :scale: 50%
 
-To ensure more stability, ACER limits the per-step change to the policy by solving the following linearized KL divergence constraint:
+To ensure stability, ACER limits the per-step change to the policy by solving the following linearized KL divergence constraint:
 
 .. math::
     \begin{split}
@@ -67,26 +76,34 @@ By letting :math:`k=\nabla_{\phi_{\theta}(x_t)}D_{KL}[f(\cdot|\phi_{\theta_a}(x_
     z^*=g_{t}^{\text{acer}}-\max\{0,\frac{k^\top g_t^{\text{acer}}-\delta}{\|k\|_2^2}\}k 
 
 
+Key Graph or Network Structure
+---------------------------------
 
+The following graph depicts the SDN structure (picture from paper Sample Efficient Actor-Critic with Experience Replay). In the drawing, :math:`[u_1, .... , u_n]` are assumed
+to be samples from :math:`\pi_\theta(·|x_t)`.
+
+.. image:: images/ACER_SDN.png
+   :align: center
+   :scale: 45%
 
 Pseudocode
 ----------
 
 There are a few changes between ACER applied to discrete action spaces and that applied to continuous action space.
 
-.. image:: images/ACER_alg1.png
+.. image:: images/ACER_algo1_1.png
    :align: center
-   :scale: 70%
+   :scale: 50%
 
-.. image:: images/ACER_alg2.png
+.. image:: images/ACER_algo1_2.png
    :align: center
-   :scale: 70%
+   :scale: 50%
 
 In continuous action space, it is impossible to enumerate all actions q value. So ACER uses sampled actions to replace the expectation.
 
-.. image:: images/ACER_alg3.png
+.. image:: images/ACER_algo2.png
    :align: center
-   :scale: 70%
+   :scale: 50%
 
 
 Implementations
