@@ -256,42 +256,36 @@ class AttentionXL(torch.nn.Module):
         query = self.attention_q(inputs)  # cur_seq x bs x num_head*dim_head
         r = self.project_pos(pos_embedding)  # full_seq x 1 x num_head*dim_head
 
+        key = key.view(full_seq, bs, self.head_num, self.head_dim)
+        query = query.view(cur_seq, bs, self.head_num, self.head_dim)
+        value = value.view(cur_seq + prev_seq, bs, self.head_num, self.head_dim)
+        r = r.view(full_seq, self.head_num, self.head_dim)
+
         # (query + u) * key^T
-        content_attn = torch.einsum(
-            "ibhd,jbhd->ijbh",
-            (
-                (query.view(cur_seq, bs, self.head_num, self.head_dim) + u),
-                key.view(full_seq, bs, self.head_num, self.head_dim),
-            ),
-        )  # cur_seq x full_seq x bs x head_num
+        q_u = query + u
+        content_attn = q_u.permute(1, 2, 0, 3) @ key.permute(1, 2, 3, 0)  # bs x head_num x cur_seq x full_seq
 
         # (query + v) * R^T
-        position_attn = torch.einsum(
-            "ibhd,jhd->ijbh",
-            (
-                (query.view(cur_seq, bs, self.head_num, self.head_dim) + v),
-                r.view(cur_seq + prev_seq, self.head_num, self.head_dim),
-            ),
-        )  # cur_seq x full_seq x bs x head_num
+        q_v = query + v
+        position_attn = q_v.permute(1, 2, 0, 3) @ r.permute(1, 2, 0)  # bs x head_num x cur_seq x full_seq
         position_attn = self._rel_shift(position_attn)
-        attn = content_attn + position_attn  # cur_seq x full_seq x bs x head_num
+
+        attn = content_attn + position_attn  # bs x head_num x cur_seq x full_seq
         attn.mul_(self.scale)
 
+        # fills float('-inf') where mask is True to let softmax ignore those positions.
         if mask is not None and mask.any().item():
-            assert mask.shape[:2] == attn.shape[:2]  # check shape of mask
-            # fills float('-inf') where mask is True to let softmax ignore those positions.
-            attn = attn.masked_fill(mask.unsqueeze(-1), -float("inf")).type_as(attn)
-        attn = F.softmax(attn, dim=1)
+            mask = mask.permute(2, 0, 1).unsqueeze(1)  # 1 x 1 x cur_seq x full_seq
+            assert mask.shape[2:] == attn.shape[2:]  # check shape of mask
+            attn = attn.masked_fill(mask, -float("inf")).type_as(attn)
+
+        attn = F.softmax(attn, dim=-1)
         attn = self.dropout(attn)
 
         # multiply softmax output by value
-        attn_vec = torch.einsum(
-            "ijbh,jbhd->ibhd",
-            (
-                attn,
-                value.view(cur_seq + prev_seq, bs, self.head_num, self.head_dim),
-            ),
-        )  # cur_seq x bs x head_num x head_dim
+        attn_vec = attn @ value.permute(1, 2, 0, 3)
+        attn_vec = attn_vec.permute(2, 0, 1, 3)
+
         attn_vec = attn_vec.contiguous().view(cur_seq, bs, self.head_num * self.head_dim)
         # cur_seq x bs x head_num * head_dim
         output = self.dropout(self.project(attn_vec))  # cur_seq x bs x input_dim
@@ -499,12 +493,12 @@ class GTrXL(nn.Module):
         # TODO: add padding to attention mask, https://huggingface.co/docs/transformers/preprocessing
         dec_attn_mask = (
             torch.triu(
-                torch.ones((cur_seq, cur_seq + prev_seq)),
+                torch.ones((cur_seq, full_seq)),
                 diagonal=1 + prev_seq,
-            ).bool()[..., None].to(x.device)
+            ).bool().unsqueeze(-1).to(x.device)
         )  # cur_seq x full_seq x 1
 
-        # TODO understand why incremental order of pos_ips doesn't work
+        # TODO understand why pos_ips order is decreasing (guess is the same)
         pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
         pos_embedding = self.dropout(self.pos_embedding(pos_ips))  # full_seq x 1 x embedding_dim
 
