@@ -17,13 +17,13 @@ cartpole_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            memory_len=2,
+            memory_len=5,
             embedding_dim=128,
             gru_bias=1.
         ),
         discount_factor=0.997,
         nstep=2,
-        unroll_len=8,  # trajectory len
+        unroll_len=10,  # trajectory len
         seq_len=5,  # transformer input sequence length (not used yet)
         learn=dict(
             update_per_collect=8,

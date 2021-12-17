@@ -3,8 +3,6 @@ import sys
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple, Union, Optional
 
-import torch
-
 from ding.model import model_wrap
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
@@ -89,19 +87,6 @@ class GTrXLDiscreteHead(nn.Module):
             noise=head_noise
         )
 
-        '''self.core2 = nn.Sequential(
-            MLP(
-                obs_shape,
-                embedding_dim,
-                embedding_dim,
-                att_layer_num,
-                layer_fn=nn.Linear,
-                activation=activation,
-                norm_type=head_norm_type
-            )
-        )
-        self.embedding_dim = embedding_dim'''
-
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
         Overview:
@@ -121,18 +106,6 @@ class GTrXLDiscreteHead(nn.Module):
         # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim
         out['memory'] = o1['memory'].permute((2, 0, 1, 3)).contiguous()
         out['transformer_out'] = o1['logit']  # output of gtrxl
-        #print(out['logit'].shape)
-
-        # simple RNN without memory
-        '''a, b = x.shape[0], x.shape[1]
-        logit = []
-        for i in range(x.shape[0]):
-            o1 = self.core2(x[i])
-            out = self.head(o1)
-            logit.append(out['logit'])
-        out['memory'] = torch.zeros(b, 3, 5, self.embedding_dim)
-        logit = torch.stack(logit, 0)
-        out['logit'] = logit'''
 
         return out
 
@@ -216,6 +189,7 @@ class R2D2GTrXLPolicy(Policy):
         nstep=5,
         # (int) trajectory length
         unroll_len=20,
+        seq_len=10,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -276,13 +250,7 @@ class R2D2GTrXLPolicy(Policy):
         self._batch_size = self._cfg.learn.batch_size
 
         self._target_model = copy.deepcopy(self._model)
-        # here we should not adopt the 'assign' mode of target network here because the reset bug
-        # self._target_model = model_wrap(
-        #     self._target_model,
-        #     wrapper_name='target',
-        #     update_type='assign',
-        #     update_kwargs={'freq': self._cfg.learn.target_update_freq}
-        # )
+
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
@@ -307,14 +275,19 @@ class R2D2GTrXLPolicy(Policy):
                 ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
             - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
-        # data preprocess
-        # TODO find a better way to code this part, priority low for now
-        from copy import deepcopy
-        prev_mem = [b.pop('prev_memory')[0] for b in deepcopy(data)]  # retrieve the memory corresponding to the first observation in each trajectory
-        prev_mem = torch.stack(prev_mem, 0).permute(1, 2, 0, 3)  # (layer_num, memory_len, bs, embedding_dim)
-        data = timestep_collate(data)  # each sequence should be divided into segments
-        # TODO n-step and memory
-        data['prev_memory'] = prev_mem
+        if 'prev_memory' in data[0].keys():
+            # retrieve the memory corresponding to the first element in each trajectory and remove it from 'data'
+            prev_mem = [b['prev_memory'][0] for b in data]
+            prev_mem_target = [b['prev_memory'][self._nstep] for b in data]
+            # stack the memory entries along the batch dimension,
+            # reshape the new memory to have shape (layer_num+1, memory_len, bs, embedding_dim) compatible with GTrXL
+            prev_mem_batch = torch.stack(prev_mem, 0).permute(1, 2, 0, 3)
+            prev_mem_target_batch = torch.stack(prev_mem_target, 0).permute(1, 2, 0, 3)
+            data = timestep_collate(data)
+            data['prev_memory_batch'] = prev_mem_batch
+            data['prev_memory_target_batch'] = prev_mem_target_batch
+        else:
+            data = timestep_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
 
@@ -373,14 +346,12 @@ class R2D2GTrXLPolicy(Policy):
                 - cur_lr (:obj:`float`): Current learning rate
                 - total_loss (:obj:`float`): The calculated loss
         """
-        # forward
-        #print('_forward_learn')
         data = self._data_preprocess_learn(data)  # shape (seq_len, bs, obs_dim)
         self._learn_model.train()
         self._target_model.train()
         # use the previous hidden state memory
-        self._learn_model._model.core.reset(state=data['prev_memory'])
-        self._target_model._model.core.reset(state=data['prev_memory'])
+        self._learn_model.core.reset(state=data['prev_memory_batch'])
+        self._target_model.core.reset(state=data['prev_memory_target_batch'])
 
         inputs = data['main_obs']
         q_value = self._learn_model.forward(inputs)['logit']  # shape (seq_len, bs, act_dim)
@@ -436,7 +407,6 @@ class R2D2GTrXLPolicy(Policy):
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),
         }
-        #print(ret)
 
         return ret
 

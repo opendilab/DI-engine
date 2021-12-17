@@ -498,7 +498,6 @@ class GTrXL(nn.Module):
             ).bool().unsqueeze(-1).to(x.device)
         )  # cur_seq x full_seq x 1
 
-        # TODO understand why pos_ips order is decreasing (guess is the same)
         pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
         pos_embedding = self.dropout(self.pos_embedding(pos_ips))  # full_seq x 1 x embedding_dim
 
