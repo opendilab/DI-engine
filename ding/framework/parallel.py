@@ -1,8 +1,9 @@
 import atexit
 import os
 import random
-import threading
 import time
+import inspect
+import weakref
 from mpire.pool import WorkerPool
 import pynng
 import pickle
@@ -27,10 +28,10 @@ class Parallel(metaclass=SingletonMetaclass):
         self._sock: Socket = None
         self._rpc = {}
         self._bind_addr = None
-        self._lock = threading.Lock()
         self.is_active = False
         self.attach_to = None
         self.finished = False
+        self.node_id = None
 
     def run(self, node_id: int, listen_to: str, attach_to: List[str] = None) -> None:
         self.node_id = node_id
@@ -185,7 +186,10 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
                     break
 
     def register_rpc(self, fn_name: str, fn: Callable) -> None:
-        self._rpc[fn_name] = fn
+        if inspect.ismethod(fn):
+            self._rpc[fn_name] = weakref.WeakMethod(fn)
+        else:
+            self._rpc[fn_name] = fn
 
     def send_rpc(self, func_name: str, *args, **kwargs) -> None:
         if self.is_active:
@@ -198,7 +202,10 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         except Exception as e:
             logging.warning("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
         if payload["f"] in self._rpc:
-            self._rpc[payload["f"]](*payload["a"], **payload["k"])
+            fn = self._rpc[payload["f"]]
+            if isinstance(fn, weakref.WeakMethod):
+                fn = fn()
+            fn(*payload["a"], **payload["k"])
         else:
             logging.warning("There was no function named {} in rpc table".format(payload["f"]))
 
