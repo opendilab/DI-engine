@@ -146,7 +146,8 @@ class TD3VAEPolicy(DDPGPolicy):
             ),
         ),
         collect=dict(
-            n_sample=1,
+            # n_sample=1,
+            each_iter_n_sample=48,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
@@ -257,7 +258,7 @@ class TD3VAEPolicy(DDPGPolicy):
                 {'action': data['action'],
                  'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
 
-            data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action mu
+            # data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action mu
             # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
             result.pop(-1)  # remove z
             result[2] = data['action']
@@ -323,7 +324,7 @@ class TD3VAEPolicy(DDPGPolicy):
                     {'action': data['action'],
                      'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
 
-                data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
+                # data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
                 # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
                 result.pop(-1)  # remove z
                 result[2] = data['action']
@@ -378,6 +379,7 @@ class TD3VAEPolicy(DDPGPolicy):
                 result = self._vae_model(
                     {'action': data['action'],
                      'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
+                # if result[1].detach()
                 data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
                 # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
 
@@ -427,6 +429,7 @@ class TD3VAEPolicy(DDPGPolicy):
                 # ===============================
                 # actor updates every ``self._actor_update_freq`` iters
                 if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
+
                     actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')  # latent action
                     actor_data['obs'] = data['obs']
                     if self._twin_critic:
