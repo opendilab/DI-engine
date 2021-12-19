@@ -132,7 +132,7 @@ class VanillaVAE(BaseVAE):
 
         self.obs_encoding = None
 
-    def encode(self, input: Tensor) -> List[Tensor]:
+    def encode(self, input) -> List[Tensor]:
         """
         Encodes the input by passing through the encoder network
         and returns the latent codes.
@@ -163,7 +163,22 @@ class VanillaVAE(BaseVAE):
         # for compatiability collect and eval in fist iteration
         if self.obs_encoding is None or z.shape[:-1] != self.obs_encoding.shape[:-1]:
             self.obs_encoding = torch.zeros(list(z.shape[:-1]) + [self.hidden_dims[1]])
+        input = torch.cat([self.obs_encoding, z], dim=-1)
+        decoding_tmp = self.decoder(input)
+        reconstruction_action = self.reconstruction_layer(decoding_tmp)
+        predition_residual_tmp = self.prediction_layer_1(decoding_tmp)
+        predition_residual = self.prediction_layer_2(predition_residual_tmp)
 
+        return [reconstruction_action, predition_residual]
+
+    def decode_with_obs(self, z: Tensor, obs) -> Tensor:
+        """
+        Maps the given latent codes
+        onto the image space.
+        :param z: (Tensor) [B x D]
+        :return: (Tensor) [B x C x H x W]
+        """
+        self.obs_encoding = self.obs_head(obs)
         input = torch.cat([self.obs_encoding, z], dim=-1)
         decoding_tmp = self.decoder(input)
         reconstruction_action = self.reconstruction_layer(decoding_tmp)

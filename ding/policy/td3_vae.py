@@ -529,8 +529,9 @@ class TD3VAEPolicy(DDPGPolicy):
         with torch.no_grad():
             output = self._collect_model.forward(data, mode='compute_actor', **kwargs)
             output['latent_action'] = output['action']
-            # TODO(pu): decode into original hybrid actions
-            output['action'] = self._vae_model.decode(output['action'])[0]
+            # TODO(pu): decode into original hybrid actions, here data is obs
+            # this is very important to generate self.obs_encoding using in decode phase
+            output['action'] = self._vae_model.decode_with_obs(output['action'], data)[0]
 
         # add noise in the original actions
         from ding.rl_utils.exploration import GaussianNoise
@@ -623,8 +624,9 @@ class TD3VAEPolicy(DDPGPolicy):
         with torch.no_grad():
             output = self._eval_model.forward(data, mode='compute_actor')
             output['latent_action'] = output['action']
-            # TODO(pu): decode into original hybrid actions
-            output['action'] = self._vae_model.decode(output['action'])[0]
+            # TODO(pu): decode into original hybrid actions, here data is obs
+            # this is very important to generate self.obs_encoding using in decode phase
+            output['action'] = self._vae_model.decode_with_obs(output['action'], data)[0]
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

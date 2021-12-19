@@ -28,8 +28,12 @@ lunarlander_td3vae_config = dict(
     # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_relabelz_novaeupdatez_eins48_rvuc1000_upcr20_upcv1000_notargetnoise_nocollectnoise_rbs2e4', # TODO(pu)  3m collect rew_mean -256 loss explode
     # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_relabelz_novaeupdatez_eins48_rvuc1000_upcr20_upcv1000_notargetnoise_nocollectnoise_rbs1e5', # TODO(pu) 3m collect rew_mean -259
 
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_relabelz_novaeupdatez_ns48_rvuc10000_upcr2_upcv10000_notargetnoise_collectoriginalnoise_rbs5e5',
-    exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc1000_upcr2_upcv1000_notargetnoise_collectoriginalnoise_rbs2e4_rsc',  # TODO(pu) 1.5m collect rew_max 50 eval rew_mean -132
+    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_relabelz_novaeupdatez_ns48_rvuc10000_upcr2_upcv10000_notargetnoise_collectoriginalnoise_rbs5e5_rsc',
+
+    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr2_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc', # run4
+    exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc1000_upcr2_upcv1000_notargetnoise_collectoriginalnoise_rbs2e4_rsc',  # TODO(pu) run3 1.5m collect rew_max eval rew_mean
+    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_relabelz_novaeupdatez_ns48_rvuc1_upcr2_upcv1_notargetnoise_collectoriginalnoise_rbs2e4_rsc',   # run2
+    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu0_relabelz_novaeupdatez_ns48_rvuc1_upcr2_upcv0_notargetnoise_collectoriginalnoise_rbs2e4_rsc',   # run6
 
     env=dict(
         env_id='LunarLanderContinuous-v2',
@@ -61,19 +65,18 @@ lunarlander_td3vae_config = dict(
             warm_up_update=1000,
             # vae_train_times_per_update=1,  # TODO(pu)
 
-            # rl_vae_update_circle=10000,  # train rl 10 iter, vae 1 iter
             rl_vae_update_circle=1000,  # train rl 10 iter, vae 1 iter
-            # rl_vae_update_circle=1,  # train rl 1 iter, vae 1 iter
+            # rl_vae_update_circle=100,
+            # rl_vae_update_circle=1,
 
             # update_per_collect_rl=50,
             # update_per_collect_rl=20,
             update_per_collect_rl=2,
 
-            # update_per_collect_vae=10000,  # each mini-batch: replay_buffer_recent sample 128, replay_buffer sample 128
             update_per_collect_vae=1000,  # each mini-batch: replay_buffer_recent sample 128, replay_buffer sample 128
-            # update_per_collect_vae=20,  # each mini-batch: replay_buffer_recent sample 128
-            # update_per_collect_vae=2,  # each mini-batch: replay_buffer_recent sample 128
-            # update_per_collect_vae=0,  # each mini-batch: replay_buffer_recent sample 128, replay_buffer sample 128
+            # update_per_collect_vae=20,
+            # update_per_collect_vae=1,
+            # update_per_collect_vae=0,
 
             batch_size=128,
             learning_rate_actor=1e-3,
