@@ -13,6 +13,8 @@ from .common_utils import default_preprocess_learn
 from ding.utils import POLICY_REGISTRY
 from .ddpg import DDPGPolicy
 from ding.model.template.vae import VanillaVAE
+from ding.utils import RunningMeanStd
+from torch.nn import functional as F
 
 
 @POLICY_REGISTRY.register('td3-vae')
@@ -147,7 +149,7 @@ class TD3VAEPolicy(DDPGPolicy):
         ),
         collect=dict(
             # n_sample=1,
-            each_iter_n_sample=48,
+            # each_iter_n_sample=48,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
@@ -228,6 +230,7 @@ class TD3VAEPolicy(DDPGPolicy):
             self._vae_model.parameters(),
             lr=self._cfg.learn.learning_rate_vae,
         )
+        self._running_mean_std_predict_loss = RunningMeanStd(epsilon=1e-4)
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
@@ -277,6 +280,7 @@ class TD3VAEPolicy(DDPGPolicy):
             loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss'].item()
             loss_dict['kld_loss'] = vae_loss['kld_loss'].item()
             loss_dict['predict_loss'] = vae_loss['predict_loss'].item()
+            self._running_mean_std_predict_loss.update(vae_loss['predict_loss'].unsqueeze(-1).cpu().detach().numpy())
 
             # vae update
             self._optimizer_vae.zero_grad()
@@ -382,6 +386,10 @@ class TD3VAEPolicy(DDPGPolicy):
                 # if result[1].detach()
                 data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
                 # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
+                true_residual = data['next_obs'] - data['obs']
+                if F.mse_loss(result[1], true_residual).item() > 4 * self._running_mean_std_predict_loss.mean:
+                    data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
+                    # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
 
                 if self._reward_batch_norm:
                     reward = (reward - reward.mean()) / (reward.std() + 1e-8)
@@ -523,6 +531,22 @@ class TD3VAEPolicy(DDPGPolicy):
             output['latent_action'] = output['action']
             # TODO(pu): decode into original hybrid actions
             output['action'] = self._vae_model.decode(output['action'])[0]
+
+        # add noise in the original actions
+        from ding.rl_utils.exploration import GaussianNoise
+        action = output['action']
+        gaussian_noise = GaussianNoise(mu=0.0, sigma=0.1)
+        noise = gaussian_noise( output['action'].shape, output['action'].device)
+        if self._cfg.learn.noise_range is not None:
+            noise = noise.clamp(self._cfg.learn.noise_range['min'], self._cfg.learn.noise_range['max'])
+        action += noise
+        self.action_range = {
+            'min': -1,
+            'max': 1
+        }
+        if self.action_range is not None:
+            action = action.clamp(self.action_range['min'], self.action_range['max'])
+        output['action'] = action
 
         if self._cuda:
             output = to_device(output, 'cpu')

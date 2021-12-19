@@ -138,6 +138,7 @@ def serial_pipeline_td3_vae(
         if iter % cfg.policy.learn.rl_vae_update_circle in range(0, cfg.policy.learn.rl_vae_update_circle):
             # Learn policy from collected data
             for i in range(cfg.policy.learn.update_per_collect_rl):
+                # print('update_per_collect_rl')
                 # Learner will train ``update_per_collect`` times in one iteration.
                 train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
                 if train_data is not None:
@@ -159,6 +160,7 @@ def serial_pipeline_td3_vae(
         # if iter % cfg.policy.learn.rl_vae_update_circle in range(19, 20):
         if iter % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1, cfg.policy.learn.rl_vae_update_circle):
             for i in range(cfg.policy.learn.update_per_collect_vae):
+                # print('update_per_collect_vae')
                 # Learner will train ``update_per_collect`` times in one iteration.
                 train_data_history = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
                 # train_data_recent = replay_buffer_recent.sample(learner.policy.get_attribute('batch_size'), learner.train_iter) # TODO(pu)
