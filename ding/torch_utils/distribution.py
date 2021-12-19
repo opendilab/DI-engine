@@ -14,6 +14,7 @@ class Pd(object):
         Abstract class for parameterizable probability distributions and sampling functions.
     Interface:
         neglogp, entropy, noise_mode, mode, sample
+
     .. tip::
 
         In dereived classes, `logits` should be an attribute member stored in class.
@@ -85,7 +86,7 @@ class CategoricalPd(Pd):
         Overview:
             Updata logits
         Arguments:
-            - logits (:obj:torch.Tensor): logits to update
+            - logits (:obj:`torch.Tensor`): logits to update
         """
         self.logits = logits
 
@@ -122,12 +123,12 @@ class CategoricalPd(Pd):
             return entropy.mean()
 
     def noise_mode(self, viz: bool = False) -> Tuple[torch.Tensor, Dict[str, np.ndarray]]:
-        r"""
+        """
         Overview:
             add noise to logits
         Arguments:
             - viz (:obj:`bool`): Whether to return numpy from of logits, noise and noise_logits; \
-                Short for "visualize". (Because tensor type cannot visualize in tb or text log)
+                Short for ``visualize`` . (Because tensor type cannot visualize in tb or text log)
         Returns:
             - result (:obj:`torch.Tensor`): noised logits
             - viz_feature (:obj:`Dict[str, np.ndarray]`): ndarray type data for visualization.
@@ -146,12 +147,12 @@ class CategoricalPd(Pd):
             return result
 
     def mode(self, viz: bool = False) -> Tuple[torch.Tensor, Dict[str, np.ndarray]]:
-        r"""
+        """
         Overview:
             return logits argmax result
-        Argiments:
-            - viz (:obj:`bool`): Whether to return numpy from of logits, noise and noise_logits; \
-                Short for "visualize". (Because tensor type cannot visualize in tb or text log)
+        Arguments:
+            - viz (:obj:`bool`): Whether to return numpy from of logits, noise and noise_logits;
+                Short for ``visualize`` . (Because tensor type cannot visualize in tb or text log)
         Returns:
             - result (:obj:`torch.Tensor`): the logits argmax result
             - viz_feature (:obj:`Dict[str, np.ndarray]`): ndarray type data for visualization.
@@ -165,12 +166,12 @@ class CategoricalPd(Pd):
             return result
 
     def sample(self, viz: bool = False) -> Tuple[torch.Tensor, Dict[str, np.ndarray]]:
-        r"""
+        """
         Overview:
             Sample from logits's distribution by using softmax
         Arguments:
             - viz (:obj:`bool`): Whether to return numpy from of logits, noise and noise_logits; \
-                Short for "visualize". (Because tensor type cannot visualize in tb or text log)
+                Short for ``visualize`` . (Because tensor type cannot visualize in tb or text log)
         Returns:
             - result (:obj:`torch.Tensor`): the logits sampled result
             - viz_feature (:obj:`Dict[str, np.ndarray]`): ndarray type data for visualization.
@@ -186,15 +187,12 @@ class CategoricalPd(Pd):
 
 
 class CategoricalPdPytorch(torch.distributions.Categorical):
-    r"""
+    """
     Overview:
         Wrapped ``torch.distributions.Categorical``
-    Notes:
-        Please refer to ``torch.distributions.Categorical`` doc: \
-            https://pytorch.org/docs/stable/distributions.html?highlight=torch%20distributions#module-torch.distributions\
-                Categorical
+
     Interface:
-        update_logits, updata_probs, sample, neglogp, mode, entropy
+        update_logits, update_probs, sample, neglogp, mode, entropy
     """
 
     def __init__(self, probs: torch.Tensor = None) -> None:
@@ -206,7 +204,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
         Overview:
             Updata logits
         Arguments:
-            - logits (:obj:torch.Tensor): logits to update
+            - logits (:obj:`torch.Tensor`): logits to update
         """
         super().__init__(logits=logits)
 
@@ -215,7 +213,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
         Overview:
             Updata probs
         Arguments:
-            - probs (:obj:torch.Tensor): probs to update
+            - probs (:obj:`torch.Tensor`): probs to update
         """
         super().__init__(probs=probs)
 
@@ -250,7 +248,7 @@ class CategoricalPdPytorch(torch.distributions.Categorical):
         Overview:
             Return logits argmax result
         Return:
-            - result(:obj: `torch.Tensor`): the logits argmax result
+            - result(:obj:`torch.Tensor`): the logits argmax result
         """
         return self.probs.argmax(dim=-1)
 
