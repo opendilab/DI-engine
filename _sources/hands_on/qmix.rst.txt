@@ -75,7 +75,7 @@ The default config is defined as follows:
 
 The network interface QMIX used is defined as follows:
     .. autoclass:: ding.model.template.QMix
-        :members: __init__, forward
+        :members: forward
         :noindex:
 
 The Benchmark result of QMIX in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.

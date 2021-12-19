@@ -70,7 +70,7 @@ DQN can be combined with:
 
         The specific architecture is shown in the following graph:
 
-        .. image:: images/Dueling_DQN.png
+        .. image:: images/DuelingDQN.png
            :align: center
            :height: 300
 
@@ -86,7 +86,7 @@ The default config of DQNPolicy is defined as follows:
 The network interface DQN used is defined as follows:
 
 .. autoclass:: ding.model.template.q_learning.DQN
-   :members: __init__, forward
+   :members: forward
    :noindex:
 
 The Benchmark result of DQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_

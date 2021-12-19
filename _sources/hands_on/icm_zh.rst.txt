@@ -90,11 +90,12 @@ ICM通过前向模型和逆向模型，会提取更多会受到agent影响的环
 同时，１－４也可以写作一个优化函数：
 
  :math:`{\min}_{\theta_P,\theta_I,\theta_F，\theta_E} [- \lambda \mathbb{E}_{\pi(s_t;\theta_p)}[\Sigma_t r_t] + (1-\beta)L_I + \beta LF]`
+
 在这里 :math:`\beta \in [0,1]` 用来权衡正向模型误差和逆向模型误差的权重；　:math:`\lambda >0` 用来表征策略梯度误差对于内在信号的重要程度。
 
 
 重要实现细节
------------
+-------------
 1. 奖励归一化。由于智能体在不同的阶段和环境下，奖励的幅度变化可能会很剧烈，如果直接用作后续的计算，很容易造成后续学习的不稳定。
 在我们的实现中，是按照下面的最大最小归一化公式，归一化到[0,1]之间:
 
@@ -119,7 +120,7 @@ ICM通过前向模型和逆向模型，会提取更多会受到agent影响的环
 内在好奇心模型( ``ICMRewardModel`` )的接口定义如下：
 
 .. autoclass:: ding.reward_model.icm_reward_model.ICMRewardModel
-   :members: __init__, _train, train, estimate, collect_data, clear_data
+   :members: _train, train, estimate, collect_data, clear_data
    :noindex:
 
 

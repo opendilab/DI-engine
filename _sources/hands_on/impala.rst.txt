@@ -319,7 +319,7 @@ The default config of IMPALAPolicy is defined as follows:
 The network interface IMPALA used is defined as follows:
 
     .. autoclass:: ding.model.template.vac.VAC
-        :members: __init__, forward
+        :members: forward
         :noindex:
 
 The Benchmark result of IMPALA implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_

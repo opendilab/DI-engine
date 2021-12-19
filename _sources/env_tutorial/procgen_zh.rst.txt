@@ -272,11 +272,13 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/procgen/coinrun/ent
 -  Coinrun（平均奖励等于10视为较好的Agent）
 
    - Coinrun + DQN
+
    .. image:: images/coinrun_dqn.svg
      :align: center
 
 -  Maze（平均奖励等于10视为较好的Agent）
 
    - Maze + DQN
+
    .. image:: images/maze_dqn.svg
      :align: center

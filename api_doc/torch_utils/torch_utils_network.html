@@ -257,9 +257,18 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.activation.GLU">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.activation.</span></span><span class="sig-name descname"><span class="pre">GLU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'fc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/activation.html#GLU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.activation.GLU" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
+<dd><dl>
 <dt>Overview:</dt><dd><p>Gating Linear Unit.
 This class does a thing like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Inputs: input, context, output_size</span>
+<span class="c1"># The gate value is a learnt function of the input.</span>
+<span class="n">gate</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">linear</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">size</span><span class="p">)(</span><span class="n">context</span><span class="p">))</span>
+<span class="c1"># Gate the input and return an output of desired size.</span>
+<span class="n">gated_input</span> <span class="o">=</span> <span class="n">gate</span> <span class="o">*</span> <span class="nb">input</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">output_size</span><span class="p">)(</span><span class="n">gated_input</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">output</span>
+</pre></div>
+</div>
 </dd>
 <dt>Interfaces:</dt><dd><p>forward</p>
 </dd>
@@ -873,18 +882,16 @@ _____________________________________/+</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTM">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.rnn.</span></span><span class="sig-name descname"><span class="pre">LSTM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTM" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div><dl class="simple">
-<dt>Overview:</dt><dd><p>Implimentation of LSTM cell</p>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Implimentation of LSTM cell with LN</p>
 </dd>
 <dt>Interface:</dt><dd><p>forward</p>
 </dd>
 </dl>
-</div></blockquote>
-<dl class="simple">
-<dt>s</dt><dd><p>For begainners, you can refer to &lt;<a class="reference external" href="https://zhuanlan.zhihu.com/p/32085405">https://zhuanlan.zhihu.com/p/32085405</a>&gt; to learn the basics about lstm</p>
-</dd>
-</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For beginners, you can refer to &lt;<a class="reference external" href="https://zhuanlan.zhihu.com/p/32085405">https://zhuanlan.zhihu.com/p/32085405</a>&gt; to learn the basics about lstm</p>
+</div>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTM.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTM.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTM.forward" title="Permalink to this definition">¶</a></dt>
@@ -893,11 +900,7 @@ _____________________________________/+</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input vector of cell, tensor of size [seq_len, batch_size, input_size]</p></li>
-<li><dl class="simple">
-<dt>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): None or tensor of size </dt><dd><p>[num_directions*num_layers, batch_size, hidden_size]</p>
-</dd>
-</dl>
-</li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): None or tensor of size                 [num_directions*num_layers, batch_size, hidden_size]</p></li>
 <li><p>list_next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether return next_state with list format, default set to False</p></li>
 </ul>
 </dd>

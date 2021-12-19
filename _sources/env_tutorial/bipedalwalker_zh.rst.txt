@@ -1,5 +1,5 @@
 BipedalWalker
-~~~~~~~
+~~~~~~~~~~~~~~~
 
 概述
 =======
@@ -44,19 +44,16 @@ BipedalWalker
 DI-engine的镜像包含自有框架和Atari环境，可通过\ ``docker pull opendilab/ding:nightly``\ 获取. 如何获取更多镜像? 访问\ `docker
 hub <https://hub.docker.com/repository/docker/opendilab/ding>`__\
 
-.. _变换前的空间原始环境）:
 
 变换前的空间（原始环境）
 ========================
 
-.. _观察空间-1:
 
 观察空间
 --------
 
 -  智能体的状态是24维连续向量，包括船体角速度(hull angle speed)、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及10次激光雷达测距仪的测量值。注意的是该状态向量中不包含机器人的坐标。
 
-.. _动作空间-1:
 
 动作空间
 --------
@@ -64,7 +61,6 @@ hub <https://hub.docker.com/repository/docker/opendilab/ding>`__\
 -  环境动作空间为4维的连续向量，每个维度的值在[-1,1]之间。
 
 -  这四维的连续向量分别控制机器人四个腿关节的扭矩。机器人共有2条腿，每条腿有两个关节(腰关节和膝关节), 一共4个关节需要控制。
-.. _奖励空间-1:
 
 奖励空间
 --------
@@ -193,5 +189,6 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/bipedalwalker
 -  平均奖励大于等于300视为较好的Agent
 
     - BipedalWalker + TD3
+
     .. image:: images/bipedalwalker_td3.png
      :align: center

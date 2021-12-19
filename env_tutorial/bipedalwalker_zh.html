@@ -106,19 +106,19 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#id6">变换前的空间（原始环境）</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id8">观察空间</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id10">动作空间</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id12">奖励空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id7">观察空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8">动作空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">奖励空间</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#id14">关键事实</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id15">其他</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id16">随机种子</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id17">存储录像</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">关键事实</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">其他</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id12">随机种子</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13">存储录像</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#di-zoo">DI-zoo可运行代码示例</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id18">基准算法性能</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">基准算法性能</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="bit_flip_zh.html">Bit-flip</a></li>
@@ -252,34 +252,34 @@ hub</a></p>
 </div>
 </div>
 <div class="section" id="id6">
-<span id="id7"></span><h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id8">
-<span id="id9"></span><h3>观察空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h3>观察空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>智能体的状态是24维连续向量，包括船体角速度(hull angle speed)、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及10次激光雷达测距仪的测量值。注意的是该状态向量中不包含机器人的坐标。</p></li>
 </ul>
 </div>
-<div class="section" id="id10">
-<span id="id11"></span><h3>动作空间<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>动作空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境动作空间为4维的连续向量，每个维度的值在[-1,1]之间。</p></li>
 <li><p>这四维的连续向量分别控制机器人四个腿关节的扭矩。机器人共有2条腿，每条腿有两个关节(腰关节和膝关节), 一共4个关节需要控制。</p></li>
 </ul>
 </div>
-<div class="section" id="id12">
-<span id="id13"></span><h3>奖励空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id9">
+<h3>奖励空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>机器人在每一步应用电机扭矩会得到小的负的奖励，每前进一步会得到小的正的奖励，成功移动到最远端累计可以得到超过300分的奖励。如果机器人途中摔倒，会得到 -100的奖励，且游戏结束。 奖励是一个float数值，范围是[-400, 300]。</p></li>
 </ul>
 </div>
 </div>
-<div class="section" id="id14">
-<h2>关键事实<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id10">
+<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="id15">
-<h2>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id16">
-<h3>随机种子<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id11">
+<h2>其他<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id12">
+<h3>随机种子<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
 <li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
@@ -287,8 +287,8 @@ hub</a></p>
 <li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
 </ul>
 </div>
-<div class="section" id="id17">
-<h3>存储录像<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id13">
+<h3>存储录像<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">dizoo.box2d.bipedalwalker.envs</span> <span class="kn">import</span> <span class="n">BipedalWalkerEnv</span>
@@ -379,8 +379,8 @@ link</a>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id18">
-<h2>基准算法性能<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id14">
+<h2>基准算法性能<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>平均奖励大于等于300视为较好的Agent</p>
 <blockquote>

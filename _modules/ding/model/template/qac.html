@@ -185,7 +185,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">]</span>
 
-<div class="viewcode-block" id="QAC.__init__"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="QAC.__init__"><a class="viewcode-back" href="../../../../api_doc/model/template/QAC.html#ding.model.template.QAC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">EasyDict</span><span class="p">],</span>
@@ -198,26 +198,25 @@
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the QAC Model according to arguments.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s space.</span>
-<span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s space, such as 4, (3, ),</span>
+<span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s space, such as 4, (3, ), \</span>
 <span class="sd">                EasyDict({&#39;action_type_shape&#39;: 3, &#39;action_args_shape&#39;: 4}).</span>
 <span class="sd">            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization`` or ``hybrid`` .</span>
 <span class="sd">            - twin_critic (:obj:`bool`): Whether include twin critic.</span>
 <span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn&#39;s ``Head``.</span>
-<span class="sd">            - actor_head_layer_num (:obj:`int`):</span>
-<span class="sd">                The num of layers used in the network to compute Q value output for actor&#39;s nn.</span>
+<span class="sd">            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \</span>
+<span class="sd">                for actor&#39;s nn.</span>
 <span class="sd">            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn&#39;s ``Head``.</span>
-<span class="sd">            - critic_head_layer_num (:obj:`int`):</span>
-<span class="sd">                The num of layers used in the network to compute Q value output for critic&#39;s nn.</span>
-<span class="sd">            - activation (:obj:`Optional[nn.Module]`):</span>
-<span class="sd">                The type of activation function to use in ``MLP`` the after ``layer_fn``,</span>
-<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`):</span>
-<span class="sd">                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.</span>
+<span class="sd">            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \</span>
+<span class="sd">                for critic&#39;s nn.</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \</span>
+<span class="sd">                after ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to use, \</span>
+<span class="sd">                see ``ding.torch_utils.netwrok`` for more details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QAC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="n">obs_shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
@@ -311,29 +310,28 @@
             <span class="p">)</span></div>
 
 <div class="viewcode-block" id="QAC.forward"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation and action tensor to predict output.</span>
 <span class="sd">            Parameter updates with QAC&#39;s MLPs forward setup.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            Forward with ``&#39;compute_actor&#39;``:</span>
-<span class="sd">                - inputs (:obj:`torch.Tensor`):</span>
-<span class="sd">                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
-<span class="sd">                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.</span>
+<span class="sd">            Forward with ``compute_actor``:</span>
+<span class="sd">                - inputs (:obj:`torch.Tensor`): The encoded embedding tensor, determined with given ``hidden_size``, \</span>
+<span class="sd">                    i.e. ``(B, N=hidden_size)``.</span>
 
-<span class="sd">            Forward with ``&#39;compute_critic&#39;``, inputs (`Dict`) Necessary Keys:</span>
-<span class="sd">                - ``obs``, ``action`` encoded tensors.</span>
+<span class="sd">            Forward with ``compute_critic``:</span>
+<span class="sd">                - inputs (:obj:`Dict`)</span>
 
 <span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
 
-<span class="sd">                Forward with ``&#39;compute_actor&#39;``, Necessary Keys (either):</span>
+<span class="sd">                Forward with ``compute_actor``</span>
 <span class="sd">                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.</span>
-<span class="sd">                    - logit (:obj:`torch.Tensor`):</span>
-<span class="sd">                        Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.</span>
+<span class="sd">                    - logit (:obj:`torch.Tensor`): Logit tensor encoding ``mu`` and ``sigma``, both with same size \</span>
+<span class="sd">                        as input ``x``.</span>
 
-<span class="sd">                Forward with ``&#39;compute_critic&#39;``, Necessary Keys:</span>
+<span class="sd">                Forward with ``compute_critic``</span>
 <span class="sd">                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
 <span class="sd">        Actor Shapes:</span>
 <span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
@@ -342,7 +340,7 @@
 
 <span class="sd">        Critic Shapes:</span>
 <span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
 <span class="sd">            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``</span>
 
 <span class="sd">        Actor Examples:</span>
@@ -371,14 +369,14 @@
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QAC.compute_actor"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to predict output.</span>
-<span class="sd">            Execute parameter updates with ``&#39;compute_actor&#39;`` mode</span>
+<span class="sd">            Execute parameter updates with ``compute_actor`` mode</span>
 <span class="sd">            Use encoded embedding tensor to predict output.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - inputs (:obj:`torch.Tensor`):</span>
-<span class="sd">                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
+<span class="sd">                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``. \</span>
 <span class="sd">                ``hidden_size = actor_head_hidden_size``</span>
 <span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
 <span class="sd">        Returns:</span>
@@ -386,17 +384,17 @@
 
 <span class="sd">        ReturnsKeys (either):</span>
 <span class="sd">            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`):</span>
-<span class="sd">                Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.</span>
-<span class="sd">            - logit + action_args</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Logit tensor encoding ``mu`` and ``sigma``, both with same size \</span>
+<span class="sd">                as input ``x``.</span>
 <span class="sd">        Shapes:</span>
 <span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
 <span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
 <span class="sd">            - logit (:obj:`Union[list, torch.Tensor]`):</span>
+
 <span class="sd">              - case1(continuous space, list): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.</span>
 <span class="sd">              - case2(hybrid space, torch.Tensor): :math:`(B, N1)`, where N1 is action_type_shape</span>
 <span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.</span>
-<span class="sd">            - action_args (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where N2 is action_args_shape</span>
+<span class="sd">            - action_args (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where N2 is action_args_shape \</span>
 <span class="sd">                (action_args are continuous real value)</span>
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Regression mode</span>
@@ -427,19 +425,21 @@
 <div class="viewcode-block" id="QAC.compute_critic"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Execute parameter updates with ``&#39;compute_critic&#39;`` mode</span>
+<span class="sd">            Execute parameter updates with ``compute_critic`` mode</span>
 <span class="sd">            Use encoded embedding tensor to predict output.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj: `Dict`): ``obs``, ``action`` and ``logit` tensors.</span>
+<span class="sd">            - inputs (:obj:`Dict`): ``obs``, ``action`` and ``logit`` tensors.</span>
 <span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - outputs (:obj:`Dict`): Q-value output.</span>
 
 <span class="sd">        ArgumentsKeys:</span>
 <span class="sd">            - necessary:</span>
+
 <span class="sd">              - obs: (:obj:`torch.Tensor`): 2-dim vector observation</span>
 <span class="sd">              - action (:obj:`Union[torch.Tensor, Dict]`): action from actor</span>
 <span class="sd">            - optional:</span>
+
 <span class="sd">              - logit (:obj:`torch.Tensor`): discrete action logit</span>
 <span class="sd">        ReturnKeys:</span>
 <span class="sd">            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>

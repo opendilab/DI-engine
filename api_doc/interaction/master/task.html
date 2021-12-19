@@ -295,10 +295,7 @@
 <dt>Overview:</dt><dd><p>Task object of the connections.
 Linking call is fully supported.</p>
 </dd>
-<dt>Example:</dt><dd><ul class="simple">
-<li><p>A simple and common usage</p></li>
-</ul>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">master</span><span class="o">.</span><span class="n">new_connection</span><span class="p">(</span><span class="s1">&#39;cnn1,&#39;</span><span class="p">,</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">2333</span><span class="p">)</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">master</span><span class="o">.</span><span class="n">new_connection</span><span class="p">(</span><span class="s1">&#39;cnn1,&#39;</span><span class="p">,</span> <span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="mi">2333</span><span class="p">)</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="n">task</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">new_task</span><span class="p">({</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="mi">233</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># task is not sent yet</span>
 <span class="go">&gt;&gt;&gt;</span>

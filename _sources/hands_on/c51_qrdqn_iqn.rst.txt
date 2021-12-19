@@ -58,7 +58,7 @@ The default config of C51 is defined as follows:
 The network interface C51 used is defined as follows:
 
 .. autoclass:: ding.model.template.q_learning.C51DQN
-   :members: __init__, forward
+   :members: forward
    :noindex:
 
 The bellman updates of C51 is implemented as:
@@ -126,7 +126,7 @@ The default config of QRDQN is defined as follows:
 The network interface QRDQN used is defined as follows:
 
 .. autoclass:: ding.model.template.q_learning.QRDQN
-   :members: __init__, forward
+   :members: forward
    :noindex:
 
 The bellman updates of QRDQN is implemented in the function ``qrdqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
@@ -195,7 +195,7 @@ The default config of IQN is defined as follows:
 The network interface IQN used is defined as follows:
 
 .. autoclass:: ding.model.template.q_learning.IQN
-   :members: __init__, forward
+   :members: forward
    :noindex:
 
 The bellman updates of IQN used is defined in the function ``iqn_nstep_td_error`` of ``ding/rl_utils/td.py``.

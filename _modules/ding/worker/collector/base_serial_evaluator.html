@@ -176,7 +176,7 @@
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_tensor</span><span class="p">,</span> <span class="n">to_ndarray</span><span class="p">,</span> <span class="n">tensor_to_list</span>
 
 
-<span class="k">class</span> <span class="nc">ISerialEvaluator</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="ISerialEvaluator"><a class="viewcode-back" href="../../../../api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.ISerialEvaluator">[docs]</a><span class="k">class</span> <span class="nc">ISerialEvaluator</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Basic interface class for serial evaluator.</span>
@@ -186,7 +186,7 @@
 <span class="sd">        env, policy</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="ISerialEvaluator.default_config"><a class="viewcode-back" href="../../../../api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.ISerialEvaluator.default_config">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">default_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
@@ -197,7 +197,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">config</span><span class="p">))</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">cfg_type</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;Dict&#39;</span>
-        <span class="k">return</span> <span class="n">cfg</span>
+        <span class="k">return</span> <span class="n">cfg</span></div>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">reset_env</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_env</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -227,7 +227,7 @@
             <span class="n">envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">n_episode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
 <div class="viewcode-block" id="VectorEvalMonitor"><a class="viewcode-back" href="../../../../api_doc/worker/collector/base_serial_evaluator.html#ding.worker.collector.base_serial_evaluator.VectorEvalMonitor">[docs]</a><span class="k">class</span> <span class="nc">VectorEvalMonitor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>

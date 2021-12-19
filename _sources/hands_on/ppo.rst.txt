@@ -65,7 +65,7 @@ The default config is defined as follows:
 
 
     .. autoclass:: ding.model.template.vac.VAC
-        :members: __init__, forward, compute_actor, compute_critic, compute_actor_critic
+        :members: forward, compute_actor, compute_critic, compute_actor_critic
         :noindex:
 
 

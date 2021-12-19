@@ -34,6 +34,7 @@ RainbowDQN
 
 .. autoclass:: ding.model.template.q_learning.RainbowDQN
     :members: forward
+    :noindex:
 
 
 DRQN

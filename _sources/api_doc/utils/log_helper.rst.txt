@@ -16,13 +16,6 @@ LoggerFactory
     :members: create_logger, get_tabulate_vars, get_tabulate_vars_hor,
 
 
-DistributionTimeImage
-~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: ding.utils.log_helper.DistributionTimeImage
-    :members: __init__, add_one_time_step, get_image
-
-
 pretty_print
 ~~~~~~~~~~~~~~~~~~~
 .. automodule:: ding.utils.log_helper.pretty_print
-

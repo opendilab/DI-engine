@@ -1,5 +1,5 @@
 MiniGrid
-~~~~~~~
+~~~~~~~~~
 
 概述
 =======
@@ -331,6 +331,7 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/config>`__
 -  MiniGrid-Empty-8x8-v0（0.5M env step下，平均奖励大于0.95）
 
    - MiniGrid-Empty-8x8-v0 + R2D2
+
    .. image:: images/empty8_r2d2.png
      :align: center
      :scale: 50%
@@ -338,6 +339,7 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/config>`__
 -  MiniGrid-FourRooms-v0（10M env step下，平均奖励大于0.6）
 
    - MiniGrid-FourRooms-v0 + R2D2
+
    .. image:: images/fourrooms_r2d2.png
      :align: center
      :scale: 50%
@@ -345,6 +347,7 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/config>`__
 -  MiniGrid-DoorKey-16x16-v0（20M env step下，平均奖励大于0.2）
 
    - MiniGrid-DoorKey-16x16-v0 + R2D2
+
    .. image:: images/doorkey_r2d2.png
      :align: center
      :scale: 50%

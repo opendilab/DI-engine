@@ -185,6 +185,7 @@ The following are the parameters for each map of the SMAC environment.
 -  SMAC environment 3s5z map training performance
 
    - 3s5z + MAPPO/IPPO
+
    .. image:: images/3s5z_mappo.png
      :align: center
 

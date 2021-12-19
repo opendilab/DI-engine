@@ -353,23 +353,27 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config>`__
 -  MMM（2M env step下胜率为1视为较好性能）
 
    - MMM + MAPPO
+
    .. image:: images/MMM_mappo.png
      :align: center
 
 -  3s5z（3M env step下胜率为1视为较好性能）
 
    - 3s5z + MAPPO
+
    .. image:: images/3s5z_mappo.png
      :align: center
 
 -  5m_vs_6m（5M env step下胜率为0.75视为较好性能）
 
    - 5m_vs_6m + MAPPO
+
    .. image:: images/5m6m_mappo.png
      :align: center
 
 -  MMM2（5M env step下胜率为1视为较好性能）
 
    - MMM2 + MAPPO
+
    .. image:: images/MMM2_mappo.png
      :align: center

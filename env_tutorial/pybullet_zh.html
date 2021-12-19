@@ -280,6 +280,15 @@ pip install -e .
 <div class="section" id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>安装完成后，可以通过在Python命令行中运行如下命令验证安装成功：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>  <span class="c1"># open ai gym</span>
+<span class="kn">import</span> <span class="nn">pybulletgym</span>  <span class="c1"># register PyBullet enviroments with open ai gym</span>
+
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;HopperMuJoCoEnv-v0&#39;</span><span class="p">)</span>
+<span class="c1"># env.render() # call this before env.reset, if you want a window showing the environment</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># should return a state vector if everything worked</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (11, )</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="id5">
 <h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>

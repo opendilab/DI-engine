@@ -180,6 +180,7 @@
 <span class="sd">        Abstract class for parameterizable probability distributions and sampling functions.</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        neglogp, entropy, noise_mode, mode, sample</span>
+
 <span class="sd">    .. tip::</span>
 
 <span class="sd">        In dereived classes, `logits` should be an attribute member stored in class.</span>
@@ -251,7 +252,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Updata logits</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - logits (:obj:torch.Tensor): logits to update</span>
+<span class="sd">            - logits (:obj:`torch.Tensor`): logits to update</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span></div>
 
@@ -288,12 +289,12 @@
             <span class="k">return</span> <span class="n">entropy</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="CategoricalPd.noise_mode"><a class="viewcode-back" href="../../../api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.noise_mode">[docs]</a>    <span class="k">def</span> <span class="nf">noise_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            add noise to logits</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - viz (:obj:`bool`): Whether to return numpy from of logits, noise and noise_logits; \</span>
-<span class="sd">                Short for &quot;visualize&quot;. (Because tensor type cannot visualize in tb or text log)</span>
+<span class="sd">                Short for ``visualize`` . (Because tensor type cannot visualize in tb or text log)</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - result (:obj:`torch.Tensor`): noised logits</span>
 <span class="sd">            - viz_feature (:obj:`Dict[str, np.ndarray]`): ndarray type data for visualization.</span>
@@ -312,12 +313,12 @@
             <span class="k">return</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="CategoricalPd.mode"><a class="viewcode-back" href="../../../api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.mode">[docs]</a>    <span class="k">def</span> <span class="nf">mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            return logits argmax result</span>
-<span class="sd">        Argiments:</span>
-<span class="sd">            - viz (:obj:`bool`): Whether to return numpy from of logits, noise and noise_logits; \</span>
-<span class="sd">                Short for &quot;visualize&quot;. (Because tensor type cannot visualize in tb or text log)</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - viz (:obj:`bool`): Whether to return numpy from of logits, noise and noise_logits;</span>
+<span class="sd">                Short for ``visualize`` . (Because tensor type cannot visualize in tb or text log)</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - result (:obj:`torch.Tensor`): the logits argmax result</span>
 <span class="sd">            - viz_feature (:obj:`Dict[str, np.ndarray]`): ndarray type data for visualization.</span>
@@ -331,12 +332,12 @@
             <span class="k">return</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="CategoricalPd.sample"><a class="viewcode-back" href="../../../api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPd.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">viz</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Sample from logits&#39;s distribution by using softmax</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - viz (:obj:`bool`): Whether to return numpy from of logits, noise and noise_logits; \</span>
-<span class="sd">                Short for &quot;visualize&quot;. (Because tensor type cannot visualize in tb or text log)</span>
+<span class="sd">                Short for ``visualize`` . (Because tensor type cannot visualize in tb or text log)</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - result (:obj:`torch.Tensor`): the logits sampled result</span>
 <span class="sd">            - viz_feature (:obj:`Dict[str, np.ndarray]`): ndarray type data for visualization.</span>
@@ -352,15 +353,12 @@
 
 
 <div class="viewcode-block" id="CategoricalPdPytorch"><a class="viewcode-back" href="../../../api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch">[docs]</a><span class="k">class</span> <span class="nc">CategoricalPdPytorch</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">Categorical</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Wrapped ``torch.distributions.Categorical``</span>
-<span class="sd">    Notes:</span>
-<span class="sd">        Please refer to ``torch.distributions.Categorical`` doc: \</span>
-<span class="sd">            https://pytorch.org/docs/stable/distributions.html?highlight=torch%20distributions#module-torch.distributions\</span>
-<span class="sd">                Categorical</span>
+
 <span class="sd">    Interface:</span>
-<span class="sd">        update_logits, updata_probs, sample, neglogp, mode, entropy</span>
+<span class="sd">        update_logits, update_probs, sample, neglogp, mode, entropy</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -372,18 +370,18 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Updata logits</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - logits (:obj:torch.Tensor): logits to update</span>
+<span class="sd">            - logits (:obj:`torch.Tensor`): logits to update</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">update_probs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="CategoricalPdPytorch.update_probs"><a class="viewcode-back" href="../../../api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.update_probs">[docs]</a>    <span class="k">def</span> <span class="nf">update_probs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">probs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Updata probs</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - probs (:obj:torch.Tensor): probs to update</span>
+<span class="sd">            - probs (:obj:`torch.Tensor`): probs to update</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">probs</span><span class="o">=</span><span class="n">probs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">probs</span><span class="o">=</span><span class="n">probs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CategoricalPdPytorch.sample"><a class="viewcode-back" href="../../../api_doc/torch_utils/distribution.html#ding.torch_utils.distribution.CategoricalPdPytorch.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -416,7 +414,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Return logits argmax result</span>
 <span class="sd">        Return:</span>
-<span class="sd">            - result(:obj: `torch.Tensor`): the logits argmax result</span>
+<span class="sd">            - result(:obj:`torch.Tensor`): the logits argmax result</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">probs</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
 

@@ -6,10 +6,10 @@ base_serial_evaluator
 
 Please Reference ding/worker/collector/base_serial_evaluator.py for usage
 
-BaseSerialEvaluator
+ISerialEvaluator
 ~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.worker.collector.base_serial_evaluator.BaseSerialEvaluator
-    :members: default_config, __init__, reset_env, reset_policy, reset, close, __del__, should_eval, eval
+.. autoclass:: ding.worker.collector.base_serial_evaluator.ISerialEvaluator
+    :members: default_config, __init__, reset_env, reset_policy, reset, close, should_eval, eval
 
 VectorEvalMonitor
 ~~~~~~~~~~~~~~~~~~~~~~

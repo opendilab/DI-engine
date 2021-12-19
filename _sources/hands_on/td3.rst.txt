@@ -142,7 +142,7 @@ Model
 Here we provide examples of `td3` model as default model for `TD3`.
 
 .. autoclass:: ding.model.template.qac.QAC
-    :members: __init__, forward, compute_actor, compute_critic
+    :members: forward, compute_actor, compute_critic
     :noindex:
 
 Train actor-critic model

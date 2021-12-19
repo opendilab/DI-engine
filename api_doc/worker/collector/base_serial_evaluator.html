@@ -202,8 +202,37 @@
 <div class="section" id="base-serial-evaluator">
 <h2>base_serial_evaluator<a class="headerlink" href="#base-serial-evaluator" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/worker/collector/base_serial_evaluator.py for usage</p>
-<div class="section" id="baseserialevaluator">
-<h3>BaseSerialEvaluator<a class="headerlink" href="#baseserialevaluator" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="iserialevaluator">
+<h3>ISerialEvaluator<a class="headerlink" href="#iserialevaluator" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.ISerialEvaluator">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.collector.base_serial_evaluator.</span></span><span class="sig-name descname"><span class="pre">ISerialEvaluator</span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#ISerialEvaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.ISerialEvaluator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Basic interface class for serial evaluator.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>reset, reset_policy, reset_env, close, should_eval, eval</p>
+</dd>
+<dt>Property:</dt><dd><p>env, policy</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.ISerialEvaluator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.ISerialEvaluator.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.worker.collector.base_serial_evaluator.ISerialEvaluator.default_config">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">default_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">easydict.EasyDict</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/collector/base_serial_evaluator.html#ISerialEvaluator.default_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.collector.base_serial_evaluator.ISerialEvaluator.default_config" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get evaluator’s default config. We merge evaluator’s default config with other default configs                and user’s config to get the final config.</p>
+</dd>
+<dt>Return:</dt><dd><p>cfg: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): evaluator’s default config</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="vectorevalmonitor">
 <h3>VectorEvalMonitor<a class="headerlink" href="#vectorevalmonitor" title="Permalink to this headline">¶</a></h3>

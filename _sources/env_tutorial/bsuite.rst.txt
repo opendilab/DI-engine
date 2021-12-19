@@ -2,7 +2,7 @@ Bsuite
 ~~~~~~~
 
 Description
-=======
+============
 
 ``bsuite`` is a collection of carefully-designed experiments that investigate core capabilities of a reinforcement learning (RL) agent with two main objectives:
 
@@ -15,10 +15,10 @@ Description
    Imahge taken from: https://github.com/deepmind/bsuite
 
 Installation
-====
+=============
 
 How to install
---------
+---------------
 
 You just need to use the command ``pip`` to install bsuite, however it will be automatically installed when installing DI-engine.
 
@@ -29,8 +29,9 @@ You just need to use the command ``pip`` to install bsuite, however it will be a
    # Method2: Install with DI-engine requirements
    cd DI-engine
    pip install ".[common_env]"
+
 Verify installation
---------
+--------------------
 
 Once installed, you can verify whether the installation is successful by running the following command on the Python command line.
 
@@ -40,18 +41,19 @@ Once installed, you can verify whether the installation is successful by running
    env = bsuite.load_from_id('catch/0')
    timestep = env.reset()
    print(timestep)
-Original environment space
-========================
 
-.. _Observations space-1:
+Original environment space
+===========================
+
 Observations space
---------
+-------------------
 
 -  Array representing the state of the environment, dimensions and size can vary according to the specific environment. Its datatype is \ ``np.float32``.
 
 .. _Actions space-1:
+
 Actions space
---------
+---------------
 
 -  The action space is a discrete space of size N which varies according to the environment. This datatype is \ ``int``\ and input is a python integer value（or a np array of dimension 0 such as \ ``np.array(1)``\ to input action 1）.
 
@@ -61,20 +63,18 @@ Actions space
 
    -  1：RIGHT.
 
-.. _Rewards space-1:
 Rewards space
---------
+-------------
 
 -  Rewards are assigned according to the rules of the environments. Rewards are usually a \ ``float``\ value.
 
-.. _Other-1:
 Others
-----
+-------
 
 -  Environments terminate once they have reached their maximum number of steps or encountered a failure state. All environments have the fixed number of maximum steps, but not all environments have a failure state.
 
 Key facts
-========
+==========
 
 1. Each environment contains several configurations to make it gradually more challenging.
 
@@ -84,12 +84,11 @@ Key facts
 
 4. The scale of rewards can vary significantly.
 
-.. _Other-3:
 Others
-====
+=======
 
 Using bsuite in 'OpenAI Gym' format
-----------
+------------------------------------
 
 Our implementation uses the bsuite Gym wrapper to make the bsuite codebase run under the OpenAI Gym interface. Hence, ``gym`` needs to be installed to make bsuite work properly.
 
@@ -101,7 +100,7 @@ Our implementation uses the bsuite Gym wrapper to make the bsuite codebase run u
    gym_env = gym_wrapper.GymFromDMEnv(env)
 
 About configurations
---------
+-----------------------
 
 Configurations are designed to increase the level of difficulty of an environment. For example, in a 5-armed bandit environment, configurations are used to regulate the level of noise to perturb the rewards.
 Given a specific environment, all possible configurations can be visualized with the following code snippet.

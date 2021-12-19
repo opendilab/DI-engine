@@ -76,7 +76,7 @@ The default config is defined as follows:
 The network interface A2C used is defined as follows:
 
     .. autoclass:: ding.model.template.vac.VAC
-        :members: __init__, forward, compute_actor, compute_critic, compute_actor_critic
+        :members: forward, compute_actor, compute_critic, compute_actor_critic
         :noindex:
 
 The policy gradient and value update of A2C is implemented as follows:

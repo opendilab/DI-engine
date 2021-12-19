@@ -282,17 +282,20 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial
 -  Pong（平均奖励大于等于20视为较好的Agent）
 
    - Pong + DQN
+
    .. image:: images/pong_dqn.png
      :align: center
 
 -  Qbert（10M env step下，平均奖励大于15000）
 
    - Qbert + DQN
+
    .. image:: images/qbert_dqn.png
      :align: center
 
 -  Space Invaders（10M env step下，平均奖励大于1000）
 
    - Space Invaders + DQN
+
    .. image:: images/spaceinvaders_dqn.png
      :align: center

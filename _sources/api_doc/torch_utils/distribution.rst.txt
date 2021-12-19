@@ -18,4 +18,4 @@ CategoricalPdPytorch
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.torch_utils.distribution.CategoricalPdPytorch
-    :members: update_logits, updata_probs, sample, neglogp, mode, entropy
+    :members: update_logits, update_probs, sample, neglogp, mode, entropy

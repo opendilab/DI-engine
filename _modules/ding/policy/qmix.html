@@ -179,13 +179,13 @@
 
 <div class="viewcode-block" id="QMIXPolicy"><a class="viewcode-back" href="../../../hands_on/qmix.html#ding.policy.qmix.QMIXPolicy">[docs]</a><span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qmix&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">QMIXPolicy</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \</span>
 <span class="sd">            you can view the paper in the following link https://arxiv.org/abs/1803.11485</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\</span>
-<span class="sd">            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\</span>
+<span class="sd">        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn \</span>
+<span class="sd">            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval \</span>
 <span class="sd">            _reset_eval, _get_train_sample, default_model</span>
 <span class="sd">    Config:</span>
 <span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
@@ -423,11 +423,12 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="QMIXPolicy._load_state_dict_learn"><a class="viewcode-back" href="../../../api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy._load_state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Load the state_dict variable into policy learn mode.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.</span>
+
 <span class="sd">        .. tip::</span>
 <span class="sd">            If you want to only load some parts of model, you can simply set the ``strict`` argument in \</span>
 <span class="sd">            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \</span>
@@ -582,6 +583,7 @@
 <span class="sd">            Return this algorithm default model setting for demonstration.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names</span>
+
 <span class="sd">        .. note::</span>
 <span class="sd">            The user can define and use customized network model but must obey the same inferface definition indicated \</span>
 <span class="sd">            by import_names path. For QMIX, ``ding.model.qmix.qmix``</span>

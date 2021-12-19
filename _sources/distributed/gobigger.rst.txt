@@ -1,5 +1,5 @@
 Asynchronous Parallel in GoBigger
-===============================
+===================================
 
 .. image::
    images/gobigger.gif

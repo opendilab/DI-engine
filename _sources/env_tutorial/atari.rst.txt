@@ -270,17 +270,20 @@ Algorithm Benchmark
 -  Pong (Average reward >= 20 is regarded as a good agent)
 
    - Pong + DQN
+
    .. image:: images/pong_dqn.png
      :align: center
 
 -  Qbert (Average reward > 15000 at 10M env step)
 
    - Qbert + DQN
+
    .. image:: images/qbert_dqn.png
      :align: center
 
 -  Space Invaders (Average reward > 1000 at 10M env step)
 
    - Space Invaders + DQN
+
    .. image:: images/spaceinvaders_dqn.png
      :align: center

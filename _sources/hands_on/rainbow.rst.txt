@@ -100,7 +100,7 @@ The default config is defined as follows:
 The network interface Rainbow used is defined as follows:
 
 .. autoclass:: ding.model.template.q_learning.RainbowDQN
-   :members: __init__, forward
+   :members: forward
    :noindex:
 
 The Benchmark result of Rainbow implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
@@ -114,7 +114,6 @@ Note that the config file is set for ``dqn`` by default. If we want to adopt ``r
 type of policy as below.
 
 .. code-block:: python
-   :emphasize-lines: 7
 
    lunarlander_dqn_create_config = dict(
     env=dict(
@@ -157,7 +156,7 @@ The detailed experiments setting is stated below.
 3. By setting the ``exp_name`` in config file, the experiment results can be saved in specified path. Otherwise, it will be saved in ``‘./default_experiment’`` directory.
 
 .. code-block:: python
-   :emphasize-lines: 6
+
 
    from easydict import EasyDict
    from ding.entry import serial_pipeline

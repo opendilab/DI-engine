@@ -257,6 +257,7 @@
 <span class="sd">        - norm_type (:obj:`str`): type of the normalization</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convlution layer</span>
+
 <span class="sd">    .. note::</span>
 
 <span class="sd">        Conv1d (https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d)</span>
@@ -298,6 +299,7 @@
 <span class="sd">        - norm_type (:obj:`str`): type of the normalization, default set to None, now support [&#39;BN&#39;, &#39;IN&#39;, &#39;SyncBN&#39;]</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer</span>
+
 <span class="sd">    .. note::</span>
 
 <span class="sd">        Conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)</span>
@@ -348,6 +350,7 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2-dim \</span>
 <span class="sd">            transpose convlution layer</span>
+
 <span class="sd">    .. note::</span>
 
 <span class="sd">        ConvTranspose2d (https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html)</span>
@@ -393,6 +396,7 @@
 <span class="sd">        - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block</span>
+
 <span class="sd">    .. note::</span>
 
 <span class="sd">        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)</span>
@@ -436,6 +440,7 @@
 <span class="sd">        - dropout_probability (:obj:`float`): probability of an element to be zeroed in the dropout. Default: 0.5</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block</span>
+
 <span class="sd">    .. note::</span>
 
 <span class="sd">        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)</span>
@@ -465,6 +470,7 @@
 <span class="sd">        Apply channelShuffle to the input tensor</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        forward</span>
+
 <span class="sd">    .. note::</span>
 
 <span class="sd">        You can see the original paper shuffle net in https://arxiv.org/abs/1707.01083</span>
@@ -731,6 +737,7 @@
 <span class="sd">        - simga0 (:obj:`float`): the sigma0 is the defalut noise volumn when init NoiseLinearLayer</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block</span>
+
 <span class="sd">    .. note::</span>
 
 <span class="sd">        you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)</span>

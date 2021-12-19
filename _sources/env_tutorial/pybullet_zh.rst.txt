@@ -1,5 +1,5 @@
 PyBullet
-~~~~~~~
+~~~~~~~~~
 
 概述
 =======
@@ -31,6 +31,7 @@ PyBullet是用于游戏，视觉效果，机器人和强化学习的物理模拟
 安装完成后，可以通过在Python命令行中运行如下命令验证安装成功：
 
 .. code:: python
+
     import gym  # open ai gym
     import pybulletgym  # register PyBullet enviroments with open ai gym
 
@@ -275,6 +276,7 @@ link <https://github.com/opendilab/DI-engine/tree/main/dizoo/pybullet/config/>`_
 -  Hopper-v3
 
    - Hopper-v3 + SAC
+
    .. image:: images/pybullet.png
      :align: center
 

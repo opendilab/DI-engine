@@ -121,7 +121,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#id5">扩展</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id6">实现</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#benchmark">实验 Benchmark</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id8">参考文献</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">参考文献</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="r2d3_zh.html">R2D3</a></li>
@@ -259,7 +259,6 @@ Z=\int exp(-c_\theta (\tau))d\tau\]</div>
 </div>
 <div class="section" id="id6">
 <h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<p>GCl 的默认 config 如下所示：</p>
 <p>其中使用的奖励模型接口如下所示：</p>
 <dl class="py class">
 <dt class="sig sig-object py">
@@ -329,14 +328,14 @@ Z=\int exp(-c_\theta (\tau))d\tau\]</div>
 reward 200</p></td>
 <td><img alt="../_images/lunarlander_gcl.png" src="../_images/lunarlander_gcl.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/lunarlander/config/lunarlander_gcl_config.py">config link</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/lunarlander/config/lunarlander_gcl_config.py">config_link_l</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>Hopper</p></td>
 <td><p>3M  env_step,
 reward 2950</p></td>
 <td><img alt="../_images/Hopper_gcl.png" src="../_images/Hopper_gcl.png" />
 </td>
-<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/mujoco/config/.py">config link</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/mujoco/config/.py">config_link_h</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -345,8 +344,8 @@ reward 2950</p></td>
 <li><p>以上结果对比了生成专家模型的PPO算法和使用专家模型的GCL算法，对比了best mean reward和达到best mean reward所用的env_step</p></li>
 </ol>
 </div>
-<div class="section" id="id8">
-<h2>参考文献<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Chelsea Finn, Sergey Levine, Pieter Abbeel: “Guided Cost Learning: Deep Inverse Optimal Control via Policy Optimization”, 2016; arXiv:1603.00448.</p></li>
 </ul>

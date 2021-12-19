@@ -193,7 +193,7 @@ A个actor会定期获取learner上最新的参数。
 r2d3的策略 ``R2D3Policy`` 的接口定义如下：
 
 .. autoclass:: ding.policy.r2d3.R2D3Policy
-   :members: __init__, _forward_learn
+   :members: _forward_learn
    :noindex:
 
 

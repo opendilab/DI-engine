@@ -113,7 +113,7 @@ Code Implementation
 The interface of RND reward model is defined as follows:
 
 .. autoclass:: ding.reward_model.rnd_reward_model.RndRewardModel
-   :members: __init__, estimate
+   :members: estimate
    :noindex:
 
 The interface of on policy PPO is defined as follows:

@@ -50,7 +50,7 @@ The default config is defined as follows:
 The network interface CollaQ used is defined as follows:
 
     .. autoclass:: ding.model.template.qmix.CollaQ
-        :members: __init__, forward
+        :members: forward
         :noindex:
 
 The Benchmark result of CollaQ in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.

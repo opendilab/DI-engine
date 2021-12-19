@@ -325,9 +325,9 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>return logits argmax result</p>
 </dd>
-<dt>Argiments:</dt><dd><ul class="simple">
+<dt>Arguments:</dt><dd><ul class="simple">
 <li><dl class="simple">
-<dt>viz (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to return numpy from of logits, noise and noise_logits; </dt><dd><p>Short for “visualize”. (Because tensor type cannot visualize in tb or text log)</p>
+<dt>viz (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to return numpy from of logits, noise and noise_logits;</dt><dd><p>Short for <code class="docutils literal notranslate"><span class="pre">visualize</span></code> . (Because tensor type cannot visualize in tb or text log)</p>
 </dd>
 </dl>
 </li>
@@ -366,11 +366,7 @@
 <dt>Overview:</dt><dd><p>add noise to logits</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>viz (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to return numpy from of logits, noise and noise_logits; </dt><dd><p>Short for “visualize”. (Because tensor type cannot visualize in tb or text log)</p>
-</dd>
-</dl>
-</li>
+<li><p>viz (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to return numpy from of logits, noise and noise_logits;                 Short for <code class="docutils literal notranslate"><span class="pre">visualize</span></code> . (Because tensor type cannot visualize in tb or text log)</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -388,11 +384,7 @@
 <dt>Overview:</dt><dd><p>Sample from logits’s distribution by using softmax</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>viz (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to return numpy from of logits, noise and noise_logits; </dt><dd><p>Short for “visualize”. (Because tensor type cannot visualize in tb or text log)</p>
-</dd>
-</dl>
-</li>
+<li><p>viz (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to return numpy from of logits, noise and noise_logits;                 Short for <code class="docutils literal notranslate"><span class="pre">visualize</span></code> . (Because tensor type cannot visualize in tb or text log)</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -410,7 +402,7 @@
 <dt>Overview:</dt><dd><p>Updata logits</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>logits (:obj:torch.Tensor): logits to update</p></li>
+<li><p>logits (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): logits to update</p></li>
 </ul>
 </dd>
 </dl>
@@ -427,15 +419,7 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Wrapped <code class="docutils literal notranslate"><span class="pre">torch.distributions.Categorical</span></code></p>
 </dd>
-<dt>Notes:</dt><dd><dl class="simple">
-<dt>Please refer to <code class="docutils literal notranslate"><span class="pre">torch.distributions.Categorical</span></code> doc: </dt><dd><dl class="simple">
-<dt><a class="reference external" href="https://pytorch.org/docs/stable/distributions.html?highlight=torch%20distributions#module-torch.distributions">https://pytorch.org/docs/stable/distributions.html?highlight=torch%20distributions#module-torch.distributions</a></dt><dd><p>Categorical</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd>
-<dt>Interface:</dt><dd><p>update_logits, updata_probs, sample, neglogp, mode, entropy</p>
+<dt>Interface:</dt><dd><p>update_logits, update_probs, sample, neglogp, mode, entropy</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -462,7 +446,7 @@
 <dt>Overview:</dt><dd><p>Return logits argmax result</p>
 </dd>
 <dt>Return:</dt><dd><ul class="simple">
-<li><p>result(:obj: <cite>torch.Tensor</cite>): the logits argmax result</p></li>
+<li><p>result(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the logits argmax result</p></li>
 </ul>
 </dd>
 </dl>
@@ -506,7 +490,20 @@
 <dt>Overview:</dt><dd><p>Updata logits</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>logits (:obj:torch.Tensor): logits to update</p></li>
+<li><p>logits (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): logits to update</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.distribution.CategoricalPdPytorch.update_probs">
+<span class="sig-name descname"><span class="pre">update_probs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/distribution.html#CategoricalPdPytorch.update_probs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.distribution.CategoricalPdPytorch.update_probs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Updata probs</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>probs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): probs to update</p></li>
 </ul>
 </dd>
 </dl>

@@ -209,6 +209,7 @@ Here, taking the r2d2 algorithm as an example, in r2d2, in method ``_get_train_s
 ``get_nstep_return_data`` and  ``get_train_sample``.
 
 .. code:: python
+
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len_add_burnin_step)

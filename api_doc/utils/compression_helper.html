@@ -264,17 +264,19 @@
 </div>
 <div class="section" id="module-ding.utils.compression_helper.get_data_decompressor">
 <span id="get-data-decompressor"></span><h3>get_data_decompressor<a class="headerlink" href="#module-ding.utils.compression_helper.get_data_decompressor" title="Permalink to this headline">¶</a></h3>
-<dl>
+<dl class="simple">
 <dt>Overview:</dt><dd><p>Get the data decompressor according to the input name</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>name(<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Name of the decompressor, support <code class="docutils literal notranslate"><span class="pre">['lz4',</span> <span class="pre">'zlib',</span> <span class="pre">'none']</span></code></p></li>
 </ul>
+</dd>
+</dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For all the decompressors, the input of a bytes-like object is required.</p>
 </div>
-</dd>
+<dl>
 <dt>Returns:</dt><dd><ul class="simple">
 <li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): Corresponding data_decompressor.</p></li>
 </ul>

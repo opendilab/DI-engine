@@ -209,15 +209,9 @@
 <dt class="sig sig-object py" id="ding.policy.qmix.QMIXPolicy">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.qmix.</span></span><span class="sig-name descname"><span class="pre">QMIXPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/policy/qmix.html#QMIXPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.qmix.QMIXPolicy" title="Permalink to this definition">¶</a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><dl class="simple">
-<dt>Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, </dt><dd><p>you can view the paper in the following link <a class="reference external" href="https://arxiv.org/abs/1803.11485">https://arxiv.org/abs/1803.11485</a></p>
+<dt>Overview:</dt><dd><p>Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm,             you can view the paper in the following link <a class="reference external" href="https://arxiv.org/abs/1803.11485">https://arxiv.org/abs/1803.11485</a></p>
 </dd>
-</dl>
-</dd>
-<dt>Interface:</dt><dd><dl class="simple">
-<dt>_init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn</dt><dd><p>_init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval_reset_eval, _get_train_sample, default_model</p>
-</dd>
-</dl>
+<dt>Interface:</dt><dd><p>_init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn             _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval             _reset_eval, _get_train_sample, default_model</p>
 </dd>
 <dt>Config:</dt><dd><table class="docutils align-default">
 <colgroup>
@@ -559,7 +553,7 @@ Init the learner model of QMIXPolicy</p>
 </dl>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>If you want to only load some parts of model, you can simply set the <code class="docutils literal notranslate"><span class="pre">strict</span></code> argument in load_state_dict to <code class="docutils literal notranslate"><span class="pre">False</span></code>, or refer to <code class="docutils literal notranslate"><span class="pre">ding.torch_utils.checkpoint_helper</span></code> for more complicated operation.</p>
+<p>If you want to only load some parts of model, you can simply set the <code class="docutils literal notranslate"><span class="pre">strict</span></code> argument in             load_state_dict to <code class="docutils literal notranslate"><span class="pre">False</span></code>, or refer to <code class="docutils literal notranslate"><span class="pre">ding.torch_utils.checkpoint_helper</span></code> for more             complicated operation.</p>
 </div>
 </dd></dl>
 

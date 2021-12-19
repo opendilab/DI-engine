@@ -176,7 +176,7 @@
 
 
 <span class="k">def</span> <span class="nf">to_device</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Transfer data to certain device</span>
 <span class="sd">    Arguments:</span>
@@ -185,6 +185,7 @@
 <span class="sd">        - ignore_keys (:obj:`list`): the keys to be ignored in transfer, defalut set to empty</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - item (:obj:`Any`): the transferred item</span>
+
 <span class="sd">    .. note:</span>
 
 <span class="sd">        Now supports item type: :obj:`torch.nn.Module`, :obj:`torch.Tensor`, :obj:`Sequence`, \</span>
@@ -227,6 +228,7 @@
 <span class="sd">        - dtype (:obj:`type`): the type wanted</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - item (:obj:`object`): the dtype changed item</span>
+
 <span class="sd">    .. note:</span>
 
 <span class="sd">        Now supports item type: :obj:`torch.Tensor`, :obj:`Sequence`, :obj:`dict`</span>
@@ -255,6 +257,7 @@
 <span class="sd">        - dtype (:obj:`type`): the type of wanted tensor</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - item (:obj:`torch.Tensor`): the change tensor</span>
+
 <span class="sd">    .. note:</span>
 
 <span class="sd">        Now supports item type: :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`</span>
@@ -324,6 +327,7 @@
 <span class="sd">        - dtype (:obj:`type`): the type of wanted ndarray</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - item (:obj:`object`): the changed ndarray</span>
+
 <span class="sd">    .. note:</span>
 
 <span class="sd">        Now supports item type: :obj:`torch.Tensor`,  :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`</span>
@@ -380,9 +384,10 @@
 <span class="sd">        - item (:obj:`Any`): the item to be transformed</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - item (:obj:`list`): the list after transformation</span>
+
 <span class="sd">    .. note::</span>
 
-<span class="sd">        Now supports item type: :obj:`torch.Tensor`,:obj:`numpy.ndarray`, :obj:`dict`, :obj:`list`, \</span>
+<span class="sd">        Now supports item type: :obj:`torch.Tensor`, :obj:`numpy.ndarray`, :obj:`dict`, :obj:`list`, \</span>
 <span class="sd">        :obj:`tuple` and :obj:`None`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">item</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -409,6 +414,7 @@
 <span class="sd">        - item (:obj:`Any`): the item to be transformed</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - item (:obj:`list`): the list after transformation</span>
+
 <span class="sd">    .. note::</span>
 
 <span class="sd">        Now supports item type: :obj:`torch.Tensor`, :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`</span>
@@ -495,8 +501,8 @@
 <div class="viewcode-block" id="CudaFetcher.run"><a class="viewcode-back" href="../../../api_doc/torch_utils/data_helper.html#ding.torch_utils.data_helper.CudaFetcher.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Start `producer` thread: Keep fetching data from source,</span>
-<span class="sd">            change the device, and put into `queue` for request.</span>
+<span class="sd">            Start ``producer`` thread: Keep fetching data from source,</span>
+<span class="sd">            change the device, and put into ``queue`` for request.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_producer_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
@@ -504,7 +510,7 @@
 <div class="viewcode-block" id="CudaFetcher.close"><a class="viewcode-back" href="../../../api_doc/torch_utils/data_helper.html#ding.torch_utils.data_helper.CudaFetcher.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Stop `producer` thread by setting `end_flag` to `True`.</span>
+<span class="sd">            Stop ``producer`` thread by setting ``end_flag`` to ``True`` .</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_end_flag</span> <span class="o">=</span> <span class="kc">True</span></div>
 

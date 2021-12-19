@@ -570,6 +570,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Start current slave client</span>
 <span class="sd">            Here are the steps executed inside in order:</span>
+
 <span class="sd">                1. Start the task-processing thread</span>
 <span class="sd">                2. Start the heartbeat thread</span>
 <span class="sd">                3. Start the http server thread</span>
@@ -597,6 +598,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Wait until current slave client is down completely.</span>
 <span class="sd">            Here are the steps executed inside in order:</span>
+
 <span class="sd">                1. Wait until the http server thread down</span>
 <span class="sd">                2. Wait until the heartbeat thread down</span>
 <span class="sd">                3. Wait until the task-processing thread down</span>
@@ -664,16 +666,19 @@
 <span class="sd">                master will received the failure signal.</span>
 <span class="sd">        Example:</span>
 <span class="sd">            - A success task with return value (the return value will be received in master end)</span>
+
 <span class="sd">            &gt;&gt;&gt; def _process_task(self, task):</span>
 <span class="sd">            &gt;&gt;&gt;     print(&#39;this is task data :&#39;, task)</span>
 <span class="sd">            &gt;&gt;&gt;     return str(task)</span>
 
 <span class="sd">            - A failed task with data (the data will be received in master end)</span>
+
 <span class="sd">            &gt;&gt;&gt; def _process_task(self, task):</span>
 <span class="sd">            &gt;&gt;&gt;     print(&#39;this is task data :&#39;, task)</span>
 <span class="sd">            &gt;&gt;&gt;     raise TaskFail(task)  # this is a failed task</span>
 
 <span class="sd">            - A failed task with data and message (both will be received in master end)</span>
+
 <span class="sd">            &gt;&gt;&gt; def _process_task(self, task):</span>
 <span class="sd">            &gt;&gt;&gt;     print(&#39;this is task data :&#39;, task)</span>
 <span class="sd">            &gt;&gt;&gt;     raise TaskFail(task, &#39;this is message&#39;)  # this is a failed task with message</span>

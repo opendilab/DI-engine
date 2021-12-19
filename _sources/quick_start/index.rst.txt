@@ -80,6 +80,7 @@ Please note that DI-engine also supports running a RL experiment directly accord
 .. code:: bash
 
     ding -m serial -c cartpole_dqn_config.py -s 0
+
 For more design details, please refer to the `Config <../key_concept/index.html#config>`_ section and `Entry <../key_concept/index.html#entry>`_.
 
 
