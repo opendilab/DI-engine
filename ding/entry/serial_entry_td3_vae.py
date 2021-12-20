@@ -181,7 +181,7 @@ def serial_pipeline_td3_vae(
                 learner.train(train_data, collector.envstep)
                 # if learner.policy.get_attribute('priority'):
                 #     replay_buffer.update(learner.priority_info)
-            replay_buffer_recent.clear()  # TODO(pu)
+            # replay_buffer_recent.clear()  # TODO(pu)
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

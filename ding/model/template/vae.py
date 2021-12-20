@@ -112,7 +112,8 @@ class VanillaVAE(BaseVAE):
             in_dim = h_dim
 
         self.decoder = nn.Sequential(*modules)
-        self.reconstruction_layer = nn.Linear(hidden_dims[-1], self.action_dim)
+        # self.reconstruction_layer = nn.Linear(hidden_dims[-1], self.action_dim)  # TODO(pu)
+        self.reconstruction_layer = nn.Sequential(nn.Linear(hidden_dims[-1], self.action_dim), nn.Tanh())
 
         # residual prediction
         self.prediction_layer_1 = nn.Sequential(nn.Linear(hidden_dims[-1], hidden_dims[-1]), nn.ReLU())
@@ -163,7 +164,8 @@ class VanillaVAE(BaseVAE):
         # for compatiability collect and eval in fist iteration
         if self.obs_encoding is None or z.shape[:-1] != self.obs_encoding.shape[:-1]:
             self.obs_encoding = torch.zeros(list(z.shape[:-1]) + [self.hidden_dims[1]])
-        input = torch.cat([self.obs_encoding, z], dim=-1)
+
+        input = torch.cat([self.obs_encoding, torch.tanh(z)], dim=-1)  # TODO(pu): here z is not bounded
         decoding_tmp = self.decoder(input)
         reconstruction_action = self.reconstruction_layer(decoding_tmp)
         predition_residual_tmp = self.prediction_layer_1(decoding_tmp)
@@ -179,7 +181,7 @@ class VanillaVAE(BaseVAE):
         :return: (Tensor) [B x C x H x W]
         """
         self.obs_encoding = self.obs_head(obs)
-        input = torch.cat([self.obs_encoding, z], dim=-1)
+        input = torch.cat([self.obs_encoding, z], dim=-1)  # TODO(pu): here z is already bounded
         decoding_tmp = self.decoder(input)
         reconstruction_action = self.reconstruction_layer(decoding_tmp)
         predition_residual_tmp = self.prediction_layer_1(decoding_tmp)

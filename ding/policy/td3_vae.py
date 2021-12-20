@@ -383,13 +383,10 @@ class TD3VAEPolicy(DDPGPolicy):
                 result = self._vae_model(
                     {'action': data['action'],
                      'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
-                # if result[1].detach()
-                # data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
-                # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
                 true_residual = data['next_obs'] - data['obs']
                 for i in range(result[1].shape[0]):
                     if F.mse_loss(result[1][i], true_residual[i]).item() > 4 * self._running_mean_std_predict_loss.mean:
-                        data['latent_action'][i] = result[5][i].detach()  # TODO(pu): update latent_action z
+                        data['latent_action'][i] = torch.tanh(result[5][i].detach())  # TODO(pu): update latent_action z tanh
                         # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
 
                 if self._reward_batch_norm:
@@ -438,8 +435,21 @@ class TD3VAEPolicy(DDPGPolicy):
                 # ===============================
                 # actor updates every ``self._actor_update_freq`` iters
                 if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
+                    # latent space constraint (LSC)
+                    # result = self._vae_model(
+                    #     {'action': data['action'],
+                    #      'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
+                    # data['latent_action'] = torch.tanh(result[5].detach()) # TODO(pu): update latent_action z
+                    # c_percentage_bound_low = data['latent_action'].sort(dim=0)[0][int(128 * 0.02), :]
+                    # c_percentage_bound_upper = data['latent_action'].sort(dim=0)[0][int(128 * 0.98), :]
 
                     actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')  # latent action
+                    # latent space constraint (LSC)
+                    # for i in range(actor_data['action'].shape[-1]):
+                    #     # actor_data['action'][:, i] = copy.deepcopy(actor_data['action'][:, i].clamp(c_percentage_bound_low[i].item(), c_percentage_bound_upper[i].item()))
+                    #     actor_data['action'][:, i].clamp(c_percentage_bound_low[i].item(),
+                    #                                      c_percentage_bound_upper[i].item())
+
                     actor_data['obs'] = data['obs']
                     if self._twin_critic:
                         actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'][0].mean()
@@ -538,6 +548,7 @@ class TD3VAEPolicy(DDPGPolicy):
         from ding.rl_utils.exploration import GaussianNoise
         action = output['action']
         gaussian_noise = GaussianNoise(mu=0.0, sigma=0.1)
+        # gaussian_noise = GaussianNoise(mu=0.0, sigma=0.5)
         noise = gaussian_noise( output['action'].shape, output['action'].device)
         if self._cfg.learn.noise_range is not None:
             noise = noise.clamp(self._cfg.learn.noise_range['min'], self._cfg.learn.noise_range['max'])
