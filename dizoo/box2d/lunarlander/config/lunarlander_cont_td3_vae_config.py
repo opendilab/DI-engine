@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline_td3_vae
 
 lunarlander_td3vae_config = dict(
     # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc1000_upcr20_upcv1000_notargetnoise_collectoriginalnoise_rbs2e4_rsc',
-    exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr2_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc',# TODO(pu) deubg
+    exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr20_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc',# TODO(pu) deubg
     # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr2_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc_lsc',# TODO(pu)
 
     env=dict(
@@ -26,7 +26,6 @@ lunarlander_td3vae_config = dict(
         model=dict(
             obs_shape=8,
             action_shape=6,  # latent_action_dim
-            # action_shape=6,  # latent_action_dim
 
             twin_critic=True,
             actor_head_type='regression',
@@ -36,15 +35,15 @@ lunarlander_td3vae_config = dict(
             warm_up_update=1000,
             # vae_train_times_per_update=1,  # TODO(pu)
 
-            rl_vae_update_circle=100,  # train rl 10 iter, vae 1 iter
-            # rl_vae_update_circle=100,
+            # rl_vae_update_circle=1000,
+            rl_vae_update_circle=100,  # train rl 100 iter, vae 1 iter
             # rl_vae_update_circle=1,
 
             # update_per_collect_rl=50,
-            # update_per_collect_rl=20,
-            update_per_collect_rl=2,
+            update_per_collect_rl=20,
+            # update_per_collect_rl=2,
 
-            update_per_collect_vae=100,  # each mini-batch: replay_buffer_recent sample 128, replay_buffer sample 128
+            update_per_collect_vae=100,
             # update_per_collect_vae=20,
             # update_per_collect_vae=1,
             # update_per_collect_vae=0,
@@ -68,10 +67,8 @@ lunarlander_td3vae_config = dict(
             ),
         ),
         collect=dict(
-            # each_iter_n_sample=48,
+            # each_iter_n_sample=48,  # 1280
             n_sample=48,
-            # each_iter_n_sample=256,
-            # each_iter_n_sample=1280,
             unroll_len=1,  # TODO(pu)
             # noise_sigma=0.1,
             noise_sigma=0,   # TODO(pu)

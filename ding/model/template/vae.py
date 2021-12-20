@@ -39,15 +39,15 @@ class BaseVAE(nn.Module):
 class VanillaVAE(BaseVAE):
 
     def __init__(self,
-                 in_channels_1: int,
-                 in_channels_2: int,
+                 action_dim: int,
+                 obs_dim: int,
                  latent_dim: int,
                  hidden_dims: List = None,
                  **kwargs) -> None:
         super(VanillaVAE, self).__init__()
 
-        self.action_dim = in_channels_1
-        self.obs_dim = in_channels_2
+        self.action_dim = action_dim
+        self.obs_dim = obs_dim
         self.latent_dim = latent_dim
         self.hidden_dims = hidden_dims
 
@@ -201,14 +201,13 @@ class VanillaVAE(BaseVAE):
         eps = torch.randn_like(std)
         return eps * std + mu
 
-    def forward(self, input: Tensor, **kwargs) -> List[Tensor]:
+    def forward(self, input: Tensor, **kwargs) -> dict:
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
-
-        return [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]  # recons_action, prediction_residual
+        return {'recons_action': self.decode(z)[0], 'prediction_residual': self.decode(z)[1], 'input': input, 'mu': mu, 'log_var': log_var, 'z': z}  # recons_action, prediction_residual
 
     def loss_function(self,
-                      *args,
+                      args,
                       **kwargs) -> dict:
         """
         Computes the VAE loss function.
@@ -217,17 +216,17 @@ class VanillaVAE(BaseVAE):
         :param kwargs:
         :return:
         """
-        recons = args[0]
-        prediction_residual = args[1]
-        input_action = args[2]
-        mu = args[3]
-        log_var = args[4]
-        true_residual = args[5]
+        recons_action = args['recons_action']
+        prediction_residual = args['prediction_residual']
+        original_action = args['original_action']
+        mu = args['mu']
+        log_var = args['log_var']
+        true_residual = args['true_residual']
 
         kld_weight = kwargs['kld_weight']
         predict_weight = kwargs['predict_weight']
 
-        recons_loss = F.mse_loss(recons, input_action)
+        recons_loss = F.mse_loss(recons_action, original_action)
 
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
 
