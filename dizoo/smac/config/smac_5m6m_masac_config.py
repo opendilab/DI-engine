@@ -7,7 +7,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 SMAC_5m6m_masac_default_config = dict(
-    exp_name='smac_5m6m_masac_alpha_learn_rate_4',
+    exp_name='debug_smac_5m6m_masac_d5e4',
     env=dict(
         map_name='5m_vs_6m',
         difficulty=7,
@@ -27,7 +27,8 @@ SMAC_5m6m_masac_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        random_collect_size=0,
+        # random_collect_size=0,
+        random_collect_size=int(1e4),
         model=dict(
             agent_obs_shape=72,
             global_obs_shape=152,
@@ -63,10 +64,9 @@ SMAC_5m6m_masac_default_config = dict(
                 type='linear',
                 start=1,
                 end=0.05,
-                decay=50000,
+                decay=int(5e4),
             ),
-            replay_buffer=dict(replay_buffer_size=1000000, ),
-        ),
+            replay_buffer=dict(replay_buffer_size=int(1e6), ), ),
     ),
 )
 
@@ -84,5 +84,22 @@ SMAC_5m6m_masac_default_create_config = dict(
 SMAC_5m6m_masac_default_create_config = EasyDict(SMAC_5m6m_masac_default_create_config)
 create_config = SMAC_5m6m_masac_default_create_config
 
+
+# if __name__ == "__main__":
+#     serial_pipeline([main_config, create_config], seed=0)
+
+def train(args):
+    main_config.exp_name='debug_smac_5m6m_masac_'+'_seed'+f'{args.seed}'+'_rcs1e4'
+    # serial_pipeline([main_config, create_config], seed=args.seed)
+    import copy
+    serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed)
+
+
 if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+    import argparse
+    for seed in [1]:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--seed', '-s', type=int, default=seed)
+        args = parser.parse_args()
+        
+        train(args)

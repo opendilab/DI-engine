@@ -384,12 +384,13 @@ class TD3VAEPolicy(DDPGPolicy):
                     {'action': data['action'],
                      'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
                 # if result[1].detach()
-                data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
+                # data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
                 # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
                 true_residual = data['next_obs'] - data['obs']
-                if F.mse_loss(result[1], true_residual).item() > 4 * self._running_mean_std_predict_loss.mean:
-                    data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action z
-                    # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
+                for i in range(result[1].shape[0]):
+                    if F.mse_loss(result[1][i], true_residual[i]).item() > 4 * self._running_mean_std_predict_loss.mean:
+                        data['latent_action'][i] = result[5][i].detach()  # TODO(pu): update latent_action z
+                        # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
 
                 if self._reward_batch_norm:
                     reward = (reward - reward.mean()) / (reward.std() + 1e-8)
