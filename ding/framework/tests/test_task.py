@@ -23,21 +23,21 @@ def test_serial_pipeline():
         ctx.pipeline.append(1)
 
     # Execute step1, step2 twice
-    task = Task()
-    for _ in range(2):
+    with Task() as task:
+        for _ in range(2):
+            task.forward(step0)
+            task.forward(step1)
+        assert task.ctx.pipeline == [0, 1, 0, 1]
+
+        # Renew and execute step1, step2
+        task.renew()
+        assert task.ctx.total_step == 1
         task.forward(step0)
         task.forward(step1)
-    assert task.ctx.pipeline == [0, 1, 0, 1]
+        assert task.ctx.pipeline == [0, 1]
 
-    # Renew and execute step1, step2
-    task.renew()
-    assert task.ctx.total_step == 1
-    task.forward(step0)
-    task.forward(step1)
-    assert task.ctx.pipeline == [0, 1]
-
-    # Test context inheritance
-    task.renew()
+        # Test context inheritance
+        task.renew()
 
 
 @pytest.mark.unittest
@@ -52,12 +52,12 @@ def test_serial_yield_pipeline():
     def step1(ctx):
         ctx.pipeline.append(1)
 
-    task = Task()
-    task.forward(step0)
-    task.forward(step1)
-    task.backward()
-    assert task.ctx.pipeline == [0, 1, 0]
-    assert len(task._backward_stack) == 0
+    with Task() as task:
+        task.forward(step0)
+        task.forward(step1)
+        task.backward()
+        assert task.ctx.pipeline == [0, 1, 0]
+        assert len(task._backward_stack) == 0
 
 
 @pytest.mark.unittest
@@ -71,16 +71,16 @@ def test_async_pipeline():
         ctx.pipeline.append(1)
 
     # Execute step1, step2 twice
-    task = Task(async_mode=True)
-    for _ in range(2):
-        task.forward(step0)
-        time.sleep(0.1)
-        task.forward(step1)
-        time.sleep(0.1)
-    task.backward()
-    assert task.ctx.pipeline == [0, 1, 0, 1]
-    task.renew()
-    assert task.ctx.total_step == 1
+    with Task(async_mode=True) as task:
+        for _ in range(2):
+            task.forward(step0)
+            time.sleep(0.1)
+            task.forward(step1)
+            time.sleep(0.1)
+        task.backward()
+        assert task.ctx.pipeline == [0, 1, 0, 1]
+        task.renew()
+        assert task.ctx.total_step == 1
 
 
 @pytest.mark.unittest
@@ -97,17 +97,16 @@ def test_async_yield_pipeline():
         time.sleep(0.2)
         ctx.pipeline.append(1)
 
-    task = Task(async_mode=True)
-    task.forward(step0)
-    task.forward(step1)
-    time.sleep(0.3)
-    task.backward().sync()
-    assert task.ctx.pipeline == [0, 1, 0]
-    assert len(task._backward_stack) == 0
+    with Task(async_mode=True) as task:
+        task.forward(step0)
+        task.forward(step1)
+        time.sleep(0.3)
+        task.backward().sync()
+        assert task.ctx.pipeline == [0, 1, 0]
+        assert len(task._backward_stack) == 0
 
 
 def parallel_main():
-    task = Task()
     sync_count = 0
 
     def on_sync_parallel_ctx(ctx):
@@ -115,14 +114,14 @@ def parallel_main():
         assert isinstance(ctx, Context)
         sync_count += 1
 
-    task.on("sync_parallel_ctx", on_sync_parallel_ctx)
-    task.use(lambda _: time.sleep(0.2 + random.random() / 10))
-    task.run(max_step=10)
-    assert sync_count > 0
+    with Task() as task:
+        task.on("sync_parallel_ctx", on_sync_parallel_ctx)
+        task.use(lambda _: time.sleep(0.2 + random.random() / 10))
+        task.run(max_step=10)
+        assert sync_count > 0
 
 
 def parallel_main_eager():
-    task = Task()
     sync_count = 0
 
     def on_sync_parallel_ctx(ctx):
@@ -130,25 +129,18 @@ def parallel_main_eager():
         assert isinstance(ctx, Context)
         sync_count += 1
 
-    task.on("sync_parallel_ctx", on_sync_parallel_ctx)
-    for _ in range(10):
-        task.forward(lambda _: time.sleep(0.2 + random.random() / 10))
-        task.renew()
-    assert sync_count > 0
+    with Task() as task:
+        task.on("sync_parallel_ctx", on_sync_parallel_ctx)
+        for _ in range(10):
+            task.forward(lambda _: time.sleep(0.2 + random.random() / 10))
+            task.renew()
+        assert sync_count > 0
 
 
 @pytest.mark.unittest
 def test_parallel_pipeline():
     Parallel.runner(n_parallel_workers=2)(parallel_main_eager)
     Parallel.runner(n_parallel_workers=2)(parallel_main)
-
-
-@pytest.mark.unittest
-def test_copy_task():
-    t1 = Task(async_mode=True, n_async_workers=1)
-    t2 = copy.copy(t1)
-    assert t2.async_mode
-    assert t1 is not t2
 
 
 def attach_mode_main_task():
@@ -199,14 +191,14 @@ def test_attach_mode():
 
 @pytest.mark.unittest
 def test_label():
-    task = Task()
-    result = {}
-    task.use(lambda _: result.setdefault("not_me", True), filter_labels=["async"])
-    task.use(lambda _: result.setdefault("has_me", True))
-    task.run(max_step=1)
+    with Task() as task:
+        result = {}
+        task.use(lambda _: result.setdefault("not_me", True), filter_labels=["async"])
+        task.use(lambda _: result.setdefault("has_me", True))
+        task.run(max_step=1)
 
-    assert "not_me" not in result
-    assert "has_me" in result
+        assert "not_me" not in result
+        assert "has_me" in result
 
 
 def sync_parallel_ctx_main():
