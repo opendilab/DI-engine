@@ -2,50 +2,9 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_td3_vae
 
 lunarlander_td3vae_config = dict(
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_zrelabel_eins1280_rvuc10_upcr20_upcv100_noisefalse_rbs1e5',  # TODO(pu)
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_eins1280_rvuc10_upcr20_upcv100_noisefalse_rbs1e5',  # TODO(pu)
-
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_eins48_rvuc1_upcr2_upcv2_noisetrue_rbs2e4',  # TODO(pu) lr 3e-4 loss explode 45000iters
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_eins48_rvuc20_upcr2_upcv200_noisetrue_rbs2e4', # TODO(pu) lr 3e-4 loss explode 10000iters
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_eins48_rvuc1000_upcr2_upcv1000_noisetrue_rbs1e5',  # TODO(pu) loss explode  10000iters
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_murelabel_eins48_rvuc1000_upcr2_upcv0_noisetrue_rbs1e5',  # TODO(pu) loss explode 3000iters
-
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_zrelabel_eins48_rvuc1000_upcr2_upcv0_noisetrue_rbs1e5',  # TODO(pu)  80000iters eval rew_mean -278
-
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_norelabel_eins48_rvuc1000_upcr2_upcv0_noisetrue_rbs1e5',  # TODO(pu)
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_norelabel_eins48_rvuc1000_upcr2_upcv0_noisetrue_rbs2e4',  # TODO(pu)
-
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_norelabel_eins48_rvuc100_upcr2_upcv0_notargetnoise_nocollectnoise_rbs2e4',  # TODO(pu) debug 2m collect rew_max 200
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_norelabel_eins48_rvuc100_upcr2_upcv0_targetnoise_nocollectnoise_rbs2e4',  # TODO(pu) 2m  collect rew_mean -120 不变
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_norelabel_vaeupdatez_eins48_rvuc100_upcr2_upcv100_noisetrue_rbs2e4',  # TODO(pu) 90000iters eval rew_mean -139
-
-
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_relabelz_novaeupdatez_eins48_rvuc100_upcr2_upcv100_notargetnoise_nocollectnoise_rbs2e4',  # TODO(pu) 2m eval rew_mean -210  best
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_relabelz_novaeupdatez_eins48_rvuc100_upcr20_upcv100_notargetnoise_nocollectnoise_rbs2e4',  # TODO(pu) 3m collect rew_mean -254 loss explode
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_relabelz_novaeupdatez_eins48_rvuc100_upcr50_upcv100_notargetnoise_nocollectnoise_rbs2e4', # TODO(pu) 1m collect rew_mean -277 loss explode
-
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_relabelz_novaeupdatez_eins48_rvuc1000_upcr2_upcv1000_notargetnoise_nocollectnoise_rbs2e4', # TODO(pu) 0.5m eval rew_mean -43 best
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_relabelz_novaeupdatez_eins48_rvuc1000_upcr20_upcv1000_notargetnoise_nocollectnoise_rbs2e4', # TODO(pu)  3m collect rew_mean -256 loss explode
-    # exp_name='lunarlander_cont_td3_vae_lad6_wu1000_relabelz_novaeupdatez_eins48_rvuc1000_upcr20_upcv1000_notargetnoise_nocollectnoise_rbs1e5', # TODO(pu) 3m collect rew_mean -259
-
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_relabelz_novaeupdatez_ns48_rvuc10000_upcr2_upcv10000_notargetnoise_collectoriginalnoise_rbs5e5_rsc',
-
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr2_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc', #
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc1000_upcr2_upcv1000_notargetnoise_collectoriginalnoise_rbs2e4_rsc',  # TODO(pu) run3 1.5m collect rew_max eval rew_mean
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_relabelz_novaeupdatez_ns48_rvuc1_upcr2_upcv1_notargetnoise_collectoriginalnoise_rbs2e4_rsc',   #
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu0_relabelz_novaeupdatez_ns48_rvuc1_upcr2_upcv0_notargetnoise_collectoriginalnoise_rbs2e4_rsc',   #
-
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr20_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc', #
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr50_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc',  #
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr50_upcv100_notargetnoise_collectoriginalnoise_rbs1e5_rsc',# TODO(pu) run6 best
-
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns1280_rvuc100_upcr50_upcv100_notargetnoise_collectoriginalnoise_rbs1e5_rsc', #
-
     # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc1000_upcr20_upcv1000_notargetnoise_collectoriginalnoise_rbs2e4_rsc',
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc1000_upcr50_upcv1000_notargetnoise_collectoriginalnoise_rbs1e5_rsc', # run4
-
-    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upc2_upcv0_notargetnoise_collectoriginalnoise_rbs2e4_rsc',# TODO(pu) deubg
-    exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upc2_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc',# TODO(pu) run3
+    exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr2_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc',# TODO(pu) deubg
+    # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr2_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc_lsc',# TODO(pu)
 
     env=dict(
         env_id='LunarLanderContinuous-v2',
