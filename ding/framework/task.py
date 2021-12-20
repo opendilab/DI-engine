@@ -225,9 +225,12 @@ class Task:
         self.stop()
 
     def stop(self) -> None:
+        self.emit("exit")
         if self._thread_pool:
             self._thread_pool.shutdown()
-        self.emit("exit")
+        self.middleware.clear()
+        self.event_listeners.clear()
+        self.once_listeners.clear()
 
     def sync(self) -> 'Task':
         if self._loop:

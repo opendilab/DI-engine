@@ -2,8 +2,6 @@ import atexit
 import os
 import random
 import time
-import inspect
-import weakref
 from mpire.pool import WorkerPool
 import pynng
 import pickle
@@ -186,10 +184,11 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
                     break
 
     def register_rpc(self, fn_name: str, fn: Callable) -> None:
-        if inspect.ismethod(fn):
-            self._rpc[fn_name] = weakref.WeakMethod(fn)
-        else:
-            self._rpc[fn_name] = fn
+        self._rpc[fn_name] = fn
+
+    def unregister_rpc(self, fn_name: str) -> None:
+        if fn_name in self._rpc:
+            del self._rpc[fn_name]
 
     def send_rpc(self, func_name: str, *args, **kwargs) -> None:
         if self.is_active:
@@ -203,8 +202,6 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             logging.warning("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
         if payload["f"] in self._rpc:
             fn = self._rpc[payload["f"]]
-            if isinstance(fn, weakref.WeakMethod):
-                fn = fn()
             fn(*payload["a"], **payload["k"])
         else:
             logging.warning("There was no function named {} in rpc table".format(payload["f"]))
@@ -231,6 +228,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def stop(self):
         logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
         self.finished = True
+        self._rpc.clear()
         time.sleep(0.03)
         if self._sock:
             self._sock.close()

@@ -22,7 +22,8 @@ class Context(dict):
         """
         ctx = Context()
         for key in self._kept_keys:
-            ctx[key] = self[key]
+            if key in self:
+                ctx[key] = self[key]
         return ctx
 
     def keep(self, *keys: str) -> None:

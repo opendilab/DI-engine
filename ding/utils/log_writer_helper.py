@@ -5,6 +5,12 @@ if TYPE_CHECKING:
 
 
 class DistributedWriter(SummaryWriter):
+    """
+    Overview:
+        A simple subclass of SummaryWriter that supports writing to one process in multi-process mode.
+        The best way is to use it in conjunction with the ``task`` to take advantage of the message \
+            and event components of the task (see ``writer.plugin``).
+    """
 
     def __init__(self, *args, **kwargs):
         self._default_writer_to_disk = kwargs.get("write_to_disk") if "write_to_disk" in kwargs else True
@@ -16,7 +22,14 @@ class DistributedWriter(SummaryWriter):
         self._lazy_initialized = False
 
     def plugin(self, task: "Task", is_writer: False) -> "DistributedWriter":
-        # TODO add buffer
+        """
+        Overview:
+            Plugin ``task``, so when using this writer in the task pipeline, it will automatically send requests\
+                to the main writer instead of writing it to the disk. So we can collect data from multiple processes\
+                and write them into one file.
+        Usage:
+            ``DistributedWriter().plugin(task, is_writer=("node.0" in task.labels))``
+        """
         if task.router.is_active:
             self._in_parallel = True
             self._task = task
@@ -24,11 +37,11 @@ class DistributedWriter(SummaryWriter):
             if is_writer:
                 self.initialize()
             self._lazy_initialized = True
-            task.router.register_rpc("distributed_writer", self.on_distributed_writer)
+            task.router.register_rpc("distributed_writer", self._on_distributed_writer)
             task.once("exit", lambda: self.close())
         return self
 
-    def on_distributed_writer(self, fn_name: str, *args, **kwargs):
+    def _on_distributed_writer(self, fn_name: str, *args, **kwargs):
         if self._is_writer:
             getattr(self, fn_name)(*args, **kwargs)
 
@@ -56,7 +69,29 @@ def enable_parallel(fn_name, fn):
 
 
 ready_to_parallel_fns = [
-    "add_scalar",
+    'add_audio',
+    'add_custom_scalars',
+    'add_custom_scalars_marginchart',
+    'add_custom_scalars_multilinechart',
+    'add_embedding',
+    'add_figure',
+    'add_graph',
+    'add_graph_deprecated',
+    'add_histogram',
+    'add_histogram_raw',
+    'add_hparams',
+    'add_image',
+    'add_image_with_boxes',
+    'add_images',
+    'add_mesh',
+    'add_onnx_graph',
+    'add_openvino_graph',
+    'add_pr_curve',
+    'add_pr_curve_raw',
+    'add_scalar',
+    'add_scalars',
+    'add_text',
+    'add_video',
 ]
 for fn_name in ready_to_parallel_fns:
     setattr(DistributedWriter, fn_name, enable_parallel(fn_name, getattr(DistributedWriter, fn_name)))

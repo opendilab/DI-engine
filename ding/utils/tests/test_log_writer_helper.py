@@ -30,7 +30,6 @@ def main_distributed_writer(tempdir):
 @pytest.mark.unittest
 def test_distributed_writer():
     tempdir = path.join(tempfile.gettempdir(), "tblogger")
-    # TODO
     try:
         Parallel.runner(n_parallel_workers=2)(main_distributed_writer, tempdir)
         assert path.exists(tempdir)
