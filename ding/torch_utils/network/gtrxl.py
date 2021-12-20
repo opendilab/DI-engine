@@ -218,13 +218,11 @@ class AttentionXL(torch.nn.Module):
         Returns:
             - x (:obj:`torch.Tensor`): input after relative shift. Shape (cur_seq, full_seq, bs, head_num).
         """
-        zero_pad = torch.zeros((x.size(0), 1, *x.size()[2:]),
-                               device=x.device, dtype=x.dtype)
-        x_padded = torch.cat([zero_pad, x], dim=1)  # step 1
-        x_padded = x_padded.view(x.size(1) + 1, x.size(0), *x.size()[2:])  # step 2
-        x = x_padded[1:].view_as(x)  # step 3
-        ones = torch.ones((x.size(0), x.size(1))).unsqueeze(-1).unsqueeze(-1)
-        x = x * torch.tril(ones, x.size(1) - x.size(0))  # step 4
+        x_padded = F.pad(x, [1, 0])  # step 1
+        x_padded = x_padded.view(x.size(0), x.size(1), x.size(3)+1, x.size(2))  # step 2
+        x = x_padded[:, :, 1:].view_as(x)  # step 3
+        ones = torch.ones((x.size(2), x.size(3))).unsqueeze(0).unsqueeze(0)
+        x = x * torch.tril(ones, x.size(3) - x.size(2))  # step 4
         return x
 
     def forward(self,
