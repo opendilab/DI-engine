@@ -3,6 +3,8 @@ import sys
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple, Union, Optional
 
+import torch
+
 from ding.model import model_wrap
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
@@ -248,6 +250,7 @@ class R2D2GTrXLPolicy(Policy):
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
         self._batch_size = self._cfg.learn.batch_size
+        self._seq_len = self._cfg.seq_len
 
         self._target_model = copy.deepcopy(self._model)
 
@@ -257,8 +260,10 @@ class R2D2GTrXLPolicy(Policy):
             update_type='momentum',
             update_kwargs={'theta': self._cfg.learn.target_update_theta}
         )
+        self._target_model = model_wrap(self._target_model, seq_len=self._seq_len, wrapper_name='transformer_segment')
 
         self._learn_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._learn_model = model_wrap(self._learn_model, seq_len=self._seq_len, wrapper_name='transformer_segment')
         self._learn_model.reset()
         self._target_model.reset()
 
@@ -354,13 +359,17 @@ class R2D2GTrXLPolicy(Policy):
         self._target_model.core.reset(state=data['prev_memory_target_batch'])
 
         inputs = data['main_obs']
-        q_value = self._learn_model.forward(inputs)['logit']  # shape (seq_len, bs, act_dim)
-
+        out = self._learn_model.forward(inputs)  # shape (seq_len, bs, act_dim)
+        q_value = [o['logit'] for o in out]
         next_inputs = data['target_obs']
         with torch.no_grad():
-            target_q_value = self._target_model.forward(next_inputs)['logit']
-            # argmax_action double_dqn
-            target_q_action = self._learn_model.forward(next_inputs)['action']
+            out = self._target_model.forward(next_inputs)
+            target_q_value = [o['logit'] for o in out]
+            out = self._learn_model.forward(next_inputs)  # argmax_action double_dqn
+            target_q_action = [o['action'] for o in out]
+        q_value = torch.cat(q_value, dim=0)
+        target_q_value = torch.cat(target_q_value, dim=0)
+        target_q_action = torch.cat(target_q_action, dim=0)
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         value_gamma = data['value_gamma']
@@ -434,7 +443,7 @@ class R2D2GTrXLPolicy(Policy):
         self._nstep = self._cfg.nstep
         self._gamma = self._cfg.discount_factor
         self._unroll_len = self._cfg.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='transformer', seq_len=self._unroll_len)
+        self._collect_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._unroll_len)
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
@@ -512,7 +521,7 @@ class R2D2GTrXLPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='transformer', seq_len=self._unroll_len)
+        self._eval_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._unroll_len)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 

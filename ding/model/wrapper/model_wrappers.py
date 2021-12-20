@@ -7,6 +7,7 @@ from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
 from torch.distributions import Categorical
 from ding.utils.data import default_collate
+import torch.nn.functional as F
 
 
 class IModelWrapper(ABC):
@@ -141,7 +142,7 @@ class HiddenStateWrapper(IModelWrapper):
                     self._state[idx] = h[i]
 
 
-class TransformerWrapper(IModelWrapper):
+class TransformerInputWrapper(IModelWrapper):
 
     def __init__(
             self, model: Any, seq_len: int, init_fn: Callable = lambda: None
@@ -205,6 +206,42 @@ class TransformerWrapper(IModelWrapper):
         self.memory_idx = 0
         if hasattr(self._model, 'reset'):
             return self._model.reset(*args, **kwargs)
+
+
+class TransformerSegmentWrapper(IModelWrapper):
+
+    def __init__(
+            self, model: Any, seq_len: int
+    ) -> None:
+        """
+        Overview:
+            Given T the length of a trajectory and N the length of the sequences received by a Transformer model,
+            split T in sequences of N elements and forward each sequence one by one. If T % N != 0, the last sequence
+            will be zero-padded. Usually used during Transformer training phase.
+        Arguments:
+            - model (:obj:`Any`): Wrapped model class, should contain forward method.
+            - seq_len (:obj:`int`): N, length of a sequence.
+        """
+        super().__init__(model)
+        self.seq_len = seq_len
+
+    def forward(self, obs: torch.Tensor, **kwargs) -> List[dict]:
+        """
+        Arguments:
+            - data (:obj:`dict`): Dict type data, including at least \
+                ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
+        Returns:
+            - List containing a dict of the model output for each sequence.
+        """
+        sequences = list(torch.split(obs, self.seq_len, dim=0))
+        if sequences[-1].shape[0] < self.seq_len:
+            last = sequences[-1].clone()
+            diff = self.seq_len - last.shape[0]
+            sequences[-1] = F.pad(input=last, pad=(0, 0, 0, 0, 0, diff), mode='constant', value=0)
+        outputs = []
+        for seq in sequences:
+            outputs.append(self._model.forward(seq, **kwargs))
+        return outputs
 
 
 def sample_action(logit=None, prob=None):
@@ -702,7 +739,8 @@ wrapper_name_map = {
     'hybrid_eps_greedy_multinomial_sample': HybridEpsGreedyMultinomialSampleWrapper,
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
-    'transformer': TransformerWrapper,
+    'transformer_input': TransformerInputWrapper,
+    'transformer_segment': TransformerSegmentWrapper,
     # model wrapper
     'target': TargetNetworkWrapper,
     'teacher': TeacherNetworkWrapper,
