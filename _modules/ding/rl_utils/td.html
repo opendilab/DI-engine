@@ -835,8 +835,9 @@
                 <span class="n">lambda_n_step_td</span> <span class="o">*</span> <span class="n">td_error_per_sample</span> <span class="o">+</span> <span class="n">lambda_one_step_td</span> <span class="o">*</span> <span class="n">td_error_one_step_per_sample</span> <span class="o">+</span>
                 <span class="n">lambda_supervised_loss</span> <span class="o">*</span> <span class="n">JE</span>
             <span class="p">)</span> <span class="o">*</span> <span class="n">weight</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">lambda_n_step_td</span> <span class="o">*</span> <span class="n">td_error_per_sample</span> <span class="o">+</span> <span class="n">lambda_one_step_td</span> <span class="o">*</span> <span class="n">td_error_one_step_per_sample</span> <span class="o">+</span>
-        <span class="n">lambda_supervised_loss</span> <span class="o">*</span> <span class="n">JE</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">lambda_n_step_td</span> <span class="o">*</span> <span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">+</span>
+        <span class="n">lambda_one_step_td</span> <span class="o">*</span> <span class="n">td_error_one_step_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">+</span> <span class="n">lambda_supervised_loss</span> <span class="o">*</span> <span class="n">JE</span><span class="o">.</span><span class="n">abs</span><span class="p">(),</span>
+        <span class="p">(</span><span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_one_step_per_sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">JE</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
     <span class="p">)</span>
 
 
@@ -941,8 +942,9 @@
                 <span class="n">lambda_n_step_td</span> <span class="o">*</span> <span class="n">td_error_per_sample</span> <span class="o">+</span> <span class="n">lambda_one_step_td</span> <span class="o">*</span> <span class="n">td_error_one_step_per_sample</span> <span class="o">+</span>
                 <span class="n">lambda_supervised_loss</span> <span class="o">*</span> <span class="n">JE</span>
             <span class="p">)</span> <span class="o">*</span> <span class="n">weight</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">lambda_n_step_td</span> <span class="o">*</span> <span class="n">td_error_per_sample</span> <span class="o">+</span> <span class="n">lambda_one_step_td</span> <span class="o">*</span> <span class="n">td_error_one_step_per_sample</span> <span class="o">+</span>
-        <span class="n">lambda_supervised_loss</span> <span class="o">*</span> <span class="n">JE</span><span class="p">,</span> <span class="p">(</span><span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_one_step_per_sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">JE</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">lambda_n_step_td</span> <span class="o">*</span> <span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">+</span>
+        <span class="n">lambda_one_step_td</span> <span class="o">*</span> <span class="n">td_error_one_step_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span> <span class="o">+</span> <span class="n">lambda_supervised_loss</span> <span class="o">*</span> <span class="n">JE</span><span class="o">.</span><span class="n">abs</span><span class="p">(),</span>
+        <span class="p">(</span><span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_one_step_per_sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">JE</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
     <span class="p">)</span></div>
 
 

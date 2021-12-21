@@ -518,14 +518,15 @@
                     <span class="n">value_gamma</span><span class="o">=</span><span class="n">value_gamma</span><span class="p">[</span><span class="n">t</span><span class="p">],</span>
                 <span class="p">)</span>
                 <span class="n">loss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
-                <span class="n">td_error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span>
+                <span class="c1"># td_error.append(e.abs())  # first sum then abs</span>
+                <span class="n">td_error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># first abs then sum</span>
                 <span class="c1"># loss statistics for debugging</span>
                 <span class="n">loss_nstep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="n">loss_1step</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_statistics</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
                 <span class="n">loss_sl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_statistics</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">l</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">dqfd_nstep_td_error</span><span class="p">(</span>
+                <span class="n">l</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">loss_statistics</span> <span class="o">=</span> <span class="n">dqfd_nstep_td_error</span><span class="p">(</span>
                     <span class="n">td_data</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span><span class="p">,</span>
@@ -537,7 +538,12 @@
                     <span class="n">value_gamma</span><span class="o">=</span><span class="n">value_gamma</span><span class="p">[</span><span class="n">t</span><span class="p">],</span>
                 <span class="p">)</span>
                 <span class="n">loss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
-                <span class="n">td_error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span>
+                <span class="c1"># td_error.append(e.abs())  # first sum then abs</span>
+                <span class="n">td_error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>  <span class="c1"># first abs then sum</span>
+                <span class="c1"># loss statistics for debugging</span>
+                <span class="n">loss_nstep</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_statistics</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">loss_1step</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_statistics</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">loss_sl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_statistics</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
         <span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
         <span class="c1"># loss statistics for debugging</span>
