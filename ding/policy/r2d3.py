@@ -352,14 +352,15 @@ class R2D3Policy(Policy):
                     value_gamma=value_gamma[t],
                 )
                 loss.append(l)
-                td_error.append(e.abs())
+                # td_error.append(e.abs())  # first sum then abs
+                td_error.append(e)  # first abs then sum
                 # loss statistics for debugging
                 loss_nstep.append(loss_statistics[0])
                 loss_1step.append(loss_statistics[1])
                 loss_sl.append(loss_statistics[2])
 
             else:
-                l, e = dqfd_nstep_td_error(
+                l, e, loss_statistics = dqfd_nstep_td_error(
                     td_data,
                     self._gamma,
                     self.lambda1,
@@ -371,7 +372,12 @@ class R2D3Policy(Policy):
                     value_gamma=value_gamma[t],
                 )
                 loss.append(l)
-                td_error.append(e.abs())
+                # td_error.append(e.abs())  # first sum then abs
+                td_error.append(e)  # first abs then sum
+                # loss statistics for debugging
+                loss_nstep.append(loss_statistics[0])
+                loss_1step.append(loss_statistics[1])
+                loss_sl.append(loss_statistics[2])
 
         loss = sum(loss) / (len(loss) + 1e-8)
         # loss statistics for debugging
