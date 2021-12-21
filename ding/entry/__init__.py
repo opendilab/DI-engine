@@ -1,4 +1,5 @@
 from .cli import cli
+from .cli_ditask import cli_ditask
 from .serial_entry import serial_pipeline
 from .serial_entry_onpolicy import serial_pipeline_onpolicy
 from .serial_entry_offline import serial_pipeline_offline

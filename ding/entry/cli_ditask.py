@@ -49,7 +49,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option("--labels", type=str, help="Labels.")
 @click.option("--node-ids", type=str, help="Candidate node ids.")
 @click.option("--main", type=str, help="Main function of entry module.")
-def cli(
+def cli_ditask(
     package: str, main: str, parallel_workers: int, protocol: str, ports: str, attach_to: str, address: str,
     labels: str, node_ids: str
 ):
