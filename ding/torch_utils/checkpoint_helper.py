@@ -4,6 +4,7 @@ import sys
 import traceback
 from typing import Callable
 import torch
+import torch.utils.data  # torch1.1.0 compatibility
 from ding.utils import read_file, save_file
 
 logger = logging.getLogger('default_logger')
@@ -187,7 +188,8 @@ class CheckpointHelper:
             - logger_prefix (:obj:`str`): prefix of logger
             - state_dict_mask (:obj:`list`): A list containing state_dict keys, \
                 which shouldn't be loaded into model(after prefix op)
-        ..note:
+
+        .. note::
 
             The checkpoint loaded from load_path is a dict, whose format is like '{'state_dict': OrderedDict(), ...}'
         """

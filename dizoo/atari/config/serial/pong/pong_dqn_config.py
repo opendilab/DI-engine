@@ -3,6 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_dqn_config = dict(
+    exp_name='pong_dqn',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -50,6 +51,7 @@ pong_dqn_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
+    # replay_buffer=dict(type='deque'),
 )
 pong_dqn_create_config = EasyDict(pong_dqn_create_config)
 create_config = pong_dqn_create_config

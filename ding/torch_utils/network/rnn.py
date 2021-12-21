@@ -122,13 +122,13 @@ class LSTMForwardWrapper(object):
 class LSTM(nn.Module, LSTMForwardWrapper):
     r"""
     Overview:
-        Implimentation of LSTM cell
+        Implimentation of LSTM cell with LN
     Interface:
         forward
 
     .. note::
-s
-        For begainners, you can refer to <https://zhuanlan.zhihu.com/p/32085405> to learn the basics about lstm
+
+        For beginners, you can refer to <https://zhuanlan.zhihu.com/p/32085405> to learn the basics about lstm
     """
 
     def __init__(
@@ -141,13 +141,13 @@ s
     ) -> None:
         r"""
         Overview:
-            Initializate the LSTM cell
+            Initializate the LSTM cell arguments and parameters
         Arguments:
             - input_size (:obj:`int`): size of the input vector
             - hidden_size (:obj:`int`): size of the hidden state vector
             - num_layers (:obj:`int`): number of lstm layers
             - norm_type (:obj:`Optional[str]`): type of the normaliztion, (default: None)
-            - dropout (:obj:float):  dropout rate, default set to .0
+            - dropout (:obj:`float`): dropout rate, default to 0
         """
         super(LSTM, self).__init__()
         self.input_size = input_size
@@ -180,7 +180,7 @@ s
                 inputs: torch.Tensor,
                 prev_state: torch.Tensor,
                 list_next_state: bool = True) -> Tuple[torch.Tensor, Union[torch.Tensor, list]]:
-        r"""
+        """
         Overview:
             Take the previous state and the input and calculate the output and the nextstate
         Arguments:

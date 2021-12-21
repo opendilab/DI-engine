@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
 from typing import Union, Tuple, List, Callable
+from ding.compatibility import torch_gt_131
 
 from .normalization import build_normalization
 
@@ -90,6 +91,7 @@ def conv1d_block(
         - norm_type (:obj:`str`): type of the normalization
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 1 dim convlution layer
+
     .. note::
 
         Conv1d (https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d)
@@ -131,6 +133,7 @@ def conv2d_block(
         - norm_type (:obj:`str`): type of the normalization, default set to None, now support ['BN', 'IN', 'SyncBN']
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2 dim convlution layer
+
     .. note::
 
         Conv2d (https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d)
@@ -181,6 +184,7 @@ def deconv2d_block(
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the 2-dim \
             transpose convlution layer
+
     .. note::
 
         ConvTranspose2d (https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html)
@@ -226,6 +230,7 @@ def fc_block(
         - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
+
     .. note::
 
         you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
@@ -269,6 +274,7 @@ def MLP(
         - dropout_probability (:obj:`float`): probability of an element to be zeroed in the dropout. Default: 0.5
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
+
     .. note::
 
         you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
@@ -298,6 +304,7 @@ class ChannelShuffle(nn.Module):
         Apply channelShuffle to the input tensor
     Interface:
         forward
+
     .. note::
 
         You can see the original paper shuffle net in https://arxiv.org/abs/1707.01083
@@ -564,6 +571,7 @@ def noise_block(
         - simga0 (:obj:`float`): the sigma0 is the defalut noise volumn when init NoiseLinearLayer
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
+
     .. note::
 
         you can refer to nn.linear (https://pytorch.org/docs/master/generated/torch.nn.Linear.html)
@@ -577,3 +585,23 @@ def noise_block(
     if use_dropout:
         block.append(nn.Dropout(dropout_probability))
     return sequential_pack(block)
+
+
+class NaiveFlatten(nn.Module):
+
+    def __init__(self, start_dim: int = 1, end_dim: int = -1) -> None:
+        super(NaiveFlatten, self).__init__()
+        self.start_dim = start_dim
+        self.end_dim = end_dim
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if self.end_dim != -1:
+            return x.view(*x.shape[:self.start_dim], -1, *x.shape[self.end_dim + 1:])
+        else:
+            return x.view(*x.shape[:self.start_dim], -1)
+
+
+if torch_gt_131():
+    Flatten = nn.Flatten
+else:
+    Flatten = NaiveFlatten

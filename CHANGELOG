@@ -1,3 +1,56 @@
+2021.12.03(v0.2.2)
+- env: apple key to door treasure env (#128)
+- env: add bsuite memory benchmark (#138)
+- env: polish atari impala config
+- algo: Guided Cost IRL algorithm (#57)
+- algo: ICM exploration algorithm (#41)
+- algo: MP-DQN hybrid action space algorithm (#131)
+- algo: add loss statistics and polish r2d3 pong config (#126)
+- feautre: add renew env mechanism in env manager and update timeout mechanism (#127) (#134)
+- fix: async subprocess env manager reset bug (#137)
+- fix: keepdims name bug in model wrapper
+- fix: on-policy ppo value norm bug
+- fix: GAE and RND unittest bug
+- fix: hidden state wrapper h tensor compatiblity
+- fix: naive buffer auto config create bug
+- style: add supporters list
+
+2021.11.22(v0.2.1)
+- env: gym-hybrid env (#86)
+- env: gym-soccer (HFO) env (#94)
+- env: Go-Bigger env baseline (#95)
+- env: add the bipedalwalker config of sac and ppo (#121)
+- algo: DQfD Imitation Learning algorithm (#48) (#98)
+- algo: TD3BC offline RL algorithm (#88)
+- algo: MBPO model-based RL algorithm (#113)
+- algo: PADDPG hybrid action space algorithm (#109)
+- algo: PDQN hybrid action space algorithm (#118)
+- algo: fix R2D2 bugs and produce benchmark, add naive NGU (#40)
+- algo: self-play training demo in slime_volley env (#23)
+- algo: add example of GAIL entry + config for mujoco (#114)
+- feature: enable arbitrary policy num in serial sample collector
+- feautre: add torch DataParallel for single machine multi-GPU
+- feature: add registry force_overwrite argument
+- feature: add naive buffer periodic thruput seconds argument
+- test: add pure docker setting test (#103)
+- test: add unittest for dataset and evaluator (#107)
+- test: add unittest for on-policy algorithm (#92)
+- test: add unittest for ppo and td (MARL case) (#89)
+- test: polish collector benchmark test
+- fix: target model wrapper hard reset bug
+- fix: fix learn state_dict target model bug
+- fix: ppo bugs and update atari ppo offpolicy config (#108)
+- fix: pyyaml version bug (#99)
+- fix: small fix on bsuite environment (#117)
+- fix: discrete cql unittest bug
+- fix: release workflow bug
+- fix: base policy model state_dict overlap bug
+- fix: remove on_policy option in dizoo config and entry
+- fix: remove torch in env
+- style: gym version > 0.20.0
+- style: torch version >= 1.1.0, <= 1.10.0
+- style: ale-py == 0.7.0
+
 2021.9.30(v0.2.0)
 - env: overcooked env (#20)
 - env: procgen env (#26)

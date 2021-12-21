@@ -23,6 +23,7 @@ def eval_ckpt(args):
     eval(config, seed=args.seed, load_path=main_config.policy.learn.learner.hook.load_ckpt_before_run)
     # eval(config, seed=args.seed, state_dict=state_dict)
 
+
 def generate(args):
     main_config.exp_name = 'td3'
     main_config.policy.learn.learner.load_path = './td3/ckpt/ckpt_best.pth.tar'
@@ -30,8 +31,14 @@ def generate(args):
     main_config.policy.collect.data_type = 'hdf5'
     config = deepcopy([main_config, create_config])
     state_dict = torch.load(main_config.policy.learn.learner.load_path, map_location='cpu')
-    collect_demo_data(config, collect_count=main_config.policy.other.replay_buffer.replay_buffer_size,
-                      seed=args.seed, expert_data_path=main_config.policy.collect.save_path, state_dict=state_dict)
+    collect_demo_data(
+        config,
+        collect_count=main_config.policy.other.replay_buffer.replay_buffer_size,
+        seed=args.seed,
+        expert_data_path=main_config.policy.collect.save_path,
+        state_dict=state_dict
+    )
+
 
 def train_expert(args):
     from dizoo.mujoco.config.hopper_td3_default_config import main_config, create_config

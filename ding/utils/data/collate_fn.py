@@ -5,6 +5,7 @@ import torch
 import re
 from torch._six import string_classes
 import collections.abc as container_abcs
+from ding.compatibility import torch_gt_131
 
 int_classes = int
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
@@ -50,7 +51,7 @@ def default_collate(batch: Sequence,
     elem_type = type(elem)
     if isinstance(elem, torch.Tensor):
         out = None
-        if torch.utils.data.get_worker_info() is not None:
+        if torch_gt_131() and torch.utils.data.get_worker_info() is not None:
             # If we're in a background process, directly concatenate into a
             # shared memory tensor to avoid an extra copy
             numel = sum([x.numel() for x in batch])
@@ -124,7 +125,7 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
     prev_state = [b.pop('prev_state') for b in batch]
     batch_data = default_collate(batch)  # -> {some_key: T lists}, each list is [B, some_dim]
     batch_data = stack(batch_data)  # -> {some_key: [T, B, some_dim]}
-    batch_data['prev_state'] = list(zip(*prev_state))
+    batch_data['prev_state'] = list(zip(*prev_state))  # permute batch size dim with sequence len dim
     # append back prev_state, avoiding multi batch share the same data bug
     for i in range(len(batch)):
         batch[i]['prev_state'] = prev_state[i]

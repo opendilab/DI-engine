@@ -8,8 +8,8 @@ from easydict import EasyDict
 class TestGymSoccerEnv:
 
     def test_naive(self):
-        env = GymSoccerEnv(EasyDict({'env_id': 'Soccer-v0'}))
-        env.enable_save_replay('./video')
+        env = GymSoccerEnv(EasyDict({'env_id': 'Soccer-v0', 'act_scale': True}))
+        # env.enable_save_replay('./video')
         env.seed(25, dynamic_seed=False)
         assert env._seed == 25
         obs = env.reset()
@@ -18,7 +18,7 @@ class TestGymSoccerEnv:
             random_action = env.get_random_action()
             # print('random_action', random_action)
             timestep = env.step(random_action)
-            env.render()
+            # env.render()
             assert isinstance(timestep.obs, np.ndarray)
             assert isinstance(timestep.done, bool)
             assert timestep.obs.shape == (59, )

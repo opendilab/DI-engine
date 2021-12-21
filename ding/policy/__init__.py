@@ -10,7 +10,7 @@ from .td3 import TD3Policy
 from .td3_bc import TD3BCPolicy
 from .a2c import A2CPolicy
 from .ppo import PPOPolicy
-from .sac import SACPolicy
+from .sac import SACPolicy, SACDiscretePolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
@@ -33,3 +33,4 @@ from .r2d3 import R2D3Policy
 from .command_mode_policy_instance import *
 
 from .policy_factory import PolicyFactory
+from .pdqn import PDQNPolicy

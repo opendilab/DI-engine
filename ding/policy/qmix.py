@@ -13,13 +13,13 @@ from .base_policy import Policy
 
 @POLICY_REGISTRY.register('qmix')
 class QMIXPolicy(Policy):
-    r"""
+    """
     Overview:
         Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
             you can view the paper in the following link https://arxiv.org/abs/1803.11485
     Interface:
-        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
-            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
+        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn \
+            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval \
             _reset_eval, _get_train_sample, default_model
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -252,21 +252,24 @@ class QMIXPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        r"""
+        """
         Overview:
             Load the state_dict variable into policy learn mode.
         Arguments:
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
             load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
@@ -414,6 +417,7 @@ class QMIXPolicy(Policy):
             Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For QMIX, ``ding.model.qmix.qmix``
