@@ -1,6 +1,10 @@
 from tensorboardX import SummaryWriter
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
+    # TYPE_CHECKING is always False at runtime, but mypy will evaluate the contents of this block.
+    # So if you import this module within TYPE_CHECKING, you will get code hints and other benefits.
+    # Here is a good answer on stackoverflow:
+    # https://stackoverflow.com/questions/39740632/python-type-hinting-without-cyclic-imports
     from ding.framework import Task
 
 
@@ -14,6 +18,9 @@ class DistributedWriter(SummaryWriter):
 
     def __init__(self, *args, **kwargs):
         self._default_writer_to_disk = kwargs.get("write_to_disk") if "write_to_disk" in kwargs else True
+        # We need to write data to files lazily, so we should not use file writer in __init__,
+        # On the contrary, we will initialize the file writer when the user calls the
+        # add_* function for the first time
         kwargs["write_to_disk"] = False
         super().__init__(*args, **kwargs)
         self._in_parallel = False
@@ -21,14 +28,14 @@ class DistributedWriter(SummaryWriter):
         self._is_writer = False
         self._lazy_initialized = False
 
-    def plugin(self, task: "Task", is_writer: False) -> "DistributedWriter":
+    def plugin(self, task: "Task", is_writer: bool = False) -> "DistributedWriter":
         """
         Overview:
             Plugin ``task``, so when using this writer in the task pipeline, it will automatically send requests\
                 to the main writer instead of writing it to the disk. So we can collect data from multiple processes\
                 and write them into one file.
-        Usage:
-            ``DistributedWriter().plugin(task, is_writer=("node.0" in task.labels))``
+        Examples:
+            >>> DistributedWriter().plugin(task, is_writer=("node.0" in task.labels))
         """
         if task.router.is_active:
             self._in_parallel = True
