@@ -30,6 +30,37 @@ def q_1step_td_error(
     return (criterion(q_s_a, target_q_s_a.detach()) * weight).mean()
 
 
+q_v_1step_td_data = namedtuple('q_v_1step_td_data', ['q', 'v', 'act', 'reward', 'done', 'weight'])
+
+
+def q_v_1step_td_error(
+        data: namedtuple, gamma: float, criterion: torch.nn.modules = nn.MSELoss(reduction='none')
+) -> torch.Tensor:
+    # we will use this function in discrete sac algorithm to calculate td error between q and v value.
+    q, v, act, reward, done, weight = data
+    if len(act.shape) == 1:
+        assert len(reward.shape) == 1, reward.shape
+        batch_range = torch.arange(act.shape[0])
+        if weight is None:
+            weight = torch.ones_like(reward)
+        q_s_a = q[batch_range, act]
+        target_q_s_a = gamma * (1 - done) * v + reward
+    else:
+        assert len(reward.shape) == 1, reward.shape
+        batch_range = torch.arange(act.shape[0])
+        actor_range = torch.arange(act.shape[1])
+        batch_actor_range = torch.arange(act.shape[0] * act.shape[1])
+        if weight is None:
+            weight = torch.ones_like(act)
+        temp_q = q.reshape(act.shape[0] * act.shape[1], -1)
+        temp_act = act.reshape(act.shape[0] * act.shape[1])
+        q_s_a = temp_q[batch_actor_range, temp_act]
+        q_s_a = q_s_a.reshape(act.shape[0], act.shape[1])
+        target_q_s_a = gamma * (1 - done).unsqueeze(1) * v + reward.unsqueeze(1)
+    td_error_per_sample = criterion(q_s_a, target_q_s_a.detach())
+    return (td_error_per_sample * weight).mean(), td_error_per_sample
+
+
 def view_similar(x: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     size = list(x.shape) + [1 for _ in range(len(target.shape) - len(x.shape))]
     return x.view(*size)
@@ -236,11 +267,17 @@ def v_1step_td_error(
 ) -> torch.Tensor:
     v, next_v, reward, done, weight = data
     if weight is None:
-        weight = torch.ones_like(reward)
-    if done is not None:
-        target_v = gamma * (1 - done) * next_v + reward
+        weight = torch.ones_like(v)
+    if len(v.shape) == len(reward.shape):
+        if done is not None:
+            target_v = gamma * (1 - done) * next_v + reward
+        else:
+            target_v = gamma * next_v + reward
     else:
-        target_v = gamma * next_v + reward
+        if done is not None:
+            target_v = gamma * (1 - done).unsqueeze(1) * next_v + reward.unsqueeze(1)
+        else:
+            target_v = gamma * next_v + reward.unsqueeze(1)
     td_error_per_sample = criterion(v, target_v.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
@@ -632,8 +669,8 @@ def dqfd_nstep_td_error(
                 lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
                 lambda_supervised_loss * JE
             ) * weight
-        ).mean(), lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
-        lambda_supervised_loss * JE
+        ).mean(), lambda_n_step_td * td_error_per_sample.abs() + lambda_one_step_td * td_error_one_step_per_sample.abs() +
+        lambda_supervised_loss * JE.abs(), (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
     )
 
 
@@ -732,14 +769,26 @@ def dqfd_nstep_td_error_with_rescale(
     # along the first dimension. for the index of the action, fill the corresponding position in l with 0
     JE = is_expert * (torch.max(q + l.to(device), dim=1)[0] - q_s_a)
 
+    # td-error: first sum then abs
+    # return (
+    #     (
+    #         (
+    #             lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
+    #             lambda_supervised_loss * JE
+    #         ) * weight
+    #     ).mean(), lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
+    #     lambda_supervised_loss * JE, (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
+    # )
+
+    # td-error: first abs then sum
     return (
         (
             (
                 lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
                 lambda_supervised_loss * JE
             ) * weight
-        ).mean(), lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
-        lambda_supervised_loss * JE, (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
+        ).mean(), lambda_n_step_td * td_error_per_sample.abs() + lambda_one_step_td * td_error_one_step_per_sample.abs() +
+        lambda_supervised_loss * JE.abs(), (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
     )
 
 

@@ -19,7 +19,7 @@ from .ngu import NGUPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
 from .td3_bc import TD3BCPolicy
-from .sac import SACPolicy
+from .sac import SACPolicy, SACDiscretePolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
@@ -281,4 +281,9 @@ class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('pdqn_command')
 class PDQNCommandModePolicy(PDQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('sac_discrete_command')
+class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
     pass

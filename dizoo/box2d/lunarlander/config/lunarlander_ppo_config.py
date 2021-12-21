@@ -2,7 +2,9 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 
 lunarlander_ppo_config = dict(
+    exp_name='lunarlander_ppo',
     env=dict(
+        manager=dict(shared_memory=True, force_reproducibility=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,

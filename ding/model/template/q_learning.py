@@ -577,7 +577,8 @@ class DRQN(nn.Module):
             head_layer_num: int = 1,
             lstm_type: Optional[str] = 'normal',
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            res_link: bool = False
     ) -> None:
         r"""
         Overview:
@@ -593,6 +594,7 @@ class DRQN(nn.Module):
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
+            - res_link (:obj:`bool`): use the residual link or not, default to False
         """
         super(DRQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -611,6 +613,7 @@ class DRQN(nn.Module):
             )
         # LSTM Type
         self.rnn = get_lstm(lstm_type, input_size=head_hidden_size, hidden_size=head_hidden_size)
+        self.res_link = res_link
         # Head Type
         if dueling:
             head_cls = DuelingHead
@@ -678,17 +681,26 @@ class DRQN(nn.Module):
         """
 
         x, prev_state = inputs['obs'], inputs['prev_state']
+        # for both inference and other cases, the network structure is encoder -> rnn network -> head
+        # the difference is inference take the data with seq_len=1 (or T = 1)
         if inference:
             x = self.encoder(x)
-            x = x.unsqueeze(0)
+            if self.res_link:
+                a = x
+            x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
+            # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
             x, next_state = self.rnn(x, prev_state)
-            x = x.squeeze(0)
+            x = x.squeeze(0)  # to delete the seq_len dim to match head network input
+            if self.res_link:
+                x = x + a
             x = self.head(x)
             x['next_state'] = next_state
             return x
         else:
             assert len(x.shape) in [3, 5], x.shape
             x = parallel_wrapper(self.encoder)(x)  # (T, B, N)
+            if self.res_link:
+                a = x
             lstm_embedding = []
             # TODO(nyz) how to deal with hidden_size key-value
             hidden_state_list = []
@@ -700,11 +712,17 @@ class DRQN(nn.Module):
                     saved_hidden_state.append(prev_state)
                 lstm_embedding.append(output)
                 hidden_state = list(zip(*prev_state))  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
+                # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
                 hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
             x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
+            if self.res_link:
+                x = x + a
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
-            x['next_state'] = prev_state  # the last timestep state including h and c
-            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)  # the all hidden state h
+            # the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
+            x['next_state'] = prev_state
+            # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
+            # This key is used in qtran, the algorithm requires to retain all h_{t} during training
+            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
             if saved_hidden_state_timesteps is not None:
                 x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
             return x

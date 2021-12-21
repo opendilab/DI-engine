@@ -319,6 +319,7 @@ class PPGPolicy(Policy):
                 When the value is distilled into the policy network, we need to make sure the policy \
                 network does not change the action predictions, we need two optimizers, \
                 _optimizer_ac is used in policy net, and _optimizer_aux_critic is used in value net.
+
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
             load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
@@ -459,6 +460,7 @@ class PPGPolicy(Policy):
             Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path.
