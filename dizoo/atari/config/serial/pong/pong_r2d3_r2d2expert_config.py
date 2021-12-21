@@ -9,7 +9,7 @@ expert_replay_buffer_size = int(5e3)  # TODO(pu)
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
+    exp_name='pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -97,7 +97,7 @@ create_config = pong_r2d3_create_config
 
 """export config"""
 expert_pong_r2d3_config = dict(
-    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs1e4_ds5e3',
+    exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
