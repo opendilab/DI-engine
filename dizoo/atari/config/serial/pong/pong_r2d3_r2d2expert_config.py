@@ -5,11 +5,11 @@ module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
 evaluator_env_num = 5
-expert_replay_buffer_size=int(5e3)
+expert_replay_buffer_size = int(5e3)  # TODO(pu)
 
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3_1abs2sum',
+    exp_name='debug_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, force_reproducibility=True),
@@ -45,7 +45,7 @@ pong_r2d3_config = dict(
             # in most environments
             value_rescale=True,
             update_per_collect=8,
-            batch_size=64,  # TODO(pu)
+            batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
             # DQFD related parameters

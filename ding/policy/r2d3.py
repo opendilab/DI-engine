@@ -416,7 +416,6 @@ class R2D3Policy(Policy):
             'q_s_taken-a_t0': q_s_a_t0.mean().item(),
             'target_q_s_max-a_t0': target_q_s_a_t0.mean().item(),
             'q_s_a-mean_t0': q_value[0].mean().item(),
-
         }
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
