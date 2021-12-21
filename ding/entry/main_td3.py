@@ -4,8 +4,11 @@ Main entry
 from collections import deque
 import torch
 import numpy as np
+import os
 import time
 from rich import print
+from easydict import EasyDict
+from tensorboardX import SummaryWriter
 from functools import partial
 from ding.model import QAC
 from ding.utils import set_pkg_seed
@@ -46,10 +49,11 @@ class DequeBuffer:
 
 class Pipeline:
 
-    def __init__(self, cfg, model: torch.nn.Module):
+    def __init__(self, cfg, model: torch.nn.Module, tb_logger: 'SummaryWriter' = None):
         self.cfg = cfg
         self.model = model
         self.policy = TD3Policy(cfg.policy, model=model)
+        self.tb_logger = tb_logger
         if 'eps' in cfg.policy.other:
             eps_cfg = cfg.policy.other.eps
             self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
@@ -109,12 +113,15 @@ class Pipeline:
 
         def _eval(ctx):
             ctx.setdefault("train_iter", 0)
+            if not hasattr(EasyDict(ctx), 'collect_env_step'):
+                ctx.setdefault("collect_env_step", 0)
             ctx.setdefault("last_eval_iter", -1)
             ctx.keep("train_iter", "last_eval_iter")
             if ctx.train_iter == ctx.last_eval_iter or (
                 (ctx.train_iter - ctx.last_eval_iter) < self.cfg.policy.eval.evaluator.eval_freq
                     and ctx.train_iter != 0):
                 return
+            envstep_count = 0
             env.reset()
             eval_monitor = VectorEvalMonitor(env.env_num, self.cfg.env.n_evaluator_episode)
             while not eval_monitor.is_finished():
@@ -129,10 +136,20 @@ class Pipeline:
                         self.policy.eval_mode.reset([env_id])
                         reward = timestep.info['final_eval_reward']
                         eval_monitor.update_reward(env_id, reward)
+                    envstep_count += 1
             episode_reward = eval_monitor.get_episode_reward()
+            info = {
+                'reward_mean': np.mean(episode_reward),
+                'reward_std': np.std(episode_reward),
+                'reward_max': np.max(episode_reward),
+                'reward_min': np.min(episode_reward),
+                'envstep_count': envstep_count,
+            }
             eval_reward = np.mean(episode_reward)
             stop_flag = eval_reward >= self.cfg.env.stop_value and ctx.train_iter > 0
             print('Current Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
+            for k, v in info.items():
+                self.tb_logger.add_scalar('evaluator_step/' + k, v, ctx.collect_env_step)
             ctx.last_eval_iter = ctx.train_iter
             if stop_flag:
                 ctx.finish = True
@@ -141,7 +158,8 @@ class Pipeline:
 
 
 def main(cfg, model, seed=0):
-    with Task(async_mode=True) as task:
+    tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    with Task(async_mode=False) as task:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
 
         collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
@@ -154,7 +172,7 @@ def main(cfg, model, seed=0):
         evaluator_env.launch()
 
         replay_buffer = DequeBuffer()
-        td3 = Pipeline(cfg, model)
+        td3 = Pipeline(cfg, model, tb_logger)
 
         # task.use_step_wrapper(StepTimer(print_per_step=1))
         task.use(td3.evaluate(evaluator_env), filter_labels=["standalone", "node.0"])
