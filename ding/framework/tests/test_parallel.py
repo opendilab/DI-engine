@@ -24,6 +24,8 @@ def parallel_main():
                 break
             time.sleep(0.03)
         assert msg["ping"]
+        # Avoid can not receiving messages from each other after exit parallel
+        time.sleep(0.7)
 
 
 @pytest.mark.unittest
