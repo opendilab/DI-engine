@@ -48,12 +48,14 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option("--address", type=str, help="The address to listen to (without port).")
 @click.option("--labels", type=str, help="Labels.")
 @click.option("--node-ids", type=str, help="Candidate node ids.")
-@click.option("--main", type=str, help="Main function of entry module.")
+@click.option("-m", "--main", type=str, help="Main function of entry module.")
 def cli_ditask(
     package: str, main: str, parallel_workers: int, protocol: str, ports: str, attach_to: str, address: str,
     labels: str, node_ids: str
 ):
     # Parse entry point
+    if not package:
+        package = os.getcwd()
     sys.path.append(package)
     if main is None:
         mod_name = os.path.basename(package)
