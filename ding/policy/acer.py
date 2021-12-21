@@ -223,7 +223,7 @@ class ACERPolicy(Policy):
         avg_logit = torch.log_softmax(avg_logit, dim=-1)
         with torch.no_grad():
             # shape T,B,env_action_shape
-            ratio = torch.exp(target_logit-behaviour_logit)
+            ratio = torch.exp(target_logit[0:-1]-behaviour_logit)
             # shape (T+1),B,1
             v_pred = (q_values * torch.exp(target_logit)).sum(-1).unsqueeze(-1)
             # Calculate retrace
