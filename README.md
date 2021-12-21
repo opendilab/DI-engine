@@ -35,9 +35,9 @@ Updated on 2021.12.03 DI-engine-v0.2.2 (beta)
 
 
 ## Introduction to DI-engine (beta)
-[DI-engine doc](https://opendilab.github.io/DI-engine/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
+[DI-engine doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
 
-**DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://opendilab.github.io/DI-engine/intro_rl/basic_en.html) algorithms** ([link](https://github.com/opendilab/DI-engine#algorithm-versatility)):
+**DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/intro_rl/basic_en.html) algorithms** ([link](https://github.com/opendilab/DI-engine#algorithm-versatility)):
 
 - Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2
 - Multi-agent RL algorithms like QMIX, MAPPO
@@ -80,7 +80,7 @@ If you use Anaconda or Miniconda, you can install DI-engine from conda-forge thr
 conda install -c opendilab di-engine
 ```
 
-For more information about installation, you can refer to [installation](https://opendilab.github.io/DI-engine/installation/index.html).
+For more information about installation, you can refer to [installation](https://di-engine-docs.readthedocs.io/en/latest/installation/index.html).
 
 And our dockerhub repo can be found [here](https://hub.docker.com/repository/docker/opendilab/ding)，we prepare `base image` and `env image` with common RL environments.
 
@@ -89,15 +89,17 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 - mujoco: opendilab/ding:nightly-mujoco
 - smac: opendilab/ding:nightly-smac
 
-The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-engine/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
+The detailed documentation are hosted on [doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
 
 ## Quick Start
 
-[3 Minutes Kickoff](https://opendilab.github.io/DI-engine/quick_start/index.html)
+[3 Minutes Kickoff](https://di-engine-docs.readthedocs.io/en/latest/quick_start/index.html)
 
 [3 Minutes Kickoff (colab)](https://colab.research.google.com/drive/1J29voOD2v9_FXjW-EyTVfRxY_Op_ygef#scrollTo=MIaKQqaZCpGz)
 
 [3 分钟上手中文版 (kaggle)](https://www.kaggle.com/fallinx/di-engine/)
+
+[How to migrate a new **RL Env**](https://di-engine-docs.readthedocs.io/en/latest/best_practice/ding_env.html) | [如何迁移一个新的**强化学习环境**](https://di-engine-docs.readthedocs.io/zh_CN/latest/best_practice/ding_env_zh.html)
 
 **Bonus: Train RL agent in one line code:**
 
