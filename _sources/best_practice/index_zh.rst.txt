@@ -1,10 +1,10 @@
-Best Practice
+最佳实践
 ================
 
 .. toctree::
     :maxdepth: 1
 
-    ding_env
+    ding_env_zh
     nstep_td
     priority
     IL
@@ -26,3 +26,4 @@ Best Practice
     maac
     
     customization1_dynamic_update_step
+
