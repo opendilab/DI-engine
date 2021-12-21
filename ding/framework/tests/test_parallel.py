@@ -16,10 +16,8 @@ def parallel_main():
         router.register_rpc("test_callback", test_callback)
         # Wait for nodes to bind
         time.sleep(0.7)
-
-        router.send_rpc("test_callback", "ping")
-
         for _ in range(30):
+            router.send_rpc("test_callback", "ping")
             if msg["ping"]:
                 break
             time.sleep(0.03)
