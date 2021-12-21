@@ -117,9 +117,9 @@ class Parallel(metaclass=SingletonMetaclass):
             params_group = []
             candidate_node_ids = node_ids or range(n_parallel_workers)
             assert len(candidate_node_ids) == n_parallel_workers, \
-                "The number of workers must be the same as the number of node_ids, now there are {} workers and {} nodes".format(
-                n_parallel_workers, len(candidate_node_ids)
-            )
+                "The number of workers must be the same as the number of node_ids, \
+now there are {} workers and {} nodes"\
+                    .format(n_parallel_workers, len(candidate_node_ids))
             for i in range(n_parallel_workers):
                 runner_args = []
                 runner_kwargs = {
