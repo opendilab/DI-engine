@@ -37,7 +37,7 @@ Updated on 2021.12.03 DI-engine-v0.2.2 (beta)
 ## Introduction to DI-engine (beta)
 [DI-engine doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
 
-**DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/intro_rl/basic_en.html) algorithms** ([link](https://github.com/opendilab/DI-engine#algorithm-versatility)):
+**DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/intro_rl/basic.html) algorithms** ([link](https://github.com/opendilab/DI-engine#algorithm-versatility)):
 
 - Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2
 - Multi-agent RL algorithms like QMIX, MAPPO
