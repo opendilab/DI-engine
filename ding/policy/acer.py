@@ -216,16 +216,16 @@ class ACERPolicy(Policy):
             action_data, avg_action_data, q_value_data, data
         )
         # shape (T+1),B,env_action_shape
-        target_pi = torch.softmax(target_logit, dim=-1)
+        target_logit = torch.log_softmax(target_logit, dim=-1)
         # shape T,B,env_action_shape
-        behaviour_pi = torch.softmax(behaviour_logit, dim=-1)
+        behaviour_logit = torch.log_softmax(behaviour_logit, dim=-1)
         # shape (T+1),B,env_action_shape
-        avg_pi = torch.softmax(avg_logit, dim=-1)
+        avg_logit = torch.log_softmax(avg_logit, dim=-1)
         with torch.no_grad():
             # shape T,B,env_action_shape
-            ratio = target_pi[0:-1, ...] / (behaviour_pi + EPS)
+            ratio = torch.exp(target_logit-behaviour_logit)
             # shape (T+1),B,1
-            v_pred = (q_values * target_pi).sum(-1).unsqueeze(-1)
+            v_pred = (q_values * torch.exp(target_logit)).sum(-1).unsqueeze(-1)
             # Calculate retrace
             q_retraces = compute_q_retraces(q_values, v_pred, rewards, actions, weights, ratio, self._gamma)
 
@@ -236,25 +236,25 @@ class ACERPolicy(Policy):
         q_retraces = q_retraces[0:-1]  # shape T,B,1
         q_values = q_values[0:-1]  # shape T,B,env_action_shape
         v_pred = v_pred[0:-1]  # shape T,B,1
-        target_pi = target_pi[0:-1]  # shape T,B,env_action_shape
-        avg_pi = avg_pi[0:-1]  # shape T,B,env_action_shape
+        target_logit = target_logit[0:-1]  # shape T,B,env_action_shape
+        avg_logit = avg_logit[0:-1]  # shape T,B,env_action_shape
         total_valid = weights.sum()  # 1
         # ====================
         # policy update
         # ====================
         actor_loss, bc_loss = acer_policy_error(
-            q_values, q_retraces, v_pred, target_pi, actions, ratio, self._c_clip_ratio
+            q_values, q_retraces, v_pred, target_logit, actions, ratio, self._c_clip_ratio
         )
         actor_loss = actor_loss * weights.unsqueeze(-1)
         bc_loss = bc_loss * weights.unsqueeze(-1)
-        dist_new = torch.distributions.categorical.Categorical(probs=target_pi)
+        dist_new = torch.distributions.categorical.Categorical(logits=target_logit)
         entropy_loss = (dist_new.entropy() * weights).unsqueeze(-1)  # shape T,B,1
         total_actor_loss = (actor_loss + bc_loss + self._entropy_weight * entropy_loss).sum() / total_valid
         self._optimizer_actor.zero_grad()
-        actor_gradients = torch.autograd.grad(-total_actor_loss, target_pi, retain_graph=True)
+        actor_gradients = torch.autograd.grad(-total_actor_loss, target_logit, retain_graph=True)
         if self._use_trust_region:
-            actor_gradients = acer_trust_region_update(actor_gradients, target_pi, avg_pi, self._trust_region_value)
-        target_pi.backward(actor_gradients)
+            actor_gradients = acer_trust_region_update(actor_gradients, target_logit, avg_logit, self._trust_region_value)
+        target_logit.backward(actor_gradients)
         self._optimizer_actor.step()
 
         # ====================
@@ -267,7 +267,7 @@ class ACERPolicy(Policy):
         self._target_model.update(self._learn_model.state_dict())
 
         with torch.no_grad():
-            kl_div = avg_pi * ((avg_pi + EPS).log() - (target_pi + EPS).log())
+            kl_div = torch.exp(avg_logit)*(avg_logit-target_logit)
             kl_div = (kl_div.sum(-1) * weights).sum() / total_valid
 
         return {

@@ -76,7 +76,7 @@ def acer_value_error(q_values, q_retraces, actions):
 
 
 def acer_trust_region_update(
-        actor_gradients: List[torch.Tensor], target_pi: torch.Tensor, avg_pi: torch.Tensor, trust_region_value: float
+        actor_gradients: List[torch.Tensor], target_logit: torch.Tensor, avg_logit: torch.Tensor, trust_region_value: float
 ) -> List[torch.Tensor]:
     """
     Overview:
@@ -93,7 +93,7 @@ def acer_trust_region_update(
         - avg_pi (:obj:`torch.FloatTensor`): :math:`(T, B, N)`
     """
     with torch.no_grad():
-        KL_gradients = [(avg_pi / (target_pi + EPS))]
+        KL_gradients = [torch.exp(avg_logit)]
     update_gradients = []
     # TODO: here is only one elements in this list.Maybe will use to more elements in the future
     actor_gradient = actor_gradients[0]
