@@ -1,9 +1,6 @@
 import random
-from collections import deque
-import numpy as np
 import pytest
 from easydict import EasyDict
-import logging
 
 from ding.utils.log_helper import build_logger, pretty_print
 from ding.utils.file_helper import remove_file

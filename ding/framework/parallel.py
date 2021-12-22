@@ -1,7 +1,6 @@
 import atexit
 import os
 import random
-import threading
 import time
 from mpire.pool import WorkerPool
 import pynng
@@ -27,10 +26,10 @@ class Parallel(metaclass=SingletonMetaclass):
         self._sock: Socket = None
         self._rpc = {}
         self._bind_addr = None
-        self._lock = threading.Lock()
         self.is_active = False
         self.attach_to = None
         self.finished = False
+        self.node_id = None
 
     def run(self, node_id: int, listen_to: str, attach_to: List[str] = None) -> None:
         self.node_id = node_id
@@ -187,6 +186,10 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def register_rpc(self, fn_name: str, fn: Callable) -> None:
         self._rpc[fn_name] = fn
 
+    def unregister_rpc(self, fn_name: str) -> None:
+        if fn_name in self._rpc:
+            del self._rpc[fn_name]
+
     def send_rpc(self, func_name: str, *args, **kwargs) -> None:
         if self.is_active:
             payload = {"f": func_name, "a": args, "k": kwargs}
@@ -198,7 +201,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         except Exception as e:
             logging.warning("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
         if payload["f"] in self._rpc:
-            self._rpc[payload["f"]](*payload["a"], **payload["k"])
+            fn = self._rpc[payload["f"]]
+            fn(*payload["a"], **payload["k"])
         else:
             logging.warning("There was no function named {} in rpc table".format(payload["f"]))
 
@@ -224,6 +228,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def stop(self):
         logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
         self.finished = True
+        self._rpc.clear()
         time.sleep(0.03)
         if self._sock:
             self._sock.close()

@@ -4,7 +4,7 @@ import os
 import numpy as np
 import yaml
 from tabulate import tabulate
-from tensorboardX import SummaryWriter
+from .log_writer_helper import DistributedWriter
 from typing import Optional, Tuple, Union, Dict, Any
 
 
@@ -32,7 +32,7 @@ def build_logger(
         name = 'default'
     logger = LoggerFactory.create_logger(path, name=name) if need_text else None
     tb_name = name + '_tb_logger'
-    tb_logger = SummaryWriter(os.path.join(path, tb_name)) if need_tb else None
+    tb_logger = DistributedWriter(os.path.join(path, tb_name)) if need_tb else None
     return logger, tb_logger
 
 

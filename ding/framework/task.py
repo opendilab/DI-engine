@@ -225,8 +225,14 @@ class Task:
         self.stop()
 
     def stop(self) -> None:
+        self.emit("exit")
         if self._thread_pool:
             self._thread_pool.shutdown()
+        # The middleware and listeners may contain some methods that reference to task,
+        # If we do not clear them after the task exits, we may find that gc will not clean up the task object.
+        self.middleware.clear()
+        self.event_listeners.clear()
+        self.once_listeners.clear()
 
     def sync(self) -> 'Task':
         if self._loop:
