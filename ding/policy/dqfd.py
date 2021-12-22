@@ -209,7 +209,7 @@ class DQFDPolicy(DQNPolicy):
             data['is_expert']  # set is_expert flag(expert 1, agent 0)
         )
         value_gamma = data.get('value_gamma')
-        loss, td_error_per_sample = dqfd_nstep_td_error(
+        loss, td_error_per_sample, loss_statistics = dqfd_nstep_td_error(
             data_n,
             self._gamma,
             self.lambda1,
