@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline_td3_vae
 
 lunarlander_td3vae_config = dict(
     # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc1000_upcr20_upcv1000_notargetnoise_collectoriginalnoise_rbs2e4_rsc',
-    exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr20_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc',# TODO(pu) deubg
+    exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr2_upcv0_notargetnoise_collectoriginalnoise_rbs2e4_rsc',# TODO(pu) deubg
     # exp_name='lunarlander_cont_ddpg_vae_lad6_wu1000_rlabelz_novaeupdatez_ns48_rvuc100_upcr2_upcv100_notargetnoise_collectoriginalnoise_rbs2e4_rsc_lsc',# TODO(pu)
 
     env=dict(
@@ -40,13 +40,13 @@ lunarlander_td3vae_config = dict(
             # rl_vae_update_circle=1,
 
             # update_per_collect_rl=50,
-            update_per_collect_rl=20,
-            # update_per_collect_rl=2,
+            # update_per_collect_rl=20,
+            update_per_collect_rl=2,
 
-            update_per_collect_vae=100,
+            # update_per_collect_vae=100,
             # update_per_collect_vae=20,
             # update_per_collect_vae=1,
-            # update_per_collect_vae=0,
+            update_per_collect_vae=0,
 
             batch_size=128,
             learning_rate_actor=1e-3,

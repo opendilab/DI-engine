@@ -269,7 +269,7 @@ class TD3VAEPolicy(DDPGPolicy):
             result['original_action'] = data['action']
             result['true_residual'] = data['next_obs'] - data['obs']
 
-            vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
+            vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=1)  # TODO(pu):weight
             # recons = args[0]
             # prediction_residual = args[1]
             # input_action = args[2]
@@ -338,7 +338,7 @@ class TD3VAEPolicy(DDPGPolicy):
                 # self.c_percentage_bound_lower = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.02), :]  # values, indices
                 # self.c_percentage_bound_upper = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.98), :]
 
-                vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
+                vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=1)  # TODO(pu):weight
 
                 loss_dict['vae_loss'] = vae_loss['loss']
                 loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss']
