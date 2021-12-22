@@ -48,10 +48,16 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option("--address", type=str, help="The address to listen to (without port).")
 @click.option("--labels", type=str, help="Labels.")
 @click.option("--node-ids", type=str, help="Candidate node ids.")
+@click.option(
+    "--topology",
+    type=click.Choice(["alone", "mesh", "star"]),
+    default="alone",
+    help="Network topology, default: alone."
+)
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
 def cli_ditask(
     package: str, main: str, parallel_workers: int, protocol: str, ports: str, attach_to: str, address: str,
-    labels: str, node_ids: str
+    labels: str, node_ids: str, topology: str
 ):
     # Parse entry point
     if not package:
@@ -80,12 +86,11 @@ def cli_ditask(
     if node_ids:
         node_ids = node_ids.split(",")
         node_ids = list(map(lambda i: int(i), node_ids))
-    # The topology will only be decided by attach_to
     Parallel.runner(
         n_parallel_workers=parallel_workers,
         ports=ports,
         protocol=protocol,
-        topology="alone",
+        topology=topology,
         attach_to=attach_to,
         address=address,
         labels=labels,
