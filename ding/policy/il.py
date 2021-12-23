@@ -12,6 +12,7 @@ from .base_policy import Policy
 #     from dizoo.gfootball.model.bots import FootballKaggle5thPlaceModel
 # except ImportError:
 #     FootballKaggle5thPlaceModel = None
+FootballKaggle5thPlaceModel = None
 
 
 @POLICY_REGISTRY.register('IL')
