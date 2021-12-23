@@ -765,7 +765,9 @@
             <span class="c1"># and learning_rate_policy in `cfg.policy.learn`.</span>
             <span class="c1"># Default to False.</span>
             <span class="c1"># value_network=False,</span>
-            <span class="n">actor_head_type</span><span class="o">=</span><span class="s1">&#39;reparameterization&#39;</span><span class="p">,</span>
+
+            <span class="c1"># (str type) action_space: Use reparameterization trick for continous action</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;reparameterization&#39;</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool) Whether to use multi gpu</span>
