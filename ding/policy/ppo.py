@@ -233,7 +233,6 @@ class PPOPolicy(Policy):
                         ppo_continuous_batch, self._clip_ratio
                     )
                     # sum discrete and continuous loss
-                    # ppo_loss = ppo_continuous_loss
                     ppo_loss = type(ppo_continuous_loss)(
                         ppo_continuous_loss.policy_loss + ppo_discrete_loss.policy_loss, ppo_continuous_loss.value_loss,
                         ppo_continuous_loss.entropy_loss + ppo_discrete_loss.entropy_loss

@@ -32,6 +32,7 @@ class VAC(nn.Module):
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
         sigma_type: Optional[str] = 'independent',
+        fixed_sigma_value: Optional[int] = 0.3,
         bound_type: Optional[str] = None,
     ) -> None:
         r"""
@@ -125,13 +126,11 @@ class VAC(nn.Module):
                 actor_head_hidden_size,
                 action_shape.action_args_shape,
                 actor_head_layer_num,
-                # sigma_type=sigma_type,  #TODO(pu)
-                sigma_type='fixed',
-                fixed_sigma_value=0.3,
+                sigma_type=sigma_type,
+                fixed_sigma_value=fixed_sigma_value,
                 activation=activation,
                 norm_type=norm_type,
-                # bound_type=bound_type
-                bound_type='tanh'
+                bound_type=bound_type,
             )
             actor_action_type = DiscreteHead(
                 actor_head_hidden_size,
