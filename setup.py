@@ -158,7 +158,7 @@ setup(
             'kubernetes',
         ]
     },
-    entry_points={'console_scripts': ['ding=ding.entry.cli:cli']},
+    entry_points={'console_scripts': ['ding=ding.entry.cli:cli', 'ditask=ding.entry.cli_ditask:cli_ditask']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         "Intended Audience :: Science/Research",

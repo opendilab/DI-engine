@@ -98,6 +98,8 @@ class Task:
         if self.router.is_active:
             self.labels.add("distributed")
             self.labels.add("node.{}".format(self.router.node_id))
+            for label in self.router.labels:
+                self.labels.add(label)
         else:
             self.labels.add("standalone")
 

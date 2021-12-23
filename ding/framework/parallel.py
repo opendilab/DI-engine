@@ -9,7 +9,7 @@ import logging
 import tempfile
 import socket
 from os import path
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union, Set
 from threading import Thread
 from pynng.nng import Bus0, Socket
 from ding.utils.design_helper import SingletonMetaclass
@@ -30,10 +30,18 @@ class Parallel(metaclass=SingletonMetaclass):
         self.attach_to = None
         self.finished = False
         self.node_id = None
+        self.labels = set()
 
-    def run(self, node_id: int, listen_to: str, attach_to: List[str] = None) -> None:
+    def run(
+            self,
+            node_id: int,
+            listen_to: str,
+            attach_to: Optional[List[str]] = None,
+            labels: Optional[Set[str]] = None
+    ) -> None:
         self.node_id = node_id
         self.attach_to = attach_to = attach_to or []
+        self.labels = labels or set()
         self._listener = Thread(
             target=self.listen,
             kwargs={
@@ -52,7 +60,9 @@ class Parallel(metaclass=SingletonMetaclass):
             protocol: str = "ipc",
             address: Optional[str] = None,
             ports: Optional[List[int]] = None,
-            topology: str = "mesh"
+            topology: str = "mesh",
+            labels: Optional[Set[str]] = None,
+            node_ids: Optional[List[int]] = None
     ) -> Callable:
         """
         Overview:
@@ -66,6 +76,9 @@ class Parallel(metaclass=SingletonMetaclass):
             - topology (:obj:`str`): Network topology, includes:
                 `mesh` (default): fully connected between each other;
                 `star`: only connect to the first node;
+                `alone`: do not connect to any node, except the node attached to;
+            - labels (:obj:`Optional[Set[str]]`): Labels.
+            - node_ids (:obj:`Optional[List[int]]`): Candidate node ids.
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
@@ -91,21 +104,29 @@ class Parallel(metaclass=SingletonMetaclass):
 
             atexit.register(cleanup_nodes)
 
-            def topology_network(node_id: int) -> List[str]:
+            def topology_network(i: int) -> List[str]:
                 if topology == "mesh":
-                    return nodes[:node_id] + attach_to
+                    return nodes[:i] + attach_to
                 elif topology == "star":
-                    return nodes[:min(1, node_id)]
+                    return nodes[:min(1, i)] + attach_to
+                elif topology == "alone":
+                    return attach_to
                 else:
                     raise ValueError("Unknown topology: {}".format(topology))
 
             params_group = []
-            for node_id in range(n_parallel_workers):
+            candidate_node_ids = node_ids or range(n_parallel_workers)
+            assert len(candidate_node_ids) == n_parallel_workers, \
+                "The number of workers must be the same as the number of node_ids, \
+now there are {} workers and {} nodes"\
+                    .format(n_parallel_workers, len(candidate_node_ids))
+            for i in range(n_parallel_workers):
                 runner_args = []
                 runner_kwargs = {
-                    "node_id": node_id,
-                    "listen_to": nodes[node_id],
-                    "attach_to": topology_network(node_id) + attach_to
+                    "node_id": candidate_node_ids[i],
+                    "listen_to": nodes[i],
+                    "attach_to": topology_network(i) + attach_to,
+                    "labels": labels
                 }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
                 params_group.append(params)
@@ -151,6 +172,8 @@ class Parallel(metaclass=SingletonMetaclass):
         elif protocol == "tcp":
             address = address or Parallel.get_ip()
             ports = ports or range(50515, 50515 + n_workers)
+            if isinstance(ports, int):
+                ports = range(ports, ports + n_workers)
             assert len(ports) == n_workers, "The number of ports must be the same as the number of workers, \
 now there are {} ports and {} workers".format(len(ports), n_workers)
             nodes = ["tcp://{}:{}".format(address, port) for port in ports]
