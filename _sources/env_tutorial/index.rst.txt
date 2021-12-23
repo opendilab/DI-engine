@@ -8,3 +8,5 @@ RL Environments Tutorial
    atari
    overcooked
    bsuite
+   slime_volleyball
+   
