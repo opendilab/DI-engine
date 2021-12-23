@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_onpolicy
 
 gym_hybrid_hppo_config = dict(
-    exp_name='gym_hybrid_hppo_actsacle_fsv0.3_ew0.05_seed0',
+    exp_name='gym_hybrid_hppo_actsacle_fsv0.3_ew0.03_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -10,7 +10,7 @@ gym_hybrid_hppo_config = dict(
         act_scale=True,
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
-        stop_value=1.8,  # 1.85 for hybrid_hppo
+        stop_value=1.8,
     ),
     policy=dict(
         cuda=True,
@@ -34,7 +34,7 @@ gym_hybrid_hppo_config = dict(
             batch_size=320,
             learning_rate=3e-4,
             value_weight=0.5,
-            entropy_weight=0.05,  # TODO(pu)
+            entropy_weight=0.03,  # TODO(pu)
             clip_ratio=0.2,
             adv_norm=True,
             value_norm=True,
