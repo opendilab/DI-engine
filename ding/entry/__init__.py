@@ -1,4 +1,5 @@
 from .cli import cli
+from .cli_ditask import cli_ditask
 from .serial_entry import serial_pipeline
 from .serial_entry_onpolicy import serial_pipeline_onpolicy
 from .serial_entry_offline import serial_pipeline_offline
@@ -14,6 +15,6 @@ from .serial_entry_trex import serial_pipeline_reward_model_trex
 from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
 from .parallel_entry import parallel_pipeline
 from .application_entry import eval, collect_demo_data, collect_episodic_demo_data, \
-      epsiode_to_transitions
+      episode_to_transitions
 from .application_entry_trex_collect_data import trex_collecting_data, collect_episodic_demo_data_for_trex
 from .serial_entry_guided_cost import serial_pipeline_guided_cost

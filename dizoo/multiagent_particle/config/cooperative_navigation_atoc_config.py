@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 n_agent = 5
 collector_env_num = 4
-evaluator_env_num = 5
+evaluator_env_num = 2
 communication = True
 cooperative_navigation_atoc_config = dict(
     env=dict(
@@ -13,7 +13,7 @@ cooperative_navigation_atoc_config = dict(
         evaluator_env_num=evaluator_env_num,
         agent_obs_only=True,
         discrete_action=False,
-        n_evaluator_episode=5,
+        n_evaluator_episode=10,
         stop_value=0,
     ),
     policy=dict(

@@ -25,6 +25,9 @@ cartpole_ppo_offpolicy_config = dict(
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
+            learner=dict(
+                hook=dict(save_ckpt_after_iter=1000)
+            ),
         ),
         collect=dict(
             n_sample=128,
@@ -32,6 +35,7 @@ cartpole_ppo_offpolicy_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
+        eval=dict(evaluator=dict(eval_freq=40, )),
         other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )

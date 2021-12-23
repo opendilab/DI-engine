@@ -238,6 +238,8 @@ class BaseLearner(object):
             self.call_hook('after_iter')
             self._last_iter.add(1)
 
+        return log_vars
+
     @auto_checkpoint
     def start(self) -> None:
         """

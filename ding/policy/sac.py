@@ -19,7 +19,7 @@ from .common_utils import default_preprocess_learn
 class SACDiscretePolicy(Policy):
     r"""
        Overview:
-           Policy class of Discrete SAC algorithm.
+           Policy class of discrete SAC algorithm.
 
        Config:
            == ====================  ========    =============  ================================= =======================
@@ -407,7 +407,10 @@ class SACDiscretePolicy(Policy):
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._multi_agent = self._cfg.multi_agent
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
+        # Empirically, we found that eps_greedy_multinomial_sample works better than multinomial_sample
+        # and eps_greedy_sample, and we don't divide logit by alpha,
+        # for the details please refer to ding/model/wrapper/model_wrappers
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_multinomial_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -516,7 +519,7 @@ class SACDiscretePolicy(Policy):
 class SACPolicy(Policy):
     r"""
        Overview:
-           Policy class of SAC algorithm.
+           Policy class of continuous SAC algorithm.
 
            https://arxiv.org/pdf/1801.01290.pdf
 
@@ -583,6 +586,7 @@ class SACPolicy(Policy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 10000 in SAC.
         random_collect_size=10000,
+        multi_agent=False,
         model=dict(
             # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
@@ -1044,7 +1048,10 @@ class SACPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
+        if self._cfg.multi_agent:
+            return 'maqac_continuous', ['ding.model.template.maqac']
+        else:
+            return 'qac', ['ding.model.template.qac']
 
     def _monitor_vars_learn(self) -> List[str]:
         r"""

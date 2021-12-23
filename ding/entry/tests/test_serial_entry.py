@@ -48,7 +48,6 @@ from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_con
 
 
 @pytest.mark.unittest
-@pytest.mark.dqn
 def test_dqn():
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -154,6 +153,7 @@ def test_qrdqn():
 def test_ppo():
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'ppo_offpolicy_unittest'
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -252,6 +252,8 @@ def test_collaq():
     config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -265,6 +267,8 @@ def test_coma():
     config = [deepcopy(cooperative_navigation_coma_config), deepcopy(cooperative_navigation_coma_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -278,6 +282,8 @@ def test_qmix():
     config = [deepcopy(cooperative_navigation_qmix_config), deepcopy(cooperative_navigation_qmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -291,6 +297,8 @@ def test_wqmix():
     config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -304,6 +312,8 @@ def test_qtran():
     config = [deepcopy(cooperative_navigation_qtran_config), deepcopy(cooperative_navigation_qtran_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -316,6 +326,8 @@ def test_qtran():
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
     config[0].policy.cuda = False
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:

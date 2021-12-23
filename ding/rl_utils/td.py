@@ -267,11 +267,17 @@ def v_1step_td_error(
 ) -> torch.Tensor:
     v, next_v, reward, done, weight = data
     if weight is None:
-        weight = torch.ones_like(reward)
-    if done is not None:
-        target_v = gamma * (1 - done) * next_v + reward
+        weight = torch.ones_like(v)
+    if len(v.shape) == len(reward.shape):
+        if done is not None:
+            target_v = gamma * (1 - done) * next_v + reward
+        else:
+            target_v = gamma * next_v + reward
     else:
-        target_v = gamma * next_v + reward
+        if done is not None:
+            target_v = gamma * (1 - done).unsqueeze(1) * next_v + reward.unsqueeze(1)
+        else:
+            target_v = gamma * next_v + reward.unsqueeze(1)
     td_error_per_sample = criterion(v, target_v.detach())
     return (td_error_per_sample * weight).mean(), td_error_per_sample
 
@@ -663,8 +669,9 @@ def dqfd_nstep_td_error(
                 lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
                 lambda_supervised_loss * JE
             ) * weight
-        ).mean(), lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
-        lambda_supervised_loss * JE
+        ).mean(), lambda_n_step_td * td_error_per_sample.abs() +
+        lambda_one_step_td * td_error_one_step_per_sample.abs() + lambda_supervised_loss * JE.abs(),
+        (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
     )
 
 
@@ -769,8 +776,9 @@ def dqfd_nstep_td_error_with_rescale(
                 lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
                 lambda_supervised_loss * JE
             ) * weight
-        ).mean(), lambda_n_step_td * td_error_per_sample + lambda_one_step_td * td_error_one_step_per_sample +
-        lambda_supervised_loss * JE, (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
+        ).mean(), lambda_n_step_td * td_error_per_sample.abs() +
+        lambda_one_step_td * td_error_one_step_per_sample.abs() + lambda_supervised_loss * JE.abs(),
+        (td_error_per_sample.mean(), td_error_one_step_per_sample.mean(), JE.mean())
     )
 
 
