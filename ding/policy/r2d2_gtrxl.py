@@ -205,6 +205,8 @@ class R2D2GTrXLPolicy(Policy):
             # target_update_freq=100,
             target_update_theta=0.001,
             ignore_done=False,
+            # (bool) whether use value_rescale function for predicted value
+            value_rescale=False,
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -251,6 +253,7 @@ class R2D2GTrXLPolicy(Policy):
         self._nstep = self._cfg.nstep
         self._batch_size = self._cfg.learn.batch_size
         self._seq_len = self._cfg.seq_len
+        self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
 
@@ -383,7 +386,10 @@ class R2D2GTrXLPolicy(Policy):
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
-            l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+            if self._value_rescale:
+                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+            else:
+                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
             loss.append(l)
             td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
@@ -420,7 +426,6 @@ class R2D2GTrXLPolicy(Policy):
         return ret
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        #print(' _reset_learn')
         self._learn_model.reset()
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -475,7 +480,6 @@ class R2D2GTrXLPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        #print('_reset_collect')
         self._collect_model.reset()
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
@@ -551,7 +555,6 @@ class R2D2GTrXLPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        #print('_reset_eval')
         self._eval_model.reset()
 
     def default_model(self) -> Tuple[str, List[str]]:

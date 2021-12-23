@@ -24,12 +24,13 @@ cartpole_r2d2_gtrxl_config = dict(
         discount_factor=0.997,
         nstep=2,
         unroll_len=12,  # trajectory len
-        seq_len=5,  # transformer input sequence length (not used yet)
+        seq_len=12,  # transformer input sequence length (not used yet)
         learn=dict(
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
             target_update_freq=500,
+            value_rescale=False,
         ),
         collect=dict(
             n_sample=32,
