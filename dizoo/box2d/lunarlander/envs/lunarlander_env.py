@@ -1,3 +1,4 @@
+
 from typing import Any, List, Union, Optional
 import time
 import gym
@@ -6,6 +7,7 @@ from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
+from ding.envs.common import affine_transform
 
 
 @ENV_REGISTRY.register('lunarlander')
@@ -14,6 +16,7 @@ class LunarLanderEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init_flag = False
+        self._act_scale = cfg.act_scale
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -49,6 +52,8 @@ class LunarLanderEnv(BaseEnv):
         assert isinstance(action, np.ndarray), type(action)
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
+        if self._act_scale:
+            action = affine_transform(action, min_val=-1, max_val=1)
         obs, rew, done, info = self._env.step(action)
         # self._env.render()
         rew = float(rew)

@@ -92,13 +92,13 @@ def serial_pipeline_td3_vae(
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         for item in new_data:
             item['warm_up'] = True
-        replay_buffer_recent.push(new_data, cur_collector_envstep=0)
+        replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
         ### warm_up ###
         # Learn policy from collected data
         for i in range(cfg.policy.learn.warm_up_update):
             # Learner will train ``update_per_collect`` times in one iteration.
-            train_data = replay_buffer_recent.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
@@ -109,8 +109,8 @@ def serial_pipeline_td3_vae(
             learner.train(train_data, collector.envstep)
 
             if learner.policy.get_attribute('priority'):
-                replay_buffer_recent.update(learner.priority_info)
-        replay_buffer_recent.clear() # TODO(pu)
+                replay_buffer.update(learner.priority_info)
+        # replay_buffer_recent.clear() # TODO(pu)
 
     for iter in range(max_iterations):
         collect_kwargs = commander.step()
@@ -145,6 +145,7 @@ def serial_pipeline_td3_vae(
                     for item in train_data:
                         item['rl_phase'] = True
                         item['vae_phase'] = False
+                        item['warm_up'] = False
                 if train_data is None:
                     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                     logging.warning(
@@ -162,15 +163,15 @@ def serial_pipeline_td3_vae(
             for i in range(cfg.policy.learn.update_per_collect_vae):
                 # print('update_per_collect_vae')
                 # Learner will train ``update_per_collect`` times in one iteration.
-                train_data_history = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-                # train_data_recent = replay_buffer_recent.sample(learner.policy.get_attribute('batch_size'), learner.train_iter) # TODO(pu)
-                # train_data = train_data_history + train_data_recent  # TODO(pu)
-                train_data = train_data_history  # TODO(pu)
+                train_data_history = replay_buffer.sample(int(learner.policy.get_attribute('batch_size')/2), learner.train_iter)
+                train_data_recent = replay_buffer_recent.sample(int(learner.policy.get_attribute('batch_size')/2), learner.train_iter) # TODO(pu)
+                train_data = train_data_history + train_data_recent  # TODO(pu)
 
                 if train_data is not None:
                     for item in train_data:
                         item['rl_phase'] = False
                         item['vae_phase'] = True
+                        item['warm_up'] = False
                 if train_data is None:
                     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                     logging.warning(
@@ -181,7 +182,7 @@ def serial_pipeline_td3_vae(
                 learner.train(train_data, collector.envstep)
                 # if learner.policy.get_attribute('priority'):
                 #     replay_buffer.update(learner.priority_info)
-            # replay_buffer_recent.clear()  # TODO(pu)
+            replay_buffer_recent.clear()  # TODO(pu)
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

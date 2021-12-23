@@ -259,9 +259,7 @@ class TD3VAEPolicy(DDPGPolicy):
             # ====================
             # train vae
             # ====================
-            result = self._vae_model(
-                {'action': data['action'],
-                 'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
+            result = self._vae_model({'action': data['action'], 'obs': data['obs']})
 
             # data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action mu
             # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
@@ -270,13 +268,6 @@ class TD3VAEPolicy(DDPGPolicy):
             result['true_residual'] = data['next_obs'] - data['obs']
 
             vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=1)  # TODO(pu):weight
-            # recons = args[0]
-            # prediction_residual = args[1]
-            # input_action = args[2]
-            # mu = args[3]
-            # log_var = args[4]
-            # true_residual = args[5]
-            # print(vae_loss)
             loss_dict['vae_loss'] = vae_loss['loss'].item()
             loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss'].item()
             loss_dict['kld_loss'] = vae_loss['kld_loss'].item()
@@ -334,7 +325,7 @@ class TD3VAEPolicy(DDPGPolicy):
                 result['true_residual'] = data['next_obs'] - data['obs']
 
                 # latent space constraint (LSC)
-                # data['latent_action'] = torch.tanh(result['z'].detach())  # TODO(pu): update latent_action z, shape (128,6)
+                # data['latent_action'] = torch.tanh(result['z'].clone().detach())  # TODO(pu): update latent_action z, shape (128,6)
                 # self.c_percentage_bound_lower = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.02), :]  # values, indices
                 # self.c_percentage_bound_upper = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.98), :]
 
@@ -383,7 +374,10 @@ class TD3VAEPolicy(DDPGPolicy):
                 # Representation shift correction (RSC)
                 for i in range(result['recons_action'].shape[0]):
                     if F.mse_loss(result['prediction_residual'][i], true_residual[i]).item() > 4 * self._running_mean_std_predict_loss.mean:
-                        data['latent_action'][i] = torch.tanh(result['z'][i].detach())  # TODO(pu): update latent_action z tanh
+                        # data['latent_action'][i] = result['z'][i].detach()  # TODO(pu): update latent_action z
+                        data['latent_action'][i] = torch.tanh(result['z'][i].clone().detach())  # TODO(pu): update latent_action z tanh
+                        # data['latent_action'][i] = torch.clamp_(result['z'][i].detach(),-1,1)  # TODO(pu): update latent_action z tanh
+
                         # data['latent_action'] = result['mu'].detach()  # TODO(pu): update latent_action mu
 
                 if self._reward_batch_norm:
