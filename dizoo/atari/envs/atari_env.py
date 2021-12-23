@@ -162,7 +162,6 @@ class AtariEnv(BaseEnv):
         if not self._init_flag:
             self._env = self._make_env(only_info=False)
             self._init_flag = True
-            print('create env', self._seed, self._dynamic_seed)
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
