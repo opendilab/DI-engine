@@ -108,7 +108,6 @@ def ppo_policy_error(data: namedtuple,
         # only use dual_clip when adv < 0
         policy_loss = -(torch.where(adv < 0, clip2, clip1) * weight).mean()
     else:
-        #policy_loss = (-torch.min(surr1, surr2) * weight).mean()
         policy_loss = (-torch.min(surr1, surr2) * weight).mean()
     with torch.no_grad():
         approx_kl = (logp_old - logp_new).mean().item()

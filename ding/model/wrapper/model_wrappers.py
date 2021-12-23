@@ -419,14 +419,16 @@ class HybridReparamMultinomialSampleWrapper(IModelWrapper):
         # discrete part
         action_type_logit = logit['action_type']
         prob = torch.softmax(action_type_logit, dim=-1)
-        prob = prob / torch.sum(prob, 1, keepdim=True)
+        # prob = prob / torch.sum(prob, 1, keepdim=True)
         pi_action = Categorical(prob)
         action_type = pi_action.sample()
         # continuous part
         mu, sigma = logit['action_args']['mu'], logit['action_args']['sigma']
         dist = Independent(Normal(mu, sigma), 1)
         action_args = dist.sample()
-
+        # action_args = torch.tanh(action_args)  # TODO(pu)
+        torch.clamp_(action_args[0], 0, 1)  # TODO(pu)
+        torch.clamp_(action_args[1], -1, 1)  # TODO(pu)
         action = {'action_type': action_type, 'action_args': action_args}
         output['action'] = action
         return output
@@ -451,6 +453,7 @@ class HybridDeterministicArgmaxSampleWrapper(IModelWrapper):
         # continuous part
         mu = logit['action_args']['mu']
         action_args = mu
+        # action_args = torch.tanh(action_args)  # TODO(pu)
 
         action = {'action_type': action_type, 'action_args': action_args}
         output['action'] = action

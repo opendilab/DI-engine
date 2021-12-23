@@ -105,7 +105,7 @@ class PPOPolicy(Policy):
                 if self._action_space == 'continuous':
                     if hasattr(self._model.actor_head, 'log_sigma_param'):
                         torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
-                elif self._action_space == 'hybrid':
+                elif self._action_space == 'hybrid':  # actor_head[1]: ReparameterizationHead, for action_args
                     if hasattr(self._model.actor_head[1], 'log_sigma_param'):
                         torch.nn.init.constant_(self._model.actor_head[1].log_sigma_param, -0.5)
                         print('init ok')
@@ -233,7 +233,7 @@ class PPOPolicy(Policy):
                         ppo_continuous_batch, self._clip_ratio
                     )
                     # sum discrete and continuous loss
-                    ppo_loss = ppo_continuous_loss
+                    # ppo_loss = ppo_continuous_loss
                     ppo_loss = type(ppo_continuous_loss)(
                         ppo_continuous_loss.policy_loss + ppo_discrete_loss.policy_loss, ppo_continuous_loss.value_loss,
                         ppo_continuous_loss.entropy_loss + ppo_discrete_loss.entropy_loss

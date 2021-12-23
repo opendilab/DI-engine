@@ -125,10 +125,13 @@ class VAC(nn.Module):
                 actor_head_hidden_size,
                 action_shape.action_args_shape,
                 actor_head_layer_num,
-                sigma_type=sigma_type,
+                # sigma_type=sigma_type,  #TODO(pu)
+                sigma_type='fixed',
+                fixed_sigma_value=0.3,
                 activation=activation,
                 norm_type=norm_type,
-                bound_type=bound_type
+                # bound_type=bound_type
+                bound_type='tanh'
             )
             actor_action_type = DiscreteHead(
                 actor_head_hidden_size,
