@@ -99,7 +99,9 @@ class CQLPolicy(SACPolicy):
             # and learning_rate_policy in `cfg.policy.learn`.
             # Default to False.
             # value_network=False,
-            actor_head_type='reparameterization',
+
+            # (str type) action_space: Use reparameterization trick for continous action
+            action_space='reparameterization',
         ),
         learn=dict(
             # (bool) Whether to use multi gpu

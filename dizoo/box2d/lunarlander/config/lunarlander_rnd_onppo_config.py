@@ -1,6 +1,6 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
-collector_env_num=8
+collector_env_num = 8
 lunarlander_ppo_rnd_config = dict(
     env=dict(
         collector_env_num=collector_env_num,
@@ -15,20 +15,19 @@ lunarlander_ppo_rnd_config = dict(
         # batch_size=32,
         # update_per_collect=10,
         batch_size=320,
-        update_per_collect=4,   # TODO(pu):2
+        update_per_collect=4,
     ),
     policy=dict(
         recompute_adv=True,
         cuda=True,
-        continuous=False,
-        on_policy=True,
+        action_space='discrete',
         model=dict(
             obs_shape=8,
             action_shape=4,
+            action_space='discrete',
         ),
         learn=dict(
-            # update_per_collect=4,
-            epoch_per_collect=10,  # TODO(pu)
+            epoch_per_collect=10,
             update_per_collect=1,  # 4
             batch_size=64,
             learning_rate=3e-4,

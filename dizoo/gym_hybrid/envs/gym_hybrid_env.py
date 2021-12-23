@@ -54,8 +54,11 @@ class GymHybridEnv(BaseEnv):
 
     def step(self, action: Dict) -> BaseEnvTimestep:
         if self._act_scale:
-            # acceleration_value
+            # acceleration_value.
             action['action_args'][0] = affine_transform(action['action_args'][0], min_val=0, max_val=1)
+            # rotation_value. Following line can be omitted, because in the affine_transform function,
+            # we have already done the clip(-1,1) operation
+            action['action_args'][1] = affine_transform(action['action_args'][1], min_val=-1, max_val=1)
             action = [action['action_type'], action['action_args']]
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew

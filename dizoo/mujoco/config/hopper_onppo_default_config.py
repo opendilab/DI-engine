@@ -16,12 +16,12 @@ hopper_ppo_default_config = dict(
     policy=dict(
         cuda=True,
         recompute_adv=True,
+        action_space='continuous',
         model=dict(
             obs_shape=11,
             action_shape=3,
-            continuous=True,
+            action_space='continuous',
         ),
-        continuous=True,
         learn=dict(
             epoch_per_collect=10,
             update_per_collect=1,

@@ -20,7 +20,7 @@ class QACDIST(nn.Module):
         self,
         obs_shape: Union[int, SequenceType],
         action_shape: Union[int, SequenceType],
-        actor_head_type: str = "regression",
+        action_space: str = "regression",
         critic_head_type: str = "categorical",
         actor_head_hidden_size: int = 64,
         actor_head_layer_num: int = 1,
@@ -38,7 +38,7 @@ class QACDIST(nn.Module):
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
+            - action_space (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
             - critic_head_type (:obj:`str`): Only ``categorical``.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
@@ -58,9 +58,9 @@ class QACDIST(nn.Module):
         super(QACDIST, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape: int = squeeze(action_shape)
-        self.actor_head_type = actor_head_type
-        assert self.actor_head_type in ['regression', 'reparameterization']
-        if self.actor_head_type == 'regression':
+        self.action_space = action_space
+        assert self.action_space in ['regression', 'reparameterization']
+        if self.action_space == 'regression':
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 RegressionHead(
@@ -72,7 +72,7 @@ class QACDIST(nn.Module):
                     norm_type=norm_type
                 )
             )
-        elif self.actor_head_type == 'reparameterization':
+        elif self.action_space == 'reparameterization':
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 ReparameterizationHead(
@@ -156,7 +156,7 @@ class QACDIST(nn.Module):
         Critic Examples:
             >>> # Categorical mode
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QACDIST(obs_shape=(N, ),action_shape=1,actor_head_type='regression', \
+            >>> model = QACDIST(obs_shape=(N, ),action_shape=1,action_space='regression', \
             ...                 critic_head_type='categorical', n_atoms=51)
             >>> q_value = model(inputs, mode='compute_critic') # q value
             >>> assert q_value['q_value'].shape == torch.Size([4, 1])
@@ -204,9 +204,9 @@ class QACDIST(nn.Module):
             >>> torch.Size([4, 64])
         """
         x = self.actor(inputs)
-        if self.actor_head_type == 'regression':
+        if self.action_space == 'regression':
             return {'action': x['pred']}
-        elif self.actor_head_type == 'reparameterization':
+        elif self.action_space == 'reparameterization':
             return {'logit': [x['mu'], x['sigma']]}
 
     def compute_critic(self, inputs: Dict) -> Dict:
@@ -232,7 +232,7 @@ class QACDIST(nn.Module):
         Examples:
             >>> # Categorical mode
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QACDIST(obs_shape=(N, ),action_shape=1,actor_head_type='regression', \
+            >>> model = QACDIST(obs_shape=(N, ),action_shape=1,action_space='regression', \
             ...                 critic_head_type='categorical', n_atoms=51)
             >>> q_value = model(inputs, mode='compute_critic') # q value
             >>> assert q_value['q_value'].shape == torch.Size([4, 1])

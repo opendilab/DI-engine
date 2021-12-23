@@ -2,10 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_onpolicy
 collector_env_num = 8
 minigrid_ppo_config = dict(
-    # exp_name="minigrid_empty8_onppo",
     exp_name="minigrid_fourrooms_onppo",
-    # exp_name="minigrid_doorkey88_onppo",
-    # exp_name="minigrid_doorkey_onppo",
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -19,11 +16,11 @@ minigrid_ppo_config = dict(
     policy=dict(
         cuda=True,
         recompute_adv=True,
-        continuous=False,
-        on_policy=True,
+        action_space='discrete',
         model=dict(
             obs_shape=2739,
             action_shape=7,
+            action_space='discrete',
             encoder_hidden_size_list=[256, 128, 64, 64],
         ),
         learn=dict(

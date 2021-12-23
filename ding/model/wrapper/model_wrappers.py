@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
+from torch.distributions import Categorical, Independent, Normal
 
 
 class IModelWrapper(ABC):
@@ -408,6 +409,91 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
         return output
 
 
+class HybridReparamMultinomialSampleWrapper(IModelWrapper):
+    """
+    Overview:
+        Reparameterization sampler coupled with multinomial sample used in collector_model
+        to help balance exploration and exploitation.
+        In hybrid action space, i.e.{'action_type': discrete, 'action_args', continuous}
+    Interfaces:
+        forward
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+
+        logit = output['logit']  # logit: {'action_type': action_type_logit, 'action_args': action_args_logit}
+        # discrete part
+        action_type_logit = logit['action_type']
+        prob = torch.softmax(action_type_logit, dim=-1)
+        pi_action = Categorical(prob)
+        action_type = pi_action.sample()
+        # continuous part
+        mu, sigma = logit['action_args']['mu'], logit['action_args']['sigma']
+        dist = Independent(Normal(mu, sigma), 1)
+        action_args = dist.sample()
+        action = {'action_type': action_type, 'action_args': action_args}
+        output['action'] = action
+        return output
+
+
+class HybridDeterministicArgmaxSampleWrapper(IModelWrapper):
+    """
+    Overview:
+        Deterministic sampler coupled with argmax sample used in eval_model.
+        In hybrid action space, i.e.{'action_type': discrete, 'action_args', continuous}
+    Interfaces:
+        forward
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        logit = output['logit']  # logit: {'action_type': action_type_logit, 'action_args': action_args_logit}
+        # discrete part
+        action_type_logit = logit['action_type']
+        action_type = action_type_logit.argmax(dim=-1)
+        # continuous part
+        mu = logit['action_args']['mu']
+        action_args = mu
+        action = {'action_type': action_type, 'action_args': action_args}
+        output['action'] = action
+        return output
+
+
+class DeterministicSample(IModelWrapper):
+    """
+    Overview:
+        Deterministic sampler (just use mu directly) used in eval_model.
+    Interfaces:
+        forward
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        output['action'] = output['logit']['mu']
+        return output
+
+
+class ReparamSample(IModelWrapper):
+    """
+    Overview:
+        Reparameterization gaussian sampler used in collector_model.
+    Interfaces:
+        forward
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        mu, sigma = output['logit']['mu'], output['logit']['sigma']
+        dist = Independent(Normal(mu, sigma), 1)
+        output['action'] = dist.sample()
+        return output
+
+
 class EpsGreedySampleNGUWrapper(IModelWrapper):
     r"""
     Overview:
@@ -592,8 +678,12 @@ wrapper_name_map = {
     'eps_greedy_sample': EpsGreedySampleWrapper,
     'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
     'eps_greedy_multinomial_sample': EpsGreedyMultinomialSampleWrapper,
+    'deterministic_sample': DeterministicSample,
+    'reparam_sample': ReparamSample,
     'hybrid_eps_greedy_sample': HybridEpsGreedySampleWrapper,
     'hybrid_eps_greedy_multinomial_sample': HybridEpsGreedyMultinomialSampleWrapper,
+    'hybrid_reparam_multinomial_sample': HybridReparamMultinomialSampleWrapper,
+    'hybrid_deterministic_argmax_sample': HybridDeterministicArgmaxSampleWrapper,
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
     # model wrapper
@@ -607,6 +697,8 @@ def model_wrap(model, wrapper_name: str = None, **kwargs):
         if not isinstance(model, IModelWrapper):
             model = wrapper_name_map['base'](model)
         model = wrapper_name_map[wrapper_name](model, **kwargs)
+    else:
+        raise TypeError("not support model_wrapper type: {}".format(wrapper_name))
     return model
 
 
