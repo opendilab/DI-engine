@@ -118,7 +118,7 @@ class Task:
         self.step_wrappers.append(fn)
         return self
 
-    def run(self, max_step: int = 1e10) -> None:
+    def run(self, max_step: int = int(1e10)) -> None:
         """
         Overview:
             Execute the iterations, when reach the max_step or task.finish is true,
