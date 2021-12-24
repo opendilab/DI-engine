@@ -3,8 +3,6 @@ import sys
 from collections import namedtuple
 from typing import List, Dict, Any, Tuple, Union, Optional
 
-import torch
-
 from ding.model import model_wrap
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
@@ -108,7 +106,6 @@ class GTrXLDiscreteHead(nn.Module):
         # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim
         out['memory'] = o1['memory'].permute((2, 0, 1, 3)).contiguous()
         out['transformer_out'] = o1['logit']  # output of gtrxl
-
         return out
 
     def reset(self, state: Optional[torch.Tensor] = None):
@@ -208,6 +205,7 @@ class R2D2GTrXLPolicy(Policy):
             ignore_done=False,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=False,
+            init_memory='zero'  # 'zero' or 'old', how to initialize the memory
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -256,6 +254,8 @@ class R2D2GTrXLPolicy(Policy):
         self._batch_size = self._cfg.learn.batch_size
         self._seq_len = self._cfg.seq_len
         self._value_rescale = self._cfg.learn.value_rescale
+        self._init_memory = self._cfg.learn.init_memory
+        assert self._init_memory in ['zero', 'old']
 
         self._target_model = copy.deepcopy(self._model)
 
@@ -285,7 +285,7 @@ class R2D2GTrXLPolicy(Policy):
                 ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
             - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
-        if 'prev_memory' in data[0].keys():
+        if self._init_memory == 'old' and 'prev_memory' in data[0].keys():
             # retrieve the memory corresponding to the first element in each trajectory and remove it from 'data'
             prev_mem = [b['prev_memory'][0] for b in data]
             prev_mem_target = [b['prev_memory'][self._nstep] for b in data]
@@ -359,9 +359,14 @@ class R2D2GTrXLPolicy(Policy):
         data = self._data_preprocess_learn(data)  # shape (seq_len, bs, obs_dim)
         self._learn_model.train()
         self._target_model.train()
-        # use the previous hidden state memory
-        self._learn_model.core.reset(state=data['prev_memory_batch'])
-        self._target_model.core.reset(state=data['prev_memory_target_batch'])
+        if self._init_memory == 'old':
+            # use the previous hidden state memory
+            self._learn_model.core.reset(state=data['prev_memory_batch'])
+            self._target_model.core.reset(state=data['prev_memory_target_batch'])
+        elif self._init_memory == 'zero':
+            # use the zero-initialized state memory
+            self._learn_model.core.reset()
+            self._target_model.core.reset()
 
         inputs = data['main_obs']
         out = self._learn_model.forward(inputs)  # shape (seq_len, bs, act_dim)
@@ -370,7 +375,10 @@ class R2D2GTrXLPolicy(Policy):
         with torch.no_grad():
             out = self._target_model.forward(next_inputs)
             target_q_value = [o['logit'] for o in out]
-            self._learn_model.core.reset(state=data['prev_memory_target_batch'])
+            if self._init_memory == 'old':
+                self._learn_model.core.reset(state=data['prev_memory_target_batch'])
+            elif self._init_memory == 'zero':
+                self._learn_model.core.reset()
             out = self._learn_model.forward(next_inputs)  # argmax_action double_dqn
             target_q_action = [o['action'] for o in out]
         q_value = torch.cat(q_value, dim=0)
