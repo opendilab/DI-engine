@@ -77,7 +77,7 @@ class EnsembleTransition(nn.Module):
 
         self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
-    def forward(self, x: torch.Tensor, ret_log_var=False) -> tuple:
+    def forward(self, x: torch.Tensor, ret_log_var=False) -> tuple:  # x means torch.cat(state, action)
         nn1_output = self.relu(self.nn1(x))
         nn2_output = self.relu(self.nn2(nn1_output))
         nn3_output = self.relu(self.nn3(nn2_output))
