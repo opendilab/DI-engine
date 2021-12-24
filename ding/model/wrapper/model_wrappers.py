@@ -239,8 +239,9 @@ class TransformerSegmentWrapper(IModelWrapper):
             diff = self.seq_len - last.shape[0]
             sequences[-1] = F.pad(input=last, pad=(0, 0, 0, 0, 0, diff), mode='constant', value=0)
         outputs = []
-        for seq in sequences:
-            outputs.append(self._model.forward(seq, **kwargs))
+        for i, seq in enumerate(sequences):
+            out = self._model.forward(seq, **kwargs)
+            outputs.append(out)
         return outputs
 
 

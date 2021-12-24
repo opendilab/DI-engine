@@ -189,9 +189,10 @@ class R2D2GTrXLPolicy(Policy):
         discount_factor=0.997,
         # (int) N-step reward for target q_value estimation
         nstep=5,
+        burnin_step=1,  # how many segments to use as burnin
         # (int) trajectory length
-        unroll_len=20,
-        seq_len=10,
+        unroll_len=15,
+        seq_len=5,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -251,6 +252,7 @@ class R2D2GTrXLPolicy(Policy):
         self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
+        self._burnin_step = self._cfg.burnin_step
         self._batch_size = self._cfg.learn.batch_size
         self._seq_len = self._cfg.seq_len
         self._value_rescale = self._cfg.learn.value_rescale
@@ -368,6 +370,7 @@ class R2D2GTrXLPolicy(Policy):
         with torch.no_grad():
             out = self._target_model.forward(next_inputs)
             target_q_value = [o['logit'] for o in out]
+            self._learn_model.core.reset(state=data['prev_memory_target_batch'])
             out = self._learn_model.forward(next_inputs)  # argmax_action double_dqn
             target_q_action = [o['action'] for o in out]
         q_value = torch.cat(q_value, dim=0)
@@ -380,7 +383,7 @@ class R2D2GTrXLPolicy(Policy):
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        for t in range(self._unroll_len - self._nstep):
+        for t in range(self._burnin_step * self._seq_len, self._unroll_len - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
             # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
