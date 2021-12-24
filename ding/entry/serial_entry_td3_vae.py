@@ -110,7 +110,7 @@ def serial_pipeline_td3_vae(
 
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        # replay_buffer_recent.clear() # TODO(pu)
+        replay_buffer.clear() # TODO(pu)
 
     for iter in range(max_iterations):
         collect_kwargs = commander.step()

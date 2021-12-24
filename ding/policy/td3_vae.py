@@ -267,7 +267,9 @@ class TD3VAEPolicy(DDPGPolicy):
             result['original_action'] = data['action']
             result['true_residual'] = data['next_obs'] - data['obs']
 
-            vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=1)  # TODO(pu):weight
+            vae_loss = self._vae_model.loss_function(result, kld_weight=0.01, predict_weight=0.01)  # TODO(pu):weight
+            # vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
+
             loss_dict['vae_loss'] = vae_loss['loss'].item()
             loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss'].item()
             loss_dict['kld_loss'] = vae_loss['kld_loss'].item()
@@ -325,11 +327,14 @@ class TD3VAEPolicy(DDPGPolicy):
                 result['true_residual'] = data['next_obs'] - data['obs']
 
                 # latent space constraint (LSC)
-                # data['latent_action'] = torch.tanh(result['z'].clone().detach())  # TODO(pu): update latent_action z, shape (128,6)
-                # self.c_percentage_bound_lower = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.02), :]  # values, indices
-                # self.c_percentage_bound_upper = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.98), :]
+                data['latent_action'] = torch.tanh(result['z'].clone().detach())  # TODO(pu): update latent_action z, shape (128,6)
+                # data['latent_action'] = result['z'].clone().detach()  # TODO(pu): update latent_action z, shape (128,6)
+                self.c_percentage_bound_lower = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.02), :]  # values, indices
+                self.c_percentage_bound_upper = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.98), :]
 
-                vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=1)  # TODO(pu):weight
+                vae_loss = self._vae_model.loss_function(result, kld_weight=0.01, predict_weight=0.01)  # TODO(pu):weight
+                # vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
+
 
                 loss_dict['vae_loss'] = vae_loss['loss']
                 loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss']
@@ -377,8 +382,6 @@ class TD3VAEPolicy(DDPGPolicy):
                         # data['latent_action'][i] = result['z'][i].detach()  # TODO(pu): update latent_action z
                         data['latent_action'][i] = torch.tanh(result['z'][i].clone().detach())  # TODO(pu): update latent_action z tanh
                         # data['latent_action'][i] = torch.clamp_(result['z'][i].detach(),-1,1)  # TODO(pu): update latent_action z tanh
-
-                        # data['latent_action'] = result['mu'].detach()  # TODO(pu): update latent_action mu
 
                 if self._reward_batch_norm:
                     reward = (reward - reward.mean()) / (reward.std() + 1e-8)
@@ -521,9 +524,9 @@ class TD3VAEPolicy(DDPGPolicy):
             output['latent_action'] = output['action']
 
             # latent space constraint (LSC)
-            # for i in range(output['action'].shape[-1]):
-            #     output['action'][:, i].clamp_(self.c_percentage_bound_lower[i].item(),
-            #                                       self.c_percentage_bound_upper[i].item())
+            for i in range(output['action'].shape[-1]):
+                output['action'][:, i].clamp_(self.c_percentage_bound_lower[i].item(),
+                                                  self.c_percentage_bound_upper[i].item())
 
             # TODO(pu): decode into original hybrid actions, here data is obs
             # this is very important to generate self.obs_encoding using in decode phase
@@ -623,9 +626,9 @@ class TD3VAEPolicy(DDPGPolicy):
             output['latent_action'] = output['action']
 
             # latent space constraint (LSC)
-            # for i in range(output['action'].shape[-1]):
-            #     output['action'][:, i].clamp_(self.c_percentage_bound_lower[i].item(),
-            #                                   self.c_percentage_bound_upper[i].item())
+            for i in range(output['action'].shape[-1]):
+                output['action'][:, i].clamp_(self.c_percentage_bound_lower[i].item(),
+                                              self.c_percentage_bound_upper[i].item())
 
             # TODO(pu): decode into original hybrid actions, here data is obs
             # this is very important to generate self.obs_encoding using in decode phase

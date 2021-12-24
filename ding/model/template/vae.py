@@ -65,44 +65,22 @@ class VanillaVAE(BaseVAE):
             nn.Linear(self.obs_dim, hidden_dims[0]),
             nn.ReLU())
 
-        self.encoder =  nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
-        self.mu_head= nn.Linear(hidden_dims[-1], latent_dim)
+        self.encoder = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
+        self.mu_head = nn.Linear(hidden_dims[-1], latent_dim)
         self.var_head = nn.Linear(hidden_dims[-1], latent_dim)
 
         # Build Decoder
-        # for i in range(len(hidden_dims) - 1):
-        #     modules.append(
-        #         nn.Sequential(
-        #             nn.ConvTranspose2d(hidden_dims[i],
-        #                                hidden_dims[i + 1],
-        #                                kernel_size=3,
-        #                                stride=2,
-        #                                padding=1,
-        #                                output_padding=1),
-        #             nn.BatchNorm2d(hidden_dims[i + 1]),
-        #             nn.LeakyReLU())
-        #     )
-        self.decoder = nn.Sequential(nn.Linear(latent_dim, hidden_dims[0]), nn.ReLU())
-        # self.reconstruction_layer = nn.Sequential(nn.Linear(hidden_dims[-1], self.action_dim), nn.Tanh())
-        self.reconstruction_layer_1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]),  nn.ReLU())
-        # self.reconstruction_layer_2 = nn.Linear(hidden_dims[0], self.action_dim)
-        self.reconstruction_layer_2 = nn.Sequential(nn.Linear(hidden_dims[0], self.action_dim), nn.Tanh())
+        self.condition_obs = nn.Sequential(nn.Linear(self.obs_dim, hidden_dims[0]), nn.ReLU())
+        self.decoder_action = nn.Sequential(nn.Linear(latent_dim, hidden_dims[0]), nn.ReLU())
+        self.decoder_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
+        # self.reconstruction_layer_1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]),  nn.ReLU())
+        # self.reconstruction_layer_2 = nn.Sequential(nn.Linear(hidden_dims[0], self.action_dim), nn.Tanh())
+        self.reconstruction_layer = nn.Sequential(nn.Linear(hidden_dims[-1], self.action_dim), nn.Tanh())  # TODO(pu): tanh
+        # self.reconstruction_layer = nn.Linear(hidden_dims[0], self.action_dim)
 
         # residual prediction
         self.prediction_head_1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
         self.prediction_head_2 = nn.Linear(hidden_dims[0], self.obs_dim)
-        # self.final_layer = nn.Sequential(
-        #     nn.ConvTranspose2d(hidden_dims[-1],
-        #                        hidden_dims[-1],
-        #                        kernel_size=3,
-        #                        stride=2,
-        #                        padding=1,
-        #                        output_padding=1),
-        #     nn.BatchNorm2d(hidden_dims[-1]),
-        #     nn.LeakyReLU(),
-        #     nn.Conv2d(hidden_dims[-1], out_channels=3,
-        #               kernel_size=3, padding=1),
-        #     nn.Tanh())
 
         self.obs_encoding = None
 
@@ -115,9 +93,13 @@ class VanillaVAE(BaseVAE):
         """
         action_encoding = self.action_head(input['action'])
         obs_encoding = self.obs_head(input['obs'])
+        # obs_encoding = self.condition_obs(input['obs'])  #  TODO(pu)
+
         self.obs_encoding = obs_encoding
         # input = torch.cat([obs_encoding, action_encoding], dim=-1)
-        input = obs_encoding + action_encoding  # important, add not cat
+        # input = obs_encoding + action_encoding  # dot product or add?
+        input = obs_encoding * action_encoding  # TODO(pu)
+
         result = self.encoder(input)
         result = torch.flatten(result, start_dim=1)
 
@@ -135,17 +117,20 @@ class VanillaVAE(BaseVAE):
         :param z: (Tensor) [B x D]
         :return: (Tensor) [B x C x H x W]
         """
-        # for compatiability collect and eval in fist iteration
-        if self.obs_encoding is None or z.shape[:-1] != self.obs_encoding.shape[:-1]:
-            self.obs_encoding = torch.zeros(list(z.shape[:-1]) + [self.hidden_dims[1]])
-
+        # # for compatiability collect and eval in fist iteration
+        # if self.obs_encoding is None or z.shape[:-1] != self.obs_encoding.shape[:-1]:
+        #     self.obs_encoding = torch.zeros(list(z.shape[:-1]) + [self.hidden_dims[1]])
         # input = torch.cat([self.obs_encoding, torch.tanh(z)], dim=-1)
-        # action_decoding = self.decoder(z)
-        action_decoding = self.decoder(torch.tanh(z))  # TODO(pu): here z is not bounded
-        action_obs_decoding = action_decoding + self.obs_encoding
-        reconstruction_action_tmp = self.reconstruction_layer_1(action_obs_decoding)
-        reconstruction_action = self.reconstruction_layer_2(reconstruction_action_tmp)
-        predition_residual_tmp = self.prediction_head_1(action_obs_decoding)
+
+        # action_decoding = self.decoder_action(z)
+        action_decoding = self.decoder_action(torch.tanh(z))  # TODO(pu): tanh, here z is not bounded
+        # action_obs_decoding = action_decoding + self.obs_encoding
+        action_obs_decoding = action_decoding * self.obs_encoding  # TODO(pu)
+        # reconstruction_action_tmp = self.reconstruction_layer_1(action_obs_decoding)
+        action_obs_decoding_tmp = self.decoder_common(action_obs_decoding)
+
+        reconstruction_action = self.reconstruction_layer(action_obs_decoding_tmp)
+        predition_residual_tmp = self.prediction_head_1(action_obs_decoding_tmp)
         predition_residual = self.prediction_head_2(predition_residual_tmp)
 
         return [reconstruction_action, predition_residual]
@@ -157,13 +142,15 @@ class VanillaVAE(BaseVAE):
         :param z: (Tensor) [B x D]
         :return: (Tensor) [B x C x H x W]
         """
-        self.obs_encoding = self.obs_head(obs)
+        self.obs_encoding = self.obs_head(obs)  # TODO(pu): self.condition_obs
         # TODO(pu): here z is already bounded, z is produced by td3 policy, it has tanh
-        action_decoding = self.decoder(z)
-        action_obs_decoding = action_decoding + self.obs_encoding
-        reconstruction_action_tmp = self.reconstruction_layer_1(action_obs_decoding)
-        reconstruction_action = self.reconstruction_layer_2(reconstruction_action_tmp)
-        predition_residual_tmp = self.prediction_head_1(action_obs_decoding)
+        action_decoding = self.decoder_action(z)
+        # action_obs_decoding = action_decoding + self.obs_encoding
+        action_obs_decoding = action_decoding * self.obs_encoding  # TODO(pu)
+        # reconstruction_action_tmp = self.reconstruction_layer_1(action_obs_decoding)
+        action_obs_decoding_tmp = self.decoder_common(action_obs_decoding)
+        reconstruction_action = self.reconstruction_layer(action_obs_decoding_tmp)
+        predition_residual_tmp = self.prediction_head_1(action_obs_decoding_tmp)
         predition_residual = self.prediction_head_2(predition_residual_tmp)
 
         return [reconstruction_action, predition_residual]
@@ -183,7 +170,8 @@ class VanillaVAE(BaseVAE):
     def forward(self, input: Tensor, **kwargs) -> dict:
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
-        return {'recons_action': self.decode(z)[0], 'prediction_residual': self.decode(z)[1], 'input': input, 'mu': mu, 'log_var': log_var, 'z': z}  # recons_action, prediction_residual
+        return {'recons_action': self.decode(z)[0], 'prediction_residual': self.decode(z)[1], 'input': input, 'mu': mu,
+                'log_var': log_var, 'z': z}  # recons_action, prediction_residual
 
     def loss_function(self,
                       args,
