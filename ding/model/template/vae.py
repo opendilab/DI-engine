@@ -66,6 +66,8 @@ class VanillaVAE(BaseVAE):
         self.decoder_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
         # TODO(pu): tanh
         self.reconstruction_layer = nn.Sequential(nn.Linear(hidden_dims[0], self.action_dim), nn.Tanh())
+        # self.reconstruction_layer = nn.Linear(hidden_dims[0], self.action_dim)
+
 
         # residual prediction
         self.prediction_head_1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
@@ -107,6 +109,7 @@ class VanillaVAE(BaseVAE):
         :return: (Tensor) [B x C x H x W]
         """
         action_decoding = self.decoder_action(torch.tanh(z))  # NOTE: tanh, here z is not bounded
+        # action_decoding = self.decoder_action(z)  # NOTE: tanh, here z is not bounded
         action_obs_decoding = action_decoding * self.obs_encoding
         action_obs_decoding_tmp = self.decoder_common(action_obs_decoding)
 
