@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline
 
 lunarlander_td3_config = dict(
-    exp_name='lunarlander_cont_td3',
+    exp_name='lunarlander_cont_td3_ns256_upcr256_lr3e-4_rbs1e5',
     env=dict(
         env_id='LunarLanderContinuous-v2',
         collector_env_num=8,
@@ -15,7 +15,7 @@ lunarlander_td3_config = dict(
     policy=dict(
         cuda=False,
         priority=False,
-        random_collect_size=800,
+        random_collect_size=0,
         model=dict(
             obs_shape=8,
             action_shape=2,
@@ -23,11 +23,11 @@ lunarlander_td3_config = dict(
             actor_head_type='regression',
         ),
         learn=dict(
-            update_per_collect=2,
+            update_per_collect=256,
             batch_size=128,
-            learning_rate_actor=0.001,
-            learning_rate_critic=0.001,
-            ignore_done=False,  # TODO(pu)
+            learning_rate_actor=3e-4,
+            learning_rate_critic=3e-4,
+            ignore_done=False,
             actor_update_freq=2,
             noise=True,
             noise_sigma=0.1,
@@ -37,12 +37,13 @@ lunarlander_td3_config = dict(
             ),
         ),
         collect=dict(
-            n_sample=48,
+            n_sample=256,
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(replay_buffer_size=20000, ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=int(1e5), ), ),
+
     ),
 )
 lunarlander_td3_config = EasyDict(lunarlander_td3_config)

@@ -261,14 +261,10 @@ class TD3VAEPolicy(DDPGPolicy):
             # ====================
             result = self._vae_model({'action': data['action'], 'obs': data['obs']})
 
-            # data['latent_action'] = result[5].detach()  # TODO(pu): update latent_action mu
-            # data['latent_action'] = result[3].detach()  # TODO(pu): update latent_action mu
-
             result['original_action'] = data['action']
             result['true_residual'] = data['next_obs'] - data['obs']
 
-            vae_loss = self._vae_model.loss_function(result, kld_weight=0.01, predict_weight=0.01)  # TODO(pu):weight
-            # vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
+            vae_loss = self._vae_model.loss_function(result, kld_weight=0.01, predict_weight=0.01)  # TODO(pu): weight
 
             loss_dict['vae_loss'] = vae_loss['loss'].item()
             loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss'].item()
@@ -309,32 +305,24 @@ class TD3VAEPolicy(DDPGPolicy):
                 use_nstep=False
             )
             if data['vae_phase'][0].item() is True:
-                # for i in range(self._cfg.learn.vae_train_times_per_update):
                 if self._cuda:
                     data = to_device(data, self._device)
 
                 # ====================
                 # train vae
                 # ====================
-                result = self._vae_model(
-                    {'action': data['action'],
-                     'obs': data['obs']})  # [self.decode(z)[0], self.decode(z)[1], input, mu, log_var, z]
-
-                # data['latent_action'] = result['z'].detach()  # TODO(pu): update latent_action z
-                # data['latent_action'] = result['mu'].detach()  # TODO(pu): update latent_action mu
+                result = self._vae_model({'action': data['action'], 'obs': data['obs']})
 
                 result['original_action'] = data['action']
                 result['true_residual'] = data['next_obs'] - data['obs']
 
                 # latent space constraint (LSC)
-                data['latent_action'] = torch.tanh(result['z'].clone().detach())  # TODO(pu): update latent_action z, shape (128,6)
-                # data['latent_action'] = result['z'].clone().detach()  # TODO(pu): update latent_action z, shape (128,6)
+                # NOTE: using tanh is important, update latent_action using z, shape (128,6)
+                data['latent_action'] = torch.tanh(result['z'].clone().detach())
                 self.c_percentage_bound_lower = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.02), :]  # values, indices
                 self.c_percentage_bound_upper = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.98), :]
 
-                vae_loss = self._vae_model.loss_function(result, kld_weight=0.01, predict_weight=0.01)  # TODO(pu):weight
-                # vae_loss = self._vae_model.loss_function(result, kld_weight=0.5, predict_weight=10)  # TODO(pu):weight
-
+                vae_loss = self._vae_model.loss_function(result, kld_weight=0.01, predict_weight=0.01)  # TODO(pu): weight
 
                 loss_dict['vae_loss'] = vae_loss['loss']
                 loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss']
@@ -379,9 +367,8 @@ class TD3VAEPolicy(DDPGPolicy):
                 # Representation shift correction (RSC)
                 for i in range(result['recons_action'].shape[0]):
                     if F.mse_loss(result['prediction_residual'][i], true_residual[i]).item() > 4 * self._running_mean_std_predict_loss.mean:
-                        # data['latent_action'][i] = result['z'][i].detach()  # TODO(pu): update latent_action z
-                        data['latent_action'][i] = torch.tanh(result['z'][i].clone().detach())  # TODO(pu): update latent_action z tanh
-                        # data['latent_action'][i] = torch.clamp_(result['z'][i].detach(),-1,1)  # TODO(pu): update latent_action z tanh
+                        # NOTE: using tanh is important, update latent_action using z
+                        data['latent_action'][i] = torch.tanh(result['z'][i].clone().detach())
 
                 if self._reward_batch_norm:
                     reward = (reward - reward.mean()) / (reward.std() + 1e-8)
@@ -396,7 +383,8 @@ class TD3VAEPolicy(DDPGPolicy):
                     q_value_dict['q_value'] = q_value.mean()
                 # target q value.
                 with torch.no_grad():
-                    next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')  # latent action
+                    # NOTE: here  next_actor_data['action'] is latent action
+                    next_actor_data = self._target_model.forward(next_obs, mode='compute_actor')
                     next_actor_data['obs'] = next_obs
                     target_q_value = self._target_model.forward(next_actor_data, mode='compute_critic')['q_value']
                 if self._twin_critic:
@@ -429,9 +417,8 @@ class TD3VAEPolicy(DDPGPolicy):
                 # ===============================
                 # actor updates every ``self._actor_update_freq`` iters
                 if (self._forward_learn_cnt + 1) % self._actor_update_freq == 0:
-
-                    actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')  # latent action
-
+                    # NOTE: actor_data['action] is latent action
+                    actor_data = self._learn_model.forward(data['obs'], mode='compute_actor')
                     actor_data['obs'] = data['obs']
                     if self._twin_critic:
                         actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'][0].mean()
@@ -457,7 +444,6 @@ class TD3VAEPolicy(DDPGPolicy):
                 return {
                     'cur_lr_actor': self._optimizer_actor.defaults['lr'],
                     'cur_lr_critic': self._optimizer_critic.defaults['lr'],
-                    # 'q_value': np.array(q_value).mean(),
                     'action': action_log_value,
                     'priority': td_error_per_sample.abs().tolist(),
                     'td_error': td_error_per_sample.abs().mean(),
@@ -532,11 +518,10 @@ class TD3VAEPolicy(DDPGPolicy):
             # this is very important to generate self.obs_encoding using in decode phase
             output['action'] = self._vae_model.decode_with_obs(output['action'], data)[0]
 
-        # add noise in the original actions
+        # NOTE: add noise in the original actions
         from ding.rl_utils.exploration import GaussianNoise
         action = output['action']
         gaussian_noise = GaussianNoise(mu=0.0, sigma=0.1)
-        # gaussian_noise = GaussianNoise(mu=0.0, sigma=0.5)
         noise = gaussian_noise( output['action'].shape, output['action'].device)
         if self._cfg.learn.noise_range is not None:
             noise = noise.clamp(self._cfg.learn.noise_range['min'], self._cfg.learn.noise_range['max'])
@@ -566,7 +551,6 @@ class TD3VAEPolicy(DDPGPolicy):
         Return:
             - transition (:obj:`Dict[str, Any]`): Dict type transition data.
         """
-        # if hasattr(model_output, 'latent_action'):
         if 'latent_action' in model_output.keys():
             transition = {
                 'obs': obs,

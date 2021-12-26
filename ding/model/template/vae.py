@@ -73,10 +73,7 @@ class VanillaVAE(BaseVAE):
         self.condition_obs = nn.Sequential(nn.Linear(self.obs_dim, hidden_dims[0]), nn.ReLU())
         self.decoder_action = nn.Sequential(nn.Linear(latent_dim, hidden_dims[0]), nn.ReLU())
         self.decoder_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
-        # self.reconstruction_layer_1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]),  nn.ReLU())
-        # self.reconstruction_layer_2 = nn.Sequential(nn.Linear(hidden_dims[0], self.action_dim), nn.Tanh())
         self.reconstruction_layer = nn.Sequential(nn.Linear(hidden_dims[-1], self.action_dim), nn.Tanh())  # TODO(pu): tanh
-        # self.reconstruction_layer = nn.Linear(hidden_dims[0], self.action_dim)
 
         # residual prediction
         self.prediction_head_1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
@@ -93,12 +90,12 @@ class VanillaVAE(BaseVAE):
         """
         action_encoding = self.action_head(input['action'])
         obs_encoding = self.obs_head(input['obs'])
-        # obs_encoding = self.condition_obs(input['obs'])  #  TODO(pu)
+        # obs_encoding = self.condition_obs(input['obs'])  #  TODO(pu): using a different network
 
         self.obs_encoding = obs_encoding
         # input = torch.cat([obs_encoding, action_encoding], dim=-1)
-        # input = obs_encoding + action_encoding  # dot product or add?
-        input = obs_encoding * action_encoding  # TODO(pu)
+        # input = obs_encoding + action_encoding  # TODO(pu): what about add, cat?
+        input = obs_encoding * action_encoding
 
         result = self.encoder(input)
         result = torch.flatten(result, start_dim=1)
@@ -117,16 +114,8 @@ class VanillaVAE(BaseVAE):
         :param z: (Tensor) [B x D]
         :return: (Tensor) [B x C x H x W]
         """
-        # # for compatiability collect and eval in fist iteration
-        # if self.obs_encoding is None or z.shape[:-1] != self.obs_encoding.shape[:-1]:
-        #     self.obs_encoding = torch.zeros(list(z.shape[:-1]) + [self.hidden_dims[1]])
-        # input = torch.cat([self.obs_encoding, torch.tanh(z)], dim=-1)
-
-        # action_decoding = self.decoder_action(z)
-        action_decoding = self.decoder_action(torch.tanh(z))  # TODO(pu): tanh, here z is not bounded
-        # action_obs_decoding = action_decoding + self.obs_encoding
-        action_obs_decoding = action_decoding * self.obs_encoding  # TODO(pu)
-        # reconstruction_action_tmp = self.reconstruction_layer_1(action_obs_decoding)
+        action_decoding = self.decoder_action(torch.tanh(z))  # NOTE: tanh, here z is not bounded
+        action_obs_decoding = action_decoding * self.obs_encoding
         action_obs_decoding_tmp = self.decoder_common(action_obs_decoding)
 
         reconstruction_action = self.reconstruction_layer(action_obs_decoding_tmp)
@@ -142,12 +131,10 @@ class VanillaVAE(BaseVAE):
         :param z: (Tensor) [B x D]
         :return: (Tensor) [B x C x H x W]
         """
-        self.obs_encoding = self.obs_head(obs)  # TODO(pu): self.condition_obs
-        # TODO(pu): here z is already bounded, z is produced by td3 policy, it has tanh
+        self.obs_encoding = self.obs_head(obs)
+        # TODO(pu): here z is already bounded, z is produced by td3 policy, it has been operated by tanh
         action_decoding = self.decoder_action(z)
-        # action_obs_decoding = action_decoding + self.obs_encoding
-        action_obs_decoding = action_decoding * self.obs_encoding  # TODO(pu)
-        # reconstruction_action_tmp = self.reconstruction_layer_1(action_obs_decoding)
+        action_obs_decoding = action_decoding * self.obs_encoding
         action_obs_decoding_tmp = self.decoder_common(action_obs_decoding)
         reconstruction_action = self.reconstruction_layer(action_obs_decoding_tmp)
         predition_residual_tmp = self.prediction_head_1(action_obs_decoding_tmp)
@@ -171,7 +158,7 @@ class VanillaVAE(BaseVAE):
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
         return {'recons_action': self.decode(z)[0], 'prediction_residual': self.decode(z)[1], 'input': input, 'mu': mu,
-                'log_var': log_var, 'z': z}  # recons_action, prediction_residual
+                'log_var': log_var, 'z': z}
 
     def loss_function(self,
                       args,
@@ -194,10 +181,9 @@ class VanillaVAE(BaseVAE):
         predict_weight = kwargs['predict_weight']
 
         recons_loss = F.mse_loss(recons_action, original_action)
-
         kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
-
         predict_loss = F.mse_loss(prediction_residual, true_residual)
+
         loss = recons_loss + kld_weight * kld_loss + predict_weight * predict_loss
         return {'loss': loss, 'reconstruction_loss': recons_loss, 'kld_loss': kld_loss, 'predict_loss': predict_loss}
 
@@ -211,11 +197,8 @@ class VanillaVAE(BaseVAE):
         :param current_device: (Int) Device to run the model
         :return: (Tensor)
         """
-        z = torch.randn(num_samples,
-                        self.latent_dim)
-
+        z = torch.randn(num_samples, self.latent_dim)
         z = z.to(current_device)
-
         samples = self.decode(z)
         return samples
 

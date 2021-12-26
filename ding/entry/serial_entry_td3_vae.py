@@ -94,7 +94,7 @@ def serial_pipeline_td3_vae(
             item['warm_up'] = True
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
-        ### warm_up ###
+        # warm_up
         # Learn policy from collected data
         for i in range(cfg.policy.learn.warm_up_update):
             # Learner will train ``update_per_collect`` times in one iteration.
@@ -110,7 +110,7 @@ def serial_pipeline_td3_vae(
 
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        replay_buffer.clear() # TODO(pu)
+        replay_buffer.clear()  # TODO(pu)
 
     for iter in range(max_iterations):
         collect_kwargs = commander.step()
@@ -134,11 +134,9 @@ def serial_pipeline_td3_vae(
         replay_buffer_recent.push(copy.deepcopy(new_data), cur_collector_envstep=collector.envstep)
 
         #  rl phase
-        # if iter % cfg.policy.learn.rl_vae_update_circle in range(0,20):
         if iter % cfg.policy.learn.rl_vae_update_circle in range(0, cfg.policy.learn.rl_vae_update_circle):
             # Learn policy from collected data
             for i in range(cfg.policy.learn.update_per_collect_rl):
-                # print('update_per_collect_rl')
                 # Learner will train ``update_per_collect`` times in one iteration.
                 train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
                 if train_data is not None:
@@ -158,14 +156,12 @@ def serial_pipeline_td3_vae(
                     replay_buffer.update(learner.priority_info)
 
         #  vae phase
-        # if iter % cfg.policy.learn.rl_vae_update_circle in range(19, 20):
         if iter % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1, cfg.policy.learn.rl_vae_update_circle):
             for i in range(cfg.policy.learn.update_per_collect_vae):
-                # print('update_per_collect_vae')
                 # Learner will train ``update_per_collect`` times in one iteration.
                 train_data_history = replay_buffer.sample(int(learner.policy.get_attribute('batch_size')/2), learner.train_iter)
-                train_data_recent = replay_buffer_recent.sample(int(learner.policy.get_attribute('batch_size')/2), learner.train_iter) # TODO(pu)
-                train_data = train_data_history + train_data_recent  # TODO(pu)
+                train_data_recent = replay_buffer_recent.sample(int(learner.policy.get_attribute('batch_size')/2), learner.train_iter)
+                train_data = train_data_history + train_data_recent  # TODO(pu):
 
                 if train_data is not None:
                     for item in train_data:
