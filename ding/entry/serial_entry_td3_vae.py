@@ -13,6 +13,7 @@ from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
 import copy
 
+
 def serial_pipeline_td3_vae(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
@@ -143,7 +144,6 @@ def serial_pipeline_td3_vae(
                     for item in train_data:
                         item['rl_phase'] = True
                         item['vae_phase'] = False
-                        item['warm_up'] = False
                 if train_data is None:
                     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                     logging.warning(
@@ -156,18 +156,22 @@ def serial_pipeline_td3_vae(
                     replay_buffer.update(learner.priority_info)
 
         #  vae phase
-        if iter % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1, cfg.policy.learn.rl_vae_update_circle):
+        if iter % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1,
+                                                                 cfg.policy.learn.rl_vae_update_circle):
             for i in range(cfg.policy.learn.update_per_collect_vae):
                 # Learner will train ``update_per_collect`` times in one iteration.
-                train_data_history = replay_buffer.sample(int(learner.policy.get_attribute('batch_size')/2), learner.train_iter)
-                train_data_recent = replay_buffer_recent.sample(int(learner.policy.get_attribute('batch_size')/2), learner.train_iter)
+                train_data_history = replay_buffer.sample(
+                    int(learner.policy.get_attribute('batch_size') / 2), learner.train_iter
+                )
+                train_data_recent = replay_buffer_recent.sample(
+                    int(learner.policy.get_attribute('batch_size') / 2), learner.train_iter
+                )
                 train_data = train_data_history + train_data_recent  # TODO(pu):
 
                 if train_data is not None:
                     for item in train_data:
                         item['rl_phase'] = False
                         item['vae_phase'] = True
-                        item['warm_up'] = False
                 if train_data is None:
                     # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                     logging.warning(

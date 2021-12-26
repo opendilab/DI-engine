@@ -38,12 +38,7 @@ class BaseVAE(nn.Module):
 
 class VanillaVAE(BaseVAE):
 
-    def __init__(self,
-                 action_dim: int,
-                 obs_dim: int,
-                 latent_dim: int,
-                 hidden_dims: List = None,
-                 **kwargs) -> None:
+    def __init__(self, action_dim: int, obs_dim: int, latent_dim: int, hidden_dims: List = None, **kwargs) -> None:
         super(VanillaVAE, self).__init__()
 
         self.action_dim = action_dim
@@ -57,23 +52,20 @@ class VanillaVAE(BaseVAE):
 
         # Build Encoder
         # action
-        self.action_head = nn.Sequential(
-            nn.Linear(self.action_dim, hidden_dims[0]),
-            nn.ReLU())
+        self.action_head = nn.Sequential(nn.Linear(self.action_dim, hidden_dims[0]), nn.ReLU())
         # obs
-        self.obs_head = nn.Sequential(
-            nn.Linear(self.obs_dim, hidden_dims[0]),
-            nn.ReLU())
+        self.obs_head = nn.Sequential(nn.Linear(self.obs_dim, hidden_dims[0]), nn.ReLU())
 
         self.encoder = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
-        self.mu_head = nn.Linear(hidden_dims[-1], latent_dim)
-        self.var_head = nn.Linear(hidden_dims[-1], latent_dim)
+        self.mu_head = nn.Linear(hidden_dims[0], latent_dim)
+        self.var_head = nn.Linear(hidden_dims[0], latent_dim)
 
         # Build Decoder
         self.condition_obs = nn.Sequential(nn.Linear(self.obs_dim, hidden_dims[0]), nn.ReLU())
         self.decoder_action = nn.Sequential(nn.Linear(latent_dim, hidden_dims[0]), nn.ReLU())
         self.decoder_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
-        self.reconstruction_layer = nn.Sequential(nn.Linear(hidden_dims[-1], self.action_dim), nn.Tanh())  # TODO(pu): tanh
+        # TODO(pu): tanh
+        self.reconstruction_layer = nn.Sequential(nn.Linear(hidden_dims[0], self.action_dim), nn.Tanh())
 
         # residual prediction
         self.prediction_head_1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
@@ -157,12 +149,16 @@ class VanillaVAE(BaseVAE):
     def forward(self, input: Tensor, **kwargs) -> dict:
         mu, log_var = self.encode(input)
         z = self.reparameterize(mu, log_var)
-        return {'recons_action': self.decode(z)[0], 'prediction_residual': self.decode(z)[1], 'input': input, 'mu': mu,
-                'log_var': log_var, 'z': z}
+        return {
+            'recons_action': self.decode(z)[0],
+            'prediction_residual': self.decode(z)[1],
+            'input': input,
+            'mu': mu,
+            'log_var': log_var,
+            'z': z
+        }
 
-    def loss_function(self,
-                      args,
-                      **kwargs) -> dict:
+    def loss_function(self, args, **kwargs) -> dict:
         """
         Computes the VAE loss function.
         KL(N(\mu, \sigma), N(0, 1)) = \log \frac{1}{\sigma} + \frac{\sigma^2 + \mu^2}{2} - \frac{1}{2}
@@ -187,9 +183,7 @@ class VanillaVAE(BaseVAE):
         loss = recons_loss + kld_weight * kld_loss + predict_weight * predict_loss
         return {'loss': loss, 'reconstruction_loss': recons_loss, 'kld_loss': kld_loss, 'predict_loss': predict_loss}
 
-    def sample(self,
-               num_samples: int,
-               current_device: int, **kwargs) -> Tensor:
+    def sample(self, num_samples: int, current_device: int, **kwargs) -> Tensor:
         """
         Samples from the latent space and return the corresponding
         image space map.

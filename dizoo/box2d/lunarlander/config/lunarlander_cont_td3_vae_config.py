@@ -25,9 +25,9 @@ lunarlander_td3vae_config = dict(
         ),
         learn=dict(
             warm_up_update=int(1e4),
-            rl_vae_update_circle=3,  # train rl 3 iter, vae 1 iter
+            rl_vae_update_circle=1,  # train rl 3 iter, vae 1 iter
             update_per_collect_rl=256,
-            update_per_collect_vae=100,
+            update_per_collect_vae=33,
             batch_size=128,
             learning_rate_actor=3e-4,
             learning_rate_critic=3e-4,
@@ -45,7 +45,7 @@ lunarlander_td3vae_config = dict(
         collect=dict(
             n_sample=256,
             unroll_len=1,
-            noise_sigma=0,   # TODO(pu): add noise in original action
+            noise_sigma=0,   # NOTE: add noise in original action in _forward_collect method of td3_vae policy
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),

@@ -10,7 +10,6 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
-from ding.utils import POLICY_REGISTRY
 from .ddpg import DDPGPolicy
 from ding.model.template.vae import VanillaVAE
 from ding.utils import RunningMeanStd
@@ -220,18 +219,18 @@ class TD3VAEPolicy(DDPGPolicy):
         self._target_model.reset()
 
         self._forward_learn_cnt = 0  # count iterations
-        # action_shape, obs_shape, action_latent_dim, hidden_size_list
-        # self._vae_model = VanillaVAE(self._cfg.original_action_shape, self._cfg.model.obs_shape, self._cfg.model.action_shape, [256, 256, 256])
+        # action_shape, obs_shape, latent_action_dim, hidden_size_list
+        self._vae_model = VanillaVAE(
+            self._cfg.original_action_shape, self._cfg.model.obs_shape, self._cfg.model.action_shape, [256]
+        )
         # self._vae_model = VanillaVAE(2, 8, 6, [256, 256, 256])
-        self._vae_model = VanillaVAE(2, 8, 6, [256, 256, 256])
-        # self._vae_model = VanillaVAE(2, 8, 2, [256, 256, 256])
 
         self._optimizer_vae = Adam(
             self._vae_model.parameters(),
             lr=self._cfg.learn.learning_rate_vae,
         )
         self._running_mean_std_predict_loss = RunningMeanStd(epsilon=1e-4)
-        self.c_percentage_bound_lower = -1*torch.ones([6])
+        self.c_percentage_bound_lower = -1 * torch.ones([6])
         self.c_percentage_bound_upper = torch.ones([6])
 
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
@@ -319,10 +318,16 @@ class TD3VAEPolicy(DDPGPolicy):
                 # latent space constraint (LSC)
                 # NOTE: using tanh is important, update latent_action using z, shape (128,6)
                 data['latent_action'] = torch.tanh(result['z'].clone().detach())
-                self.c_percentage_bound_lower = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.02), :]  # values, indices
-                self.c_percentage_bound_upper = data['latent_action'].sort(dim=0)[0][int(result['recons_action'].shape[0] * 0.98), :]
+                self.c_percentage_bound_lower = data['latent_action'].sort(dim=0)[0][int(
+                    result['recons_action'].shape[0] * 0.02
+                ), :]  # values, indices
+                self.c_percentage_bound_upper = data['latent_action'].sort(
+                    dim=0
+                )[0][int(result['recons_action'].shape[0] * 0.98), :]
 
-                vae_loss = self._vae_model.loss_function(result, kld_weight=0.01, predict_weight=0.01)  # TODO(pu): weight
+                vae_loss = self._vae_model.loss_function(
+                    result, kld_weight=0.01, predict_weight=0.01
+                )  # TODO(pu): weight
 
                 loss_dict['vae_loss'] = vae_loss['loss']
                 loss_dict['reconstruction_loss'] = vae_loss['reconstruction_loss']
@@ -359,14 +364,13 @@ class TD3VAEPolicy(DDPGPolicy):
                 # ====================
                 if self._cuda:
                     data = to_device(data, self._device)
-                result = self._vae_model(
-                    {'action': data['action'],
-                     'obs': data['obs']})
+                result = self._vae_model({'action': data['action'], 'obs': data['obs']})
                 true_residual = data['next_obs'] - data['obs']
 
                 # Representation shift correction (RSC)
                 for i in range(result['recons_action'].shape[0]):
-                    if F.mse_loss(result['prediction_residual'][i], true_residual[i]).item() > 4 * self._running_mean_std_predict_loss.mean:
+                    if F.mse_loss(result['prediction_residual'][i],
+                                  true_residual[i]).item() > 4 * self._running_mean_std_predict_loss.mean:
                         # NOTE: using tanh is important, update latent_action using z
                         data['latent_action'][i] = torch.tanh(result['z'][i].clone().detach())
 
@@ -374,7 +378,12 @@ class TD3VAEPolicy(DDPGPolicy):
                     reward = (reward - reward.mean()) / (reward.std() + 1e-8)
 
                 # current q value
-                q_value = self._learn_model.forward({'obs': data['obs'], 'action': data['latent_action']}, mode='compute_critic')['q_value']
+                q_value = self._learn_model.forward(
+                    {
+                        'obs': data['obs'],
+                        'action': data['latent_action']
+                    }, mode='compute_critic'
+                )['q_value']
                 q_value_dict = {}
                 if self._twin_critic:
                     q_value_dict['q_value'] = q_value[0].mean()
@@ -511,8 +520,9 @@ class TD3VAEPolicy(DDPGPolicy):
 
             # latent space constraint (LSC)
             for i in range(output['action'].shape[-1]):
-                output['action'][:, i].clamp_(self.c_percentage_bound_lower[i].item(),
-                                                  self.c_percentage_bound_upper[i].item())
+                output['action'][:, i].clamp_(
+                    self.c_percentage_bound_lower[i].item(), self.c_percentage_bound_upper[i].item()
+                )
 
             # TODO(pu): decode into original hybrid actions, here data is obs
             # this is very important to generate self.obs_encoding using in decode phase
@@ -522,14 +532,11 @@ class TD3VAEPolicy(DDPGPolicy):
         from ding.rl_utils.exploration import GaussianNoise
         action = output['action']
         gaussian_noise = GaussianNoise(mu=0.0, sigma=0.1)
-        noise = gaussian_noise( output['action'].shape, output['action'].device)
+        noise = gaussian_noise(output['action'].shape, output['action'].device)
         if self._cfg.learn.noise_range is not None:
             noise = noise.clamp(self._cfg.learn.noise_range['min'], self._cfg.learn.noise_range['max'])
         action += noise
-        self.action_range = {
-            'min': -1,
-            'max': 1
-        }
+        self.action_range = {'min': -1, 'max': 1}
         if self.action_range is not None:
             action = action.clamp(self.action_range['min'], self.action_range['max'])
         output['action'] = action
@@ -611,8 +618,9 @@ class TD3VAEPolicy(DDPGPolicy):
 
             # latent space constraint (LSC)
             for i in range(output['action'].shape[-1]):
-                output['action'][:, i].clamp_(self.c_percentage_bound_lower[i].item(),
-                                              self.c_percentage_bound_upper[i].item())
+                output['action'][:, i].clamp_(
+                    self.c_percentage_bound_lower[i].item(), self.c_percentage_bound_upper[i].item()
+                )
 
             # TODO(pu): decode into original hybrid actions, here data is obs
             # this is very important to generate self.obs_encoding using in decode phase
