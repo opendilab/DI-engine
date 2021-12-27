@@ -8,6 +8,7 @@ from types import GeneratorType
 from typing import Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
+from functools import wraps
 
 
 def enable_async(func: Callable) -> Callable:
@@ -20,6 +21,7 @@ def enable_async(func: Callable) -> Callable:
         - runtime_handler (:obj:`Callable`): The wrap function.
     """
 
+    @wraps(func)
     def runtime_handler(task: "Task", *args, **kwargs) -> "Task":
         """
         Overview:
@@ -115,6 +117,13 @@ class Task:
         return self
 
     def use_step_wrapper(self, fn: Callable) -> 'Task':
+        """
+        Overview:
+            Register wrappers to task. A wrapper works like a decorator, but task will apply this \
+            decorator on top of each middleware.
+        Arguments:
+            - fn (:obj:`Callable`): A wrapper is a decorator, so the first argument is a callable function.
+        """
         self.step_wrappers.append(fn)
         return self
 
@@ -227,6 +236,10 @@ class Task:
         self.stop()
 
     def stop(self) -> None:
+        """
+        Overview:
+            Stop and cleanup every thing in the runtime of task.
+        """
         self.emit("exit")
         if self._thread_pool:
             self._thread_pool.shutdown()
@@ -284,7 +297,14 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         t = self._loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
         self._async_stack.append(t)
 
-    def emit(self, event_name, *args, **kwargs):
+    def emit(self, event_name: str, *args, **kwargs):
+        """
+        Overview:
+            Emit a event, call listeners.
+        Arguments:
+            - event_name (:obj:`str`): Event name.
+            - args (:obj:`any`): Rest arguments for listeners.
+        """
         if event_name in self.event_listeners:
             for fn in self.event_listeners[event_name]:
                 fn(*args, **kwargs)
@@ -294,9 +314,23 @@ be thrown after the timeout {}s is reached".format(n_timeout)
                 fn(*args, **kwargs)
 
     def on(self, event: str, fn: Callable) -> None:
+        """
+        Overview:
+            Subscribe to an event, execute this function every time the event is emitted.
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - fn (:obj:`Callable`): The function.
+        """
         self.event_listeners[event].append(fn)
 
     def once(self, event: str, fn: Callable) -> None:
+        """
+        Overview:
+            Subscribe to an event, execute this function only once when the event is emitted.
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - fn (:obj:`Callable`): The function.
+        """
         self.once_listeners[event].append(fn)
 
     @property

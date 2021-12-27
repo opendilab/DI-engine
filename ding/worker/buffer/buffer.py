@@ -2,12 +2,14 @@ from abc import abstractmethod
 from typing import Any, List, Optional, Union, Callable
 import copy
 from dataclasses import dataclass
+from functools import wraps
 
 
 def apply_middleware(func_name: str):
 
     def wrap_func(base_func: Callable):
 
+        @wraps(base_func)
         def handler(buffer, *args, **kwargs):
             """
             Overview:
