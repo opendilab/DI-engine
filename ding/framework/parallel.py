@@ -207,13 +207,33 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
                     break
 
     def register_rpc(self, fn_name: str, fn: Callable) -> None:
+        """
+        Overview:
+            Register an rpc on parallel instance, this function will be executed \
+            when a remote process call this function via network.
+        Arguments:
+            - fn_name (:obj:`str`): Function name.
+            - fn (:obj:`Callable`): Function body.
+        """
         self._rpc[fn_name] = fn
 
     def unregister_rpc(self, fn_name: str) -> None:
+        """
+        Overview:
+            Unregister an rpc function.
+        Arguments:
+            - fn_name (:obj:`str`): Function name.
+        """
         if fn_name in self._rpc:
             del self._rpc[fn_name]
 
     def send_rpc(self, func_name: str, *args, **kwargs) -> None:
+        """
+        Overview:
+            Send an rpc via network to subscribed processes.
+        Arguments:
+            - fn_name (:obj:`str`): Function name.
+        """
         if self.is_active:
             payload = {"f": func_name, "a": args, "k": kwargs}
             return self._sock and self._sock.send(pickle.dumps(payload, protocol=-1))
