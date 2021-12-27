@@ -1,4 +1,4 @@
-Buffer
+Replay Buffer
 =======
 
 .. toctree::

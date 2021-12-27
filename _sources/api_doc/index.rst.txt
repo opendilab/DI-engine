@@ -10,11 +10,13 @@ API Doc
     model/index
     reward_model/index
     league/index
+    framework/index
 
     worker/learner/index
     worker/collector/index
     worker/replay_buffer/index
     worker/coordinator/index
+    worker/buffer/index
 
     rl_utils/index
     torch_utils/index
