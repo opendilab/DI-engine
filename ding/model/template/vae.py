@@ -56,18 +56,17 @@ class VanillaVAE(BaseVAE):
         # obs
         self.obs_head = nn.Sequential(nn.Linear(self.obs_dim, hidden_dims[0]), nn.ReLU())
 
-        self.encoder = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
+        self.encoder_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
         self.mu_head = nn.Linear(hidden_dims[0], latent_dim)
-        self.var_head = nn.Linear(hidden_dims[0], latent_dim)
+        self.logvar_head = nn.Linear(hidden_dims[0], latent_dim)
 
         # Build Decoder
         self.condition_obs = nn.Sequential(nn.Linear(self.obs_dim, hidden_dims[0]), nn.ReLU())
         self.decoder_action = nn.Sequential(nn.Linear(latent_dim, hidden_dims[0]), nn.ReLU())
         self.decoder_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
         # TODO(pu): tanh
-        self.reconstruction_layer = nn.Sequential(nn.Linear(hidden_dims[0], self.action_dim), nn.Tanh())
-        # self.reconstruction_layer = nn.Linear(hidden_dims[0], self.action_dim)
-
+        self.reconstruction_head = nn.Sequential(nn.Linear(hidden_dims[0], self.action_dim), nn.Tanh())
+        # self.reconstruction_head = nn.Linear(hidden_dims[0], self.action_dim)
 
         # residual prediction
         self.prediction_head_1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
@@ -91,13 +90,13 @@ class VanillaVAE(BaseVAE):
         # input = obs_encoding + action_encoding  # TODO(pu): what about add, cat?
         input = obs_encoding * action_encoding
 
-        result = self.encoder(input)
+        result = self.encoder_common(input)
         result = torch.flatten(result, start_dim=1)
 
         # Split the result into mu and var components
         # of the latent Gaussian distribution
         mu = self.mu_head(result)
-        log_var = self.var_head(result)
+        log_var = self.logvar_head(result)
 
         return [mu, log_var]
 
