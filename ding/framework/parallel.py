@@ -236,7 +236,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         """
         if self.is_active:
             payload = {"f": func_name, "a": args, "k": kwargs}
-            return self._sock and self._sock.send(pickle.dumps(payload, protocol=-1))
+            try:
+                payload_str = pickle.dumps(payload, protocol=-1)
+            except AttributeError as e:
+                logging.error("Function {} arguments are not pickable {}".format(func_name, args))
+                raise e
+            return self._sock and self._sock.send(payload_str)
 
     def recv_rpc(self, msg: bytes):
         try:
