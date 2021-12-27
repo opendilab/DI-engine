@@ -317,7 +317,7 @@ class TD3VAEPolicy(DDPGPolicy):
 
                 # latent space constraint (LSC)
                 # NOTE: using tanh is important, update latent_action using z, shape (128,6)
-                data['latent_action'] = torch.tanh(result['z'].clone().detach())
+                data['latent_action'] = torch.tanh(result['z'].clone().detach())  # NOTE: tanh
                 # data['latent_action'] = result['z'].clone().detach()
                 self.c_percentage_bound_lower = data['latent_action'].sort(dim=0)[0][int(
                     result['recons_action'].shape[0] * 0.02
@@ -373,9 +373,11 @@ class TD3VAEPolicy(DDPGPolicy):
                     if F.mse_loss(result['prediction_residual'][i],
                                   true_residual[i]).item() > 4 * self._running_mean_std_predict_loss.mean:
                         # NOTE: using tanh is important, update latent_action using z
-                        data['latent_action'][i] = torch.tanh(result['z'][i].clone().detach())
+                        data['latent_action'][i] = torch.tanh(result['z'][i].clone().detach())  # NOTE: tanh
                         # data['latent_action'][i] = result['z'][i].clone().detach()
 
+                # update all latent action
+                # data['latent_action'] = torch.tanh(result['z'].clone().detach())
 
                 if self._reward_batch_norm:
                     reward = (reward - reward.mean()) / (reward.std() + 1e-8)

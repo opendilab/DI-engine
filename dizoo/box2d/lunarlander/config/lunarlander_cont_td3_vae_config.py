@@ -5,7 +5,7 @@ lunarlander_td3vae_config = dict(
     exp_name='lunarlander_cont_td3_vae_lad6_rcs1e4_wu1e4_ns256_bs128_auf2_targetnoise_collectoriginalnoise_rbs1e5_rsc_lsc_rvuc1_upcr256_upcv10_kw0.01_pw0.01_dot_tanh',
     env=dict(
         env_id='LunarLanderContinuous-v2',
-        collector_env_num=1,
+        collector_env_num=8,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
         act_scale=True,
@@ -28,7 +28,6 @@ lunarlander_td3vae_config = dict(
             rl_vae_update_circle=1,  # train rl 1 iter, vae 1 iter
             update_per_collect_rl=256,
             update_per_collect_vae=10,
-
             batch_size=128,
             learning_rate_actor=3e-4,
             learning_rate_critic=3e-4,
