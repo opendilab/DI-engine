@@ -183,7 +183,7 @@ def main():
     policy = PPOPolicy(cfg.policy, model=model)
     policies['historical'] = policy
 
-    with Task(async_mode=True, n_async_workers=4) as task:
+    with Task(async_mode=True, n_async_workers=4, auto_sync_ctx=False) as task:
         task.use(
             league_dispatching(task, cfg=cfg, tb_logger=tb_logger, league=league, policies=policies),
             filter_labels=["standalone", "league"]

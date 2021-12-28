@@ -63,7 +63,7 @@ class Task:
             once_listeners: Optional[Dict[str, List]] = None,
             attach_callback: Optional[Callable] = None,
             labels: Optional[Set[str]] = None,
-            auto_sync_ctx: bool = False,
+            auto_sync_ctx: bool = True,
             **_
     ) -> None:
         self.middleware = middleware or []
