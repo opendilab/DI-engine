@@ -66,6 +66,7 @@ def league_dispatching(task: Task, cfg, tb_logger, league, policies):
 
         yield
 
+        print("-------> get epsode info", ctx.total_step)
         job_finish_info = {
             'eval_flag': True,
             'launch_player': job['launch_player'],
@@ -105,6 +106,7 @@ def collecting(task: Task, cfg, tb_logger, player_ids):
         train_data, episode_info = collector.collect()  # TODO Do we need train_iter?
         train_data, episode_info = train_data[0], episode_info[0]  # only use launch player data for training
         ctx.episode_info = episode_info
+        print("-------> set epsode info", ctx.total_step)
         for d in train_data:
             d['adv'] = d['reward']
 
@@ -114,7 +116,8 @@ def collecting(task: Task, cfg, tb_logger, player_ids):
             "envstep": collector.envstep,
             "player_ckpt_path": collect_session["player_ckpt_path"]
         }
-        task.emit_remote("set_learn_session", learn_session)  # Shoot and forget
+        # task.emit_remote("set_learn_session", learn_session)  # Shoot and forget
+        task.emit("set_learn_session", learn_session)  # Shoot and forget
 
     return _collect
 
@@ -145,7 +148,8 @@ def learning(task: Task, cfg, tb_logger, player_ids, policies):
         player_info = learner.learn_info
         player_info['player_id'] = learn_session["player_id"]
 
-        task.emit_remote("update_active_player", player_info)  # Broadcast to other middleware
+        # task.emit_remote("update_active_player", player_info)  # Broadcast to other middleware
+        task.emit("update_active_player", player_info)  # Broadcast to other middleware
 
     return _learn
 

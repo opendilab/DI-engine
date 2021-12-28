@@ -145,6 +145,7 @@ class BaseLeague:
         ReturnsKeys:
             - necessary: ``launch_player`` (the active player)
         """
+        print("===== Start get job info")
         if player_id is None:
             player_id = self.active_players_ids[0]
         with self._active_players_lock:
@@ -152,6 +153,7 @@ class BaseLeague:
             player = self.active_players[idx]
             job_info = self._get_job_info(player, eval_flag)
             assert 'launch_player' in job_info.keys() and job_info['launch_player'] == player.player_id
+        print("===== Finish get job info")
         return job_info
 
     @abstractmethod

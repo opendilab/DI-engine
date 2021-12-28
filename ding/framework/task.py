@@ -144,7 +144,11 @@ class Task:
         for i in range(max_step):
             for fn in self.middleware:
                 self.forward(fn)
+            # Sync should be called before backward, otherwise it is possible
+            # that some generators have not been pushed to backward_stack.
+            self.sync()
             self.backward()
+            self.sync()
             if i == max_step - 1:
                 self.ctx.finish = True
             self.renew()
@@ -217,11 +221,6 @@ class Task:
         Overview:
             Renew the context instance, this function should be called after backward in the end of iteration.
         """
-        # Sync should be called before backward, otherwise it is possible
-        # that some generators have not been pushed to backward_stack.
-        self.sync()
-        self.backward()
-        self.sync()
         # Renew context
         old_ctx = self.ctx
         if self.router.is_active and self.auto_sync_ctx:
