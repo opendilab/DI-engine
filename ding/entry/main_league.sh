@@ -36,7 +36,7 @@ ditask --package $BASEDIR \
   --node-ids 2 \
   --topology alone \
   --labels learn \
-  --attach-to tcp://127.0.0.1:51515 &
+  --attach-to tcp://127.0.0.1:50515 &
 
 ditask --package $BASEDIR \
   --main main_league.main \
@@ -47,6 +47,6 @@ ditask --package $BASEDIR \
   --node-ids 5 \
   --topology alone \
   --labels evaluate \
-  --attach-to tcp://127.0.0.1:51515,tcp://127.0.0.1:51517 &
+  --attach-to tcp://127.0.0.1:50515,tcp://127.0.0.1:50517 &
 
 sleep 10000

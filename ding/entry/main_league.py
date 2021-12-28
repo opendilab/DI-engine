@@ -82,8 +82,8 @@ def collecting(task: Task, cfg, tb_logger, player_ids):
     collectors = {}
 
     def _collect(ctx):
-        print("  Collecting on node {}".format(task.router.node_id))
         collect_session = task.wait_for("set_collect_session")[0][0]
+        print("  Collecting on node {}".format(task.router.node_id))
 
         if not collectors:
             for player_id in player_ids:
@@ -114,7 +114,7 @@ def collecting(task: Task, cfg, tb_logger, player_ids):
             "envstep": collector.envstep,
             "player_ckpt_path": collect_session["player_ckpt_path"]
         }
-        task.emit("set_learn_session", learn_session)  # Shoot and forget
+        task.emit_remote("set_learn_session", learn_session)  # Shoot and forget
 
     return _collect
 
@@ -123,8 +123,8 @@ def learning(task: Task, cfg, tb_logger, player_ids, policies):
     learners = {}
 
     def _learn(ctx):
-        print("    Learning on node {}".format(task.router.node_id))
         learn_session = task.wait_for("set_learn_session")[0][0]
+        print("    Learning on node {}".format(task.router.node_id))
         time.sleep(1)
 
         if not learners:
@@ -145,7 +145,7 @@ def learning(task: Task, cfg, tb_logger, player_ids, policies):
         player_info = learner.learn_info
         player_info['player_id'] = learn_session["player_id"]
 
-        task.emit("update_active_player", player_info)  # Broadcast to other middleware
+        task.emit_remote("update_active_player", player_info)  # Broadcast to other middleware
 
     return _learn
 

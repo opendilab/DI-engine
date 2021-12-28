@@ -124,7 +124,7 @@ now there are {} workers and {} nodes"\
                 runner_kwargs = {
                     "node_id": candidate_node_ids[i],
                     "listen_to": nodes[i],
-                    "attach_to": topology_network(i) + attach_to,
+                    "attach_to": topology_network(i),
                     "labels": labels
                 }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
