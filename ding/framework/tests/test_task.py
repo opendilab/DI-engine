@@ -216,3 +216,70 @@ def sync_parallel_ctx_main():
 @pytest.mark.unittest
 def test_sync_parallel_ctx():
     Parallel.runner(n_parallel_workers=2)(sync_parallel_ctx_main)
+
+
+@pytest.mark.unittest
+def test_emit():
+    with Task() as task:
+        greets = []
+        task.on("Greeting", lambda msg: greets.append(msg))
+
+        def step1(ctx):
+            task.emit("Greeting", "Hi")
+
+        task.use(step1)
+        task.run(max_step=10)
+    assert len(greets) == 10
+
+
+def emit_remote_main():
+    with Task() as task:
+        time.sleep(0.3)  # Wait for bound
+        greets = []
+        if task.router.node_id == 0:
+            task.on("Greeting", lambda msg: greets.append(msg))
+        else:
+            for _ in range(10):
+                task.emit_remote("Greeting", "Hi")
+        time.sleep(0.7)
+        if task.router.node_id == 0:
+            assert len(greets) > 5
+        else:
+            assert len(greets) == 0
+
+
+@pytest.mark.unittest
+def test_emit_remote():
+    Parallel.runner(n_parallel_workers=2)(emit_remote_main)
+
+
+@pytest.mark.unittest
+def test_wait_for():
+    # Wait for will only work in async or parallel mode
+    with Task(async_mode=True, n_async_workers=2) as task:
+        greets = []
+
+        def step1(_):
+            hi = task.wait_for("Greeting")[0][0]
+            if hi:
+                greets.append(hi)
+
+        def step2(_):
+            task.emit("Greeting", "Hi")
+
+        task.use(step1)
+        task.use(step2)
+        task.run(max_step=10)
+
+    assert len(greets) == 10
+    assert all(map(lambda hi: hi == "Hi", greets))
+
+    # Test timeout exception
+    with Task(async_mode=True, n_async_workers=2) as task:
+
+        def step1(_):
+            task.wait_for("Greeting", timeout=0.3, ignore_timeout_exception=False)
+
+        task.use(step1)
+        with pytest.raises(TimeoutError):
+            task.run(max_step=1)

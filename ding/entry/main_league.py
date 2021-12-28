@@ -1,3 +1,6 @@
+"""
+BUG: Stop in 2 iters
+"""
 from ding.framework import Task, Context
 from rich import print
 import time
@@ -105,6 +108,7 @@ def collecting(task: Task, cfg, tb_logger, player_ids):
                     instance_name=player_id + '_colllector',
                 )
 
+        # session = task.wait_for("set_session")
         nonlocal session
         while not session:  # Waiting
             time.sleep(0.1)

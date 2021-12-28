@@ -93,8 +93,7 @@ class Parallel(metaclass=SingletonMetaclass):
                 - main_process (:obj:`Callable`): The main function, your program start from here.
             """
             nodes = Parallel.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
-            logging.info("Bind subprocesses on these addresses: {}".format(nodes))
-            print("Bind subprocesses on these addresses: {}".format(nodes))
+            logging.warning("Bind subprocesses on these addresses: {}".format(nodes))
 
             def cleanup_nodes():
                 for node in nodes:
@@ -239,7 +238,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             try:
                 payload_str = pickle.dumps(payload, protocol=-1)
             except AttributeError as e:
-                logging.error("Function {} arguments are not pickable {}".format(func_name, args))
+                logging.error("Arguments are not pickable! Function: {}, Args: {}".format(func_name, args))
                 raise e
             return self._sock and self._sock.send(payload_str)
 

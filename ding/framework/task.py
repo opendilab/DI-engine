@@ -4,8 +4,9 @@ import time
 import asyncio
 import concurrent.futures
 import fnmatch
+import math
 from types import GeneratorType
-from typing import Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set
+from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 from functools import wraps
@@ -62,6 +63,7 @@ class Task:
             once_listeners: Optional[Dict[str, List]] = None,
             attach_callback: Optional[Callable] = None,
             labels: Optional[Set[str]] = None,
+            auto_sync_ctx: bool = False,
             **_
     ) -> None:
         self.middleware = middleware or []
@@ -82,6 +84,7 @@ class Task:
 
         # Parallel segment
         self.router = Parallel()
+        self.auto_sync_ctx = auto_sync_ctx
         if async_mode or self.router.is_active:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             self._loop = asyncio.new_event_loop()
@@ -90,7 +93,8 @@ class Task:
             self.router.register_rpc("task.emit", self.emit)
             if attach_callback:
                 self.wait_for_attach_callback(attach_callback)
-            self.on("sync_parallel_ctx", self.sync_parallel_ctx)
+            if self.auto_sync_ctx:
+                self.on("sync_parallel_ctx", self.sync_parallel_ctx)
 
         self.init_labels()
 
@@ -220,7 +224,7 @@ class Task:
         self.sync()
         # Renew context
         old_ctx = self.ctx
-        if self.router.is_active:
+        if self.router.is_active and self.auto_sync_ctx:
             # Send context to other parallel processes
             self.async_executor(self.router.send_rpc, "task.emit", "sync_parallel_ctx", old_ctx)
 
@@ -297,21 +301,35 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         t = self._loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
         self._async_stack.append(t)
 
-    def emit(self, event_name: str, *args, **kwargs):
+    def emit(self, event: str, *args, **kwargs) -> None:
         """
         Overview:
-            Emit a event, call listeners.
+            Emit an event, call listeners.
         Arguments:
-            - event_name (:obj:`str`): Event name.
+            - event (:obj:`str`): Event name.
             - args (:obj:`any`): Rest arguments for listeners.
         """
-        if event_name in self.event_listeners:
-            for fn in self.event_listeners[event_name]:
+        if event in self.event_listeners:
+            for fn in self.event_listeners[event]:
                 fn(*args, **kwargs)
-        if event_name in self.once_listeners:
-            while self.once_listeners[event_name]:
-                fn = self.once_listeners[event_name].pop()
+        if event in self.once_listeners:
+            while self.once_listeners[event]:
+                fn = self.once_listeners[event].pop()
                 fn(*args, **kwargs)
+
+    def emit_remote(self, event, *args, **kwargs) -> None:
+        """
+        Overview:
+            Emit a task event on connected processes. If the router was not actived \
+                or no process was connected, it won't do anything.
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - args (:obj:`any`): Rest arguments for listeners.
+        """
+        if not self.router.is_active:
+            logging.warning("Router is not actived, emit remote will not do anything, event_name: {}".format(event))
+            return
+        self.router.send_rpc("task.emit", event, *args, **kwargs)
 
     def on(self, event: str, fn: Callable) -> None:
         """
@@ -332,6 +350,36 @@ be thrown after the timeout {}s is reached".format(n_timeout)
             - fn (:obj:`Callable`): The function.
         """
         self.once_listeners[event].append(fn)
+
+    def wait_for(self, event: str, timeout: float = math.inf, ignore_timeout_exception: bool = True) -> Any:
+        """
+        Overview:
+            Wait for an event and block the thread.
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - timeout (:obj:`float`): Timeout in seconds.
+            - ignore_timeout_exception (:obj:`bool`): If this is False, an exception will occur when meeting timeout.
+        """
+        received = False
+        result = None
+
+        def _receive_event(*args, **kwargs):
+            nonlocal result, received
+            result = (args, kwargs)
+            received = True
+
+        self.once(event, _receive_event)
+
+        start = time.time()
+        while time.time() - start < timeout:
+            if received:
+                return result
+            time.sleep(0.01)
+
+        if ignore_timeout_exception:
+            return result
+        else:
+            raise TimeoutError("Timeout when waiting for event: {}".format(event))
 
     @property
     def finish(self) -> bool:
