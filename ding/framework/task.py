@@ -81,6 +81,7 @@ class Task:
         self._async_stack = []
         self._loop = None
         self._thread_pool = None
+        self._exception = None
         self.event_listeners = event_listeners or defaultdict(list)
         self.once_listeners = once_listeners or defaultdict(list)
         self.labels = labels or set()
@@ -271,7 +272,7 @@ class Task:
                 try:
                     e = t.exception()
                     if e:
-                        self.emit("exception", e)
+                        self._exception = e
                         raise e
                 except InvalidStateError:
                     # Correct state
@@ -375,7 +376,6 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         """
         received = False
         result = None
-        meet_exception = False
 
         def _receive_event(*args, **kwargs):
             nonlocal result, received
@@ -384,15 +384,9 @@ be thrown after the timeout {}s is reached".format(n_timeout)
 
         self.once(event, _receive_event)
 
-        def _meet_exception(e):
-            nonlocal meet_exception
-            meet_exception = True
-
-        self.on("exception", _meet_exception)
-
         start = time.time()
         while time.time() - start < timeout:
-            if received or meet_exception:
+            if received or self._exception:
                 return result
             time.sleep(0.01)
 
