@@ -45,7 +45,6 @@ def league_dispatching(task: Task, cfg, tb_logger, league, policies):
         player_id, player_ckpt_path = league.active_players_ids[i], league.active_players_ckpts[i]
 
         job = league.get_job_info(player_id)
-        print("League finish", num)
         opponent_player_id = job['player_id'][1]
 
         if 'historical' in opponent_player_id:
@@ -62,11 +61,11 @@ def league_dispatching(task: Task, cfg, tb_logger, league, policies):
             "player_ckpt_path": player_ckpt_path
         }
         print("Player ID", collect_session["player_id"])
+
         task.emit("set_collect_session", collect_session)
 
         yield
 
-        print("-------> get epsode info", ctx.total_step)
         job_finish_info = {
             'eval_flag': True,
             'launch_player': job['launch_player'],
@@ -106,7 +105,6 @@ def collecting(task: Task, cfg, tb_logger, player_ids):
         train_data, episode_info = collector.collect()  # TODO Do we need train_iter?
         train_data, episode_info = train_data[0], episode_info[0]  # only use launch player data for training
         ctx.episode_info = episode_info
-        print("-------> set epsode info", ctx.total_step)
         for d in train_data:
             d['adv'] = d['reward']
 

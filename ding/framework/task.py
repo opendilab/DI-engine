@@ -1,3 +1,5 @@
+from asyncio.exceptions import InvalidStateError
+from asyncio.tasks import FIRST_EXCEPTION
 from collections import defaultdict
 import logging
 import time
@@ -5,6 +7,7 @@ import asyncio
 import concurrent.futures
 import fnmatch
 import math
+import traceback
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set
 from ding.framework.context import Context
@@ -251,6 +254,9 @@ class Task:
         self.middleware.clear()
         self.event_listeners.clear()
         self.once_listeners.clear()
+        self.step_wrappers.clear()
+        self._backward_stack.clear()
+        self._async_stack.clear()
 
     def sync(self) -> 'Task':
         if self._loop:
@@ -258,10 +264,18 @@ class Task:
         return self
 
     async def sync_tasks(self) -> Awaitable[None]:
-        while self._async_stack:
-            # FIFO
-            t = self._async_stack.pop(0)
-            await t
+        if self._async_stack:
+            await asyncio.wait(self._async_stack, return_when=FIRST_EXCEPTION)
+            while self._async_stack:
+                t = self._async_stack.pop(0)
+                try:
+                    e = t.exception()
+                    if e:
+                        self.emit("exception", e)
+                        raise e
+                except InvalidStateError:
+                    # Correct state
+                    pass
 
     def wait_for_attach_callback(self, attach_callback: Callable, n_timeout: int = 30):
         if len(self.router.attach_to) > 0:
@@ -361,6 +375,7 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         """
         received = False
         result = None
+        meet_exception = False
 
         def _receive_event(*args, **kwargs):
             nonlocal result, received
@@ -369,9 +384,15 @@ be thrown after the timeout {}s is reached".format(n_timeout)
 
         self.once(event, _receive_event)
 
+        def _meet_exception(e):
+            nonlocal meet_exception
+            meet_exception = True
+
+        self.on("exception", _meet_exception)
+
         start = time.time()
         while time.time() - start < timeout:
-            if received:
+            if received or meet_exception:
                 return result
             time.sleep(0.01)
 

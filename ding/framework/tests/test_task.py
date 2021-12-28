@@ -283,3 +283,22 @@ def test_wait_for():
         task.use(step1)
         with pytest.raises(TimeoutError):
             task.run(max_step=1)
+
+
+@pytest.mark.unittest
+def test_async_exception():
+    with Task(async_mode=True, n_async_workers=2) as task:
+
+        def step1(_):
+            task.wait_for("any_event")  # Never end
+
+        def step2(_):
+            time.sleep(0.3)
+            raise Exception("Oh")
+
+        task.use(step1)
+        task.use(step2)
+        with pytest.raises(Exception):
+            task.run(max_step=2)
+
+        assert task.ctx.total_step == 0
