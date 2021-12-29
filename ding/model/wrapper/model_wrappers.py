@@ -218,18 +218,12 @@ class TransformerInputWrapper(IModelWrapper):
     def reset(self, *args, **kwargs):
         state_id = kwargs.get('data_id', None)
         input_obs = kwargs.get('input_obs', None)
-        #print(state_id, self.memory_idx)
         if input_obs is not None:
-            #print('init_memory')
             self.reset_memory(input_obs)
-            self.memory_idx = 0
         if state_id is not None:
-            #print('init_memory_entry', state_id)
             self.reset_memory_entry(state_id)
         if input_obs is None and state_id is None:
-            #print('clear_memory')
             self.obs_memory = None
-        #input()
         if hasattr(self._model, 'reset'):
             return self._model.reset(*args, **kwargs)
 
@@ -285,38 +279,48 @@ class TransformerSegmentWrapper(IModelWrapper):
 class TransformerMemoryWrapper(IModelWrapper):
 
     def __init__(
-            self, model: Any, seq_len: int
+            self, model: Any, mem_shape: List[int],
     ) -> None:
         """
         Overview:
-            Given T the length of a trajectory and N the length of the sequences received by a Transformer model,
-            split T in sequences of N elements and forward each sequence one by one. If T % N != 0, the last sequence
-            will be zero-padded. Usually used during Transformer training phase.
+
         Arguments:
             - model (:obj:`Any`): Wrapped model class, should contain forward method.
-            - seq_len (:obj:`int`): N, length of a sequence.
         """
         super().__init__(model)
-        self.memory = super()._model.memory
+        # shape (layer_num, memory_len, bs, embedding_dim)
+        self.mem_shape = mem_shape
+        # TODO init with bs
+        self.memory = torch.zeros_like(self._model.memory.get())
 
-    def forward(self, obs: torch.Tensor, **kwargs) -> List[dict]:
+    def forward(self, *args, **kwargs) -> List[dict]:
         """
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least \
                 ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
         Returns:
-            - List containing a dict of the model output for each sequence.
         """
-        sequences = list(torch.split(obs, self.seq_len, dim=0))
-        if sequences[-1].shape[0] < self.seq_len:
-            last = sequences[-1].clone()
-            diff = self.seq_len - last.shape[0]
-            sequences[-1] = F.pad(input=last, pad=(0, 0, 0, 0, 0, diff), mode='constant', value=0)
-        outputs = []
-        for i, seq in enumerate(sequences):
-            out = self._model.forward(seq, **kwargs)
-            outputs.append(out)
-        return outputs
+        self._model.reset_memory(state=self.memory)
+        out = self._model.forward(*args, **kwargs)
+        self.memory = self._model.memory.get()
+        return out
+
+    def reset(self, *args, **kwargs):
+        state_id = kwargs.get('data_id', None)
+        if state_id is None:
+            self.memory = torch.zeros_like(self._model.memory.get())
+        else:
+            self.reset_memory_entry(state_id)
+        if hasattr(self._model, 'reset'):
+            return self._model.reset(*args, **kwargs)
+
+    def reset_memory_entry(self, state_id: Optional[list] = None) -> None:
+        """
+        Overview:
+            Reset specific batch of the memory, batch ids are specified in 'state_id'
+        """
+        for _id in state_id:
+            self.memory[:, :, _id] = torch.zeros((self.mem_shape[-1]))  # init the corresponding sequence with broadcasting
 
 
 def sample_action(logit=None, prob=None):
@@ -816,6 +820,7 @@ wrapper_name_map = {
     'action_noise': ActionNoiseWrapper,
     'transformer_input': TransformerInputWrapper,
     'transformer_segment': TransformerSegmentWrapper,
+    'transformer_memory': TransformerMemoryWrapper,
     # model wrapper
     'target': TargetNetworkWrapper,
     'teacher': TeacherNetworkWrapper,

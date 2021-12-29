@@ -240,3 +240,26 @@ class TestModelWrappers:
         # test reset
         model.reset()
         assert model.obs_memory is None
+
+    def test_transformer_memory_wrapper(self):
+        seq_len, bs, obs_shape = 12, 8, 32
+        layer_num, memory_len, emb_dim = 3, 4, 4
+        model = GTrXL(input_dim=obs_shape, embedding_dim=emb_dim,
+                      memory_len=memory_len, layer_num=layer_num)
+        mem_shape = [layer_num, memory_len, bs, emb_dim]
+        model1 = model_wrap(model, wrapper_name='transformer_memory', mem_shape=mem_shape)
+        model2 = model_wrap(model, wrapper_name='transformer_memory', mem_shape=mem_shape)
+        inputs = torch.randn((seq_len, bs, obs_shape))
+        out = model1.forward(inputs)
+        new_memory1 = model1.memory
+        inputs = torch.randn((seq_len, bs, obs_shape))
+        out = model2.forward(inputs)
+        new_memory2 = model2.memory
+        assert not torch.all(torch.eq(new_memory1, new_memory2))
+        model1.reset(data_id=[0, 5])
+        assert sum(model1.memory[:, :, 0].flatten()) == 0 and sum(model1.memory[:, :, 5].flatten()) == 0
+        assert sum(model1.memory[:, :, 1].flatten()) != 0
+        model1.reset()
+        assert sum(model1.memory.flatten()) == 0
+
+
