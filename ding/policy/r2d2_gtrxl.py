@@ -205,7 +205,7 @@ class R2D2GTrXLPolicy(Policy):
             ignore_done=False,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=False,
-            init_memory='zero'  # 'zero' or 'old', how to initialize the memory
+            init_memory='zero'  # 'zero' or 'old', how to initialize the memory in training
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -437,7 +437,7 @@ class R2D2GTrXLPolicy(Policy):
         return ret
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
-        self._learn_model.reset()
+        self._learn_model.reset(data_id=data_id)
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
@@ -476,7 +476,6 @@ class R2D2GTrXLPolicy(Policy):
         ReturnsKeys
             - necessary: ``action``
         """
-        #print('_forward_collect')
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         if self._cuda:
@@ -491,7 +490,8 @@ class R2D2GTrXLPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
-        self._collect_model.reset()
+        # data_id is ID of env to be reset
+        self._collect_model.reset(data_id=data_id)
 
     def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
         r"""
@@ -516,7 +516,6 @@ class R2D2GTrXLPolicy(Policy):
         return transition
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        #print('_get_train_sample')
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
@@ -541,7 +540,6 @@ class R2D2GTrXLPolicy(Policy):
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
-        #print('forward_eval')
         r"""
         Overview:
             Forward function of eval mode, similar to ``self._forward_collect``.
@@ -566,7 +564,7 @@ class R2D2GTrXLPolicy(Policy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
-        self._eval_model.reset()
+        self._eval_model.reset(data_id=data_id)
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'gtrxl_discrete', ['ding.policy.r2d2_gtrxl']

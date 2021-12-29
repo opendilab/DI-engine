@@ -4,7 +4,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 1
 memory_len_r2d2_gtrxl_config = dict(
-    exp_name='memory_len_20_r2d2_gtrxl',
+    exp_name='memory_len_22_r2d2_gtrxl',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
