@@ -31,7 +31,10 @@ class PolicyFactory:
         def forward(data: Dict[int, Any], *args, **kwargs) -> Dict[int, Any]:
 
             def discrete_random_action(min_val, max_val, shape):
-                return np.random.randint(min_val, max_val, shape)
+                action = np.random.randint(min_val, max_val, shape)
+                if len(action) > 1:
+                    action = list(np.expand_dims(action, axis=1))
+                return action
 
             def continuous_random_action(min_val, max_val, shape):
                 bounded_below = min_val != float("inf")
