@@ -325,7 +325,6 @@ class DiscreteQAC(nn.Module):
             global_obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
             encoder_hidden_size_list: SequenceType = [64],
-            #actor_head_type: str,
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
@@ -340,7 +339,6 @@ class DiscreteQAC(nn.Module):
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
@@ -468,7 +466,7 @@ class DiscreteQAC(nn.Module):
 
         Critic Examples:
             >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
+            >>> model = QAC(obs_shape=(N, ), action_shape=1, action_space='regression')
             >>> model(inputs, mode='compute_critic')['q_value'] # q value
             tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
 
@@ -537,7 +535,7 @@ class DiscreteQAC(nn.Module):
 
         Examples:
             >>> inputs = {'obs': torch.randn(4, N), 'action': torch.randn(4, 1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
+            >>> model = QAC(obs_shape=(N, ),action_shape=1, action_space='regression')
             >>> model(inputs, mode='compute_critic')['q_value'] # q value
             tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
 

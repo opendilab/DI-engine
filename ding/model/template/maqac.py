@@ -24,7 +24,6 @@ class MAQAC(nn.Module):
             agent_obs_shape: Union[int, SequenceType],
             global_obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
-            # actor_head_type: str,
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
@@ -39,7 +38,6 @@ class MAQAC(nn.Module):
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
-            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
@@ -179,11 +177,6 @@ class MAQAC(nn.Module):
             - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
             - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
             - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
-        Examples:
-            >>> inputs = {'obs': torch.randn(4, N), 'action': torch.randn(4, 1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
-            >>> model(inputs, mode='compute_critic')['q_value'] # q value
-            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
         """
 
         if self.twin_critic:
@@ -208,7 +201,7 @@ class ContinuousMAQAC(nn.Module):
             agent_obs_shape: Union[int, SequenceType],
             global_obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType, EasyDict],
-            actor_head_type: str,
+            action_space: str,
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
@@ -222,9 +215,8 @@ class ContinuousMAQAC(nn.Module):
             Init the QAC Model according to arguments.
         Arguments:
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
-            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's space, such as 4, (3, ),
-                EasyDict({'action_type_shape': 3, 'action_args_shape': 4}).
-            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization`` or ``hybrid`` .
+            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's space, such as 4, (3, )
+            - action_space (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.
             - twin_critic (:obj:`bool`): Whether include twin critic.
             - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
             - actor_head_layer_num (:obj:`int`):
@@ -243,9 +235,9 @@ class ContinuousMAQAC(nn.Module):
         global_obs_shape: int = squeeze(global_obs_shape)
         action_shape = squeeze(action_shape)
         self.action_shape = action_shape
-        self.actor_head_type = actor_head_type
-        assert self.actor_head_type in ['regression', 'reparameterization']
-        if self.actor_head_type == 'regression':  # DDPG, TD3
+        self.action_space = action_space
+        assert self.action_space in ['regression', 'reparameterization']
+        if self.action_space == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
                 nn.Linear(obs_shape, actor_head_hidden_size), activation,
                 RegressionHead(
@@ -350,12 +342,6 @@ class ContinuousMAQAC(nn.Module):
             >>> actor_outputs['logit'][1].shape # sigma
             >>> torch.Size([4, 64])
 
-        Critic Examples:
-            >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
-            >>> model(inputs, mode='compute_critic')['q_value'] # q value
-            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
-
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
@@ -404,7 +390,7 @@ class ContinuousMAQAC(nn.Module):
             >>> torch.Size([4, 64])
         """
         inputs = inputs['agent_state']
-        if self.actor_head_type == 'regression':
+        if self.action_space == 'regression':
             x = self.actor(inputs)
             return {'action': x['pred']}
         else:
@@ -434,12 +420,6 @@ class ContinuousMAQAC(nn.Module):
             - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
             - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
             - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
-
-        Examples:
-            >>> inputs = {'obs': torch.randn(4, N), 'action': torch.randn(4, 1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type='regression')
-            >>> model(inputs, mode='compute_critic')['q_value']  # q value
-            >>> tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
         """
 
         obs, action = inputs['obs']['global_state'], inputs['action']

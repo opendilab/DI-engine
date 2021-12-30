@@ -22,7 +22,7 @@ ant_sac_default_config = dict(
             global_obs_shape=111,
             action_shape=4,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
         ),

@@ -54,11 +54,13 @@ Updated on 2021.12.03 DI-engine-v0.2.2 (beta)
   - [DI-star](https://github.com/opendilab/DI-star): Decision AI in StarCraftII
   - [DI-drive](https://github.com/opendilab/DI-drive): Auto-driving platform
   - [GoBigger](https://github.com/opendilab/GoBigger): Multi-Agent Decision Intelligence Environment
+  - [DI-smartcross](https://github.com/opendilab/DI-smartcross): Decision AI in Traffic Light Control
 - General nested data lib
   - [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
   - [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
 - Docs and Tutorials
   - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
+  - [awesome-model-based-RL](https://github.com/opendilab/awesome-model-based-RL): A curated list of awesome Model-Based RL resources 
 
 **DI-engine** also has some **system optimization and design** for efficient and robust large-scale RL training:
 
