@@ -491,7 +491,6 @@
             <span class="n">global_obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
             <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">64</span><span class="p">],</span>
-            <span class="c1">#actor_head_type: str,</span>
             <span class="n">twin_critic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">actor_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
             <span class="n">actor_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -506,7 +505,6 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s space.</span>
 <span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action&#39;s space.</span>
-<span class="sd">            - actor_head_type (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.</span>
 <span class="sd">            - twin_critic (:obj:`bool`): Whether include twin critic.</span>
 <span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn&#39;s ``Head``.</span>
 <span class="sd">            - actor_head_layer_num (:obj:`int`):</span>
@@ -634,7 +632,7 @@
 
 <span class="sd">        Critic Examples:</span>
 <span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4,N), &#39;action&#39;: torch.randn(4,1)}</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type=&#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(N, ), action_shape=1, action_space=&#39;regression&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; model(inputs, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;] # q value</span>
 <span class="sd">            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=&lt;SqueezeBackward1&gt;)</span>
 
@@ -703,7 +701,7 @@
 
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, N), &#39;action&#39;: torch.randn(4, 1)}</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(N, ),action_shape=1,actor_head_type=&#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(N, ),action_shape=1, action_space=&#39;regression&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; model(inputs, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;] # q value</span>
 <span class="sd">            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=&lt;SqueezeBackward1&gt;)</span>
 
