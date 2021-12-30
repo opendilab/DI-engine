@@ -4,7 +4,7 @@ import torch
 from torch.nn import functional as F
 from torch import nn
 from abc import abstractmethod
-from typing import List, Callable, Union, Any, TypeVar, Tuple, Optional
+from typing import List, Dict, Callable, Union, Any, TypeVar, Tuple, Optional
 from ding.utils.type_helper import Tensor
 
 
@@ -72,7 +72,7 @@ class VanillaVAE(BaseVAE):
 
         self.obs_encoding = None
 
-    def encode(self, input) -> List[Tensor]:
+    def encode(self, input) -> Dict[str, Any]:
         """
         Encodes the input by passing through the encoder network
         and returns the latent codes.
@@ -82,8 +82,6 @@ class VanillaVAE(BaseVAE):
         action_encoding = self.encode_action_head(input['action'])
         obs_encoding = self.encode_obs_head(input['obs'])
         # obs_encoding = self.condition_obs(input['obs'])  #  TODO(pu): using a different network
-
-        # self.obs_encoding = obs_encoding
         # input = torch.cat([obs_encoding, action_encoding], dim=-1)
         # input = obs_encoding + action_encoding  # TODO(pu): what about add, cat?
         input = obs_encoding * action_encoding
@@ -94,15 +92,23 @@ class VanillaVAE(BaseVAE):
         mu = self.encode_mu_head(result)
         log_var = self.encode_logvar_head(result)
 
-        return [mu, log_var, obs_encoding]
+        return {'mu': mu, 'log_var': log_var, 'obs_encoding': obs_encoding}
 
-    def decode(self, z: Tensor, obs_encoding: Tensor) -> Tensor:
-        """
-        Maps the given latent action codes
-        onto the original action space.
-          :param z: (Tensor) [B x H]
-        :param obs_encoding: (Tensor) [B x H]
-        :return: List(Tensor) [B x A, B x O]
+    def decode(self, z: Tensor, obs_encoding: Tensor) -> Dict[str, Any]:
+        r"""
+         Overview:
+               Maps the given latent action and obs_encoding onto the original action space.
+         Arguments:
+             - z (:obj:`torch.Tensor`): the sampled latent action
+             - obs_encoding (:obj:`torch.Tensor`): observation encoding
+         Returns:
+             - outputs (:obj:`Dict`): DQN forward outputs, such as q_value.
+         ReturnsKeys:
+             - reconstruction_action (:obj:`torch.Tensor`): reconstruction_action.
+             - predition_residual (:obj:`torch.Tensor`): predition_residual.
+         Shapes:
+             - z (:obj:`torch.Tensor`): :math:`(B, L)`, where B is batch size and L is ``latent_size``
+             - obs_encoding (:obj:`torch.Tensor`): :math:`(B, H)`, where B is batch size and H is ``hidden dim``
         """
         action_decoding = self.decode_action_head(torch.tanh(z))  # NOTE: tanh, here z is not bounded
         # action_decoding = self.decode_action_head(z)  # NOTE: tanh, here z is not bounded
@@ -113,16 +119,24 @@ class VanillaVAE(BaseVAE):
         reconstruction_action = self.decode_reconst_action_head(action_obs_decoding_tmp)
         predition_residual_tmp = self.decode_prediction_head_layer1(action_obs_decoding_tmp)
         predition_residual = self.decode_prediction_head_layer2(predition_residual_tmp)
+        return {'reconstruction_action': reconstruction_action, 'predition_residual': predition_residual}
 
-        return [reconstruction_action, predition_residual]
-
-    def decode_with_obs(self, z: Tensor, obs: Tensor) -> Tensor:
-        """
-        Maps the given latent action codes
-        onto the original action space.
-        :param z: (Tensor) [B x H]
-        :param obs: (Tensor) [B x O]
-        :return: List(Tensor) [B x A, B x O]
+    def decode_with_obs(self, z: Tensor, obs: Tensor) -> Dict[str, Any]:
+        r"""
+          Overview:
+                Maps the given latent action and obs onto the original action space.
+                Using the method self.encode_obs_head(obs) to get the obs_encoding.
+          Arguments:
+              - z (:obj:`torch.Tensor`): the sampled latent action
+              - obs (:obj:`torch.Tensor`): observation
+          Returns:
+              - outputs (:obj:`Dict`): DQN forward outputs, such as q_value.
+          ReturnsKeys:
+              - reconstruction_action (:obj:`torch.Tensor`): reconstruction_action.
+              - predition_residual (:obj:`torch.Tensor`): predition_residual.
+          Shapes:
+              - z (:obj:`torch.Tensor`): :math:`(B, L)`, where B is batch size and L is ``latent_size``
+              - obs (:obj:`torch.Tensor`): :math:`(B, O)`, where B is batch size and O is ``obs_shape``
         """
         obs_encoding = self.encode_obs_head(obs)
         # TODO(pu): here z is already bounded, z is produced by td3 policy, it has been operated by tanh
@@ -134,30 +148,33 @@ class VanillaVAE(BaseVAE):
         predition_residual_tmp = self.decode_prediction_head_layer1(action_obs_decoding_tmp)
         predition_residual = self.decode_prediction_head_layer2(predition_residual_tmp)
 
-        return [reconstruction_action, predition_residual]
+        return {'reconstruction_action': reconstruction_action, 'predition_residual': predition_residual}
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
-        """
-        Reparameterization trick to sample from N(mu, var) from
-        N(0,1).
-        :param mu: (Tensor) Mean of the latent Gaussian [B x D]
-        :param logvar: (Tensor) Standard deviation of the latent Gaussian [B x D]
-        :return: (Tensor) [B x D]
-        """
+        r"""
+         Overview:
+              Reparameterization trick to sample from N(mu, var) from N(0,1).
+         Arguments:
+             - mu (:obj:`torch.Tensor`): Mean of the latent Gaussian
+             - logvar (:obj:`torch.Tensor`): Standard deviation of the latent Gaussian
+         Shapes:
+             - mu (:obj:`torch.Tensor`): :math:`(B, L)`, where B is batch size and L is ``latnet_size``
+             - logvar (:obj:`torch.Tensor`): :math:`(B, L)`, where B is batch size and L is ``latnet_size``
+         """
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
         return eps * std + mu
 
     def forward(self, input: Tensor, **kwargs) -> dict:
-        mu, log_var, obs_encoding = self.encode(input)
-        z = self.reparameterize(mu, log_var)
-        reconstruction_action, predition_residual = self.decode(z, obs_encoding)
+        encode_output = self.encode(input)
+        z = self.reparameterize(encode_output['mu'], encode_output['log_var'])
+        decode_output = self.decode(z, encode_output['obs_encoding'])
         return {
-            'recons_action': reconstruction_action,
-            'prediction_residual':  predition_residual,
+            'recons_action':  decode_output['reconstruction_action'],
+            'prediction_residual':  decode_output['predition_residual'],
             'input': input,
-            'mu': mu,
-            'log_var': log_var,
+            'mu': encode_output['mu'],
+            'log_var': encode_output['log_var'],
             'z': z
         }
 
@@ -185,5 +202,3 @@ class VanillaVAE(BaseVAE):
 
         loss = recons_loss + kld_weight * kld_loss + predict_weight * predict_loss
         return {'loss': loss, 'reconstruction_loss': recons_loss, 'kld_loss': kld_loss, 'predict_loss': predict_loss}
-
-
