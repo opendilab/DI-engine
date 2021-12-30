@@ -22,7 +22,7 @@ class LunarLanderEnv(BaseEnv):
         if not self._init_flag:
             if self._cfg.env_id == 'LunarLanderContinuous-v2':
                 self._env = gym.make('LunarLanderContinuous-v2')
-            else:
+            elif self._cfg.env_id == 'LunarLander-v2':
                 self._env = gym.make('LunarLander-v2')
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:

@@ -5,9 +5,7 @@ from torch.nn import functional as F
 from torch import nn
 from abc import abstractmethod
 from typing import List, Callable, Union, Any, TypeVar, Tuple
-
-# from torch import tensor as Tensor
-Tensor = TypeVar('torch.tensor')
+from ding.utils.type_helper import Tensor
 
 
 class BaseVAE(nn.Module):
@@ -38,39 +36,34 @@ class BaseVAE(nn.Module):
 
 class VanillaVAE(BaseVAE):
 
-    def __init__(self, action_dim: int, obs_dim: int, latent_dim: int, hidden_dims: List = None, **kwargs) -> None:
+    def __init__(self, action_shape: int, obs_shape: int, latent_size: int, hidden_dims: List = [256, 256], **kwargs) -> None:
         super(VanillaVAE, self).__init__()
-
-        self.action_dim = action_dim
-        self.obs_dim = obs_dim
-        self.latent_dim = latent_dim
+        self.action_shape = action_shape
+        self.obs_shape = obs_shape
+        self.latent_size = latent_size
         self.hidden_dims = hidden_dims
-
-        modules = []
-        if hidden_dims is None:
-            hidden_dims = [256]
 
         # Build Encoder
         # action
-        self.encode_action_head = nn.Sequential(nn.Linear(self.action_dim, hidden_dims[0]), nn.ReLU())
+        self.encode_action_head = nn.Sequential(nn.Linear(self.action_shape, hidden_dims[0]), nn.ReLU())
         # obs
-        self.encode_obs_head = nn.Sequential(nn.Linear(self.obs_dim, hidden_dims[0]), nn.ReLU())
+        self.encode_obs_head = nn.Sequential(nn.Linear(self.obs_shape, hidden_dims[0]), nn.ReLU())
 
-        self.encode_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
-        self.encode_mu_head = nn.Linear(hidden_dims[0], latent_dim)
-        self.encode_logvar_head = nn.Linear(hidden_dims[0], latent_dim)
+        self.encode_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[1]), nn.ReLU())
+        self.encode_mu_head = nn.Linear(hidden_dims[1], latent_size)
+        self.encode_logvar_head = nn.Linear(hidden_dims[1], latent_size)
 
         # Build Decoder
-        self.condition_obs = nn.Sequential(nn.Linear(self.obs_dim, hidden_dims[0]), nn.ReLU())
-        self.decode_action_head = nn.Sequential(nn.Linear(latent_dim, hidden_dims[0]), nn.ReLU())
-        self.decode_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
+        self.condition_obs = nn.Sequential(nn.Linear(self.obs_shape, hidden_dims[-1]), nn.ReLU())
+        self.decode_action_head = nn.Sequential(nn.Linear(latent_size, hidden_dims[-1]), nn.ReLU())
+        self.decode_common = nn.Sequential(nn.Linear(hidden_dims[-1], hidden_dims[-2]), nn.ReLU())
         # TODO(pu): tanh
-        self.decode_reconst_action_head = nn.Sequential(nn.Linear(hidden_dims[0], self.action_dim), nn.Tanh())
-        # self.decode_reconst_action_head = nn.Linear(hidden_dims[0], self.action_dim)
+        self.decode_reconst_action_head = nn.Sequential(nn.Linear(hidden_dims[-2], self.action_shape), nn.Tanh())
+        # self.decode_reconst_action_head = nn.Linear(hidden_dims[0], self.action_shape)
 
         # residual prediction
-        self.decode_prediction_head_layer1 = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[0]), nn.ReLU())
-        self.decode_prediction_head_layer2 = nn.Linear(hidden_dims[0], self.obs_dim)
+        self.decode_prediction_head_layer1 = nn.Sequential(nn.Linear(hidden_dims[-2], hidden_dims[-2]), nn.ReLU())
+        self.decode_prediction_head_layer2 = nn.Linear(hidden_dims[-2], self.obs_shape)
 
         self.obs_encoding = None
 
@@ -89,9 +82,7 @@ class VanillaVAE(BaseVAE):
         # input = torch.cat([obs_encoding, action_encoding], dim=-1)
         # input = obs_encoding + action_encoding  # TODO(pu): what about add, cat?
         input = obs_encoding * action_encoding
-
         result = self.encode_common(input)
-        result = torch.flatten(result, start_dim=1)
 
         # Split the result into mu and var components
         # of the latent Gaussian distribution
@@ -109,8 +100,8 @@ class VanillaVAE(BaseVAE):
         """
         action_decoding = self.decode_action_head(torch.tanh(z))  # NOTE: tanh, here z is not bounded
         # action_decoding = self.decode_action_head(z)  # NOTE: tanh, here z is not bounded
-        action_obs_decoding = action_decoding + self.obs_encoding  # TODO(pu): what about add, cat?
-        # action_obs_decoding = action_decoding * self.obs_encoding
+        # action_obs_decoding = action_decoding + self.obs_encoding  # TODO(pu): what about add, cat?
+        action_obs_decoding = action_decoding * self.obs_encoding
         action_obs_decoding_tmp = self.decode_common(action_obs_decoding)
 
         reconstruction_action = self.decode_reconst_action_head (action_obs_decoding_tmp)
@@ -195,7 +186,7 @@ class VanillaVAE(BaseVAE):
         :param current_device: (Int) Device to run the model
         :return: (Tensor)
         """
-        z = torch.randn(num_samples, self.latent_dim)
+        z = torch.randn(num_samples, self.latent_size)
         z = z.to(current_device)
         samples = self.decode(z)
         return samples
