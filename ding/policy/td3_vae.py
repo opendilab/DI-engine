@@ -471,6 +471,7 @@ class TD3VAEPolicy(DDPGPolicy):
             'target_model': self._target_model.state_dict(),
             'optimizer_actor': self._optimizer_actor.state_dict(),
             'optimizer_critic': self._optimizer_critic.state_dict(),
+            'vae_model': self._vae_model.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
@@ -478,6 +479,7 @@ class TD3VAEPolicy(DDPGPolicy):
         self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
+        self._vae_model.load_state_dict(state_dict['vae_model'])
 
     def _init_collect(self) -> None:
         r"""
