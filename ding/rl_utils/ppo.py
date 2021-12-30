@@ -108,7 +108,6 @@ def ppo_policy_error(data: namedtuple,
         # only use dual_clip when adv < 0
         policy_loss = -(torch.where(adv < 0, clip2, clip1) * weight).mean()
     else:
-        #policy_loss = (-torch.min(surr1, surr2) * weight).mean()
         policy_loss = (-torch.min(surr1, surr2) * weight).mean()
     with torch.no_grad():
         approx_kl = (logp_old - logp_new).mean().item()
@@ -179,11 +178,11 @@ def ppo_error_continuous(
     if weight is None:
         weight = torch.ones_like(adv)
 
-    dist_new = Independent(Normal(mu_sigma_new[0], mu_sigma_new[1]), 1)
-    if len(mu_sigma_old[0].shape) == 1:
-        dist_old = Independent(Normal(mu_sigma_old[0].unsqueeze(-1), mu_sigma_old[1].unsqueeze(-1)), 1)
+    dist_new = Independent(Normal(mu_sigma_new['mu'], mu_sigma_new['sigma']), 1)
+    if len(mu_sigma_old['mu'].shape) == 1:
+        dist_old = Independent(Normal(mu_sigma_old['mu'].unsqueeze(-1), mu_sigma_old['sigma'].unsqueeze(-1)), 1)
     else:
-        dist_old = Independent(Normal(mu_sigma_old[0], mu_sigma_old[1]), 1)
+        dist_old = Independent(Normal(mu_sigma_old['mu'], mu_sigma_old['sigma']), 1)
     logp_new = dist_new.log_prob(action)
     logp_old = dist_old.log_prob(action)
     entropy_loss = (dist_new.entropy() * weight).mean()

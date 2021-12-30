@@ -44,7 +44,7 @@ main_config = dict(
             obs_shape=obs_shape,
             action_shape=action_shape,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
         ),

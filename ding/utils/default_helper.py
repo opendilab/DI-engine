@@ -410,6 +410,17 @@ def one_time_warning(warning_msg: str) -> None:
     logging.warning(warning_msg)
 
 
+def split_fn(data, indices, start, end):
+    if data is None:
+        return None
+    elif isinstance(data, list):
+        return [split_fn(d, indices, start, end) for d in data]
+    elif isinstance(data, dict):
+        return {k1: split_fn(v1, indices, start, end) for k1, v1 in data.items()}
+    else:
+        return data[indices[start:end]]
+
+
 def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> dict:
     assert isinstance(data, dict), type(data)
     length = []
@@ -436,31 +447,7 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
     for i in range(0, length, split_size):
         if i + split_size > length:
             i = length - split_size
-        batch = {}
-        for k in data.keys():
-            if data[k] is None:
-                batch[k] = None
-            elif k.startswith('prev_state'):
-                batch[k] = [data[k][t] for t in indices[i:i + split_size]]
-            elif isinstance(data[k], list) or isinstance(data[k], tuple):
-                if isinstance(data[k][0], list) and k == 'logit':
-                    # for continuous action
-                    # transform to mu_sigma (:obj:`list`): :math:`[(B, N), (B, N)]`,
-                    # where B is batch size and N is action dim
-                    batch[k] = [
-                        torch.stack(
-                            [
-                                data[k][transition_index][mu_sigma_index]
-                                for transition_index in indices[i:i + split_size]
-                            ]
-                        ) for mu_sigma_index in range(2)
-                    ]
-                else:  # for discrete action
-                    batch[k] = [t[indices[i:i + split_size]] for t in data[k]]
-            elif isinstance(data[k], dict):
-                batch[k] = {k1: v1[indices[i:i + split_size]] for k1, v1 in data[k].items()}
-            else:
-                batch[k] = data[k][indices[i:i + split_size]]
+        batch = split_fn(data, indices, i, i + split_size)
         yield batch
 
 

@@ -10,13 +10,13 @@ pendulum_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=True,
+        action_space='continuous',
         recompute_adv=True,
         model=dict(
             obs_shape=3,
             action_shape=1,
             encoder_hidden_size_list=[64, 64],
-            continuous=True,
+            action_space='continuous',
             actor_head_layer_num=0,
             critic_head_layer_num=0,
             sigma_type='conditioned',

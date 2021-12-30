@@ -24,12 +24,12 @@ walker_gcl_default_config = dict(
     policy=dict(
         cuda=False,
         recompute_adv=True,
+        action_space='continuous',
         model=dict(
             obs_shape=17,
             action_shape=6,
-            continuous=True,
+            action_space='continuous',
         ),
-        continuous=True,
         learn=dict(
             update_per_collect=10,
             batch_size=64,
@@ -58,10 +58,7 @@ walker_gcl_create_default_config = dict(
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(
-        type='ppo',
-        import_names=['ding.policy.ppo'],
-    ),
+    policy=dict(type='ppo', ),
     replay_buffer=dict(type='naive', ),
     reward_model=dict(type='guided_cost'),
 )

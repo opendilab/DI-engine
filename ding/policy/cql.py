@@ -78,6 +78,7 @@ class CQLPolicy(SACPolicy):
         # on-policy setting influences the behaviour of buffer.
         # Default False in SAC.
         on_policy=False,
+        multi_agent=False,
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Default False in SAC.
         priority=False,
@@ -98,7 +99,9 @@ class CQLPolicy(SACPolicy):
             # and learning_rate_policy in `cfg.policy.learn`.
             # Default to False.
             # value_network=False,
-            actor_head_type='reparameterization',
+
+            # (str type) action_space: Use reparameterization trick for continous action
+            action_space='reparameterization',
         ),
         learn=dict(
             # (bool) Whether to use multi gpu

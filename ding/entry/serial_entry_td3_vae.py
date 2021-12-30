@@ -113,9 +113,10 @@ def serial_pipeline_td3_vae(
                 replay_buffer.update(learner.priority_info)
         replay_buffer.clear()  # TODO(pu): NOTE
 
-    # NOTE: for the case collector_env_num>1, because after the random collect phase,  self._traj_buffer[env_id] may be not empty. Only
-    # if the condition "timestep.done or len(self._traj_buffer[env_id]) == self._traj_len" is satisfied, the self._traj_buffer will be clear.
-    # For our alg., the data in self._traj_buffer[env_id], latent_action=False, cannot be used in rl_vae phase.
+    # NOTE: for the case collector_env_num>1, because after the random collect phase,  self._traj_buffer[env_id] may
+    # be not empty. Only if the condition "timestep.done or len(self._traj_buffer[env_id]) == self._traj_len" is
+    # satisfied, the self._traj_buffer will be clear. For our alg., the data in self._traj_buffer[env_id],
+    # latent_action=False, cannot be used in rl_vae phase.
     collector.reset(policy.collect_mode)
 
     for iter in range(max_iterations):

@@ -17,11 +17,12 @@ cartpole_gcl_ppo_onpolicy_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=False,
         recompute_adv=True,
+        action_space='discrete',
         model=dict(
             obs_shape=4,
             action_shape=2,
+            action_space='discrete',
             encoder_hidden_size_list=[64, 64, 128],
             critic_head_hidden_size=128,
             actor_head_hidden_size=128,

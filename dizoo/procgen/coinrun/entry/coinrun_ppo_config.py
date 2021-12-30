@@ -10,8 +10,10 @@ coinrun_ppo_default_config = dict(
     ),
     policy=dict(
         cuda=False,
+        action_space='discrete',
         model=dict(
             obs_shape=[3, 64, 64],
+            action_space='discrete',
             action_shape=15,
             encoder_hidden_size_list=[32, 32, 64],
         ),
@@ -34,7 +36,6 @@ coinrun_ppo_default_config = dict(
             ),
             replay_buffer=dict(replay_buffer_size=100000, ),
         ),
-        cuda=True,
     ),
 )
 coinrun_ppo_default_config = EasyDict(coinrun_ppo_default_config)

@@ -227,11 +227,6 @@ class SampleSerialCollector(ISerialCollector):
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
                 policy_output = self._policy.forward(obs, **policy_kwargs)
-
-                if 'latent_action' in policy_output [0].keys():
-                    if policy_output [0]['latent_action'] is False:
-                        print('here')
-
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}

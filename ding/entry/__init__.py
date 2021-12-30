@@ -1,4 +1,5 @@
 from .cli import cli
+from .cli_ditask import cli_ditask
 from .serial_entry import serial_pipeline
 from .serial_entry_td3_vae import serial_pipeline_td3_vae
 from .serial_entry_onpolicy import serial_pipeline_onpolicy

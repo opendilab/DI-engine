@@ -35,9 +35,9 @@ Updated on 2021.12.03 DI-engine-v0.2.2 (beta)
 
 
 ## Introduction to DI-engine (beta)
-[DI-engine doc](https://opendilab.github.io/DI-engine/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
+[DI-engine doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/)
 
-**DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://opendilab.github.io/DI-engine/intro_rl/basic_en.html) algorithms** ([link](https://github.com/opendilab/DI-engine#algorithm-versatility)):
+**DI-engine** is a generalized decision intelligence engine. It supports **various [deep reinforcement learning](https://di-engine-docs.readthedocs.io/en/latest/intro_rl/basic.html) algorithms** ([link](https://github.com/opendilab/DI-engine#algorithm-versatility)):
 
 - Most basic DRL algorithms, such as DQN, PPO, SAC, R2D2
 - Multi-agent RL algorithms like QMIX, MAPPO
@@ -54,11 +54,13 @@ Updated on 2021.12.03 DI-engine-v0.2.2 (beta)
   - [DI-star](https://github.com/opendilab/DI-star): Decision AI in StarCraftII
   - [DI-drive](https://github.com/opendilab/DI-drive): Auto-driving platform
   - [GoBigger](https://github.com/opendilab/GoBigger): Multi-Agent Decision Intelligence Environment
+  - [DI-smartcross](https://github.com/opendilab/DI-smartcross): Decision AI in Traffic Light Control
 - General nested data lib
   - [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
   - [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
 - Docs and Tutorials
   - [DI-engine-docs](https://github.com/opendilab/DI-engine-docs)
+  - [awesome-model-based-RL](https://github.com/opendilab/awesome-model-based-RL): A curated list of awesome Model-Based RL resources 
 
 **DI-engine** also has some **system optimization and design** for efficient and robust large-scale RL training:
 
@@ -80,7 +82,7 @@ If you use Anaconda or Miniconda, you can install DI-engine from conda-forge thr
 conda install -c opendilab di-engine
 ```
 
-For more information about installation, you can refer to [installation](https://opendilab.github.io/DI-engine/installation/index.html).
+For more information about installation, you can refer to [installation](https://di-engine-docs.readthedocs.io/en/latest/installation/index.html).
 
 And our dockerhub repo can be found [here](https://hub.docker.com/repository/docker/opendilab/ding)，we prepare `base image` and `env image` with common RL environments.
 
@@ -89,15 +91,17 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 - mujoco: opendilab/ding:nightly-mujoco
 - smac: opendilab/ding:nightly-smac
 
-The detailed documentation are hosted on [doc](https://opendilab.github.io/DI-engine/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
+The detailed documentation are hosted on [doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
 
 ## Quick Start
 
-[3 Minutes Kickoff](https://opendilab.github.io/DI-engine/quick_start/index.html)
+[3 Minutes Kickoff](https://di-engine-docs.readthedocs.io/en/latest/quick_start/index.html)
 
 [3 Minutes Kickoff (colab)](https://colab.research.google.com/drive/1J29voOD2v9_FXjW-EyTVfRxY_Op_ygef#scrollTo=MIaKQqaZCpGz)
 
 [3 分钟上手中文版 (kaggle)](https://www.kaggle.com/fallinx/di-engine/)
+
+[How to migrate a new **RL Env**](https://di-engine-docs.readthedocs.io/en/latest/best_practice/ding_env.html) | [如何迁移一个新的**强化学习环境**](https://di-engine-docs.readthedocs.io/zh_CN/latest/best_practice/ding_env_zh.html)
 
 **Bonus: Train RL agent in one line code:**
 
@@ -208,6 +212,7 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 | 21 | [gym_hybrid](https://github.com/thomashirtz/gym-hybrid) | ![hybrid](https://img.shields.io/badge/-hybrid-darkgreen) | ![ori](dizoo/gym_hybrid/moving_v0.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/gym_hybrid)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/gym_hybrid_zh.html) |
 | 22 | [GoBigger](https://github.com/opendilab/GoBigger) | ![hybrid](https://img.shields.io/badge/-hybrid-darkgreen)![marl](https://img.shields.io/badge/-MARL-yellow)![selfplay](https://img.shields.io/badge/-selfplay-blue) | ![ori](./dizoo/gobigger_overview.gif) | [opendilab link](https://github.com/opendilab/GoBigger-Challenge-2021/tree/main/di_baseline)<br>[env tutorial](https://gobigger.readthedocs.io/en/latest/index.html)<br>[环境指南](https://gobigger.readthedocs.io/zh_CN/latest/) |
 | 23 | [gym_soccer](https://github.com/openai/gym-soccer) | ![hybrid](https://img.shields.io/badge/-hybrid-darkgreen) | ![ori](dizoo/gym_soccer/half_offensive.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/gym_soccer)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/gym_soccer_zh.html) |
+| 24 |[multiagent_mujoco](https://github.com/schroederdewitt/multiagent_mujoco)       |  ![continuous](https://img.shields.io/badge/-continous-green) ![marl](https://img.shields.io/badge/-MARL-yellow) | ![original](./dizoo/mujoco/mujoco.gif)                    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/multiagent_mujoco/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/mujoco_zh.html) |
 
 
 ![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space

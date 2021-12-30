@@ -36,7 +36,14 @@ class BaseVAE(nn.Module):
 
 class VanillaVAE(BaseVAE):
 
-    def __init__(self, action_shape: int, obs_shape: int, latent_size: int, hidden_dims: List = [256, 256], **kwargs) -> None:
+    def __init__(
+            self,
+            action_shape: int,
+            obs_shape: int,
+            latent_size: int,
+            hidden_dims: List = [256, 256],
+            **kwargs
+    ) -> None:
         super(VanillaVAE, self).__init__()
         self.action_shape = action_shape
         self.obs_shape = obs_shape
@@ -44,9 +51,7 @@ class VanillaVAE(BaseVAE):
         self.hidden_dims = hidden_dims
 
         # Build Encoder
-        # action
         self.encode_action_head = nn.Sequential(nn.Linear(self.action_shape, hidden_dims[0]), nn.ReLU())
-        # obs
         self.encode_obs_head = nn.Sequential(nn.Linear(self.obs_shape, hidden_dims[0]), nn.ReLU())
 
         self.encode_common = nn.Sequential(nn.Linear(hidden_dims[0], hidden_dims[1]), nn.ReLU())
@@ -104,7 +109,7 @@ class VanillaVAE(BaseVAE):
         action_obs_decoding = action_decoding * self.obs_encoding
         action_obs_decoding_tmp = self.decode_common(action_obs_decoding)
 
-        reconstruction_action = self.decode_reconst_action_head (action_obs_decoding_tmp)
+        reconstruction_action = self.decode_reconst_action_head(action_obs_decoding_tmp)
         predition_residual_tmp = self.decode_prediction_head_layer1(action_obs_decoding_tmp)
         predition_residual = self.decode_prediction_head_layer2(predition_residual_tmp)
 
@@ -123,7 +128,7 @@ class VanillaVAE(BaseVAE):
         # action_obs_decoding = action_decoding + self.obs_encoding  # TODO(pu): what about add, cat?
         action_obs_decoding = action_decoding * self.obs_encoding
         action_obs_decoding_tmp = self.decode_common(action_obs_decoding)
-        reconstruction_action = self.decode_reconst_action_head (action_obs_decoding_tmp)
+        reconstruction_action = self.decode_reconst_action_head(action_obs_decoding_tmp)
         predition_residual_tmp = self.decode_prediction_head_layer1(action_obs_decoding_tmp)
         predition_residual = self.decode_prediction_head_layer2(predition_residual_tmp)
 

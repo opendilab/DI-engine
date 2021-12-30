@@ -10,7 +10,7 @@ import torch
 
 
 def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
-    r"""
+    """
     Overview:
         Transfer data to certain device
     Arguments:
@@ -19,6 +19,7 @@ def to_device(item: Any, device: str, ignore_keys: list = []) -> Any:
         - ignore_keys (:obj:`list`): the keys to be ignored in transfer, defalut set to empty
     Returns:
         - item (:obj:`Any`): the transferred item
+
     .. note:
 
         Now supports item type: :obj:`torch.nn.Module`, :obj:`torch.Tensor`, :obj:`Sequence`, \
@@ -61,6 +62,7 @@ def to_dtype(item: Any, dtype: type) -> Any:
         - dtype (:obj:`type`): the type wanted
     Returns:
         - item (:obj:`object`): the dtype changed item
+
     .. note:
 
         Now supports item type: :obj:`torch.Tensor`, :obj:`Sequence`, :obj:`dict`
@@ -89,6 +91,7 @@ def to_tensor(
         - dtype (:obj:`type`): the type of wanted tensor
     Returns:
         - item (:obj:`torch.Tensor`): the change tensor
+
     .. note:
 
         Now supports item type: :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
@@ -158,6 +161,7 @@ def to_ndarray(item: Any, dtype: np.dtype = None) -> np.ndarray:
         - dtype (:obj:`type`): the type of wanted ndarray
     Returns:
         - item (:obj:`object`): the changed ndarray
+
     .. note:
 
         Now supports item type: :obj:`torch.Tensor`,  :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
@@ -214,9 +218,10 @@ def to_list(item: Any) -> list:
         - item (:obj:`Any`): the item to be transformed
     Returns:
         - item (:obj:`list`): the list after transformation
+
     .. note::
 
-        Now supports item type: :obj:`torch.Tensor`,:obj:`numpy.ndarray`, :obj:`dict`, :obj:`list`, \
+        Now supports item type: :obj:`torch.Tensor`, :obj:`numpy.ndarray`, :obj:`dict`, :obj:`list`, \
         :obj:`tuple` and :obj:`None`
     """
     if item is None:
@@ -243,6 +248,7 @@ def tensor_to_list(item):
         - item (:obj:`Any`): the item to be transformed
     Returns:
         - item (:obj:`list`): the list after transformation
+
     .. note::
 
         Now supports item type: :obj:`torch.Tensor`, :obj:`dict`, :obj:`list`, :obj:`tuple` and :obj:`None`
@@ -329,8 +335,8 @@ class CudaFetcher(object):
     def run(self) -> None:
         """
         Overview:
-            Start `producer` thread: Keep fetching data from source,
-            change the device, and put into `queue` for request.
+            Start ``producer`` thread: Keep fetching data from source,
+            change the device, and put into ``queue`` for request.
         """
         self._end_flag = False
         self._producer_thread.start()
@@ -338,7 +344,7 @@ class CudaFetcher(object):
     def close(self) -> None:
         """
         Overview:
-            Stop `producer` thread by setting `end_flag` to `True`.
+            Stop ``producer`` thread by setting ``end_flag`` to ``True`` .
         """
         self._end_flag = True
 

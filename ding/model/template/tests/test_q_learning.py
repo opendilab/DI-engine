@@ -177,3 +177,49 @@ class TestQLearning:
         assert all([len(t) == 2 for t in outputs['next_state']])
         assert all([t[0].shape == (1, 1, 64) for t in outputs['next_state']])
         self.output_check(model, outputs['logit'])
+
+    @pytest.mark.parametrize('obs_shape, act_shape', args)
+    def test_drqn_res_link(self, obs_shape, act_shape):
+        if isinstance(obs_shape, int):
+            inputs = torch.randn(T, B, obs_shape)
+        else:
+            inputs = torch.randn(T, B, *obs_shape)
+        # (num_layer * num_direction, 1, head_hidden_size)
+        prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(B)]
+        model = DRQN(obs_shape, act_shape, res_link=True)
+        outputs = model({'obs': inputs, 'prev_state': prev_state}, inference=False)
+        assert isinstance(outputs, dict)
+        if isinstance(act_shape, int):
+            assert outputs['logit'].shape == (T, B, act_shape)
+        elif len(act_shape) == 1:
+            assert outputs['logit'].shape == (T, B, *act_shape)
+        else:
+            for i, s in enumerate(act_shape):
+                assert outputs['logit'][i].shape == (T, B, s)
+        assert len(outputs['next_state']) == B
+        assert all([len(t) == 2 for t in outputs['next_state']])
+        assert all([t[0].shape == (1, 1, 64) for t in outputs['next_state']])
+        self.output_check(model, outputs['logit'])
+
+    @pytest.mark.parametrize('obs_shape, act_shape', args)
+    def test_drqn_inference_res_link(self, obs_shape, act_shape):
+        if isinstance(obs_shape, int):
+            inputs = torch.randn(B, obs_shape)
+        else:
+            inputs = torch.randn(B, *obs_shape)
+        # (num_layer * num_direction, 1, head_hidden_size)
+        prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(B)]
+        model = DRQN(obs_shape, act_shape, res_link=True)
+        outputs = model({'obs': inputs, 'prev_state': prev_state}, inference=True)
+        assert isinstance(outputs, dict)
+        if isinstance(act_shape, int):
+            assert outputs['logit'].shape == (B, act_shape)
+        elif len(act_shape) == 1:
+            assert outputs['logit'].shape == (B, *act_shape)
+        else:
+            for i, s in enumerate(act_shape):
+                assert outputs['logit'][i].shape == (B, s)
+        assert len(outputs['next_state']) == B
+        assert all([len(t) == 2 for t in outputs['next_state']])
+        assert all([t[0].shape == (1, 1, 64) for t in outputs['next_state']])
+        self.output_check(model, outputs['logit'])

@@ -5,14 +5,14 @@ name: doc
 
 on:
   push:
-    branches: [main]
+    branches: [main, '*doc*']
 
 jobs:
   doc:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7]
+        python-version: [3.8]
 
     steps:
       - uses: actions/checkout@v2

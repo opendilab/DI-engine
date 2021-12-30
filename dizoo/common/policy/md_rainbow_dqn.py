@@ -67,10 +67,10 @@ class MultiDiscreteRainbowDQNPolicy(RainbowDQNPolicy):
                 value_gamma=value_gamma
             )
         else:
-            tl_num = len(q_dist)
+            act_num = len(q_dist)
             losses = []
             td_error_per_samples = []
-            for i in range(tl_num):
+            for i in range(act_num):
                 td_data = dist_nstep_td_data(
                     q_dist[i], target_q_dist[i], data['action'][i], target_q_action[i], data['reward'], data['done'],
                     data['weight']
@@ -87,7 +87,7 @@ class MultiDiscreteRainbowDQNPolicy(RainbowDQNPolicy):
                 losses.append(td_loss)
                 td_error_per_samples.append(td_error_per_sample)
             loss = sum(losses) / (len(losses) + 1e-8)
-            td_error_per_sample_mean = sum(td_error_per_samples)
+            td_error_per_sample_mean = sum(td_error_per_samples) / (len(td_error_per_samples) + 1e-8)
         # ====================
         # Rainbow update
         # ====================

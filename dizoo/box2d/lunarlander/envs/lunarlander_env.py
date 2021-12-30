@@ -20,10 +20,7 @@ class LunarLanderEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            if self._cfg.env_id == 'LunarLanderContinuous-v2':
-                self._env = gym.make('LunarLanderContinuous-v2')
-            elif self._cfg.env_id == 'LunarLander-v2':
-                self._env = gym.make('LunarLander-v2')
+            self._env = gym.make(self._cfg.env_id)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
