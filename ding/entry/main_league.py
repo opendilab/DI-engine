@@ -181,6 +181,22 @@ def main():
         policy = PPOPolicy(cfg.policy, model=model)
         policies[player_id] = policy
 
+    # set load_checkpoint_fn in league, add a random policy player as reset player
+    def load_checkpoint_fn(player_id: str, ckpt_path: str):
+        state_dict = torch.load(ckpt_path)
+        policies[player_id].learn_mode.load_state_dict(state_dict)
+
+    model = VAC(**cfg.policy.model)
+    policy = PPOPolicy(cfg.policy, model=model)
+    policies['historical'] = policy
+    torch.save(policies['historical'].learn_mode.state_dict(), league.reset_checkpoint_path)
+    league.load_checkpoint = load_checkpoint_fn
+
+    # snapshot the initial player as the first historial player
+    for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
+        torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
+        league.judge_snapshot(player_id, force=True)
+
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
     policies['historical'] = policy
