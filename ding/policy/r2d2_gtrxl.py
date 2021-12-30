@@ -462,8 +462,7 @@ class R2D2GTrXLPolicy(Policy):
         self._nstep = self._cfg.nstep
         self._gamma = self._cfg.discount_factor
         self._unroll_len = self._cfg.unroll_len
-        self._collect_model = model_wrap(self._model, seq_len=self._seq_len, wrapper_name='transformer_segment')
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='transformer_input', seq_len=self._unroll_len)
+        self._collect_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._unroll_len)
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model = model_wrap(self._collect_model, wrapper_name='transformer_memory',
                                          batch_size=self.cfg.collect.env_num)
@@ -541,8 +540,7 @@ class R2D2GTrXLPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, seq_len=self._seq_len, wrapper_name='transformer_segment')
-        self._eval_model = model_wrap(self._eval_model, wrapper_name='transformer_input', seq_len=self._unroll_len)
+        self._eval_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._unroll_len)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
