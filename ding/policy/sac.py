@@ -410,7 +410,7 @@ class SACDiscretePolicy(Policy):
         # Empirically, we found that eps_greedy_multinomial_sample works better than multinomial_sample
         # and eps_greedy_sample, and we don't divide logit by alpha,
         # for the details please refer to ding/model/wrapper/model_wrappers
-        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_multinomial_sample')
+        self._collect_model = model_wrap(self._model, wrapper_name='argmax_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -428,7 +428,7 @@ class SACDiscretePolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward({'obs': data}, mode='compute_actor', eps=eps)
+            output = self._collect_model.forward({'obs': data}, mode='compute_actor')
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

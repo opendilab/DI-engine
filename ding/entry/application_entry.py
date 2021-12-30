@@ -251,3 +251,34 @@ def episode_to_transitions(data_path: str, expert_data_path: str, nstep: int) ->
         post_process_data,
         expert_data_path,
     )
+
+def episode_to_mc_transitions(data_path: str, expert_data_path: str, gamma: int) -> None:
+    r"""
+    Overview:
+        Transfer episoded data into nstep transitions
+    Arguments:
+        - data_path (:obj:str): data path that stores the pkl file
+        - expert_data_path (:obj:`str`): File path of the expert demo data will be written to.
+        - nstep (:obj:`int`): {s_{t}, a_{t}, s_{t+n}}.
+
+    """
+    with open(data_path, 'rb') as f:
+        _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
+    post_process_data = []
+    for i in range(len(_dict)):
+        reward_temp = 0
+        episode = _dict[i]
+        for j in range(len(episode)):
+            data={}
+            reward_temp = episode[len(episode)-j-1]['reward'] + gamma*reward_temp
+            data['reward']=reward_temp
+            data['obs']=episode[len(episode)-j-1]['obs']
+            data['action']=episode[len(episode)-j-1]['action']
+            data['done']=episode[len(episode)-j-1]['done']
+            data=[data]
+            post_process_data.extend(data)
+    #print(post_process_data)
+    offline_data_save_type(
+        post_process_data,
+        expert_data_path,
+    )
