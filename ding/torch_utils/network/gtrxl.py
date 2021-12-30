@@ -457,7 +457,17 @@ class GTrXL(nn.Module):
             self.memory.init(state)
 
     def get_memory(self):
-        return self.memory.get()
+        r"""
+        Overview:
+            Returns memory of GTrXL.
+        Returns:
+            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
+        """
+        if self.memory is None:
+            return None
+        else:
+            return self.memory.get()
 
     def forward(self, x: torch.Tensor, batch_first: bool = False, return_mem: bool = True) -> Dict[str, torch.Tensor]:
         r"""

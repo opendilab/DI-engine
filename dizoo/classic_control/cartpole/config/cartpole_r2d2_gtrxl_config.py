@@ -17,20 +17,24 @@ cartpole_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=4,
             action_shape=2,
-            memory_len=5,
+            memory_len=0,  # length of transformer memory (can be 0)
             embedding_dim=128,
             gru_bias=1.
         ),
         discount_factor=0.997,
         nstep=2,
+        burnin_step=0,  # how many segments use to initialize the memory (can be 0)
         unroll_len=12,  # trajectory len
-        seq_len=12,  # transformer input sequence length (not used yet)
+        seq_len=10,  # transformer input segment
+        # training sequence: unroll_len - (burnin_step * seq_len) - nstep
+        # model supports inputs of 'seq_len' observations
         learn=dict(
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
             target_update_freq=500,
             value_rescale=False,
+            init_memory='zero'  # 'zero' or 'old', how to initialize the memory
         ),
         collect=dict(
             n_sample=32,

@@ -246,9 +246,8 @@ class TestModelWrappers:
         layer_num, memory_len, emb_dim = 3, 4, 4
         model = GTrXL(input_dim=obs_shape, embedding_dim=emb_dim,
                       memory_len=memory_len, layer_num=layer_num)
-        mem_shape = [layer_num, memory_len, bs, emb_dim]
-        model1 = model_wrap(model, wrapper_name='transformer_memory', mem_shape=mem_shape)
-        model2 = model_wrap(model, wrapper_name='transformer_memory', mem_shape=mem_shape)
+        model1 = model_wrap(model, wrapper_name='transformer_memory', batch_size=bs)
+        model2 = model_wrap(model, wrapper_name='transformer_memory', batch_size=bs)
         inputs = torch.randn((seq_len, bs, obs_shape))
         out = model1.forward(inputs)
         new_memory1 = model1.memory

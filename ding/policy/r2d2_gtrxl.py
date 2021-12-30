@@ -118,6 +118,12 @@ class GTrXLDiscreteHead(nn.Module):
         """
         self.core.reset(state=state)
 
+    def reset_memory(self, batch_size: int = None, state: Optional[torch.Tensor] = None):
+        self.core.reset_memory(batch_size, state)
+
+    def get_memory(self):
+        return self.core.get_memory()
+
 
 @POLICY_REGISTRY.register('r2d2_gtrxl')
 class R2D2GTrXLPolicy(Policy):
@@ -186,7 +192,7 @@ class R2D2GTrXLPolicy(Policy):
         discount_factor=0.997,
         # (int) N-step reward for target q_value estimation
         nstep=5,
-        burnin_step=1,  # how many segments to use as burnin
+        burnin_step=0,  # how many segments to use as burnin
         # (int) trajectory length
         unroll_len=15,
         seq_len=5,
@@ -361,29 +367,23 @@ class R2D2GTrXLPolicy(Policy):
         self._target_model.train()
         if self._init_memory == 'old':
             # use the previous hidden state memory
-            self._learn_model.core.reset(state=data['prev_memory_batch'])
-            self._target_model.core.reset(state=data['prev_memory_target_batch'])
+            self._learn_model.reset_memory(state=data['prev_memory_batch'])
+            self._target_model.reset_memory(state=data['prev_memory_target_batch'])
         elif self._init_memory == 'zero':
             # use the zero-initialized state memory
-            self._learn_model.core.reset()
-            self._target_model.core.reset()
+            self._learn_model.reset_memory()
+            self._target_model.reset_memory()
 
         inputs = data['main_obs']
-        out = self._learn_model.forward(inputs)  # shape (seq_len, bs, act_dim)
-        q_value = [o['logit'] for o in out]
+        q_value = self._learn_model.forward(inputs)['logit']  # shape (seq_len, bs, act_dim)
         next_inputs = data['target_obs']
         with torch.no_grad():
-            out = self._target_model.forward(next_inputs)
-            target_q_value = [o['logit'] for o in out]
+            target_q_value = self._target_model.forward(next_inputs)['logit']
             if self._init_memory == 'old':
-                self._learn_model.core.reset(state=data['prev_memory_target_batch'])
+                self._learn_model.reset_memory(state=data['prev_memory_target_batch'])
             elif self._init_memory == 'zero':
-                self._learn_model.core.reset()
-            out = self._learn_model.forward(next_inputs)  # argmax_action double_dqn
-            target_q_action = [o['action'] for o in out]
-        q_value = torch.cat(q_value, dim=0)
-        target_q_value = torch.cat(target_q_value, dim=0)
-        target_q_action = torch.cat(target_q_action, dim=0)
+                self._learn_model.reset_memory()
+            target_q_action = self._learn_model.forward(next_inputs)['action']  # argmax_action double_dqn
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         value_gamma = data['value_gamma']
@@ -438,6 +438,9 @@ class R2D2GTrXLPolicy(Policy):
 
     def _reset_learn(self, data_id: Optional[List[int]] = None) -> None:
         self._learn_model.reset(data_id=data_id)
+        self._target_model.reset(data_id=data_id)
+        self._learn_model.reset_memory()
+        self._target_model.reset_memory()
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
@@ -459,8 +462,11 @@ class R2D2GTrXLPolicy(Policy):
         self._nstep = self._cfg.nstep
         self._gamma = self._cfg.discount_factor
         self._unroll_len = self._cfg.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._unroll_len)
+        self._collect_model = model_wrap(self._model, seq_len=self._seq_len, wrapper_name='transformer_segment')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='transformer_input', seq_len=self._unroll_len)
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='transformer_memory',
+                                         batch_size=self.cfg.collect.env_num)
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -535,7 +541,8 @@ class R2D2GTrXLPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._unroll_len)
+        self._eval_model = model_wrap(self._model, seq_len=self._seq_len, wrapper_name='transformer_segment')
+        self._eval_model = model_wrap(self._eval_model, wrapper_name='transformer_input', seq_len=self._unroll_len)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
@@ -565,6 +572,7 @@ class R2D2GTrXLPolicy(Policy):
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._eval_model.reset(data_id=data_id)
+        self._eval_model.reset_memory()
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'gtrxl_discrete', ['ding.policy.r2d2_gtrxl']

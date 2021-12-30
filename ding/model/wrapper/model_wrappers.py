@@ -179,7 +179,7 @@ class TransformerInputWrapper(IModelWrapper):
             - Dictionary containing the input_sequence 'input_seq' stored in memory and the transformer output 'logit'.
         """
         if self.obs_memory is None:
-            self.reset_memory(torch.zeros_like(input_obs))  # init the memory with the size of the input observation
+            self.reset_input(torch.zeros_like(input_obs))  # init the memory with the size of the input observation
         assert self.obs_memory.shape[0] == self.seq_len
         # implements a fifo queue, self.memory_idx is index where to put the last element
         for b in range(self.bs):
@@ -198,7 +198,7 @@ class TransformerInputWrapper(IModelWrapper):
             out['logit'] = default_collate(out['logit'])
         return out
 
-    def reset_memory(self, input_obs: torch.Tensor):
+    def reset_input(self, input_obs: torch.Tensor):
         """
         Overview:
             Initialize the whole memory
@@ -219,7 +219,7 @@ class TransformerInputWrapper(IModelWrapper):
         state_id = kwargs.get('data_id', None)
         input_obs = kwargs.get('input_obs', None)
         if input_obs is not None:
-            self.reset_memory(input_obs)
+            self.reset_input(input_obs)
         if state_id is not None:
             self.reset_memory_entry(state_id)
         if input_obs is None and state_id is None:
@@ -255,7 +255,7 @@ class TransformerSegmentWrapper(IModelWrapper):
         super().__init__(model)
         self.seq_len = seq_len
 
-    def forward(self, obs: torch.Tensor, **kwargs) -> List[dict]:
+    def forward(self, obs: torch.Tensor, **kwargs) -> Dict[str, torch.Tensor]:
         """
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least \
@@ -272,43 +272,54 @@ class TransformerSegmentWrapper(IModelWrapper):
         for i, seq in enumerate(sequences):
             out = self._model.forward(seq, **kwargs)
             outputs.append(out)
-        # TODO adapt this to be used in eval and collect without changing their code
-        return outputs
+        out = {}
+        for k in outputs[0].keys():
+            out_k = [o[k] for o in outputs]
+            out_k = torch.cat(out_k, dim=0)
+            out[k] = out_k
+        return out
 
 
 class TransformerMemoryWrapper(IModelWrapper):
-
     def __init__(
-            self, model: Any, mem_shape: List[int],
+            self, model: Any, batch_size: int = None,
     ) -> None:
         """
         Overview:
-
+            Stores a copy of the Transformer memory in order to be reused across different phases. To make it more
+             clear, suppose the training pipeline is divided into 3 phases: evaluate, collect, learn. The goal of the
+             wrapper is to maintain the content of the memory at the end of each phase and reuse it when the same phase
+             is executed again. In this way, it prevents different phases to interferer each other memory.
         Arguments:
             - model (:obj:`Any`): Wrapped model class, should contain forward method.
+            - batch_size (:obj:`int`): Memory batch size.
         """
         super().__init__(model)
         # shape (layer_num, memory_len, bs, embedding_dim)
-        self.mem_shape = mem_shape
-        # TODO init with bs
-        self.memory = torch.zeros_like(self._model.memory.get())
+        memory = self._model.get_memory()
+        if memory is None:
+            assert batch_size is not None
+            self._model.reset_memory(batch_size=batch_size)
+        self.memory = self._model.get_memory()
+        self.mem_shape = self.memory.shape
 
-    def forward(self, *args, **kwargs) -> List[dict]:
+    def forward(self, *args, **kwargs) -> Dict[str, torch.Tensor]:
         """
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least \
                 ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
         Returns:
+            - Output of the forward method.
         """
         self._model.reset_memory(state=self.memory)
         out = self._model.forward(*args, **kwargs)
-        self.memory = self._model.memory.get()
+        self.memory = self._model.get_memory()
         return out
 
     def reset(self, *args, **kwargs):
         state_id = kwargs.get('data_id', None)
         if state_id is None:
-            self.memory = torch.zeros_like(self._model.memory.get())
+            self.memory = torch.zeros_like(self._model.get_memory())
         else:
             self.reset_memory_entry(state_id)
         if hasattr(self._model, 'reset'):
@@ -320,7 +331,7 @@ class TransformerMemoryWrapper(IModelWrapper):
             Reset specific batch of the memory, batch ids are specified in 'state_id'
         """
         for _id in state_id:
-            self.memory[:, :, _id] = torch.zeros((self.mem_shape[-1]))  # init the corresponding sequence with broadcasting
+            self.memory[:, :, _id] = torch.zeros((self.mem_shape[-1]))
 
 
 def sample_action(logit=None, prob=None):

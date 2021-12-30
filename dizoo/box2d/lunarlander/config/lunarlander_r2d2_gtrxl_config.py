@@ -18,17 +18,14 @@ lunarlander_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=8,
             action_shape=4,
-            memory_len=5,
+            memory_len=0,
             embedding_dim=128,
             gru_bias=1.
         ),
         discount_factor=0.997,
         nstep=3,
-        # (int) the whole sequence length to unroll the RNN network minus
-        # the timesteps of burnin part,
-        # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=40,
-        seq_len=40,
+        unroll_len=13,
+        seq_len=10,
         learn=dict(
             update_per_collect=8,
             batch_size=64,
