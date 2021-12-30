@@ -4,7 +4,7 @@ import torch
 from torch.nn import functional as F
 from torch import nn
 from abc import abstractmethod
-from typing import List, Callable, Union, Any, TypeVar, Tuple
+from typing import List, Callable, Union, Any, TypeVar, Tuple, Optional
 from ding.utils.type_helper import Tensor
 
 
@@ -16,7 +16,7 @@ class BaseVAE(nn.Module):
     def encode(self, input: Tensor) -> List[Tensor]:
         raise NotImplementedError
 
-    def decode(self, input: Tensor) -> Any:
+    def decode(self, input: Tensor, obs_encoding: Optional[Tensor]) -> Any:
         raise NotImplementedError
 
     def sample(self, batch_size: int, current_device: int, **kwargs) -> Tensor:
@@ -76,14 +76,14 @@ class VanillaVAE(BaseVAE):
         """
         Encodes the input by passing through the encoder network
         and returns the latent codes.
-        :param input: (Tensor) Input tensor to encoder [N x C x H x W]
+        :param input: (Tensor) Input tensor to encoder
         :return: (Tensor) List of latent codes
         """
         action_encoding = self.encode_action_head(input['action'])
         obs_encoding = self.encode_obs_head(input['obs'])
         # obs_encoding = self.condition_obs(input['obs'])  #  TODO(pu): using a different network
 
-        self.obs_encoding = obs_encoding
+        # self.obs_encoding = obs_encoding
         # input = torch.cat([obs_encoding, action_encoding], dim=-1)
         # input = obs_encoding + action_encoding  # TODO(pu): what about add, cat?
         input = obs_encoding * action_encoding
@@ -94,19 +94,20 @@ class VanillaVAE(BaseVAE):
         mu = self.encode_mu_head(result)
         log_var = self.encode_logvar_head(result)
 
-        return [mu, log_var]
+        return [mu, log_var, obs_encoding]
 
-    def decode(self, z: Tensor) -> Tensor:
+    def decode(self, z: Tensor, obs_encoding: Tensor) -> Tensor:
         """
-        Maps the given latent codes
-        onto the image space.
-        :param z: (Tensor) [B x D]
-        :return: (Tensor) [B x C x H x W]
+        Maps the given latent action codes
+        onto the original action space.
+          :param z: (Tensor) [B x H]
+        :param obs_encoding: (Tensor) [B x H]
+        :return: List(Tensor) [B x A, B x O]
         """
         action_decoding = self.decode_action_head(torch.tanh(z))  # NOTE: tanh, here z is not bounded
         # action_decoding = self.decode_action_head(z)  # NOTE: tanh, here z is not bounded
-        # action_obs_decoding = action_decoding + self.obs_encoding  # TODO(pu): what about add, cat?
-        action_obs_decoding = action_decoding * self.obs_encoding
+        # action_obs_decoding = action_decoding + obs_encoding  # TODO(pu): what about add, cat?
+        action_obs_decoding = action_decoding * obs_encoding
         action_obs_decoding_tmp = self.decode_common(action_obs_decoding)
 
         reconstruction_action = self.decode_reconst_action_head(action_obs_decoding_tmp)
@@ -115,18 +116,19 @@ class VanillaVAE(BaseVAE):
 
         return [reconstruction_action, predition_residual]
 
-    def decode_with_obs(self, z: Tensor, obs) -> Tensor:
+    def decode_with_obs(self, z: Tensor, obs: Tensor) -> Tensor:
         """
-        Maps the given latent codes
-        onto the image space.
-        :param z: (Tensor) [B x D]
-        :return: (Tensor) [B x C x H x W]
+        Maps the given latent action codes
+        onto the original action space.
+        :param z: (Tensor) [B x H]
+        :param obs: (Tensor) [B x O]
+        :return: List(Tensor) [B x A, B x O]
         """
-        self.obs_encoding = self.encode_obs_head(obs)
+        obs_encoding = self.encode_obs_head(obs)
         # TODO(pu): here z is already bounded, z is produced by td3 policy, it has been operated by tanh
         action_decoding = self.decode_action_head(z)
-        # action_obs_decoding = action_decoding + self.obs_encoding  # TODO(pu): what about add, cat?
-        action_obs_decoding = action_decoding * self.obs_encoding
+        # action_obs_decoding = action_decoding + obs_encoding  # TODO(pu): what about add, cat?
+        action_obs_decoding = action_decoding * obs_encoding
         action_obs_decoding_tmp = self.decode_common(action_obs_decoding)
         reconstruction_action = self.decode_reconst_action_head(action_obs_decoding_tmp)
         predition_residual_tmp = self.decode_prediction_head_layer1(action_obs_decoding_tmp)
@@ -147,11 +149,12 @@ class VanillaVAE(BaseVAE):
         return eps * std + mu
 
     def forward(self, input: Tensor, **kwargs) -> dict:
-        mu, log_var = self.encode(input)
+        mu, log_var, obs_encoding = self.encode(input)
         z = self.reparameterize(mu, log_var)
+        reconstruction_action, predition_residual = self.decode(z, obs_encoding)
         return {
-            'recons_action': self.decode(z)[0],
-            'prediction_residual': self.decode(z)[1],
+            'recons_action': reconstruction_action,
+            'prediction_residual':  predition_residual,
             'input': input,
             'mu': mu,
             'log_var': log_var,
@@ -183,24 +186,4 @@ class VanillaVAE(BaseVAE):
         loss = recons_loss + kld_weight * kld_loss + predict_weight * predict_loss
         return {'loss': loss, 'reconstruction_loss': recons_loss, 'kld_loss': kld_loss, 'predict_loss': predict_loss}
 
-    def sample(self, num_samples: int, current_device: int, **kwargs) -> Tensor:
-        """
-        Samples from the latent space and return the corresponding
-        image space map.
-        :param num_samples: (Int) Number of samples
-        :param current_device: (Int) Device to run the model
-        :return: (Tensor)
-        """
-        z = torch.randn(num_samples, self.latent_size)
-        z = z.to(current_device)
-        samples = self.decode(z)
-        return samples
 
-    def generate(self, x: Tensor, **kwargs) -> Tensor:
-        """
-        Given an input image x, returns the reconstructed image
-        :param x: (Tensor) [B x C x H x W]
-        :return: (Tensor) [B x C x H x W]
-        """
-
-        return self.forward(x)[0]
