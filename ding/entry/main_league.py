@@ -114,7 +114,7 @@ def collecting(task: Task, cfg, tb_logger, player_ids):
             "envstep": collector.envstep,
             "player_ckpt_path": collect_session["player_ckpt_path"]
         }
-        # task.emit_remote("set_learn_session", learn_session)  # Shoot and forget
+        task.emit_remote("set_learn_session", learn_session)  # Shoot and forget
         task.emit("set_learn_session", learn_session)  # Shoot and forget
 
     return _collect
@@ -146,7 +146,7 @@ def learning(task: Task, cfg, tb_logger, player_ids, policies):
         player_info = learner.learn_info
         player_info['player_id'] = learn_session["player_id"]
 
-        # task.emit_remote("update_active_player", player_info)  # Broadcast to other middleware
+        task.emit_remote("update_active_player", player_info)  # Broadcast to other middleware
         task.emit("update_active_player", player_info)  # Broadcast to other middleware
 
     return _learn
