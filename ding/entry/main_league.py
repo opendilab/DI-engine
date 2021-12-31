@@ -217,11 +217,14 @@ def evaluating(task: Task, cfg, tb_logger, player_ids, policies):
             # main_player =
             stop_flag1, reward, episode_info = evaluator1.eval(None, train_iter, learn_session["envstep"])
             win_loss_result = [e['result'] for e in episode_info[0]]
-            # set fixed NE policy trueskill(exposure) equal 10
-            main_player.rating = league.metric_env.rate_1vsC(
-                main_player.rating, league.metric_env.create_rating(mu=10, sigma=1e-8), win_loss_result
-            )
-            tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, learn_session["envstep"])
+
+            task.emit("win_loss_result", win_loss_result)
+            task.emit_remote("win_loss_result", win_loss_result)
+            # # set fixed NE policy trueskill(exposure) equal 10
+            # main_player.rating = league.metric_env.rate_1vsC(
+            #     main_player.rating, league.metric_env.create_rating(mu=10, sigma=1e-8), win_loss_result
+            # )
+            # tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, learn_session["envstep"])
 
     return _evaluate
 
