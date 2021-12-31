@@ -193,7 +193,7 @@ class WarpFrame(gym.ObservationWrapper):
         Returns:
             obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
         """
-        return (4, 84, 84), act_shape, rew_shape
+        return (84, 84), act_shape, rew_shape
 
 
 class ScaledFloatFrame(gym.ObservationWrapper):
@@ -375,7 +375,7 @@ class FrameStack(gym.Wrapper):
         Returns:
             obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
         """
-        return obs_shape, act_shape, rew_shape
+        return (4, *obs_shape), act_shape, rew_shape
 
 
 class ObsTransposeWrapper(gym.ObservationWrapper):
@@ -846,8 +846,8 @@ class EpisodicLifeEnv(gym.Wrapper):
         # handle bonus lives
         lives = self.env.unwrapped.ale.lives()
         if 0 < lives < self.lives:
-            # for Qbert sometimes we stay in lives == 0 condition for a few
-            # frames, so its important to keep lives > 0, so that we only reset
+            # For Qbert sometimes we stay in lives == 0 condition for a few frames,
+            # so it is important to keep lives > 0, so that we only reset
             # once the environment is actually done.
             done = True
         self.lives = lives
