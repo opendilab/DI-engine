@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class GumbelSoftmax(nn.Module):
     r"""
     Overview:
@@ -28,7 +29,7 @@ class GumbelSoftmax(nn.Module):
         U = torch.rand(x.shape)
         U = U.to(x.device)
         y = x - torch.log(-torch.log(U + eps) + eps)
-        return F.softmax(y/temperature, dim=1)
+        return F.softmax(y / temperature, dim=1)
 
     def forward(self, x: torch.Tensor, temperature: float = 1.0, hard: bool = False) -> torch.Tensor:
         r"""
@@ -45,10 +46,7 @@ class GumbelSoftmax(nn.Module):
         y = self.gumbel_softmax_sample(x, temperature)
         if hard:
             y_hard = torch.zeros_like(x)
-            y_hard[torch.arange(0,x.shape[0]),y.max(1)[1]] = 1
-            r"""
-            Tips:
-                The detach function treat (y_hard - y) as constant, to make sure makes the gradient equal to y_soft gradient
-            """
+            y_hard[torch.arange(0, x.shape[0]), y.max(1)[1]] = 1
+            # The detach function treat (y_hard - y) as constant, to make sure makes the gradient equal to y_soft gradient
             y = (y_hard - y).detach() + y
         return y
