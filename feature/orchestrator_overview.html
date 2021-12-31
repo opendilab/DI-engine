@@ -278,12 +278,12 @@ for setting a storage middleware.</p>
 <code class="docutils literal notranslate"><span class="pre">work-dir</span></code>) and the field <code class="docutils literal notranslate"><span class="pre">path</span></code> (directory location on host)
 must be provided are required.</p></li>
 </ol>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">spec</span><span class="p">:</span>
-  <span class="l l-Scalar l-Scalar-Plain">...</span>
-  <span class="l l-Scalar l-Scalar-Plain">volumes</span><span class="p p-Indicator">:</span>
-  <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">work-dir</span>
-    <span class="nt">hostPath</span><span class="p">:</span>
-      <span class="nt">path</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/data/nfs/ding/qbert</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">volumes</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">work-dir</span><span class="w"></span>
+<span class="w">    </span><span class="nt">hostPath</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/data/nfs/ding/qbert</span><span class="w"></span>
 </pre></div>
 </div>
 <ol class="arabic simple">
@@ -292,16 +292,16 @@ must be provided are required.</p></li>
 pod a volume gets mounted to. Note that the name of <code class="docutils literal notranslate"><span class="pre">volumeMounts</span></code>
 must be the same as the name defined in <code class="docutils literal notranslate"><span class="pre">hostPath</span></code>.</p></li>
 </ol>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span>  <span class="l l-Scalar l-Scalar-Plain">...</span>
-  <span class="l l-Scalar l-Scalar-Plain">coordinator</span><span class="p p-Indicator">:</span>
-    <span class="nt">template</span><span class="p">:</span>
-      <span class="nt">spec</span><span class="p">:</span>
-        <span class="nt">containers</span><span class="p">:</span>
-        <span class="l l-Scalar l-Scalar-Plain">...</span>
-          <span class="l l-Scalar l-Scalar-Plain">volumeMounts</span><span class="p p-Indicator">:</span>
-          <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">work-dir</span>
-            <span class="nt">mountPath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/ding</span>
-<span class="nn">...</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">coordinator</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">template</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">containers</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">          </span><span class="l l-Scalar l-Scalar-Plain">volumeMounts</span><span class="p p-Indicator">:</span><span class="w"></span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">work-dir</span><span class="w"></span>
+<span class="w">            </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/ding</span><span class="w"></span>
+<span class="nn">...</span><span class="w"></span>
 </pre></div>
 </div>
 </div>
@@ -318,39 +318,39 @@ as in the above-mentioned <code class="docutils literal notranslate"><span class
 </ol>
 <p>Here’s an example of Inserting experimental config in the <code class="docutils literal notranslate"><span class="pre">DIJob</span></code>
 config:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">coordinator</span><span class="p">:</span>
-  <span class="nt">template</span><span class="p">:</span>
-    <span class="nt">spec</span><span class="p">:</span>
-      <span class="nt">containers</span><span class="p">:</span>
-      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">coordinator</span>
-        <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">...</span>
-        <span class="l l-Scalar l-Scalar-Plain">...</span>
-        <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;/bin/bash&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;-c&quot;</span><span class="p p-Indicator">,]</span>
-        <span class="nt">args</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="p p-Indicator">|</span>
-          <span class="no">cat &lt;&lt;EOF &gt; qbert_dqn_config_k8s.py</span>
-          <span class="no">from easydict import EasyDict</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">coordinator</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordinator</span><span class="w"></span>
+<span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">        </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;/bin/bash&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;-c&quot;</span><span class="p p-Indicator">,]</span><span class="w"></span>
+<span class="w">        </span><span class="nt">args</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">|</span><span class="w"></span>
+<span class="w">          </span><span class="no">cat &lt;&lt;EOF &gt; qbert_dqn_config_k8s.py</span><span class="w"></span>
+<span class="w">          </span><span class="no">from easydict import EasyDict</span><span class="w"></span>
 
-          <span class="no">qbert_dqn_config = dict(</span>
-              <span class="no">env=dict(</span>
-                  <span class="no">collector_env_num=16,</span>
-                  <span class="no">collector_episode_num=2,</span>
-                  <span class="no">evaluator_env_num=8,</span>
-                  <span class="no">evaluator_episode_num=1,</span>
-                  <span class="no">stop_value=30000,</span>
-                  <span class="no">env_id=&#39;QbertNoFrameskip-v4&#39;,</span>
-                  <span class="no">frame_stack=4,</span>
-                  <span class="no">manager=dict(</span>
-                      <span class="no">shared_memory=False,</span>
-          <span class="no">...</span>
-          <span class="no">...</span>
-          <span class="no">qbert_dqn_system_config = EasyDict(qbert_dqn_system_config)</span>
-          <span class="no">system_config = qbert_dqn_system_config</span>
-          <span class="no">EOF</span>
+<span class="w">          </span><span class="no">qbert_dqn_config = dict(</span><span class="w"></span>
+<span class="w">              </span><span class="no">env=dict(</span><span class="w"></span>
+<span class="w">                  </span><span class="no">collector_env_num=16,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">collector_episode_num=2,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">evaluator_env_num=8,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">evaluator_episode_num=1,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">stop_value=30000,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">env_id=&#39;QbertNoFrameskip-v4&#39;,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">frame_stack=4,</span><span class="w"></span>
+<span class="w">                  </span><span class="no">manager=dict(</span><span class="w"></span>
+<span class="w">                      </span><span class="no">shared_memory=False,</span><span class="w"></span>
+<span class="w">          </span><span class="no">...</span><span class="w"></span>
+<span class="w">          </span><span class="no">...</span><span class="w"></span>
+<span class="w">          </span><span class="no">qbert_dqn_system_config = EasyDict(qbert_dqn_system_config)</span><span class="w"></span>
+<span class="w">          </span><span class="no">system_config = qbert_dqn_system_config</span><span class="w"></span>
+<span class="w">          </span><span class="no">EOF</span><span class="w"></span>
 
-          <span class="no">ding -m dist --module config -p k8s -c qbert_dqn_config_k8s.py -s 0;</span>
-          <span class="no">ding -m dist --module coordinator -p k8s -c qbert_dqn_config_k8s.py.pkl -s 0</span>
-      <span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">          </span><span class="no">ding -m dist --module config -p k8s -c qbert_dqn_config_k8s.py -s 0;</span><span class="w"></span>
+<span class="w">          </span><span class="no">ding -m dist --module coordinator -p k8s -c qbert_dqn_config_k8s.py.pkl -s 0</span><span class="w"></span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
 </pre></div>
 </div>
 </div>
@@ -359,19 +359,19 @@ config:</p>
 <p>To set environment variables, include the <code class="docutils literal notranslate"><span class="pre">env</span></code> field in the
 configuration file. Here’s an example of defining an environment
 variable with name <code class="docutils literal notranslate"><span class="pre">PYTHONUNBUFFERED</span></code> and value <code class="docutils literal notranslate"><span class="pre">1</span></code>：</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span>
-<span class="nt">coordinator</span><span class="p">:</span>
-  <span class="nt">template</span><span class="p">:</span>
-    <span class="nt">spec</span><span class="p">:</span>
-      <span class="nt">containers</span><span class="p">:</span>
-      <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">coordinator</span>
-        <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">..</span>
-        <span class="l l-Scalar l-Scalar-Plain">...</span>
-        <span class="nt">env</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">PYTHONUNBUFFERED</span>
-          <span class="nt">value</span><span class="p">:</span> <span class="s">&quot;1&quot;</span>
-        <span class="l l-Scalar l-Scalar-Plain">...</span>
-<span class=" -Error"> </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span><span class="w"></span>
+<span class="nt">coordinator</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">template</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">containers</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coordinator</span><span class="w"></span>
+<span class="w">        </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">..</span><span class="w"></span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">        </span><span class="nt">env</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PYTHONUNBUFFERED</span><span class="w"></span>
+<span class="w">          </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w w-Error"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
 </pre></div>
 </div>
 </div>
@@ -383,23 +383,23 @@ worker. To specify a resource limit, include <code class="docutils literal notra
 <p>Here’s an example of the configuration file for the learner which has a
 request of 6 CPU, 1 GPU, 10Gi memory and a limit of 6 CPU, 1 GPU, 10Gi
 memory:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span>
-  <span class="nt">learner</span><span class="p">:</span>
-    <span class="nt">template</span><span class="p">:</span>
-      <span class="nt">spec</span><span class="p">:</span>
-        <span class="nt">containers</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">learner</span>
-          <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">...</span>
-          <span class="l l-Scalar l-Scalar-Plain">...</span>
-          <span class="nt">resources</span><span class="p">:</span>
-            <span class="nt">requests</span><span class="p">:</span>
-              <span class="nt">cpu</span><span class="p">:</span> <span class="s">&quot;6&quot;</span>
-              <span class="nt">nvidia.com/gpu</span><span class="p">:</span> <span class="s">&quot;1&quot;</span>
-              <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;10Gi&quot;</span>
-            <span class="nt">limits</span><span class="p">:</span>
-              <span class="nt">cpu</span><span class="p">:</span> <span class="s">&quot;6&quot;</span>
-              <span class="nt">nvidia.com/gpu</span><span class="p">:</span> <span class="s">&quot;1&quot;</span>
-              <span class="nt">memory</span><span class="p">:</span> <span class="s">&quot;10Gi&quot;</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span><span class="w"></span>
+<span class="w">  </span><span class="nt">learner</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">template</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="nt">spec</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">containers</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">learner</span><span class="w"></span>
+<span class="w">          </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">          </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">          </span><span class="nt">resources</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">requests</span><span class="p">:</span><span class="w"></span>
+<span class="w">              </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;6&quot;</span><span class="w"></span>
+<span class="w">              </span><span class="nt">nvidia.com/gpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">              </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10Gi&quot;</span><span class="w"></span>
+<span class="w">            </span><span class="nt">limits</span><span class="p">:</span><span class="w"></span>
+<span class="w">              </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;6&quot;</span><span class="w"></span>
+<span class="w">              </span><span class="nt">nvidia.com/gpu</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="w"></span>
+<span class="w">              </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10Gi&quot;</span><span class="w"></span>
 </pre></div>
 </div>
 </div>

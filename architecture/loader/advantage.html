@@ -189,11 +189,11 @@
 <div class="section" id="transform-and-validation-once">
 <h2>Transform and validation once<a class="headerlink" href="#transform-and-validation-once" title="Permalink to this headline">¶</a></h2>
 <p>Loader can be used in data validation, especially configuration data. For example,</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;tom&quot;</span><span class="p">,</span>
-    <span class="nt">&quot;age&quot;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span>
-    <span class="nt">&quot;gender&quot;</span><span class="p">:</span> <span class="s2">&quot;male&quot;</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tom&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">23</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;male&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>In the json data above, age and gender should be limited, name should not be too long. So we can build the loader to validate.</p>
@@ -207,11 +207,11 @@
 </pre></div>
 </div>
 <p>Also, we can validate data’s constraints. For example</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nt">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="nt">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="nt">&quot;sum&quot;</span><span class="p">:</span> <span class="mi">3</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;a&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;b&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;sum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>We can validate this kind of data with the following loader.</p>
@@ -228,17 +228,17 @@
 <div class="section" id="support-for-equivalent-forms">
 <h2>Support for equivalent forms<a class="headerlink" href="#support-for-equivalent-forms" title="Permalink to this headline">¶</a></h2>
 <p>Base on <cite>or</cite> feature, equivalent forms of the configuration can be easily supported. For example, this is form 1</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nt">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="nt">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;a&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;b&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>and this is form 2,</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nt">&quot;sum&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-    <span class="nt">&quot;diff&quot;</span><span class="p">:</span> <span class="mi">-1</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;sum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;diff&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The actual <cite>a</cite> and <cite>b</cite> should be from 0 to 10.</p>
@@ -261,7 +261,7 @@
 </pre></div>
 </div>
 <p>Not only this, let’s suggest that format 3 appeared at some time, like this (it is a simple string)</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;1,2&quot;</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;1,2&quot;</span><span class="w"></span>
 </pre></div>
 </div>
 <p>So we can migrate the loader like this</p>
@@ -291,10 +291,10 @@
 </pre></div>
 </div>
 <p>Afterwards, the inner data structure is changed, <cite>a</cite> or <cite>b</cite> are no longer used, but <cite>first</cite> and <cite>second</cite> instead, like this</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="nt">&quot;first&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="nt">&quot;second&quot;</span><span class="p">:</span> <span class="mi">2</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;first&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;second&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>we can migrate loader like this</p>
