@@ -9,7 +9,7 @@ class GumbelSoftmax(nn.Module):
         An nn.Module that computes GumbelSoftmax
     Interface:
         __init__, forward
-    
+
     .. note:
 
         For more gumbelsoftmax info, you can refer to
@@ -47,6 +47,7 @@ class GumbelSoftmax(nn.Module):
         if hard:
             y_hard = torch.zeros_like(x)
             y_hard[torch.arange(0, x.shape[0]), y.max(1)[1]] = 1
-            # The detach function treat (y_hard - y) as constant, to make sure makes the gradient equal to y_soft gradient
+            # The detach function treat (y_hard - y) as constant,
+            # to make sure makes the gradient equal to y_soft gradient
             y = (y_hard - y).detach() + y
         return y
