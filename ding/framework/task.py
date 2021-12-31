@@ -341,7 +341,7 @@ be thrown after the timeout {}s is reached".format(n_timeout)
             - args (:obj:`any`): Rest arguments for listeners.
         """
         if not self.router.is_active:
-            logging.warning("Router is not actived, emit remote will not do anything, event_name: {}".format(event))
+            logging.debug("Router is not actived, emit remote will not do anything, event_name: {}".format(event))
             return
         self.router.send_rpc("task.emit", event, *args, **kwargs)
 

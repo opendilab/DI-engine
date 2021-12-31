@@ -27,6 +27,24 @@ from ding.utils.default_helper import deep_merge_dicts
 from ding.utils import DistributedWriter
 
 
+class EvalPolicy1:
+
+    def __init__(self, optimal_policy: list) -> None:
+        assert len(optimal_policy) == 2
+        self.optimal_policy = optimal_policy
+
+    def forward(self, data: dict) -> dict:
+        return {
+            env_id: {
+                'action': torch.from_numpy(np.random.choice([0, 1], p=self.optimal_policy, size=(1, )))
+            }
+            for env_id in data.keys()
+        }
+
+    def reset(self, data_id: list = []) -> None:
+        pass
+
+
 def league_dispatching(task: Task, cfg, tb_logger, league, policies):
 
     def update_active_player(player_info):
@@ -36,9 +54,7 @@ def league_dispatching(task: Task, cfg, tb_logger, league, policies):
     task.on("update_active_player", update_active_player)
 
     def _league(ctx):
-        import random
-        num = random.random()
-        print("League dispatching on node {}, {}".format(task.router.node_id, num))
+        print("League dispatching on node {}".format(task.router.node_id))
         time.sleep(1)
         # One episode each round
         i = ctx.total_step % len(league.active_players_ids)
@@ -145,6 +161,7 @@ def learning(task: Task, cfg, tb_logger, player_ids, policies):
 
         player_info = learner.learn_info
         player_info['player_id'] = learn_session["player_id"]
+        player_info["train_iter"] = learner.train_iter
 
         task.emit_remote("update_active_player", player_info)  # Broadcast to other middleware
         task.emit("update_active_player", player_info)  # Broadcast to other middleware
@@ -152,11 +169,59 @@ def learning(task: Task, cfg, tb_logger, player_ids, policies):
     return _learn
 
 
-def evaluating(task: Task, cfg, tb_logger):
+def evaluating(task: Task, cfg, tb_logger, player_ids, policies):
+    evaluator_env1, eval_policy1, evaluator1 = None, None, None
+    learn_session = None
+
+    def set_learn_session(remote_learn_session):
+        if "main_player" in remote_learn_session["player_id"]:
+            nonlocal learn_session
+            learn_session = remote_learn_session
+
+    task.on("set_learn_session", set_learn_session)
 
     def _evaluate(ctx):
         print("      Evaluating on node {}".format(task.router.node_id))
         time.sleep(1)
+
+        nonlocal evaluator_env1, eval_policy1, evaluator1
+        if evaluator_env1 is None:
+            evaluator_env_num = cfg.env.evaluator_env_num
+            env_type = cfg.env.env_type
+            evaluator_env1 = BaseEnvManager(
+                env_fn=[lambda: GameEnv(env_type) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+            )
+            eval_policy1 = EvalPolicy1(evaluator_env1._env_ref.optimal_policy)
+            evaluator1_cfg = copy.deepcopy(cfg.policy.eval.evaluator)
+            evaluator1_cfg.stop_value = cfg.env.stop_value[0]
+            main_key = [k for k in player_ids if k.startswith('main_player')][0]
+            evaluator1 = BattleInteractionSerialEvaluator(
+                evaluator1_cfg,
+                evaluator_env1, [policies[main_key].collect_mode, eval_policy1],
+                tb_logger,
+                exp_name=cfg.exp_name,
+                instance_name='fixed_evaluator'
+            )
+
+        nonlocal learn_session
+
+        if ctx.total_step == 0:
+            train_iter = 0
+        else:
+            player_info = task.wait_for("update_active_player")
+            if "main_player" not in learn_session["player_id"]:
+                return
+            train_iter = learn_session["train_iter"]
+
+        if evaluator1.should_eval(train_iter):
+            # main_player =
+            stop_flag1, reward, episode_info = evaluator1.eval(None, train_iter, learn_session["envstep"])
+            win_loss_result = [e['result'] for e in episode_info[0]]
+            # set fixed NE policy trueskill(exposure) equal 10
+            main_player.rating = league.metric_env.rate_1vsC(
+                main_player.rating, league.metric_env.create_rating(mu=10, sigma=1e-8), win_loss_result
+            )
+            tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, learn_session["envstep"])
 
     return _evaluate
 
@@ -214,10 +279,12 @@ def main():
             learning(task, cfg=cfg, tb_logger=tb_logger, player_ids=league.active_players_ids, policies=policies),
             filter_labels=["standalone", "learn"]
         )
-        task.use(evaluating(task, cfg=cfg, tb_logger=tb_logger), filter_labels=["standalone", "evaluate"])
+        task.use(
+            evaluating(task, cfg=cfg, tb_logger=tb_logger, player_ids=league.active_players_ids, policies=policies),
+            filter_labels=["standalone", "evaluate"]
+        )
         task.run(100)
 
 
 if __name__ == "__main__":
     main()
-    # Parallel.runner(n_parallel_workers=2, labels=["league"])(main)
