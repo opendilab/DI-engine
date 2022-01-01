@@ -281,7 +281,8 @@ def test_acer():
 @pytest.mark.algotest
 def test_selfplay():
     try:
-        selfplay_main(deepcopy(league_demo_ppo_config), seed=0)
+        config = deepcopy(league_demo_ppo_config)
+        selfplay_main(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
@@ -291,7 +292,8 @@ def test_selfplay():
 @pytest.mark.algotest
 def test_league():
     try:
-        league_main(deepcopy(league_demo_ppo_config), seed=0)
+        config = deepcopy(league_demo_ppo_config)
+        league_main(config, seed=0)
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
@@ -326,14 +328,13 @@ def test_cql():
         assert False, "pipeline fail"
 
     # collect expert data
-    import torch
     config = [
         deepcopy(pendulum_sac_data_genearation_default_config),
         deepcopy(pendulum_sac_data_genearation_default_create_config)
     ]
     collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    state_dict = torch.load('./sac_seed0/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
@@ -362,11 +363,10 @@ def test_discrete_cql():
         assert False, "pipeline fail"
 
     # collect expert data
-    import torch
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
     collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    state_dict = torch.load('./cql_cartpole_seed0/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
@@ -406,11 +406,10 @@ def test_td3_bc():
         assert False, "pipeline fail"
 
     # collect expert data
-    import torch
     config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
     collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    state_dict = torch.load('./td3_seed0/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict

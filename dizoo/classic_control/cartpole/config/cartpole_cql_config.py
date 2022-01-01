@@ -29,7 +29,7 @@ cartpole_discrete_cql_config = dict(
         ),
         collect=dict(
             data_type='hdf5',
-            data_path='./cartpole_generation/expert_demos.hdf5',
+            data_path='./cartpole_generation_seed0/expert_demos.hdf5',  # user-specific
             n_sample=80,
             unroll_len=1,
         ),

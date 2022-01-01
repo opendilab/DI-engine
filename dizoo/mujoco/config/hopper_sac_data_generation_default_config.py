@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 hopper_sac_data_genearation_default_config = dict(
+    exp='hopper_sac_generation',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -45,7 +46,7 @@ hopper_sac_data_genearation_default_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
-            save_path='./default_experiment/expert_iteration_200000.pkl',
+            save_path='expert_iteration_200000.pkl',
         ),
         command=dict(),
         eval=dict(),

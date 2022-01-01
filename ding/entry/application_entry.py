@@ -154,6 +154,7 @@ def collect_demo_data(
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')
     # Save data transitions.
+    expert_data_path = os.path.join(cfg.exp_name, expert_data_path)
     offline_data_save_type(exp_data, expert_data_path, data_type=cfg.policy.collect.get('data_type', 'naive'))
     print('Collect demo data successfully')
 
@@ -227,6 +228,7 @@ def collect_episodic_demo_data(
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')
     # Save data transitions.
+    expert_data_path = os.path.join(cfg.exp_name, expert_data_path)
     offline_data_save_type(exp_data, expert_data_path, data_type=cfg.policy.collect.get('data_type', 'naive'))
     print('Collect episodic demo data successfully')
 

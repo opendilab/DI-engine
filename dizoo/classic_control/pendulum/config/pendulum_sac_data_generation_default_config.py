@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 pendulum_sac_data_genearation_default_config = dict(
+    exp_name='peudulum_sac_generation',
     seed=0,
     env=dict(
         collector_env_num=10,
@@ -43,7 +44,7 @@ pendulum_sac_data_genearation_default_config = dict(
         collect=dict(
             n_sample=1,
             unroll_len=1,
-            save_path='./sac/expert.pkl',
+            save_path='expert.pkl',
             data_type='hdf5',
         ),
         command=dict(),

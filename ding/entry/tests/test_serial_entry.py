@@ -2,6 +2,7 @@ import pytest
 import time
 import os
 from copy import deepcopy
+import torch
 
 from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_offline
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
@@ -360,7 +361,8 @@ def test_sqn():
 @pytest.mark.unittest
 def test_selfplay():
     try:
-        selfplay_main(deepcopy(league_demo_ppo_config), seed=0, max_iterations=1)
+        config = deepcopy(league_demo_ppo_config)
+        selfplay_main(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -368,7 +370,8 @@ def test_selfplay():
 @pytest.mark.unittest
 def test_league():
     try:
-        league_main(deepcopy(league_demo_ppo_config), seed=0, max_iterations=1)
+        config = deepcopy(league_demo_ppo_config)
+        league_main(config, seed=0, max_iterations=1)
     except Exception as e:
         assert False, "pipeline fail"
 
@@ -395,14 +398,13 @@ def test_cql():
         assert False, "pipeline fail"
 
     # collect expert data
-    import torch
     config = [
         deepcopy(pendulum_sac_data_genearation_default_config),
         deepcopy(pendulum_sac_data_genearation_default_create_config)
     ]
     collect_count = 1000
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load('./sac/ckpt/iteration_0.pth.tar', map_location='cpu')
+    state_dict = torch.load('./sac_seed0/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
@@ -442,11 +444,10 @@ def test_discrete_cql():
     except Exception:
         assert False, "pipeline fail"
     # collect expert data
-    import torch
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
     collect_count = 1000
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load('./cql_cartpole/ckpt/iteration_0.pth.tar', map_location='cpu')
+    state_dict = torch.load('./cql_cartpole_seed0/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
@@ -467,7 +468,7 @@ def test_discrete_cql():
         os.popen('rm -rf cartpole cartpole_cql')
 
 
-@pytest.mark.algotest
+@pytest.mark.unittest
 def test_td3_bc():
     # train expert
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
@@ -479,11 +480,10 @@ def test_td3_bc():
         assert False, "pipeline fail"
 
     # collect expert data
-    import torch
     config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
     collect_count = 1000
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load('./td3/ckpt/iteration_0.pth.tar', map_location='cpu')
+    state_dict = torch.load('./td3_seed0/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict

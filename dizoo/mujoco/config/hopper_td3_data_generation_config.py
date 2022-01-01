@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 halfcheetah_td3_default_config = dict(
+    exp_name='halfcheetah_td3_generation',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -49,7 +50,7 @@ halfcheetah_td3_default_config = dict(
             n_sample=1,
             unroll_len=1,
             noise_sigma=0.1,
-            save_path='./td3/expert.pkl',
+            save_path='expert.pkl',
             data_type='hdf5',
         ),
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),

@@ -3,6 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_qrdqn_config = dict(
+    exp_name='pong_qrdqn_generation',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -39,7 +40,7 @@ pong_qrdqn_config = dict(
         collect=dict(
             n_sample=100,
             data_type='hdf5',
-            save_path='./expert/expert.pkl',
+            save_path='expert.pkl',
         ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(

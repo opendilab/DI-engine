@@ -37,7 +37,7 @@ pendulum_cql_default_config = dict(
             n_sample=1,
             unroll_len=1,
             data_type='hdf5',
-            data_path='./sac/expert_demos.hdf5',
+            data_path='./peudulum_sac_generation_seed0/expert_demos.hdf5',  # user-specific
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=100, )),

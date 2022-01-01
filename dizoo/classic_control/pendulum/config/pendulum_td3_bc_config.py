@@ -44,7 +44,7 @@ pendulum_td3_bc_config = dict(
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
             data_type='hdf5',
-            data_path='./td3/expert_demos.hdf5',
+            data_path='./pendulum_td3_generation_seed0/expert_demos.hdf5',  # user-specific
             normalize_states=True,
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
