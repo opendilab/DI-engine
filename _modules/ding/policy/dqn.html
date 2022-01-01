@@ -237,12 +237,17 @@
 
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether use cuda in policy</span>
         <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether learning policy is the same as collecting data policy(on-policy)</span>
         <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether enable priority experience sample</span>
         <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
         <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (float) Discount factor(gamma) for returns</span>
         <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+        <span class="c1"># (int) The number of step for calculating target q_value</span>
         <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool) Whether to use multi gpu</span>
