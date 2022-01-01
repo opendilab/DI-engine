@@ -580,6 +580,8 @@
         <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">n_episode</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">n_evaluator_episode</span>
     <span class="k">if</span> <span class="s1">&#39;exp_name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">:</span>
         <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;default_experiment&#39;</span>
+    <span class="c1"># add seed as suffix of exp_name</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">+</span> <span class="s1">&#39;_seed</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">save_cfg</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
@@ -690,6 +692,8 @@
     <span class="n">cfg</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">coordinator</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">Coordinator</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span> <span class="n">cfg</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">coordinator</span><span class="p">)</span>
     <span class="c1"># seed</span>
     <span class="n">cfg</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+    <span class="c1"># add seed as suffix of exp_name</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">+</span> <span class="s1">&#39;_seed</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">save_cfg</span><span class="p">:</span>
         <span class="n">save_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span>
