@@ -1,14 +1,14 @@
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-agent_num = 5
+agent_num = 2
 collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
-    exp_name='smac_5m6m_qmix',
+    exp_name='smac_2c64zg_qmix',
     env=dict(
-        map_name='5m_vs_6m',
+        map_name='2c_vs_64zg',
         difficulty=7,
         reward_only_positive=True,
         mirror_opponent=False,
@@ -22,9 +22,9 @@ main_config = dict(
     policy=dict(
         model=dict(
             agent_num=agent_num,
-            obs_shape=72,
-            global_obs_shape=98,
-            action_shape=12,
+            obs_shape=404,
+            global_obs_shape=342,
+            action_shape=70,
             hidden_size_list=[64],
             mixer=True,
             lstm_type='gru',
@@ -37,12 +37,12 @@ main_config = dict(
             learning_rate=0.0005,
             clip_value=5,
             double_q=False,
-            target_update_theta=0.008,
-            discount_factor=0.95,
+            target_update_theta=0.005,
+            discount_factor=0.99,
         ),
         collect=dict(
             n_episode=32,
-            unroll_len=20,
+            unroll_len=10,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=100, )),
@@ -51,10 +51,10 @@ main_config = dict(
                 type='linear',
                 start=1,
                 end=0.05,
-                decay=50000,
+                decay=10000,
             ),
             replay_buffer=dict(
-                replay_buffer_size=5000,
+                replay_buffer_size=15000,
                 # (int) The maximum reuse times of each data
                 max_reuse=1e+9,
                 max_staleness=1e+9,
@@ -68,7 +68,8 @@ create_config = dict(
         type='smac',
         import_names=['dizoo.smac.envs.smac_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
+
     policy=dict(type='qmix'),
     collector=dict(type='episode', get_train_sample=True),
 )
