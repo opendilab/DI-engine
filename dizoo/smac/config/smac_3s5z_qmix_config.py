@@ -1,4 +1,3 @@
-from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
@@ -7,6 +6,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
+    exp_name='smac_3s5z_qmix',
     env=dict(
         map_name='3s5z',
         difficulty=7,
@@ -25,7 +25,7 @@ main_config = dict(
             obs_shape=150,
             global_obs_shape=216,
             action_shape=14,
-            hidden_size_list=[32],
+            hidden_size_list=[64],
             mixer=True,
             lstm_type='gru',
             dueling=False,
@@ -33,7 +33,7 @@ main_config = dict(
         learn=dict(
             multi_gpu=False,
             update_per_collect=20,
-            batch_size=32,
+            batch_size=64,
             learning_rate=0.0005,
             clip_value=5,
             double_q=False,
