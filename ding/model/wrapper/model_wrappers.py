@@ -153,9 +153,11 @@ class TransformerInputWrapper(IModelWrapper):
             observations. In this way we can provide at each step all the observations needed by Transformer to
             compute its output. We need this because some methods such as 'collect' and 'evaluate' only provide the
             model 1 observation per step and don't have memory of past observations, but Transformer needs a sequence
-            of N observations. The wrapped ``model.forward`` will save the input observation in a FIFO memory of length
-            N and the wrapped ``model.reset`` will reset the memory. The empty memory spaces will be initialized with
-            'init_fn' or the input observation by calling the method ``model.reset_memory``.
+            of N observations. The wrapper method ``forward`` will save the input observation in a FIFO memory of
+            length N and the method ``reset`` will reset the memory. The empty memory spaces will be initialized
+            with 'init_fn' or zero by calling the method ``reset_input``. Since different env can terminate at
+            different steps, the method ``reset_memory_entry`` only initializes the memory of specific environments in
+            the batch size.
         Arguments:
             - model (:obj:`Any`): Wrapped model class, should contain forward method.
             - seq_len (:obj:`int`): Number of past observations to remember.
