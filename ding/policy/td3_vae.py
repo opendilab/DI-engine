@@ -223,7 +223,7 @@ class TD3VAEPolicy(DDPGPolicy):
         self._vae_model = VanillaVAE(
             self._cfg.original_action_shape, self._cfg.model.obs_shape, self._cfg.model.action_shape, [256, 256]
         )
-        # self._vae_model = VanillaVAE(2, 8, 6, [256, 256, 256])
+        # self._vae_model = VanillaVAE(2, 8, 6, [256, 256])
 
         self._optimizer_vae = Adam(
             self._vae_model.parameters(),

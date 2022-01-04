@@ -1,4 +1,4 @@
-"""Note the following vae model is borrowed from https://github.com/AntixK/PyTorch-VAE"""
+"""Credit: Note the following vae model is modified from https://github.com/AntixK/PyTorch-VAE"""
 
 import torch
 from torch.nn import functional as F
@@ -59,7 +59,7 @@ class VanillaVAE(BaseVAE):
         self.encode_logvar_head = nn.Linear(hidden_dims[1], latent_size)
 
         # Build Decoder
-        self.condition_obs = nn.Sequential(nn.Linear(self.obs_shape, hidden_dims[-1]), nn.ReLU())
+        # self.condition_obs = nn.Sequential(nn.Linear(self.obs_shape, hidden_dims[-1]), nn.ReLU())
         self.decode_action_head = nn.Sequential(nn.Linear(latent_size, hidden_dims[-1]), nn.ReLU())
         self.decode_common = nn.Sequential(nn.Linear(hidden_dims[-1], hidden_dims[-2]), nn.ReLU())
         # TODO(pu): tanh
@@ -170,8 +170,8 @@ class VanillaVAE(BaseVAE):
         z = self.reparameterize(encode_output['mu'], encode_output['log_var'])
         decode_output = self.decode(z, encode_output['obs_encoding'])
         return {
-            'recons_action':  decode_output['reconstruction_action'],
-            'prediction_residual':  decode_output['predition_residual'],
+            'recons_action': decode_output['reconstruction_action'],
+            'prediction_residual': decode_output['predition_residual'],
             'input': input,
             'mu': encode_output['mu'],
             'log_var': encode_output['log_var'],
