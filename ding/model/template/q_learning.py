@@ -6,6 +6,7 @@ from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
     QuantileHead, QRDQNHead, DistributionHead
+from ding.torch_utils.network.gtrxl import GTrXL
 
 
 @MODEL_REGISTRY.register('dqn')
@@ -708,6 +709,153 @@ class DRQN(nn.Module):
             if saved_hidden_state_timesteps is not None:
                 x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
             return x
+
+
+@MODEL_REGISTRY.register('gtrxl_discrete')
+class GTrXLDiscreteHead(nn.Module):
+    """
+    Overview:
+        Add a discrete head on top of the GTrXL module.
+    """
+    def __init__(
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        head_layer_num: int = 1,
+        att_head_dim: int = 16,
+        hidden_size: int = 16,
+        att_head_num: int = 2,
+        att_mlp_num: int = 2,
+        att_layer_num: int = 3,
+        memory_len: int = 64,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        head_norm_type: Optional[str] = None,
+        dropout: float = 0.,
+        gru_gating: bool = True,
+        gru_bias: float = 2.,
+        dueling: bool = True,
+    ) -> None:
+        r"""
+        Overview:
+            Init the model according to arguments.
+        Arguments:
+            Refer to GTrXl class in `ding.torch_utils.network.gtrxl` for more details about the input arguments.
+            - obs_shape (:obj:`Union[int, SequenceType]`): Used by Transformer. Observation's space.
+            - action_shape (:obj:Union[int, SequenceType]): Used by Head. Action's space.
+            - head_layer_num (:obj:`int`): Used by Head. Number of layers.
+            - att_head_dim (:obj:`int`): Used by Transformer.
+            - hidden_size (:obj:`int`): Used by Transformer and Head.
+            - att_head_num (:obj:`int`): Used by Transformer.
+            - att_mlp_num (:obj:`int`): Used by Transformer.
+            - att_layer_num (:obj:`int`): Used by Transformer.
+            - memory_len (:obj:`int`): Used by Transformer.
+            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head. if ``None`` then default set to
+             ``nn.ReLU()``.
+            - head_norm_type (:obj:`Optional[str]`): Used by Head. The type of normalization to use, see
+             ``ding.torch_utils.fc_block`` for more details`.
+            - dropout (:obj:`bool`): Used by Transformer.
+            - gru_gating (:obj:`bool`): Used by Transformer.
+            - gru_bias (:obj:`float`): Used by Transformer.
+            - dueling (:obj:`bool`): Used by Head. Make the head dueling.
+        """
+        super(GTrXLDiscreteHead, self).__init__()
+        self.core = GTrXL(
+            input_dim=obs_shape,
+            head_dim=att_head_dim,
+            embedding_dim=hidden_size,
+            head_num=att_head_num,
+            mlp_num=att_mlp_num,
+            layer_num=att_layer_num,
+            memory_len=memory_len,
+            activation=activation,
+            dropout_ratio=dropout,
+            gru_gating=gru_gating,
+            gru_bias=gru_bias,
+        )
+
+        obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
+        # FC Encoder
+        if isinstance(obs_shape, int) or len(obs_shape) == 1:
+            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        # Conv Encoder
+        elif len(obs_shape) == 3:
+            self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        else:
+            raise RuntimeError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own DRQN".format(obs_shape)
+            )
+
+        # Head Type
+        if dueling:
+            head_cls = DuelingHead
+        else:
+            head_cls = DiscreteHead
+        multi_head = not isinstance(action_shape, int)
+        if multi_head:
+            self.head = MultiHead(
+                head_cls,
+                hidden_size,
+                action_shape,
+                layer_num=head_layer_num,
+                activation=activation,
+                norm_type=head_norm_type
+            )
+        else:
+            self.head = head_cls(
+                hidden_size, action_shape, head_layer_num, activation=activation, norm_type=head_norm_type
+            )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            Let input tensor go through GTrXl and the Head sequentially.
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor of shape (seq_len, bs, obs_shape).
+        Returns:
+            - out (:obj:`Dict`): run ``GTrXL`` with ``DiscreteHead`` setups and return the result prediction dictionary.
+            Necessary Keys:
+                - logit (:obj:`torch.Tensor`): discrete Q-value output of each action dimension.
+                 Shape is (bs, action_space)
+                - memory (:obj:`torch.Tensor`):
+                memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``
+                - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.
+        Examples:
+            >>> # Init input's Keys:
+            >>> obs_dim, seq_len, bs, action_dim = 128, 64, 32, 4
+            >>> obs = torch.rand(seq_len, bs, obs_dim)
+            >>> model = GTrXLDiscreteHead(obs_dim, action_dim)
+            >>> outputs = model(obs)
+            >>> assert isinstance(outputs, dict)
+        """
+        o1 = self.core(x)
+        out = self.head(o1['logit'])
+        # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim
+        out['memory'] = o1['memory'].permute((2, 0, 1, 3)).contiguous()
+        out['transformer_out'] = o1['logit']  # output of gtrxl, out['logit'] is final output
+        return out
+
+    def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
+        r"""
+        Overview:
+            Clear or set the memory of GTrXL.
+         Arguments:
+            - batch_size (:obj:`Optional[int]`): batch size
+            - state (:obj:`Optional[torch.Tensor]`): input memory.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
+        """
+        self.core.reset_memory(batch_size, state)
+
+    def get_memory(self) -> Optional[torch.Tensor]:
+        r"""
+        Overview:
+            Return the memory of GTrXL.
+        Returns:
+            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
+        """
+        return self.core.get_memory()
 
 
 class GeneralQNetwork(nn.Module):

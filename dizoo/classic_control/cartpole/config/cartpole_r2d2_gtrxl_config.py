@@ -18,12 +18,12 @@ cartpole_r2d2_gtrxl_config = dict(
             obs_shape=4,
             action_shape=2,
             memory_len=0,  # length of transformer memory (can be 0)
-            embedding_dim=128,
+            hidden_size=128,
             gru_bias=1.
         ),
         discount_factor=0.997,
         nstep=2,
-        burnin_step=0,  # how many segments use to initialize the memory (can be 0)
+        burnin_step=0,  # how many steps use to initialize the memory (can be 0)
         unroll_len=12,  # trajectory len
         seq_len=10,  # transformer input segment
         # training sequence: unroll_len - (burnin_step * seq_len) - nstep

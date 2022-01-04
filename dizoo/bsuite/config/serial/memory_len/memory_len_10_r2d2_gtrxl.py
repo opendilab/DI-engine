@@ -20,7 +20,7 @@ memory_len_r2d2_gtrxl_config = dict(
             obs_shape=3,
             action_shape=2,
             memory_len=2,
-            embedding_dim=64,
+            hidden_size=64,
             gru_bias=1.
         ),
         discount_factor=0.997,

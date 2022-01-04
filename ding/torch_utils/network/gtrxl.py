@@ -441,12 +441,12 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
         )
 
-    def reset_memory(self, batch_size: int = None, state: Optional[torch.Tensor] = None):
+    def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
         r"""
         Overview:
             Clear or set the memory of GTrXL.
          Arguments:
-            - batch_size (:obj:`int`): batch size
+            - batch_size (:obj:`Optional[int]`): batch size
             - state (:obj:`Optional[torch.Tensor]`): input memory.
             Shape is (layer_num, memory_len, bs, embedding_dim).
         """

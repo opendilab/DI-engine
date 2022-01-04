@@ -12,132 +12,19 @@ from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
 
 from ding.model.common.head import *
-from ding.torch_utils.network.gtrxl import GTrXL
-
-from ding.utils import MODEL_REGISTRY
-
-
-@MODEL_REGISTRY.register('gtrxl_discrete')
-class GTrXLDiscreteHead(nn.Module):
-    """
-    Overview:
-        Add a discrete head on top of the GTrXL module
-    """
-    # TODO put this model in a separate file, for now for convenience we leave it here
-    def __init__(
-        self,
-        obs_shape: int,
-        action_shape: int,
-        head_layer_num: int = 1,
-        att_head_dim: int = 16,
-        embedding_dim: int = 16,
-        att_head_num: int = 2,
-        att_mlp_num: int = 2,
-        att_layer_num: int = 3,
-        memory_len: int = 64,
-        activation: Optional[nn.Module] = nn.ReLU(),
-        head_norm_type: Optional[str] = None,
-        head_noise: Optional[str] = False,
-        dropout: float = 0.,
-        gru_gating: bool = True,
-        gru_bias: float = 2.
-    ) -> None:
-        r"""
-        Overview:
-            Init the model according to arguments.
-        Arguments:
-            - obs_shape (:obj:`int`): Used by Transformer
-            - action_shape (:obj:`int`): Used by Head
-            - head_layer_num (:obj:`int`): Used by Head
-            - att_head_dim (:obj:`int`): Used by Transformer
-            - embedding_dim (:obj:`int`): Used by Transformer and Head
-            - att_head_num (:obj:`int`): Used by Transformer
-            - att_mlp_num (:obj:`int`): Used by Transformer
-            - att_layer_num (:obj:`int`): Used by Transformer
-            - action_shape (:obj:`int`): Used by Head
-            - head_layer_num (:obj:`int`): Used by Head
-            - memory_len (:obj:`int`): Used by Transformer
-            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head
-            - head_norm_type (:obj:`Optional[str]`): Used by Head
-            - head_noise (:obj:`Optional[str]`): Used by Head
-            - dropout (:obj:`bool`): Used by Transformer
-            - gru_gating (:obj:`bool`): Used by Transformer
-            - gru_bias (:obj:`float`): Used by Transformer
-        """
-        super(GTrXLDiscreteHead, self).__init__()
-        self.core = GTrXL(
-            input_dim=obs_shape,
-            head_dim=att_head_dim,
-            embedding_dim=embedding_dim,
-            head_num=att_head_num,
-            mlp_num=att_mlp_num,
-            layer_num=att_layer_num,
-            memory_len=memory_len,
-            activation=activation,
-            dropout_ratio=dropout,
-            gru_gating=gru_gating,
-            gru_bias=gru_bias,
-        )
-        self.head = DiscreteHead(
-            hidden_size=embedding_dim,
-            output_size=action_shape,
-            layer_num=head_layer_num,
-            activation=activation,
-            norm_type=head_norm_type,
-            noise=head_noise
-        )
-
-    def forward(self, x: torch.Tensor) -> Dict:
-        r"""
-        Overview:
-            Let input tensor go through GTrXl and the Head sequentially.
-        Arguments:
-            - x (:obj:`torch.Tensor`): input tensor of shape (seq_len, bs, obs_shape).
-        Returns:
-            - out (:obj:`Dict`): run ``GTrXL`` with ``DiscreteHead`` setups and return the result prediction dictionary.
-            Necessary Keys:
-                - logit (:obj:`torch.Tensor`): output tensor of Head with same size as input ``x``.
-                - memory (:obj:`torch.Tensor`):
-                memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``
-                - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.
-        """
-        o1 = self.core(x)
-        out = self.head(o1['logit'])
-        # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim
-        out['memory'] = o1['memory'].permute((2, 0, 1, 3)).contiguous()
-        out['transformer_out'] = o1['logit']  # output of gtrxl
-        return out
-
-    def reset(self, state: Optional[torch.Tensor] = None):
-        """
-        Overview:
-            Reset or initialize the internal memory of GTrXL.
-        Arguments:
-            - state (:obj:`Optional[torch.Tensor]`): input memory.
-            Shape is (layer_num, memory_len, bs, embedding_dim).
-        """
-        self.core.reset(state=state)
-
-    def reset_memory(self, batch_size: int = None, state: Optional[torch.Tensor] = None):
-        self.core.reset_memory(batch_size, state)
-
-    def get_memory(self):
-        return self.core.get_memory()
 
 
 @POLICY_REGISTRY.register('r2d2_gtrxl')
 class R2D2GTrXLPolicy(Policy):
     r"""
     Overview:
-        Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
-        R2D2 proposes that several tricks should be used to improve upon DRQN,
-        namely some recurrent experience replay tricks such as burn-in.
+        Policy class of R2D2 adopting the Transformer architecture GTrXL as backbone.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
         == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      dqn            | RL policy register name, refer to      | This arg is optional,
+        1  ``type``             str      r2d2_gtrxl     | RL policy register name, refer to      | This arg is optional,
                                                         | registry ``POLICY_REGISTRY``           | a placeholder
         2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-
                                                                                                  | erent from modes
@@ -148,13 +35,13 @@ class R2D2GTrXLPolicy(Policy):
         5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight
            | ``_weight``                                | to correct biased update. If True,
                                                         | priority must be True.
-        6  | ``discount_``      float    0.997,         | Reward's future discount factor, aka.  | May be 1 when sparse
+        6  | ``discount_``      float    0.99,          | Reward's future discount factor, aka.  | May be 1 when sparse
            | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
-        7  ``nstep``            int      3,             | N-step reward discount sum for target
+        7  | ``nstep``          int      5,             | N-step reward discount sum for target
                                          [3, 5]         | q_value estimation
-        8  ``burnin_step``      int      2              | The timestep of burnin operation,
-                                                        | which is designed to RNN hidden state
-                                                        | difference caused by off-policy
+        8  |``burnin_step``     int      1              | The timestep of burnin operation,
+                                                        | which is designed to warm-up GTrXL
+                                                        | memory difference caused by off-policy
         9  | ``learn.update``   int      1              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
@@ -170,8 +57,11 @@ class R2D2GTrXLPolicy(Policy):
            | ``done``                                   | calculation.                           | fake termination env
         15 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
                                                         | call of collector.                     | different envs
-        16 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
+        16 | ``collect.unroll`` int      25             | unroll length of an iteration          | unroll_len>1
            | ``_len``
+        17 | ``collect.seq_len`` int     20             | Training sequence length               | unroll_len>=seq_len>1
+        18 | ``learn.init_``    str      zero           | 'zero' or 'old', how to initialize the |
+           | ``memory``                                 | memory before each training iteration.
         == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
@@ -189,13 +79,15 @@ class R2D2GTrXLPolicy(Policy):
         # The following configs are algorithm-specific
         # ==============================================================
         # (float) Reward's future discount factor, aka. gamma.
-        discount_factor=0.997,
+        discount_factor=0.99,
         # (int) N-step reward for target q_value estimation
         nstep=5,
-        burnin_step=0,  # how many segments to use as burnin
+        # how many steps to use as burnin
+        burnin_step=1,
         # (int) trajectory length
-        unroll_len=15,
-        seq_len=5,
+        unroll_len=25,
+        # (int) training sequence length
+        seq_len=20,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -211,7 +103,8 @@ class R2D2GTrXLPolicy(Policy):
             ignore_done=False,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=False,
-            init_memory='zero'  # 'zero' or 'old', how to initialize the memory in training
+            # 'zero' or 'old', how to initialize the memory in training
+            init_memory='zero'
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -243,13 +136,14 @@ class R2D2GTrXLPolicy(Policy):
 
         Arguments:
             .. note::
-
                 The _init_learn method takes the argument from the self._cfg.learn in the config file
-
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - nstep (:obj:`int`): The num of n step return
             - value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
+            - burnin_step (:obj:`int`): The num of step of burnin
+            - seq_len (:obj:`int`): Training sequence length
+            - init_memory (:obj:`str`): 'zero' or 'old', how to initialize the memory before each training iteration.
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -282,17 +176,16 @@ class R2D2GTrXLPolicy(Policy):
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
-
         Arguments:
             - data (:obj:`List[Dict[str, Any]]`): the data collected from collect function
-
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, including at least \
-                ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
+                ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
             - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
         if self._init_memory == 'old' and 'prev_memory' in data[0].keys():
-            # retrieve the memory corresponding to the first element in each trajectory and remove it from 'data'
+            # retrieve the memory corresponding to the first and n_step(th) element in each trajectory and remove it
+            # from 'data'
             prev_mem = [b['prev_memory'][0] for b in data]
             prev_mem_target = [b['prev_memory'][self._nstep] for b in data]
             # stack the memory entries along the batch dimension,
@@ -352,11 +245,9 @@ class R2D2GTrXLPolicy(Policy):
         Overview:
             Forward and backward function of learn mode.
             Acquire the data, calculate the loss and optimize learner model.
-
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least \
-                ['main_obs', 'target_obs', 'action', 'reward', 'done', 'weight']
-
+                ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including cur_lr and total_loss
                 - cur_lr (:obj:`float`): Current learning rate
@@ -391,9 +282,9 @@ class R2D2GTrXLPolicy(Policy):
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        for t in range(self._burnin_step * self._seq_len, self._unroll_len - self._nstep):
-            # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
-            # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
+        for t in range(self._burnin_step, self._unroll_len - self._nstep):
+            # here skip the first 'burnin_step' steps because we only needed that to initialize the memory, and
+            # skip the last 'nstep' steps because we don't have their target obs
             td_data = q_nstep_td_data(
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
@@ -456,13 +347,14 @@ class R2D2GTrXLPolicy(Policy):
         r"""
         Overview:
             Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
+            Init unroll length and sequence len, collect model.
         """
         assert 'unroll_len' not in self._cfg.collect, "Use default unroll_len"
         self._nstep = self._cfg.nstep
         self._gamma = self._cfg.discount_factor
         self._unroll_len = self._cfg.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._unroll_len)
+        self._seq_len = self._cfg.seq_len
+        self._collect_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._seq_len)
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model = model_wrap(self._collect_model, wrapper_name='transformer_memory',
                                          batch_size=self.cfg.collect.env_num)
@@ -524,13 +416,12 @@ class R2D2GTrXLPolicy(Policy):
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
-
         Arguments:
             - data (:obj:`list`): The trajectory's cache
-
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
+        self._seq_len = self._cfg.seq_len
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)
 
@@ -540,7 +431,7 @@ class R2D2GTrXLPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._unroll_len)
+        self._eval_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._seq_len)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
@@ -573,7 +464,7 @@ class R2D2GTrXLPolicy(Policy):
         self._eval_model.reset_memory()
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'gtrxl_discrete', ['ding.policy.r2d2_gtrxl']
+        return 'gtrxl_discrete', ['ding.model.template.q_learning']
 
     def _monitor_vars_learn(self) -> List[str]:
         return super()._monitor_vars_learn() + [
