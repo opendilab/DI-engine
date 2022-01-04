@@ -414,8 +414,6 @@ def compile_config(
         cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
-    # add seed as suffix of exp_name
-    cfg.exp_name = cfg.exp_name + '_seed{}'.format(seed)
     if save_cfg:
         if not os.path.exists(cfg.exp_name):
             try:
@@ -526,8 +524,6 @@ def compile_config_parallel(
     cfg.system.coordinator = deep_merge_dicts(Coordinator.default_config(), cfg.system.coordinator)
     # seed
     cfg.seed = seed
-    # add seed as suffix of exp_name
-    cfg.exp_name = cfg.exp_name + '_seed{}'.format(seed)
 
     if save_cfg:
         save_config(cfg, save_path)

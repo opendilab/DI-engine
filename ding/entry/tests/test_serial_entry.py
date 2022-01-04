@@ -467,7 +467,7 @@ def test_discrete_cql():
         os.popen('rm -rf cartpole cartpole_cql')
 
 
-@pytest.mark.algotest
+@pytest.mark.unittest
 def test_td3_bc():
     # train expert
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]

@@ -71,12 +71,17 @@ class DQNPolicy(Policy):
 
     config = dict(
         type='dqn',
+        # (bool) Whether use cuda in policy
         cuda=False,
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy)
         on_policy=False,
+        # (bool) Whether enable priority experience sample
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (float) Discount factor(gamma) for returns
         discount_factor=0.97,
+        # (int) The number of step for calculating target q_value
         nstep=1,
         learn=dict(
             # (bool) Whether to use multi gpu
