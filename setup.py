@@ -74,7 +74,7 @@ setup(
         'trueskill',
         'h5py',
         'rich',
-        'mpire @ git+https://github.com/Slimmer-AI/mpire.git@v2.3.3',
+        'mpire',
         'pynng'
     ],
     extras_require={

@@ -90,7 +90,9 @@ class DQNPolicy(Policy):
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=3,
+            # (int) How many samples in a training batch
             batch_size=64,
+            # (float) The step size of gradient descent
             learning_rate=0.001,
             # ==============================================================
             # The following configs are algorithm-specific
@@ -114,7 +116,9 @@ class DQNPolicy(Policy):
             eps=dict(
                 # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
+                # (float) Epsilon start value
                 start=0.95,
+                # (float) Epsilon end value
                 end=0.1,
                 # (int) Decay length(env step)
                 decay=10000,
