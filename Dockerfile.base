@@ -20,4 +20,4 @@ ADD ding ding
 RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install --ignore-installed 'PyYAML<6.0' \
     && python3 -m pip install --no-cache-dir .[fast] \
-    && python3 -m pip install git+https://github.com/Slimmer-AI/mpire.git@v2.3.3
+    && python3 -m pip uninstall dataclasses -y
