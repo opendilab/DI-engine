@@ -37,7 +37,7 @@ After completing installation, you can check whether it is succesful by the foll
    print(obs.shape)  # (12, )
 
 DI-engine Mirrors
-----
+-----------------
 
 Due to Slime Volleyball is easy to install, DI-engine does not have Mirror specifically for it. You can customize your build with the benchmark Mirror ``opendilab/ding:nightly``, or visit the `docker
 hub <https://hub.docker.com/repository/docker/opendilab/ding>`__ for more mirrors.
@@ -54,7 +54,7 @@ Observation Space
 --------------------------
 
 - The observation space is a vector of size ``(12, )`` containing the absolute coordinates of self, opponent, and ball with two consecutive frames stitched togerther. The data type is \ ``float64``
-i.e. (x_agent, y_agent, x_agent_next, y_agent_next, x_ball, y_ball, x_ball_next, y_ball_next, x_opponent, y_opponent, x_opponent_next, y_opponent_next)
+  i.e. (x_agent, y_agent, x_agent_next, y_agent_next, x_ball, y_ball, x_ball_next, y_ball_next, x_opponent, y_opponent, x_opponent_next, y_opponent_next)
 
 .. _Action Space-1:
 
@@ -62,7 +62,7 @@ Action Space
 ------------------
 
 - The original action space of ``SlimeVolley-v0`` is defined as ``MultiBinary(3)`` with three kinds of actions. More than one actions can be performed at the same time. Each action is corresponding to two cases: 0 (not executed) and 1 (executed). 
-i.e. ``(1, 0, 1)`` represents the execution of the first and third actions at the same time. The data type is \ ``int``\, which needs to be passed into a python list object (or a 1-dimensional np array of size 3, i.e. ``np.array([0, 1, 0])``
+  i.e. ``(1, 0, 1)`` represents the execution of the first and third actions at the same time. The data type is \ ``int``\, which needs to be passed into a python list object (or a 1-dimensional np array of size 3, i.e. ``np.array([0, 1, 0])``
 
 - The actual implementation does not strictly limit the action to 0 and 1. It treats values greater than 0 as 1, while values less than or equal to 0 as 0.
 
@@ -112,7 +112,7 @@ Other
 - Only one side's obs are returned by default. The other side's obs, and information can be found in the ``info`` field/
 
 Key Facts
-========
+==========
 
 1. 1-dimensional vector observation space (of size (12, )) with information in absolute coordinates
 
@@ -128,19 +128,19 @@ RL Environment Space
 .. _Observation Space-2:
 
 Observation Space
---------
+------------------
 
 - Transform the space vector into a one-dimensional np array of size ``(12, )``. The data type is ``np.float32``.
 
 Action Space
---------
+---------------
 
 - Transform the ``MultiBinary`` action space into a discrete action space of size 6 (a simple Cartesian product is sufficient). The final result is a one-dimensional np array of size \ ``(1, )``\. The data type is \ ``np.int64``
 
 .. _Reward Space-2:
 
 Reward Space
---------
+-------------
 
 - Transform the reward vector into a one-dimensional np array of size\ ``(1, )``\. The data type is\ ``np.float32``\ values in ``[-1, 0, 1]``.
 
@@ -157,7 +157,7 @@ Using Slime Volleyball in 'OpenAI Gym' format:
 .. _Other-2:
 
 Other
-----
+------
 
 - The\ `info``\returned form the environment\ ``step``\ must contain the\ ``final_eval_reward``\ key-value pair, which represents the evaluation metrics for the entire episode, containing the rewards for the episode (life value difference between two players).
 
@@ -168,10 +168,10 @@ i.e. The observation space changes from ``(12, )`` to ``(2, 12)``, thar represen
 .. _Other-3:
 
 Other
-====
+======
 
 Lazy initialization
-----------
+--------------------
 
 In order to support environment vetorization, an environment instance is oftern initialized lazily. In this way, method ``__init__`` does not really initialize the real original environment, but only set corresponding parameters and configurations. The real original environment is initialized when first calling mdthod ``reset``.
 
@@ -312,15 +312,17 @@ Note: To run the intelligent body against built-in bot mode, python ``slime_voll
 Note: For some specific algorithm, use the corresponding specific entry function. 
 
 Algorithm Benchmark
-============
+====================
 
 -  SlimeVolley-v0（Average reward greater than 1 is considered as good agent with the build-in bot）
    
    - SlimeVolley-v0 + PPO + vs Bot
+
    .. image:: images/slime_volleyball_ppo_vsbot.png
      :align: center
 
    - SlimeVolley-v0 + PPO + self-play
+
    .. image:: images/slime_volleyball_ppo_selfplay.png
      :align: center
      :scale: 70%

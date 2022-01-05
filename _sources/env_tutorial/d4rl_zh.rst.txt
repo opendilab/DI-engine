@@ -58,6 +58,7 @@ D4RL是离线强化学习(offline Reinforcement Learning)的开源benchmark，�
 mujoco只要安装gym和mujoco-py两个库即可，可以通过pip一键安装或结合DI-engine安装
 
 1. mujoco-py库目前已不再需要激活许可(``mujoco-py>=2.1.0``)，可以通过\ `pip install free-mujoco-py <https://github.com/openai/mujoco-py/pull/640>`__ 安装
+
 2. 如果安装 ``mujoco-py>=2.1``, 可以通过如下方法:
 
 .. code:: shell
@@ -66,7 +67,7 @@ mujoco只要安装gym和mujoco-py两个库即可，可以通过pip一键安装�
     # Download the MuJoCo version 2.1 binaries for Linux.
     wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz
     # Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.
-    tar xvf mujoco210-linux-x86_64.tar.gz && mv mujoco210 ~/.mujoco/mujoco210
+    tar xvf mujoco210-linux-x86_64.tar.gz && mkdir -p ~/.mujoco && mv mujoco210 ~/.mujoco/mujoco210
     # Install and use mujoco-py
     pip install gym
     pip install -U 'mujoco-py<2.2,>=2.1'
@@ -75,7 +76,7 @@ mujoco只要安装gym和mujoco-py两个库即可，可以通过pip一键安装�
     # Download the MuJoCo version 2.1 binaries for OSX.
     wget https://mujoco.org/download/mujoco210-macos-x86_64.tar.gz
     # Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.
-    tar xvf mujoco210-macos-x86_64.tar.gz && mv mujoco210 ~/.mujoco/mujoco210
+    tar xvf mujoco210-macos-x86_64.tar.gz && mkdir -p ~/.mujoco && mv mujoco210 ~/.mujoco/mujoco210
     # Install and use mujoco-py
     pip install gym
     pip install -U 'mujoco-py<2.2,>=2.1'
@@ -88,7 +89,7 @@ mujoco只要安装gym和mujoco-py两个库即可，可以通过pip一键安装�
     # Download the MuJoCo version 2.0 binaries for Linux.
     wget https://www.roboti.us/download/mujoco200_linux.zip
     # Extract the downloaded mujoco200 directory into ~/.mujoco/mujoco200.
-    unzip mujoco200_linux.zip && mv mujoco200_linux ~/.mujoco/mujoco200
+    unzip mujoco200_linux.zip && mkdir -p ~/.mujoco && mv mujoco200_linux ~/.mujoco/mujoco200
     # Download unlocked activation key.
     wget https://www.roboti.us/file/mjkey.txt -O  ~/.mujoco/mjkey.txt 
     # Install and use mujoco-py
@@ -99,7 +100,7 @@ mujoco只要安装gym和mujoco-py两个库即可，可以通过pip一键安装�
     # Download the MuJoCo version 2.0 binaries for OSX.
     wget https://www.roboti.us/download/mujoco200_macos.zip
     # Extract the downloaded mujoco200 directory into ~/.mujoco/mujoco200.
-    tar xvf mujoco200-macos-x86_64.tar.gz && mv mujoco200_macos ~/.mujoco/mujoco200
+    tar xvf mujoco200-macos-x86_64.tar.gz && mkdir -p ~/.mujoco && mv mujoco200_macos ~/.mujoco/mujoco200
     # Download unlocked activation key.
     wget https://www.roboti.us/file/mjkey.txt -O  ~/.mujoco/mjkey.txt 
     # Install and use mujoco-py

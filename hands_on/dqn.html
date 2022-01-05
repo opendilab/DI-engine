@@ -211,8 +211,8 @@
 <h1>DQN<a class="headerlink" href="#dqn" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>DQN was first proposed in <a class="reference external" href="https://arxiv.org/abs/1312.5602">Playing Atari with Deep Reinforcement Learning</a>. Traditional Q-learning maintains a <code class="docutils literal notranslate"><span class="pre">M*N</span></code> Q value table (where M represents the number of states and N represents the number of actions), and iteratively updates the Q-value through the Bellman equation. This kind of algorithm will have the problem of dimensionality disaster when the state/action space becomes very large.</p>
-<p>DQN is different from traditional reinforcement learning methods, It combines Q-learning with deep neural networks, uses deep neural networks to estimate the Q value, and calculates the temporal-difference loss, and uses the gradient descent algorithm to update, Thus reaching a level comparable to or even surpassing human players in problem decision-making in high-dimensional spaces (such as Atari games).</p>
+<p>DQN was first proposed in <a class="reference external" href="https://arxiv.org/abs/1312.5602">Playing Atari with Deep Reinforcement Learning</a>. Traditional Q-learning maintains an <code class="docutils literal notranslate"><span class="pre">M*N</span></code> Q value table (where M represents the number of states and N represents the number of actions), and iteratively updates the Q-value through the Bellman equation. This kind of algorithm will have the problem of dimensionality disaster when the state/action space becomes extremely large.</p>
+<p>DQN is different from traditional reinforcement learning methods. It combines Q-learning with deep neural networks, uses deep neural networks to estimate the Q value, and calculates the temporal-difference loss, and uses the gradient descent algorithm to update, thus reaching a level comparable to or even surpassing human players in problem decision-making in high-dimensional spaces (such as Atari games).</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
@@ -220,7 +220,7 @@
 <li><p>DQN is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
 <li><p>DQN only support <strong>discrete</strong> action spaces.</p></li>
 <li><p>DQN is an <strong>off-policy</strong> algorithm.</p></li>
-<li><p>Usually, DQN use <strong>eps-greedy</strong> or <strong>multinomial sample</strong> for exploration.</p></li>
+<li><p>Usually, DQN uses <strong>eps-greedy</strong> or <strong>multinomial sampling</strong> for exploration.</p></li>
 <li><p>DQN + RNN = DRQN.</p></li>
 <li><p>The DI-engine implementation of DQN supports <strong>multi-discrete</strong> action space.</p></li>
 </ol>
@@ -238,7 +238,7 @@
 <a class="reference internal image-reference" href="../_images/eq3.png"><img alt="../_images/eq3.png" class="align-center" src="../_images/eq3.png" style="width: 826.4000000000001px; height: 49.6px;" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Comparing with the vanilla version, DQN has been dramatically modified in both algorithm and implementation aspects. In the algorithm parts, <strong>n-step TD-loss, PER, target network</strong> and <strong>dueling head</strong> are widely used, interested users can refer to the paper <a class="reference external" href="https://arxiv.org/abs/1710.02298">Rainbow: Combining Improvements in Deep Reinforcement Learning</a> . For the implementation details, the value of epsilon anneals from a high value (e.g.: 0.95) to a low value (0.05) during the training rather than keeps constant, according to env step (the number of policy interaction with env).</p>
+<p>Compared with the vanilla version, DQN has been dramatically modified in both algorithm and implementation aspects. In the algorithm parts, <strong>n-step TD-loss, PER, target network</strong> and <strong>dueling head</strong> are widely used, interested users can refer to the paper <a class="reference external" href="https://arxiv.org/abs/1710.02298">Rainbow: Combining Improvements in Deep Reinforcement Learning</a> . For the implementation details, the value of epsilon anneals from a high value (e.g.: 0.95) to a low value (0.05) during the training rather than keeps constant, according to env steps (the number of policy interaction with env).</p>
 </div>
 </div>
 <div class="section" id="extensions">
@@ -247,10 +247,10 @@
 <blockquote>
 <div><ul>
 <li><p>PER (<a class="reference external" href="https://arxiv.org/abs/1511.05952">Prioritized Experience Replay</a>)</p>
-<p>PER replaces the uniform sampling in a replay buffer with so-called <code class="docutils literal notranslate"><span class="pre">priority</span></code>, which is defined by various metrics, such as absolute TD error, the novelty of observation and so on. By this priority sampling, the convergence speed and performance of DQN can be improved a lot.</p>
-<p>There are 2 kinds of implementation of PER. One of them is described below:</p>
+<p>PER replaces the uniform sampling in a replay buffer with so-called <code class="docutils literal notranslate"><span class="pre">priority</span></code> defined by various metrics, such as absolute TD error, the novelty of observation and so on. By this priority sampling, the convergence speed and performance of DQN can be improved a lot.</p>
+<p>There are two kinds of implementation of PER. One of them is described below:</p>
 <a class="reference internal image-reference" href="../_images/PERDQN.png"><img alt="../_images/PERDQN.png" class="align-center" src="../_images/PERDQN.png" style="width: 1057.1000000000001px; height: 616.0px;" /></a>
-<p>In DI-engine, PER can be enabled by modifying 2 fields <code class="docutils literal notranslate"><span class="pre">priority</span></code> and <code class="docutils literal notranslate"><span class="pre">priority_IS_weight</span></code> in configuration file, and the concrete code can refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/dev-treetensor/ding/worker/replay_buffer/advanced_buffer.py">PER code</a> . For the specific example, user can refer to <a class="reference external" href="../best_practice/priority.html">PER example</a></p>
+<p>In DI-engine, PER can be enabled by modifying two fields <code class="docutils literal notranslate"><span class="pre">priority</span></code> and <code class="docutils literal notranslate"><span class="pre">priority_IS_weight</span></code> in the configuration file, and the concrete code can refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/dev-treetensor/ding/worker/replay_buffer/advanced_buffer.py">PER code</a> . For the specific example, users can refer to <a class="reference external" href="../best_practice/priority.html">PER example</a></p>
 </li>
 <li><p>Multi-step TD-loss</p>
 <p>In Single-step TD-loss, the update of Q-learning (Bellman equation) is described as:</p>
@@ -258,7 +258,7 @@
 <div><div class="math notranslate nohighlight">
 \[r(s,a)+\gamma \mathop{max}\limits_{a^*}Q(s',a^*)\]</div>
 </div></blockquote>
-<p>While in Multi-step TD-loss, it is overwritten by following content:</p>
+<p>While in Multi-step TD-loss, it is overwritten by the following content:</p>
 <blockquote>
 <div><div class="math notranslate nohighlight">
 \[\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \mathop{max}\limits_{a^*}Q(s_n,a^*)\]</div>
@@ -267,10 +267,10 @@
 <p class="admonition-title">Note</p>
 <p>An issue about n-step for Q-learning is that, when epsilon greedy is adopted, the q value estimation is biased because the <span class="math notranslate nohighlight">\(r(s_t,a_t)\)</span> at t&gt;=1 are sampled under epsilon greedy rather than the policy itself. However, multi-step along with epsilon greedy generally improves DQN practically.</p>
 </div>
-<p>In DI-engine, Multi-step TD-loss can be enabled by <code class="docutils literal notranslate"><span class="pre">nstep</span></code> field in configuration file, and the loss function is described in <code class="docutils literal notranslate"><span class="pre">q_nstep_td_error</span></code> in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/dev-treetensor/ding/rl_utils/td.py">nstep code</a>.</p>
+<p>In DI-engine, Multi-step TD-loss can be enabled by the <code class="docutils literal notranslate"><span class="pre">nstep</span></code> field in the configuration file, and the loss function is described in <code class="docutils literal notranslate"><span class="pre">q_nstep_td_error</span></code> in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/dev-treetensor/ding/rl_utils/td.py">nstep code</a>.</p>
 </li>
 <li><p>Double DQN (target network)</p>
-<p>Double DQN, proposed in <a class="reference external" href="https://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a>, is a kind of common variant of DQN. This method maintains another Q-network, named target network, which is updated by the current network by a fixed frequency (update times/training iterations).</p>
+<p>Double DQN, proposed in <a class="reference external" href="https://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a>, is a common variant of DQN. This method maintains another Q-network, named target network, which is updated by the current network by a fixed frequency (update times/training iterations).</p>
 <p>And the target Q in Double DQN is:</p>
 <blockquote>
 <div><a class="reference internal image-reference" href="../_images/doubleDQN.png"><img alt="../_images/doubleDQN.png" class="align-center" src="../_images/doubleDQN.png" style="width: 328.8px; height: 34.4px;" /></a>
@@ -281,13 +281,13 @@
 <p class="admonition-title">Note</p>
 <p>The overestimation can be caused by the error of function approximation(neural network for q table), environment noise, numerical instability and other reasons.</p>
 </div>
-<p>DQN in DI-engine enables Double DQN by default, user can modify <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> to control the update speed of target network, and code implementation is shown in <code class="docutils literal notranslate"><span class="pre">TargetNetworkWrapper</span></code> in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/wrapper/model_wrappers.py">Double DQN code</a> .</p>
+<p>DQN in DI-engine enables Double DQN by default, users can modify <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> to control the update speed of target network, and code implementation is shown in <code class="docutils literal notranslate"><span class="pre">TargetNetworkWrapper</span></code> in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/wrapper/model_wrappers.py">Double DQN code</a> .</p>
 </li>
 <li><p>Dueling head</p>
 <p>In <a class="reference external" href="https://arxiv.org/abs/1511.06581">Dueling Network Architectures for Deep Reinforcement Learning</a>, dueling head architecture is utilized to implement the decomposition of state-value and advantage for taking each action, and use these two parts to construct the final q_value, which is better for evaluating the value of some states that show fewer connections with action selection.</p>
 <p>The specific architecture is shown in the following graph:</p>
 <a class="reference internal image-reference" href="../_images/DuelingDQN.png"><img alt="../_images/DuelingDQN.png" class="align-center" src="../_images/DuelingDQN.png" style="height: 300px;" /></a>
-<p>In DI-engine, user can enable Dueling head by modifying <code class="docutils literal notranslate"><span class="pre">dueling</span></code> field in model part of configuration file, and the detailed code class <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code> is located in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/common/head.py">Dueling Head</a>.</p>
+<p>In DI-engine, users can enable Dueling head by modifying the <code class="docutils literal notranslate"><span class="pre">dueling</span></code> field in the model part of the configuration file, and the detailed code class <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code> is located in <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/common/head.py">Dueling Head</a>.</p>
 </li>
 <li><p>RNN (DRQN, R2D2)</p>
 <p>For the combination of DQN and RNN, please refer to <a class="reference external" href="./r2d2.html">R2D2</a> in this series doc.</p>
@@ -734,8 +734,8 @@ skip-v4)</p>
 </table>
 <p>P.S.：</p>
 <ol class="arabic simple">
-<li><p>The above results are obtained by running the same configuration on 5 different random seeds (0, 1, 2, 3, 4)</p></li>
-<li><p>For the discrete action space algorithm like DQN, Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>. For more details about Atari, please refer to <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
+<li><p>For the discrete action space algorithm like DQN, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>. For more details about Atari, please refer to <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
 </ol>
 </div>
 <div class="section" id="reference">

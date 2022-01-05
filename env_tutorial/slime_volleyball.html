@@ -248,17 +248,15 @@ hub</a> for more mirrors.</p>
 <div class="section" id="observation-space">
 <span id="observation-space-1"></span><h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li><p>The observation space is a vector of size <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code> containing the absolute coordinates of self, opponent, and ball with two consecutive frames stitched togerther. The data type is <code class="docutils literal notranslate"><span class="pre">float64</span></code></p></li>
+<li><p>The observation space is a vector of size <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code> containing the absolute coordinates of self, opponent, and ball with two consecutive frames stitched togerther. The data type is <code class="docutils literal notranslate"><span class="pre">float64</span></code>
+i.e. (x_agent, y_agent, x_agent_next, y_agent_next, x_ball, y_ball, x_ball_next, y_ball_next, x_opponent, y_opponent, x_opponent_next, y_opponent_next)</p></li>
 </ul>
-<p>i.e. (x_agent, y_agent, x_agent_next, y_agent_next, x_ball, y_ball, x_ball_next, y_ball_next, x_opponent, y_opponent, x_opponent_next, y_opponent_next)</p>
 </div>
 <div class="section" id="action-space">
 <span id="action-space-1"></span><h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>The original action space of <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> is defined as <code class="docutils literal notranslate"><span class="pre">MultiBinary(3)</span></code> with three kinds of actions. More than one actions can be performed at the same time. Each action is corresponding to two cases: 0 (not executed) and 1 (executed).</p></li>
-</ul>
-<p>i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></code> represents the execution of the first and third actions at the same time. The data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, which needs to be passed into a python list object (or a 1-dimensional np array of size 3, i.e. <code class="docutils literal notranslate"><span class="pre">np.array([0,</span> <span class="pre">1,</span> <span class="pre">0])</span></code></p>
 <ul>
+<li><p>The original action space of <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> is defined as <code class="docutils literal notranslate"><span class="pre">MultiBinary(3)</span></code> with three kinds of actions. More than one actions can be performed at the same time. Each action is corresponding to two cases: 0 (not executed) and 1 (executed).
+i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></code> represents the execution of the first and third actions at the same time. The data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>, which needs to be passed into a python list object (or a 1-dimensional np array of size 3, i.e. <code class="docutils literal notranslate"><span class="pre">np.array([0,</span> <span class="pre">1,</span> <span class="pre">0])</span></code></p></li>
 <li><p>The actual implementation does not strictly limit the action to 0 and 1. It treats values greater than 0 as 1, while values less than or equal to 0 as 0.</p></li>
 <li><p>In the <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> environment, the basic action is meant to be</p>
 <blockquote>

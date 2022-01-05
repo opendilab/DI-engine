@@ -16,7 +16,7 @@ Prerequisites
 
    Python version: 3.6, 3.7, 3.8 (You can refer to `Python Installation Guide <https://pytorch.org/get-started/locally/#linux-python>`_ in PyTorch doc. Please pay attention to the correct Python version.)
 
-   PyTorch version: >=1.3.1, <=1.8.0 (You can use any proper version in this range, see `PyTorch Installation <https://pytorch.org/get-started/locally/>`_)
+   PyTorch version: >=1.1.0, <=1.10.0 (You can use any proper version in this range, see `PyTorch Installation <https://pytorch.org/get-started/locally/>`_)
 
    .. note::
 

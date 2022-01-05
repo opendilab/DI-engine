@@ -278,7 +278,7 @@ pip install -e .
 <span class="c1"># Download the MuJoCo version 2.1 binaries for Linux.</span>
 wget https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz
 <span class="c1"># Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.</span>
-tar xvf mujoco210-linux-x86_64.tar.gz <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
+tar xvf mujoco210-linux-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
 <span class="c1"># Install and use mujoco-py</span>
 pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
@@ -287,7 +287,7 @@ pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
 <span class="c1"># Download the MuJoCo version 2.1 binaries for OSX.</span>
 wget https://mujoco.org/download/mujoco210-macos-x86_64.tar.gz
 <span class="c1"># Extract the downloaded mujoco210 directory into ~/.mujoco/mujoco210.</span>
-tar xvf mujoco210-macos-x86_64.tar.gz <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
+tar xvf mujoco210-macos-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco210 ~/.mujoco/mujoco210
 <span class="c1"># Install and use mujoco-py</span>
 pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
@@ -300,7 +300,7 @@ pip install -U <span class="s1">&#39;mujoco-py&lt;2.2,&gt;=2.1&#39;</span>
 <span class="c1"># Download the MuJoCo version 2.0 binaries for Linux.</span>
 wget https://www.roboti.us/download/mujoco200_linux.zip
 <span class="c1"># Extract the downloaded mujoco200 directory into ~/.mujoco/mujoco200.</span>
-unzip mujoco200_linux.zip <span class="o">&amp;&amp;</span> mv mujoco200_linux ~/.mujoco/mujoco200
+unzip mujoco200_linux.zip <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco200_linux ~/.mujoco/mujoco200
 <span class="c1"># Download unlocked activation key.</span>
 wget https://www.roboti.us/file/mjkey.txt -O  ~/.mujoco/mjkey.txt
 <span class="c1"># Install and use mujoco-py</span>
@@ -311,7 +311,7 @@ pip install -U <span class="s1">&#39;mujoco-py&lt;2.1&#39;</span>
 <span class="c1"># Download the MuJoCo version 2.0 binaries for OSX.</span>
 wget https://www.roboti.us/download/mujoco200_macos.zip
 <span class="c1"># Extract the downloaded mujoco200 directory into ~/.mujoco/mujoco200.</span>
-tar xvf mujoco200-macos-x86_64.tar.gz <span class="o">&amp;&amp;</span> mv mujoco200_macos ~/.mujoco/mujoco200
+tar xvf mujoco200-macos-x86_64.tar.gz <span class="o">&amp;&amp;</span> mkdir -p ~/.mujoco <span class="o">&amp;&amp;</span> mv mujoco200_macos ~/.mujoco/mujoco200
 <span class="c1"># Download unlocked activation key.</span>
 wget https://www.roboti.us/file/mjkey.txt -O  ~/.mujoco/mjkey.txt
 <span class="c1"># Install and use mujoco-py</span>

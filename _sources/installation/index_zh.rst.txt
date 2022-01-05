@@ -16,7 +16,7 @@
 
    Python 版本: 3.6, 3.7, 3.8 (你可以参考 `Python 安装指南 <https://pytorch.org/get-started/locally/#linux-python>`_ . 请注意安装正确的Python版本.) 
 
-   PyTorch 版本: >=1.3.1, <=1.8.0 (你可以在这个范围内使用任何合适的版本, 参考 `PyTorch 安装 <https://pytorch.org/get-started/locally/>`_)
+   PyTorch 版本: >=1.1.0, <=1.10.0 (你可以在这个范围内使用任何合适的版本, 参考 `PyTorch 安装 <https://pytorch.org/get-started/locally/>`_)
 
    .. note::
 

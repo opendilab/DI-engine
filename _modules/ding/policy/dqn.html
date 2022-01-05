@@ -256,7 +256,9 @@
             <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
             <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
             <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="c1"># (int) How many samples in a training batch</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="c1"># (float) The step size of gradient descent</span>
             <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
             <span class="c1"># ==============================================================</span>
             <span class="c1"># The following configs are algorithm-specific</span>
@@ -280,7 +282,9 @@
             <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="c1"># (str) Decay type. Support [&#39;exp&#39;, &#39;linear&#39;].</span>
                 <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="c1"># (float) Epsilon start value</span>
                 <span class="n">start</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                <span class="c1"># (float) Epsilon end value</span>
                 <span class="n">end</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
                 <span class="c1"># (int) Decay length(env step)</span>
                 <span class="n">decay</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
