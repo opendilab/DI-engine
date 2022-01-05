@@ -734,6 +734,8 @@ class GTrXLDiscreteHead(nn.Module):
         gru_gating: bool = True,
         gru_bias: float = 2.,
         dueling: bool = True,
+        conv_encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        norm_type: Optional[str] = None,
     ) -> None:
         r"""
         Overview:
@@ -759,6 +761,7 @@ class GTrXLDiscreteHead(nn.Module):
             - dueling (:obj:`bool`): Used by Head. Make the head dueling.
         """
         super(GTrXLDiscreteHead, self).__init__()
+        obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
         self.core = GTrXL(
             input_dim=obs_shape,
             head_dim=att_head_dim,
@@ -772,16 +775,13 @@ class GTrXLDiscreteHead(nn.Module):
             gru_gating=gru_gating,
             gru_bias=gru_bias,
         )
-
-        obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
-        if head_hidden_size is None:
-            head_hidden_size = encoder_hidden_size_list[-1]
-        # FC Encoder
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
-        # Conv Encoder
+            pass
+        # replace the embedding layer of Transformer with Conv Encoder
         elif len(obs_shape) == 3:
-            self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+            self.obs_encoder = ConvEncoder(obs_shape, conv_encoder_hidden_size_list, activation=activation,
+                                           norm_type=norm_type)
+            self.core.embedding = self.obs_encoder
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own DRQN".format(obs_shape)

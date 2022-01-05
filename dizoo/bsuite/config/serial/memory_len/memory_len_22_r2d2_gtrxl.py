@@ -25,11 +25,9 @@ memory_len_r2d2_gtrxl_config = dict(
         ),
         discount_factor=0.997,
         nstep=2,
-        # (int) the whole sequence length to unroll the RNN network minus
-        # the timesteps of burnin part,
-        # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
         unroll_len=103,
         seq_len=103,
+        burnin_step=0,
         learn=dict(
             update_per_collect=8,
             batch_size=64,
