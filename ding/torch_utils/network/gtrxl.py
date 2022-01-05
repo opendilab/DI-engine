@@ -11,6 +11,7 @@ class PositionalEmbedding(nn.Module):
     .. note::
         Adapted from https://github.com/kimiyoung/transformer-xl/blob/master/pytorch/mem_transformer.py
     """
+
     def __init__(self, embedding_dim: int):
         """
         Arguments:
@@ -43,6 +44,7 @@ class GRUGatingUnit(torch.nn.Module):
     Overview:
         GRU Gating Unit used in GTrXL.
     """
+
     def __init__(self, input_dim: int, bg: float = 2.):
         """
         Arguments:
@@ -87,6 +89,7 @@ class Memory:
     .. note::
         For details refer to Transformer-XL: https://arxiv.org/abs/1901.02860
     """
+
     def __init__(
             self,
             memory_len: int = 20,
@@ -124,7 +127,7 @@ class Memory:
             layer_num_plus1, self.memory_len, self.bs, self.embedding_dim = memory.shape
             self.layer_num = layer_num_plus1 - 1
         else:
-            self.memory = torch.zeros(self.layer_num+1, self.memory_len,
+            self.memory = torch.zeros(self.layer_num + 1, self.memory_len,
                                       self.bs, self.embedding_dim, dtype=torch.float)
 
     def update(self, hidden_state: List[torch.Tensor]):
@@ -152,7 +155,7 @@ class Memory:
             new_memory = []
             end = self.memory_len + sequence_len
             beg = max(0, end - self.memory_len)
-            for i in range(self.layer_num+1):
+            for i in range(self.layer_num + 1):
                 m = self.memory[i]
                 h = hidden_state[i]
                 cat = torch.cat([m, h], dim=0)
@@ -171,12 +174,16 @@ class Memory:
         """
         return self.memory
 
+    def to(self, device: str = 'cpu'):
+        self.memory = self.memory.to(device)
+
 
 class AttentionXL(torch.nn.Module):
     """
     Overview:
         Attention of TransformerXL.
     """
+
     def __init__(self, input_dim: int, head_dim: int, head_num: int, dropout: nn.Module) -> None:
         """Overview:
             Init AttentionXL.
@@ -219,10 +226,10 @@ class AttentionXL(torch.nn.Module):
             - x (:obj:`torch.Tensor`): input after relative shift. Shape (cur_seq, full_seq, bs, head_num).
         """
         x_padded = F.pad(x, [1, 0])  # step 1
-        x_padded = x_padded.view(x.size(0), x.size(1), x.size(3)+1, x.size(2))  # step 2
+        x_padded = x_padded.view(x.size(0), x.size(1), x.size(3) + 1, x.size(2))  # step 2
         x = x_padded[:, :, 1:].view_as(x)  # step 3
         ones = torch.ones((x.size(2), x.size(3))).unsqueeze(0).unsqueeze(0)
-        x = x * torch.tril(ones, x.size(3) - x.size(2))  # step 4
+        x = x * torch.tril(ones.to(x.device), x.size(3) - x.size(2))  # step 4
         return x
 
     def forward(self,
@@ -232,7 +239,7 @@ class AttentionXL(torch.nn.Module):
                 u: torch.nn.Parameter,
                 v: torch.nn.Parameter,
                 mask: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
+                ) -> torch.Tensor:
         """Overview:
             Compute AttentionXL.
         Arguments:
@@ -295,17 +302,18 @@ class GatedTransformerXLLayer(torch.nn.Module):
     Overview:
         Attention layer of GTrXL
     """
+
     def __init__(
-        self,
-        input_dim: int,
-        head_dim: int,
-        hidden_dim: int,
-        head_num: int,
-        mlp_num: int,
-        dropout: nn.Module,
-        activation: nn.Module,
-        gru_gating: bool = True,
-        gru_bias: float = 2.
+            self,
+            input_dim: int,
+            head_dim: int,
+            hidden_dim: int,
+            head_num: int,
+            mlp_num: int,
+            dropout: nn.Module,
+            activation: nn.Module,
+            gru_gating: bool = True,
+            gru_bias: float = 2.
     ) -> None:
         """
         Arguments:
@@ -344,13 +352,13 @@ class GatedTransformerXLLayer(torch.nn.Module):
         self.activation = activation
 
     def forward(
-        self,
-        inputs: torch.Tensor,
-        pos_embedding: torch.Tensor,
-        u: torch.nn.Parameter,
-        v: torch.nn.Parameter,
-        memory: torch.Tensor,
-        mask: Optional[torch.Tensor] = None,
+            self,
+            inputs: torch.Tensor,
+            pos_embedding: torch.Tensor,
+            u: torch.nn.Parameter,
+            v: torch.nn.Parameter,
+            memory: torch.Tensor,
+            mask: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Overview:
             Compute forward pass of GTrXL layer.
@@ -366,7 +374,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
             - output (:obj:`torch.Tensor`): layer output of shape (cur_seq, bs, input_dim)
         """
         # concat memory with input across sequence dimension
-        full_input = torch.cat([memory.detach(), inputs], dim=0)  # full_seq x bs x input_dim
+        full_input = torch.cat([memory, inputs], dim=0)  # full_seq x bs x input_dim
         x1 = self.layernorm1(full_input)
         a1 = self.dropout(self.attention(inputs, pos_embedding, x1, u, v, mask=mask))
         a1 = self.activation(a1)  # RELU after attention
@@ -384,19 +392,20 @@ class GTrXL(nn.Module):
     .. note::
         For details refer to Stabilizing Transformer for Reinforcement Learning: https://arxiv.org/abs/1910.06764
     """
+
     def __init__(
-        self,
-        input_dim: int,
-        head_dim: int = 128,
-        embedding_dim: int = 256,
-        head_num: int = 2,
-        mlp_num: int = 2,
-        layer_num: int = 3,
-        memory_len: int = 64,
-        dropout_ratio: float = 0.,
-        activation: nn.Module = nn.ReLU(),
-        gru_gating: bool = True,
-        gru_bias: float = 2.
+            self,
+            input_dim: int,
+            head_dim: int = 128,
+            embedding_dim: int = 256,
+            head_num: int = 2,
+            mlp_num: int = 2,
+            layer_num: int = 3,
+            memory_len: int = 64,
+            dropout_ratio: float = 0.,
+            activation: nn.Module = nn.ReLU(),
+            gru_gating: bool = True,
+            gru_bias: float = 2.
     ) -> None:
         """Overview:
             Init GTrXL Model
@@ -495,7 +504,8 @@ class GTrXL(nn.Module):
                           " this will cause the memory to be initialized to fit your input!"
                           .format(list(memory.shape[-2:]), [x.shape[-2]] + [self.embedding_dim]))
             self.reset_memory(bs)
-        memory = self.memory.get().to(x.device)
+        self.memory.to(x.device)
+        memory = self.memory.get()
 
         x = self.dropout(self.embedding(x))
         prev_seq = self.memory_len
@@ -510,7 +520,7 @@ class GTrXL(nn.Module):
         )  # cur_seq x full_seq x 1
 
         pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
-        pos_embedding = self.dropout(self.pos_embedding(pos_ips))  # full_seq x 1 x embedding_dim
+        pos_embedding = self.dropout(self.pos_embedding(pos_ips.to(x.device)))  # full_seq x 1 x embedding_dim
 
         hidden_state = [x]
         out = x
@@ -523,8 +533,8 @@ class GTrXL(nn.Module):
                 self.v,
                 mask=dec_attn_mask,
                 memory=memory[i],  # (layer_num+1) x memory_len x batch_size x embedding_dim
-            )   # cur_seq x bs x embedding_dim
-            hidden_state.append(out.clone().detach())
+            )  # cur_seq x bs x embedding_dim
+            hidden_state.append(out.clone())
 
         out = self.dropout(out)
         self.memory.update(hidden_state)  # (layer_num+1) x memory_len x batch_size x embedding_dim
