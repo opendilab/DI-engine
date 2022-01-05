@@ -12,8 +12,6 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
-# from dizoo.atari.config.serial.pong.pong_trex_sql_config import main_config, create_config
-from dizoo.box2d.lunarlander.config.lunarlander_trex_offppo_config import main_config, create_config
 
 
 def serial_pipeline_reward_model_trex(
@@ -133,7 +131,3 @@ def serial_pipeline_reward_model_trex(
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
-
-
-if __name__ == '__main__':
-    serial_pipeline_reward_model_trex([main_config, create_config])
