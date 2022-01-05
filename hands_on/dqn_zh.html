@@ -238,7 +238,7 @@
 <h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/DQN.png"><img alt="../_images/DQN.png" class="align-center" src="../_images/DQN.png" style="width: 1144.0px; height: 573.1px;" /></a>
 <p>伪代码中的 equation（3） 指的是：</p>
-<img alt="../_images/eq3.png" class="align-center" src="../_images/eq3.png" />
+<a class="reference internal image-reference" href="../_images/eq3.png"><img alt="../_images/eq3.png" class="align-center" src="../_images/eq3.png" style="width: 1239.6px; height: 74.39999999999999px;" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>DQN在发展过程中变更出了许多版本。与原始版本相比，现代的 DQN 在算法和实现方面都得到了显著改进。譬如，在算法部分，<strong>TD-loss, PER, n-step, target network</strong> and <strong>dueling head</strong> 等技巧被广泛使用，感兴趣的读者可参考论文 <a class="reference external" href="https://arxiv.org/abs/1710.02298">Rainbow: Combining Improvements in Deep Reinforcement Learning</a>。在实现部分，探索所用的 epsilon 并非在整个训练流程保持不变，而是根据环境步数（envstep，意为策略与环境的交互次数），在训练期间，探索所用的 epsilon 从一个较高的初始值（比如，0.95）退火到一个较低值（比如，0.05）。</p>

@@ -24,15 +24,15 @@ Git 协作指南
 
 2. 本地代码仓库开发。在创建好代码仓库并 clone 至本地之后，即可开始代码开发。这里有下面几个建议：
 
-   - 任何一个较大的代码改动或功能更新，需要通过 GitLab Issue 来描述具体要做的工作或跟同事讨论相关解决方案，同时新开一个 ``WIP(Work In Progress)`` 的 ``merge request`` 跟进自己的进展，其他同事也可以在该MR下comment，进行讨论或code review。
+   - 任何一个较大的代码改动或功能更新，需要通过 GitHub Issue 来描述具体要做的工作或跟同事讨论相关解决方案，同时新开一个 ``WIP(Work In Progress)`` 的 ``merge request`` 跟进自己的进展，其他同事也可以在该MR下comment，进行讨论或code review。
    - 如果是修复 bug, 建议现在 issue 页面描述 bug 的表现及触发场景，以防其他同事踩雷，且为这个issue 打上 ``Bug Report`` label。
    - 如果是打算添加新功能，那么 **在开始写代码之前** ，请先线下和代码库的负责人聊一下你的意图、添加这个功能的原因和打算使用的实现方式，确定加这个功能是必须且可行的。之后，请仍然在原代码仓库提一个 issue，描述你准备加入的功能和具体的 TODO 列表，且为这个issue打上相应label，比如算法更新使用 ``Algorithm`` 。 
    - 在进行每一个 issue 对应的开发任务时，可以在本地按照自己的工作节奏 commit ，尽量保证每个commit只对应一种相关的代码改动，也可以把这些做到一半的 commits 推送进自己的 fork 仓库内以防止工作丢失。但是，在完成发起的 issue 的目标（或某一条 TODO）前， **不要把不完整的 commit 推送至原始仓库** 。
 
 
-3. 完成本地开发之后, 同步上游代码，整合自己的本地 commits，处理 conflicts。简单在conflicts可以直接在 ``merge request`` 对应的gitlab网页上直接进行操作，较为复杂的需要在本地fetch目标分支的改动之后，手动进行merge，一些较复杂的情形可以使用 ``git rebase`` 来完成，（具体细节可以参考 `Pro Git-分支-变基 <https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA>`_ 一节
+3. 完成本地开发之后, 同步上游代码，整合自己的本地 commits，处理 conflicts。简单在conflicts可以直接在 ``merge request`` 对应的 GitHub 网页上直接进行操作，较为复杂的需要在本地fetch目标分支的改动之后，手动进行merge，一些较复杂的情形可以使用 ``git rebase`` 来完成，（具体细节可以参考 `Pro Git-分支-变基 <https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA>`_ 一节
 
-4. 冲突解决后，在MR或Issue里描述代码改动对应的工作内容，由项目负责人或指定相关同事进行 code review。代码合并成功后，关闭相应的 GitLab Issue。
+4. 冲突解决后，在MR或Issue里描述代码改动对应的工作内容，由项目负责人或指定相关同事进行 code review。代码合并成功后，关闭相应的 GitHub Issue。
 
 git规范
 --------------

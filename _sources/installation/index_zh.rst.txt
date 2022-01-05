@@ -48,7 +48,7 @@
 
 .. code-block:: bash
 
-    git clone https://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git
+    git clone https://github.com/opendilab/DI-engine.git
     cd DI-engine
     pip install . --user
 
@@ -88,7 +88,7 @@
 
     # source r0.3.2  # maybe you need activate virtual environment first
 
-    git clone http://gitlab.bj.sensetime.com/open-XLab/cell/nerveX.git && cd DI-engine
+    git clone https://github.com/opendilab/DI-engine.git && cd DI-engine
     pip install -e .[test, common_env] --user
 
 检查安装情况

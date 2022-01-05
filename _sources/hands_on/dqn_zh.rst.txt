@@ -39,6 +39,7 @@ DQN 中的 TD-loss 是：
 
 .. image:: images/eq3.png
    :align: center
+   :scale: 60%
 
 .. note::
    DQN在发展过程中变更出了许多版本。与原始版本相比，现代的 DQN 在算法和实现方面都得到了显著改进。譬如，在算法部分，**TD-loss, PER, n-step, target network** and **dueling head** 等技巧被广泛使用，感兴趣的读者可参考论文 `Rainbow: Combining Improvements in Deep Reinforcement Learning <https://arxiv.org/abs/1710.02298>`_。在实现部分，探索所用的 epsilon 并非在整个训练流程保持不变，而是根据环境步数（envstep，意为策略与环境的交互次数），在训练期间，探索所用的 epsilon 从一个较高的初始值（比如，0.95）退火到一个较低值（比如，0.05）。

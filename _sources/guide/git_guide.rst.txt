@@ -23,15 +23,15 @@ Collaboration Processg
 
 1. For Local repo development, as creating the repo and cloning to local, you can start. Following are some suggestions:
 
-   - For any major code changes or feature updates, you should use ``GitLab Issue`` to describe the specific work to be done or discuss related possible resolution with colleagues and open at the same time a new ``merge request`` with ``WIP(Work In Progress)``. Follow up your progress, and other colleagues can also comment, discuss or add code reviews to the MR.
+   - For any major code changes or feature updates, you should use ``GitHub Issue`` to describe the specific work to be done or discuss related possible resolution with colleagues and open at the same time a new ``merge request`` with ``WIP(Work In Progress)``. Follow up your progress, and other colleagues can also comment, discuss or add code reviews to the MR.
    - If the repo is to fix a bug, it is recommended to describe the performance and triggering conditions of the bug on the ``Issue`` page to prevent other colleagues from stepping on the pit, and label this issue ``Bug Report``.
    - If you plan to add a new feature to repo, **before starting to implement**, please chat with the repo manager about your intention and reason for adding this feature as well as the implementation method you intend to use, and then make sure that adding this feature is necessary and feasible. After that, please still raise an issue in the original code repository to describe the feature to add and the specific ``TODO`` list and label the issue accordingly, for example, use ``Algorithm`` for algorithm updates.
    - In progress of the corresponding development tasks to each issue, you can commit locally according to your own work schedule but try to ensure that each commit corresponds to only one type of related code changes, or you can push half of these commits into your forked repo to avoid loss of work. However, before completing resolving a issue (or a TODO), **do not push the incomplete commit to the original repo base**.
 
 
-2. After making local changes, the developer should sync with the upstream code, integrate your own local commits, and resolve conflicts. Simple conflicts can be resolved directly on the gitlab ``merge request`` page. For more complex cases, you should manually merge after the local fetched target branch changed. For further complicated situations, you can consider using ``git rebase``, (please refer to `Pro Git-Branch-Rebase <https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5 %8F%98%E5%9F%BA>`_ for details. 
+2. After making local changes, the developer should sync with the upstream code, integrate your own local commits, and resolve conflicts. Simple conflicts can be resolved directly on the github ``merge request`` page. For more complex cases, you should manually merge after the local fetched target branch changed. For further complicated situations, you can consider using ``git rebase``, (please refer to `Pro Git-Branch-Rebase <https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5 %8F%98%E5%9F%BA>`_ for details. 
 
-3. After the conflict is resolved, the developer should descibe corresponding code changes in the MR or Issue, and later manager or a designated colleague will review the changes. After the code is merged successfully, close the corresponding GitLab Issue.
+3. After the conflict is resolved, the developer should descibe corresponding code changes in the MR or Issue, and later manager or a designated colleague will review the changes. After the code is merged successfully, close the corresponding GitHub Issue.
 
 Git Standards
 --------------
