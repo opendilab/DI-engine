@@ -1,4 +1,3 @@
-
 from typing import Any, List, Union, Optional
 import time
 import gym
@@ -16,7 +15,12 @@ class LunarLanderEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._init_flag = False
-        self._act_scale = cfg.act_scale
+        # env_id: LunarLander-v2, LunarLanderContinuous-v2
+        self._env_id = cfg.env_id
+        if 'Continuous' in self._env_id:
+            self._act_scale = cfg.act_scale  # act_scale only works in continous env
+        else:
+            self._act_scale = False
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -67,7 +71,7 @@ class LunarLanderEnv(BaseEnv):
             return BaseEnvInfo(
                 agent_num=1,
                 obs_space=T(
-                    (8,),
+                    (8, ),
                     {
                         'min': [float("-inf")] * 8,
                         'max': [float("inf")] * 8,
@@ -76,7 +80,7 @@ class LunarLanderEnv(BaseEnv):
                 ),
                 # [min, max) TODO(pu)
                 act_space=T(
-                    (2,),
+                    (2, ),
                     {
                         'min': float("-inf"),
                         'max': float("inf"),
@@ -84,7 +88,7 @@ class LunarLanderEnv(BaseEnv):
                     },
                 ),
                 rew_space=T(
-                    (1,),
+                    (1, ),
                     {
                         'min': -1000.0,
                         'max': 1000.0,

@@ -5,6 +5,7 @@ lunarlander_ppo_rnd_config = dict(
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),
@@ -34,8 +35,6 @@ lunarlander_ppo_rnd_config = dict(
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
-            # nstep=1,
-            # nstep_return=False,
             adv_norm=True,
             value_norm=True,
         ),
@@ -62,8 +61,6 @@ lunarlander_ppo_rnd_create_config = dict(
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),
-    # policy=dict(type='ppo_offpolicy'),
     policy=dict(type='ppo'),
     reward_model=dict(type='rnd')
 )

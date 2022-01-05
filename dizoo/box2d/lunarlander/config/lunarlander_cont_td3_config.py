@@ -43,7 +43,6 @@ lunarlander_td3_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
         other=dict(replay_buffer=dict(replay_buffer_size=int(1e5), ), ),
-
     ),
 )
 lunarlander_td3_config = EasyDict(lunarlander_td3_config)
