@@ -2,6 +2,7 @@ from typing import Union, Optional, Dict, Callable, List
 from ding.torch_utils.network.nn_module import *
 from ding.utils import MODEL_REGISTRY
 import warnings
+import numpy as np
 
 
 class PositionalEmbedding(nn.Module):
@@ -394,18 +395,19 @@ class GTrXL(nn.Module):
     """
 
     def __init__(
-            self,
-            input_dim: int,
-            head_dim: int = 128,
-            embedding_dim: int = 256,
-            head_num: int = 2,
-            mlp_num: int = 2,
-            layer_num: int = 3,
-            memory_len: int = 64,
-            dropout_ratio: float = 0.,
-            activation: nn.Module = nn.ReLU(),
-            gru_gating: bool = True,
-            gru_bias: float = 2.
+        self,
+        input_dim: int,
+        head_dim: int = 128,
+        embedding_dim: int = 256,
+        head_num: int = 2,
+        mlp_num: int = 2,
+        layer_num: int = 3,
+        memory_len: int = 64,
+        dropout_ratio: float = 0.,
+        activation: nn.Module = nn.ReLU(),
+        gru_gating: bool = True,
+        gru_bias: float = 2.,
+        use_embedding_layer: bool = True,
     ) -> None:
         """Overview:
             Init GTrXL Model
@@ -421,13 +423,18 @@ class GTrXL(nn.Module):
             - activation (:obj:`nn.Module`): activation function
             - gru_gating (:obj:`bool`): if False replace GRU gates with residual connections
             - gru_bias (:obj:`float`): GRU gate bias
+            - use_embedding_layer (:obj:`bool`): default True. If False, don't use input embedding layer.
         """
         super(GTrXL, self).__init__()
         assert embedding_dim % 2 == 0, 'embedding_dim={} should be even'.format(input_dim)
         self.head_num = head_num
         self.head_dim = head_dim
         self.layer_num = layer_num
-        self.embedding = fc_block(input_dim, embedding_dim, activation=activation)
+        if isinstance(input_dim, list):
+            input_dim = np.prod(input_dim)
+        self.use_embedding_layer = use_embedding_layer
+        if use_embedding_layer:
+            self.embedding = fc_block(input_dim, embedding_dim, activation=activation)
         self.activation = activation
         self.pos_embedding = PositionalEmbedding(embedding_dim)
         # memory to save hidden states of past segments
@@ -459,7 +466,7 @@ class GTrXL(nn.Module):
             - state (:obj:`Optional[torch.Tensor]`): input memory.
             Shape is (layer_num, memory_len, bs, embedding_dim).
         """
-        self.memory = Memory()
+        self.memory = Memory(memory_len=self.memory_len)
         if batch_size is not None:
             self.memory = Memory(self.memory_len, batch_size, self.embedding_dim, self.layer_num)
         elif state is not None:
@@ -494,7 +501,6 @@ class GTrXL(nn.Module):
         """
         if batch_first:
             x = torch.transpose(x, 1, 0)  # bs x cur_seq x input_dim -> cur_seq x bs x input_dim
-
         cur_seq, bs = x.shape[:2]
         memory = None if self.memory is None else self.memory.get()
         if memory is None:
@@ -507,7 +513,8 @@ class GTrXL(nn.Module):
         self.memory.to(x.device)
         memory = self.memory.get()
 
-        x = self.dropout(self.embedding(x))
+        if self.use_embedding_layer:
+            x = self.dropout(self.embedding(x))
         prev_seq = self.memory_len
         full_seq = cur_seq + prev_seq
 

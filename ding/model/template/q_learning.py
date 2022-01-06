@@ -734,8 +734,8 @@ class GTrXLDiscreteHead(nn.Module):
         gru_gating: bool = True,
         gru_bias: float = 2.,
         dueling: bool = True,
-        conv_encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        norm_type: Optional[str] = None,
+        encoder_hidden_size_list: SequenceType = [128, 128, 256],
+        encoder_norm_type: Optional[str] = None,
     ) -> None:
         r"""
         Overview:
@@ -759,9 +759,12 @@ class GTrXLDiscreteHead(nn.Module):
             - gru_gating (:obj:`bool`): Used by Transformer.
             - gru_bias (:obj:`float`): Used by Transformer.
             - dueling (:obj:`bool`): Used by Head. Make the head dueling.
+            - encoder_hidden_size_list(:obj:`SequenceType`): Used by Encoder. The collection of ``hidden_size`` if using
+              a custom convolutional encoder.
+            - encoder_norm_type (:obj:`Optional[str]`): Used by Encoder. The type of normalization to use, see
+             ``ding.torch_utils.fc_block`` for more details`.
         """
         super(GTrXLDiscreteHead, self).__init__()
-        obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
         self.core = GTrXL(
             input_dim=obs_shape,
             head_dim=att_head_dim,
@@ -775,18 +778,20 @@ class GTrXLDiscreteHead(nn.Module):
             gru_gating=gru_gating,
             gru_bias=gru_bias,
         )
+
         if isinstance(obs_shape, int) or len(obs_shape) == 1:
             pass
         # replace the embedding layer of Transformer with Conv Encoder
         elif len(obs_shape) == 3:
-            self.obs_encoder = ConvEncoder(obs_shape, conv_encoder_hidden_size_list, activation=activation,
-                                           norm_type=norm_type)
-            self.core.embedding = self.obs_encoder
+            assert encoder_hidden_size_list[-1] == hidden_size
+            self.obs_encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation,
+                                           norm_type=encoder_norm_type)
+            self.dropout = nn.Dropout(dropout)
+            self.core.use_embedding_layer = False
         else:
             raise RuntimeError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own DRQN".format(obs_shape)
+                "not support obs_shape for pre-defined encoder: {}, please customize your own GTrXL".format(obs_shape)
             )
-
         # Head Type
         if dueling:
             head_cls = DuelingHead
@@ -829,6 +834,11 @@ class GTrXLDiscreteHead(nn.Module):
             >>> outputs = model(obs)
             >>> assert isinstance(outputs, dict)
         """
+        if len(x.shape) == 5:
+            # 3d obs: cur_seq, bs, ch, h, w
+            x_ = x.reshape([x.shape[0] * x.shape[1]] + list(x.shape[-3:]))
+            x_ = self.dropout(self.obs_encoder(x_))
+            x = x_.reshape(x.shape[0], x.shape[1], -1)
         o1 = self.core(x)
         out = self.head(o1['logit'])
         # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim

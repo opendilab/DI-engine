@@ -21,19 +21,17 @@ pong_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            encoder_hidden_size_list=[128, 128, 512],
+            hidden_size=256,
+            encoder_hidden_size_list=[128, 128, 256],
+            gru_bias=1.,
+            memory_len=0,
         ),
         discount_factor=0.997,
-        burnin_step=2,
+        burnin_step=0,
         nstep=5,
         unroll_len=20,
         seq_len=15,
         learn=dict(
-            # according to the R2D2 paper, actor parameter update interval is 400
-            # environment timesteps, and in per collect phase, we collect 32 sequence
-            # samples, the length of each samlpe sequence is <burnin_step> + <unroll_len>,
-            # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
-            # in most environments
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
