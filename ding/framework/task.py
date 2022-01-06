@@ -120,7 +120,7 @@ class Task:
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
         """
-        if not filter_labels or any([fnmatch.filter(self.labels, v) for v in filter_labels]):
+        if not filter_labels or self.match_labels(filter_labels):
             self.middleware.append(fn)
         return self
 
@@ -134,6 +134,15 @@ class Task:
         """
         self.step_wrappers.append(fn)
         return self
+
+    def match_labels(self, patterns: Iterable[str]) -> bool:
+        """
+        Overview:
+            A list of patterns to match labels.
+        Arguments:
+            - patterns (:obj:`Iterable[str]`): Glob like pattern, e.g. node.1, node.*.
+        """
+        return any([fnmatch.filter(self.labels, p) for p in patterns])
 
     def run(self, max_step: int = int(1e10)) -> None:
         """

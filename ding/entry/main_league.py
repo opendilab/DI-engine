@@ -45,6 +45,10 @@ class EvalPolicy1:
         pass
 
 
+class LeaguePolicy:
+    pass
+
+
 def league_dispatching(task: Task, cfg, tb_logger, league, policies):
 
     def update_active_player(player_info):
@@ -270,22 +274,18 @@ def main():
     policies['historical'] = policy
 
     with Task(async_mode=True, n_async_workers=4, auto_sync_ctx=False) as task:
-        task.use(
-            league_dispatching(task, cfg=cfg, tb_logger=tb_logger, league=league, policies=policies),
-            filter_labels=["standalone", "league"]
-        )
-        task.use(
-            collecting(task, cfg=cfg, tb_logger=tb_logger, player_ids=league.active_players_ids),
-            filter_labels=["standalone", "collect"]
-        )
-        task.use(
-            learning(task, cfg=cfg, tb_logger=tb_logger, player_ids=league.active_players_ids, policies=policies),
-            filter_labels=["standalone", "learn"]
-        )
-        task.use(
-            evaluating(task, cfg=cfg, tb_logger=tb_logger, player_ids=league.active_players_ids, policies=policies),
-            filter_labels=["standalone", "evaluate"]
-        )
+        if task.match_labels(["standalone", "league"]):
+            task.use(league_dispatching(task, cfg=cfg, tb_logger=tb_logger, league=league, policies=policies))
+        if task.match_labels(["standalone", "collect"]):
+            task.use(collecting(task, cfg=cfg, tb_logger=tb_logger, player_ids=league.active_players_ids))
+        if task.match_labels(["standalone", "learn"]):
+            task.use(
+                learning(task, cfg=cfg, tb_logger=tb_logger, player_ids=league.active_players_ids, policies=policies)
+            )
+        if task.match_labels(["standalone", "evaluate"]):
+            task.use(
+                evaluating(task, cfg=cfg, tb_logger=tb_logger, player_ids=league.active_players_ids, policies=policies)
+            )
         task.run(100)
 
 
