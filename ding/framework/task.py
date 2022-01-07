@@ -1,4 +1,8 @@
-from asyncio.exceptions import InvalidStateError
+import sys
+if sys.version_info[1] < 7:
+    from asyncio.base_futures import InvalidStateError
+else:
+    from asyncio.exceptions import InvalidStateError
 from asyncio.tasks import FIRST_EXCEPTION
 from collections import defaultdict
 import logging
@@ -284,7 +288,7 @@ class Task:
                         self._exception = e
                         raise e
                 except InvalidStateError:
-                    # Correct state
+                    # Not finished. https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.exception
                     pass
 
     def wait_for_attach_callback(self, attach_callback: Callable, n_timeout: int = 30):

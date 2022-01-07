@@ -4,8 +4,6 @@ BUG: Stop in 2 iters
 from ding.framework import Task, Context
 from rich import print
 import time
-import torch
-from ding.utils.default_helper import set_pkg_seed
 import os
 import copy
 import gym
