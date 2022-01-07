@@ -483,6 +483,8 @@ class PPOOffPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (str) Which kind of action space used in PPOPolicy, ['discrete', 'continuous', 'hybrid']
+        action_space='discrete',
         # (bool) Whether to use nstep_return for value loss
         nstep_return=False,
         nstep=3,
@@ -509,6 +511,9 @@ class PPOOffPolicy(Policy):
             # (bool) Whether to use advantage norm in a whole training batch
             adv_norm=False,
             ignore_done=False,
+            ppo_param_init=True,
+            grad_clip_type='clip_norm',
+            grad_clip_value=0.5,
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
@@ -536,14 +541,43 @@ class PPOOffPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
-        # Orthogonal init
-        for m in self._model.modules():
-            if isinstance(m, torch.nn.Conv2d):
-                torch.nn.init.orthogonal_(m.weight)
-            if isinstance(m, torch.nn.Linear):
-                torch.nn.init.orthogonal_(m.weight)
+        
+        self._action_space = self._cfg.action_space
+        if self._cfg.learn.ppo_param_init:
+            for n, m in self._model.named_modules():
+                if isinstance(m, torch.nn.Linear):
+                    torch.nn.init.orthogonal_(m.weight)
+                    torch.nn.init.zeros_(m.bias)
+            if self._action_space in ['continuous', 'hybrid']:
+                # init log sigma
+                if self._action_space == 'continuous':
+                    if hasattr(self._model.actor_head, 'log_sigma_param'):
+                        torch.nn.init.constant_(self._model.actor_head.log_sigma_param, -0.5)
+                elif self._action_space == 'hybrid':  # actor_head[1]: ReparameterizationHead, for action_args
+                    if hasattr(self._model.actor_head[1], 'log_sigma_param'):
+                        torch.nn.init.constant_(self._model.actor_head[1].log_sigma_param, -0.5)
+                        print('init ok')
+
+                for m in list(self._model.critic.modules()) + list(self._model.actor.modules()):
+                    if isinstance(m, torch.nn.Linear):
+                        # orthogonal initialization
+                        torch.nn.init.orthogonal_(m.weight, gain=np.sqrt(2))
+                        torch.nn.init.zeros_(m.bias)
+                # do last policy layer scaling, this will make initial actions have (close to)
+                # 0 mean and std, and will help boost performances,
+                # see https://arxiv.org/abs/2006.05990, Fig.24 for details
+                for m in self._model.actor.modules():
+                    if isinstance(m, torch.nn.Linear):
+                        torch.nn.init.zeros_(m.bias)
+                        m.weight.data.copy_(0.01 * m.weight.data)
+
         # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._optimizer = Adam(
+            self._model.parameters(),
+            lr=self._cfg.learn.learning_rate,
+            grad_clip_type=self._cfg.learn.grad_clip_type,
+            clip_value=self._cfg.learn.grad_clip_value
+        )
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
@@ -551,6 +585,8 @@ class PPOOffPolicy(Policy):
         self._entropy_weight = self._cfg.learn.entropy_weight
         self._clip_ratio = self._cfg.learn.clip_ratio
         self._adv_norm = self._cfg.learn.adv_norm
+        self._gamma = self._cfg.collect.discount_factor
+        self._gae_lambda = self._cfg.collect.gae_lambda
         self._nstep = self._cfg.nstep
         self._nstep_return = self._cfg.nstep_return
         # Main model
@@ -580,19 +616,29 @@ class PPOOffPolicy(Policy):
             output = self._learn_model.forward(data['obs'], mode='compute_actor_critic')
             adv = data['adv']
             return_ = data['value'] + adv
+            data['return'] = return_
             if self._adv_norm:
                 # Normalize advantage in a total train_batch
                 adv = (adv - adv.mean()) / (adv.std() + 1e-8)
             # Calculate ppo error
-            ppodata = ppo_data(
-                output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, return_,
-                data['weight']
-            )
-            ppo_loss, ppo_info = ppo_error(ppodata, self._clip_ratio)
+            if self._action_space == 'continuous':
+                ppo_offdata = ppo_data(
+                    output['logit'], data['logit'], data['action'], output['value'], data['value'], adv,
+                    data['return'], data['weight']
+                )
+                ppo_loss, ppo_info = ppo_error_continuous(ppo_offdata, self._clip_ratio)
+            elif self._action_space == 'discrete':
+                ppo_offdata = ppo_data(
+                    output['logit'], data['logit'], data['action'], output['value'], data['value'], adv,
+                    data['return'], data['weight']
+                )
+                ppo_loss, ppo_info = ppo_error(ppo_offdata, self._clip_ratio)
+            
             wv, we = self._value_weight, self._entropy_weight
             total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
 
         else:
+            # now only for action_space == 'discrete'
             output = self._learn_model.forward(data['obs'], mode='compute_actor')
             adv = data['adv']
             if self._adv_norm:
@@ -602,6 +648,7 @@ class PPOOffPolicy(Policy):
             # Calculate ppo error
             ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
             ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
+            
             wv, we = self._value_weight, self._entropy_weight
             next_obs = data.get('next_obs')
             value_gamma = data.get('value_gamma')
@@ -656,7 +703,13 @@ class PPOOffPolicy(Policy):
             Init traj and unroll length, collect model.
         """
         self._unroll_len = self._cfg.collect.unroll_len
-        self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._collect_model = model_wrap(self._model, wrapper_name='reparam_sample')
+        elif self._action_space == 'discrete':
+            self._collect_model = model_wrap(self._model, wrapper_name='multinomial_sample')
+        elif self._action_space == 'hybrid':
+            self._collect_model = model_wrap(self._model, wrapper_name='hybrid_reparam_multinomial_sample')
         self._collect_model.reset()
         self._gamma = self._cfg.collect.discount_factor
         self._gae_lambda = self._cfg.collect.gae_lambda
@@ -738,7 +791,13 @@ class PPOOffPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``.
             Init eval model with argmax strategy.
         """
-        self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._action_space = self._cfg.action_space
+        if self._action_space == 'continuous':
+            self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
+        elif self._action_space == 'discrete':
+            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        elif self._action_space == 'hybrid':
+            self._eval_model = model_wrap(self._model, wrapper_name='hybrid_deterministic_argmax_sample')
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:
