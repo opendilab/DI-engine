@@ -7,7 +7,7 @@ qbert_acer_config = dict(
         collector_env_num=16,
         evaluator_env_num=4,
         n_evaluator_episode=8,
-        stop_value=1000000,
+        stop_value=int(1e6),
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
@@ -56,7 +56,6 @@ qbert_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(replay_buffer=dict(
-            type='naive',
             replay_buffer_size=10000,
         ), ),
     ),
@@ -68,11 +67,26 @@ qbert_acer_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
+    # env_manager=dict(type='subprocess'),
     policy=dict(type='acer'),
 )
 create_config = EasyDict(qbert_acer_create_config)
 
-if __name__ == '__main__':
-    from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+# if __name__ == '__main__':
+#     serial_pipeline((main_config, create_config), seed=0)
+
+def train(args):
+    main_config.exp_name='qbert_acer'+'_seed'+f'{args.seed}'
+    import copy
+    # 625000 iterations= 10M env steps / 16 
+    serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations= int(625000),)
+
+if __name__ == "__main__":
+    import argparse
+    for seed in [0,1,2,3,4]:     
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--seed', '-s', type=int, default=seed)
+        args = parser.parse_args()
+        
+        train(args)

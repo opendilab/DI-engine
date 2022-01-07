@@ -55,7 +55,6 @@ pong_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(replay_buffer=dict(
-            type='naive',
             replay_buffer_size=10000,
         ), ),
     ),
@@ -67,10 +66,26 @@ pong_acer_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
+    # env_manager=dict(type='subprocess'),
     policy=dict(type='acer'),
 )
 create_config = EasyDict(pong_acer_create_config)
 
-if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+# if __name__ == '__main__':
+#     serial_pipeline((main_config, create_config), seed=0)
+
+def train(args):
+    main_config.exp_name='pong_acer'+'_seed'+f'{args.seed}'
+    import copy
+    # 625000 iterations= 10M env steps / 16 
+    serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations= int(625000),)
+
+if __name__ == "__main__":
+    import argparse
+    for seed in [0,1,2,3,4]:     
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--seed', '-s', type=int, default=seed)
+        args = parser.parse_args()
+        
+        train(args)
