@@ -1,5 +1,5 @@
 import sys
-if sys.version_info[1] < 7:
+if sys.version_info[1] < 8:
     from asyncio.base_futures import InvalidStateError
 else:
     from asyncio.exceptions import InvalidStateError
