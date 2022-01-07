@@ -241,6 +241,7 @@ def emit_remote_main():
         else:
             for _ in range(10):
                 task.emit_remote("Greeting", "Hi")
+                time.sleep(0.1)
         time.sleep(0.7)
         if task.router.node_id == 0:
             assert len(greets) > 5
