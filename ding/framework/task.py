@@ -1,8 +1,4 @@
-import sys
-if sys.version_info[1] < 8:
-    from asyncio.base_futures import InvalidStateError
-else:
-    from asyncio.exceptions import InvalidStateError
+from asyncio import InvalidStateError
 from asyncio.tasks import FIRST_EXCEPTION
 from collections import defaultdict
 import logging
@@ -11,7 +7,6 @@ import asyncio
 import concurrent.futures
 import fnmatch
 import math
-import traceback
 from types import GeneratorType
 from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set
 from ding.framework.context import Context
