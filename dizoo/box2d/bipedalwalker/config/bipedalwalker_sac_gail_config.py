@@ -2,6 +2,8 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_gail
 from bipedalwalker_sac_config import bipedalwalker_sac_config, bipedalwalker_sac_create_config
 
+obs_shape = 24
+act_shape = 4
 bipedalwalker_sac_gail_default_config = dict(
     exp_name='bipedalwalker_sac_gail',
     env=dict(
@@ -11,15 +13,17 @@ bipedalwalker_sac_gail_default_config = dict(
         act_scale=True,
         n_evaluator_episode=5,
         stop_value=300,
+        rew_clip=True,
+        replay_path=None,
     ),
     reward_model=dict(
         type='gail',
-        input_size=25,
+        input_size=obs_shape+act_shape,
         hidden_size=64,
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='bipedalwalker_sac/expert_data_test.pkl',  # path where the expert data is stored
+        expert_data_path='bipedalwalker_sac/expert_data.pkl',  # path where the expert data is stored
         expert_load_path='bipedalwalker_sac/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
         collect_count=100000,
         load_path='bipedalwalker_sac_gail/reward_model/ckpt/ckpt_last.pth.tar',
@@ -29,8 +33,8 @@ bipedalwalker_sac_gail_default_config = dict(
         priority=False,
         random_collect_size=1000,
         model=dict(
-            obs_shape=24,
-            action_shape=4,
+            obs_shape=obs_shape,
+            action_shape=act_shape,
             twin_critic=True,
             action_space='reparameterization',
             actor_head_hidden_size=128,
@@ -76,4 +80,4 @@ create_config = bipedalwalker_sac_gail_create_config
 if __name__ == "__main__":
     serial_pipeline_gail([main_config, create_config],
                          [bipedalwalker_sac_config, bipedalwalker_sac_create_config],
-                         seed=0, collect_data=False)
+                         seed=1, collect_data=True)
