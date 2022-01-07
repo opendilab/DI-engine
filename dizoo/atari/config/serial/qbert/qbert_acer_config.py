@@ -15,7 +15,6 @@ qbert_acer_config = dict(
     policy=dict(
         cuda=True,
         priority=False,
-        random_collect_size=1000,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
