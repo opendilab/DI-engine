@@ -8,5 +8,5 @@ info = torch.load('/home/weiyuhong/MASAC_bc/DI-engine/smac_MMM2_masac_5e5_1600/c
 model.load_state_dict(info['model'])
 
 
-collect_episodic_demo_data(input_cfg=[main_config, create_config],seed=0,collect_count=1000,expert_data_path='./MMM2_expert.pkl',model=model,state_dict_path='/home/weiyuhong/MASAC_bc/DI-engine/smac_MMM2_masac_5e5_1600/ckpt/ckpt_best.pth.tar')
+collect_episodic_demo_data(input_cfg=[main_config, create_config],seed=0,collect_count=1000,expert_data_path='./MMM2_masac_subbest_expert.pkl',model=model,state_dict_path='/home/weiyuhong/MASAC_bc/DI-engine/smac_MMM2_masac_5e5_1600/ckpt/ckpt_best.pth.tar')
 

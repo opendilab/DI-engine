@@ -243,6 +243,7 @@ def episode_to_transitions(data_path: str, expert_data_path: str, nstep: int) ->
     """
     with open(data_path, 'rb') as f:
         _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
+    print(len(_dict))
     post_process_data = []
     for i in range(len(_dict)):
         data = get_nstep_return_data(_dict[i], nstep)
@@ -264,6 +265,7 @@ def episode_to_mc_transitions(data_path: str, expert_data_path: str, gamma: int)
     """
     with open(data_path, 'rb') as f:
         _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
+    print(len(_dict))
     post_process_data = []
     for i in range(len(_dict)):
         reward_temp = 0
