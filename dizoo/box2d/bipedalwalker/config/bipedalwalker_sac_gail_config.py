@@ -80,4 +80,4 @@ create_config = bipedalwalker_sac_gail_create_config
 if __name__ == "__main__":
     serial_pipeline_gail([main_config, create_config],
                          [bipedalwalker_sac_config, bipedalwalker_sac_create_config],
-                         seed=1, collect_data=True)
+                         seed=4, collect_data=False)

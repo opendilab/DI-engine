@@ -21,6 +21,7 @@ walker2d_ddpg_gail_default_config = dict(
         update_per_collect=100,
         expert_data_path='walker2d_ddpg/expert_data_train.pkl',
         load_path='walker2d_ddpg_gail/reward_model/ckpt/ckpt_best.pth.tar',  # state_dict of the reward model
+        expert_load_path='walker2d_ddpg/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
         collect_count=100000,
     ),
     policy=dict(
