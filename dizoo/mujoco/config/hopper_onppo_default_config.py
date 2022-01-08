@@ -45,7 +45,7 @@ hopper_ppo_default_config = dict(
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
+        eval=dict(evaluator=dict(eval_freq=500, )),
     ),
 )
 hopper_ppo_default_config = EasyDict(hopper_ppo_default_config)

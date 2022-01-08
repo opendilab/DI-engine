@@ -71,7 +71,7 @@ def train(args):
     main_config.exp_name='spaceinvaders_onppo_noig'+'_seed'+f'{args.seed}'
     import copy
     # 3125 iterations= 10M env steps / 3200 
-    serial_pipeline_onpolicy([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations= int(3125),)
+    serial_pipeline_onpolicy([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=3125)
 
 if __name__ == "__main__":
     import argparse
