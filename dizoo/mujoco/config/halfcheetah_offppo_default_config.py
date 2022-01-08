@@ -18,7 +18,6 @@ HalfCheetah_ppo_default_config = dict(
     ),
     policy=dict(
         cuda=True,
-        recompute_adv=True,
         action_space='continuous',
         model=dict(
             obs_shape=17,
@@ -26,8 +25,7 @@ HalfCheetah_ppo_default_config = dict(
             action_space='continuous',
         ),
         learn=dict(
-            epoch_per_collect=10,
-            update_per_collect=1,
+            update_per_collect=50,  # NOTE
             batch_size=320,
             learning_rate=3e-4,
             value_weight=0.5,
@@ -49,7 +47,7 @@ HalfCheetah_ppo_default_config = dict(
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
+        eval=dict(evaluator=dict(eval_freq=500, )),
         other=dict(replay_buffer=dict(replay_buffer_size=int(1e4), ), ),
     ),
 )
