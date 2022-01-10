@@ -158,6 +158,9 @@ def learning(task: Task, cfg, tb_logger, player_ids, policies):
                 )
 
         learner = learners[learn_session["player_id"]]
+        for i in range(cfg.policy.learn.update_per_collect):
+            learner.train(learn_session["train_data"], learn_session["envstep"])
+
         state_dict = learner.policy.state_dict()
         torch.save(state_dict, learn_session["player_ckpt_path"])  # Save to local
 
