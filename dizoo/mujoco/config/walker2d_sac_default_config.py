@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 walker2d_sac_default_config = dict(
+    exp_name='walker2d_sac',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),

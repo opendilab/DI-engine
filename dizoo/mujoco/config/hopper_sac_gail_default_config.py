@@ -1,4 +1,7 @@
 from easydict import EasyDict
+from ding.entry import serial_pipeline_gail
+from hopper_sac_default_config import hopper_sac_default_config, hopper_sac_default_create_config
+
 
 obs_shape = 11
 act_shape = 3
@@ -21,14 +24,14 @@ hopper_sac_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='hopper_sac/expert_data_train.pkl',
+        expert_data_path='hopper_sac/expert_data.pkl',
         load_path='hopper_sac/reward_model/ckpt/ckpt_best.pth.tar',  # state_dict of the reward model
         expert_load_path='hopper_sac/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
         collect_count=100000,
     ),
     policy=dict(
         cuda=True,
-        random_collect_size=10000,
+        random_collect_size=25000,
         model=dict(
             obs_shape=obs_shape,
             action_shape=act_shape,
@@ -51,7 +54,7 @@ hopper_sac_gail_default_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            n_sample=1,
+            n_sample=64,
             unroll_len=1,
         ),
         command=dict(),
@@ -75,5 +78,12 @@ hopper_sac_gail_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_sac_default_create_config = EasyDict(hopper_sac_gail_default_create_config)
+hopper_sac_gail_default_create_config = EasyDict(hopper_sac_gail_default_create_config)
 create_config = hopper_sac_gail_default_create_config
+
+if __name__ == "__main__":
+    serial_pipeline_gail([main_config, create_config],
+                         [hopper_sac_default_config,
+                          hopper_sac_default_create_config],
+                         max_iterations = 1000000,
+                         seed=0, collect_data=False)
