@@ -17,6 +17,10 @@ kill_descendant_processes() {
 
 trap "kill_descendant_processes $$" EXIT
 
+# srun -p xlab -n 6 --gres=gpu:6 --n_task_per_node=3 --cpu_per_task=10 python main_league.py
+
+# srun -p xlab -n 6 --gres=gpu:6 --n_task_per_node=3 --cpu_per_task=10 "python main_league.py --param 2-league,collect:2-learn,evaluate:2"
+
 ditask --package $BASEDIR \
   --main main_league.main \
   --parallel-workers 1 \
@@ -29,11 +33,11 @@ ditask --package $BASEDIR \
 
 ditask --package $BASEDIR \
   --main main_league.main \
-  --parallel-workers 1 \
+  --parallel-workers 3 \
   --protocol tcp \
   --address 127.0.0.1 \
-  --ports 50517 \
-  --node-ids 2 \
+  --ports 50525 \
+  --node-ids 10 \
   --topology alone \
   --labels learn \
   --attach-to tcp://127.0.0.1:50515 &
@@ -43,10 +47,10 @@ ditask --package $BASEDIR \
   --parallel-workers 1 \
   --address 127.0.0.1 \
   --protocol tcp \
-  --ports 50520 \
-  --node-ids 5 \
+  --ports 50535 \
+  --node-ids 20 \
   --topology alone \
   --labels evaluate \
-  --attach-to tcp://127.0.0.1:50515,tcp://127.0.0.1:50517 &
+  --attach-to tcp://127.0.0.1:50515,tcp://127.0.0.1:50525,tcp://127.0.0.1:50526,tcp://127.0.0.1:50527 &
 
 sleep 10000
