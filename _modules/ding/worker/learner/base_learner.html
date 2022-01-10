@@ -201,6 +201,7 @@
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">train_iterations</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span><span class="p">),</span>
         <span class="n">dataloader</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="p">),</span>
+        <span class="n">log_policy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="c1"># --- Hooks ---</span>
         <span class="n">hook</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="n">load_ckpt_before_run</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
@@ -597,7 +598,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span> <span class="o">=</span> <span class="n">_policy</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_monitor</span> <span class="o">=</span> <span class="n">get_simple_monitor_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">monitor_vars</span><span class="p">())(</span><span class="n">TickTime</span><span class="p">(),</span> <span class="n">expire</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">log_policy</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">info</span><span class="p">())</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">priority_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
