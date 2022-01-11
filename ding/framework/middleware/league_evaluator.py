@@ -81,7 +81,6 @@ def league_evaluator(
             win_loss_result = [e['result'] for e in episode_info[0]]
 
             task.emit("win_loss_result", win_loss_result)
-            task.emit_remote("win_loss_result", win_loss_result)
             # TODO Handle these events in league
             # # set fixed NE policy trueskill(exposure) equal 10
             # main_player.rating = league.metric_env.rate_1vsC(

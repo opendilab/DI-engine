@@ -93,7 +93,7 @@ class Task:
             self._loop = asyncio.new_event_loop()
 
         if self.router.is_active:
-            self.router.register_rpc("task.emit", self.emit)
+            self.router.register_rpc("task._emit", self._emit)
             if attach_callback:
                 self.wait_for_attach_callback(attach_callback)
             if self.auto_sync_ctx:
@@ -237,7 +237,7 @@ class Task:
         old_ctx = self.ctx
         if self.router.is_active and self.auto_sync_ctx:
             # Send context to other parallel processes
-            self.async_executor(self.router.send_rpc, "task.emit", "sync_parallel_ctx", old_ctx)
+            self.async_executor(self.router.send_rpc, "task._emit", "sync_parallel_ctx", old_ctx)
 
         new_ctx = old_ctx.renew()
         new_ctx.total_step = old_ctx.total_step + 1
@@ -255,7 +255,7 @@ class Task:
         Overview:
             Stop and cleanup every thing in the runtime of task.
         """
-        self.emit("exit")
+        self.emit("exit", remote=False)
         if self._thread_pool:
             self._thread_pool.shutdown()
         # The middleware and listeners may contain some methods that reference to task,
@@ -329,8 +329,19 @@ be thrown after the timeout {}s is reached".format(n_timeout)
             Emit an event, call listeners.
         Arguments:
             - event (:obj:`str`): Event name.
+            - remote (:obj:`bool`): Whether to broadcast the event to the connected nodes, default is True.
             - args (:obj:`any`): Rest arguments for listeners.
         """
+        # Check if need to broadcast event to connected nodes, default is True
+        if "remote" in kwargs:
+            remote = kwargs.pop("remote")
+        else:
+            remote = True
+        if remote and self.router.is_active:
+            self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
+        self._emit(event, *args, **kwargs)
+
+    def _emit(self, event: str, *args, **kwargs) -> None:
         if event in self.event_listeners:
             for fn in self.event_listeners[event]:
                 fn(*args, **kwargs)
@@ -338,20 +349,6 @@ be thrown after the timeout {}s is reached".format(n_timeout)
             while self.once_listeners[event]:
                 fn = self.once_listeners[event].pop()
                 fn(*args, **kwargs)
-
-    def emit_remote(self, event, *args, **kwargs) -> None:
-        """
-        Overview:
-            Emit a task event on connected processes. If the router was not actived \
-                or no process was connected, it won't do anything.
-        Arguments:
-            - event (:obj:`str`): Event name.
-            - args (:obj:`any`): Rest arguments for listeners.
-        """
-        if not self.router.is_active:
-            logging.debug("Router is not actived, emit remote will not do anything, event_name: {}".format(event))
-            return
-        self.router.send_rpc("task.emit", event, *args, **kwargs)
 
     def on(self, event: str, fn: Callable) -> None:
         """

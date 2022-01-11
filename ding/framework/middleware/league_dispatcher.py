@@ -57,7 +57,7 @@ def league_dispatcher(task: "Task", cfg: dict, tb_logger: "DistributedWriter", l
         }
         print("Player ID", collect_session["player_id"])
 
-        task.emit("set_collect_session", collect_session)
+        task.emit("set_collect_session", collect_session, remote=False)
 
         yield
 

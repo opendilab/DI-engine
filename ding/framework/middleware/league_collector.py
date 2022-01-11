@@ -44,7 +44,6 @@ def league_collector(task: "Task", cfg: dict, tb_logger: "DistributedWriter", pl
             "envstep": collector.envstep,
             "player_ckpt_path": collect_session["player_ckpt_path"]
         }
-        task.emit_remote("set_learn_session", learn_session)  # Shoot and forget
         task.emit("set_learn_session", learn_session)  # Shoot and forget
 
     return _collect

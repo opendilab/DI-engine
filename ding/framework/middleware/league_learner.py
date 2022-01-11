@@ -10,7 +10,6 @@ def league_learner(task: "Task", cfg: dict, tb_logger: "DistributedWriter", play
     learner = None
 
     task.emit("learner_online", player_id)
-    task.emit_remote("learner_online", player_id)
 
     def _learn(ctx: "Context"):
         learn_session = task.wait_for("set_learn_session")[0][0]
@@ -39,7 +38,6 @@ def league_learner(task: "Task", cfg: dict, tb_logger: "DistributedWriter", play
         player_info['player_id'] = learn_session["player_id"]
         player_info["train_iter"] = learner.train_iter
 
-        task.emit_remote("update_active_player", player_info)  # Broadcast to other middleware
         task.emit("update_active_player", player_info)  # Broadcast to other middleware
 
     return _learn

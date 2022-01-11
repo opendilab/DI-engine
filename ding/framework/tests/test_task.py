@@ -240,7 +240,7 @@ def emit_remote_main():
             task.on("Greeting", lambda msg: greets.append(msg))
         else:
             for _ in range(10):
-                task.emit_remote("Greeting", "Hi")
+                task.emit("Greeting", "Hi")
                 time.sleep(0.1)
         time.sleep(1.2)
         if task.router.node_id == 0:
