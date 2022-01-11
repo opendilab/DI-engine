@@ -93,8 +93,7 @@ class Parallel(metaclass=SingletonMetaclass):
                 - main_process (:obj:`Callable`): The main function, your program start from here.
             """
             nodes = Parallel.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
-            logging.info("Bind subprocesses on these addresses: {}".format(nodes))
-            print("Bind subprocesses on these addresses: {}".format(nodes))
+            logging.warning("Bind subprocesses on these addresses: {}".format(nodes))
 
             def cleanup_nodes():
                 for node in nodes:
@@ -125,7 +124,7 @@ now there are {} workers and {} nodes"\
                 runner_kwargs = {
                     "node_id": candidate_node_ids[i],
                     "listen_to": nodes[i],
-                    "attach_to": topology_network(i) + attach_to,
+                    "attach_to": topology_network(i),
                     "labels": labels
                 }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
@@ -236,7 +235,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         """
         if self.is_active:
             payload = {"f": func_name, "a": args, "k": kwargs}
-            return self._sock and self._sock.send(pickle.dumps(payload, protocol=-1))
+            try:
+                payload_str = pickle.dumps(payload, protocol=-1)
+            except AttributeError as e:
+                logging.error("Arguments are not pickable! Function: {}, Args: {}".format(func_name, args))
+                raise e
+            return self._sock and self._sock.send(payload_str)
 
     def recv_rpc(self, msg: bytes):
         try:
