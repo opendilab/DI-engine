@@ -14,6 +14,7 @@ class DingEnvWrapper(BaseEnv):
         if self._cfg is None:
             self._cfg = dict()
         self._env = env
+        self._replay_path = cfg.get('replay_path', None)
 
     # override
     def reset(self) -> None:
@@ -22,6 +23,12 @@ class DingEnvWrapper(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        if self._replay_path is not None:
+            # this function can lead to the meaningless result
+            # disable_gym_view_window()
+            self._env = gym.wrappers.Monitor(
+                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+            )
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
         self._final_eval_reward = 0.0
@@ -104,8 +111,3 @@ class DingEnvWrapper(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-        # this function can lead to the meaningless result
-        # disable_gym_view_window()
-        self._env = gym.wrappers.Monitor(
-            self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-        )

@@ -1,7 +1,8 @@
-from typing import Any, Union, List
+from typing import Any, Union, List, Optional
 import copy
 import numpy as np
 from easydict import EasyDict
+import gym
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -274,11 +275,9 @@ class MujocoEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._use_act_scale = cfg.use_act_scale
-        if 'delay_reward_step' in cfg:
-            self._delay_reward_step = cfg.delay_reward_step
-        else:
-            self._delay_reward_step = self.default_config().delay_reward_step
+        self._delay_reward_step = cfg.delay_reward_step
         self._init_flag = False
+        self._replay_path = None
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -289,6 +288,11 @@ class MujocoEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        if self._replay_path is not None:
+            self._env = gym.wrappers.Monitor(
+                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+            )
+            self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time() 
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
         self._final_eval_reward = 0.
@@ -315,17 +319,7 @@ class MujocoEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs).astype('float32')
-        if self._delay_reward_step > 1:
-            self._current_delay_reward += rew
-            self._delay_reward_duration += 1
-            if done or self._delay_reward_duration >= self._delay_reward_step:
-                rew = to_ndarray([self._current_delay_reward])
-                self._current_delay_reward = 0.
-                self._delay_reward_duration = 0
-            else:
-                rew = to_ndarray([0.])
-        else:
-            rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = to_ndarray([rew]).astype('float32')
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
@@ -350,8 +344,14 @@ class MujocoEnv(BaseEnv):
             self._cfg.env_id,
             norm_obs=self._cfg.get('norm_obs', None),
             norm_reward=self._cfg.get('norm_reward', None),
+            delay_reward_step=self._delay_reward_step,
             only_info=only_info
         )
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path
 
     def __repr__(self) -> str:
         return "DI-engine Mujoco Env({})".format(self._cfg.env_id)

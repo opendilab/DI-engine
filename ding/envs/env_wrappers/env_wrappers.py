@@ -9,6 +9,8 @@ from collections import deque
 from torch import float32
 # import matplotlib.pyplot as plt
 
+from ding.torch_utils import to_ndarray
+
 
 class NoopResetEnv(gym.Wrapper):
     """
@@ -289,6 +291,58 @@ class ClipRewardEnv(gym.RewardWrapper):
         return obs_shape, act_shape, rew_shape
 
 
+class DelayRewardEnv(gym.RewardWrapper):
+    """
+    Overview:
+       Return cumulative reward at intervals; At other time, return reward of 0.
+    Interface:
+        ``__init__``, ``reward``, ``new_shape``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+        - ``reward_range``
+    """
+
+    def __init__(self, env, delay_reward_step):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+        self._delay_reward_step = delay_reward_step
+
+    def reset(self):
+        self._delay_reward_duration = 0
+        self._current_delay_reward = 0.
+        obs = self.env.reset()
+        return obs
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self._current_delay_reward += reward
+        self._delay_reward_duration += 1
+        if done or self._delay_reward_duration >= self._delay_reward_step:
+            reward = self._current_delay_reward
+            self._current_delay_reward = 0.
+            self._delay_reward_duration = 0
+        else:
+            reward = 0.
+        return obs, reward, done, info
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        """
+        Overview:
+           Get new shape of observation, acton, and reward; in this case unchanged.
+        Arguments:
+            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+        Returns:
+            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+        """
+        return obs_shape, act_shape, rew_shape
+
+
 class FrameStack(gym.Wrapper):
     """
     Overview:
@@ -414,12 +468,12 @@ class ObsTransposeWrapper(gym.ObservationWrapper):
                 dtype=obs_space.dtype
             )
 
-    def observation(self, obs: Union[tuple, np.ndarray]):
+    def observation(self, obs: Union[tuple, np.ndarray]) -> Union[tuple, np.ndarray]:
         """
         Overview:
             Returns the transposed observation
         Arguments:
-            - observation(:obj:`Union[tuple, np.ndarray]`): The original observation
+            - observation (:obj:`Union[tuple, np.ndarray]`): The original observation
         Returns:
             - observation (:obj:`Union[tuple, np.ndarray]`): The transposed observation
         """
@@ -461,7 +515,6 @@ class RunningMeanStd(object):
         ``__init__``, ``update``, ``reset``, ``new_shape``
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
-
         - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``
     """
 

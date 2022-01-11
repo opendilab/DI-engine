@@ -109,7 +109,3 @@ class BipedalWalkerEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-        # this function can lead to the meaningless result
-        self._env = gym.wrappers.Monitor(
-            self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-        )
