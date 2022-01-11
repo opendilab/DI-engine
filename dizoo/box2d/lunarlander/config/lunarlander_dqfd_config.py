@@ -7,6 +7,7 @@ lunarlander_dqfd_config = dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
         collector_env_num=8,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),
@@ -20,12 +21,14 @@ lunarlander_dqfd_config = dict(
         ),
         nstep=3,
         discount_factor=0.97,
-        learn=dict(batch_size=64, learning_rate=0.001,
-            lambda1 = 1.0,
-            lambda2 = 1.0,
-            lambda3 = 1e-5,
-            per_train_iter_k = 10,
-            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer 
+        learn=dict(
+            batch_size=64,
+            learning_rate=0.001,
+            lambda1=1.0,
+            lambda2=1.0,
+            lambda3=1e-5,
+            per_train_iter_k=10,
+            expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
         ),
         collect=dict(
             n_sample=64,

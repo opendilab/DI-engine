@@ -279,8 +279,8 @@ class D4PGPolicy(DDPGPolicy):
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
-            'q_value': np.array(q_value['q_value'].detach().numpy()).mean(),
-            'action': data.get('action').mean(),
+            'q_value': q_value['q_value'].mean().item(),
+            'action': data['action'].mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             **loss_dict,
             **q_value_dict,

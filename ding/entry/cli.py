@@ -1,5 +1,9 @@
+from typing import List, Union
+import os
+import copy
 import click
 from click.core import Context, Option
+import numpy as np
 
 from ding import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from .predefined_config import get_predefined_config
@@ -65,7 +69,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     '-s',
     '--seed',
     type=int,
-    default=0,
+    default=[0],
+    multiple=True,
     help='random generator seed(for all the possible package: random, numpy, torch and user env)'
 )
 @click.option('-e', '--env', type=str, help='RL env name')
@@ -117,7 +122,7 @@ def cli(
     # serial/eval
     mode: str,
     config: str,
-    seed: int,
+    seed: Union[int, List],
     env: str,
     policy: str,
     train_iter: int,
@@ -155,89 +160,111 @@ def cli(
         from ..utils.profiler_helper import Profiler
         profiler = Profiler()
         profiler.profile(profile)
-    if mode == 'serial':
-        from .serial_entry import serial_pipeline
-        if config is None:
-            config = get_predefined_config(env, policy)
-        serial_pipeline(config, seed, max_iterations=train_iter)
-    elif mode == 'serial_onpolicy':
-        from .serial_entry_onpolicy import serial_pipeline_onpolicy
-        if config is None:
-            config = get_predefined_config(env, policy)
-        serial_pipeline_onpolicy(config, seed, max_iterations=train_iter)
-    elif mode == 'serial_sqil':
-        if config == 'lunarlander_sqil_config.py' or 'cartpole_sqil_config.py' or 'pong_sqil_config.py' \
-        or 'spaceinvaders_sqil_config.py' or 'qbert_sqil_config.py':
-            from .serial_entry_sqil import serial_pipeline_sqil
-        if config is None:
-            config = get_predefined_config(env, policy)
-        expert_config = input("Enter the name of the config you used to generate your expert model: ")
-        serial_pipeline_sqil(config, expert_config, seed, max_iterations=train_iter)
-    elif mode == 'serial_reward_model':
-        from .serial_entry_reward_model import serial_pipeline_reward_model
-        if config is None:
-            config = get_predefined_config(env, policy)
-        serial_pipeline_reward_model(config, seed, max_iterations=train_iter)
-    elif mode == 'serial_gail':
-        from .serial_entry_gail import serial_pipeline_gail
-        if config is None:
-            config = get_predefined_config(env, policy)
-        expert_config = input("Enter the name of the config you used to generate your expert model: ")
-        serial_pipeline_gail(config, expert_config, seed, max_iterations=train_iter, collect_data=True)
-    elif mode == 'serial_dqfd':
-        from .serial_entry_dqfd import serial_pipeline_dqfd
-        if config is None:
-            config = get_predefined_config(env, policy)
-        expert_config = input("Enter the name of the config you used to generate your expert model: ")
-        assert (expert_config == config[:config.find('_dqfd')] + '_dqfd_config.py'), "DQFD only supports "\
-        + "the models used in q learning now; However, one should still type the DQFD config in this "\
-        + "place, i.e., {}{}".format(config[:config.find('_dqfd')], '_dqfd_config.py')
-        serial_pipeline_dqfd(config, expert_config, seed, max_iterations=train_iter)
-    elif mode == 'serial_trex':
-        from .serial_entry_trex import serial_pipeline_reward_model_trex
-        if config is None:
-            config = get_predefined_config(env, policy)
-        serial_pipeline_reward_model_trex(config, seed, max_iterations=train_iter)
-    elif mode == 'serial_trex_onpolicy':
-        from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
-        if config is None:
-            config = get_predefined_config(env, policy)
-        serial_pipeline_reward_model_trex_onpolicy(config, seed, max_iterations=train_iter)
-    elif mode == 'parallel':
-        from .parallel_entry import parallel_pipeline
-        parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
-    elif mode == 'dist':
-        from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, \
-            dist_prepare_config, dist_launch_learner_aggregator, dist_launch_spawn_learner, \
-            dist_add_replicas, dist_delete_replicas, dist_restart_replicas
-        if module == 'config':
-            dist_prepare_config(
-                config, seed, platform, coordinator_host, learner_host, collector_host, coordinator_port, learner_port,
-                collector_port
-            )
-        elif module == 'coordinator':
-            dist_launch_coordinator(config, seed, coordinator_port, disable_flask_log)
-        elif module == 'learner_aggregator':
-            dist_launch_learner_aggregator(
-                config, seed, aggregator_host, aggregator_port, module_name, disable_flask_log
-            )
 
-        elif module == 'collector':
-            dist_launch_collector(config, seed, collector_port, module_name, disable_flask_log)
-        elif module == 'learner':
-            dist_launch_learner(config, seed, learner_port, module_name, disable_flask_log)
-        elif module == 'spawn_learner':
-            dist_launch_spawn_learner(config, seed, learner_port, module_name, disable_flask_log)
-        elif add in ['collector', 'learner']:
-            dist_add_replicas(add, kubeconfig, replicas, coordinator_name, namespace, cpus, gpus, memory)
-        elif delete in ['collector', 'learner']:
-            dist_delete_replicas(delete, kubeconfig, replicas, coordinator_name, namespace)
-        elif restart in ['collector', 'learner']:
-            dist_restart_replicas(restart, kubeconfig, coordinator_name, namespace, restart_pod_name)
+    def run_single_pipeline(seed, config):
+        if mode == 'serial':
+            from .serial_entry import serial_pipeline
+            if config is None:
+                config = get_predefined_config(env, policy)
+            serial_pipeline(config, seed, max_iterations=train_iter)
+        elif mode == 'serial_onpolicy':
+            from .serial_entry_onpolicy import serial_pipeline_onpolicy
+            if config is None:
+                config = get_predefined_config(env, policy)
+            serial_pipeline_onpolicy(config, seed, max_iterations=train_iter)
+        elif mode == 'serial_sqil':
+            if config == 'lunarlander_sqil_config.py' or 'cartpole_sqil_config.py' or 'pong_sqil_config.py' \
+            or 'spaceinvaders_sqil_config.py' or 'qbert_sqil_config.py':
+                from .serial_entry_sqil import serial_pipeline_sqil
+            if config is None:
+                config = get_predefined_config(env, policy)
+            expert_config = input("Enter the name of the config you used to generate your expert model: ")
+            serial_pipeline_sqil(config, expert_config, seed, max_iterations=train_iter)
+        elif mode == 'serial_reward_model':
+            from .serial_entry_reward_model import serial_pipeline_reward_model
+            if config is None:
+                config = get_predefined_config(env, policy)
+            serial_pipeline_reward_model(config, seed, max_iterations=train_iter)
+        elif mode == 'serial_gail':
+            from .serial_entry_gail import serial_pipeline_gail
+            if config is None:
+                config = get_predefined_config(env, policy)
+            expert_config = input("Enter the name of the config you used to generate your expert model: ")
+            serial_pipeline_gail(config, expert_config, seed, max_iterations=train_iter, collect_data=True)
+        elif mode == 'serial_dqfd':
+            from .serial_entry_dqfd import serial_pipeline_dqfd
+            if config is None:
+                config = get_predefined_config(env, policy)
+            expert_config = input("Enter the name of the config you used to generate your expert model: ")
+            assert (expert_config == config[:config.find('_dqfd')] + '_dqfd_config.py'), "DQFD only supports "\
+            + "the models used in q learning now; However, one should still type the DQFD config in this "\
+            + "place, i.e., {}{}".format(config[:config.find('_dqfd')], '_dqfd_config.py')
+            serial_pipeline_dqfd(config, expert_config, seed, max_iterations=train_iter)
+        elif mode == 'serial_trex':
+            from .serial_entry_trex import serial_pipeline_reward_model_trex
+            if config is None:
+                config = get_predefined_config(env, policy)
+            serial_pipeline_reward_model_trex(config, seed, max_iterations=train_iter)
+        elif mode == 'serial_trex_onpolicy':
+            from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
+            if config is None:
+                config = get_predefined_config(env, policy)
+            serial_pipeline_reward_model_trex_onpolicy(config, seed, max_iterations=train_iter)
+        elif mode == 'parallel':
+            from .parallel_entry import parallel_pipeline
+            parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
+        elif mode == 'dist':
+            from .dist_entry import dist_launch_coordinator, dist_launch_collector, dist_launch_learner, \
+                dist_prepare_config, dist_launch_learner_aggregator, dist_launch_spawn_learner, \
+                dist_add_replicas, dist_delete_replicas, dist_restart_replicas
+            if module == 'config':
+                dist_prepare_config(
+                    config, seed, platform, coordinator_host, learner_host, collector_host, coordinator_port,
+                    learner_port, collector_port
+                )
+            elif module == 'coordinator':
+                dist_launch_coordinator(config, seed, coordinator_port, disable_flask_log)
+            elif module == 'learner_aggregator':
+                dist_launch_learner_aggregator(
+                    config, seed, aggregator_host, aggregator_port, module_name, disable_flask_log
+                )
+
+            elif module == 'collector':
+                dist_launch_collector(config, seed, collector_port, module_name, disable_flask_log)
+            elif module == 'learner':
+                dist_launch_learner(config, seed, learner_port, module_name, disable_flask_log)
+            elif module == 'spawn_learner':
+                dist_launch_spawn_learner(config, seed, learner_port, module_name, disable_flask_log)
+            elif add in ['collector', 'learner']:
+                dist_add_replicas(add, kubeconfig, replicas, coordinator_name, namespace, cpus, gpus, memory)
+            elif delete in ['collector', 'learner']:
+                dist_delete_replicas(delete, kubeconfig, replicas, coordinator_name, namespace)
+            elif restart in ['collector', 'learner']:
+                dist_restart_replicas(restart, kubeconfig, coordinator_name, namespace, restart_pod_name)
+            else:
+                raise Exception
+        elif mode == 'eval':
+            from .application_entry import eval
+            if config is None:
+                config = get_predefined_config(env, policy)
+            eval(config, seed, load_path=load_path, replay_path=replay_path)
+
+    if isinstance(seed, (list, tuple)):
+        assert len(seed) > 0, "Please input at least 1 seed"
+        if len(seed) == 1:  # necessary
+            run_single_pipeline(seed[0], config)
         else:
-            raise Exception
-    elif mode == 'eval':
-        from .application_entry import eval
-        if config is None:
-            config = get_predefined_config(env, policy)
-        eval(config, seed, load_path=load_path, replay_path=replay_path)
+            multi_exp_root = os.path.basename(config).split('.')[0] + '_result'
+            if not os.path.exists(multi_exp_root):
+                os.mkdir(multi_exp_root)
+            abs_config_path = os.path.abspath(config)
+            origin_root = os.getcwd()
+            for s in seed:
+                seed_exp_root = os.path.join(multi_exp_root, 'seed{}'.format(s))
+                if not os.path.exists(seed_exp_root):
+                    os.mkdir(seed_exp_root)
+                os.chdir(seed_exp_root)
+                run_single_pipeline(s, abs_config_path)
+                os.chdir(origin_root)
+    else:
+        raise TypeError("invalid seed type: {}".format(type(seed)))

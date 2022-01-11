@@ -9,6 +9,7 @@ lunarlander_trex_dqn_default_config = dict(
         # Env number respectively for collector and evaluator.
         collector_env_num=8,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),

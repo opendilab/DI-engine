@@ -6,6 +6,7 @@ lunarlander_trex_ppo_config = dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
         collector_env_num=8,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),

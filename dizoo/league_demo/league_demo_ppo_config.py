@@ -39,6 +39,7 @@ league_demo_ppo_config = dict(
                 patience=50,
                 # cooldown=0,
             ),
+            learner=dict(log_policy=False),
         ),
         collect=dict(
             n_episode=128, unroll_len=1, discount_factor=1.0, gae_lambda=1.0, collector=dict(get_train_sample=True, )
@@ -56,7 +57,7 @@ league_demo_ppo_config = dict(
                     one_phase_step=200,
                     branch_probs=dict(
                         pfsp=0.5,
-                        sp=1.0,
+                        sp=0.5,
                     ),
                     strong_win_rate=0.7,
                 ),
