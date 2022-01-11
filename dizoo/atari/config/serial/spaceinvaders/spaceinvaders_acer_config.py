@@ -56,7 +56,7 @@ spaceinvaders_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(replay_buffer=dict(
-            replay_buffer_size=10000,
+            replay_buffer_size=3000,
         ), ),
     ),
 )
@@ -77,7 +77,7 @@ create_config = EasyDict(spaceinvaders_acer_create_config)
 #     serial_pipeline((main_config, create_config), seed=0)
 
 def train(args):
-    main_config.exp_name='spaceinvaders_acer'+'_ns64_ul64_bs64_seed'+f'{args.seed}'
+    main_config.exp_name='spaceinvaders_acer'+'_ns64_ul64_bs64_rbs3e3_seed'+f'{args.seed}'
     import copy
     # 2441.4 iterations= 10M env steps / (64*64) 
     serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=2442)
