@@ -90,7 +90,9 @@ def _cli_ditask(
         try:
             parsed_args = PLATFORM_PARSERS[platform_spec["type"]](platform_spec, **all_args)
         except Exception as e:
+            import traceback
             click.echo("error when parse platform spec configure: {}".format(e))
+            traceback.print_stack()
             exit(1)
         return _cli_ditask(**parsed_args)
 
