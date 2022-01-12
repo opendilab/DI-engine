@@ -64,7 +64,6 @@ halfcheetah_d4pg_default_create_config = dict(
 halfcheetah_d4pg_default_create_config = EasyDict(halfcheetah_d4pg_default_create_config)
 create_config = halfcheetah_d4pg_default_create_config
 
-
 if __name__ == "__main__":
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

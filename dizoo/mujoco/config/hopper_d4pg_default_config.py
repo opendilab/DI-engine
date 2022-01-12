@@ -42,7 +42,7 @@ hopper_d4pg_default_config = dict(
         collect=dict(
             n_sample=8,
             unroll_len=1,
-            noise_sigma=0.2, # [0.1, 0.2]
+            noise_sigma=0.2,  # [0.1, 0.2]
         ),
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
@@ -63,7 +63,6 @@ hopper_d4pg_default_create_config = dict(
 )
 hopper_d4pg_default_create_config = EasyDict(hopper_d4pg_default_create_config)
 create_config = hopper_d4pg_default_create_config
-
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline

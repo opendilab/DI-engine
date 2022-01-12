@@ -64,7 +64,6 @@ walker2d_d4pg_default_create_config = dict(
 walker2d_d4pg_default_create_config = EasyDict(walker2d_d4pg_default_create_config)
 create_config = walker2d_d4pg_default_create_config
 
-
 if __name__ == "__main__":
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)
