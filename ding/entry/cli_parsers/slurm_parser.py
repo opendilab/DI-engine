@@ -34,7 +34,7 @@ class SlurmParser():
                 if "-" in tail:
                     start, stop = tail.split("-")
                     for number in range(int(start), int(stop) + 1):
-                        nodelist.append(prefix + number)
+                        nodelist.append(prefix + str(number))
                 else:
                     nodelist.append(prefix + tail)
         elif isinstance(nodelist, str):
