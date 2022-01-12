@@ -73,7 +73,7 @@ def train(args):
     main_config.exp_name='halfcheetah_onppo_ig'+'_seed'+f'{args.seed}'
     import copy
     # 937.4 iterations= 3M env steps / 3200 
-    serial_pipeline_onpolicy([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=1000)
+    serial_pipeline_onpolicy([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=938)
 
 if __name__ == "__main__":
     import argparse
