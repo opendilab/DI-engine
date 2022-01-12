@@ -1,3 +1,4 @@
+from attr.validators import instance_of
 import click
 import os
 import sys
@@ -107,16 +108,17 @@ def _cli_ditask(
     mod = importlib.import_module(mod_name)
     main_func = getattr(mod, func_name)
     # Parse arguments
-    ports = ports.split(",")
-    ports = list(map(lambda i: int(i), ports))
-    ports = ports[0] if len(ports) == 1 else ports
+    if not isinstance(ports, int):
+        ports = ports.split(",")
+        ports = list(map(lambda i: int(i), ports))
+        ports = ports[0] if len(ports) == 1 else ports
     if attach_to:
         attach_to = attach_to.split(",")
         attach_to = list(map(lambda s: s.strip(), attach_to))
     if labels:
         labels = labels.split(",")
         labels = set(map(lambda s: s.strip(), labels))
-    if node_ids:
+    if node_ids and not isinstance(node_ids, int):
         node_ids = node_ids.split(",")
         node_ids = list(map(lambda i: int(i), node_ids))
     Parallel.runner(
