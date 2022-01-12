@@ -29,7 +29,14 @@ class SlurmParser():
         result = re.match(r"(.*)?\[(.*)\]$", nodelist)
         if result:
             prefix, tails = result.groups()
-            nodelist = [prefix + tail for tail in tails.split(',')]
+            nodelist = []
+            for tail in tails.split(","):
+                if "-" in tail:
+                    start, stop = tail.split("-")
+                    for number in range(int(start), int(stop) + 1):
+                        nodelist.append(prefix + number)
+                else:
+                    nodelist.append(prefix + tail)
         elif isinstance(nodelist, str):
             nodelist = [nodelist]
         return nodelist
