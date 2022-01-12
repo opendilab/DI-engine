@@ -1,4 +1,3 @@
-from attr.validators import instance_of
 import click
 import os
 import sys
