@@ -88,12 +88,7 @@ class SlurmParser():
         return ports
 
     def _get_address(self, procid):
-        try:
-            address = self.nodelist[procid // self.ntasks_per_node]
-        except Exception as e:
-            print("Procid", procid, self.ntasks_per_node, self.nodelist)
-            print(os.environ)
-            raise e
+        address = self.nodelist[procid // self.ntasks_per_node]
         return address
 
 
