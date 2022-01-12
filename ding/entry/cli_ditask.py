@@ -3,10 +3,12 @@ import os
 import sys
 import importlib
 import importlib.util
+import json
 from click.core import Context, Option
 
 from ding import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
 from ding.framework import Parallel
+from ding.entry.cli_parsers import PLATFORM_PARSERS
 
 
 def print_version(ctx: Context, param: Option, value: bool) -> None:
@@ -54,12 +56,44 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     default="alone",
     help="Network topology, default: alone."
 )
+@click.option("--platform-spec", type=str, help="Platform specific configure.")
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
-def cli_ditask(
-    package: str, main: str, parallel_workers: int, protocol: str, ports: str, attach_to: str, address: str,
-    labels: str, node_ids: str, topology: str
+def cli_ditask(*args, **kwargs):
+    return _cli_ditask(*args, **kwargs)
+
+
+def _cli_ditask(
+    package: str,
+    main: str,
+    parallel_workers: int,
+    protocol: str,
+    ports: str,
+    attach_to: str,
+    address: str,
+    labels: str,
+    node_ids: str,
+    topology: str,
+    platform_spec: str = None
 ):
     # Parse entry point
+    all_args = locals()
+    if platform_spec:
+        try:
+            platform_spec = json.loads(platform_spec)
+        except:
+            click.echo("platform_spec is not a valid json!")
+            exit(1)
+        if "type" not in platform_spec or platform_spec["type"] not in PLATFORM_PARSERS:
+            click.echo("platform type is invalid!")
+            exit(1)
+        all_args.pop("platform_spec")
+        try:
+            parsed_args = PLATFORM_PARSERS[platform_spec["type"]](platform_spec, **all_args)
+        except Exception as e:
+            click.echo("error when parse platform spec configure: {}".format(e))
+            exit(1)
+        return _cli_ditask(**parsed_args)
+
     if not package:
         package = os.getcwd()
     sys.path.append(package)
