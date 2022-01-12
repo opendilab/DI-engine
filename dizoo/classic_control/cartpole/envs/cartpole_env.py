@@ -10,21 +10,6 @@ from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
 
-def disable_gym_view_window():
-    from gym.envs.classic_control import rendering
-    import pyglet
-
-    def get_window(width, height, display):
-        screen = display.get_screens()
-        config = screen[0].get_best_config()
-        context = config.create_context(None)
-        return pyglet.window.Window(
-            width=width, height=height, display=display, config=config, context=context, visible=False
-        )
-
-    rendering.get_window = get_window
-
-
 @ENV_REGISTRY.register('cartpole')
 class CartPoleEnv(BaseEnv):
 

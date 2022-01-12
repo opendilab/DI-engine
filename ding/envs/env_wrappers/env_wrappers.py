@@ -12,6 +12,25 @@ from torch import float32
 from ding.torch_utils import to_ndarray
 
 
+'''
+Env Wrapper List:
+    - NoopResetEnv: Sample initial states by taking random number of no-ops on reset.
+    - MaxAndSkipEnv: Max pooling across time steps
+    - WarpFrame: Warp frames to 84x84 as done in the Nature paper and later work.
+    - ScaledFloatFrame: Normalize observations to 0~1.
+    - ClipRewardEnv: Clip the reward to {+1, 0, -1} by its sign.
+    - DelayRewardEnv: Return cumulative reward at intervals; At other time, return reward of 0.
+    - FrameStack: Stack latest n frames(usually 4 in Atari) as one observation.
+    - ObsTransposeWrapper: Transpose observation to put channel to first dim.
+    - ObsNormEnv: Normalize observations according to running mean and std.
+    - RewardNormEnv: Normalize reward according to running std.
+    - RamWrapper: Wrap ram env into image-like env
+    - EpisodicLifeEnv: Make end-of-life == end-of-episode, but only reset on true game over.
+    - FireResetEnv: Take fire action at environment reset.
+
+Function `update_shape` is to update observation/action/reward space because of the use of wrappers.
+'''
+
 class NoopResetEnv(gym.Wrapper):
     """
     Overview:
@@ -248,7 +267,7 @@ class ScaledFloatFrame(gym.ObservationWrapper):
 class ClipRewardEnv(gym.RewardWrapper):
     """
     Overview:
-       clips the reward to {+1, 0, -1} by its sign.
+        Clip the reward to {+1, 0, -1} by its sign.
     Interface:
         ``__init__``, ``reward``, ``new_shape``
     Properties:
@@ -291,12 +310,12 @@ class ClipRewardEnv(gym.RewardWrapper):
         return obs_shape, act_shape, rew_shape
 
 
-class DelayRewardEnv(gym.RewardWrapper):
+class DelayRewardEnv(gym.Wrapper):
     """
     Overview:
-       Return cumulative reward at intervals; At other time, return reward of 0.
+        Return cumulative reward at intervals; At other time, return reward of 0.
     Interface:
-        ``__init__``, ``reward``, ``new_shape``
+        ``__init__``, ``reset``, ``step``, ``new_shape``
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
         - ``reward_range``
@@ -343,10 +362,53 @@ class DelayRewardEnv(gym.RewardWrapper):
         return obs_shape, act_shape, rew_shape
 
 
+class FinalEvalRewardEnv(gym.Wrapper):
+    """
+    Overview:
+        Accumulate rewards at every timestep, and return at the end of the episode in `info`.
+    Interface:
+        ``__init__``, ``reset``, ``step``, ``new_shape``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+    """
+
+    def __init__(self, env):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+
+    def reset(self):
+        self._final_eval_reward = 0.
+        return self.env.reset()
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self._final_eval_reward += reward
+        if done:
+            info['final_eval_reward'] = to_ndarray([self._final_eval_reward], dtype=np.float32)
+        return obs, reward, done, info
+
+    @staticmethod
+    def new_shape(obs_shape, act_shape, rew_shape):
+        """
+        Overview:
+           Get new shape of observation, acton, and reward; in this case unchanged.
+        Arguments:
+            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+        Returns:
+            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+        """
+        return obs_shape, act_shape, rew_shape
+
+
 class FrameStack(gym.Wrapper):
     """
     Overview:
-       Stack n_frames last frames.
+       Stack latest n frames(usually 4 in Atari) as one observation.
     Interface:
         ``__init__``, ``reset``, ``step``, ``_get_ob``, ``new_shape``
     Properties:
@@ -435,7 +497,7 @@ class FrameStack(gym.Wrapper):
 class ObsTransposeWrapper(gym.ObservationWrapper):
     """
     Overview:
-       Wrapper to transpose env, usually used in atari environments
+        Transpose observation to put channel to first dim.
     Interface:
         ``__init__``, ``observation``, ``new_shape``
     Properties:
@@ -779,7 +841,7 @@ class RewardNormEnv(gym.RewardWrapper):
 class RamWrapper(gym.Wrapper):
     """
     Overview:
-       Wrapper ram env into image-like env
+       Wrap ram env into image-like env
     Interface:
         ``__init__``, ``reset``, ``step``, ``new_shape``
     Properties:
@@ -941,8 +1003,8 @@ class EpisodicLifeEnv(gym.Wrapper):
 class FireResetEnv(gym.Wrapper):
     """
     Overview:
-        Take action on reset for environments that are fixed until firing. \
-            Related discussion: https://github.com/openai/baselines/issues/240
+        Take fire action at environment reset.
+        Related discussion: https://github.com/openai/baselines/issues/240
     Interface:
         ``__init__``, ``reset``, ``new_shape``
     Properties:

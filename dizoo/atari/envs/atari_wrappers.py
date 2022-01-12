@@ -1,9 +1,7 @@
 # Borrow a lot from openai baselines:
 # https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
-import cv2
 import gym
-import numpy as np
 from collections import deque
 from ding.envs import NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, WarpFrame, ScaledFloatFrame, \
                         ClipRewardEnv, FrameStack

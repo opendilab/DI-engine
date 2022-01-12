@@ -2,6 +2,7 @@ from typing import List, Optional
 import gym
 import copy
 import numpy as np
+
 from ding.envs.common.env_element import EnvElementInfo
 from ding.torch_utils import to_ndarray
 from .base_env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
@@ -9,12 +10,15 @@ from .base_env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 
 class DingEnvWrapper(BaseEnv):
 
-    def __init__(self, env: gym.Env, cfg: dict = None) -> None:
+    def __init__(self, env: gym.Env = None, cfg: dict = None) -> None:
+        # If env is None, assert cfg contains import_names + type, which are used to instantiate env instances.
+        # If env is passed in, lazy_init is disabled (use init_flag to annotate)
         self._cfg = cfg
         if self._cfg is None:
             self._cfg = dict()
         self._env = env
-        self._replay_path = cfg.get('replay_path', None)
+        # Only if user specifies the replay_path, will the video be saved. So its inital value is None.
+        self._replay_path = None
 
     # override
     def reset(self) -> None:
@@ -24,8 +28,6 @@ class DingEnvWrapper(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         if self._replay_path is not None:
-            # this function can lead to the meaningless result
-            # disable_gym_view_window()
             self._env = gym.wrappers.Monitor(
                 self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
             )

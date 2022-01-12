@@ -1,6 +1,7 @@
 from typing import Any, List, Union, Sequence
 import copy
 import numpy as np
+
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY

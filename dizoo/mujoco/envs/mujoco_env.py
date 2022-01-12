@@ -295,10 +295,7 @@ class MujocoEnv(BaseEnv):
             self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time() 
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
-        self._final_eval_reward = 0.
-        if self._delay_reward_step > 1:
-            self._delay_reward_duration = 0
-            self._current_delay_reward = 0.
+        # self._final_eval_reward = 0.
         return obs
 
     def close(self) -> None:
@@ -317,11 +314,11 @@ class MujocoEnv(BaseEnv):
             action_range = self.info().act_space.value
             action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
-        obs = to_ndarray(obs).astype('float32')
-        rew = to_ndarray([rew]).astype('float32')
-        if done:
-            info['final_eval_reward'] = self._final_eval_reward
+        # self._final_eval_reward += rew
+        obs = to_ndarray(obs).astype(np.float32)
+        rew = to_ndarray([rew]).astype(np.float32)  # 'float32'
+        # if done:
+        #     info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
 
     def info(self) -> BaseEnvInfo:
