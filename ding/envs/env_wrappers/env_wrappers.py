@@ -403,17 +403,17 @@ class FinalEvalRewardEnv(gym.Wrapper):
             info['final_eval_reward'] = to_ndarray([self._final_eval_reward], dtype=np.float32)
         return obs, reward, done, info
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
+    # @staticmethod
+    # def new_shape(obs_shape, act_shape, rew_shape):
+    #     """
+    #     Overview:
+    #        Get new shape of observation, acton, and reward; in this case unchanged.
+    #     Arguments:
+    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+    #     Returns:
+    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+    #     """
+    #     return obs_shape, act_shape, rew_shape
 
 
 @ENV_WRAPPER_REGISTRY.register('frame_stack')
@@ -1060,6 +1060,69 @@ class FireResetWrapper(gym.Wrapper):
         """
         return obs_shape, act_shape, rew_shape
 
+
+@ENV_WRAPPER_REGISTRY.register('gym_hybrid_dict_action')
+class GymHybridDictActionWrapper(gym.ActionWrapper):
+    """
+    Overview:
+       Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space to ``gym.spaces.Dict``.
+    Interface:
+        ``__init__``, ``action``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+        - ``self.action_space``
+
+    """
+
+    def __init__(self, env):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+        self.action_space = gym.spaces.Dict({
+            'type': gym.spaces.Discrete(3),
+            # shape = (2, )  0 is for acceleration; 1 is for rotation
+            'mask': gym.spaces.Box(low=0, high=1, shape=(2, ), dtype=np.int64),
+            'args': gym.spaces.Box(
+                low=np.array([0., -1.], dtype=np.float32),
+                high=np.array([1., 1.], dtype=np.float32),
+                shape=(2, ),
+                dtype=np.float32
+            ),
+        })
+
+    def step(self, action):
+        # # From Dict to Tuple
+        # action_type = action[0]
+        # if action_type == 0:
+        #     action_mask = np.array([1, 0], dtype=np.int64)
+        #     action_args = np.array([action[1][0], 0], dtype=np.float32)
+        # elif action_type == 1:
+        #     action_mask = np.array([0, 1], dtype=np.int64)
+        #     action_args = np.array([0, action[1][1]], dtype=np.float32)
+        # elif action_type == 2:
+        #     action_mask = np.array([0, 0], dtype=np.int64)
+        #     action_args = np.array([0, 0], dtype=np.float32)
+        
+        # From Dict to Tuple
+        action_type, action_mask, action_args = action['type'], action['mask'], action['args']
+        return self.env.step((action_type, action_args))
+
+    # @staticmethod
+    # def new_shape(obs_shape, act_shape, rew_shape, size=84):
+    #     """
+    #     Overview:
+    #         Get new shape of observation, acton, and reward; in this case only  \
+    #             observation space wrapped to (4, 84, 84); others unchanged.
+    #     Arguments:
+    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+    #     Returns:
+    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+    #     """
+    #     return (size, size), act_shape, rew_shape
 
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     """

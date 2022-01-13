@@ -46,7 +46,7 @@ class DingEnvWrapper(BaseEnv):
             self.action_space = self._env.action_space
             self.reward_space = gym.spaces.Box(
                 low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32)
-            self._update_space_shape()
+            # self._update_space_shape()
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
@@ -73,13 +73,20 @@ class DingEnvWrapper(BaseEnv):
 
     # override
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1, ) and self._action_type == 'scalar':
-            action = action.squeeze()
+        # TODO: hybird env's dict action
+        # assert isinstance(action, np.ndarray), type(action)
+        # if action.shape == (1, ) and self._action_type == 'scalar':
+        #     action = action.squeeze()
         obs, rew, done, info = self._env.step(action)
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        # if not isinstance(random_action, np.ndarray):
+        #     random_action = to_ndarray([self.action_space.sample()]).astype(np.float32)
+        return random_action
 
     # def info(self) -> BaseEnvInfo:
     #     obs_space = self._env.observation_space
