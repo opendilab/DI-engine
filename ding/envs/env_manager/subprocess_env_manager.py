@@ -219,7 +219,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._env_ref = self._env_fn[0]()
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
-            obs_space = self._env_ref.info().obs_space
+            obs_space = self._env_ref.observation_space
             shape = obs_space.shape
             dtype = np.dtype(obs_space.value['dtype']) if obs_space.value is not None else np.dtype(np.float32)
             self._obs_buffers = {env_id: ShmBufferContainer(dtype, shape) for env_id in range(self.env_num)}

@@ -66,16 +66,6 @@ class BaseEnv(ABC, gym.Env):
         raise NotImplementedError
 
     @abstractmethod
-    def info(self) -> 'BaseEnvInfo':
-        """
-        Overview:
-            Show space in code and return namedlist.
-        Returns:
-             - info (:obj:`BaseEnvInfo`)
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def __repr__(self) -> str:
         raise NotImplementedError
 
