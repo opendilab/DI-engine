@@ -8,7 +8,6 @@ from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray, to_list
 
 
-
 @ENV_REGISTRY.register('maze')
 class MazeEnv(BaseEnv):
 

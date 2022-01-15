@@ -1,7 +1,6 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
 
-
 cartpole_ppo_icm_config = dict(
     exp_name='cartpole_ppo',
     env=dict(

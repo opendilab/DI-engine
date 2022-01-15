@@ -65,6 +65,7 @@ def main(cfg, create_cfg, seed=0):
             if train_data is None:
                 break
             learner.train(train_data, collector.envstep)
-            
+
+
 if __name__ == "__main__":
-    main(space_invaders_dqn_config,create_config)
+    main(space_invaders_dqn_config, create_config)

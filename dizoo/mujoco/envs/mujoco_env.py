@@ -292,7 +292,7 @@ class MujocoEnv(BaseEnv):
             self._env = gym.wrappers.Monitor(
                 self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
             )
-            self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time() 
+            self._env = gym.wrappers.RecordVideo(self._env, './videos/' + str('time()') + '/')  # time()
         obs = self._env.reset()
         obs = to_ndarray(obs).astype('float32')
         return obs

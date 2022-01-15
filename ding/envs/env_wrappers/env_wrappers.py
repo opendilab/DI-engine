@@ -30,8 +30,7 @@ Env Wrapper List:
     - RamWrapper: Wrap ram env into image-like env
     - EpisodicLifeWrapper: Make end-of-life == end-of-episode, but only reset on true game over.
     - FireResetWrapper: Take fire action at environment reset.
-
-Function `update_shape` is to update observation/action/reward space because of the use of wrappers.
+    - GymHybridDictActionWrapper: Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space to ``gym.spaces.Dict``.
 '''
 
 
@@ -76,25 +75,6 @@ class NoopResetWrapper(gym.Wrapper):
                 obs = self.env.reset()
         return obs
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape, noop_max=30):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-
-        .. note::
-            Shapes space such as\
-                observation space shape, could be some nested strcutures, \
-                but for some simple environments, like pong in Atari, \
-                    observation space shape is a ``tuple``——``(4, 84, 84)``.
-            Same case applies for the ``new_shape`` interface in the following wrapper classes.
-        """
-        return obs_shape, act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('max_and_skip')
 class MaxAndSkipWrapper(gym.Wrapper):
@@ -107,7 +87,6 @@ class MaxAndSkipWrapper(gym.Wrapper):
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
         - skip (:obj:`int`): number of `skip`-th frame.
-
     """
 
     def __init__(self, env, skip=4):
@@ -146,18 +125,6 @@ class MaxAndSkipWrapper(gym.Wrapper):
                 break
         max_frame = np.max(obs_list[-2:], axis=0)
         return max_frame, total_reward, done, info
-
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape, skip=4):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
 
 @ENV_WRAPPER_REGISTRY.register('warp_frame')
@@ -210,19 +177,6 @@ class WarpFrameWrapper(gym.ObservationWrapper):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape, size=84):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case only  \
-                observation space wrapped to (4, 84, 84); others unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return (size, size), act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('scaled_float_frame')
 class ScaledFloatFrameWrapper(gym.ObservationWrapper):
@@ -259,18 +213,6 @@ class ScaledFloatFrameWrapper(gym.ObservationWrapper):
 
         return ((observation - self.bias) / self.scale).astype('float32')
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('clip_reward')
 class ClipRewardWrapper(gym.RewardWrapper):
@@ -305,18 +247,6 @@ class ClipRewardWrapper(gym.RewardWrapper):
             - reward(:obj:`Float`): Clipped Reward
         """
         return np.sign(reward)
-
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
 
 @ENV_WRAPPER_REGISTRY.register('delay_reward')
@@ -359,18 +289,6 @@ class DelayRewardWrapper(gym.Wrapper):
             reward = 0.
         return obs, reward, done, info
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape, delay_reward_step=0):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('final_eval_reward')
 class FinalEvalRewardEnv(gym.Wrapper):
@@ -402,18 +320,6 @@ class FinalEvalRewardEnv(gym.Wrapper):
         if done:
             info['final_eval_reward'] = to_ndarray([self._final_eval_reward], dtype=np.float32)
         return obs, reward, done, info
-
-    # @staticmethod
-    # def new_shape(obs_shape, act_shape, rew_shape):
-    #     """
-    #     Overview:
-    #        Get new shape of observation, acton, and reward; in this case unchanged.
-    #     Arguments:
-    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-    #     Returns:
-    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-    #     """
-    #     return obs_shape, act_shape, rew_shape
 
 
 @ENV_WRAPPER_REGISTRY.register('frame_stack')
@@ -493,18 +399,6 @@ class FrameStackWrapper(gym.Wrapper):
         """
         return np.stack(self.frames, axis=0)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape, n_frames=4):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return (n_frames, *obs_shape), act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('obs_transpose')
 class ObsTransposeWrapper(gym.ObservationWrapper):
@@ -560,26 +454,6 @@ class ObsTransposeWrapper(gym.ObservationWrapper):
         else:
             obs = obs.transpose(2, 0, 1)
         return obs
-
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case with  \
-                obs_space transposed and others unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        if isinstance(obs_shape, tuple):
-            new_obs = []
-            for i in range(len(obs_shape)):
-                new_obs.append(obs_shape[i].transpose(2, 0, 1))
-            obs_shape = np.stack(new_obs)
-        else:
-            obs_shape = obs_shape.transpose(2, 0, 1)
-        return obs_shape, act_shape, rew_shape
 
 
 class RunningMeanStd(object):
@@ -656,18 +530,6 @@ class RunningMeanStd(object):
             Property ``std`` calculated  from ``self._var`` and the epsilon value of ``self._epsilon``
         """
         return np.sqrt(self._var) + self._epsilon
-
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
 
 @ENV_WRAPPER_REGISTRY.register('obs_norm')
@@ -749,18 +611,6 @@ class ObsNormWrapper(gym.ObservationWrapper):
         observation = self.env.reset(**kwargs)
         return self.observation(observation)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('reward_norm')
 class RewardNormWrapper(gym.RewardWrapper):
@@ -840,18 +690,6 @@ class RewardNormWrapper(gym.RewardWrapper):
         self.rms.reset()
         return self.env.reset(**kwargs)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('ram')
 class RamWrapper(gym.Wrapper):
@@ -913,19 +751,6 @@ class RamWrapper(gym.Wrapper):
         """
         obs, reward, done, info = self.env.step(action)
         return obs.reshape(128, 1, 1).astype(np.float32), reward, done, info
-
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case only observation \
-                space wrapped to (128,1,1); others unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return (128, 1, 1), act_shape, rew_shape
 
 
 @ENV_WRAPPER_REGISTRY.register('episodic_life')
@@ -1004,18 +829,6 @@ class EpisodicLifeWrapper(gym.Wrapper):
         self.lives = self.env.unwrapped.ale.lives()
         return obs
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('fire_reset')
 class FireResetWrapper(gym.Wrapper):
@@ -1048,18 +861,6 @@ class FireResetWrapper(gym.Wrapper):
         self.env.reset()
         return self.env.step(1)[0]
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
-
 
 @ENV_WRAPPER_REGISTRY.register('gym_hybrid_dict_action')
 class GymHybridDictActionWrapper(gym.ActionWrapper):
@@ -1071,7 +872,6 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
         - ``self.action_space``
-
     """
 
     def __init__(self, env):
@@ -1082,17 +882,19 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
             - env (:obj:`gym.Env`): the environment to wrap.
         """
         super().__init__(env)
-        self.action_space = gym.spaces.Dict({
-            'type': gym.spaces.Discrete(3),
-            # shape = (2, )  0 is for acceleration; 1 is for rotation
-            'mask': gym.spaces.Box(low=0, high=1, shape=(2, ), dtype=np.int64),
-            'args': gym.spaces.Box(
-                low=np.array([0., -1.], dtype=np.float32),
-                high=np.array([1., 1.], dtype=np.float32),
-                shape=(2, ),
-                dtype=np.float32
-            ),
-        })
+        self.action_space = gym.spaces.Dict(
+            {
+                'type': gym.spaces.Discrete(3),
+                # shape = (2, )  0 is for acceleration; 1 is for rotation
+                'mask': gym.spaces.Box(low=0, high=1, shape=(2, ), dtype=np.int64),
+                'args': gym.spaces.Box(
+                    low=np.array([0., -1.], dtype=np.float32),
+                    high=np.array([1., 1.], dtype=np.float32),
+                    shape=(2, ),
+                    dtype=np.float32
+                ),
+            }
+        )
 
     def step(self, action):
         # # From Dict to Tuple
@@ -1106,7 +908,7 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
         # elif action_type == 2:
         #     action_mask = np.array([0, 0], dtype=np.int64)
         #     action_args = np.array([0, 0], dtype=np.float32)
-        
+
         # From Dict to Tuple
         action_type, action_mask, action_args = action['type'], action['mask'], action['args']
         return self.env.step((action_type, action_args))
@@ -1123,6 +925,7 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
     #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
     #     """
     #     return (size, size), act_shape, rew_shape
+
 
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     """

@@ -32,7 +32,7 @@ def wrap_mujoco(
             env = RewardNormWrapper(env, norm_reward.reward_discount)
         if delay_reward_step > 1:
             env = DelayRewardWrapper(env, delay_reward_step)
-        
+
         return env
     else:
         wrapper_info = ''

@@ -36,8 +36,12 @@ def test_mujoco_env_final_eval_reward():
         final_eval_reward += timestep.reward
         # print("{}(dtype: {})".format(timestep.reward, timestep.reward.dtype))
         if timestep.done:
-            print("{}({}), {}({})".format(timestep.info['final_eval_reward'], type(timestep.info['final_eval_reward']),
-                                          final_eval_reward, type(final_eval_reward)))
+            print(
+                "{}({}), {}({})".format(
+                    timestep.info['final_eval_reward'], type(timestep.info['final_eval_reward']), final_eval_reward,
+                    type(final_eval_reward)
+                )
+            )
             # timestep.reward and the cumulative reward in wrapper FinalEvalReward are not the same.
             assert abs(timestep.info['final_eval_reward'].item() - final_eval_reward.item()) / \
                 abs(timestep.info['final_eval_reward'].item()) < 1e-5

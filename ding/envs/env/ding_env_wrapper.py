@@ -1,7 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 import gym
 import copy
 import numpy as np
+from numpy.lib.arraysetops import isin
 
 from ding.envs.common.env_element import EnvElementInfo
 from ding.envs.env_wrappers import create_env_wrapper, get_env_wrapper_cls
@@ -25,7 +26,8 @@ class DingEnvWrapper(BaseEnv):
             self.observation_space = self._env.observation_space
             self.action_space = self._env.action_space
             self.reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32)
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            )
         else:
             # TODO: need this assert?
             # assert 'type' in cfg and 'import_names' in cfg, 'Lazy init, but cfg does not contain necessary keys: {}'.format(
@@ -45,7 +47,8 @@ class DingEnvWrapper(BaseEnv):
             self.observation_space = self._env.observation_space
             self.action_space = self._env.action_space
             self.reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32)
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            )
             # self._update_space_shape()
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -73,52 +76,42 @@ class DingEnvWrapper(BaseEnv):
 
     # override
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        # TODO: hybird env's dict action
-        # assert isinstance(action, np.ndarray), type(action)
-        # if action.shape == (1, ) and self._action_type == 'scalar':
-        #     action = action.squeeze()
+        action = self._judge_action_type(action)
         obs, rew, done, info = self._env.step(action)
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
 
+    def _judge_action_type(self, action: Union[np.ndarray, dict]) -> Union[np.ndarray, dict]:
+        if isinstance(action, int):
+            return action
+        if isinstance(action, np.ndarray):
+            if action.shape == (1, ) and self._action_type == 'scalar':
+                action = action.item()
+            return action
+        elif isinstance(action, dict):
+            for k, v in action.items():
+                action[k] = self._judge_action_type(v)
+            return action
+        else:
+            raise TypeError(
+                '`action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(type(action), action)
+            )
+
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
-        # if not isinstance(random_action, np.ndarray):
-        #     random_action = to_ndarray([self.action_space.sample()]).astype(np.float32)
+        if isinstance(random_action, np.ndarray):
+            pass
+        elif isinstance(random_action, int):
+            random_action = to_ndarray([random_action], dtype=np.int64)
+        elif isinstance(random_action, dict):
+            random_action = to_ndarray(random_action)
+        else:
+            raise TypeError(
+                '`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
+                    type(random_action), random_action)
+            )
         return random_action
-
-    # def info(self) -> BaseEnvInfo:
-    #     obs_space = self._env.observation_space
-    #     act_space = self._env.action_space
-    #     return BaseEnvInfo(
-    #         agent_num=1,
-    #         obs_space=EnvElementInfo(
-    #             shape=obs_space.shape,
-    #             value={
-    #                 'min': obs_space.low,
-    #                 'max': obs_space.high,
-    #                 'dtype': np.float32
-    #             },
-    #         ),
-    #         act_space=EnvElementInfo(
-    #             shape=(act_space.n, ),
-    #             value={
-    #                 'min': 0,
-    #                 'max': act_space.n,
-    #                 'dtype': np.float32
-    #             },
-    #         ),
-    #         rew_space=EnvElementInfo(
-    #             shape=1,
-    #             value={
-    #                 'min': -1,
-    #                 'max': 1,
-    #                 'dtype': np.float32
-    #             },
-    #         ),
-    #         use_wrappers=None
-    #     )
 
     def _make_env(self) -> gym.Env:
         env = gym.make(self._cfg.env_id)
@@ -132,17 +125,17 @@ class DingEnvWrapper(BaseEnv):
             env = create_env_wrapper(env, wrapper_cfg)
         return env
 
-    def _update_space_shape(self) -> None:
-        spaces = (self.observation_space.shape, self.action_space.shape, self.reward_space.shape)
-        # wrapper_cfgs = self._cfg.get('env_wrapper', [])
-        # if isinstance(wrapper_cfgs, str):
-        #     wrapper_cfgs = default_wrappers[wrapper_cfgs]
-        for wrapper_cfg in self._wrapper_cfgs:
-            if wrapper_cfg.get('disable', False):
-                continue
-            wrapper_cls = get_env_wrapper_cls(wrapper_cfg)
-            spaces = wrapper_cls.new_shape(*spaces, **wrapper_cfg.get('kwargs', {}))
-        self.observation_space._shape, self.action_space._shape, self.reward_space._shape = spaces
+    # def _update_space_shape(self) -> None:
+    #     spaces = (self.observation_space.shape, self.action_space.shape, self.reward_space.shape)
+    #     # wrapper_cfgs = self._cfg.get('env_wrapper', [])
+    #     # if isinstance(wrapper_cfgs, str):
+    #     #     wrapper_cfgs = default_wrappers[wrapper_cfgs]
+    #     for wrapper_cfg in self._wrapper_cfgs:
+    #         if wrapper_cfg.get('disable', False):
+    #             continue
+    #         wrapper_cls = get_env_wrapper_cls(wrapper_cfg)
+    #         spaces = wrapper_cls.new_shape(*spaces, **wrapper_cfg.get('kwargs', {}))
+    #     self.observation_space._shape, self.action_space._shape, self.reward_space._shape = spaces
 
     def __repr__(self) -> str:
         return "DI-engine Env({})".format(self._cfg.env_id)
