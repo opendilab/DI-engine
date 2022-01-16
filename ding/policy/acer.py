@@ -85,7 +85,7 @@ class ACERPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=16,
+            # n_sample=16,
             # (int) the trajectory length to calculate v-trace target
             unroll_len=unroll_len,
             # (float) discount factor for future reward, defaults int [0, 1]
