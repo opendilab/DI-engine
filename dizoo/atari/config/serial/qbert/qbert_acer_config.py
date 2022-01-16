@@ -45,7 +45,6 @@ qbert_acer_config = dict(
             # (float) additional discounting parameter
             trust_region=True,
             # (float) clip ratio of importance weights
-            # (float) clip ratio of importance weights
             c_clip_ratio=10,
         ),
         collect=dict(

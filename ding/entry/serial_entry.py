@@ -121,7 +121,9 @@ def serial_pipeline(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-
+        # TODO(pu): set total env steps
+        if collector.envstep >= int(1e7):
+            break
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
