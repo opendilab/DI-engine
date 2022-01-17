@@ -35,7 +35,6 @@ spaceinvaders_acer_config = dict(
             # clip_value=10,
             learning_rate_actor=0.00005,
             learning_rate_critic=0.0001,
-            # (float) loss weight of the value network, the weight of policy network is set to 1
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.03,
             # (float) discount factor for future reward, defaults int [0, 1]

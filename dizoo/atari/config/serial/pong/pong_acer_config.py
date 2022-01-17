@@ -36,7 +36,6 @@ pong_acer_config = dict(
             # clip_value=10,
             learning_rate_actor=0.0001,
             learning_rate_critic=0.0003,
-            # (float) loss weight of the value network, the weight of policy network is set to 1
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
             # (float) discount factor for future reward, defaults int [0, 1]

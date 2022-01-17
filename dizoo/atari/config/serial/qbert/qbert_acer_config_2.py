@@ -37,7 +37,6 @@ qbert_acer_config = dict(
             clip_value=10,
             learning_rate_actor=0.0001,
             learning_rate_critic=0.0003,
-            # (float) loss weight of the value network, the weight of policy network is set to 1
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
             # (float) discount factor for future reward, defaults int [0, 1]
@@ -57,9 +56,9 @@ qbert_acer_config = dict(
         ),
         eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(replay_buffer=dict(
-            # replay_buffer_size=3000,
-            replay_buffer_size=10000,
-
+            replay_buffer_size=3000,
+            # replay_buffer_size=10000,
+            # max_use=int(1e4),
         ), ),
     ),
 )
@@ -80,13 +79,13 @@ create_config = EasyDict(qbert_acer_create_config)
 #     serial_pipeline((main_config, create_config), seed=0)
 
 def train(args):
-    main_config.exp_name='qbert_acer'+'_ns16_ul32_bs32_rbs1e4_10m_seed'+f'{args.seed}'
+    main_config.exp_name='qbert_acer'+'_ns16_ul32_bs32_rbs3e3_seed'+f'{args.seed}'
     import copy
     serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed)
 
 if __name__ == "__main__":
     import argparse
-    for seed in [0,1,2,3,4]:     
+    for seed in [0,1,2,3,4]:
         parser = argparse.ArgumentParser()
         parser.add_argument('--seed', '-s', type=int, default=seed)
         args = parser.parse_args()
