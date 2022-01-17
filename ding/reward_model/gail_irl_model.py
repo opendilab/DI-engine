@@ -111,8 +111,26 @@ class GailRewardModel(BaseRewardModel):
         The Gail reward model class (https://arxiv.org/abs/1606.03476)
     Interface:
         ``estimate``, ``train``, ``load_expert_data``, ``collect_data``, ``clear_date``, \
-            ``__init__``, ``_train``,
-    """
+            ``__init__``,  ``state_dict``, ``load_state_dict``, ``learn``
+    Config:
+           == ====================  ========   =============  ================================= =======================
+           ID Symbol                Type       Default Value  Description                       Other(Shape)
+           == ====================  ========   =============  ================================= =======================
+           1  ``type``              str        gail            | RL policy register name, refer  | this arg is optional,
+                                                               | to registry ``POLICY_REGISTRY`` | a placeholder
+           2  | ``expert_data_      str        expert_data.    | Path to the expert dataset      | Should be a '.pkl'
+              |   path``                       .pkl            |                                 | file
+           3  | ``update_per_       int        100             | Number of updates per collect   |
+              |    collect``                                   |                                 |
+           4  | ``batch_size``      int        64              | Training batch size             |
+           5  | ``input_size``      int                        | Size of the input:              |
+              |                                                | obs_dim + act_dim               |
+           6  | ``target_new_       int        64              | Collect steps per iteration     |
+              |    data_count``                                |                                 |
+           7  | ``hidden_size``     int        128             | Linear model hidden size        |
+           8  | ``collect_count``   int        100000          | Expert dataset size             | One entry is a (s,a)
+              |                                                |                                 | tuple
+       """
     config = dict(
         type='gail',
         learning_rate=1e-3,
@@ -122,6 +140,7 @@ class GailRewardModel(BaseRewardModel):
         input_size=4,
         target_new_data_count=64,
         hidden_size=128,
+        collect_count=100000,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
@@ -175,10 +194,10 @@ class GailRewardModel(BaseRewardModel):
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
         self.reward_model.load_state_dict(state_dict['model'])
 
-    def _train(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> float:
+    def learn(self, train_data: torch.Tensor, expert_data: torch.Tensor) -> float:
         """
         Overview:
-            Helper function for ``train`` which caclulates loss for train data and expert data.
+            Helper function for ``train`` which calculates loss for train data and expert data.
         Arguments:
             - train_data (:obj:`torch.Tensor`): Data used for training
             - expert_data (:obj:`torch.Tensor`): Expert data
@@ -211,7 +230,7 @@ class GailRewardModel(BaseRewardModel):
             sample_train_data: list = random.sample(self.train_data, self.cfg.batch_size)
             sample_expert_data = torch.stack(sample_expert_data).to(self.device)
             sample_train_data = torch.stack(sample_train_data).to(self.device)
-            loss = self._train(sample_train_data, sample_expert_data)
+            loss = self.learn(sample_train_data, sample_expert_data)
             self.tb_logger.add_scalar('reward_model/gail_loss', loss, self.train_iter)
             self.train_iter += 1
 

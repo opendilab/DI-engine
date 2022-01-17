@@ -1421,3 +1421,6 @@ eval_config.py
 collect_demo_data_config.py
 default*
 !ding/**/*.py
+events.*
+/events.out.*
+dizoo/atari/config/serial/pong/pong_r2d2_gtrxl_3/*
