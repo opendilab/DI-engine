@@ -1,16 +1,16 @@
 from easydict import EasyDict
 
-hopper_d4pg_default_config = dict(
-    exp_name='hopper_d4pg_seed0',
+halfcheetah_d4pg_default_config = dict(
+    exp_name='halfcheetah_d4pg_seed0',
     env=dict(
-        env_id='Hopper-v3',
+        env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=4,
         evaluator_env_num=4,
         use_act_scale=True,
         n_evaluator_episode=8,
-        stop_value=5000,
+        stop_value=20000,
     ),
     policy=dict(
         cuda=True,
@@ -18,22 +18,22 @@ hopper_d4pg_default_config = dict(
         nstep=5,
         random_collect_size=10000,
         model=dict(
-            obs_shape=11,
-            action_shape=3,
+            obs_shape=17,
+            action_shape=6,
             actor_head_hidden_size=512,
             critic_head_hidden_size=512,
             action_space='regression',
             critic_head_type='categorical',
             v_min=0,
-            v_max=1000,  # [1000, 3000]
+            v_max=5000,  # [3000, 10000]
             n_atom=51,
         ),
         learn=dict(
-            update_per_collect=1,
+            update_per_collect=4,  # [1, 4]
             batch_size=256,
             learning_rate_actor=3e-4,
             learning_rate_critic=3e-4,
-            ignore_done=False,
+            ignore_done=True,
             target_theta=0.005,
             discount_factor=0.99,
             actor_update_freq=1,
@@ -47,10 +47,10 @@ hopper_d4pg_default_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
-hopper_d4pg_default_config = EasyDict(hopper_d4pg_default_config)
-main_config = hopper_d4pg_default_config
+halfcheetah_d4pg_default_config = EasyDict(halfcheetah_d4pg_default_config)
+main_config = halfcheetah_d4pg_default_config
 
-hopper_d4pg_default_create_config = dict(
+halfcheetah_d4pg_default_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -61,8 +61,8 @@ hopper_d4pg_default_create_config = dict(
         import_names=['ding.policy.d4pg'],
     ),
 )
-hopper_d4pg_default_create_config = EasyDict(hopper_d4pg_default_create_config)
-create_config = hopper_d4pg_default_create_config
+halfcheetah_d4pg_default_create_config = EasyDict(halfcheetah_d4pg_default_create_config)
+create_config = halfcheetah_d4pg_default_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline
