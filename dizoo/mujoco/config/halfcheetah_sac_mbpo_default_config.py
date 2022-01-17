@@ -2,9 +2,9 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_mbrl
 
 # environment hypo
-env_id = 'Hopper-v2'
-obs_shape = 11
-action_shape = 3
+env_id = 'HalfCheetah-v3'
+obs_shape = 17
+action_shape = 6
 
 # gpu
 cuda = True
@@ -15,7 +15,7 @@ rollout_retain = 4
 rollout_start_step = 20000
 rollout_end_step = 150000
 rollout_length_min = 1
-rollout_length_max = 15
+rollout_length_max = 1
 
 x0 = rollout_start_step
 y0 = rollout_length_min
@@ -26,6 +26,7 @@ set_rollout_length = lambda x: int(min(max(w * (x - x0) + b, y0), y1))
 set_buffer_size = lambda x: set_rollout_length(x) * rollout_batch_size * rollout_retain
 
 main_config = dict(
+    exp_name='halfcheetach_sac_mbpo_seed0',
     env=dict(
         env_id=env_id,
         norm_obs=dict(use_norm=False, ),
@@ -38,7 +39,6 @@ main_config = dict(
     ),
     policy=dict(
         cuda=cuda,
-        on_policy=False,
         random_collect_size=10000,
         model=dict(
             obs_shape=obs_shape,
@@ -49,7 +49,7 @@ main_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            update_per_collect=20,
+            update_per_collect=40,
             batch_size=256,
             learning_rate_q=3e-4,
             learning_rate_policy=3e-4,
@@ -67,7 +67,7 @@ main_config = dict(
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000000, periodic_thruput_seconds=60), ),
     ),
     model_based=dict(
         real_ratio=0.05,
@@ -77,6 +77,7 @@ main_config = dict(
             deepcopy=False,
             enable_track_used_data=False,
             set_buffer_size=set_buffer_size,
+            periodic_thruput_seconds=60,
         ),
         env_model=dict(
             type='mbpo',

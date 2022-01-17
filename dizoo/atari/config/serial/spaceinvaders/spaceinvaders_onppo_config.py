@@ -1,25 +1,28 @@
-from easydict import EasyDict
+from copy import deepcopy
 from ding.entry import serial_pipeline_onpolicy
+from easydict import EasyDict
 
-hopper_ppo_default_config = dict(
+spaceinvaders_ppo_config = dict(
     env=dict(
-        env_id='Hopper-v3',
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
-        collector_env_num=8,
-        evaluator_env_num=10,
-        use_act_scale=True,
-        n_evaluator_episode=10,
-        stop_value=4000,
+        collector_env_num=16,
+        evaluator_env_num=8,
+        n_evaluator_episode=8,
+        stop_value=int(1e10),
+        env_id='SpaceInvadersNoFrameskip-v4',
+        frame_stack=4,
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
         recompute_adv=True,
-        action_space='continuous',
+        action_space='discrete',
         model=dict(
-            obs_shape=11,
-            action_shape=3,
-            action_space='continuous',
+            obs_shape=[4, 84, 84],
+            action_shape=6,
+            action_space='discrete',
+            encoder_hidden_size_list=[64, 64, 128],
+            actor_head_hidden_size=128,
+            critic_head_hidden_size=128,
         ),
         learn=dict(
             epoch_per_collect=10,
@@ -45,32 +48,30 @@ hopper_ppo_default_config = dict(
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
-        eval=dict(evaluator=dict(eval_freq=500, )),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-hopper_ppo_default_config = EasyDict(hopper_ppo_default_config)
-main_config = hopper_ppo_default_config
+main_config = EasyDict(spaceinvaders_ppo_config)
 
-hopper_ppo_create_default_config = dict(
+spaceinvaders_ppo_create_config = dict(
     env=dict(
-        type='mujoco',
-        import_names=['dizoo.mujoco.envs.mujoco_env'],
+        type='atari',
+        import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='base'),
     # env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo', ),
+    policy=dict(type='ppo'),
 )
-hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
-create_config = hopper_ppo_create_default_config
+create_config = EasyDict(spaceinvaders_ppo_create_config)
 
 # if __name__ == "__main__":
 #     serial_pipeline_onpolicy([main_config, create_config], seed=0)
 
 def train(args):
-    main_config.exp_name='hopper_onppo_noig'+'_seed'+f'{args.seed}'
+    main_config.exp_name='spaceinvaders_onppo_noig'+'_seed'+f'{args.seed}'
     import copy
-    # 937.4 iterations= 3M env steps / 3200 
-    serial_pipeline_onpolicy([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=938)
+    # 3125 iterations= 10M env steps / 3200 
+    serial_pipeline_onpolicy([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=3125)
 
 if __name__ == "__main__":
     import argparse
