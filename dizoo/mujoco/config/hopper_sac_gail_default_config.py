@@ -85,5 +85,5 @@ if __name__ == "__main__":
     serial_pipeline_gail([main_config, create_config],
                          [hopper_sac_default_config,
                           hopper_sac_default_create_config],
-                         max_iterations = 1000000,
-                         seed=0, collect_data=False)
+                         max_iterations=1000000,
+                         seed=0, collect_data=True)

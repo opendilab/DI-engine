@@ -91,4 +91,4 @@ create_config = lunarlander_dqn_gail_create_config
 if __name__ == "__main__":
     serial_pipeline_gail([main_config, create_config],
                          [lunarlander_dqn_default_config, lunarlander_dqn_create_config],
-                         seed=4, collect_data=False)
+                         seed=0, collect_data=True)
