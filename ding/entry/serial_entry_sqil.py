@@ -10,8 +10,9 @@ from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
-from ding.policy import create_policy, PolicyFactory
+from ding.policy import create_policy
 from ding.utils import set_pkg_seed
+from .random_collect import random_collect_fn
 
 
 def serial_pipeline_sqil(
@@ -117,13 +118,7 @@ def serial_pipeline_sqil(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(random_policy)
-        collect_kwargs = commander.step()
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
+        random_collect_fn(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     for _ in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance

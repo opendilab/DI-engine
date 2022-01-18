@@ -20,3 +20,4 @@ from .application_entry import eval, collect_demo_data, collect_episodic_demo_da
 from .application_entry_trex_collect_data import trex_collecting_data, collect_episodic_demo_data_for_trex
 from .serial_entry_guided_cost import serial_pipeline_guided_cost
 from .serial_entry_gail import serial_pipeline_gail
+from .random_collect import random_collect_fn
