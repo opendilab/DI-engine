@@ -58,9 +58,9 @@ def serial_pipeline_gail(
     else:
         cfg, create_cfg = input_cfg
     if isinstance(expert_cfg, str):
-        expert_cfg, expert_create_cfg = read_config(input_cfg)
+        expert_cfg, expert_create_cfg = read_config(expert_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
     # Load expert data
@@ -68,7 +68,7 @@ def serial_pipeline_gail(
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:
             expert_cfg.policy.other.eps.collect = -1
         if expert_cfg.policy.get('load_path', None) is None:
-            expert_cfg.policy.load_path = os.path.join(expert_cfg.exp_name, 'ckpt/ckpt_best.pth.tar')
+            expert_cfg.policy.load_path = cfg.reward_model.expert_load_path
         collect_demo_data(
             (expert_cfg, expert_create_cfg),
             seed,
