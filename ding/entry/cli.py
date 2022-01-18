@@ -60,7 +60,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     type=click.Choice(
         [
             'serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'serial_trex', 'serial_trex_onpolicy',
-            'parallel', 'dist', 'eval', 'serial_reward_model', 'serial_gail'
+            'parallel', 'dist', 'eval', 'serial_reward_model', 'serial_gail', 'serial_offline',
         ]
     ),
     help='serial-train or parallel-train or dist-train or eval'
@@ -201,6 +201,9 @@ def cli(
         elif mode == 'serial_trex_onpolicy':
             from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
             serial_pipeline_reward_model_trex_onpolicy(config, seed, max_iterations=train_iter)
+        elif mode == 'serial_offline':
+            from .serial_entry_offline import serial_pipeline_offline
+            serial_pipeline_offline(config, seed)
         elif mode == 'parallel':
             from .parallel_entry import parallel_pipeline
             parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
