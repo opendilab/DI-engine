@@ -19,8 +19,8 @@ space_invaders_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            encoder_hidden_size_list=[128, 128, 512],
-            hidden_size=512,
+            encoder_hidden_size_list=[128, 256, 1024],
+            hidden_size=1024,
             gru_bias=1.,
             memory_len=0,
         ),
