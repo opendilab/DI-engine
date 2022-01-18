@@ -15,7 +15,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.model import DQN
-from .random_collect import random_collect_fn
+from .utils import random_collect, mark_not_expert
 from dizoo.classic_control.cartpole.config.cartpole_dqfd_config import main_config, create_config  # for testing
 
 
@@ -144,7 +144,9 @@ def serial_pipeline_dqfd(
         learner.priority_info = {}
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        random_collect_fn(cfg.policy, policy, collector, collector_env, commander, replay_buffer, mark_not_expert=True)
+        random_collect(
+            cfg.policy, policy, collector, collector_env, commander, replay_buffer, postprocess_data_fn=mark_not_expert
+        )
     for _ in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance

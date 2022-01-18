@@ -14,7 +14,7 @@ from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
-from .random_collect import random_collect_fn
+from .utils import random_collect, mark_not_expert
 
 
 def serial_pipeline_r2d3(
@@ -156,7 +156,9 @@ def serial_pipeline_r2d3(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        random_collect_fn(cfg.policy, policy, collector, collector_env, commander, replay_buffer, mark_not_expert=True)
+        random_collect(
+            cfg.policy, policy, collector, collector_env, commander, replay_buffer, postprocess_data_fn=mark_not_expert
+        )
 
     for _ in range(max_iterations):
         collect_kwargs = commander.step()

@@ -13,7 +13,7 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialComma
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed, read_file, save_file
-from .random_collect import random_collect_fn
+from .utils import random_collect
 
 
 def save_ckpt_fn(learner, env_model, envstep):
@@ -130,7 +130,7 @@ def serial_pipeline_mbrl(
 
     # Accumulate plenty of data before the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        random_collect_fn(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
+        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     # Train
     batch_size = learner.policy.get_attribute('batch_size')
     real_ratio = model_based_cfg['real_ratio']

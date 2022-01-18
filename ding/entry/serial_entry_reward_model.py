@@ -12,7 +12,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
-from .random_collect import random_collect_fn
+from .utils import random_collect
 
 
 def serial_pipeline_reward_model(
@@ -84,7 +84,7 @@ def serial_pipeline_reward_model(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        random_collect_fn(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
+        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     for _ in range(max_iterations):
         collect_kwargs = commander.step()
         # Evaluate policy performance

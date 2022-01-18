@@ -14,7 +14,7 @@ from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.entry import collect_demo_data
 from ding.utils import save_file
-from .random_collect import random_collect_fn
+from .utils import random_collect
 
 
 def save_reward_model(path, reward_model, weights_name='best'):
@@ -113,7 +113,7 @@ def serial_pipeline_gail(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        random_collect_fn(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
+        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     best_reward = -np.inf
     for _ in range(max_iterations):
         # Evaluate policy performance
