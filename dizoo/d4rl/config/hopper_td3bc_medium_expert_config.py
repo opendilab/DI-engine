@@ -75,7 +75,6 @@ main_config = dict(
             unroll_len=1,
             noise_sigma=0.1,
             normalize_states=True,
-            n_sample=1,
             data_type='d4rl',
             data_path=None,
         ),
