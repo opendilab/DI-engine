@@ -17,13 +17,13 @@ qbert_a2c_config = dict(
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            encoder_hidden_size_list=[32, 64, 64, 128],
-            actor_head_hidden_size=128,
-            critic_head_hidden_size=128,
+            encoder_hidden_size_list=[32, 64, 64, 256],
+            actor_head_hidden_size=256,
+            critic_head_hidden_size=256,
             critic_head_layer_num=2,
         ),
         learn=dict(
-            batch_size=160,
+            batch_size=300,
             # (bool) Whether to normalize advantage. Default to False.
             adv_norm=False,
             learning_rate=0.0001414,
