@@ -466,7 +466,7 @@ class GTrXL(nn.Module):
             - state (:obj:`Optional[torch.Tensor]`): input memory.
             Shape is (layer_num, memory_len, bs, embedding_dim).
         """
-        self.memory = Memory(memory_len=self.memory_len)
+        self.memory = Memory(memory_len=self.memory_len, layer_num=self.layer_num)
         if batch_size is not None:
             self.memory = Memory(self.memory_len, batch_size, self.embedding_dim, self.layer_num)
         elif state is not None:
