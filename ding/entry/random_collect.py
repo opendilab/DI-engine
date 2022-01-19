@@ -1,6 +1,7 @@
 from ding.policy import PolicyFactory
 
-def random_collect_fn(policy_cfg, policy, collector, collector_env, commander, replay_buffer, mark_not_expert=False):
+
+def random_collect_fn(policy_cfg, policy, collector, collector_env, commander, replay_buffer, mark_not_expert=False, warm_up=False):
     assert policy_cfg.random_collect_size > 0
     if policy_cfg.get('transition_with_policy_data', False):
         collector.reset_policy(policy.collect_mode)
@@ -17,5 +18,9 @@ def random_collect_fn(policy_cfg, policy, collector, collector_env, commander, r
     if mark_not_expert:
         for i in range(len(new_data)):
             new_data[i]['is_expert'] = 0  # set is_expert flag(expert 1, agent 0)
+    if warm_up:
+        # for td3_vae
+        for i in range(len(new_data)):
+            new_data[i]['warm_up'] = True
     replay_buffer.push(new_data, cur_collector_envstep=0)
     collector.reset_policy(policy.collect_mode)
