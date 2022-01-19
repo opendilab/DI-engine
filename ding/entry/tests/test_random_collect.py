@@ -95,12 +95,12 @@ def test_random_collect(collector_type, transition_with_policy_data, data_postpr
         if collector_type == 'sample':
             for d in replay_buffer._data[:RANDOM_COLLECT_SIZE]:
                 assert d['is_expert'] == 0
-                assert d['warm_up'] == True
+                assert d['warm_up'] is True
         else:
             for e in replay_buffer._data[:RANDOM_COLLECT_SIZE]:
                 for d in e:
                     assert d['is_expert'] == 0
-                    assert d['warm_up'] == True
+                    assert d['warm_up'] is True
 
 
 if __name__ == '__main__':

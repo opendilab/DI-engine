@@ -97,7 +97,7 @@ def serial_pipeline_td3_vae(
         #     item['warm_up'] = True
         # replay_buffer.push(new_data, cur_collector_envstep=0)
         # collector.reset_policy(policy.collect_mode)
-        postprocess_data_fn = lambda x: mark_warm_up(mark_not_expert(x))
+        # postprocess_data_fn = lambda x: mark_warm_up(mark_not_expert(x))
         random_collect(
             cfg.policy,
             policy,
@@ -105,7 +105,7 @@ def serial_pipeline_td3_vae(
             collector_env,
             commander,
             replay_buffer,
-            postprocess_data_fn=postprocess_data_fn
+            postprocess_data_fn=lambda x: mark_warm_up(mark_not_expert(x))  # postprocess_data_fn
         )
         # warm_up
         # Learn policy from collected data

@@ -18,12 +18,12 @@ def mark_warm_up(ori_data: List[dict]) -> List[dict]:
 
 
 def random_collect(
-        policy_cfg: 'EasyDict',
-        policy: 'Policy',
-        collector: 'ISerialCollector',
-        collector_env: 'BaseEnvManager',
-        commander: 'BaseSerialCommander',
-        replay_buffer: 'IBuffer',
+        policy_cfg: 'EasyDict',  # noqa
+        policy: 'Policy',  # noqa
+        collector: 'ISerialCollector',  # noqa
+        collector_env: 'BaseEnvManager',  # noqa
+        commander: 'BaseSerialCommander',  # noqa
+        replay_buffer: 'IBuffer',  # noqa
         postprocess_data_fn: Optional[Callable] = None
 ) -> None:  # noqa
     assert policy_cfg.random_collect_size > 0
