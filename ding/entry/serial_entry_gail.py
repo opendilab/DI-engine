@@ -3,17 +3,18 @@ import os
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
+import numpy as np
 
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import compile_config, read_config
-from ding.policy import create_policy, PolicyFactory
+from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.entry import collect_demo_data
 from ding.utils import save_file
-import numpy as np
+from .utils import random_collect
 
 
 def save_reward_model(path, reward_model, weights_name='best'):
@@ -112,12 +113,7 @@ def serial_pipeline_gail(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(random_policy)
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size)
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
+        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     best_reward = -np.inf
     for _ in range(max_iterations):
         # Evaluate policy performance
