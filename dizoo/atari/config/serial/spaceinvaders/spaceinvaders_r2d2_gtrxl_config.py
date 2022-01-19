@@ -2,7 +2,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 space_invaders_r2d2_gtrxl_config = dict(
-    exp_name='space_invaders_r2d2_gtrxl',
+    exp_name='spaceinvaders_r2d2_gtrxl',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,

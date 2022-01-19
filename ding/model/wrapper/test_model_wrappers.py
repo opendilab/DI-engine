@@ -248,11 +248,11 @@ class TestModelWrappers:
                       memory_len=memory_len, layer_num=layer_num)
         model1 = model_wrap(model, wrapper_name='transformer_memory', batch_size=bs)
         model2 = model_wrap(model, wrapper_name='transformer_memory', batch_size=bs)
-        inputs = torch.randn((seq_len, bs, obs_shape))
-        out = model1.forward(inputs)
+        inputs1 = torch.randn((seq_len, bs, obs_shape))
+        out = model1.forward(inputs1)
         new_memory1 = model1.memory
-        inputs = torch.randn((seq_len, bs, obs_shape))
-        out = model2.forward(inputs)
+        inputs2 = torch.randn((seq_len, bs, obs_shape))
+        out = model2.forward(inputs2)
         new_memory2 = model2.memory
         assert not torch.all(torch.eq(new_memory1, new_memory2))
         model1.reset(data_id=[0, 5])
@@ -260,5 +260,23 @@ class TestModelWrappers:
         assert sum(model1.memory[:, :, 1].flatten()) != 0
         model1.reset()
         assert sum(model1.memory.flatten()) == 0
+
+        seq_len, bs, obs_shape = 8, 8, 32
+        layer_num, memory_len, emb_dim = 3, 20, 4
+        model = GTrXL(input_dim=obs_shape, embedding_dim=emb_dim,
+                      memory_len=memory_len, layer_num=layer_num)
+        model = model_wrap(model, wrapper_name='transformer_memory', batch_size=bs)
+        inputs1 = torch.randn((seq_len, bs, obs_shape))
+        out = model.forward(inputs1)
+        new_memory1 = model.memory
+        inputs2 = torch.randn((seq_len, bs, obs_shape))
+        out = model.forward(inputs2)
+        new_memory2 = model.memory
+        print(new_memory1.shape, inputs1.shape)
+        assert sum(new_memory1[:, -8:].flatten()) != 0
+        assert sum(new_memory1[:, :-8].flatten()) == 0
+        assert sum(new_memory2[:, -16:].flatten()) != 0
+        assert sum(new_memory2[:, :-16].flatten()) == 0
+        assert torch.all(torch.eq(new_memory1[:, -8:], new_memory2[:, -16:-8]))
 
 

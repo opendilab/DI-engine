@@ -61,7 +61,7 @@ class R2D2GTrXLPolicy(Policy):
            | ``_len``
         17 | ``collect.seq_len`` int     20             | Training sequence length               | unroll_len>=seq_len>1
         18 | ``learn.init_``    str      zero           | 'zero' or 'old', how to initialize the |
-           | ``memory``                                 | memory before each training iteration.
+           | ``memory``                                 | memory before each training iteration. |
         == ==================== ======== ============== ======================================== =======================
     """
     config = dict(
@@ -132,7 +132,10 @@ class R2D2GTrXLPolicy(Policy):
     def _init_learn(self) -> None:
         r"""
         Overview:
-            Init the learner model of GTrXLR2D2Policy
+            Init the learner model of GTrXLR2D2Policy.
+            Target model has 2 wrappers: 'target' for weights update and 'transformer_segment' to split trajectories
+             in segments.
+            Learn model has 2 wrappers: 'argmax' to select the best action and 'transformer_segment'.
 
         Arguments:
             .. note::
@@ -461,7 +464,6 @@ class R2D2GTrXLPolicy(Policy):
 
     def _reset_eval(self, data_id: Optional[List[int]] = None) -> None:
         self._eval_model.reset(data_id=data_id)
-        self._eval_model.reset_memory()
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'gtrxl_discrete', ['ding.model.template.q_learning']

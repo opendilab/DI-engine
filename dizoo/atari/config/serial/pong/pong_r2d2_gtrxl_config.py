@@ -42,7 +42,7 @@ pong_r2d2_gtrxl_config = dict(
             each_iter_n_sample=32,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, ),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=3000, )),
         other=dict(
             eps=dict(
                 type='exp',
