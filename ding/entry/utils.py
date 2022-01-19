@@ -10,6 +10,13 @@ def mark_not_expert(ori_data: List[dict]) -> List[dict]:
     return ori_data
 
 
+def mark_warm_up(ori_data: List[dict]) -> List[dict]:
+    # for td3_vae
+    for i in range(len(ori_data)):
+        ori_data[i]['warm_up'] = True
+    return ori_data
+
+
 def random_collect(
         policy_cfg: 'EasyDict',
         policy: 'Policy',

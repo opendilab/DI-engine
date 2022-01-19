@@ -11,21 +11,27 @@ from ding.worker import BaseSerialCommander, create_buffer, create_serial_collec
 from ding.config import compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-from ding.entry.utils import random_collect, mark_not_expert
+from ding.entry.utils import random_collect, mark_not_expert, mark_warm_up
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('collector_type', ['sample', 'episode'])
 @pytest.mark.parametrize('transition_with_policy_data', [True, False])
-@pytest.mark.parametrize('mark_not_expert_bool', [True, False])
-def test_random_collect(collector_type, transition_with_policy_data, mark_not_expert_bool):
+@pytest.mark.parametrize('data_postprocess', [True, False])
+def test_random_collect(collector_type, transition_with_policy_data, data_postprocess):
 
     def mark_not_expert_episode(ori_data: List[List[dict]]) -> List[List[dict]]:
         for i in range(len(ori_data)):
             for j in range(len(ori_data[i])):
                 # Set is_expert flag (expert 1, agent 0)
                 ori_data[i][j]['is_expert'] = 0
+        return ori_data
+
+    def mark_warm_up_episode(ori_data: List[List[dict]]) -> List[List[dict]]:
+        for i in range(len(ori_data)):
+            for j in range(len(ori_data[i])):
+                ori_data[i][j]['warm_up'] = True
         return ori_data
 
     RANDOM_COLLECT_SIZE = 8
@@ -65,11 +71,11 @@ def test_random_collect(collector_type, transition_with_policy_data, mark_not_ex
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
 
-    if mark_not_expert_bool:
+    if data_postprocess:
         if collector_type == 'sample':
-            postprocess_data_fn = mark_not_expert
+            postprocess_data_fn = lambda x: mark_warm_up(mark_not_expert(x))
         else:
-            postprocess_data_fn = mark_not_expert_episode
+            postprocess_data_fn = lambda x: mark_warm_up_episode(mark_not_expert_episode(x))
     else:
         postprocess_data_fn = None
 
@@ -85,14 +91,16 @@ def test_random_collect(collector_type, transition_with_policy_data, mark_not_ex
             postprocess_data_fn=postprocess_data_fn
         )
     assert replay_buffer.count() == RANDOM_COLLECT_SIZE
-    if mark_not_expert_bool:
+    if data_postprocess:
         if collector_type == 'sample':
             for d in replay_buffer._data[:RANDOM_COLLECT_SIZE]:
                 assert d['is_expert'] == 0
+                assert d['warm_up'] == True
         else:
             for e in replay_buffer._data[:RANDOM_COLLECT_SIZE]:
                 for d in e:
                     assert d['is_expert'] == 0
+                    assert d['warm_up'] == True
 
 
 if __name__ == '__main__':

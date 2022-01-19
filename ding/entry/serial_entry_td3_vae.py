@@ -12,6 +12,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import set_pkg_seed
 import copy
+from .utils import random_collect, mark_not_expert, mark_warm_up
 
 
 def serial_pipeline_td3_vae(
@@ -83,18 +84,29 @@ def serial_pipeline_td3_vae(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        if cfg.policy.get('transition_with_policy_data', False):
-            collector.reset_policy(policy.collect_mode)
-        else:
-            action_space = collector_env.env_info().act_space
-            random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-            collector.reset_policy(random_policy)
-        collect_kwargs = commander.step()
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
-        for item in new_data:
-            item['warm_up'] = True
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
+        # backup
+        # if cfg.policy.get('transition_with_policy_data', False):
+        #     collector.reset_policy(policy.collect_mode)
+        # else:
+        #     action_space = collector_env.env_info().act_space
+        #     random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
+        #     collector.reset_policy(random_policy)
+        # collect_kwargs = commander.step()
+        # new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
+        # for item in new_data:
+        #     item['warm_up'] = True
+        # replay_buffer.push(new_data, cur_collector_envstep=0)
+        # collector.reset_policy(policy.collect_mode)
+        postprocess_data_fn = lambda x: mark_warm_up(mark_not_expert(x))
+        random_collect(
+            cfg.policy,
+            policy,
+            collector,
+            collector_env,
+            commander,
+            replay_buffer,
+            postprocess_data_fn=postprocess_data_fn
+        )
         # warm_up
         # Learn policy from collected data
         for i in range(cfg.policy.learn.warm_up_update):
