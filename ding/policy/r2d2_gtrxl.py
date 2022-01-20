@@ -408,7 +408,7 @@ class R2D2GTrXLPolicy(Policy):
         transition = {
             'obs': obs,
             'action': model_output['action'],
-            'prev_memory': model_output['memory'],
+            'prev_memory': model_output['memory'],  # state of the memory before taking the 'action'
             'prev_state': None,
             'reward': timestep.reward,
             'done': timestep.done,
@@ -436,6 +436,8 @@ class R2D2GTrXLPolicy(Policy):
         """
         self._eval_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._seq_len)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
+        self._eval_model = model_wrap(self._eval_model, wrapper_name='transformer_memory',
+                                      batch_size=self.cfg.eval.env_num)
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:

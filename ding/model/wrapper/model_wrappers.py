@@ -284,7 +284,7 @@ class TransformerSegmentWrapper(IModelWrapper):
 
 class TransformerMemoryWrapper(IModelWrapper):
     def __init__(
-            self, model: Any, batch_size: int = None,
+            self, model: Any, batch_size: int,
     ) -> None:
         """
         Overview:
@@ -298,10 +298,7 @@ class TransformerMemoryWrapper(IModelWrapper):
         """
         super().__init__(model)
         # shape (layer_num, memory_len, bs, embedding_dim)
-        memory = self._model.get_memory()
-        if memory is None:
-            assert batch_size is not None
-            self._model.reset_memory(batch_size=batch_size)
+        self._model.reset_memory(batch_size=batch_size)
         self.memory = self._model.get_memory()
         self.mem_shape = self.memory.shape
 
@@ -321,7 +318,7 @@ class TransformerMemoryWrapper(IModelWrapper):
     def reset(self, *args, **kwargs):
         state_id = kwargs.get('data_id', None)
         if state_id is None:
-            self.memory = torch.zeros_like(self._model.get_memory())
+            self.memory = torch.zeros(self.mem_shape)
         else:
             self.reset_memory_entry(state_id)
         if hasattr(self._model, 'reset'):
@@ -334,6 +331,19 @@ class TransformerMemoryWrapper(IModelWrapper):
         """
         for _id in state_id:
             self.memory[:, :, _id] = torch.zeros((self.mem_shape[-1]))
+
+    def show_memory_occupancy(self,  layer=0) -> None:
+        memory = self.memory
+        memory_shape = memory.shape
+        print('Layer {}-------------------------------------------'.format(layer))
+        for b in range(memory_shape[-2]):
+            print('b{}: '.format(b), end='')
+            for m in range(memory_shape[1]):
+                if sum(abs(memory[layer][m][b].flatten())) != 0:
+                    print(1, end='')
+                else:
+                    print(0, end='')
+            print()
 
 
 def sample_action(logit=None, prob=None):
