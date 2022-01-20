@@ -16,6 +16,7 @@ cartpole_dqn_gail_config = dict(
         learning_rate=1e-3,
         update_per_collect=100,
         expert_data_path='cartpole_dqn/expert_data_train.pkl',
+        expert_load_path='cartpole_dqn/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
         load_path='cartpole_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',  # state_dict of the reward model
         collect_count=1000,
     ),

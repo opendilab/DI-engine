@@ -3,14 +3,14 @@ from ding.entry import serial_pipeline
 
 collector_env_num = 8
 evaluator_env_num = 5
-spaceinvaders_r2d2_config = dict(
-    exp_name='spaceinvaders_r2d2_n5_bs20_ul80_rbs1e4',
+qbert_r2d2_config = dict(
+    exp_name='qbert_r2d2_n5_bs20_ul80_rbs1e4',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
         stop_value=int(1e6),
-        env_id='SpaceInvadersNoFrameskip-v4',
+        env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
@@ -65,9 +65,9 @@ spaceinvaders_r2d2_config = dict(
         ),
     ),
 )
-spaceinvaders_r2d2_config = EasyDict(spaceinvaders_r2d2_config)
-main_config = spaceinvaders_r2d2_config
-spaceinvaders_r2d2_create_config = dict(
+qbert_r2d2_config = EasyDict(qbert_r2d2_config)
+main_config = qbert_r2d2_config
+qbert_r2d2_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -75,14 +75,14 @@ spaceinvaders_r2d2_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='r2d2'),
 )
-spaceinvaders_r2d2_create_config = EasyDict(spaceinvaders_r2d2_create_config)
-create_config = spaceinvaders_r2d2_create_config
+qbert_r2d2_create_config = EasyDict(qbert_r2d2_create_config)
+create_config = qbert_r2d2_create_config
 
 # if __name__ == "__main__":
 #     serial_pipeline([main_config, create_config], seed=0)
 
 def train(args):
-    main_config.exp_name='spaceinvaders_r2d2_n5_bs20_ul80_rbs1e4'+'_seed'+f'{args.seed}'
+    main_config.exp_name='qbert_r2d2_n5_bs20_ul80_rbs1e4'+'_seed'+f'{args.seed}'
     import copy
     # 3125 iterations= 10M env steps / (100*32) env steps
     serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations= int(3125),)

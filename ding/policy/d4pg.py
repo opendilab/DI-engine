@@ -132,7 +132,7 @@ class D4PGPolicy(DDPGPolicy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] should be set
-            n_sample=1,
+            # n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".

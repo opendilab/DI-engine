@@ -3,17 +3,18 @@ import os
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
+import numpy as np
 
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import compile_config, read_config
-from ding.policy import create_policy, PolicyFactory
+from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.entry import collect_demo_data
 from ding.utils import save_file
-import numpy as np
+from .utils import random_collect
 
 
 def save_reward_model(path, reward_model, weights_name='best'):
@@ -58,9 +59,9 @@ def serial_pipeline_gail(
     else:
         cfg, create_cfg = input_cfg
     if isinstance(expert_cfg, str):
-        expert_cfg, expert_create_cfg = read_config(input_cfg)
+        expert_cfg, expert_create_cfg = read_config(expert_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
     # Load expert data
@@ -68,7 +69,7 @@ def serial_pipeline_gail(
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:
             expert_cfg.policy.other.eps.collect = -1
         if expert_cfg.policy.get('load_path', None) is None:
-            expert_cfg.policy.load_path = os.path.join(expert_cfg.exp_name, 'ckpt/ckpt_best.pth.tar')
+            expert_cfg.policy.load_path = cfg.reward_model.expert_load_path
         collect_demo_data(
             (expert_cfg, expert_create_cfg),
             seed,
@@ -112,12 +113,7 @@ def serial_pipeline_gail(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(random_policy)
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size)
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
+        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     best_reward = -np.inf
     for _ in range(max_iterations):
         # Evaluate policy performance
