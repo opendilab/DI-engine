@@ -8,7 +8,7 @@ qbert_r2d2_gtrxl_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
-        env_id='QbertInvadersNoFrameskip-v4',
+        env_id='QbertNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
