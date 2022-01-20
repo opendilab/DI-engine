@@ -236,9 +236,9 @@
 </div>
 <div class="section" id="id4">
 <h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
-<a class="reference internal image-reference" href="../_images/DQN.png"><img alt="../_images/DQN.png" class="align-center" src="../_images/DQN.png" style="width: 1144.0px; height: 573.1px;" /></a>
+<a class="reference internal image-reference" href="../_images/DQN.png"><img alt="../_images/DQN.png" class="align-center" src="../_images/DQN.png" style="width: 1075.8000000000002px; height: 864.6px;" /></a>
 <p>伪代码中的 equation（3） 指的是：</p>
-<a class="reference internal image-reference" href="../_images/eq3.png"><img alt="../_images/eq3.png" class="align-center" src="../_images/eq3.png" style="width: 1239.6px; height: 74.39999999999999px;" /></a>
+<a class="reference internal image-reference" href="hands_on/images/eq3.png"><img alt="hands_on/images/eq3.png" class="align-center" src="hands_on/images/eq3.png" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>DQN在发展过程中变更出了许多版本。与原始版本相比，现代的 DQN 在算法和实现方面都得到了显著改进。譬如，在算法部分，<strong>TD-loss, PER, n-step, target network</strong> and <strong>dueling head</strong> 等技巧被广泛使用，感兴趣的读者可参考论文 <a class="reference external" href="https://arxiv.org/abs/1710.02298">Rainbow: Combining Improvements in Deep Reinforcement Learning</a>。在实现部分，探索所用的 epsilon 并非在整个训练流程保持不变，而是根据环境步数（envstep，意为策略与环境的交互次数），在训练期间，探索所用的 epsilon 从一个较高的初始值（比如，0.95）退火到一个较低值（比如，0.05）。</p>
@@ -279,7 +279,7 @@
 <p>Double DQN, 在 <a class="reference external" href="https://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a> 中被提出，是 DQN 的一种常见变种。此方法维护另一个 Q 网络，称为目标网络，该网络由当前网络按固定频率更新。</p>
 <p>Double DQN 中的 target Q 可以表示为：</p>
 <blockquote>
-<div><a class="reference internal image-reference" href="../_images/doubleDQN.png"><img alt="../_images/doubleDQN.png" class="align-center" src="../_images/doubleDQN.png" style="width: 328.8px; height: 34.4px;" /></a>
+<div><a class="reference internal image-reference" href="hands_on/images/doubleDQN.png"><img alt="hands_on/images/doubleDQN.png" class="align-center" src="hands_on/images/doubleDQN.png" /></a>
 </div></blockquote>
 <p>区别于传统DQN，Double DQN不会选择当前网络中离散动作空间中的最大Q值，而是首先查找  <strong>当前网络</strong>  中Q值最大的动作（对应上面公式中的  <span class="math notranslate nohighlight">\(argmax_a Q(S_{t+1},a;\theta_t)\)</span>），然后根据该动作从 <strong>目标网络</strong>  获取Q值
 (对应上面公示中的  <span class="math notranslate nohighlight">\(Q(S_{t+1},argmax_a Q(S_{t+1},a;\theta_t);\theta'_t)\)</span>）。</p>
