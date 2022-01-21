@@ -23,17 +23,21 @@ space_invaders_r2d2_gtrxl_config = dict(
             hidden_size=1024,
             gru_bias=1.,
             memory_len=0,
+            att_layer_num=3,
+            dropout=0.1
         ),
-        discount_factor=0.99,
-        burnin_step=0,
-        nstep=3,
-        unroll_len=13,
-        seq_len=10,
+        discount_factor=0.997,
+        burnin_step=20,
+        nstep=5,
+        unroll_len=80,
+        seq_len=75,
         learn=dict(
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
+            value_rescale=True,
+            init_memory='zero',
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
