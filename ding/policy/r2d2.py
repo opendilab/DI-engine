@@ -103,7 +103,7 @@ class R2D2Policy(Policy):
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # each_iter_n_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -197,15 +197,15 @@ class R2D2Policy(Policy):
         else:
             data['weight'] = data.get('weight', None)
 
-        bs = self._burnin_step
+        burnin_step = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
         # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - burnin_step)]
         else:
-            data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
+            data['done'] = data['done'][burnin_step:].float()  # for computation of online model self._learn_model
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
             # the data['done'] [t] is already the n-step done
 
@@ -213,29 +213,31 @@ class R2D2Policy(Policy):
         # with length of [self._unroll_len_add_burnin_step-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - burnin_step)]
         else:
-            data['value_gamma'] = data['value_gamma'][bs:]
+            data['value_gamma'] = data['value_gamma'][burnin_step:]
 
         if 'weight' not in data or data['weight'] is None:
-            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - burnin_step)]
         else:
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
             # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
 
-        data['action'] = data['action'][bs:-self._nstep]  # cut the seq_len from burn_in step to (seq_len - nstep) step
-        data['reward'] = data['reward'][bs:-self._nstep]  # cut the seq_len from burn_in step to (seq_len - nstep) step
+        # cut the seq_len from burn_in step to (seq_len - nstep) step
+        data['action'] = data['action'][burnin_step:-self._nstep]
+        # cut the seq_len from burn_in step to (seq_len - nstep) step
+        data['reward'] = data['reward'][burnin_step:-self._nstep]
 
         # the burnin_nstep_obs is used to calculate the init hidden state of rnn for the calculation of the q_value,
         # target_q_value, and target_q_action
 
         # these slicing are all done in the outermost layer, which is the seq_len dim
-        data['burnin_nstep_obs'] = data['obs'][:bs + self._nstep]
+        data['burnin_nstep_obs'] = data['obs'][:burnin_step + self._nstep]
         # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from
         # [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
-        data['main_obs'] = data['obs'][bs:-self._nstep]
+        data['main_obs'] = data['obs'][burnin_step:-self._nstep]
         # the target_obs is used to calculate the target_q_value
-        data['target_obs'] = data['obs'][bs + self._nstep:]
+        data['target_obs'] = data['obs'][burnin_step + self._nstep:]
 
         return data
 

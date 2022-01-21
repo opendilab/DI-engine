@@ -19,7 +19,7 @@ memory_len_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=3,
             action_shape=2,
-            memory_len=25,
+            memory_len=0,
             hidden_size=64,
             gru_bias=1.
         ),
@@ -27,12 +27,13 @@ memory_len_r2d2_gtrxl_config = dict(
         nstep=2,
         burnin_step=0,
         unroll_len=35,
-        seq_len=24,
+        seq_len=33,
         learn=dict(
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
+            init_memory='old',  # 'zero' or 'old', how to initialize the memory
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
