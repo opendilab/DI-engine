@@ -6,9 +6,6 @@ import torch
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
 from torch.distributions import Categorical, Independent, Normal
-from torch.distributions import Categorical
-from ding.utils.data import default_collate
-import torch.nn.functional as F
 
 
 class IModelWrapper(ABC):
