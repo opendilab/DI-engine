@@ -16,6 +16,7 @@ from dizoo.classic_control.cartpole.config.cartpole_qrdqn_config import cartpole
 from dizoo.classic_control.cartpole.config.cartpole_sqn_config import cartpole_sqn_config, cartpole_sqn_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_ppg_config, cartpole_ppg_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_acer_config import cartpole_acer_config, cartpole_acer_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_sac_config import cartpole_sac_config, cartpole_sac_create_config  # noqa
 from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main as ppg_main
 from dizoo.classic_control.cartpole.entry.cartpole_ppo_main import main as ppo_main
 from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_r2d2_config, cartpole_r2d2_create_config  # noqa
@@ -43,10 +44,10 @@ from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config i
 from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
 from dizoo.gym_hybrid.config.gym_hybrid_ddpg_config import gym_hybrid_ddpg_config, gym_hybrid_ddpg_create_config
 from dizoo.gym_hybrid.config.gym_hybrid_pdqn_config import gym_hybrid_pdqn_config, gym_hybrid_pdqn_create_config
+from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_config, gym_hybrid_mpdqn_create_config
 
 
 @pytest.mark.unittest
-@pytest.mark.dqn
 def test_dqn():
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -81,6 +82,16 @@ def test_hybrid_ddpg():
 # @pytest.mark.unittest
 def test_hybrid_pdqn():
     config = [deepcopy(gym_hybrid_pdqn_config), deepcopy(gym_hybrid_pdqn_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+# @pytest.mark.unittest
+def test_hybrid_mpdqn():
+    config = [deepcopy(gym_hybrid_mpdqn_config), deepcopy(gym_hybrid_mpdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
@@ -142,6 +153,7 @@ def test_qrdqn():
 def test_ppo():
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'ppo_offpolicy_unittest'
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -195,6 +207,18 @@ def test_sac_log_space():
 
 
 @pytest.mark.unittest
+def test_discrete_sac():
+    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = True
+    config[0].policy.learn.log_space = True
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
 def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     config[0].policy.learn.update_per_collect = 1
@@ -228,6 +252,8 @@ def test_collaq():
     config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -241,6 +267,8 @@ def test_coma():
     config = [deepcopy(cooperative_navigation_coma_config), deepcopy(cooperative_navigation_coma_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -254,6 +282,8 @@ def test_qmix():
     config = [deepcopy(cooperative_navigation_qmix_config), deepcopy(cooperative_navigation_qmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -267,6 +297,8 @@ def test_wqmix():
     config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -280,6 +312,8 @@ def test_qtran():
     config = [deepcopy(cooperative_navigation_qtran_config), deepcopy(cooperative_navigation_qtran_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -292,6 +326,8 @@ def test_qtran():
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
     config[0].policy.cuda = False
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -431,7 +467,7 @@ def test_discrete_cql():
         os.popen('rm -rf cartpole cartpole_cql')
 
 
-@pytest.mark.algotest
+@pytest.mark.unittest
 def test_td3_bc():
     # train expert
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]

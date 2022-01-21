@@ -18,7 +18,7 @@ pendulum_td3_config = dict(
             obs_shape=3,
             action_shape=1,
             twin_critic=True,
-            actor_head_type='regression',
+            action_space='regression',
         ),
         learn=dict(
             update_per_collect=2,

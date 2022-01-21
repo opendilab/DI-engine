@@ -15,7 +15,7 @@ assignees: ''
     + [ ] code design/refactor
     + [ ] documentation request
     + [ ] new feature request
-- [ ] I have visited the [readme](https://github.com/opendilab/DI-engine/blob/github-dev/README.md) and [doc]()
+- [ ] I have visited the [readme](https://github.com/opendilab/DI-engine/blob/github-dev/README.md) and [doc](https://opendilab.github.io/DI-engine/)
 - [ ] I have searched through the [issue tracker](https://github.com/opendilab/DI-engine/issues) and [pr tracker](https://github.com/opendilab/DI-engine/pulls)
 - [ ] I have mentioned version numbers, operating system and environment, where applicable:
   ```python

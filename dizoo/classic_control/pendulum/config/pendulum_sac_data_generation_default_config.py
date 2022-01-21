@@ -17,7 +17,7 @@ pendulum_sac_data_genearation_default_config = dict(
             obs_shape=3,
             action_shape=1,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
         ),

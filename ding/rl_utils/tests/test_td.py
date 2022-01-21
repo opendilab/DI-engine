@@ -197,6 +197,26 @@ def test_v_1step_td():
 
 
 @pytest.mark.unittest
+def test_v_1step_multi_agent_td():
+    batch_size = 5
+    agent_num = 2
+    v = torch.randn(batch_size, agent_num).requires_grad_(True)
+    next_v = torch.randn(batch_size, agent_num)
+    reward = torch.rand(batch_size)
+    done = torch.zeros(batch_size)
+    data = v_1step_td_data(v, next_v, reward, done, None)
+    loss, td_error_per_sample = v_1step_td_error(data, 0.99)
+    assert loss.shape == ()
+    assert v.grad is None
+    loss.backward()
+    assert isinstance(v.grad, torch.Tensor)
+    data = v_1step_td_data(v, next_v, reward, None, None)
+    loss, td_error_per_sample = v_1step_td_error(data, 0.99)
+    loss.backward()
+    assert isinstance(v.grad, torch.Tensor)
+
+
+@pytest.mark.unittest
 def test_v_nstep_td():
     batch_size = 5
     v = torch.randn(batch_size).requires_grad_(True)
@@ -233,7 +253,7 @@ def test_dqfd_nstep_td():
         data = dqfd_nstep_td_data(
             q, next_q, action, next_action, reward, done, done_1, None, next_q_one_step, next_action_one_step, is_expert
         )
-        loss, td_error_per_sample = dqfd_nstep_td_error(
+        loss, td_error_per_sample, loss_statistics = dqfd_nstep_td_error(
             data, 0.95, lambda_n_step_td=1, lambda_supervised_loss=1, margin_function=0.8, nstep=nstep
         )
         assert td_error_per_sample.shape == (batch_size, )

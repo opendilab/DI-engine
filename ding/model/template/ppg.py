@@ -14,8 +14,8 @@ class PPG(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
+            action_space: str = 'discrete',
             share_encoder: bool = True,
-            continuous: bool = False,
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 2,
@@ -26,7 +26,7 @@ class PPG(nn.Module):
     ) -> None:
         super(PPG, self).__init__()
         self.actor_critic = VAC(
-            obs_shape, action_shape, share_encoder, continuous, encoder_hidden_size_list, actor_head_hidden_size,
+            obs_shape, action_shape, action_space, share_encoder, encoder_hidden_size_list, actor_head_hidden_size,
             actor_head_layer_num, critic_head_hidden_size, critic_head_layer_num, activation, norm_type
         )
         self.aux_critic = copy.deepcopy(self.actor_critic.critic)

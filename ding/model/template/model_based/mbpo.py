@@ -339,9 +339,6 @@ class EnsembleDynamicsModel(nn.Module):
             self.middle_holdout_mse_loss = sorted_loss[self.network_size // 2]
             self.bottom_holdout_mse_loss = sorted_loss[-1]
             self.best_holdout_mse_loss = holdout_mse_loss.mean().item()
-            assert math.fabs(self.curr_holdout_mse_loss - self.best_holdout_mse_loss) < 1e-3, '{} vs {}'.format(
-                self.curr_holdout_mse_loss, self.best_holdout_mse_loss
-            )
         return {
             'mse_loss': self.mse_loss,
             'curr_holdout_mse_loss': self.curr_holdout_mse_loss,

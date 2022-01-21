@@ -386,6 +386,7 @@ class ElasticReplayBuffer(NaiveReplayBuffer):
         deepcopy=False,
         # default `False` for serial pipeline
         enable_track_used_data=False,
+        periodic_thruput_seconds=60,
     )
 
     def __init__(

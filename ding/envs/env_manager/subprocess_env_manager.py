@@ -310,10 +310,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 value is the cooresponding reset parameters.
         """
         self._check_closed()
-        # clear previous info
-        for env_id in self._waiting_env['step']:
-            self._pipe_parents[env_id].recv()
-        self._waiting_env['step'].clear()
 
         if reset_param is None:
             reset_env_list = [env_id for env_id in range(self._env_num)]
@@ -321,6 +317,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             reset_env_list = reset_param.keys()
             for env_id in reset_param:
                 self._reset_param[env_id] = reset_param[env_id]
+
+        # clear previous info
+        for env_id in reset_env_list:
+            if env_id in self._waiting_env['step']:
+                self._pipe_parents[env_id].recv()
+                self._waiting_env['step'].remove(env_id)
 
         sleep_count = 0
         while any([self._env_states[i] == EnvState.RESET for i in reset_env_list]):
@@ -789,7 +791,17 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         # === Because operate in this way is more efficient. ===
         timesteps = {}
         ready_conn = [self._pipe_parents[env_id] for env_id in env_ids]
-        timesteps.update({env_id: p.recv() for env_id, p in zip(env_ids, ready_conn)})
+        # timesteps.update({env_id: p.recv() for env_id, p in zip(env_ids, ready_conn)})
+        for env_id, p in zip(env_ids, ready_conn):
+            try:
+                timesteps.update({env_id: p.recv()})
+            except pickle.UnpicklingError as e:
+                timestep = BaseEnvTimestep(None, None, None, {'abnormal': True})
+                timesteps.update({env_id: timestep})
+                self._pipe_parents[env_id].close()
+                if self._subprocesses[env_id].is_alive():
+                    self._subprocesses[env_id].terminate()
+                self._create_env_subprocess(env_id)
         self._check_data(timesteps)
         # ======================================================
 

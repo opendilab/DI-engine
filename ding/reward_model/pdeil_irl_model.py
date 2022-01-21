@@ -32,6 +32,7 @@ class PdeilRewardModel(BaseRewardModel):
         Overview:
             Initialize ``self.`` See ``help(type(self))`` for accurate signature.
             Some rules in naming the attributes of ``self.``:
+
                 - ``e_`` : expert values
                 - ``_sigma_`` : standard division values
                 - ``p_`` : current policy values

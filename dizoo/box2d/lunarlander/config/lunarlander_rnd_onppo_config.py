@@ -1,10 +1,11 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
-collector_env_num=8
+collector_env_num = 8
 lunarlander_ppo_rnd_config = dict(
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),
@@ -15,28 +16,25 @@ lunarlander_ppo_rnd_config = dict(
         # batch_size=32,
         # update_per_collect=10,
         batch_size=320,
-        update_per_collect=4,   # TODO(pu):2
+        update_per_collect=4,
     ),
     policy=dict(
         recompute_adv=True,
         cuda=True,
-        continuous=False,
-        on_policy=True,
+        action_space='discrete',
         model=dict(
             obs_shape=8,
             action_shape=4,
+            action_space='discrete',
         ),
         learn=dict(
-            # update_per_collect=4,
-            epoch_per_collect=10,  # TODO(pu)
+            epoch_per_collect=10,
             update_per_collect=1,  # 4
             batch_size=64,
             learning_rate=3e-4,
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
-            # nstep=1,
-            # nstep_return=False,
             adv_norm=True,
             value_norm=True,
         ),
@@ -63,8 +61,6 @@ lunarlander_ppo_rnd_create_config = dict(
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),
-    # policy=dict(type='ppo_offpolicy'),
     policy=dict(type='ppo'),
     reward_model=dict(type='rnd')
 )

@@ -19,9 +19,9 @@ walker2d_ddpg_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='walker2d_ddpg/expert_data_train.pkl',
+        expert_data_path='walker2d_ddpg/expert_data.pkl',
         load_path='walker2d_ddpg_gail/reward_model/ckpt/ckpt_best.pth.tar',  # state_dict of the reward model
-
+        expert_load_path='walker2d_ddpg/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
         collect_count=100000,
     ),
     policy=dict(
@@ -35,7 +35,7 @@ walker2d_ddpg_gail_default_config = dict(
             twin_critic=False,
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
-            actor_head_type='regression',
+            action_space='regression',
         ),
         learn=dict(
             update_per_collect=1,

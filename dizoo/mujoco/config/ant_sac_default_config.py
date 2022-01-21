@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 ant_sac_default_config = dict(
+    exp_name='ant_sac',
     env=dict(
         env_id='Ant-v3',
         norm_obs=dict(use_norm=False, ),
@@ -18,7 +19,7 @@ ant_sac_default_config = dict(
             obs_shape=111,
             action_shape=8,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
         ),

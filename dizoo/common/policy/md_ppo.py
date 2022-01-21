@@ -34,26 +34,19 @@ class MultiDiscretePPOPolicy(PPOPolicy):
         # ====================
         return_infos = []
         self._learn_model.train()
-        if self._value_norm:
-            unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
-            data['return'] = unnormalized_return / self._running_mean_std.std
-            self._running_mean_std.update(unnormalized_return.cpu().numpy())
-        else:
-            data['return'] = data['adv'] + data['value']
 
         for epoch in range(self._cfg.learn.epoch_per_collect):
             if self._recompute_adv:
                 with torch.no_grad():
-                    # obs = torch.cat([data['obs'], data['next_obs'][-1:]])
                     value = self._learn_model.forward(data['obs'], mode='compute_critic')['value']
                     next_value = self._learn_model.forward(data['next_obs'], mode='compute_critic')['value']
                     if self._value_norm:
                         value *= self._running_mean_std.std
                         next_value *= self._running_mean_std.std
 
-                    gae_data_ = gae_data(value, next_value, data['reward'], data['done'])
+                    compute_adv_data = gae_data(value, next_value, data['reward'], data['done'], data['traj_flag'])
                     # GAE need (T, B) shape input and return (T, B) output
-                    data['adv'] = gae(gae_data_, self._gamma, self._gae_lambda)
+                    data['adv'] = gae(compute_adv_data, self._gamma, self._gae_lambda)
                     # value = value[:-1]
                     unnormalized_returns = value + data['adv']
 
@@ -64,6 +57,14 @@ class MultiDiscretePPOPolicy(PPOPolicy):
                     else:
                         data['value'] = value
                         data['return'] = unnormalized_returns
+
+            else:  # don't recompute adv
+                if self._value_norm:
+                    unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
+                    data['return'] = unnormalized_return / self._running_mean_std.std
+                    self._running_mean_std.update(unnormalized_return.cpu().numpy())
+                else:
+                    data['return'] = data['adv'] + data['value']
 
             for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
                 output = self._learn_model.forward(batch['obs'], mode='compute_actor_critic')
