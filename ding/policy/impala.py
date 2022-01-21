@@ -78,7 +78,7 @@ class IMPALAPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=16,
+            # n_sample=16,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=1000, ), ),

@@ -100,7 +100,9 @@ def trex_get_args():
     return args
 
 
-def trex_collecting_data(args=trex_get_args()):
+def trex_collecting_data(args=None):
+    if args is None:
+        args = trex_get_args()  # TODO(nyz) use sub-command in cli
     if isinstance(args.cfg, str):
         cfg, create_cfg = read_config(args.cfg)
     else:

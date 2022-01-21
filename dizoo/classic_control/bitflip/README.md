@@ -1,14 +1,15 @@
-## Bitflip Environment
-A simple environment to flip coin into specific state. With the number of coin increasing, the task become harder. Well suited for testing Hindsight Experience Replay.
+## BitFlip Environment
+A simple environment to flip a 01 sequence into a specific state. With the bits number increasing, the task becomes harder. 
+Well suited for testing Hindsight Experience Replay.
 
-## Ding on Bitflip
+## DI-engine's HER on BitFlip
 
-The following table shows number of episodes for pure DQN/HER to converage on Bitflip environment. '-' means not converage in 2M episode.
+The table shows how many envsteps are needed at least to converge for PureDQN and HER-DQN implemented in DI-engine. '-' means no convergence in 20M envsteps.
 
-| n_FLIP | dqn   | her    |
-| ------ | ----- | ------ |
-| 8      | 25688 | 6456   |
-| 10     | 181896 | 26832  |
-| 15     | -     | 360464 |
-| 20     | -     | 1965320 |
+| n_bit  | PureDQN | HER-DQN |
+| ------ | ------- | ------- |
+| 15     | -       | 150K    |
+| 20     | -       | 1.5M    |
+DI-engine's HER-DQN can converge 
 
+You can refer to the RL algorithm doc for implementation and experiment details.

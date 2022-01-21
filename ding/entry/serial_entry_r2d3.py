@@ -4,17 +4,17 @@ import os
 from copy import deepcopy
 from functools import partial
 from typing import Union, Optional, List, Any, Tuple
-
 import numpy as np
 import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import read_config, compile_config
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.policy import create_policy, PolicyFactory
+from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
+from .utils import random_collect, mark_not_expert
 
 
 def serial_pipeline_r2d3(
@@ -156,16 +156,9 @@ def serial_pipeline_r2d3(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(random_policy)
-        collect_kwargs = commander.step()
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
-        for i in range(len(new_data)):
-            # set is_expert flag(expert 1, agent 0)
-            new_data[i]['is_expert'] = 0
-        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        collector.reset_policy(policy.collect_mode)
+        random_collect(
+            cfg.policy, policy, collector, collector_env, commander, replay_buffer, postprocess_data_fn=mark_not_expert
+        )
 
     for _ in range(max_iterations):
         collect_kwargs = commander.step()

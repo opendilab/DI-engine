@@ -148,7 +148,6 @@ class TD3VAEPolicy(DDPGPolicy):
         ),
         collect=dict(
             # n_sample=1,
-            # each_iter_n_sample=48,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".

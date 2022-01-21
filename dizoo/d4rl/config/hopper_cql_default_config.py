@@ -38,7 +38,6 @@ hopper_cql_default_config = dict(
             min_q_weight=5.0,
         ),
         collect=dict(
-            n_sample=1,
             unroll_len=1,
             data_type='d4rl',
         ),

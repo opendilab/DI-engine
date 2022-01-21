@@ -4,7 +4,6 @@ from ding.entry import serial_pipeline_onpolicy
 collector_env_num = 1
 evaluator_env_num = 1
 halfcheetah_ppo_default_config = dict(
-    exp_name="halfcheetah_onppo",
     env=dict(
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
@@ -49,7 +48,7 @@ halfcheetah_ppo_default_config = dict(
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
+        eval=dict(evaluator=dict(eval_freq=500, )),
     ),
 )
 halfcheetah_ppo_default_config = EasyDict(halfcheetah_ppo_default_config)
@@ -60,11 +59,27 @@ halfcheetah_ppo_create_default_config = dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
+    # env_manager=dict(type='subprocess'),
     policy=dict(type='ppo', ),
 )
 halfcheetah_ppo_create_default_config = EasyDict(halfcheetah_ppo_create_default_config)
 create_config = halfcheetah_ppo_create_default_config
 
+# if __name__ == "__main__":
+#     serial_pipeline_onpolicy([main_config, create_config], seed=0)
+
+def train(args):
+    main_config.exp_name='halfcheetah_onppo_ig'+'_seed'+f'{args.seed}'
+    import copy
+    # 937.4 iterations= 3M env steps / 3200 
+    serial_pipeline_onpolicy([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=938)
+
 if __name__ == "__main__":
-    serial_pipeline_onpolicy([main_config, create_config], seed=1)
+    import argparse
+    for seed in [0,1,2,3,4]:     
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--seed', '-s', type=int, default=seed)
+        args = parser.parse_args()
+        
+        train(args)
