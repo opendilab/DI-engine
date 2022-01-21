@@ -15,7 +15,7 @@ class TestGTrXL:
         layer_num = 5
         mem_len = 40
         # input shape: cur_seq x bs x input_dim
-        memory = [None, torch.rand(layer_num+1, mem_len, bs, embedding_dim)]
+        memory = [None, torch.rand(layer_num + 1, mem_len, bs, embedding_dim)]
         batch_first = [False, True]
         for i in range(2):
             m = memory[i]
@@ -46,7 +46,7 @@ class TestGTrXL:
                 assert output['logit'].shape == (seq_len, bs, embedding_dim)
             else:
                 assert output['logit'].shape == (bs, seq_len, embedding_dim)
-            assert output['memory'].shape == (layer_num+1, mem_len, bs, embedding_dim)
+            assert output['memory'].shape == (layer_num + 1, mem_len, bs, embedding_dim)
             memory_out = output['memory']
             if m is not None:
                 assert torch.all(torch.eq(memory_out, m))

@@ -717,6 +717,7 @@ class GTrXLDiscreteHead(nn.Module):
     Overview:
         Add a discrete head on top of the GTrXL module.
     """
+
     def __init__(
         self,
         obs_shape: Union[int, SequenceType],
@@ -784,8 +785,9 @@ class GTrXLDiscreteHead(nn.Module):
         # replace the embedding layer of Transformer with Conv Encoder
         elif len(obs_shape) == 3:
             assert encoder_hidden_size_list[-1] == hidden_size
-            self.obs_encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation,
-                                           norm_type=encoder_norm_type)
+            self.obs_encoder = ConvEncoder(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=encoder_norm_type
+            )
             self.dropout = nn.Dropout(dropout)
             self.core.use_embedding_layer = False
         else:

@@ -359,8 +359,9 @@ class R2D2GTrXLPolicy(Policy):
         self._seq_len = self._cfg.seq_len
         self._collect_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._seq_len)
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='transformer_memory',
-                                         batch_size=self.cfg.collect.env_num)
+        self._collect_model = model_wrap(
+            self._collect_model, wrapper_name='transformer_memory', batch_size=self.cfg.collect.env_num
+        )
         self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float) -> dict:
@@ -436,8 +437,9 @@ class R2D2GTrXLPolicy(Policy):
         """
         self._eval_model = model_wrap(self._model, wrapper_name='transformer_input', seq_len=self._seq_len)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
-        self._eval_model = model_wrap(self._eval_model, wrapper_name='transformer_memory',
-                                      batch_size=self.cfg.eval.env_num)
+        self._eval_model = model_wrap(
+            self._eval_model, wrapper_name='transformer_memory', batch_size=self.cfg.eval.env_num
+        )
         self._eval_model.reset()
 
     def _forward_eval(self, data: dict) -> dict:

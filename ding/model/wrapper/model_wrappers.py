@@ -6,6 +6,9 @@ import torch
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
 from torch.distributions import Categorical, Independent, Normal
+from torch.distributions import Categorical
+from ding.utils.data import default_collate
+import torch.nn.functional as F
 
 
 class IModelWrapper(ABC):
@@ -70,7 +73,11 @@ class BaseModelWrapper(IModelWrapper):
 class HiddenStateWrapper(IModelWrapper):
 
     def __init__(
-            self, model: Any, state_num: int, save_prev_state: bool = False, init_fn: Callable = lambda: None,
+            self,
+            model: Any,
+            state_num: int,
+            save_prev_state: bool = False,
+            init_fn: Callable = lambda: None,
     ) -> None:
         """
         Overview:
@@ -142,9 +149,7 @@ class HiddenStateWrapper(IModelWrapper):
 
 class TransformerInputWrapper(IModelWrapper):
 
-    def __init__(
-            self, model: Any, seq_len: int, init_fn: Callable = lambda: None
-    ) -> None:
+    def __init__(self, model: Any, seq_len: int, init_fn: Callable = lambda: None) -> None:
         """
         Overview:
             Given N the length of the sequences received by a Transformer model, maintain the last N-1 input
@@ -186,7 +191,7 @@ class TransformerInputWrapper(IModelWrapper):
             if self.memory_idx[b] == self.seq_len:
                 # roll back of 1 position along dim 1 (sequence dim)
                 self.obs_memory[:, b] = torch.roll(self.obs_memory[:, b], -1, 0)
-                self.obs_memory[self.memory_idx[b]-1, b] = input_obs[b]
+                self.obs_memory[self.memory_idx[b] - 1, b] = input_obs[b]
             if self.memory_idx[b] < self.seq_len:
                 self.obs_memory[self.memory_idx[b], b] = input_obs[b]
                 if self.memory_idx != self.seq_len:
@@ -194,7 +199,7 @@ class TransformerInputWrapper(IModelWrapper):
         out = self._model.forward(self.obs_memory, **kwargs)
         out['input_seq'] = self.obs_memory
         if only_last_logit:
-            out['logit'] = [out['logit'][self.memory_idx[b]-1][b] for b in range(self.bs)]
+            out['logit'] = [out['logit'][self.memory_idx[b] - 1][b] for b in range(self.bs)]
             out['logit'] = default_collate(out['logit'])
         return out
 
@@ -240,9 +245,7 @@ class TransformerInputWrapper(IModelWrapper):
 
 class TransformerSegmentWrapper(IModelWrapper):
 
-    def __init__(
-            self, model: Any, seq_len: int
-    ) -> None:
+    def __init__(self, model: Any, seq_len: int) -> None:
         """
         Overview:
             Given T the length of a trajectory and N the length of the sequences received by a Transformer model,
@@ -281,8 +284,11 @@ class TransformerSegmentWrapper(IModelWrapper):
 
 
 class TransformerMemoryWrapper(IModelWrapper):
+
     def __init__(
-            self, model: Any, batch_size: int,
+            self,
+            model: Any,
+            batch_size: int,
     ) -> None:
         """
         Overview:
@@ -330,7 +336,7 @@ class TransformerMemoryWrapper(IModelWrapper):
         for _id in state_id:
             self.memory[:, :, _id] = torch.zeros((self.mem_shape[-1]))
 
-    def show_memory_occupancy(self,  layer=0) -> None:
+    def show_memory_occupancy(self, layer=0) -> None:
         memory = self.memory
         memory_shape = memory.shape
         print('Layer {}-------------------------------------------'.format(layer))

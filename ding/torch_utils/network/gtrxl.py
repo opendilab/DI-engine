@@ -128,8 +128,9 @@ class Memory:
             layer_num_plus1, self.memory_len, self.bs, self.embedding_dim = memory.shape
             self.layer_num = layer_num_plus1 - 1
         else:
-            self.memory = torch.zeros(self.layer_num + 1, self.memory_len,
-                                      self.bs, self.embedding_dim, dtype=torch.float)
+            self.memory = torch.zeros(
+                self.layer_num + 1, self.memory_len, self.bs, self.embedding_dim, dtype=torch.float
+            )
 
     def update(self, hidden_state: List[torch.Tensor]):
         """
@@ -233,14 +234,15 @@ class AttentionXL(torch.nn.Module):
         x = x * torch.tril(ones.to(x.device), x.size(3) - x.size(2))  # step 4
         return x
 
-    def forward(self,
-                inputs: torch.Tensor,
-                pos_embedding: torch.Tensor,
-                full_input: torch.Tensor,
-                u: torch.nn.Parameter,
-                v: torch.nn.Parameter,
-                mask: Optional[torch.Tensor] = None,
-                ) -> torch.Tensor:
+    def forward(
+            self,
+            inputs: torch.Tensor,
+            pos_embedding: torch.Tensor,
+            full_input: torch.Tensor,
+            u: torch.nn.Parameter,
+            v: torch.nn.Parameter,
+            mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         """Overview:
             Compute AttentionXL.
         Arguments:
@@ -446,8 +448,10 @@ class GTrXL(nn.Module):
         self.dropout = nn.Dropout(dropout_ratio) if dropout_ratio > 0 else nn.Identity()
         for i in range(layer_num):
             layers.append(
-                GatedTransformerXLLayer(dims[i], head_dim, embedding_dim, head_num, mlp_num, self.dropout,
-                                        self.activation, gru_gating, gru_bias)
+                GatedTransformerXLLayer(
+                    dims[i], head_dim, embedding_dim, head_num, mlp_num, self.dropout, self.activation, gru_gating,
+                    gru_bias
+                )
             )
         self.layers = nn.Sequential(*layers)
         self.embedding_dim = embedding_dim
@@ -506,9 +510,12 @@ class GTrXL(nn.Module):
         if memory is None:
             self.reset_memory(bs)  # (layer_num+1) x memory_len x batch_size x embedding_dim
         elif memory.shape[-2] != bs or memory.shape[-1] != self.embedding_dim:
-            warnings.warn("Memory {} and Input {} dimensions don't match,"
-                          " this will cause the memory to be initialized to fit your input!"
-                          .format(list(memory.shape[-2:]), [x.shape[-2]] + [self.embedding_dim]))
+            warnings.warn(
+                "Memory {} and Input {} dimensions don't match,"
+                " this will cause the memory to be initialized to fit your input!".format(
+                    list(memory.shape[-2:]), [x.shape[-2]] + [self.embedding_dim]
+                )
+            )
             self.reset_memory(bs)
         self.memory.to(x.device)
         memory = self.memory.get()

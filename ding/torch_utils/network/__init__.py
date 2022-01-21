@@ -8,4 +8,5 @@ from .soft_argmax import SoftArgmax
 from .transformer import Transformer
 from .scatter_connection import ScatterConnection
 from .resnet import resnet18, ResNet
+from .gtrxl import GTrXL
 from .gumbel_softmax import GumbelSoftmax
