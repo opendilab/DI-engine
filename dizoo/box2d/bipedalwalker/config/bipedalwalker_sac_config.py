@@ -21,7 +21,7 @@ bipedalwalker_sac_config = dict(
             obs_shape=24,
             action_shape=4,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
         ),

@@ -102,7 +102,7 @@ class R2D3Policy(Policy):
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # each_iter_n_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -352,14 +352,15 @@ class R2D3Policy(Policy):
                     value_gamma=value_gamma[t],
                 )
                 loss.append(l)
-                td_error.append(e.abs())
+                # td_error.append(e.abs())  # first sum then abs
+                td_error.append(e)  # first abs then sum
                 # loss statistics for debugging
                 loss_nstep.append(loss_statistics[0])
                 loss_1step.append(loss_statistics[1])
                 loss_sl.append(loss_statistics[2])
 
             else:
-                l, e = dqfd_nstep_td_error(
+                l, e, loss_statistics = dqfd_nstep_td_error(
                     td_data,
                     self._gamma,
                     self.lambda1,
@@ -371,7 +372,12 @@ class R2D3Policy(Policy):
                     value_gamma=value_gamma[t],
                 )
                 loss.append(l)
-                td_error.append(e.abs())
+                # td_error.append(e.abs())  # first sum then abs
+                td_error.append(e)  # first abs then sum
+                # loss statistics for debugging
+                loss_nstep.append(loss_statistics[0])
+                loss_1step.append(loss_statistics[1])
+                loss_sl.append(loss_statistics[2])
 
         loss = sum(loss) / (len(loss) + 1e-8)
         # loss statistics for debugging

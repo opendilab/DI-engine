@@ -1,3 +1,46 @@
+2022.01.01(v0.2.3)
+- env: add multi-agent mujoco env (#146)
+- env: add delay reward mujoco env (#145)
+- env: fix port conflict in gym_soccer (#139)
+- algo: MASAC algorithm (#112)
+- algo: TREX algorithm (#119) (#144)
+- algo: H-PPO hybrid action space algorithm (#140)
+- algo: residual link in R2D2 (#150)
+- algo: gumbel softmax (#169)
+- algo: move actor_head_type to action_space field
+- feature: new main pipeline and async/parallel framework (#142) (#166) (#168)
+- feature: refactor buffer, separate algorithm and storage (#129)
+- feature: cli in new pipeline(ditask) (#160) 
+- feature: add multiprocess tblogger, fix circular reference problem (#156)
+- feature: add multiple seed cli
+- feature: polish eps_greedy_multinomial_sample in model_wrapper (#154)
+- fix: R2D3 abs priority problem (#158) (#161)
+- fix: multi-discrete action space policies random action bug (#167)
+- fix: doc generate bug with enum_tools (#155)
+- style: more comments about R2D2 (#149)
+- style: add doc about how to migrate a new env
+- style: add doc about env tutorial in dizoo
+- style: add conda auto release (#148)
+- style: udpate zh doc link
+- style: update kaggle tutorial link
+
+2021.12.03(v0.2.2)
+- env: apple key to door treasure env (#128)
+- env: add bsuite memory benchmark (#138)
+- env: polish atari impala config
+- algo: Guided Cost IRL algorithm (#57)
+- algo: ICM exploration algorithm (#41)
+- algo: MP-DQN hybrid action space algorithm (#131)
+- algo: add loss statistics and polish r2d3 pong config (#126)
+- feautre: add renew env mechanism in env manager and update timeout mechanism (#127) (#134)
+- fix: async subprocess env manager reset bug (#137)
+- fix: keepdims name bug in model wrapper
+- fix: on-policy ppo value norm bug
+- fix: GAE and RND unittest bug
+- fix: hidden state wrapper h tensor compatiblity
+- fix: naive buffer auto config create bug
+- style: add supporters list
+
 2021.11.22(v0.2.1)
 - env: gym-hybrid env (#86)
 - env: gym-soccer (HFO) env (#94)

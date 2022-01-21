@@ -70,11 +70,11 @@ def test_mappo():
 @pytest.mark.parametrize('use_value_clip, dual_clip, weight', args)
 def test_ppo_error_continous(use_value_clip, dual_clip, weight):
     B, N = 4, 6
-    mu_sigma_new = [torch.rand(B, N).requires_grad_(True), torch.rand(B, N).requires_grad_(True)]
-    mu_sigma_old = [
-        mu_sigma_new[0] + torch.rand_like(mu_sigma_new[0]) * 0.1,
-        mu_sigma_new[1] + torch.rand_like(mu_sigma_new[1]) * 0.1
-    ]
+    mu_sigma_new = {'mu': torch.rand(B, N).requires_grad_(True), 'sigma': torch.rand(B, N).requires_grad_(True)}
+    mu_sigma_old = {
+        'mu': mu_sigma_new['mu'] + torch.rand_like(mu_sigma_new['mu']) * 0.1,
+        'sigma': mu_sigma_new['sigma'] + torch.rand_like(mu_sigma_new['sigma']) * 0.1
+    }
     action = torch.rand(B, N)
     value_new = torch.randn(B).requires_grad_(True)
     value_old = value_new + torch.rand_like(value_new) * 0.1
@@ -84,9 +84,9 @@ def test_ppo_error_continous(use_value_clip, dual_clip, weight):
     loss, info = ppo_error_continuous(data, use_value_clip=use_value_clip, dual_clip=dual_clip)
     assert all([l.shape == tuple() for l in loss])
     assert all([np.isscalar(i) for i in info])
-    assert mu_sigma_new[0].grad is None
+    assert mu_sigma_new['mu'].grad is None
     assert value_new.grad is None
     total_loss = sum(loss)
     total_loss.backward()
-    assert isinstance(mu_sigma_new[0].grad, torch.Tensor)
+    assert isinstance(mu_sigma_new['mu'].grad, torch.Tensor)
     assert isinstance(value_new.grad, torch.Tensor)

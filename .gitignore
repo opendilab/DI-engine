@@ -10,6 +10,7 @@
 *.log
 *.log.*
 *.sig
+*.mov
 
 pkg/
 src/

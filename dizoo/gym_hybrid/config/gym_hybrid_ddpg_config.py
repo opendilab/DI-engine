@@ -24,10 +24,9 @@ gym_hybrid_ddpg_config = dict(
                 action_args_shape=2,
             ),
             twin_critic=False,
-            actor_head_type='hybrid',
+            action_space='hybrid',
         ),
         learn=dict(
-            action_space='hybrid',
             update_per_collect=10,  # [5, 10]
             batch_size=32,
             discount_factor=0.99,

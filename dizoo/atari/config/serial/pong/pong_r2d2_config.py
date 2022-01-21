@@ -4,7 +4,7 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 5
 pong_r2d2_config = dict(
-    exp_name='debug_pong_r2d2_n5_bs2_ul40_rbs1e4_seed0',
+    exp_name='pong_r2d2_n5_bs2_ul40_rbs1e4_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -15,7 +15,6 @@ pong_r2d2_config = dict(
     ),
     policy=dict(
         cuda=True,
-        on_policy=False,
         priority=True,
         priority_IS_weight=True,
         model=dict(
