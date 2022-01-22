@@ -1,8 +1,8 @@
 from collections import namedtuple
 from typing import Any, Optional
-from easydict import EasyDict
-import copy
 import numpy as np
+import gym
+from gym import wrappers
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -10,8 +10,6 @@ from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray, to_list
 from dizoo.multiagent_particle.envs.make_env import make_env
 from dizoo.multiagent_particle.envs.multiagent.multi_discrete import MultiDiscrete
-import gym
-from gym import wrappers
 
 
 class ParticleEnv(BaseEnv):
@@ -26,6 +24,11 @@ class ParticleEnv(BaseEnv):
         self._max_step = cfg.get('max_step', 100)
         # self._env.discrete_action_input = True
         self._env.force_discrete_action = True
+        self._observation_space = self._env.observation_space
+        self._action_space = self._env.action_space
+        self._reward_space = gym.spaces.Box(
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+        )
         self.agent_num = self._env.n
 
     def reset(self) -> np.ndarray:
@@ -58,67 +61,79 @@ class ParticleEnv(BaseEnv):
             done_n = True
         return BaseEnvTimestep(obs_n, rew_n, done_n, info_n)
 
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        act_space = {}
-        obs_space = {}
-        rew_space = {}
-        for i in range(self._env.n):
-            obs_space['agent' + str(i)] = T(
-                self._env.observation_space[i].shape,
-                {
-                    'min': -np.inf,
-                    'max': +np.inf,
-                    'dtype': np.float32
-                },
-            )
-            rew_space['agent' + str(i)] = T(
-                (1, ),
-                {
-                    'min': -np.inf,
-                    'max': +np.inf,
-                    'dtype': np.float32
-                },
-            )
-            act = self._env.action_space[i]
-            if isinstance(act, MultiDiscrete):
-                act_space['agent' + str(i)] = T(
-                    (act.shape, ),
-                    {
-                        'min': [int(l) for l in list(act.low)],
-                        'max': [int(h) for h in list(act.high)]
-                    },
-                )
-            elif isinstance(act, gym.spaces.Tuple):
-                # are not used in our environment yet
-                act_space['agent' + str(i)] = T(
-                    (len(act.gym.spaces), ),
-                    {'space': act.gym.spaces},
-                )
-            elif isinstance(act, gym.spaces.Discrete):
-                act_space['agent' + str(i)] = T(
-                    (1, ),
-                    {
-                        'min': 0,
-                        'max': act.n - 1,
-                        'dtype': int
-                    },
-                )
-            elif isinstance(act, gym.spaces.Box):
-                act_space['agent' + str(i)] = T(
-                    act.shape,
-                    {
-                        'min': act.low,
-                        'max': act.high,
-                        'dtype': act.dtype
-                    },
-                )
-        return BaseEnvInfo(
-            agent_num=self.agent_num, obs_space=obs_space, act_space=act_space, rew_space=rew_space, use_wrappers=None
-        )
+    # def info(self) -> BaseEnvInfo:
+    #     T = EnvElementInfo
+    #     act_space = {}
+    #     obs_space = {}
+    #     rew_space = {}
+    #     for i in range(self._env.n):
+    #         obs_space['agent' + str(i)] = T(
+    #             self._env.observation_space[i].shape,
+    #             {
+    #                 'min': -np.inf,
+    #                 'max': +np.inf,
+    #                 'dtype': np.float32
+    #             },
+    #         )
+    #         rew_space['agent' + str(i)] = T(
+    #             (1, ),
+    #             {
+    #                 'min': -np.inf,
+    #                 'max': +np.inf,
+    #                 'dtype': np.float32
+    #             },
+    #         )
+    #         act = self._env.action_space[i]
+    #         if isinstance(act, MultiDiscrete):
+    #             act_space['agent' + str(i)] = T(
+    #                 (act.shape, ),
+    #                 {
+    #                     'min': [int(l) for l in list(act.low)],
+    #                     'max': [int(h) for h in list(act.high)]
+    #                 },
+    #             )
+    #         elif isinstance(act, gym.spaces.Tuple):
+    #             # are not used in our environment yet
+    #             act_space['agent' + str(i)] = T(
+    #                 (len(act.gym.spaces), ),
+    #                 {'space': act.gym.spaces},
+    #             )
+    #         elif isinstance(act, gym.spaces.Discrete):
+    #             act_space['agent' + str(i)] = T(
+    #                 (1, ),
+    #                 {
+    #                     'min': 0,
+    #                     'max': act.n - 1,
+    #                     'dtype': int
+    #                 },
+    #             )
+    #         elif isinstance(act, gym.spaces.Box):
+    #             act_space['agent' + str(i)] = T(
+    #                 act.shape,
+    #                 {
+    #                     'min': act.low,
+    #                     'max': act.high,
+    #                     'dtype': act.dtype
+    #                 },
+    #             )
+    #     return BaseEnvInfo(
+    #         agent_num=self.agent_num, obs_space=obs_space, act_space=act_space, rew_space=rew_space, use_wrappers=None
+    #     )
 
     def __repr__(self) -> str:
         return "DI-engine wrapped Multiagent particle Env({})".format(self._cfg.env_name)
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
 
 CNEnvTimestep = namedtuple('CNEnvTimestep', ['obs', 'reward', 'done', 'info'])
@@ -142,6 +157,11 @@ class ModifiedPredatorPrey(BaseEnv):
             'collision_ratio': cfg.get('collision_ratio', 1)
         }
         self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, True, self._n_prey, self._external_cfg)
+        self._observation_space = self._env.observation_space
+        self._action_space = self._env.action_space
+        self._reward_space = gym.spaces.Box(
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+        )
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
         self.obs_alone = cfg.get('obs_alone', False)
@@ -230,57 +250,57 @@ class ModifiedPredatorPrey(BaseEnv):
             info['final_eval_reward'] = self._sum_reward
         return CNEnvTimestep(obs_n, rew_n, done_n, info)
 
-    def info(self):
-        T = EnvElementInfo
-        if self._obs_alone:
-            return CNEnvInfo(
-                agent_num=self._n_predator,
-                obs_space=T(
-                    {
-                        'agent_state': (self._n_predator, self.obs_dim),
-                        'global_state': (self.global_obs_dim, ),
-                        'action_mask': (self._n_predator, self.action_dim)
-                    },
-                    None,
-                ),
-                act_space=T(
-                    (self._n_predator, self.action_dim),
-                    {
-                        'min': 0,
-                        'max': self.action_dim,
-                        'dtype': int
-                    },
-                ),
-                rew_space=T(
-                    (1, ),
-                    None,
-                )
-            )
-        return CNEnvInfo(
-            agent_num=self._n_predator,
-            obs_space=T(
-                {
-                    'agent_state': (self._n_predator, self.obs_dim),
-                    'agent_alone_state': (self._n_predator, self.obs_alone_dim),
-                    'agent_alone_padding_state': (self._n_predator, self.obs_dim),
-                    'global_state': (self.global_obs_dim, ),
-                    'action_mask': (self._n_predator, self.action_dim)
-                },
-                None,
-            ),
-            act_space=T(
-                (self._n_predator, self.action_dim),
-                {
-                    'min': 0,
-                    'max': self.action_dim,
-                    'dtype': int
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                None,
-            )
-        )
+    # def info(self):
+    #     T = EnvElementInfo
+    #     if self._obs_alone:
+    #         return CNEnvInfo(
+    #             agent_num=self._n_predator,
+    #             obs_space=T(
+    #                 {
+    #                     'agent_state': (self._n_predator, self.obs_dim),
+    #                     'global_state': (self.global_obs_dim, ),
+    #                     'action_mask': (self._n_predator, self.action_dim)
+    #                 },
+    #                 None,
+    #             ),
+    #             act_space=T(
+    #                 (self._n_predator, self.action_dim),
+    #                 {
+    #                     'min': 0,
+    #                     'max': self.action_dim,
+    #                     'dtype': int
+    #                 },
+    #             ),
+    #             rew_space=T(
+    #                 (1, ),
+    #                 None,
+    #             )
+    #         )
+    #     return CNEnvInfo(
+    #         agent_num=self._n_predator,
+    #         obs_space=T(
+    #             {
+    #                 'agent_state': (self._n_predator, self.obs_dim),
+    #                 'agent_alone_state': (self._n_predator, self.obs_alone_dim),
+    #                 'agent_alone_padding_state': (self._n_predator, self.obs_dim),
+    #                 'global_state': (self.global_obs_dim, ),
+    #                 'action_mask': (self._n_predator, self.action_dim)
+    #             },
+    #             None,
+    #         ),
+    #         act_space=T(
+    #             (self._n_predator, self.action_dim),
+    #             {
+    #                 'min': 0,
+    #                 'max': self.action_dim,
+    #                 'dtype': int
+    #             },
+    #         ),
+    #         rew_space=T(
+    #             (1, ),
+    #             None,
+    #         )
+    #     )
 
     def __repr__(self) -> str:
         return "DI-engine wrapped Multiagent particle Env: CooperativeNavigation({})".format(self._env_name)
@@ -290,6 +310,18 @@ class ModifiedPredatorPrey(BaseEnv):
             replay_path = './video'
         self._replay_path = replay_path
         self._env = wrappers.Monitor(self._env, self._replay_path, video_callable=lambda episode_id: True, force=True)
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
 
 # same structure as smac env
@@ -302,6 +334,11 @@ class CooperativeNavigation(BaseEnv):
         self._n_agent = cfg.get("n_agent", 5)
         self._num_landmarks = cfg.get("num_landmarks", 5)
         self._env = make_env(self._env_name, self._n_agent, self._num_landmarks, True)
+        self._observation_space = self._env.observation_space
+        self._action_space = self._env.action_space
+        self._reward_space = gym.spaces.Box(
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+        )
         self._env.discrete_action_input = cfg.get('discrete_action', True)
         self._max_step = cfg.get('max_step', 100)
         self._collide_penalty = cfg.get('collide_penal', self._n_agent)
@@ -382,53 +419,53 @@ class CooperativeNavigation(BaseEnv):
             info['final_eval_reward'] = self._sum_reward
         return CNEnvTimestep(obs_n, rew_n, done_n, info)
 
-    def info(self):
-        T = EnvElementInfo
-        if self._agent_obs_only:
-            return CNEnvInfo(
-                agent_num=self._n_agent,
-                obs_space=T(
-                    (self._n_agent, self.obs_dim),
-                    None,
-                ),
-                act_space=T(
-                    (self._n_agent, self.action_dim),
-                    {
-                        'min': 0,
-                        'max': self.action_dim,
-                        'dtype': int
-                    },
-                ),
-                rew_space=T(
-                    (1, ),
-                    None,
-                )
-            )
-        return CNEnvInfo(
-            agent_num=self._n_agent,
-            obs_space=T(
-                {
-                    'agent_state': (self._n_agent, self.obs_dim),
-                    'agent_alone_state': (self._n_agent, self.obs_alone_dim),
-                    'agent_alone_padding_state': (self._n_agent, self.obs_dim),
-                    'global_state': (self.global_obs_dim, ),
-                    'action_mask': (self._n_agent, self.action_dim)
-                },
-                None,
-            ),
-            act_space=T(
-                (self._n_agent, self.action_dim),
-                {
-                    'min': 0,
-                    'max': self.action_dim,
-                    'dtype': int
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                None,
-            )
-        )
+    # def info(self):
+    #     T = EnvElementInfo
+    #     if self._agent_obs_only:
+    #         return CNEnvInfo(
+    #             agent_num=self._n_agent,
+    #             obs_space=T(
+    #                 (self._n_agent, self.obs_dim),
+    #                 None,
+    #             ),
+    #             act_space=T(
+    #                 (self._n_agent, self.action_dim),
+    #                 {
+    #                     'min': 0,
+    #                     'max': self.action_dim,
+    #                     'dtype': int
+    #                 },
+    #             ),
+    #             rew_space=T(
+    #                 (1, ),
+    #                 None,
+    #             )
+    #         )
+    #     return CNEnvInfo(
+    #         agent_num=self._n_agent,
+    #         obs_space=T(
+    #             {
+    #                 'agent_state': (self._n_agent, self.obs_dim),
+    #                 'agent_alone_state': (self._n_agent, self.obs_alone_dim),
+    #                 'agent_alone_padding_state': (self._n_agent, self.obs_dim),
+    #                 'global_state': (self.global_obs_dim, ),
+    #                 'action_mask': (self._n_agent, self.action_dim)
+    #             },
+    #             None,
+    #         ),
+    #         act_space=T(
+    #             (self._n_agent, self.action_dim),
+    #             {
+    #                 'min': 0,
+    #                 'max': self.action_dim,
+    #                 'dtype': int
+    #             },
+    #         ),
+    #         rew_space=T(
+    #             (1, ),
+    #             None,
+    #         )
+    #     )
 
     def __repr__(self) -> str:
         return "DI-engine wrapped Multiagent particle Env: CooperativeNavigation({})".format(self._env_name)
@@ -438,3 +475,15 @@ class CooperativeNavigation(BaseEnv):
             replay_path = './video'
         self._replay_path = replay_path
         self._env = wrappers.Monitor(self._env, self._replay_path, video_callable=lambda episode_id: True, force=True)
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
