@@ -28,6 +28,13 @@ class FakeEnv(BaseEnv):
         self._episode_step_base = cfg.get('episode_step', 200)
         self._reset_time = cfg.get('reset_time', 0.)
         self._step_time = cfg.get('step_time', 0.)
+        self.observation_space = gym.spaces.Box(
+            low=np.array([-1.0, -1.0, -8.0]), high=np.array([1.0, 1.0, 8.0]), shape=(3, ), dtype=np.float32
+        )
+        self.action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(1, ), dtype=np.float32)
+        self.reward_space = gym.spaces.Box(
+            low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32
+        )
         self.reset()
 
     def reset(self) -> np.ndarray:

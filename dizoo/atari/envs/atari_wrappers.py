@@ -7,9 +7,7 @@ from ding.envs import NoopResetWrapper, MaxAndSkipWrapper, EpisodicLifeWrapper, 
                         ClipRewardWrapper, FrameStackWrapper
 
 
-def wrap_deepmind(
-    env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True
-):
+def wrap_deepmind(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -40,9 +38,7 @@ def wrap_deepmind(
     return env
 
 
-def wrap_deepmind_mr(
-    env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True
-):
+def wrap_deepmind_mr(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 

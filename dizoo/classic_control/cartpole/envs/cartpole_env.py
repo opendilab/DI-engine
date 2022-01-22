@@ -24,12 +24,7 @@ class CartPoleEnv(BaseEnv):
             dtype=np.float32
         )
         self._action_space = gym.spaces.Discrete(2)
-        self._reward_space = gym.spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=(1, ),
-            dtype=np.float32
-        )
+        self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
 
     @property
     def observation_space(self) -> gym.spaces.Space:

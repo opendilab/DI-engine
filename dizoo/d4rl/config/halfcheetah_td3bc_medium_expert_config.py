@@ -34,9 +34,7 @@ main_config = dict(
         learn=dict(
             learner=dict(
                 train_iterations=1000000000,
-                dataloader=dict(
-                    num_workers=0,
-                ),
+                dataloader=dict(num_workers=0, ),
                 hook=dict(
                     load_ckpt_before_run='td3-bc-train_d4rl_seed0/ckpt/iteration_580000.pth.tar',
                     log_show_after_iter=100,
@@ -57,12 +55,22 @@ main_config = dict(
             actor_update_freq=2,
             noise=True,
             noise_sigma=0.2,
-            noise_range={'min': -0.5, 'max': 0.5},
+            noise_range={
+                'min': -0.5,
+                'max': 0.5
+            },
             alpha=2.5,
             normalize_states=True,
             train_epoch=30000,
-            lr_scheduler={'flag': False, 'T_max': 1000000, 'type': 'Cosine'},
-            optimizer={'type': 'adam', 'weight_decay': 0},
+            lr_scheduler={
+                'flag': False,
+                'T_max': 1000000,
+                'type': 'Cosine'
+            },
+            optimizer={
+                'type': 'adam',
+                'weight_decay': 0
+            },
             lmbda_type='q_value',
         ),
         collect=dict(
@@ -111,9 +119,7 @@ main_config = dict(
                         average_range=5,
                         print_freq=200,
                     ),
-                    periodic_thruput=dict(
-                        seconds=60,
-                    ),
+                    periodic_thruput=dict(seconds=60, ),
                 ),
                 cfg_type='AdvancedReplayBufferDict',
             ),

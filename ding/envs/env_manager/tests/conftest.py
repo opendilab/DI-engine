@@ -30,9 +30,13 @@ class FakeEnv(object):
         self._launched = False
         self._state = EnvState.INIT
         self._dead_once = False
-        self.observation_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -8.0]), high=np.array([1.0, 1.0, 8.0]), shape=(3, ), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(
+            low=np.array([-1.0, -1.0, -8.0]), high=np.array([1.0, 1.0, 8.0]), shape=(3, ), dtype=np.float32
+        )
         self.action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(1, ), dtype=np.float32)
-        self.reward_space = gym.spaces.Box(low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32)
+        self.reward_space = gym.spaces.Box(
+            low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32
+        )
 
     def reset(self, stat):
         if isinstance(stat, str) and stat == 'error':

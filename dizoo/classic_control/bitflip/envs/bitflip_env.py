@@ -20,19 +20,9 @@ class BitFlipEnv(BaseEnv):
         self._curr_step = 0
         self._maxsize = self._n_bits
         self._final_eval_reward = 0
-        self._observation_space = gym.spaces.Box(
-            low=0,
-            high=1,
-            shape=(2 * self._n_bits, ),
-            dtype=np.float32
-        )
+        self._observation_space = gym.spaces.Box(low=0, high=1, shape=(2 * self._n_bits, ), dtype=np.float32)
         self._action_space = gym.spaces.Discrete(self._n_bits)
-        self._reward_space = gym.spaces.Box(
-            low=0.0,
-            high=1.0,
-            shape=(1, ),
-            dtype=np.float32
-        )
+        self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
 
     def reset(self) -> np.ndarray:
         self._curr_step = 0

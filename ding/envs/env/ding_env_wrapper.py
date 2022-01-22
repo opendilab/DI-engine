@@ -24,10 +24,7 @@ class DingEnvWrapper(BaseEnv):
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0],
-                high=self._env.reward_range[1],
-                shape=(1, ),
-                dtype=np.float32
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
         else:
             self._init_flag = False
@@ -44,10 +41,7 @@ class DingEnvWrapper(BaseEnv):
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0],
-                high=self._env.reward_range[1],
-                shape=(1, ),
-                dtype=np.float32
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
@@ -95,7 +89,9 @@ class DingEnvWrapper(BaseEnv):
             return action
         else:
             raise TypeError(
-                '`action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(type(action), action)
+                '`action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
+                    type(action), action
+                )
             )
 
     def random_action(self) -> np.ndarray:
@@ -109,7 +105,8 @@ class DingEnvWrapper(BaseEnv):
         else:
             raise TypeError(
                 '`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
-                    type(random_action), random_action)
+                    type(random_action), random_action
+                )
             )
         return random_action
 
@@ -146,7 +143,7 @@ class DingEnvWrapper(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-    
+
     @property
     def observation_space(self) -> gym.spaces.Space:
         return self._observation_space

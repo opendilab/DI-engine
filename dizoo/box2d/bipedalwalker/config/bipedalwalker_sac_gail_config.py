@@ -18,7 +18,7 @@ bipedalwalker_sac_gail_default_config = dict(
     ),
     reward_model=dict(
         type='gail',
-        input_size=obs_shape+act_shape,
+        input_size=obs_shape + act_shape,
         hidden_size=64,
         batch_size=64,
         learning_rate=1e-3,
@@ -78,6 +78,8 @@ bipedalwalker_sac_gail_create_config = EasyDict(bipedalwalker_sac_gail_create_co
 create_config = bipedalwalker_sac_gail_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_gail([main_config, create_config],
-                         [bipedalwalker_sac_config, bipedalwalker_sac_create_config],
-                         seed=0, collect_data=True)
+    serial_pipeline_gail(
+        [main_config, create_config], [bipedalwalker_sac_config, bipedalwalker_sac_create_config],
+        seed=0,
+        collect_data=True
+    )

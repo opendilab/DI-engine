@@ -13,8 +13,6 @@ from torch import float32
 
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_WRAPPER_REGISTRY, import_module
-
-
 '''
 Env Wrapper List:
     - NoopResetWrapper: Sample initial states by taking random number of no-ops on reset.
