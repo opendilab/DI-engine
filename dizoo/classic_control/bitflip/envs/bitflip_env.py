@@ -1,7 +1,7 @@
 import copy
 import random
 import numpy as np
-
+import gym
 from typing import Any, Dict, Optional, Union, List
 
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
@@ -20,6 +20,19 @@ class BitFlipEnv(BaseEnv):
         self._curr_step = 0
         self._maxsize = self._n_bits
         self._final_eval_reward = 0
+        self._observation_space = gym.spaces.Box(
+            low=0,
+            high=1,
+            shape=(2 * self._n_bits, ),
+            dtype=np.float32
+        )
+        self._action_space = gym.spaces.Discrete(self._n_bits)
+        self._reward_space = gym.spaces.Box(
+            low=0.0,
+            high=1.0,
+            shape=(1, ),
+            dtype=np.float32
+        )
 
     def reset(self) -> np.ndarray:
         self._curr_step = 0
@@ -68,36 +81,17 @@ class BitFlipEnv(BaseEnv):
 
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T(
-                (2 * self._n_bits, ),
-                {
-                    'min': [0 for _ in range(self._n_bits)],
-                    'max': [1 for _ in range(self._n_bits)],
-                    'dtype': float,
-                },
-            ),
-            # [min, max)
-            act_space=T(
-                (self._n_bits, ),
-                {
-                    'min': 0,
-                    'max': self._n_bits,
-                    'dtype': int,
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                {
-                    'min': 0.0,
-                    'max': 1.0
-                },
-            ),
-            use_wrappers=None,
-        )
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
     def __repr__(self) -> str:
         return "DI-engine BitFlip Env({})".format('bitflip')

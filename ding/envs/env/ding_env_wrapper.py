@@ -15,27 +15,25 @@ from .default_wrapper import get_default_wrappers
 class DingEnvWrapper(BaseEnv):
 
     def __init__(self, env: gym.Env = None, cfg: dict = None) -> None:
-        # If env is None, assert cfg contains import_names + type, which are used to instantiate env instances.
-        # If env is passed in, lazy_init is disabled (use init_flag to annotate)
         self._cfg = cfg
         if self._cfg is None:
             self._cfg = dict()
         if env is not None:
             self._init_flag = True
             self._env = env
-            self.observation_space = self._env.observation_space
-            self.action_space = self._env.action_space
-            self.reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0],
+                high=self._env.reward_range[1],
+                shape=(1, ),
+                dtype=np.float32
             )
         else:
-            # TODO: need this assert?
-            # assert 'type' in cfg and 'import_names' in cfg, 'Lazy init, but cfg does not contain necessary keys: {}'.format(
-            #     cfg)
             self._init_flag = False
-            self.observation_space = None
-            self.action_space = None
-            self.reward_space = None
+            self._observation_space = None
+            self._action_space = None
+            self._reward_space = None
         # Only if user specifies the replay_path, will the video be saved. So its inital value is None.
         self._replay_path = None
 
@@ -43,13 +41,15 @@ class DingEnvWrapper(BaseEnv):
     def reset(self) -> None:
         if not self._init_flag:
             self._env = self._make_env()
-            self._init_flag = True
-            self.observation_space = self._env.observation_space
-            self.action_space = self._env.action_space
-            self.reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0],
+                high=self._env.reward_range[1],
+                shape=(1, ),
+                dtype=np.float32
             )
-            # self._update_space_shape()
+            self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
@@ -125,18 +125,6 @@ class DingEnvWrapper(BaseEnv):
             env = create_env_wrapper(env, wrapper_cfg)
         return env
 
-    # def _update_space_shape(self) -> None:
-    #     spaces = (self.observation_space.shape, self.action_space.shape, self.reward_space.shape)
-    #     # wrapper_cfgs = self._cfg.get('env_wrapper', [])
-    #     # if isinstance(wrapper_cfgs, str):
-    #     #     wrapper_cfgs = default_wrappers[wrapper_cfgs]
-    #     for wrapper_cfg in self._wrapper_cfgs:
-    #         if wrapper_cfg.get('disable', False):
-    #             continue
-    #         wrapper_cls = get_env_wrapper_cls(wrapper_cfg)
-    #         spaces = wrapper_cls.new_shape(*spaces, **wrapper_cfg.get('kwargs', {}))
-    #     self.observation_space._shape, self.action_space._shape, self.reward_space._shape = spaces
-
     def __repr__(self) -> str:
         return "DI-engine Env({})".format(self._cfg.env_id)
 
@@ -158,3 +146,15 @@ class DingEnvWrapper(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
+    
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space

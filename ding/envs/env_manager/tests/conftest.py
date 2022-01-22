@@ -1,12 +1,13 @@
 import random
 import time
 from collections import namedtuple
-
 import pytest
 import torch
 import numpy as np
 from easydict import EasyDict
 from functools import partial
+import gym
+
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
 from ding.envs.env_manager.base_env_manager import EnvState
@@ -29,6 +30,9 @@ class FakeEnv(object):
         self._launched = False
         self._state = EnvState.INIT
         self._dead_once = False
+        self.observation_space = gym.spaces.Box(low=np.array([-1.0, -1.0, -8.0]), high=np.array([1.0, 1.0, 8.0]), shape=(3, ), dtype=np.float32)
+        self.action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(1, ), dtype=np.float32)
+        self.reward_space = gym.spaces.Box(low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32)
 
     def reset(self, stat):
         if isinstance(stat, str) and stat == 'error':
@@ -82,26 +86,6 @@ class FakeEnv(object):
     def block(self):
         self._state = EnvState.ERROR
         time.sleep(1000)
-
-    def info(self):
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T((3, ), {
-                'min': [-1.0, -1.0, -8.0],
-                'max': [1.0, 1.0, 8.0],
-                'dtype': np.float32,
-            }),
-            act_space=T((1, ), {
-                'min': -2.0,
-                'max': 2.0,
-            }),
-            rew_space=T((1, ), {
-                'min': -1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2),
-                'max': -0.0,
-            }),
-            use_wrappers=None,
-        )
 
     def close(self):
         self._launched = False

@@ -14,7 +14,7 @@ def test_mujoco_env_delay_reward(delay_reward_step):
     env = MujocoEnv(EasyDict({'env_id': 'Ant-v3', 'use_act_scale': False, 'delay_reward_step': delay_reward_step}))
     env.seed(1234)
     env.reset()
-    action_dim = env.info().act_space.shape
+    action_dim = env.action_space.shape
     for _ in range(25):
         action = np.random.random(size=action_dim)
         timestep = env.step(action)
@@ -28,7 +28,7 @@ def test_mujoco_env_final_eval_reward():
     env = MujocoEnv(EasyDict({'env_id': 'Ant-v3', 'use_act_scale': False, 'delay_reward_step': 4}))
     env.seed(1234)
     env.reset()
-    action_dim = env.info().act_space.shape
+    action_dim = env.action_space.shape
     final_eval_reward = np.array([0.], dtype=np.float32)
     while True:
         action = np.random.random(size=action_dim)

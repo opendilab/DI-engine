@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 from easydict import EasyDict
+
 from dizoo.gym_hybrid.envs import GymHybridEnv
 
 
@@ -26,5 +27,5 @@ class TestGymHybridEnv:
             if timestep.done:
                 print('reset env')
                 env.reset()
-        print(env.info())
+        print(env.observation_space, env.action_space, env.reward_space)
         env.close()

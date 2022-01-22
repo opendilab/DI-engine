@@ -97,7 +97,7 @@ def serial_pipeline_reward_model_ngu(
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         # backup
-        # action_space = collector_env.env_info().act_space
+        # action_space = collector_env.action_space
         # random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
         # collector.reset_policy(random_policy)
         # collect_kwargs = commander.step()

@@ -158,7 +158,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Create an AsyncSubprocessEnvManager to manage multiple environments.
         Each Environment is run by a respective subprocess.
     Interfaces:
-        seed, launch, ready_obs, step, reset, env_info，active_env
+        seed, launch, ready_obs, step, reset, active_env
     """
 
     config = dict(
