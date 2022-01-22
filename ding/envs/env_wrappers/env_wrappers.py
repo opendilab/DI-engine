@@ -28,7 +28,8 @@ Env Wrapper List:
     - RamWrapper: Wrap ram env into image-like env
     - EpisodicLifeWrapper: Make end-of-life == end-of-episode, but only reset on true game over.
     - FireResetWrapper: Take fire action at environment reset.
-    - GymHybridDictActionWrapper: Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space to ``gym.spaces.Dict``.
+    - GymHybridDictActionWrapper: Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space 
+        to ``gym.spaces.Dict``.
 '''
 
 
