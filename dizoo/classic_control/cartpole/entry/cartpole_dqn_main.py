@@ -1,6 +1,7 @@
 import os
 import gym
 from tensorboardX import SummaryWriter
+from easydict import EasyDict
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
@@ -14,7 +15,10 @@ from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_d
 
 # Get DI-engine form env class
 def wrapped_cartpole_env():
-    return DingEnvWrapper(gym.make('CartPole-v0'))
+    return DingEnvWrapper(
+        gym.make('CartPole-v0'),
+        EasyDict(env_wrapper='default'),
+    )
 
 
 def main(cfg, seed=0):

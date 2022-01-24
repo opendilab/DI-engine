@@ -262,7 +262,7 @@ def test_collaq():
         os.popen('rm -rf log ckpt*')
 
 
-@pytest.mark.unittest
+@pytest.mark.coma
 def test_coma():
     config = [deepcopy(cooperative_navigation_coma_config), deepcopy(cooperative_navigation_coma_create_config)]
     config[0].policy.cuda = False
@@ -322,7 +322,7 @@ def test_qtran():
         os.popen('rm -rf log ckpt*')
 
 
-@pytest.mark.unittest
+@pytest.mark.atoc
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
     config[0].policy.cuda = False

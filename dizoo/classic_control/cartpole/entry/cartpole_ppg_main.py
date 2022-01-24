@@ -14,7 +14,10 @@ from dizoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_p
 
 
 def wrapped_cartpole_env():
-    return DingEnvWrapper(gym.make('CartPole-v0'))
+    return DingEnvWrapper(
+        gym.make('CartPole-v0'),
+        EasyDict(env_wrapper='default'),
+    )
 
 
 def main(cfg, seed=0, max_iterations=int(1e10)):

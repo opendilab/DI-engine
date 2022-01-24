@@ -21,6 +21,7 @@ class DingEnvWrapper(BaseEnv):
         if env is not None:
             self._init_flag = True
             self._env = env
+            self._wrap_env()
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
@@ -37,7 +38,8 @@ class DingEnvWrapper(BaseEnv):
     # override
     def reset(self) -> None:
         if not self._init_flag:
-            self._env = self._make_env()
+            self._env = gym.make(self._cfg.env_id)
+            self._wrap_env()
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
@@ -110,17 +112,15 @@ class DingEnvWrapper(BaseEnv):
             )
         return random_action
 
-    def _make_env(self) -> gym.Env:
-        env = gym.make(self._cfg.env_id)
+    def _wrap_env(self) -> None:
         wrapper_cfgs = self._cfg.get('env_wrapper', [])
         if isinstance(wrapper_cfgs, str):
-            wrapper_cfgs = get_default_wrappers(self._cfg.env_id, wrapper_cfgs)
+            wrapper_cfgs = get_default_wrappers(wrapper_cfgs, self._cfg.get('env_id', None))
         self._wrapper_cfgs = wrapper_cfgs
         for wrapper_cfg in self._wrapper_cfgs:
             if wrapper_cfg.get('disable', False):
                 continue
-            env = create_env_wrapper(env, wrapper_cfg)
-        return env
+            self._env = create_env_wrapper(self._env, wrapper_cfg)
 
     def __repr__(self) -> str:
         return "DI-engine Env({})".format(self._cfg.env_id)

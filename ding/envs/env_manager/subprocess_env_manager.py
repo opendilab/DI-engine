@@ -6,6 +6,7 @@ import platform
 import time
 import copy
 import traceback
+from cv2 import dft
 import numpy as np
 import torch
 import ctypes
@@ -220,8 +221,14 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._env_ref.observation_space
-            shape = obs_space.shape
-            dtype = obs_space.dtype
+            print('======', type(obs_space), obs_space)
+            print('//////', self._env_ref._n_agent)
+            if isinstance(obs_space, list):
+                shape = (len(obs_space), ) + obs_space[0].shape
+                dtype = obs_space[0].dtype
+            else:
+                shape = obs_space.shape
+                dtype = obs_space.dtype
             self._obs_buffers = {env_id: ShmBufferContainer(dtype, shape) for env_id in range(self.env_num)}
         else:
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
