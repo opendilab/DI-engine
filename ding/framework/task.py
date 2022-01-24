@@ -8,7 +8,7 @@ import concurrent.futures
 import fnmatch
 import math
 from types import GeneratorType
-from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set
+from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set, Union
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 from functools import wraps
@@ -134,13 +134,15 @@ class Task:
         self.step_wrappers.append(fn)
         return self
 
-    def match_labels(self, patterns: Iterable[str]) -> bool:
+    def match_labels(self, patterns: Union[Iterable[str], str]) -> bool:
         """
         Overview:
             A list of patterns to match labels.
         Arguments:
-            - patterns (:obj:`Iterable[str]`): Glob like pattern, e.g. node.1, node.*.
+            - patterns (:obj:`Union[Iterable[str], str]`): Glob like pattern, e.g. node.1, node.*.
         """
+        if isinstance(patterns, str):
+            patterns = [patterns]
         return any([fnmatch.filter(self.labels, p) for p in patterns])
 
     def run(self, max_step: int = int(1e10)) -> None:
