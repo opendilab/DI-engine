@@ -32,7 +32,8 @@ def try_optim_with(tname, t, optim_t):
                 clip_norm_type=1.2,
                 lr=0.1,
                 clip_momentum_timestep=2,
-                ignore_momentum_timestep=2
+                ignore_momentum_timestep=2,
+                clip_coef=0.5
             )
         else:
             optimizer = Adam(
@@ -43,7 +44,8 @@ def try_optim_with(tname, t, optim_t):
                 lr=0.1,
                 optim_type=optim_t,
                 clip_momentum_timestep=2,
-                ignore_momentum_timestep=2
+                ignore_momentum_timestep=2,
+                clip_coef=0.5
             )
     if tname == 'grad_ignore':
         if optim_t == 'rmsprop':
@@ -68,6 +70,7 @@ def try_optim_with(tname, t, optim_t):
                 optim_type=optim_t,
                 clip_momentum_timestep=2,
                 ignore_momentum_timestep=2,
+                ignore_coef=0.01
             )
     # 网络输入和标签
     x = torch.FloatTensor([120])
@@ -80,6 +83,8 @@ def try_optim_with(tname, t, optim_t):
         loss = mse_fn(predict, target_value)
         loss.backward()
         optimizer.step()
+    if t is not None and 'ignore' not in t:
+        assert optimizer.get_grad() != 0.
     for _ in range(10):
         target_value = torch.FloatTensor([_ ** 2])
         target_value.requires_grad = True
@@ -87,6 +92,7 @@ def try_optim_with(tname, t, optim_t):
         loss = mse_fn(predict, target_value)
         loss.backward()
         optimizer.step()
+
 
     if t is None:
         print("weight without optimizer clip:" + str(net.linear.weight))

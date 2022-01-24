@@ -428,7 +428,7 @@ class RMSprop(torch.optim.RMSprop):
             clip_grad_norm_(new_params, self._clip_value, self._clip_norm_type)
         elif self._grad_clip_type == 'clip_momentum':
             '''
-            This is the implimentation mimic the clip used in OPENAI, quote:
+                 This implementation mimics the clip used in OPENAI, quote:
                 'Gradients are additionally clipped per parameter to be within between ±5√v
                  where v is the running estimate of the second moment of the (unclipped) gradient'
             '''
