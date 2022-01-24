@@ -164,9 +164,9 @@ class Task:
             self.sync()
             if i == max_step - 1:
                 self.finish = True
-            self.renew()
             if self.finish:
                 break
+            self.renew()
 
     @enable_async
     def forward(self, fn: Callable, ctx: Context = None, backward_stack: List[Generator] = None) -> 'Task':
