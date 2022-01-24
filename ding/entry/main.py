@@ -46,10 +46,11 @@ class DequeBuffer:
 
 class Pipeline:
 
-    def __init__(self, cfg, model: torch.nn.Module):
+    def __init__(self, cfg, model: torch.nn.Module, task: Task):
         self.cfg = cfg
         self.model = model
         self.policy = SACPolicy(cfg.policy, model=model)
+        self.task = task
         if 'eps' in cfg.policy.other:
             eps_cfg = cfg.policy.other.eps
             self.epsilon_greedy = get_epsilon_greedy_fn(eps_cfg.start, eps_cfg.end, eps_cfg.decay, eps_cfg.type)
@@ -135,7 +136,7 @@ class Pipeline:
             print('Current Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
             ctx.last_eval_iter = ctx.train_iter
             if stop_flag:
-                ctx.finish = True
+                self.task.finish = True
 
         return _eval
 
@@ -154,7 +155,7 @@ def main(cfg, model, seed=0):
         evaluator_env.launch()
 
         replay_buffer = DequeBuffer()
-        sac = Pipeline(cfg, model)
+        sac = Pipeline(cfg, model, task)
 
         # task.use_step_wrapper(StepTimer(print_per_step=1))
         task.use(sac.evaluate(evaluator_env), filter_labels=["standalone", "node.0"])

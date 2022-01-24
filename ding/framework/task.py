@@ -63,11 +63,10 @@ class Task:
             step_wrappers: Optional[List[Callable]] = None,
             event_listeners: Optional[Dict[str, List]] = None,
             once_listeners: Optional[Dict[str, List]] = None,
-            attach_callback: Optional[Callable] = None,
             labels: Optional[Set[str]] = None,
-            auto_sync_ctx: bool = True,
             **_
     ) -> None:
+        self._finish = False
         self.middleware = middleware or []
         self.step_wrappers = step_wrappers or []
         self.ctx = Context()
@@ -87,17 +86,12 @@ class Task:
 
         # Parallel segment
         self.router = Parallel()
-        self.auto_sync_ctx = auto_sync_ctx
         if async_mode or self.router.is_active:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
             self._loop = asyncio.new_event_loop()
 
         if self.router.is_active:
-            self.router.register_rpc("task._emit", self._emit)
-            if attach_callback:
-                self.wait_for_attach_callback(attach_callback)
-            if self.auto_sync_ctx:
-                self.on("sync_parallel_ctx", self.sync_parallel_ctx)
+            self.router.register_rpc("task._emit", self.emit)
 
         self.init_labels()
 
@@ -164,7 +158,7 @@ class Task:
             self.backward()
             self.sync()
             if i == max_step - 1:
-                self.ctx.finish = True
+                self.finish = True
             self.renew()
             if self.finish:
                 break
@@ -237,10 +231,6 @@ class Task:
         """
         # Renew context
         old_ctx = self.ctx
-        if self.router.is_active and self.auto_sync_ctx:
-            # Send context to other parallel processes
-            self.async_executor(self.router.send_rpc, "task._emit", "sync_parallel_ctx", old_ctx)
-
         new_ctx = old_ctx.renew()
         new_ctx.total_step = old_ctx.total_step + 1
         self.ctx = new_ctx
@@ -287,31 +277,6 @@ class Task:
                 except InvalidStateError:
                     # Not finished. https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.exception
                     pass
-
-    def wait_for_attach_callback(self, attach_callback: Callable, n_timeout: int = 30):
-        if len(self.router.attach_to) > 0:
-            logging.warning(
-                "The attach mode will wait for the latest context, an exception will \
-be thrown after the timeout {}s is reached".format(n_timeout)
-            )
-            is_timeout = True
-            ctx = None
-
-            def on_sync_parallel_ctx(new_ctx):
-                nonlocal ctx
-                ctx = new_ctx
-
-            self.once("sync_parallel_ctx", on_sync_parallel_ctx)
-            for _ in range(n_timeout * 10):
-                if ctx:
-                    is_timeout = False
-                    break
-                time.sleep(0.1)
-            if is_timeout:
-                # If attach callback is defined, the attach mode should wait for callback finished,
-                # otherwise it may overwrite the training results of other processes
-                raise TimeoutError("Attach timeout, not received the latest context.")
-            attach_callback(ctx)
 
     def async_executor(self, fn: Callable, *args, **kwargs) -> None:
         """
@@ -402,22 +367,15 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         else:
             raise TimeoutError("Timeout when waiting for event: {}".format(event))
 
-    @property
-    def finish(self) -> bool:
-        """
-        Overview:
-            Link the ctx's finish state, in order to be easily called externally.
-        """
-        return self.ctx.finish
-
     def __copy__(self):
         return Task(**self.__dict__)
 
-    def sync_parallel_ctx(self, ctx):
-        """
-        Overview:
-            Sync parallel ctx
-        """
-        self.parallel_ctx = ctx
-        if self.parallel_ctx.finish:
-            self.ctx.finish = True
+    @property
+    def finish(self):
+        return self._finish
+
+    @finish.setter
+    def finish(self, value: bool):
+        self._finish = value
+        if self.router.is_active and value is True:
+            self.async_executor(self.router.send_rpc, "task.emit", "finish", remote=True)
