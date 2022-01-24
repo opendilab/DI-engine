@@ -91,7 +91,12 @@ class Task:
             self._loop = asyncio.new_event_loop()
 
         if self.router.is_active:
-            self.router.register_rpc("task._emit", self.emit)
+            self.router.register_rpc("task._emit", self._emit)
+
+            def sync_finish(value):
+                self._finish = value
+
+            self.on("finish", sync_finish)
 
         self.init_labels()
 
@@ -247,7 +252,7 @@ class Task:
         Overview:
             Stop and cleanup every thing in the runtime of task.
         """
-        self.emit("exit", remote=False)
+        self.emit("exit", only_local=True)
         if self._thread_pool:
             self._thread_pool.shutdown()
         # The middleware and listeners may contain some methods that reference to task,
@@ -296,17 +301,22 @@ class Task:
             Emit an event, call listeners.
         Arguments:
             - event (:obj:`str`): Event name.
-            - remote (:obj:`bool`): Whether to broadcast the event to the connected nodes, default is True.
+            - only_remote (:obj:`bool`): Only broadcast the event to the connected nodes, default is False.
+            - only_local (:obj:`bool`): Only emit local event, default is False.
             - args (:obj:`any`): Rest arguments for listeners.
         """
         # Check if need to broadcast event to connected nodes, default is True
-        if "remote" in kwargs:
-            remote = kwargs.pop("remote")
+        if kwargs.get("only_local"):
+            kwargs.pop("only_local")
+            self._emit(event, *args, **kwargs)
+        elif kwargs.get("only_remote"):
+            kwargs.pop("only_remote")
+            if self.router.is_active:
+                self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
         else:
-            remote = True
-        if remote and self.router.is_active:
-            self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
-        self._emit(event, *args, **kwargs)
+            if self.router.is_active:
+                self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
+            self._emit(event, *args, **kwargs)
 
     def _emit(self, event: str, *args, **kwargs) -> None:
         if event in self.event_listeners:
@@ -378,4 +388,4 @@ class Task:
     def finish(self, value: bool):
         self._finish = value
         if self.router.is_active and value is True:
-            self.async_executor(self.router.send_rpc, "task.emit", "finish", remote=True)
+            self.emit("finish", value)
