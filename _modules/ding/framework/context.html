@@ -176,10 +176,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="n">total_step</span>
-
-        <span class="c1"># Reserved properties</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_kept_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;finish&quot;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kept_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Context.renew"><a class="viewcode-back" href="../../../api_doc/framework/context.html#ding.framework.context.Context.renew">[docs]</a>    <span class="k">def</span> <span class="nf">renew</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Context&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
         <span class="sd">&quot;&quot;&quot;</span>
