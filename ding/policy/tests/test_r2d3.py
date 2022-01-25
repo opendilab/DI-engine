@@ -7,6 +7,7 @@ from torch.utils.tensorboard import SummaryWriter
 from ding.model.wrapper.model_wrappers import ArgmaxSampleWrapper, HiddenStateWrapper, EpsGreedySampleWrapper
 import os
 from typing import List
+from collections import namedtuple
 
 obs_space = 5
 action_space = 4
@@ -38,6 +39,7 @@ cfg = dict(
         lambda_one_step_td=1,  # 1-step return
         margin_function=0.8,  # margin function in JE, here we implement this as a constant
         per_train_iter_k=0,
+        ignore_done=False,
     ),
     collect=dict(
         each_iter_n_sample=32,
@@ -61,18 +63,34 @@ cfg = dict(
 )
 cfg = EasyDict(cfg)
 
-# create fake dataset
-data = []
-for i in range(100):
-    d = {}
-    d['obs'] = torch.zeros(obs_space)
-    d['action'] = torch.Tensor([1.])
-    data.append(d)
+
+def get_batch(size=8):
+    data = {}
+    for i in range(size):
+        obs = torch.zeros(obs_space)
+        data[i] = obs
+    return data
+
+
+def get_transition(size=20):
+    data = []
+    import numpy as np
+    for i in range(size):
+        sample = {}
+        sample['obs'] = torch.zeros(obs_space)
+        sample['action'] = torch.tensor(np.array([int(i % action_space)]))
+        sample['done'] = False
+        sample['prev_state'] = [torch.randn(1, 1, 512) for __ in range(2)]
+        sample['reward'] = torch.Tensor([1.])
+        sample['IS'] = 1.
+        sample['is_expert'] = bool(i % 2)
+        data.append(sample)
+    return data
 
 
 @pytest.mark.parametrize('cfg', [cfg])
 @pytest.mark.unittest
-def test_dataset_1d(cfg):
+def test_r2d3(cfg):
     policy = R2D3Policy(cfg, enable_field=['collect', 'eval'])
     policy._init_learn()
     assert type(policy._learn_model) == ArgmaxSampleWrapper
@@ -93,21 +111,23 @@ def test_dataset_1d(cfg):
     var = policy._monitor_vars_learn()
     assert type(var) == list
     assert sum([type(s) == str for s in var]) == len(var)
-
-    '''data = data_1d
-    cfg = EasyDict(cfg)
-    policy = GailRewardModel(cfg, device, tb_logger=SummaryWriter())
-    policy.load_expert_data()
-    assert len(policy.expert_data) == 20
-    state = policy.state_dict()
-    policy.load_state_dict(state)
-    policy.collect_data(data)
-    assert len(policy.train_data) == 20
-    for _ in range(5):
-        policy.train()
-    policy.estimate(data)
-    assert 'reward' in data[0].keys()
-    policy.clear_data()
-    assert len(policy.train_data) == 0
-    if os.path.exists(expert_data_path_1d):
-        os.remove(expert_data_path_1d)'''
+    batch = get_batch(8)
+    out = policy._forward_collect(batch, eps=0.1)
+    assert len(set(out[0].keys()).intersection({'logit', 'prev_state', 'action'})) == 3
+    assert list(out[0]['logit'].shape) == [action_space]
+    timestep = namedtuple('timestep', ['reward', 'done'])
+    ts = timestep(1., 0.,)
+    ts = policy._process_transition(batch[0], out[0], ts)
+    assert len(set(ts.keys()).intersection({'prev_state', 'action', 'reward', 'done', 'obs'})) == 5
+    ts = get_transition(64 * policy._unroll_len_add_burnin_step)
+    sample = policy._get_train_sample(ts)
+    n_traj = len(ts) // policy._unroll_len_add_burnin_step
+    assert len(sample) == n_traj + 1 if len(ts) % policy._unroll_len_add_burnin_step != 0 else n_traj
+    out = policy._forward_eval(batch)
+    assert len(set(out[0].keys()).intersection({'logit', 'action'})) == 2
+    assert list(out[0]['logit'].shape) == [action_space]
+    for i in range(len(sample)):
+        sample[i]['IS'] = sample[i]['IS'][cfg.burnin_step:]
+    out = policy._forward_learn(sample)
+    policy._value_rescale = False
+    out = policy._forward_learn(sample)
