@@ -1,21 +1,22 @@
 import pytest
 import os
 from ding.entry.cli_parsers import PLATFORM_PARSERS
+from ding.entry.cli_parsers.slurm_parser import SlurmParser
 slurm_parser = PLATFORM_PARSERS["slurm"]
 
 
 @pytest.fixture
 def set_slurm_env():
-    os.environ["SLURM_NTASKS"] = '6'  # 参数 n，总进程/任务数
-    os.environ["SLURM_NTASKS_PER_NODE"] = '3'  # 参数 ntasks-per-node，每个节点的进程数
-    os.environ["SLURM_NODELIST"] = 'SH-IDC1-10-5-38-[190,215]'  # 所有节点
-    os.environ["SLURM_SRUN_COMM_PORT"] = '42932'  # 哪些可用端口？
-    os.environ["SLURM_TOPOLOGY_ADDR"] = 'SH-IDC1-10-5-38-215'  # 当前节点名
-    os.environ["SLURM_NODEID"] = '1'  # 节点顺序，从 0 开始
-    os.environ["SLURM_PROCID"] = '3'  # 进程顺序，从 0 开始，实际启动顺序可能与数字顺序不同
-    os.environ["SLURM_LOCALID"] = '0'  # 本地顺序，从 0 开始，最大 ntasks-per-node - 1
-    os.environ["SLURM_GTIDS"] = '2,3'  # 在当前进程上启动的 procid
-    os.environ["SLURMD_NODENAME"] = 'SH-IDC1-10-5-38-215'  # 当前节点名
+    os.environ["SLURM_NTASKS"] = '6'  # Parameter n，Process count / Task count
+    os.environ["SLURM_NTASKS_PER_NODE"] = '3'  # Parameter ntasks-per-node，process count of each node
+    os.environ["SLURM_NODELIST"] = 'SH-IDC1-10-5-38-[190,215]'  # All the nodes
+    os.environ["SLURM_SRUN_COMM_PORT"] = '42932'  # Available ports
+    os.environ["SLURM_TOPOLOGY_ADDR"] = 'SH-IDC1-10-5-38-215'  # Name of current node
+    os.environ["SLURM_NODEID"] = '1'  # Node order，start from 0
+    os.environ["SLURM_PROCID"] = '3'  # Proc order，start from 0，the read proc order may be different from nominal order
+    os.environ["SLURM_LOCALID"] = '0'  # Proc order on current node, smaller or equal than ntasks-per-node - 1
+    os.environ["SLURM_GTIDS"] = '2,3'  # All the proc ids on current node
+    os.environ["SLURMD_NODENAME"] = 'SH-IDC1-10-5-38-215'  # Name of current node
 
     yield
 
@@ -72,3 +73,9 @@ def test_slurm_parser():
     ] == "tcp://SH-IDC1-10-5-38-190:15151," +\
         "tcp://SH-IDC1-10-5-38-190:15152," +\
         "tcp://SH-IDC1-10-5-38-190:15153"
+
+    # Test _parse_node_list
+    sp = SlurmParser(platform_spec)
+    os.environ["SLURM_NODELIST"] = 'SH-IDC1-10-5-[38-40]'
+    nodelist = sp._parse_node_list()
+    assert nodelist == ['SH-IDC1-10-5-38', 'SH-IDC1-10-5-39', 'SH-IDC1-10-5-40']
