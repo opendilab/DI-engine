@@ -51,7 +51,7 @@ main_config = bitflip_pure_dqn_config
 bitflip_pure_dqn_create_config = dict(
     env=dict(
         type='bitflip',
-        import_names=['dizoo.classic_control.bitflip.envs.bitflip_env'],
+        import_names=['dizoo.bitflip.envs.bitflip_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
