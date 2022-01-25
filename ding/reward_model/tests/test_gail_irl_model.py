@@ -35,7 +35,6 @@ data_1d = []
 for i in range(20):
     d = {}
     d['obs'] = torch.zeros(obs_space_1d)
-    d['action'] = torch.Tensor([0 for _ in range(action_space)])
     d['action'] = torch.Tensor([1.])
     data_1d.append(d)
 
