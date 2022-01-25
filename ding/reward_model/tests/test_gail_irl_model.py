@@ -68,6 +68,8 @@ def test_dataset_1d(cfg):
     assert 'reward' in data[0].keys()
     policy.clear_data()
     assert len(policy.train_data) == 0
+    if os.path.exists(expert_data_path_1d):
+        os.remove(expert_data_path_1d)
 
 
 @pytest.mark.parametrize('cfg', cfg2)
@@ -88,3 +90,5 @@ def test_dataset_3d(cfg):
     assert 'reward' in data[0].keys()
     policy.clear_data()
     assert len(policy.train_data) == 0
+    if os.path.exists(expert_data_path_3d):
+        os.remove(expert_data_path_3d)
