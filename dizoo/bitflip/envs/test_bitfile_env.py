@@ -1,7 +1,7 @@
 import pytest
 from easydict import EasyDict
 import numpy as np
-from dizoo.classic_control.bitflip.envs import BitFlipEnv
+from dizoo.bitflip.envs import BitFlipEnv
 
 
 @pytest.mark.envtest
