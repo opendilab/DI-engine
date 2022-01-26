@@ -3,8 +3,8 @@ from ding.entry import serial_pipeline
 
 collector_env_num = 8
 evaluator_env_num = 5
-lunarlander_r2d2_gtrxl_config = dict(
-    exp_name='lunarlander_r2d2_gtrxl',
+lunarlander_r2d2_config = dict(
+    exp_name='debug_lunarlander_r2d2_n5_bs2_ul40_rbs5e4_seed1',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -14,27 +14,31 @@ lunarlander_r2d2_gtrxl_config = dict(
     ),
     policy=dict(
         cuda=True,
+        on_policy=False,
         priority=True,
         priority_IS_weight=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
-            memory_len=0,
-            hidden_size=128,
-            gru_bias=1.
+            encoder_hidden_size_list=[128, 128, 512],
         ),
-        discount_factor=0.99,
-        nstep=3,
-        unroll_len=23,
-        seq_len=20,
-        burnin_step=0,
+        discount_factor=0.997,
+        burnin_step=2,
+        nstep=5,
+        # (int) the whole sequence length to unroll the RNN network minus
+        # the timesteps of burnin part,
+        # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
+        unroll_len=40,
         learn=dict(
+            # according to the R2D2 paper, actor parameter update interval is 400
+            # environment timesteps, and in per collect phase, we collect 32 sequence
+            # samples, the length of each sample sequence is <burnin_step> + <unroll_len>,
+            # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
+            # in most environments
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
-            value_rescale=False,
-            init_memory='zero'
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -59,18 +63,18 @@ lunarlander_r2d2_gtrxl_config = dict(
         ),
     ),
 )
-lunarlander_r2d2_gtrxl_config = EasyDict(lunarlander_r2d2_gtrxl_config)
-main_config = lunarlander_r2d2_gtrxl_config
-lunarlander_r2d2_gtrxl_create_config = dict(
+lunarlander_r2d2_config = EasyDict(lunarlander_r2d2_config)
+main_config = lunarlander_r2d2_config
+lunarlander_r2d2_create_config = dict(
     env=dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='r2d2_gtrxl'),
+    policy=dict(type='r2d2'),
 )
-lunarlander_r2d2_gtrxl_create_config = EasyDict(lunarlander_r2d2_gtrxl_create_config)
-create_config = lunarlander_r2d2_gtrxl_create_config
+lunarlander_r2d2_create_config = EasyDict(lunarlander_r2d2_create_config)
+create_config = lunarlander_r2d2_create_config
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)
