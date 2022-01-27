@@ -19,8 +19,8 @@ def pace_controller(
         - task (:obj:`Task`): Task in which the pace controller being applied.
         - theme (:obj:`str`): Theme string is a common string, \
             which is subscribed by all pace controller that work together.
-        - identity (:obj:`str`): Identity string determines the identity of a pace controller. 
-            Event from pace controller of same identity will be neglected. 
+        - identity (:obj:`str`): Identity string determines the identity of a pace controller.
+            Event from pace controller of same identity will be neglected.
             Pace controller with empty string identity are recognized as a unique one.
         - timeout (:obj:`float`): Timeout in seconds.
     Returns:
