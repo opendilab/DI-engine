@@ -12,8 +12,8 @@ from ding.model import DQN
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
 from ding.reward_model import HerRewardModel
-from dizoo.classic_control.bitflip.envs import BitFlipEnv
-from dizoo.classic_control.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
+from dizoo.bitflip.envs import BitFlipEnv
+from dizoo.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
 
 
 def main(cfg, seed=0, max_iterations=int(1e8)):

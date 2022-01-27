@@ -24,8 +24,8 @@ from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum
 from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
 from dizoo.classic_control.pendulum.config import pendulum_d4pg_config, pendulum_d4pg_create_config
-from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
-from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
+from dizoo.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
+from dizoo.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_wqmix_config, cooperative_navigation_wqmix_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
