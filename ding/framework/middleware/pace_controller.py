@@ -13,10 +13,12 @@ def pace_controller(
 ) -> Callable:
     """
     Overview:
-        The pace controller middleware provides ways to block current thread routine until event of same theme being called from different identity or time being out.
+        The pace controller middleware provides ways to block current thread routine until \
+            event of same theme being called from different identity or time being out.
     Arguments:
         - task (:obj:`Task`): Task in which the pace controller being applied.
-        - theme (:obj:`str`): Theme string is a common string, which is subscribed by all pace controller that work together.
+        - theme (:obj:`str`): Theme string is a common string, \
+            which is subscribed by all pace controller that work together.
         - identity (:obj:`str`): Identity string determines the identity of a pace controller. 
             Event from pace controller of same identity will be neglected. 
             Pace controller with empty string identity are recognized as a unique one.
@@ -41,7 +43,8 @@ def pace_controller(
     def _pace_control(ctx: "Context") -> None:
         """
         Overview:
-            Wait for an event and block current thread until event of same theme being called from different identity or time being out.
+            Wait for an event and block current thread until event of same theme being called \
+                from different identity or time being out.
         Arguments:
             - ctx (:obj:`Context`): Context of task object that using the current pace controller.
         """
