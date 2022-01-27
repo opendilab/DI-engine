@@ -1,7 +1,7 @@
 from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
-from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main
+from dizoo.bitflip.entry.bitflip_dqn_main import main
 
 n_bits = 20
 bitflip_her_dqn_config = dict(
@@ -64,7 +64,7 @@ main_config = bitflip_her_dqn_config
 bitflip_her_dqn_create_config = dict(
     env=dict(
         type='bitflip',
-        import_names=['dizoo.classic_control.bitflip.envs.bitflip_env'],
+        import_names=['dizoo.bitflip.envs.bitflip_env'],
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
