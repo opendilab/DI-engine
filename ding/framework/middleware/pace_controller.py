@@ -26,11 +26,10 @@ def pace_controller(
     Returns:
         - _pace_control (:obj:`Callable`): The wrapper function for pace controller.
     """
-    time.sleep(1)
     event_theme = "_pace_control_{}".format(theme)
     event_received = False
 
-    def _event_received(another_identity) -> None:
+    def _event_received(another_identity: str) -> None:
         nonlocal event_received
         if another_identity != identity or identity == "":
             event_received = True
