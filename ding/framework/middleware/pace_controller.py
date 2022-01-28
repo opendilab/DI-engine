@@ -29,11 +29,10 @@ def pace_controller(
     time.sleep(1)
     event_theme = "_pace_control_{}".format(theme)
     event_received = False
-    _identity = identity
 
     def _event_received(another_identity) -> None:
-        nonlocal event_received, _identity
-        if another_identity != _identity or _identity == "":
+        nonlocal event_received
+        if another_identity != identity or identity == "":
             event_received = True
         return
 
