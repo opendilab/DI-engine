@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 ant_ppo_default_config = dict(
-    exp_name = 'ant_onppo',
+    exp_name='ant_onppo',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
         env_id='Ant-v3',

@@ -40,7 +40,6 @@ hopper_td3_bc_default_config = dict(
             alpha=2.5,
         ),
         collect=dict(
-            n_sample=1,
             unroll_len=1,
             noise_sigma=0.1,
             data_type='hdf5',

@@ -59,10 +59,10 @@ class Parallel(metaclass=SingletonMetaclass):
             attach_to: Optional[List[str]] = None,
             protocol: str = "ipc",
             address: Optional[str] = None,
-            ports: Optional[List[int]] = None,
+            ports: Optional[Union[List[int], int]] = None,
             topology: str = "mesh",
             labels: Optional[Set[str]] = None,
-            node_ids: Optional[List[int]] = None
+            node_ids: Optional[Union[List[int], int]] = None
     ) -> Callable:
         """
         Overview:
@@ -93,8 +93,7 @@ class Parallel(metaclass=SingletonMetaclass):
                 - main_process (:obj:`Callable`): The main function, your program start from here.
             """
             nodes = Parallel.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
-            logging.info("Bind subprocesses on these addresses: {}".format(nodes))
-            print("Bind subprocesses on these addresses: {}".format(nodes))
+            logging.warning("Bind subprocesses on these addresses: {}".format(nodes))
 
             def cleanup_nodes():
                 for node in nodes:
@@ -115,7 +114,7 @@ class Parallel(metaclass=SingletonMetaclass):
                     raise ValueError("Unknown topology: {}".format(topology))
 
             params_group = []
-            candidate_node_ids = node_ids or range(n_parallel_workers)
+            candidate_node_ids = Parallel.padding_param(node_ids, n_parallel_workers, 0)
             assert len(candidate_node_ids) == n_parallel_workers, \
                 "The number of workers must be the same as the number of node_ids, \
 now there are {} workers and {} nodes"\
@@ -125,7 +124,7 @@ now there are {} workers and {} nodes"\
                 runner_kwargs = {
                     "node_id": candidate_node_ids[i],
                     "listen_to": nodes[i],
-                    "attach_to": topology_network(i) + attach_to,
+                    "attach_to": topology_network(i),
                     "labels": labels
                 }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
@@ -156,6 +155,7 @@ now there are {} workers and {} nodes"\
         with Parallel() as router:
             router.is_active = True
             router.run(*runner_args, **runner_kwargs)
+            time.sleep(0.3)  # Waiting for network pairing
             main_process(*args, **kwargs)
 
     @staticmethod
@@ -163,7 +163,7 @@ now there are {} workers and {} nodes"\
             n_workers: int,
             protocol: str = "ipc",
             address: Optional[str] = None,
-            ports: Optional[List[int]] = None
+            ports: Optional[Union[List[int], int]] = None
     ) -> None:
         if protocol == "ipc":
             node_name = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=4))
@@ -171,15 +171,33 @@ now there are {} workers and {} nodes"\
             nodes = ["ipc://{}/ditask_{}_{}.ipc".format(tmp_dir, node_name, i) for i in range(n_workers)]
         elif protocol == "tcp":
             address = address or Parallel.get_ip()
-            ports = ports or range(50515, 50515 + n_workers)
-            if isinstance(ports, int):
-                ports = range(ports, ports + n_workers)
+            ports = Parallel.padding_param(ports, n_workers, 50515)
             assert len(ports) == n_workers, "The number of ports must be the same as the number of workers, \
 now there are {} ports and {} workers".format(len(ports), n_workers)
             nodes = ["tcp://{}:{}".format(address, port) for port in ports]
         else:
             raise Exception("Unknown protocol {}".format(protocol))
         return nodes
+
+    @staticmethod
+    def padding_param(int_or_list: Optional[Union[List[int], int]], n_max: int, start_value: int) -> List[int]:
+        """
+        Overview:
+            Padding int or list param to the length of n_max.
+        Arguments:
+            - int_or_list (:obj:`Optional[Union[List[int], int]]`): Int or list typed value.
+            - n_max (:obj:`int`): Max length.
+            - start_value (:obj:`int`): Start from value.
+        """
+        param = int_or_list
+        if isinstance(param, List) and len(param) == 1:
+            param = param[0]  # List with only 1 element is equal to int
+
+        if isinstance(param, int):
+            param = range(param, param + n_max)
+        else:
+            param = param or range(start_value, start_value + n_max)
+        return param
 
     def listen(self, listen_to: str, attach_to: List[str] = None):
         attach_to = attach_to or []
@@ -236,7 +254,12 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         """
         if self.is_active:
             payload = {"f": func_name, "a": args, "k": kwargs}
-            return self._sock and self._sock.send(pickle.dumps(payload, protocol=-1))
+            try:
+                payload_str = pickle.dumps(payload, protocol=-1)
+            except AttributeError as e:
+                logging.error("Arguments are not pickable! Function: {}, Args: {}".format(func_name, args))
+                raise e
+            return self._sock and self._sock.send(payload_str)
 
     def recv_rpc(self, msg: bytes):
         try:

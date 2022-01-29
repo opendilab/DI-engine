@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_mbrl
 
 # environment hypo
-env_id = 'HalfCheetah-v3'
+env_id = 'Walker2d-v2'
 obs_shape = 17
 action_shape = 6
 
@@ -26,11 +26,12 @@ set_rollout_length = lambda x: int(min(max(w * (x - x0) + b, y0), y1))
 set_buffer_size = lambda x: set_rollout_length(x) * rollout_batch_size * rollout_retain
 
 main_config = dict(
+    exp_name='walker2d_sac_mbpo_seed0',
     env=dict(
         env_id=env_id,
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=1,
+        collector_env_num=4,
         evaluator_env_num=8,
         use_act_scale=True,
         n_evaluator_episode=8,
@@ -38,7 +39,6 @@ main_config = dict(
     ),
     policy=dict(
         cuda=cuda,
-        on_policy=False,
         random_collect_size=10000,
         model=dict(
             obs_shape=obs_shape,
@@ -49,8 +49,8 @@ main_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            update_per_collect=40,
-            batch_size=256,
+            update_per_collect=20,
+            batch_size=2048,
             learning_rate_q=3e-4,
             learning_rate_policy=3e-4,
             learning_rate_alpha=3e-4,
@@ -62,12 +62,12 @@ main_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            n_sample=1,
+            n_sample=8,
             unroll_len=1,
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000000, periodic_thruput_seconds=60), ),
     ),
     model_based=dict(
         real_ratio=0.05,
@@ -77,6 +77,7 @@ main_config = dict(
             deepcopy=False,
             enable_track_used_data=False,
             set_buffer_size=set_buffer_size,
+            periodic_thruput_seconds=60,
         ),
         env_model=dict(
             type='mbpo',
@@ -88,7 +89,7 @@ main_config = dict(
             reward_size=1,
             hidden_size=200,
             use_decay=True,
-            batch_size=256,
+            batch_size=2048,
             holdout_ratio=0.1,
             max_epochs_since_update=5,
             eval_freq=250,

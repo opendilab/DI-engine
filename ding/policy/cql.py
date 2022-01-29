@@ -172,10 +172,6 @@ class CQLPolicy(SACPolicy):
             with_q_entropy=False,
         ),
         collect=dict(
-            # You can use either "n_sample" or "n_episode" in actor.collect.
-            # Get "n_sample" samples per collect.
-            # Default n_sample to 1.
-            n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -606,8 +602,6 @@ class CQLDiscretePolicy(DQNPolicy):
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),

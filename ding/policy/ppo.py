@@ -541,7 +541,7 @@ class PPOOffPolicy(Policy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPO"
-        
+
         self._action_space = self._cfg.action_space
         if self._cfg.learn.ppo_param_init:
             for n, m in self._model.named_modules():
@@ -623,17 +623,17 @@ class PPOOffPolicy(Policy):
             # Calculate ppo error
             if self._action_space == 'continuous':
                 ppo_offdata = ppo_data(
-                    output['logit'], data['logit'], data['action'], output['value'], data['value'], adv,
-                    data['return'], data['weight']
+                    output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, data['return'],
+                    data['weight']
                 )
                 ppo_loss, ppo_info = ppo_error_continuous(ppo_offdata, self._clip_ratio)
             elif self._action_space == 'discrete':
                 ppo_offdata = ppo_data(
-                    output['logit'], data['logit'], data['action'], output['value'], data['value'], adv,
-                    data['return'], data['weight']
+                    output['logit'], data['logit'], data['action'], output['value'], data['value'], adv, data['return'],
+                    data['weight']
                 )
                 ppo_loss, ppo_info = ppo_error(ppo_offdata, self._clip_ratio)
-            
+
             wv, we = self._value_weight, self._entropy_weight
             total_loss = ppo_loss.policy_loss + wv * ppo_loss.value_loss - we * ppo_loss.entropy_loss
 
@@ -648,7 +648,7 @@ class PPOOffPolicy(Policy):
             # Calculate ppo error
             ppodata = ppo_policy_data(output['logit'], data['logit'], data['action'], adv, data['weight'])
             ppo_policy_loss, ppo_info = ppo_policy_error(ppodata, self._clip_ratio)
-            
+
             wv, we = self._value_weight, self._entropy_weight
             next_obs = data.get('next_obs')
             value_gamma = data.get('value_gamma')

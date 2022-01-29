@@ -3,6 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_impala_config = dict(
+    exp_name='pong_impala',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=4,
@@ -53,16 +54,11 @@ pong_impala_config = dict(
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
-            # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.9,
-            gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(replay_buffer=dict(
-            type='naive',
             replay_buffer_size=10000,
-            max_use=100,
         ), ),
     ),
 )

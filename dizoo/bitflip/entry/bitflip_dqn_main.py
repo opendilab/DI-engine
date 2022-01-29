@@ -12,8 +12,8 @@ from ding.model import DQN
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
 from ding.reward_model import HerRewardModel
-from dizoo.classic_control.bitflip.envs import BitFlipEnv
-from dizoo.classic_control.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
+from dizoo.bitflip.envs import BitFlipEnv
+from dizoo.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
 
 
 def main(cfg, seed=0, max_iterations=int(1e8)):
@@ -90,8 +90,8 @@ def main(cfg, seed=0, max_iterations=int(1e8)):
                 her_episodes = []
                 for e in train_episode:
                     her_episodes.extend(her_model.estimate(e))
-                train_episode.extend(her_episodes)
-            for e in train_episode:
+            # Only use samples modified by HER reward_model to train.
+            for e in her_episodes:
                 train_data.extend(policy.collect_mode.get_train_sample(e))
             learner.train(train_data, collector.envstep)
 

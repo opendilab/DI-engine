@@ -132,7 +132,7 @@ class D4PGPolicy(DDPGPolicy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] should be set
-            n_sample=1,
+            # n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
@@ -279,8 +279,8 @@ class D4PGPolicy(DDPGPolicy):
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
-            'q_value': np.array(q_value['q_value'].detach().numpy()).mean(),
-            'action': data.get('action').mean(),
+            'q_value': q_value['q_value'].mean().item(),
+            'action': data['action'].mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             **loss_dict,
             **q_value_dict,

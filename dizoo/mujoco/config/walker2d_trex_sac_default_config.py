@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 walker2d_trex_sac_default_config = dict(
-    exp_name = 'walker2d_trex_sac',
+    exp_name='walker2d_trex_sac',
     env=dict(
         manager=dict(shared_memory=True, force_reproducibility=True),
         env_id='Walker2d-v3',
