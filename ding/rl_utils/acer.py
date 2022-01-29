@@ -42,8 +42,9 @@ def acer_policy_error(
     with torch.no_grad():
         advantage_retraces = q_retraces - v_pred  # shape T,B,1
         advantage_native = q_values - v_pred  # shape T,B,env_action_shape
-    actor_loss = ratio.gather(-1, actions).clamp(max=c_clip_ratio
-                                                 ) * advantage_retraces * target_logit.gather(-1, actions)  # shape T,B,1
+    actor_loss = ratio.gather(-1, actions).clamp(max=c_clip_ratio) * advantage_retraces * target_logit.gather(
+        -1, actions
+    )  # shape T,B,1
 
     # bias correction term, the first target_pi will not calculate gradient flow
     bias_correction_loss = (1.0-c_clip_ratio/(ratio+EPS)).clamp(min=0.0)*torch.exp(target_logit).detach() * \
@@ -75,7 +76,8 @@ def acer_value_error(q_values, q_retraces, actions):
 
 
 def acer_trust_region_update(
-        actor_gradients: List[torch.Tensor], target_logit: torch.Tensor, avg_logit: torch.Tensor, trust_region_value: float
+        actor_gradients: List[torch.Tensor], target_logit: torch.Tensor, avg_logit: torch.Tensor,
+        trust_region_value: float
 ) -> List[torch.Tensor]:
     """
     Overview:

@@ -223,7 +223,7 @@ class ACERPolicy(Policy):
         avg_logit = torch.log_softmax(avg_logit, dim=-1)
         with torch.no_grad():
             # shape T,B,env_action_shape
-            ratio = torch.exp(target_logit[0:-1]-behaviour_logit)
+            ratio = torch.exp(target_logit[0:-1] - behaviour_logit)
             # shape (T+1),B,1
             v_pred = (q_values * torch.exp(target_logit)).sum(-1).unsqueeze(-1)
             # Calculate retrace
@@ -253,7 +253,9 @@ class ACERPolicy(Policy):
         self._optimizer_actor.zero_grad()
         actor_gradients = torch.autograd.grad(-total_actor_loss, target_logit, retain_graph=True)
         if self._use_trust_region:
-            actor_gradients = acer_trust_region_update(actor_gradients, target_logit, avg_logit, self._trust_region_value)
+            actor_gradients = acer_trust_region_update(
+                actor_gradients, target_logit, avg_logit, self._trust_region_value
+            )
         target_logit.backward(actor_gradients)
         self._optimizer_actor.step()
 
@@ -267,7 +269,7 @@ class ACERPolicy(Policy):
         self._target_model.update(self._learn_model.state_dict())
 
         with torch.no_grad():
-            kl_div = torch.exp(avg_logit)*(avg_logit-target_logit)
+            kl_div = torch.exp(avg_logit) * (avg_logit - target_logit)
             kl_div = (kl_div.sum(-1) * weights).sum() / total_valid
 
         return {
