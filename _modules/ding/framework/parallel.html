@@ -321,6 +321,7 @@
         <span class="k">with</span> <span class="n">Parallel</span><span class="p">()</span> <span class="k">as</span> <span class="n">router</span><span class="p">:</span>
             <span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">router</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">*</span><span class="n">runner_args</span><span class="p">,</span> <span class="o">**</span><span class="n">runner_kwargs</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>  <span class="c1"># Waiting for network pairing</span>
             <span class="n">main_process</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
