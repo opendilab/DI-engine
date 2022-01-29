@@ -93,7 +93,6 @@ def try_optim_with(tname, t, optim_t):
         loss.backward()
         optimizer.step()
 
-
     if t is None:
         print("weight without optimizer clip:" + str(net.linear.weight))
     else:

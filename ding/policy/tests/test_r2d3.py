@@ -116,7 +116,10 @@ def test_r2d3(cfg):
     assert len(set(out[0].keys()).intersection({'logit', 'prev_state', 'action'})) == 3
     assert list(out[0]['logit'].shape) == [action_space]
     timestep = namedtuple('timestep', ['reward', 'done'])
-    ts = timestep(1., 0.,)
+    ts = timestep(
+        1.,
+        0.,
+    )
     ts = policy._process_transition(batch[0], out[0], ts)
     assert len(set(ts.keys()).intersection({'prev_state', 'action', 'reward', 'done', 'obs'})) == 5
     ts = get_transition(64 * policy._unroll_len_add_burnin_step)

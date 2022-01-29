@@ -18,7 +18,7 @@ cfg1 = dict(
     learning_rate=1e-3,
     update_per_collect=2,
     expert_data_path=expert_data_path_1d,
-    ),
+),
 
 cfg2 = dict(
     input_size=obs_space_3d,
@@ -28,7 +28,7 @@ cfg2 = dict(
     update_per_collect=2,
     expert_data_path=expert_data_path_3d,
     action_size=action_space,
-    ),
+),
 
 # create fake expert dataset
 data_1d = []

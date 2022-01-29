@@ -76,9 +76,11 @@ def test_HDF5Dataset(cfg):
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request):
+
     def remove_test_dir():
         if os.path.exists('./expert.pkl'):
             os.remove('./expert.pkl')
         if os.path.exists('./expert_demos.hdf5'):
             os.remove('./expert_demos.hdf5')
+
     request.addfinalizer(remove_test_dir)
