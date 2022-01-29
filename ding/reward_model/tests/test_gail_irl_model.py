@@ -45,13 +45,11 @@ for i in range(20):
     d['action'] = torch.Tensor([1.])
     data_3d.append(d)
 
-offline_data_save_type(exp_data=data_1d, expert_data_path=expert_data_path_1d, data_type='naive')
-offline_data_save_type(exp_data=data_3d, expert_data_path=expert_data_path_3d, data_type='naive')
-
 
 @pytest.mark.parametrize('cfg', cfg1)
 @pytest.mark.unittest
 def test_dataset_1d(cfg):
+    offline_data_save_type(exp_data=data_1d, expert_data_path=expert_data_path_1d, data_type='naive')
     data = data_1d
     cfg = EasyDict(cfg)
     policy = GailRewardModel(cfg, device, tb_logger=SummaryWriter())
@@ -74,6 +72,7 @@ def test_dataset_1d(cfg):
 @pytest.mark.parametrize('cfg', cfg2)
 @pytest.mark.unittest
 def test_dataset_3d(cfg):
+    offline_data_save_type(exp_data=data_3d, expert_data_path=expert_data_path_3d, data_type='naive')
     data = data_3d
     cfg = EasyDict(cfg)
     policy = GailRewardModel(cfg, device, tb_logger=SummaryWriter())

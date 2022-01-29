@@ -72,7 +72,6 @@ def test_HDF5Dataset(cfg):
     assert dataset._data['obs'].mean(0)[0] == 0
     assert type(len(dataset)) == int
     assert dataset[0] is not None
-    print('dd')
 
 
 @pytest.fixture(scope="session", autouse=True)
