@@ -3,7 +3,7 @@ import torch
 from easydict import EasyDict
 from ding.reward_model.gail_irl_model import GailRewardModel
 from ding.utils.data import offline_data_save_type
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 import os
 
 obs_space_1d, obs_space_3d = 4, [4, 84, 84]
