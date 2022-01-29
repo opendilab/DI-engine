@@ -155,6 +155,7 @@ now there are {} workers and {} nodes"\
         with Parallel() as router:
             router.is_active = True
             router.run(*runner_args, **runner_kwargs)
+            time.sleep(0.3)  # Waiting for network pairing
             main_process(*args, **kwargs)
 
     @staticmethod
