@@ -3,7 +3,7 @@ import torch
 from easydict import EasyDict
 from ding.policy.r2d3 import R2D3Policy
 from ding.utils.data import offline_data_save_type
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 from ding.model.wrapper.model_wrappers import ArgmaxSampleWrapper, HiddenStateWrapper, EpsGreedySampleWrapper
 import os
 from typing import List

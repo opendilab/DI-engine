@@ -5,7 +5,7 @@ import torch
 from easydict import EasyDict
 from ding.policy.cql import CQLPolicy, CQLDiscretePolicy
 from ding.utils.data import offline_data_save_type
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 from ding.model.wrapper.model_wrappers import ArgmaxSampleWrapper, EpsGreedySampleWrapper, TargetNetworkWrapper
 import os
 from typing import List
