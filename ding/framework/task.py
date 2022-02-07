@@ -323,7 +323,7 @@ class Task:
                 fn(*args, **kwargs)
         if event in self.once_listeners:
             while self.once_listeners[event]:
-                if self.router.is_active:
+                if self.router.is_active and event not in self.event_listeners:
                     self.router.unregister_rpc(self._rpc_fn_name(event))
                 fn = self.once_listeners[event].pop()
                 fn(*args, **kwargs)
