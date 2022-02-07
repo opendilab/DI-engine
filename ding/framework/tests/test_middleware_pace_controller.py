@@ -96,7 +96,7 @@ def parallel_main_with_timeout():
 def non_parallel_main_with_timeout():
     time_begin = time.time()
     with Task(async_mode=True) as task:
-        assert task.router.is_active == False
+        assert not task.router.is_active
         task.use(pace_controller(task, timeout=1))
         task.run(max_step=10)
     time_end = time.time()
