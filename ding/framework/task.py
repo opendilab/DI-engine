@@ -91,7 +91,6 @@ class Task:
             self._loop = asyncio.new_event_loop()
 
         if self.router.is_active:
-            self.router.register_rpc("task._emit", self._emit)
 
             def sync_finish(value):
                 self._finish = value
@@ -312,10 +311,10 @@ class Task:
         elif kwargs.get("only_remote"):
             kwargs.pop("only_remote")
             if self.router.is_active:
-                self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
+                self.async_executor(self.router.send_rpc, self._rpc_fn_name(event), event, *args, **kwargs)
         else:
             if self.router.is_active:
-                self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
+                self.async_executor(self.router.send_rpc, self._rpc_fn_name(event), event, *args, **kwargs)
             self._emit(event, *args, **kwargs)
 
     def _emit(self, event: str, *args, **kwargs) -> None:
@@ -324,6 +323,8 @@ class Task:
                 fn(*args, **kwargs)
         if event in self.once_listeners:
             while self.once_listeners[event]:
+                if self.router.is_active:
+                    self.router.unregister_rpc(self._rpc_fn_name(event))
                 fn = self.once_listeners[event].pop()
                 fn(*args, **kwargs)
 
@@ -336,6 +337,8 @@ class Task:
             - fn (:obj:`Callable`): The function.
         """
         self.event_listeners[event].append(fn)
+        if self.router.is_active:
+            self.router.register_rpc(self._rpc_fn_name(event), self._emit)
 
     def once(self, event: str, fn: Callable) -> None:
         """
@@ -346,6 +349,8 @@ class Task:
             - fn (:obj:`Callable`): The function.
         """
         self.once_listeners[event].append(fn)
+        if self.router.is_active:
+            self.router.register_rpc(self._rpc_fn_name(event), self._emit)
 
     def wait_for(self, event: str, timeout: float = math.inf, ignore_timeout_exception: bool = True) -> Any:
         """
@@ -389,3 +394,6 @@ class Task:
         self._finish = value
         if self.router.is_active and value is True:
             self.emit("finish", value)
+
+    def _rpc_fn_name(self, event: str) -> str:
+        return "task._emit.{}".format(event)
