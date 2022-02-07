@@ -212,8 +212,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
 
             while True:
                 try:
-                    msg = sock.recv_msg()
-                    self.recv_rpc(msg.bytes)
+                    msg = sock.recv()
+                    self.recv_rpc(msg)
                 except pynng.Timeout:
                     logging.warning("Timeout on node {} when waiting for message from bus".format(self._bind_addr))
                 except pynng.Closed:
@@ -253,24 +253,35 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - fn_name (:obj:`str`): Function name.
         """
         if self.is_active:
-            payload = {"f": func_name, "a": args, "k": kwargs}
+            topic = func_name + "::"
+            payload = {"a": args, "k": kwargs}
             try:
-                payload_str = pickle.dumps(payload, protocol=-1)
+                data = pickle.dumps(payload, protocol=-1)
             except AttributeError as e:
                 logging.error("Arguments are not pickable! Function: {}, Args: {}".format(func_name, args))
                 raise e
-            return self._sock and self._sock.send(payload_str)
+            data = topic.encode() + data
+            return self._sock and self._sock.send(data)
 
-    def recv_rpc(self, msg: bytes):
+    def recv_rpc(self, msg: bytes) -> None:
+        """
+        Overview:
+            Recv and parse payload from other processes, and call local functions.
+        Arguments:
+            - msg (:obj:`bytes`): Recevied message.
+        """
+        topic, payload = msg.split(b"::", maxsplit=1)
+        func_name = topic.decode()
+        if func_name not in self._rpc:
+            logging.warning("There was no function named {} in rpc table".format(func_name))
+            return
         try:
-            payload = pickle.loads(msg)
+            payload = pickle.loads(payload)
         except Exception as e:
             logging.warning("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
-        if payload["f"] in self._rpc:
-            fn = self._rpc[payload["f"]]
-            fn(*payload["a"], **payload["k"])
-        else:
-            logging.warning("There was no function named {} in rpc table".format(payload["f"]))
+            return
+        fn = self._rpc[func_name]
+        fn(*payload["a"], **payload["k"])
 
     @staticmethod
     def get_ip():

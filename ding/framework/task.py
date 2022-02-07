@@ -1,13 +1,12 @@
 from asyncio import InvalidStateError
 from asyncio.tasks import FIRST_EXCEPTION
-from collections import defaultdict
 import time
 import asyncio
 import concurrent.futures
 import fnmatch
 import math
 from types import GeneratorType
-from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set, Union
+from typing import Any, Awaitable, Callable, Generator, Iterable, List, Optional, Set, Union
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 from ding.framework.event_loop import EventLoop
@@ -72,10 +71,7 @@ class Task:
         self._backward_stack = []
         # Bind event loop functions
         self._event_loop = EventLoop.get_event_loop("task_{}".format(id(self)))
-        self.on = self._event_loop.on
-        self.once = self._event_loop.once
         self._emit = self._event_loop.emit
-        self.off = self._event_loop.off
 
         # Async segment
         self.async_mode = async_mode
@@ -93,7 +89,6 @@ class Task:
             self._async_loop = asyncio.new_event_loop()
 
         if self.router.is_active:
-            self.router.register_rpc("task._emit", self._emit)
 
             def sync_finish(value):
                 self._finish = value
@@ -312,11 +307,58 @@ class Task:
         elif kwargs.get("only_remote"):
             kwargs.pop("only_remote")
             if self.router.is_active:
-                self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
+                self.async_executor(self.router.send_rpc, self._rpc_fn_name(event), event, *args, **kwargs)
         else:
             if self.router.is_active:
-                self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
+                self.async_executor(self.router.send_rpc, self._rpc_fn_name(event), event, *args, **kwargs)
             self._emit(event, *args, **kwargs)
+
+    def _emit(self, event: str, *args, **kwargs) -> None:
+        if event in self.event_listeners:
+            for fn in self.event_listeners[event]:
+                fn(*args, **kwargs)
+        if event in self.once_listeners:
+            while self.once_listeners[event]:
+                if self.router.is_active:
+                    self.router.unregister_rpc(self._rpc_fn_name(event))
+                fn = self.once_listeners[event].pop()
+                fn(*args, **kwargs)
+
+    def on(self, event: str, fn: Callable) -> None:
+        """
+        Overview:
+            Subscribe to an event, execute this function every time the event is emitted.
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - fn (:obj:`Callable`): The function.
+        """
+        self._event_loop.on(event, fn)
+        if self.router.is_active:
+            self.router.register_rpc(self._rpc_fn_name(event), self._emit)
+
+    def once(self, event: str, fn: Callable) -> None:
+        """
+        Overview:
+            Subscribe to an event, execute this function only once when the event is emitted.
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - fn (:obj:`Callable`): The function.
+        """
+        self._event_loop.once(event, fn)
+        if self.router.is_active:
+            self.router.register_rpc(self._rpc_fn_name(event), self._emit)
+
+    def off(self, event: str, fn: Optional[Callable] = None) -> None:
+        """
+        Overview:
+            Unsubscribe an event
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - fn (:obj:`Callable`): The function.
+        """
+        self._event_loop.off(event, fn)
+        if self.router.is_active:
+            self.router.unregister_rpc(self._rpc_fn_name(event))
 
     def wait_for(self, event: str, timeout: float = math.inf, ignore_timeout_exception: bool = True) -> Any:
         """
@@ -360,3 +402,6 @@ class Task:
         self._finish = value
         if self.router.is_active and value is True:
             self.emit("finish", value)
+
+    def _rpc_fn_name(self, event: str) -> str:
+        return "task._emit.{}".format(event)
