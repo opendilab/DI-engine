@@ -2,9 +2,7 @@ import pytest
 import unittest
 from unittest import mock
 from unittest.mock import patch
-import pathlib as pl
-import os
-import shutil
+import math
 import time
 from typing import Callable
 
@@ -14,93 +12,43 @@ from ding.framework.middleware import pace_controller
 
 
 def fn(task: "Task"):
-    another_node_total_step = 0
-
-    def _listen_total_step(total_step):
-        nonlocal another_node_total_step
-        another_node_total_step = total_step
-        return
-
-    task.on("total_step", _listen_total_step)
-
-    time.sleep(1)
 
     def _fn(ctx: "Context"):
-        nonlocal another_node_total_step
-        assert ctx.total_step <= another_node_total_step + 1
-        assert ctx.total_step >= another_node_total_step
-        task.emit("total_step", ctx.total_step, only_remote=True)
-        return
+        time.sleep(0.01)
 
     return _fn
 
 
-def fn_with_identity(task: "Task", is_less: bool):
-    another_node_total_step = 0
-
-    def _listen_total_step(total_step):
-        nonlocal another_node_total_step
-        another_node_total_step = total_step
-        return
-
-    task.on("total_step", _listen_total_step)
-
-    time.sleep(1)
-
-    def _fn(ctx: "Context"):
-        nonlocal another_node_total_step
-        if is_less:
-            assert ctx.total_step >= another_node_total_step
-        else:
-            assert ctx.total_step <= another_node_total_step + 1
-        task.emit("total_step", ctx.total_step, only_remote=True)
-        return
-
-    return _fn
-
-
-def parallel_main():
+def parallel_main(theme: str = "", timeout: float = math.inf, if_test_identity: bool = False):
     with Task(async_mode=True) as task:
-        task.use(fn(task))
-        task.use(pace_controller(task))
-        task.run(max_step=100)
+        max_step = 10
 
+        def _listen_to_finish(value):
+            if if_test_identity and task.router.node_id > 0:
+                assert task.ctx.total_step <= max_step
+            else:
+                assert task.ctx.total_step >= max_step - 1
+                assert task.ctx.total_step <= max_step
 
-def parallel_main_with_theme():
-    with Task(async_mode=True) as task:
-        task.use(fn(task))
-        task.use(pace_controller(task, theme="test"))
-        task.run(max_step=100)
+        task.on("finish", _listen_to_finish)
 
+        identity = str(task.router.node_id)
+        if not if_test_identity:
+            identity = ""
 
-def parallel_main_with_identity():
-    with Task(async_mode=True) as task:
         if task.router.node_id > 0:
-            task.use(fn_with_identity(task, False))
-            task.use(pace_controller(task, identity="1"))
+            task.use(fn(task))
+            task.use(pace_controller(task, theme=theme, identity=identity, timeout=timeout))
         else:
-            task.use(fn_with_identity(task, True))
-            task.use(pace_controller(task, identity="0"))
-        task.run(max_step=100)
+            task.use(pace_controller(task, theme=theme, identity=identity, timeout=timeout))
+        task.run(max_step=max_step)
 
 
-def parallel_main_with_timeout():
-    time_begin = time.time()
-    with Task(async_mode=True) as task:
-        task.use(pace_controller(task, timeout=1))
-        task.run(max_step=10)
-    time_end = time.time()
-    assert time_end - time_begin > 10
-
-
-def non_parallel_main_with_timeout():
-    time_begin = time.time()
+def main():
     with Task(async_mode=True) as task:
         assert not task.router.is_active
         task.use(pace_controller(task, timeout=1))
         task.run(max_step=10)
-    time_end = time.time()
-    assert time_end - time_begin < 1
 
 
 @pytest.mark.unittest
@@ -110,13 +58,19 @@ class TestPaceControllerModule:
         Parallel.runner(n_parallel_workers=2, topology="star")(parallel_main)
 
     def test_pace_controller_with_theme(self):
-        Parallel.runner(n_parallel_workers=2, topology="star")(parallel_main_with_theme)
+        Parallel.runner(n_parallel_workers=2, topology="star")(parallel_main, theme="test")
 
     def test_pace_controller_with_identity(self):
-        Parallel.runner(n_parallel_workers=3, topology="star")(parallel_main_with_identity)
+        Parallel.runner(n_parallel_workers=3, topology="star")(parallel_main, if_test_identity=True)
 
     def test_pace_controller_with_timeout(self):
-        Parallel.runner(n_parallel_workers=1, topology="star")(parallel_main_with_timeout)
+        time_begin = time.time()
+        Parallel.runner(n_parallel_workers=1, topology="star")(parallel_main, timeout=0.1)
+        time_end = time.time()
+        assert time_end - time_begin > 1
 
-    def test_pace_controller_with_non_parallel_mode(self):
-        non_parallel_main_with_timeout()
+    def test_pace_controller_in_non_parallel_mode(self):
+        time_begin = time.time()
+        main()
+        time_end = time.time()
+        assert time_end - time_begin < 1
