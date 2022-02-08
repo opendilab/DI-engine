@@ -19,21 +19,24 @@ def fn(task: "Task"):
     return _fn
 
 
-def parallel_main(theme: str = "", timeout: float = math.inf, if_test_identity: bool = False):
+def parallel_main(theme: str = "", timeout: float = math.inf, identity_num: int = 1):
     with Task(async_mode=True) as task:
         max_step = 10
 
         def _listen_to_finish(value):
-            if if_test_identity and task.router.node_id > 0:
-                assert task.ctx.total_step <= max_step
+            if identity_num > 1 and task.router.node_id > 0:
+                assert task.ctx.total_step >= max_step / identity_num - 1 and task.ctx.total_step <= max_step
             else:
                 assert task.ctx.total_step >= max_step - 1 and task.ctx.total_step <= max_step
 
         task.on("finish", _listen_to_finish)
 
-        identity = str(task.router.node_id)
-        if not if_test_identity:
-            identity = ""
+        identity = ""
+        if identity_num > 1:
+            if task.router.node_id > 0:
+                identity = "1"
+            else:
+                identity = "0"
 
         if task.router.node_id > 0:
             task.use(fn(task))
@@ -60,7 +63,8 @@ class TestPaceControllerModule:
         Parallel.runner(n_parallel_workers=2, topology="star")(parallel_main, theme="test")
 
     def test_pace_controller_with_identity(self):
-        Parallel.runner(n_parallel_workers=3, topology="star")(parallel_main, if_test_identity=True)
+        workers = 3
+        Parallel.runner(n_parallel_workers=workers, topology="mesh")(parallel_main, identity_num=workers - 1)
 
     def test_pace_controller_with_timeout(self):
         time_begin = time.time()
