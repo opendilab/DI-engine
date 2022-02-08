@@ -27,8 +27,7 @@ def parallel_main(theme: str = "", timeout: float = math.inf, if_test_identity: 
             if if_test_identity and task.router.node_id > 0:
                 assert task.ctx.total_step <= max_step
             else:
-                assert task.ctx.total_step >= max_step - 1
-                assert task.ctx.total_step <= max_step
+                assert task.ctx.total_step >= max_step - 1 and task.ctx.total_step <= max_step
 
         task.on("finish", _listen_to_finish)
 
