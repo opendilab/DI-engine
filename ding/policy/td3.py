@@ -50,11 +50,11 @@ class TD3Policy(DDPGPolicy):
     10 | ``learn.-``         bool        False               | Determine whether to ignore       | Use ignore_done only
        | ``ignore_done``                                     | done flag.                        | in halfcheetah env.
     11 | ``learn.-``         float       0.005               | Used for soft update of the       | aka. Interpolation
-       | ``target_theta``                                    | target network.                   | factor in polyak aver-
-       |                                                     |                                   | aging for target
+       | ``target_theta``                                    | target network.                   | factor in polyak aver
+       |                                                     |                                   | -aging for target
        |                                                     |                                   | networks.
-    12 | ``collect.-``       float       0.1                 | Used for add noise during co-     | Sample noise from dis-
-       | ``noise_sigma``                                     | llection, through controlling     | tribution, Ornstein-
+    12 | ``collect.-``       float       0.1                 | Used for add noise during co-     | Sample noise from dis
+       | ``noise_sigma``                                     | llection, through controlling     | -tribution, Ornstein-
        |                                                     | the sigma of distribution         | Uhlenbeck process in
        |                                                     |                                   | DDPG paper, Gaussian
        |                                                     |                                   | process in ours.
