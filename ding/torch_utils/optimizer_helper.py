@@ -4,6 +4,31 @@ from torch.nn.utils import clip_grad_norm_, clip_grad_value_
 from torch._six import inf
 from typing import Union, Iterable, Tuple, Callable
 
+def calculate_grad_norm(parameters, norm_type=2):
+    parameters = list(filter(lambda p: p.grad is not None, parameters))
+    if parameters==[]:
+        parameters =0
+        return 0
+    if norm_type == 'inf':
+        total_norm = max(p.grad.data.abs().max() for p in parameters)
+        return total_norm
+    else:
+        total_norm = 0
+        for p in parameters:
+            param_norm = p.grad.data.norm(norm_type)
+            total_norm += param_norm.item() ** norm_type
+        total_norm = total_norm ** (1. / norm_type)
+        return float(total_norm)
+
+def calculate_grad_norm_without_bias_two_norm(parameters):
+    _list=[]
+    for name, param in parameters:
+        if 'bias' not in name and param.requires_grad:
+            if param.grad==None:
+                return 0
+            _list.append(param.grad.data.norm(2).item()**2)
+    return float(sum(_list)**(1./2))
+
 
 def grad_ignore_norm(parameters, max_norm, norm_type=2):
     if isinstance(parameters, torch.Tensor):
