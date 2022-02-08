@@ -14,7 +14,7 @@ from ding.framework.middleware import pace_controller
 def fn(task: "Task"):
 
     def _fn(ctx: "Context"):
-        time.sleep(0.01)
+        time.sleep(0.3)
 
     return _fn
 
@@ -25,9 +25,9 @@ def parallel_main(theme: str = "", timeout: float = math.inf, identity_num: int 
 
         def _listen_to_finish(value):
             if identity_num > 1 and task.router.node_id > 0:
-                assert task.ctx.total_step <= max_step
+                assert task.ctx.total_step >= max_step / identity_num - 1
             else:
-                assert task.ctx.total_step >= max_step - 1 and task.ctx.total_step <= max_step
+                assert task.ctx.total_step >= max_step - 1
 
         task.on("finish", _listen_to_finish)
 
