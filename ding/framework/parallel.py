@@ -270,6 +270,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         Arguments:
             - msg (:obj:`bytes`): Recevied message.
         """
+        # Use topic at the beginning of the message, so we don't need to call pickle.loads
+        # when the current process is not subscribed to the topic.
         topic, payload = msg.split(b"::", maxsplit=1)
         func_name = topic.decode()
         if func_name not in self._rpc:
@@ -278,7 +280,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         try:
             payload = pickle.loads(payload)
         except Exception as e:
-            logging.warning("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
+            logging.error("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
             return
         fn = self._rpc[func_name]
         fn(*payload["a"], **payload["k"])
