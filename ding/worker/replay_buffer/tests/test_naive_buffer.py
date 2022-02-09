@@ -11,7 +11,7 @@ from ding.worker.replay_buffer.tests.conftest import generate_data, generate_dat
 @pytest.mark.unittest
 class TestNaiveBuffer:
 
-    def test_push(self):
+    '''def test_push(self):
         buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
         naive_buffer = NaiveReplayBuffer(buffer_cfg, instance_name='test')
         start_pointer = naive_buffer._tail
@@ -57,7 +57,7 @@ class TestNaiveBuffer:
         naive_buffer.clear()
         assert naive_buffer.count() == 0
 
-    '''@pytest.mark.used
+    @pytest.mark.used
     def test_track_used_data(self):
         buffer_cfg = deep_merge_dicts(
             NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=10, enable_track_used_data=True))
