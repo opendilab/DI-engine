@@ -217,6 +217,7 @@ def test_discrete_sac():
     except Exception:
         assert False, "pipeline fail"
 
+
 @pytest.mark.unittest
 def test_discrete_sac_auto_alpha():
     config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
@@ -227,6 +228,7 @@ def test_discrete_sac_auto_alpha():
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
         assert False, "pipeline fail"
+
 
 @pytest.mark.unittest
 def test_discrete_sac_log_space():
