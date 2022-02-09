@@ -27,7 +27,7 @@ class TestNaiveBuffer:
         assert (naive_buffer._tail == (start_pointer + 100) % naive_buffer.replay_buffer_size)
         naive_buffer.update({'no_info': True})
 
-        buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
+        '''buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
         naive_buffer = NaiveReplayBuffer(buffer_cfg, instance_name='test')
         start_pointer = naive_buffer._tail
         replay_buffer_size = naive_buffer.replay_buffer_size
@@ -35,7 +35,7 @@ class TestNaiveBuffer:
         for i in range(1, 4):
             data = generate_data_list(extend_num)
             naive_buffer.push(data, 0)
-            assert naive_buffer._tail == (start_pointer + extend_num * i) % replay_buffer_size
+            assert naive_buffer._tail == (start_pointer + extend_num * i) % replay_buffer_size'''
 
     '''def test_sample(self):
         buffer_cfg = deep_merge_dicts(NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=64)))
