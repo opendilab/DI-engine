@@ -54,12 +54,12 @@ class EpsCommandModePolicy(CommandModePolicy):
         Overview:
             Collect mode setting information including eps
         Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step', 'envstep']
+            - command_info (:obj:`dict`): Dict type, including at least ['learner_train_iter', 'collector_envstep']
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        # Decay according to `learner_step`
-        # step = command_info['learner_step']
+        # Decay according to `collector_envstep`
+        # step = command_info['collector_envstep']
         # Decay according to `envstep`
         step = command_info['envstep']
         return {'eps': self.epsilon_greedy(step)}
