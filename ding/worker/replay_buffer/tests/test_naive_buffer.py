@@ -57,7 +57,7 @@ class TestNaiveBuffer:
         naive_buffer.clear()
         assert naive_buffer.count() == 0
 
-    @pytest.mark.used
+    '''@pytest.mark.used
     def test_track_used_data(self):
         buffer_cfg = deep_merge_dicts(
             NaiveReplayBuffer.default_config(), EasyDict(dict(replay_buffer_size=10, enable_track_used_data=True))
@@ -85,4 +85,4 @@ class TestNaiveBuffer:
         for data in new_data_list:
             assert not os.path.exists(data['data_id'])
 
-        naive_buffer.close()
+        naive_buffer.close()'''
