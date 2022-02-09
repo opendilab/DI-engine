@@ -1,4 +1,5 @@
 import pytest
+from itertools import product
 import time
 import os
 from copy import deepcopy
@@ -206,37 +207,18 @@ def test_sac_log_space():
         assert False, "pipeline fail"
 
 
-@pytest.mark.unittest
-def test_discrete_sac():
-    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
-    config[0].policy.learn.update_per_collect = 1
-    config[0].policy.learn.auto_alpha = True
-    config[0].policy.learn.log_space = True
-    try:
-        serial_pipeline(config, seed=0, max_iterations=1)
-    except Exception:
-        assert False, "pipeline fail"
+auto_alpha = [True, False]
+log_space = [True, False]
+args = [item for item in product(*[auto_alpha, log_space])]
 
 
 @pytest.mark.unittest
-def test_discrete_sac_auto_alpha():
+@pytest.mark.parametrize('auto_alpha, log_space', args)
+def test_discrete_sac(auto_alpha, log_space):
     config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    config[0].policy.learn.auto_alpha = False
-    config[0].policy.learn.log_space = False
-    try:
-        serial_pipeline(config, seed=0, max_iterations=1)
-    except Exception:
-        assert False, "pipeline fail"
-
-
-@pytest.mark.unittest
-def test_discrete_sac_log_space():
-    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
-    config[0].cuda = True
-    config[0].policy.learn.update_per_collect = 1
-    config[0].policy.learn.auto_alpha = True
-    config[0].policy.learn.log_space = False
+    config[0].policy.learn.auto_alpha = auto_alpha
+    config[0].policy.learn.log_space = log_space
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
