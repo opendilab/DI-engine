@@ -22,8 +22,9 @@ def basic_evaluator(task: "Task", cfg: dict, policy: Policy, env: BaseEnvManager
         ctx.setdefault("train_iter", 0)
         ctx.setdefault("last_eval_iter", -1)
         ctx.keep("train_iter", "last_eval_iter")
-        if ctx.train_iter == ctx.last_eval_iter or (
-            (ctx.train_iter - ctx.last_eval_iter) < cfg.policy.eval.evaluator.eval_freq and ctx.train_iter != 0):
+        if ctx.train_iter == ctx.last_eval_iter or \
+            ((ctx.train_iter - ctx.last_eval_iter) <
+                cfg.policy.eval.evaluator.eval_freq and ctx.train_iter != 0):
             return
         env.reset()
         eval_monitor = VectorEvalMonitor(env.env_num, cfg.env.n_evaluator_episode)
