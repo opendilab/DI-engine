@@ -1,4 +1,5 @@
 import pytest
+from itertools import product
 import time
 import os
 from copy import deepcopy
@@ -206,12 +207,32 @@ def test_sac_log_space():
         assert False, "pipeline fail"
 
 
+auto_alpha = [True, False]
+log_space = [True, False]
+args = [item for item in product(*[auto_alpha, log_space])]
+
+
 @pytest.mark.unittest
-def test_discrete_sac():
+@pytest.mark.parametrize('auto_alpha, log_space', args)
+def test_discrete_sac(auto_alpha, log_space):
     config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = auto_alpha
+    config[0].policy.learn.log_space = log_space
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_discrete_sac_twin_critic():
+    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
+    config[0].cuda = True
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.learn.auto_alpha = True
     config[0].policy.learn.log_space = True
+    config[0].policy.model.twin_critic = False
     try:
         serial_pipeline(config, seed=0, max_iterations=1)
     except Exception:
@@ -348,9 +369,10 @@ def test_ppg():
 @pytest.mark.unittest
 def test_sqn():
     config = [deepcopy(cartpole_sqn_config), deepcopy(cartpole_sqn_create_config)]
-    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.update_per_collect = 8
+    config[0].policy.learn.batch_size = 8
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_iterations=2)
     except Exception:
         assert False, "pipeline fail"
     finally:
