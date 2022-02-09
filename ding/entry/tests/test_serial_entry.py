@@ -217,6 +217,43 @@ def test_discrete_sac():
     except Exception:
         assert False, "pipeline fail"
 
+@pytest.mark.unittest
+def test_discrete_sac_auto_alpha():
+    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = False
+    config[0].policy.learn.log_space = False
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+@pytest.mark.unittest
+def test_discrete_sac_log_space():
+    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
+    config[0].cuda = True
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = True
+    config[0].policy.learn.log_space = False
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+@pytest.mark.unittest
+def test_discrete_sac_twin_critic():
+    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
+    config[0].cuda = True
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = True
+    config[0].policy.learn.log_space = True
+    config[0].policy.model.twin_critic = False
+    try:
+        serial_pipeline(config, seed=0, max_iterations=1)
+    except Exception:
+        assert False, "pipeline fail"
+
 
 @pytest.mark.unittest
 def test_r2d2():
@@ -348,9 +385,10 @@ def test_ppg():
 @pytest.mark.unittest
 def test_sqn():
     config = [deepcopy(cartpole_sqn_config), deepcopy(cartpole_sqn_create_config)]
-    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.update_per_collect = 8
+    config[0].policy.learn.batch_size = 8
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_iterations=2)
     except Exception:
         assert False, "pipeline fail"
     finally:
