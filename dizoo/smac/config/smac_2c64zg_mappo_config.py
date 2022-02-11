@@ -3,15 +3,15 @@ from copy import deepcopy
 from ding.entry import serial_pipeline_onpolicy
 from easydict import EasyDict
 
-agent_num = 5
+agent_num = 2
 collector_env_num = 8
 evaluator_env_num = 8
-special_global_state = True,
+special_global_state = True
 
 main_config = dict(
-    exp_name='smac_5m6m_ppo',
+    exp_name='smac_2c64zg_ppo_seed3',
     env=dict(
-        map_name='5m_vs_6m',
+        map_name='2c_vs_64zg',
         difficulty=7,
         reward_only_positive=True,
         mirror_opponent=False,
@@ -30,7 +30,7 @@ main_config = dict(
     policy=dict(
         cuda=True,
         multi_agent=True,
-        action_space='discrete',
+        continuous=False,
         model=dict(
             # (int) agent_num: The number of the agent.
             # For SMAC 3s5z, agent_num=8; for 2c_vs_64zg, agent_num=2.
@@ -39,13 +39,12 @@ main_config = dict(
             # For 3s5z, obs_shape=150; for 2c_vs_64zg, agent_num=404.
             # (int) global_obs_shape: The shapeension of global observation.
             # For 3s5z, obs_shape=216; for 2c_vs_64zg, agent_num=342.
-            agent_obs_shape=72,
-            #global_obs_shape=216,
-            global_obs_shape=152,
+            agent_obs_shape=404,
+            global_obs_shape=671,
             # (int) action_shape: The number of action which each agent can take.
             # action_shape= the number of common action (6) + the number of enemies.
             # For 3s5z, obs_shape=14 (6+8); for 2c_vs_64zg, agent_num=70 (6+64).
-            action_shape=12,
+            action_shape=70,
             # (List[int]) The size of hidden layer
             # hidden_size_list=[64],
             action_space='discrete',
@@ -54,7 +53,7 @@ main_config = dict(
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
-            epoch_per_collect=10,
+            epoch_per_collect=5,
             batch_size=3200,
             learning_rate=5e-4,
             # ==============================================================
@@ -65,7 +64,7 @@ main_config = dict(
             # (float) The loss weight of entropy regularization, policy network weight is set to 1
             entropy_weight=0.01,
             # (float) PPO clip ratio, defaults to 0.2
-            clip_ratio=0.05,
+            clip_ratio=0.2,
             # (bool) Whether to use advantage norm in a whole training batch
             adv_norm=False,
             value_norm=True,
@@ -74,6 +73,7 @@ main_config = dict(
             grad_clip_value=10,
             ignore_done=False,
         ),
+        on_policy=True,
         collect=dict(env_num=collector_env_num, n_sample=3200),
         eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=50, )),
     ),
@@ -84,7 +84,8 @@ create_config = dict(
         type='smac',
         import_names=['dizoo.smac.envs.smac_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
 )
 create_config = EasyDict(create_config)
+
