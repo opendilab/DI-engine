@@ -20,6 +20,7 @@ from ding.entry.application_entry_trex_collect_data import trex_collecting_data
 from ding.reward_model.trex_reward_model import ConvEncoder
 from ding.torch_utils import is_differentiable
 
+
 @pytest.mark.unittest
 def test_serial_pipeline_reward_model_trex():
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
@@ -43,8 +44,10 @@ def test_serial_pipeline_reward_model_trex():
     except Exception:
         assert False, "pipeline fail"
 
+
 B = 4
 C, H, W = 3, 128, 128
+
 
 @pytest.mark.unittest
 class TestEncoder:
