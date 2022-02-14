@@ -12,7 +12,7 @@ from ding.framework.middleware import pace_controller
 
 
 def fn(task: "Task", delay: float = 0.3):
-    time.sleep(1)
+    time.sleep(0.5)
 
     def _fn(ctx: "Context"):
         time.sleep(delay)
