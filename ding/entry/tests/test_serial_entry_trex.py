@@ -4,6 +4,7 @@ import os
 from easydict import EasyDict
 
 import torch
+import numpy as np
 
 from ding.entry import serial_pipeline
 from ding.entry.serial_entry_trex import serial_pipeline_reward_model_trex
@@ -11,7 +12,13 @@ from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import ca
      cartpole_trex_ppo_offpolicy_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config,\
      cartpole_ppo_offpolicy_create_config
+from dizoo.atari.config.serial.pong.pong_ppo_offpolicy_config import pong_ppo_config, \
+    pong_ppo_create_config
+from dizoo.atari.config.serial.pong.pong_trex_offppo_config import pong_trex_ppo_config, \
+    pong_trex_ppo_create_config
 from ding.entry.application_entry_trex_collect_data import trex_collecting_data
+from ding.reward_model.trex_reward_model import TrexConvEncoder
+from ding.torch_utils import is_differentiable
 
 
 @pytest.mark.unittest
@@ -36,3 +43,24 @@ def test_serial_pipeline_reward_model_trex():
         os.popen('rm -rf {}'.format(config[0].reward_model.offline_data_path))
     except Exception:
         assert False, "pipeline fail"
+
+
+B = 4
+C, H, W = 3, 128, 128
+
+
+@pytest.mark.unittest
+class TestEncoder:
+
+    def output_check(self, model, outputs):
+        loss = outputs.sum()
+        is_differentiable(loss, model)
+
+    def test_conv_encoder(self):
+        inputs = torch.randn(B, C, H, W)
+        model = TrexConvEncoder((C, H, W))
+        print(model)
+        outputs = model(inputs)
+        self.output_check(model, outputs)
+        print(outputs.shape)
+        assert outputs.shape == (B, 1)

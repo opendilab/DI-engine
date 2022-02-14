@@ -27,7 +27,7 @@ from .base_reward_model import BaseRewardModel
 from .rnd_reward_model import collect_states
 
 
-class ConvEncoder(nn.Module):
+class TrexConvEncoder(nn.Module):
     r"""
     Overview:
         The ``Convolution Encoder`` used in models. Used to encoder raw 2-dim observation.
@@ -44,7 +44,9 @@ class ConvEncoder(nn.Module):
     ) -> None:
         r"""
         Overview:
-            Init the Convolution Encoder according to arguments.
+            Init the Trex Convolution Encoder according to arguments. TrexConvEncoder is different \
+                from the ConvEncoder in model.common.encoder, their stride and kernel size parameters \
+                are different
         Arguments:
             - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, some ``output size``
             - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``
@@ -54,7 +56,7 @@ class ConvEncoder(nn.Module):
             - norm_type (:obj:`str`):
                 The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details
         """
-        super(ConvEncoder, self).__init__()
+        super(TrexConvEncoder, self).__init__()
         self.obs_shape = obs_shape
         self.act = activation
         self.hidden_size_list = hidden_size_list
@@ -112,7 +114,7 @@ class TrexModel(nn.Module):
             self.encoder = nn.Sequential(FCEncoder(obs_shape, [512, 64]), nn.Linear(64, 1))
         # Conv Encoder
         elif len(obs_shape) == 3:
-            self.encoder = ConvEncoder(obs_shape)
+            self.encoder = TrexConvEncoder(obs_shape)
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own Trex model".
