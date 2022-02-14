@@ -5,14 +5,21 @@ from torch._six import inf
 from typing import Union, Iterable, Tuple, Callable
 
 
-def calculate_grad_norm(parameters, norm_type=2):
-    parameters = list(filter(lambda p: p.grad is not None, parameters))
+def calculate_grad_norm(model: torch.nn.Module, norm_type=2) -> float:
+    r"""
+    Overview:
+        calculate grad norm of the parameters whose grad norms are not None in the model.
+    Arguments:
+        - model: torch.nn.Module
+        - norm_type (:obj:`int` or `inf`)
+    """
+    parameters = list(filter(lambda p: p.grad is not None, model.parameters()))
     if parameters == []:
         parameters = 0
         return 0
     if norm_type == 'inf':
         total_norm = max(p.grad.data.abs().max() for p in parameters)
-        return total_norm
+        return float(total_norm)
     else:
         total_norm = 0
         for p in parameters:
@@ -22,9 +29,15 @@ def calculate_grad_norm(parameters, norm_type=2):
         return float(total_norm)
 
 
-def calculate_grad_norm_without_bias_two_norm(parameters):
+def calculate_grad_norm_without_bias_two_norm(model: torch.nn.Module) -> float:
+    r"""
+    Overview:
+        calculate grad norm of the parameters whose grad norms are not None in the model.
+    Arguments:
+        - model: torch.nn.Module
+    """
     _list = []
-    for name, param in parameters:
+    for name, param in model.named_parameters():
         if 'bias' not in name and param.requires_grad:
             if param.grad is None:
                 return 0
