@@ -17,7 +17,7 @@ from dizoo.atari.config.serial.pong.pong_ppo_offpolicy_config import pong_ppo_co
 from dizoo.atari.config.serial.pong.pong_trex_offppo_config import pong_trex_ppo_config, \
     pong_trex_ppo_create_config
 from ding.entry.application_entry_trex_collect_data import trex_collecting_data
-from ding.reward_model.trex_reward_model import ConvEncoder
+from ding.reward_model.trex_reward_model import TrexConvEncoder
 from ding.torch_utils import is_differentiable
 
 
@@ -58,7 +58,7 @@ class TestEncoder:
 
     def test_conv_encoder(self):
         inputs = torch.randn(B, C, H, W)
-        model = ConvEncoder((C, H, W))
+        model = TrexConvEncoder((C, H, W))
         print(model)
         outputs = model(inputs)
         self.output_check(model, outputs)
