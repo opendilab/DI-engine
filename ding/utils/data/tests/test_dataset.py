@@ -1,7 +1,7 @@
 import pytest
 import torch
 from easydict import EasyDict
-
+import os
 from ding.utils.data import offline_data_save_type, create_dataset, NaiveRLDataset, D4RLDataset, HDF5Dataset
 
 cfg1 = dict(policy=dict(collect=dict(
@@ -12,6 +12,7 @@ cfg1 = dict(policy=dict(collect=dict(
 cfg2 = dict(policy=dict(collect=dict(
     data_type='hdf5',
     data_path='./expert_demos.hdf5',
+    normalize_states=True,
 ), ))
 
 cfg3 = dict(env=dict(env_id='hopper-expert-v0'), policy=dict(collect=dict(data_type='d4rl', ), ))
@@ -49,7 +50,10 @@ def test_dataset(cfg):
 @pytest.mark.unittest
 def test_NaiveRLDataset(cfg):
     cfg = EasyDict(cfg)
-    dataset = NaiveRLDataset(cfg)
+    NaiveRLDataset(cfg)
+    dataset = NaiveRLDataset(expert_data_path)
+    assert type(len(dataset)) == int
+    assert dataset[0] is not None
 
 
 # @pytest.mark.parametrize('cfg', [cfg3])
@@ -64,3 +68,19 @@ def test_NaiveRLDataset(cfg):
 def test_HDF5Dataset(cfg):
     cfg = EasyDict(cfg)
     dataset = HDF5Dataset(cfg)
+    assert dataset.mean is not None and dataset.std[0] is not None
+    assert dataset._data['obs'].mean(0)[0] == 0
+    assert type(len(dataset)) == int
+    assert dataset[0] is not None
+
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup(request):
+
+    def remove_test_dir():
+        if os.path.exists('./expert.pkl'):
+            os.remove('./expert.pkl')
+        if os.path.exists('./expert_demos.hdf5'):
+            os.remove('./expert_demos.hdf5')
+
+    request.addfinalizer(remove_test_dir)

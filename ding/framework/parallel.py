@@ -294,6 +294,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
     def stop(self):
         logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
         self.finished = True
+        self.is_active = False
         self._rpc.clear()
         time.sleep(0.03)
         if self._sock:

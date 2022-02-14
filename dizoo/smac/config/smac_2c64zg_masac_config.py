@@ -1,15 +1,16 @@
 from easydict import EasyDict
 from ding.entry import serial_pipeline
 
-agent_num = 10
+
+agent_num = 2
 collector_env_num = 8
 evaluator_env_num = 8
 special_global_state = True
 
-MMM_masac_default_config = dict(
-    exp_name='debug_smac_MMM_masac',
+SMAC_2c64zg_masac_default_config = dict(
+    exp_name='debug_smac_2c64zg_masac',
     env=dict(
-        map_name='MMM',
+        map_name='2c_vs_64zg',
         difficulty=7,
         reward_only_positive=True,
         mirror_opponent=False,
@@ -20,6 +21,7 @@ MMM_masac_default_config = dict(
         stop_value=0.99,
         death_mask=True,
         special_global_state=special_global_state,
+        # save_replay_episodes = 1,
         manager=dict(
             shared_memory=False,
             reset_timeout=6000,
@@ -27,11 +29,12 @@ MMM_masac_default_config = dict(
     ),
     policy=dict(
         cuda=True,
+        on_policy=False,
         random_collect_size=0,
         model=dict(
-            agent_obs_shape=186,
-            global_obs_shape=389,
-            action_shape=16,
+            agent_obs_shape=404,
+            global_obs_shape=671,
+            action_shape=70,
             twin_critic=True,
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
@@ -41,7 +44,7 @@ MMM_masac_default_config = dict(
             batch_size=320,
             learning_rate_q=5e-4,
             learning_rate_policy=5e-4,
-            learning_rate_alpha=5e-4,
+            learning_rate_alpha=5e-5,
             ignore_done=False,
             target_theta=0.005,
             discount_factor=0.99,
@@ -54,8 +57,11 @@ MMM_masac_default_config = dict(
             n_sample=1600,
             unroll_len=1,
         ),
+        command=dict(),
         eval=dict(
-            evaluator=dict(eval_freq=50, ),
+            evaluator=dict(
+                eval_freq=50,
+            ),
             env_num=evaluator_env_num,
         ),
         other=dict(
@@ -63,26 +69,28 @@ MMM_masac_default_config = dict(
                 type='linear',
                 start=1,
                 end=0.05,
-                decay=100000,
+                decay=int(1e5),
             ),
-            replay_buffer=dict(replay_buffer_size=1000000, ),
-        ),
+            replay_buffer=dict(replay_buffer_size=int(1e6), ), ),
     ),
 )
 
-MMM_masac_default_config = EasyDict(MMM_masac_default_config)
-main_config = MMM_masac_default_config
+SMAC_2c64zg_masac_default_config = EasyDict(SMAC_2c64zg_masac_default_config)
+main_config = SMAC_2c64zg_masac_default_config
 
-MMM_masac_default_create_config = dict(
+SMAC_2c64zg_masac_default_create_config = dict(
     env=dict(
         type='smac',
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='sac_discrete', ),
+    policy=dict(
+        type='sac_discrete',
+    ),
 )
-MMM_masac_default_create_config = EasyDict(MMM_masac_default_create_config)
-create_config = MMM_masac_default_create_config
+SMAC_2c64zg_masac_default_create_config = EasyDict(SMAC_2c64zg_masac_default_create_config)
+create_config = SMAC_2c64zg_masac_default_create_config
+
 
 if __name__ == "__main__":
     serial_pipeline([main_config, create_config], seed=0)

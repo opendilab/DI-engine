@@ -1,6 +1,6 @@
 import sys
 from copy import deepcopy
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline_onpolicy
 from easydict import EasyDict
 
 agent_num = 10
@@ -18,7 +18,7 @@ main_config = dict(
         agent_num=agent_num,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=16,
+        n_evaluator_episode=32,
         stop_value=0.99,
         death_mask=True,
         special_global_state=special_global_state,
@@ -64,7 +64,7 @@ main_config = dict(
             # (float) The loss weight of entropy regularization, policy network weight is set to 1
             entropy_weight=0.01,
             # (float) PPO clip ratio, defaults to 0.2
-            clip_ratio=0.2,
+            clip_ratio=0.5,
             # (bool) Whether to use advantage norm in a whole training batch
             adv_norm=False,
             value_norm=True,
@@ -74,7 +74,7 @@ main_config = dict(
             ignore_done=False,
         ),
         collect=dict(env_num=collector_env_num, n_sample=3200),
-        eval=dict(env_num=evaluator_env_num),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=50, )),
     ),
 )
 main_config = EasyDict(main_config)
