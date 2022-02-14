@@ -297,7 +297,7 @@ We configure <code class="docutils literal notranslate"><span class="pre">collec
 <col style="width: 8%" />
 <col style="width: 13%" />
 <col style="width: 33%" />
-<col style="width: 23%" />
+<col style="width: 24%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>ID</p></th>
@@ -310,7 +310,11 @@ We configure <code class="docutils literal notranslate"><span class="pre">collec
 </thead>
 <tbody>
 <tr class="row-even"><td><p>1</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">type</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
 <td><p>str</p></td>
 <td><p>ddpg</p></td>
 <td><div class="line-block">
@@ -325,9 +329,12 @@ We configure <code class="docutils literal notranslate"><span class="pre">collec
 </td>
 </tr>
 <tr class="row-odd"><td><p>2</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">cuda</span></code></div>
+</div>
+</td>
 <td><p>bool</p></td>
-<td><p>True</p></td>
+<td><p>False</p></td>
 <td><div class="line-block">
 <div class="line">Whether to use cuda for network</div>
 </div>
@@ -513,7 +520,7 @@ We configure <code class="docutils literal notranslate"><span class="pre">collec
 </td>
 <td><div class="line-block">
 <div class="line">aka. Interpolation</div>
-<div class="line">factor in polyak aver</div>
+<div class="line">factor in polyak aver-</div>
 <div class="line">aging for target</div>
 <div class="line">networks.</div>
 </div>
@@ -539,10 +546,10 @@ We configure <code class="docutils literal notranslate"><span class="pre">collec
 </div>
 </td>
 <td><div class="line-block">
-<div class="line">Sample noise from dis</div>
+<div class="line">Sample noise from dis-</div>
 <div class="line">tribution, Ornstein-</div>
 <div class="line">Uhlenbeck process in</div>
-<div class="line">DDPG paper, Guassian</div>
+<div class="line">DDPG paper, Gaussian</div>
 <div class="line">process in ours.</div>
 </div>
 </td>

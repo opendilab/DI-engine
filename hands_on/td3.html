@@ -326,7 +326,11 @@ class from DDPG class by changing <code class="docutils literal notranslate"><sp
 </thead>
 <tbody>
 <tr class="row-even"><td><p>1</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">type</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
 <td><p>str</p></td>
 <td><p>td3</p></td>
 <td><div class="line-block">
@@ -341,9 +345,12 @@ class from DDPG class by changing <code class="docutils literal notranslate"><sp
 </td>
 </tr>
 <tr class="row-odd"><td><p>2</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">cuda</span></code></div>
+</div>
+</td>
 <td><p>bool</p></td>
-<td><p>True</p></td>
+<td><p>False</p></td>
 <td><div class="line-block">
 <div class="line">Whether to use cuda for network</div>
 </div>
@@ -559,7 +566,7 @@ class from DDPG class by changing <code class="docutils literal notranslate"><sp
 <td><div class="line-block">
 <div class="line">aka. Interpolation</div>
 <div class="line">factor in polyak aver</div>
-<div class="line">aging for target</div>
+<div class="line">-aging for target</div>
 <div class="line">networks.</div>
 </div>
 </td>
@@ -585,9 +592,9 @@ class from DDPG class by changing <code class="docutils literal notranslate"><sp
 </td>
 <td><div class="line-block">
 <div class="line">Sample noise from dis</div>
-<div class="line">tribution, Ornstein-</div>
+<div class="line">-tribution, Ornstein-</div>
 <div class="line">Uhlenbeck process in</div>
-<div class="line">DDPG paper, Guassian</div>
+<div class="line">DDPG paper, Gaussian</div>
 <div class="line">process in ours.</div>
 </div>
 </td>

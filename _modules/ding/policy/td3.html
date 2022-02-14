@@ -187,9 +187,9 @@
 <span class="sd">    == ====================  ========    ==================  =================================   =======================</span>
 <span class="sd">    ID Symbol                Type        Default Value       Description                         Other(Shape)</span>
 <span class="sd">    == ====================  ========    ==================  =================================   =======================</span>
-<span class="sd">    1  ``type``              str         td3                 | RL policy register name, refer    | this arg is optional,</span>
-<span class="sd">                                                             | to registry ``POLICY_REGISTRY``   | a placeholder</span>
-<span class="sd">    2  ``cuda``              bool        True                | Whether to use cuda for network   |</span>
+<span class="sd">    1  | ``type``            str         td3                 | RL policy register name, refer    | this arg is optional,</span>
+<span class="sd">       |                                                     | to registry ``POLICY_REGISTRY``   | a placeholder</span>
+<span class="sd">    2  | ``cuda``            bool        False               | Whether to use cuda for network   |</span>
 <span class="sd">    3  | ``random_``         int         25000               | Number of randomly collected      | Default to 25000 for</span>
 <span class="sd">       | ``collect_size``                                    | training samples in replay        | DDPG/TD3, 10000 for</span>
 <span class="sd">       |                                                     | buffer when training starts.      | sac.</span>
@@ -217,12 +217,12 @@
 <span class="sd">       | ``ignore_done``                                     | done flag.                        | in halfcheetah env.</span>
 <span class="sd">    11 | ``learn.-``         float       0.005               | Used for soft update of the       | aka. Interpolation</span>
 <span class="sd">       | ``target_theta``                                    | target network.                   | factor in polyak aver</span>
-<span class="sd">       |                                                     |                                   | aging for target</span>
+<span class="sd">       |                                                     |                                   | -aging for target</span>
 <span class="sd">       |                                                     |                                   | networks.</span>
 <span class="sd">    12 | ``collect.-``       float       0.1                 | Used for add noise during co-     | Sample noise from dis</span>
-<span class="sd">       | ``noise_sigma``                                     | llection, through controlling     | tribution, Ornstein-</span>
+<span class="sd">       | ``noise_sigma``                                     | llection, through controlling     | -tribution, Ornstein-</span>
 <span class="sd">       |                                                     | the sigma of distribution         | Uhlenbeck process in</span>
-<span class="sd">       |                                                     |                                   | DDPG paper, Guassian</span>
+<span class="sd">       |                                                     |                                   | DDPG paper, Gaussian</span>
 <span class="sd">       |                                                     |                                   | process in ours.</span>
 <span class="sd">    == ====================  ========    ==================  =================================   =======================</span>
 <span class="sd">   &quot;&quot;&quot;</span>
