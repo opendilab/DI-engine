@@ -21,17 +21,20 @@ pong_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            hidden_size=2048,
-            encoder_hidden_size_list=[128, 512, 2048],
-            gru_bias=1.,
+            hidden_size=1024,
+            encoder_hidden_size_list=[128, 512, 1024],
+            gru_bias=2.,
             memory_len=0,
-            dropout=0.1
+            dropout=0.1,
+            att_head_num=8,
+            att_layer_num=3,
+            att_head_dim=16,
         ),
         discount_factor=0.997,
         burnin_step=0,
         nstep=5,
-        unroll_len=40,
-        seq_len=35,
+        unroll_len=25,
+        seq_len=20,
         learn=dict(
             update_per_collect=8,
             batch_size=64,
@@ -44,7 +47,7 @@ pong_r2d2_gtrxl_config = dict(
             each_iter_n_sample=32,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=3000, )),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=300, )),
         other=dict(
             eps=dict(
                 type='exp',

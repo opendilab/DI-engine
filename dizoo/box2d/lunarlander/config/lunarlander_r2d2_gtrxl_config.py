@@ -10,6 +10,7 @@ lunarlander_r2d2_gtrxl_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         stop_value=195,
+        env_id='LunarLander-v2',
     ),
     policy=dict(
         cuda=True,
@@ -22,7 +23,9 @@ lunarlander_r2d2_gtrxl_config = dict(
             hidden_size=256,
             gru_bias=1.,
             att_layer_num=3,
-            dropout=0.1
+            dropout=0.1,
+            att_head_dim=64,
+            att_head_num=8,
         ),
         discount_factor=0.99,
         nstep=5,

@@ -21,7 +21,8 @@ cartpole_r2d2_gtrxl_config = dict(
             hidden_size=256,
             gru_bias=1.,
             att_layer_num=3,
-            dropout=0.2
+            dropout=0.,
+            att_head_num=2,
         ),
         discount_factor=0.99,
         nstep=3,
@@ -34,7 +35,7 @@ cartpole_r2d2_gtrxl_config = dict(
             batch_size=64,
             learning_rate=0.0005,
             target_update_freq=500,
-            value_rescale=False,
+            value_rescale=True,
             init_memory='old',  # 'zero' or 'old', how to initialize the memory
         ),
         collect=dict(
