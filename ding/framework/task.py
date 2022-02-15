@@ -70,8 +70,7 @@ class Task:
         self.parallel_ctx = Context()
         self._backward_stack = []
         # Bind event loop functions
-        self._event_loop = EventLoop.get_event_loop("task_{}".format(id(self)))
-        self._emit = self._event_loop.emit
+        self._event_loop = EventLoop("task_{}".format(id(self)))
 
         # Async segment
         self.async_mode = async_mode
@@ -252,6 +251,7 @@ class Task:
         if self._thread_pool:
             self._thread_pool.shutdown()
         self._event_loop.stop()
+        self.router.off("task._emit.*")
         # The middleware and listeners may contain some methods that reference to task,
         # If we do not clear them after the task exits, we may find that gc will not clean up the task object.
         self.middleware.clear()
@@ -303,26 +303,15 @@ class Task:
         # Check if need to broadcast event to connected nodes, default is True
         if kwargs.get("only_local"):
             kwargs.pop("only_local")
-            self._emit(event, *args, **kwargs)
+            self._event_loop.emit(event, *args, **kwargs)
         elif kwargs.get("only_remote"):
             kwargs.pop("only_remote")
             if self.router.is_active:
-                self.async_executor(self.router.send_rpc, self._rpc_fn_name(event), event, *args, **kwargs)
+                self.async_executor(self.router.emit, self._rpc_fn_name(event), event, *args, **kwargs)
         else:
             if self.router.is_active:
-                self.async_executor(self.router.send_rpc, self._rpc_fn_name(event), event, *args, **kwargs)
-            self._emit(event, *args, **kwargs)
-
-    def _emit(self, event: str, *args, **kwargs) -> None:
-        if event in self.event_listeners:
-            for fn in self.event_listeners[event]:
-                fn(*args, **kwargs)
-        if event in self.once_listeners:
-            while self.once_listeners[event]:
-                if self.router.is_active:
-                    self.router.unregister_rpc(self._rpc_fn_name(event))
-                fn = self.once_listeners[event].pop()
-                fn(*args, **kwargs)
+                self.async_executor(self.router.emit, self._rpc_fn_name(event), event, *args, **kwargs)
+            self._event_loop.emit(event, *args, **kwargs)
 
     def on(self, event: str, fn: Callable) -> None:
         """
@@ -334,7 +323,7 @@ class Task:
         """
         self._event_loop.on(event, fn)
         if self.router.is_active:
-            self.router.register_rpc(self._rpc_fn_name(event), self._emit)
+            self.router.on(self._rpc_fn_name(event), self._event_loop.emit)
 
     def once(self, event: str, fn: Callable) -> None:
         """
@@ -346,7 +335,7 @@ class Task:
         """
         self._event_loop.once(event, fn)
         if self.router.is_active:
-            self.router.register_rpc(self._rpc_fn_name(event), self._emit)
+            self.router.on(self._rpc_fn_name(event), self._event_loop.emit)
 
     def off(self, event: str, fn: Optional[Callable] = None) -> None:
         """
@@ -358,7 +347,7 @@ class Task:
         """
         self._event_loop.off(event, fn)
         if self.router.is_active:
-            self.router.unregister_rpc(self._rpc_fn_name(event))
+            self.router.off(self._rpc_fn_name(event))
 
     def wait_for(self, event: str, timeout: float = math.inf, ignore_timeout_exception: bool = True) -> Any:
         """

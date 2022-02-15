@@ -1,7 +1,8 @@
 from collections import defaultdict
-import logging
 from typing import Callable, Optional
 from concurrent.futures import ThreadPoolExecutor
+import fnmatch
+import logging
 
 
 class EventLoop:
@@ -32,10 +33,11 @@ class EventLoop:
             - event (:obj:`str`): Event name.
             - fn (:obj:`Optional[Callable]`): The function.
         """
-        if fn:
-            self._listeners[event].remove(fn)
-        else:
-            self._listeners[event] = []
+        for e in fnmatch.filter(self._listeners.keys(), event):
+            if fn:
+                self._listeners[e].remove(fn)
+            else:
+                self._listeners[e] = []
 
     def once(self, event: str, fn: Callable) -> None:
         """
@@ -82,6 +84,17 @@ class EventLoop:
                 fn(*args, **kwargs)
             except Exception as e:
                 self._exc = e
+
+    def listened(self, event: str) -> bool:
+        """
+        Overview:
+            Check if the event has been listened to.
+        Arguments:
+            - event (:obj:`str`): Event name
+        Returns:
+            - listened (:obj:`bool`): Whether this event has been listened to.
+        """
+        return event in self._listeners
 
     @staticmethod
     def get_event_loop(name: str = "default") -> "EventLoop":
