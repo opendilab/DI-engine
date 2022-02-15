@@ -8,7 +8,7 @@ from ding.utils import deep_merge_dicts
 from ding.worker.replay_buffer.tests.conftest import generate_data, generate_data_list
 
 
-# @pytest.mark.unittest
+@pytest.mark.unittest
 class TestNaiveBuffer:
 
     def test_push(self):
