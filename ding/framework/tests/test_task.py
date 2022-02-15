@@ -1,12 +1,8 @@
 import pytest
 import time
 import random
-from mpire import WorkerPool
 from ding.framework import Task
-from ding.framework.context import Context
-from ding.framework.event_loop import EventLoop
 from ding.framework.parallel import Parallel
-from ding.utils.design_helper import SingletonMetaclass
 
 
 @pytest.mark.unittest
