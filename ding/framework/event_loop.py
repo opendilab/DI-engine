@@ -7,10 +7,12 @@ from concurrent.futures import ThreadPoolExecutor
 class EventLoop:
     loops = {}
 
-    def __init__(self) -> None:
+    def __init__(self, name: str = "default") -> None:
+        self._name = name
         self._listeners = defaultdict(list)
         self._thread_pool = ThreadPoolExecutor(max_workers=2)
         self._exc = None
+        self._active = True
 
     def on(self, event: str, fn: Callable) -> None:
         """
@@ -61,7 +63,8 @@ class EventLoop:
         """
         if self._exc:
             raise self._exc
-        self._thread_pool.submit(self._trigger, event, *args, **kwargs)
+        if self._active:
+            self._thread_pool.submit(self._trigger, event, *args, **kwargs)
 
     def _trigger(self, event: str, *args, **kwargs) -> None:
         """
@@ -81,7 +84,7 @@ class EventLoop:
                 self._exc = e
 
     @staticmethod
-    def get_event_loop(name: str = "default"):
+    def get_event_loop(name: str = "default") -> "EventLoop":
         """
         Overview:
             Get new event loop when name not exists, or return the existed instance.
@@ -90,5 +93,24 @@ class EventLoop:
         """
         if name in EventLoop.loops:
             return EventLoop.loops[name]
-        EventLoop.loops[name] = loop = EventLoop()
+        EventLoop.loops[name] = loop = EventLoop(name)
         return loop
+
+    def stop(self):
+        self._active = False
+        self._listeners = defaultdict(list)
+        self._exc = None
+        self._thread_pool.shutdown()
+        if self._name in EventLoop.loops:
+            del EventLoop.loops[self._name]
+
+    @staticmethod
+    def stop_event_loop(name: str) -> None:
+        """
+        Overview:
+            Stop and delete event loop from global instances list.
+        Arguments:
+            - name (:obj:`str`): Name of event loop.
+        """
+        if name in EventLoop.loops:
+            EventLoop.loops[name].stop()

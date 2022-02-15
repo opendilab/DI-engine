@@ -49,4 +49,4 @@ def test_event_loop():
         with pytest.raises(Exception):
             loop.emit("error")
     finally:
-        del EventLoop.loops["test"]
+        EventLoop.stop_event_loop("test")
