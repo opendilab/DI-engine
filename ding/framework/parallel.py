@@ -30,7 +30,6 @@ class Parallel(metaclass=SingletonMetaclass):
         self.finished = False
         self.node_id = None
         self.labels = set()
-        self._event_loop = EventLoop("parallel_{}".format(id(self)))
 
     def run(
             self,
@@ -42,6 +41,7 @@ class Parallel(metaclass=SingletonMetaclass):
         self.node_id = node_id
         self.attach_to = attach_to = attach_to or []
         self.labels = labels or set()
+        self._event_loop = EventLoop("parallel_{}".format(id(self)))
         self._listener = Thread(
             target=self.listen,
             kwargs={

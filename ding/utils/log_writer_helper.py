@@ -44,7 +44,7 @@ class DistributedWriter(SummaryWriter):
             if is_writer:
                 self.initialize()
             self._lazy_initialized = True
-            task.router.register_rpc("distributed_writer", self._on_distributed_writer)
+            task.router.on("distributed_writer", self._on_distributed_writer)
             task.once("exit", lambda: self.close())
         return self
 
@@ -68,7 +68,7 @@ def enable_parallel(fn_name, fn):
         if not self._lazy_initialized:
             self.initialize()
         if self._in_parallel and not self._is_writer:
-            self._task.router.send_rpc("distributed_writer", fn_name, *args, **kwargs)
+            self._task.router.emit("distributed_writer", fn_name, *args, **kwargs)
         else:
             fn(self, *args, **kwargs)
 
