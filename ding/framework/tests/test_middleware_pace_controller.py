@@ -23,7 +23,7 @@ def delay_fn():
 
     def _delay_fn(ctx: "Context"):
         if ctx.total_step == 0:
-            time.sleep(0.5)
+            time.sleep(1)
 
     return _delay_fn
 
