@@ -22,7 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Generate
         run: |
-          sudo apt install texlive
+          sudo apt install texlive-latex-extra
           python -m pip install .
           git clone -b dev-latex https://github.com/opendilab/DI-engine-docs.git
           cd DI-engine-docs
