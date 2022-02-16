@@ -38,7 +38,7 @@ class EvalPolicy2:
         pass
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
+def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     cfg.exp_name = 'selfplay_demo_ppo'
     cfg = compile_config(
         cfg,
@@ -107,7 +107,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         instance_name='uniform_evaluator'
     )
 
-    for _ in range(max_iterations):
+    while True:
         if evaluator1.should_eval(learner1.train_iter):
             stop_flag1, reward, _ = evaluator1.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
             tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, collector.envstep)
@@ -123,6 +123,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         for i in range(cfg.policy.learn.update_per_collect):
             learner1.train(train_data[0], collector.envstep)
             learner2.train(train_data[1], collector.envstep)
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
 
 
 if __name__ == "__main__":
