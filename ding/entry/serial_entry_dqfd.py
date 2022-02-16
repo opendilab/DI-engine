@@ -1,4 +1,3 @@
-#from ding.policy.base_policy import Policy
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
@@ -14,9 +13,7 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialComma
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-from ding.model import DQN
 from .utils import random_collect, mark_not_expert
-from dizoo.classic_control.cartpole.config.cartpole_dqfd_config import main_config, create_config  # for testing
 
 
 def serial_pipeline_dqfd(
@@ -26,7 +23,8 @@ def serial_pipeline_dqfd(
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         expert_model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -45,8 +43,8 @@ def serial_pipeline_dqfd(
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - expert_model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.\
             The default model is DQN(**cfg.policy.model)
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -76,10 +74,8 @@ def serial_pipeline_dqfd(
     expert_collector_env.seed(cfg.seed)
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
-    #expert_model = DQN(**cfg.policy.model)
     expert_policy = create_policy(expert_cfg.policy, model=expert_model, enable_field=['collect', 'command'])
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
-    #model = DQN(**cfg.policy.model)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     expert_policy.collect_mode.load_state_dict(
         torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu')
@@ -130,7 +126,7 @@ def serial_pipeline_dqfd(
         for i in range(len(expert_data)):
             expert_data[i]['is_expert'] = 1  # set is_expert flag(expert 1, agent 0)
         expert_buffer.push(expert_data, cur_collector_envstep=0)
-        for _ in range(cfg.policy.learn.per_train_iter_k):
+        for _ in range(cfg.policy.learn.per_train_iter_k):  # pretrain
             if evaluator.should_eval(learner.train_iter):
                 stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
                 if stop:
@@ -147,7 +143,7 @@ def serial_pipeline_dqfd(
         random_collect(
             cfg.policy, policy, collector, collector_env, commander, replay_buffer, postprocess_data_fn=mark_not_expert
         )
-    for _ in range(max_iterations):
+    while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -215,13 +211,9 @@ def serial_pipeline_dqfd(
                 learner.train(train_data, collector.envstep)
                 if learner.policy.get_attribute('priority'):
                     replay_buffer.update(learner.priority_info)
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
-
-
-if __name__ == '__main__':
-    main_config_1 = deepcopy(main_config)
-    main_config_2 = deepcopy(create_config)
-    serial_pipeline_dqfd([main_config, create_config], [main_config_1, main_config_2], seed=0)

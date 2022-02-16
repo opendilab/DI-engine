@@ -87,7 +87,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-e', '--env', type=str, help='RL env name')
 @click.option('-p', '--policy', type=str, help='DRL policy name')
 @click.option('--exp-name', type=str, help='experiment directory name')
-@click.option('--train-iter', type=int, default=int(1e8), help='Policy training iterations')
+@click.option('--train-iter', type=str, default='1e8', help='Maximum policy update iterations in training')
+@click.option('--env-step', type=str, default='1e8', help='Maximum collected environment steps for training')
 @click.option('--load-path', type=str, default=None, help='Path to load ckpt')
 @click.option('--replay-path', type=str, default=None, help='Path to save replay')
 # the following arguments are only applied to dist mode
@@ -138,7 +139,8 @@ def cli(
     exp_name: str,
     env: str,
     policy: str,
-    train_iter: int,
+    train_iter: str,  # transform into int
+    env_step: str,  # transform into int
     load_path: str,
     replay_path: str,
     # parallel/dist
@@ -174,6 +176,9 @@ def cli(
         profiler = Profiler()
         profiler.profile(profile)
 
+    train_iter = int(float(train_iter))
+    env_step = int(float(env_step))
+
     def run_single_pipeline(seed, config):
         if config is None:
             config = get_predefined_config(env, policy)
@@ -183,37 +188,39 @@ def cli(
 
         if mode == 'serial':
             from .serial_entry import serial_pipeline
-            serial_pipeline(config, seed, max_iterations=train_iter)
+            serial_pipeline(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_onpolicy':
             from .serial_entry_onpolicy import serial_pipeline_onpolicy
-            serial_pipeline_onpolicy(config, seed, max_iterations=train_iter)
+            serial_pipeline_onpolicy(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_sqil':
             from .serial_entry_sqil import serial_pipeline_sqil
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
-            serial_pipeline_sqil(config, expert_config, seed, max_iterations=train_iter)
+            serial_pipeline_sqil(config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_reward_model':
             from .serial_entry_reward_model import serial_pipeline_reward_model
-            serial_pipeline_reward_model(config, seed, max_iterations=train_iter)
+            serial_pipeline_reward_model(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_gail':
             from .serial_entry_gail import serial_pipeline_gail
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
-            serial_pipeline_gail(config, expert_config, seed, max_iterations=train_iter, collect_data=True)
+            serial_pipeline_gail(
+                config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step, collect_data=True
+            )
         elif mode == 'serial_dqfd':
             from .serial_entry_dqfd import serial_pipeline_dqfd
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
             assert (expert_config == config[:config.find('_dqfd')] + '_dqfd_config.py'), "DQFD only supports "\
             + "the models used in q learning now; However, one should still type the DQFD config in this "\
             + "place, i.e., {}{}".format(config[:config.find('_dqfd')], '_dqfd_config.py')
-            serial_pipeline_dqfd(config, expert_config, seed, max_iterations=train_iter)
+            serial_pipeline_dqfd(config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_trex':
             from .serial_entry_trex import serial_pipeline_reward_model_trex
-            serial_pipeline_reward_model_trex(config, seed, max_iterations=train_iter)
+            serial_pipeline_reward_model_trex(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_trex_onpolicy':
             from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
-            serial_pipeline_reward_model_trex_onpolicy(config, seed, max_iterations=train_iter)
+            serial_pipeline_reward_model_trex_onpolicy(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_offline':
             from .serial_entry_offline import serial_pipeline_offline
-            serial_pipeline_offline(config, seed)
+            serial_pipeline_offline(config, seed, max_train_iter=train_iter)
         elif mode == 'parallel':
             from .parallel_entry import parallel_pipeline
             parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
