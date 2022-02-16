@@ -107,6 +107,12 @@ def serial_pipeline_guided_cost(
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
+    dirname = cfg.exp_name + '/reward_model'
+    if not os.path.exists(dirname):
+        try:
+            os.mkdir(dirname)
+        except FileExistsError:
+            pass
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
@@ -143,12 +149,6 @@ def serial_pipeline_guided_cost(
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
         # save reward model
-        dirname = cfg.exp_name + '/reward_model'
-        if not os.path.exists(dirname):
-            try:
-                os.mkdir(dirname)
-            except FileExistsError:
-                pass
         if learner.train_iter % cfg.reward_model.store_model_every_n_train == 0:
             #if learner.train_iter%5000 == 0:
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(learner.train_iter))
