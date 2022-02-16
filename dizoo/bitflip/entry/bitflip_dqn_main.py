@@ -16,7 +16,7 @@ from dizoo.bitflip.envs import BitFlipEnv
 from dizoo.bitflip.config import bitflip_pure_dqn_config, bitflip_her_dqn_config
 
 
-def main(cfg, seed=0, max_iterations=int(1e8)):
+def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
@@ -65,7 +65,7 @@ def main(cfg, seed=0, max_iterations=int(1e8)):
         her_model = HerRewardModel(her_cfg, cfg.policy.cuda)
 
     # Training & Evaluation loop
-    for _ in range(max_iterations):
+    while True:
         # Evaluating at the beginning and with specific frequency
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
@@ -94,6 +94,8 @@ def main(cfg, seed=0, max_iterations=int(1e8)):
             for e in her_episodes:
                 train_data.extend(policy.collect_mode.get_train_sample(e))
             learner.train(train_data, collector.envstep)
+        if learner.train_iter >= max_train_iter or collector.envstep >= max_env_step:
+            break
 
 
 if __name__ == "__main__":

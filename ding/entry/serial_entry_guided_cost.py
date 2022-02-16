@@ -1,4 +1,3 @@
-from ding.policy.base_policy import Policy
 from typing import Union, Optional, List, Any, Tuple
 import os
 import copy
@@ -6,17 +5,14 @@ import torch
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
-import numpy as np
-import torch.nn as nn
-import torch.nn.functional as F
 
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
-from ding.utils import set_pkg_seed, save_file
 from ding.reward_model import create_reward_model
+from ding.utils import set_pkg_seed, save_file
 from .utils import random_collect
 
 
@@ -26,7 +22,8 @@ def serial_pipeline_guided_cost(
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         expert_model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -45,8 +42,8 @@ def serial_pipeline_guided_cost(
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - expert_model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.\
             The default model is DQN(**cfg.policy.model)
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -110,7 +107,13 @@ def serial_pipeline_guided_cost(
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
-    for _ in range(max_iterations):
+    dirname = cfg.exp_name + '/reward_model'
+    if not os.path.exists(dirname):
+        try:
+            os.mkdir(dirname)
+        except FileExistsError:
+            pass
+    while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -143,15 +146,9 @@ def serial_pipeline_guided_cost(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
-        dirname = cfg.exp_name + '/reward_model'
-        if not os.path.exists(dirname):
-            try:
-                os.mkdir(dirname)
-            except FileExistsError:
-                pass
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
+        # save reward model
         if learner.train_iter % cfg.reward_model.store_model_every_n_train == 0:
             #if learner.train_iter%5000 == 0:
             path = os.path.join(dirname, 'iteration_{}.pth.tar'.format(learner.train_iter))

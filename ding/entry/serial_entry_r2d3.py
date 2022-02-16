@@ -1,30 +1,30 @@
-# from ding.policy.base_policy import Policy
-import logging
-import os
-from copy import deepcopy
-from functools import partial
 from typing import Union, Optional, List, Any, Tuple
-import numpy as np
+import os
 import torch
+import numpy as np
+import logging
+from functools import partial
 from tensorboardX import SummaryWriter
+from copy import deepcopy
 
-from ding.config import read_config, compile_config
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.policy import create_policy
-from ding.utils import set_pkg_seed
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
+from ding.config import read_config, compile_config
+from ding.policy import create_policy
+from ding.utils import set_pkg_seed
 from .utils import random_collect, mark_not_expert
 
 
 def serial_pipeline_r2d3(
-        agent_cfg: Union[str, Tuple[dict, dict]],
+        input_cfg: Union[str, Tuple[dict, dict]],
         expert_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         expert_model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -34,7 +34,7 @@ def serial_pipeline_r2d3(
             data come from the expert model. We use a well-trained model to \
             generate demonstration data online
     Arguments:
-        - agent_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
+        - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
         - seed (:obj:`int`): Random seed.
@@ -43,16 +43,16 @@ def serial_pipeline_r2d3(
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
         - expert_model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.\
             The default model is DQN(**cfg.policy.model)
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
-    if isinstance(agent_cfg, str):
-        cfg, create_cfg = read_config(agent_cfg)  #
+    if isinstance(input_cfg, str):
+        cfg, create_cfg = read_config(input_cfg)
         expert_cfg, expert_create_cfg = read_config(expert_cfg)
     else:
-        cfg, create_cfg = agent_cfg
+        cfg, create_cfg = input_cfg
         expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     expert_create_cfg.policy.type = expert_create_cfg.policy.type + '_command'
@@ -74,10 +74,8 @@ def serial_pipeline_r2d3(
     expert_collector_env.seed(cfg.seed)
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
-    # expert_model = DQN(**cfg.policy.model)
     expert_policy = create_policy(expert_cfg.policy, model=expert_model, enable_field=['collect', 'command'])
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
-    # model = DQN(**cfg.policy.model)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     expert_policy.collect_mode.load_state_dict(
         torch.load(expert_cfg.policy.collect.demonstration_info_path, map_location='cpu')
@@ -106,7 +104,6 @@ def serial_pipeline_r2d3(
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-
     expert_commander = BaseSerialCommander(
         expert_cfg.policy.other.commander, learner, expert_collector, evaluator, replay_buffer,
         expert_policy.command_mode
@@ -114,7 +111,6 @@ def serial_pipeline_r2d3(
     expert_collect_kwargs = expert_commander.step()
     if 'eps' in expert_collect_kwargs:
         expert_collect_kwargs['eps'] = -1
-
     # ==========
     # Main loop
     # ==========
@@ -140,7 +136,6 @@ def serial_pipeline_r2d3(
             # expert_data[i]['is_expert'] = 1  # for transition-based alg.
             expert_data[i]['is_expert'] = [1] * expert_cfg.policy.collect.unroll_len  # for rnn/sequence-based alg.
         expert_buffer.push(expert_data, cur_collector_envstep=0)
-
         for _ in range(cfg.policy.learn.per_train_iter_k):  # pretrain
             if evaluator.should_eval(learner.train_iter):
                 stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
@@ -153,21 +148,18 @@ def serial_pipeline_r2d3(
             if learner.policy.get_attribute('priority'):
                 expert_buffer.update(learner.priority_info)
         learner.priority_info = {}
-
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(
             cfg.policy, policy, collector, collector_env, commander, replay_buffer, postprocess_data_fn=mark_not_expert
         )
-
-    for _ in range(max_iterations):
+    while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-
         # Collect data by default config n_sample/n_episode
         if hasattr(cfg.policy.collect, "each_iter_n_sample"):
             new_data = collector.collect(
@@ -239,9 +231,8 @@ def serial_pipeline_r2d3(
                 learner.train(train_data, collector.envstep)
                 if learner.policy.get_attribute('priority'):
                     replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

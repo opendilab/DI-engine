@@ -50,7 +50,7 @@ class EvalPolicy2:
         pass
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
+def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
@@ -168,7 +168,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         merged_scheduler_config = EasyDict(deep_merge_dicts(Scheduler.config, user_scheduler_config))
         param_scheduler = Scheduler(merged_scheduler_config)
 
-    for run_iter in range(max_iterations):
+    count = 0
+    while True:
         if evaluator1.should_eval(main_learner.train_iter):
             stop_flag1, reward, episode_info = evaluator1.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
@@ -250,8 +251,11 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 entropy_weight = param_scheduler.step(metrics, entropy_weight)
                 learner.policy.set_attribute('entropy_weight', entropy_weight)
 
-        if run_iter % 100 == 0:
+        if main_collector.envstep >= max_env_step or main_learner.train_iter >= max_train_iter:
+            break
+        if count % 100 == 0:
             print(repr(league.payoff))
+        count += 1
 
 
 if __name__ == "__main__":

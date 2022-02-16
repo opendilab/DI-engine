@@ -12,7 +12,6 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
-from dizoo.mujoco.config.hopper_trex_onppo_default_config import main_config, create_config
 
 
 def serial_pipeline_reward_model_trex_onpolicy(
@@ -20,11 +19,12 @@ def serial_pipeline_reward_model_trex_onpolicy(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry for onpolicy algorithm(such as PPO).
+        Serial pipeline entry for trex reward model of on-policy algorithm(such as PPO).
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -33,8 +33,8 @@ def serial_pipeline_reward_model_trex_onpolicy(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -71,6 +71,9 @@ def serial_pipeline_reward_model_trex_onpolicy(
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
+    commander = BaseSerialCommander(
+        cfg.policy.other.commander, learner, collector, evaluator, None, policy.command_mode
+    )
     reward_model = create_reward_model(cfg, policy.collect_mode.get_attribute('device'), tb_logger)
     reward_model.train()
     # ==========
@@ -79,8 +82,8 @@ def serial_pipeline_reward_model_trex_onpolicy(
     # Learner's before_run hook.
     learner.call_hook('before_run')
 
-    # Accumulate plenty of data at the beginning of training.
-    for _ in range(max_iterations):
+    while True:
+        collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
@@ -90,12 +93,12 @@ def serial_pipeline_reward_model_trex_onpolicy(
         new_data = collector.collect(train_iter=learner.train_iter)
         # Learn policy from collected data with modified rewards
         reward_model.estimate(new_data)
+
+        # Learn policy from collected data
         learner.train(new_data, collector.envstep)
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
-
-
-if __name__ == '__main__':
-    serial_pipeline_reward_model_trex_onpolicy([main_config, create_config])
