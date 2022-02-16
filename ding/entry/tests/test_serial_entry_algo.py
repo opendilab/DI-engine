@@ -229,6 +229,9 @@ def test_iqn():
 def test_her_dqn():
     try:
         bitflip_dqn_main(bitflip_her_dqn_config, seed=0)
+        bitflip_her_dqn_config.env.n_bits = 5
+        bitflip_her_dqn_config.policy.model.obs_shape = 10
+        bitflip_her_dqn_config.policy.model.action_shape = 5
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:
