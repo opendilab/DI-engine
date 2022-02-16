@@ -179,7 +179,7 @@
 <span class="k">class</span> <span class="nc">QAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The QAC model.</span>
+<span class="sd">        The QAC network, which is used in DDPG/TD3/SAC.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -200,23 +200,24 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the QAC Model according to arguments.</span>
+<span class="sd">            Initailize the QAC Model according to input arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s space.</span>
-<span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s space, such as 4, (3, ), \</span>
+<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s shape, such as 128, (156, ).</span>
+<span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s shape, such as 4, (3, ), \</span>
 <span class="sd">                EasyDict({&#39;action_type_shape&#39;: 3, &#39;action_args_shape&#39;: 4}).</span>
-<span class="sd">            - action_space (:obj:`str`): Whether choose ``regression`` or ``reparameterization`` or ``hybrid`` .</span>
-<span class="sd">            - twin_critic (:obj:`bool`): Whether include twin critic.</span>
-<span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn&#39;s ``Head``.</span>
+<span class="sd">            - action_space (:obj:`str`): The type of action space, \</span>
+<span class="sd">                including [``regression``, ``reparameterization``, ``hybrid``]</span>
+<span class="sd">            - twin_critic (:obj:`bool`): Whether to use twin critic, one of tricks in TD3.</span>
+<span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.</span>
 <span class="sd">            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \</span>
-<span class="sd">                for actor&#39;s nn.</span>
-<span class="sd">            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn&#39;s ``Head``.</span>
+<span class="sd">                for actor head.</span>
+<span class="sd">            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic head.</span>
 <span class="sd">            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \</span>
-<span class="sd">                for critic&#39;s nn.</span>
+<span class="sd">                for critic head.</span>
 <span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \</span>
-<span class="sd">                after ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to use, \</span>
-<span class="sd">                see ``ding.torch_utils.netwrok`` for more details.</span>
+<span class="sd">                after each FC layer, if ``None`` then default set to ``nn.ReLU()``</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer(FC, Conv), \</span>
+<span class="sd">                see ``ding.torch_utils.network`` for more details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QAC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="n">obs_shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
