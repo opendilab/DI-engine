@@ -5,15 +5,15 @@ if TYPE_CHECKING:
     # So if you import this module within TYPE_CHECKING, you will get code hints and other benefits.
     # Here is a good answer on stackoverflow:
     # https://stackoverflow.com/questions/39740632/python-type-hinting-without-cyclic-imports
-    from ding.framework import Task
+    from ding.framework import Parallel
 
 
 class DistributedWriter(SummaryWriter):
     """
     Overview:
         A simple subclass of SummaryWriter that supports writing to one process in multi-process mode.
-        The best way is to use it in conjunction with the ``task`` to take advantage of the message \
-            and event components of the task (see ``writer.plugin``).
+        The best way is to use it in conjunction with the ``router`` to take advantage of the message \
+            and event components of the router (see ``writer.plugin``).
     """
 
     def __init__(self, *args, **kwargs):
@@ -24,28 +24,27 @@ class DistributedWriter(SummaryWriter):
         kwargs["write_to_disk"] = False
         super().__init__(*args, **kwargs)
         self._in_parallel = False
-        self._task = None
+        self._router = None
         self._is_writer = False
         self._lazy_initialized = False
 
-    def plugin(self, task: "Task", is_writer: bool = False) -> "DistributedWriter":
+    def plugin(self, router: "Parallel", is_writer: bool = False) -> "DistributedWriter":
         """
         Overview:
-            Plugin ``task``, so when using this writer in the task pipeline, it will automatically send requests\
+            Plugin ``router``, so when using this writer with active router, it will automatically send requests\
                 to the main writer instead of writing it to the disk. So we can collect data from multiple processes\
                 and write them into one file.
         Examples:
-            >>> DistributedWriter().plugin(task, is_writer=("node.0" in task.labels))
+            >>> DistributedWriter().plugin(router, is_writer=True)
         """
-        if task.router.is_active:
+        if router.is_active:
             self._in_parallel = True
-            self._task = task
+            self._router = router
             self._is_writer = is_writer
             if is_writer:
                 self.initialize()
             self._lazy_initialized = True
-            task.router.on("distributed_writer", self._on_distributed_writer)
-            task.once("exit", lambda: self.close())
+            router.on("distributed_writer", self._on_distributed_writer)
         return self
 
     def _on_distributed_writer(self, fn_name: str, *args, **kwargs):
@@ -68,7 +67,7 @@ def enable_parallel(fn_name, fn):
         if not self._lazy_initialized:
             self.initialize()
         if self._in_parallel and not self._is_writer:
-            self._task.router.emit("distributed_writer", fn_name, *args, **kwargs)
+            self._router.emit("distributed_writer", fn_name, *args, **kwargs)
         else:
             fn(self, *args, **kwargs)
 
