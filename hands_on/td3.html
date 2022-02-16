@@ -191,181 +191,17 @@ TD3 is an actor-critic, model-free algorithm based on the deep deterministic pol
 <p>Second, to address the coupling of value and policy, TD3 proposes delaying policy updates until the value estimate has converged.</p>
 <p>Finally, TD3 introduces a novel regularization strategy(Target Policy Smoothing Regularization), where a SARSA-style update bootstraps similar action estimates to further reduce variance.</p>
 <p>The target update of Clipped Double Q-learning algorithm:</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">y_{1}=r+\gamma \min _{i=1,2} Q_{\theta_{i}^{\prime}}\left(s^{\prime}, \pi_{\phi_{1}}\left(s^{\prime}\right)\right)
-
-</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-<p>In implementation, computational costs can be reduced by using a single actor optimized with respect to <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">Q_{\theta_1}</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
- . We then use the same target <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">y_2= y_1for Q_{\theta_2}</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-.</p>
+<div class="math">
+<p><img src="../_images/math/4190a75c6acbb1b663a9e8764c19db40de0b1734.svg" alt="y_{1}=r+\gamma \min _{i=1,2} Q_{\theta_{i}^{\prime}}\left(s^{\prime}, \pi_{\phi_{1}}\left(s^{\prime}\right)\right)"/></p>
+</div><p>In implementation, computational costs can be reduced by using a single actor optimized with respect to <img class="math" src="../_images/math/8eb24165efdff41e5268ea24833ce290b6bf4475.svg" alt="Q_{\theta_1}"/> . We then use the same target <img class="math" src="../_images/math/5303c81c38f74c3c53b63784683f95291d86ebed.svg" alt="y_2= y_1for Q_{\theta_2}"/>.</p>
 <p>A concern with deterministic policies is they can overﬁt to narrow peaks in the value estimate. When updating the critic, a learning target using a deterministic policy is highly susceptible to inaccuracies induced by function approximation error, increasing the variance of the target.
 TD3 introduces a regularization strategy for deep value learning, target policy smoothing, which mimics the learning update from SARSA. Specifically, TD3 approximates this expectation over actions by adding a small amount of random noise to the target policy and averaging over mini-batches following:</p>
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">\begin{array}{l}
+<div class="math">
+<p><img src="../_images/math/e649c3c7ec71d1242500afb02ffe1d478289cb2b.svg" alt="\begin{array}{l}
 y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\prime}\right)+\epsilon\right) \\
 \epsilon \sim \operatorname{clip}(\mathcal{N}(0, \sigma),-c, c)
-\end{array}
-
-</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-</div>
+\end{array}"/></p>
+</div></div>
 <div class="section" id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
 <div class="system-message">
@@ -437,18 +273,709 @@ For additional information on amsmath, use the `?' option.
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
 (/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
 (/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
 
-! LaTeX Error: File `algorithm.sty' not found.
+Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
+    `height' or `tmargin' should be shortened in length.
 
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
+(./math.aux)
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: letterpaper
+* layout: &lt;same size as paper&gt;
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
+* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
+* \paperwidth=614.295pt
+* \paperheight=794.96999pt
+* \textwidth=469.75499pt
+* \textheight=867.23999pt
+* \oddsidemargin=0.00002pt
+* \evensidemargin=0.00002pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=44.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \&#64;twocolumnfalse
+* \&#64;twosidefalse
+* \&#64;mparswitchfalse
+* \&#64;reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+! Argument of \align* has an extra }.
+&lt;inserted text&gt; 
+                \par 
+l.75 \end{aligned}\end{align*}
+                              
+Runaway argument?
+ 
+! Paragraph ended before \align* was complete.
+&lt;to be read again&gt; 
+                   \par 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Display math should end with $$.
+&lt;to be read again&gt; 
+                   \&#64;&#64;par 
+l.75 \end{aligned}\end{align*}
+                              
+! Extra }, or forgotten \endgroup.
+\par ...m \&#64;noitemerr {\&#64;&#64;par }\fi \else {\&#64;&#64;par }
+                                                  \fi 
+l.75 \end{aligned}\end{align*}
+                              
+! Extra }, or forgotten \endgroup.
+&lt;recently read&gt; }
+                 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+
+! LaTeX Error: \begin{aligned} on input line 75 ended by \end{align*}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H &lt;return&gt;  for immediate help.
+ ...                                              
+                                                  
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Display math should end with $$.
+&lt;to be read again&gt; 
+                   \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Undefined control sequence.
+&lt;argument&gt; ...text {for } i=1,2 \end {align*} \IF 
+                                                  { $j \mod $ \texttt {polic...
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Undefined control sequence.
+&lt;argument&gt; ...xttt {policy\_delay} $ = 0$} \STATE 
+                                                  Update policy by one step ...
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Missing $ inserted.
+&lt;inserted text&gt; 
+                $
+l.75 \end{aligned}\end{align*}
+                              
+! Undefined control sequence.
+&lt;argument&gt; ...theta }(s)) \end {equation*} \STATE 
+                                                  Update target networks wit...
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \endgroup inserted.
+&lt;inserted text&gt; 
+                \endgroup 
+l.75 \end{aligned}\end{align*}
+                              
+! Missing } inserted.
+&lt;inserted text&gt; 
+                }
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+! Missing \cr inserted.
+&lt;inserted text&gt; 
+                \cr 
+l.75 \end{aligned}\end{align*}
+                              
+! Misplaced \cr.
+&lt;inserted text&gt; \cr 
+                    
+l.75 \end{aligned}\end{align*}
+                              
+(That makes 100 errors; please try again.)
 No pages of output.
 Transcript written on math.log.
 </p>
@@ -467,48 +994,7 @@ Since we implement soft update Target Network for actor-critic through <code cla
 </li>
 <li><p>Policy Updates Delay</p>
 <blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a> proposes delaying policy updates until the value error is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">d</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
- to the critic.
+<div><p><a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a> proposes delaying policy updates until the value error is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates <img class="math" src="../_images/math/daadecd65a847f53cd4608207825ff8010ff2fea.svg" alt="d"/> to the critic.
 Since we implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code>.</p>
 </div></blockquote>
 </li>
@@ -887,262 +1373,16 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N0)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N0)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-</p></li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/a9214c833cd951b26dc6b29a1b8620520468812a.svg" alt="(B, N0)"/>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/a9214c833cd951b26dc6b29a1b8620520468812a.svg" alt="(B, N0)"/></p></li>
 <li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[list,</span> <span class="pre">torch.Tensor]</span></code>):</p>
 <ul>
-<li><p>case1(continuous space, list): 2 elements, mu and sigma, each is the shape of <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N0)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-.</p></li>
-<li><p>case2(hybrid space, torch.Tensor): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N1)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where N1 is action_type_shape</p></li>
+<li><p>case1(continuous space, list): 2 elements, mu and sigma, each is the shape of <img class="math" src="../_images/math/a9214c833cd951b26dc6b29a1b8620520468812a.svg" alt="(B, N0)"/>.</p></li>
+<li><p>case2(hybrid space, torch.Tensor): <img class="math" src="../_images/math/decd05946859158cd371f023735aa3c664e215a8.svg" alt="(B, N1)"/>, where N1 is action_type_shape</p></li>
 </ul>
 </li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, )</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, B is batch size.</p></li>
-<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N2)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where N2 is action_args_shape                 (action_args are continuous real value)</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/ba87d0d64690e3aa2d6607cd42f9225718f0a213.svg" alt="(B, )"/>, B is batch size.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/b8cce1ea6f9d9931497e874a01ced53ce00e950c.svg" alt="(B, N2)"/>, where N2 is action_args_shape                 (action_args are continuous real value)</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
@@ -1199,132 +1439,9 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N1)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N2)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, )</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where B is batch size.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/decd05946859158cd371f023735aa3c664e215a8.svg" alt="(B, N1)"/>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/b8cce1ea6f9d9931497e874a01ced53ce00e950c.svg" alt="(B, N2)"/>, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/ba87d0d64690e3aa2d6607cd42f9225718f0a213.svg" alt="(B, )"/>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}</span>
@@ -1377,261 +1494,15 @@ Parameter updates with QAC’s MLPs forward setup.</p>
 </ul>
 </dd>
 <dt>Actor Shapes:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N0)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N0)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-</p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, )</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where B is batch size.</p></li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/a9214c833cd951b26dc6b29a1b8620520468812a.svg" alt="(B, N0)"/>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/a9214c833cd951b26dc6b29a1b8620520468812a.svg" alt="(B, N0)"/></p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/ba87d0d64690e3aa2d6607cd42f9225718f0a213.svg" alt="(B, )"/>, where B is batch size.</p></li>
 </ul>
 </dd>
 <dt>Critic Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N1)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N2)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">(B, N2)</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-
-! LaTeX Error: File `algorithm.sty' not found.
-
-Type X to quit or &lt;RETURN&gt; to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-! Emergency stop.
-&lt;read *&gt; 
-         
-l.12 \usepackage
-                {algorithmic}^^M
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
-, where B is batch size and N3 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/decd05946859158cd371f023735aa3c664e215a8.svg" alt="(B, N1)"/>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <img class="math" src="../_images/math/b8cce1ea6f9d9931497e874a01ced53ce00e950c.svg" alt="(B, N2)"/>, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <img class="math" src="../_images/math/b8cce1ea6f9d9931497e874a01ced53ce00e950c.svg" alt="(B, N2)"/>, where B is batch size and N3 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
 </ul>
 </dd>
 <dt>Actor Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
