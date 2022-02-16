@@ -251,7 +251,8 @@ class Task:
         if self._thread_pool:
             self._thread_pool.shutdown()
         self._event_loop.stop()
-        self._async_loop.close()
+        if self._async_loop:
+            self._async_loop.close()
         self.router.off(self._wrap_event_name("*"))
         # The middleware and listeners may contain some methods that reference to task,
         # If we do not clear them after the task exits, we may find that gc will not clean up the task object.
