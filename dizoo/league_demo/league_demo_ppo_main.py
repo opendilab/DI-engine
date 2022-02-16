@@ -50,7 +50,7 @@ class EvalPolicy2:
         pass
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
+def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
@@ -251,7 +251,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 entropy_weight = param_scheduler.step(metrics, entropy_weight)
                 learner.policy.set_attribute('entropy_weight', entropy_weight)
 
-        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+        if main_collector.envstep >= max_env_step or main_learner.train_iter >= max_train_iter:
             break
         if count % 100 == 0:
             print(repr(league.payoff))

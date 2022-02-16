@@ -123,7 +123,7 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
         for i in range(cfg.policy.learn.update_per_collect):
             learner1.train(train_data[0], collector.envstep)
             learner2.train(train_data[1], collector.envstep)
-        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+        if collector.envstep >= max_env_step or learner1.train_iter >= max_train_iter:
             break
 
 
