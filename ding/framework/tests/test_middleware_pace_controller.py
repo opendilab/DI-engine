@@ -12,12 +12,20 @@ from ding.framework.middleware import pace_controller
 
 
 def fn(task: "Task", delay: float = 0.3):
-    time.sleep(0.5)
 
     def _fn(ctx: "Context"):
         time.sleep(delay)
 
     return _fn
+
+
+def delay_fn():
+
+    def _delay_fn(ctx: "Context"):
+        if ctx.total_step == 0:
+            time.sleep(1)
+
+    return _delay_fn
 
 
 def parallel_main(theme: str = "", timeout: float = math.inf, identity_num: int = 1):
@@ -40,10 +48,10 @@ def parallel_main(theme: str = "", timeout: float = math.inf, identity_num: int 
                 identity = "0"
 
         if task.router.node_id > 0:
-            task.use(pace_controller(task, theme=theme, identity=identity, timeout=timeout))
+            task.use(task.sequence(delay_fn(), pace_controller(task, theme=theme, identity=identity, timeout=timeout)))
             task.use(fn(task))
         else:
-            task.use(pace_controller(task, theme=theme, identity=identity, timeout=timeout))
+            task.use(task.sequence(delay_fn(), pace_controller(task, theme=theme, identity=identity, timeout=timeout)))
             task.use(fn(task, delay=0.02))
         task.run(max_step=max_step)
 
