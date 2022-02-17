@@ -3,32 +3,32 @@ A2C
 
 Overview
 ---------
-A2C (advantage actor critic) is an actor-critic RL algorithm, where the policy gradient algorithm is combined with an advantage function to reduce variance.
+A3C (Asynchronous advantage actor-critic) algorithm is a simple and lightweight framework for deep reinforcement learning that uses asynchronous gradient descent for optimization of deep neural network controllers. A2C(advantage actor-critic), on the other hand, is the synchronous version of A3C where where the policy gradient algorithm is combined with an advantage function to reduce variance.
 
 Quick Facts
 -----------
 1. A2C is a **model-free** and **policy-based** RL algorithm.
 
-2. A2C supports both **discrete** and **continuous** action spaces.
-
-3. A2C supports both **off-policy** and **on-policy** modes.
+2. A2C is an **on-policy** algorithm.
+   
+3. A2C supports both **discrete** and **continuous** action spaces.
 
 4. A2C can be equipped with Recurrent Neural Network (RNN).
 
 Key Equations or Key Graphs
 ----------------------------
-A2C uses advantage estimation in the policy gradient:
+A2C uses advantage estimation in the policy gradient. We implement the advantage by Generalized Advantage Estimation (GAE):
 
 .. math::
 
-   \nabla_{\theta^{\prime}} \log \pi\left(a_{t} \mid {s}_{t} ; \theta^{\prime}\right) A\left(s_{t}, {a}_{t} ; \theta, \theta_{v}\right)
+   \nabla_{\theta} \log \pi\left(a_{t} \mid {s}_{t} ; \theta\right) \hat{A}^{\pi}\left(s_{t}, {a}_{t} ; \phi \right)
 
 
-where the n-step advantage function is defined:
+where the k-step advantage function is defined:
 
 .. math::
 
-   \sum_{i=0}^{k-1} \gamma^{i} r_{t+i}+\gamma^{k} V\left(s_{t+k} ; \theta_{v}\right)-V\left(s_{t} ; \theta_{v}\right)
+   \sum_{i=0}^{k-1} \gamma^{i} r_{t+i}+\gamma^{k} \hat{V}^{\pi}\left(s_{t+k} ; \phi\right)-\hat{V}^{\pi}\left(s_{t} ; \phi\right)
 
 Pseudo-code
 -----------
@@ -94,9 +94,61 @@ The policy gradient and value update of A2C is implemented as follows:
         value_loss = (F.mse_loss(return_, value, reduction='none') * weight).mean()
         return a2c_loss(policy_loss, value_loss, entropy_loss)
 
-The Benchmark results of A2C implemented in DI-engine can be found in `Benchmark <../feature/algorithm_overview.html>`_.
+.. note::
+
+    we apply GAE to calculate the advantage when update the actor network with the GAE default parameter `gae_lambda` =0.95. 
+    The target for the update for the value network is obtained by the value function at the current time step plus the advantage function calculated in collectors. 
+
+Benchmark
+-----------
+
+
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+| environment         |best mean reward | evaluation results                                  | config link              | comparison           |
++=====================+=================+=====================================================+==========================+======================+
+|                     |                 |                                                     |`config_link_p <https://  |                      |
+|                     |                 |                                                     |github.com/opendilab/     |  Sb3(17)             |
+|                     |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
+|Pong                 |  20             |.. image:: images/benchmark/pong_a2c.png             |atari/config/serial/      |                      |
+|                     |                 |                                                     |pong/pong_a2c_config      |                      |
+|(PongNoFrameskip-v4) |                 |                                                     |.py>`_                    |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_q <https://  |                      |
+|                     |                 |                                                     |github.com/opendilab/     |  Sb3(3882)           |
+|Qbert                |                 |                                                     |DI-engine/tree/main/dizoo/|  Rllib(3620)         |
+|                     |  4819           |.. image:: images/benchmark/qbert_a2c.png            |atari/config/serial/      |                      |
+|(QbertNoFrameskip-v4)|                 |                                                     |qbert/qbert_a2c_config    |                      |
+|                     |                 |                                                     |.py>`_                    |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_s <https://  |  Sb3(627)            |
+|                     |                 |                                                     |github.com/opendilab/     |  Rllib(692)          |
+|SpaceInvaders        |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
+|                     |  826            |.. image:: images/benchmark/spaceinvaders_a2c.png    |atari/config/serial/      |                      |
+|(SpaceInvadersNoFrame|                 |                                                     |spaceinvaders/space       |                      |
+|skip-v4)             |                 |                                                     |invaders_a2c_config.py>`_ |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+
+
+P.S.：
+
+1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)
 
 References
 -----------
 
 Volodymyr Mnih, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves, Timothy P. Lillicrap, Tim Harley, David Silver, Koray Kavukcuoglu: “Asynchronous Methods for Deep Reinforcement Learning”, 2016, ICML 2016; arXiv:1602.01783. https://arxiv.org/abs/1602.01783
+
+
+Other Public Implementations
+----------------------------
+
+- Baselines_
+- `sb3`_
+- `rllib (Ray)`_
+- tianshou_
+
+.. _Baselines: https://github.com/openai/baselines/tree/master/baselines/a2c
+.. _sb3: https://github.com/DLR-RM/stable-baselines3/tree/master/stable_baselines3/a2c
+.. _`rllib (Ray)`: https://github.com/ray-project/ray/blob/master/rllib/agents/a3c/a2c.py
+.. _tianshou: https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/a2c.py
+

@@ -174,25 +174,25 @@
 <h1>A2C<a class="headerlink" href="#a2c" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>A2C (advantage actor critic) is an actor-critic RL algorithm, where the policy gradient algorithm is combined with an advantage function to reduce variance.</p>
+<p>A3C (Asynchronous advantage actor-critic) algorithm is a simple and lightweight framework for deep reinforcement learning that uses asynchronous gradient descent for optimization of deep neural network controllers. A2C(advantage actor-critic), on the other hand, is the synchronous version of A3C where where the policy gradient algorithm is combined with an advantage function to reduce variance.</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>A2C is a <strong>model-free</strong> and <strong>policy-based</strong> RL algorithm.</p></li>
+<li><p>A2C is an <strong>on-policy</strong> algorithm.</p></li>
 <li><p>A2C supports both <strong>discrete</strong> and <strong>continuous</strong> action spaces.</p></li>
-<li><p>A2C supports both <strong>off-policy</strong> and <strong>on-policy</strong> modes.</p></li>
 <li><p>A2C can be equipped with Recurrent Neural Network (RNN).</p></li>
 </ol>
 </div>
 <div class="section" id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>A2C uses advantage estimation in the policy gradient:</p>
+<p>A2C uses advantage estimation in the policy gradient. We implement the advantage by Generalized Advantage Estimation (GAE):</p>
 <div class="math notranslate nohighlight">
-\[\nabla_{\theta^{\prime}} \log \pi\left(a_{t} \mid {s}_{t} ; \theta^{\prime}\right) A\left(s_{t}, {a}_{t} ; \theta, \theta_{v}\right)\]</div>
-<p>where the n-step advantage function is defined:</p>
+\[\nabla_{\theta} \log \pi\left(a_{t} \mid {s}_{t} ; \theta\right) \hat{A}^{\pi}\left(s_{t}, {a}_{t} ; \phi \right)\]</div>
+<p>where the k-step advantage function is defined:</p>
 <div class="math notranslate nohighlight">
-\[\sum_{i=0}^{k-1} \gamma^{i} r_{t+i}+\gamma^{k} V\left(s_{t+k} ; \theta_{v}\right)-V\left(s_{t} ; \theta_{v}\right)\]</div>
+\[\sum_{i=0}^{k-1} \gamma^{i} r_{t+i}+\gamma^{k} \hat{V}^{\pi}\left(s_{t+k} ; \phi\right)-\hat{V}^{\pi}\left(s_{t} ; \phi\right)\]</div>
 </div>
 <div class="section" id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
@@ -468,11 +468,80 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
     <span class="k">return</span> <span class="n">a2c_loss</span><span class="p">(</span><span class="n">policy_loss</span><span class="p">,</span> <span class="n">value_loss</span><span class="p">,</span> <span class="n">entropy_loss</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The Benchmark results of A2C implemented in DI-engine can be found in <a class="reference external" href="../feature/algorithm_overview.html">Benchmark</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>we apply GAE to calculate the advantage when update the actor network with the GAE default parameter <cite>gae_lambda</cite> =0.95.
+The target for the update for the value network is obtained by the value function at the current time step plus the advantage function calculated in collectors.</p>
+</div>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p>
+<p>(PongNoFrameskip-v4)</p>
+</td>
+<td><p>20</p></td>
+<td><img alt="../_images/pong_a2c.png" src="../_images/pong_a2c.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/pong/pong_a2c_config.py">config_link_p</a></p></td>
+<td><p>Sb3(17)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p>
+<p>(QbertNoFrameskip-v4)</p>
+</td>
+<td><p>4819</p></td>
+<td><img alt="../_images/qbert_a2c.png" src="../_images/qbert_a2c.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/qbert/qbert_a2c_config.py">config_link_q</a></p></td>
+<td><p>Sb3(3882)
+Rllib(3620)</p></td>
+</tr>
+<tr class="row-even"><td><p>SpaceInvaders</p>
+<p>(SpaceInvadersNoFrame
+skip-v4)</p>
+</td>
+<td><p>826</p></td>
+<td><img alt="../_images/spaceinvaders_a2c.png" src="../_images/spaceinvaders_a2c.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_a2c_config.py">config_link_s</a></p></td>
+<td><p>Sb3(627)
+Rllib(692)</p></td>
+</tr>
+</tbody>
+</table>
+<p>P.S.：</p>
+<ol class="arabic simple">
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
+</ol>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Volodymyr Mnih, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves, Timothy P. Lillicrap, Tim Harley, David Silver, Koray Kavukcuoglu: “Asynchronous Methods for Deep Reinforcement Learning”, 2016, ICML 2016; arXiv:1602.01783. https://arxiv.org/abs/1602.01783</p>
+</div>
+<div class="section" id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/openai/baselines/tree/master/baselines/a2c">Baselines</a></p></li>
+<li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/tree/master/stable_baselines3/a2c">sb3</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ray-project/ray/blob/master/rllib/agents/a3c/a2c.py">rllib (Ray)</a></p></li>
+<li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/a2c.py">tianshou</a></p></li>
+</ul>
 </div>
 </div>
 
