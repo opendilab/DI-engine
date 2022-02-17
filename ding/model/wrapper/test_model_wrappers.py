@@ -11,18 +11,6 @@ from ding.torch_utils import get_lstm
 from ding.model import model_wrap, register_wrapper, IModelWrapper, BaseModelWrapper
 
 
-def sample_action(logit=None, prob=None):
-    if prob is None:
-        prob = torch.softmax(logit, dim=-1)
-    shape = prob.shape
-    prob += 1e-8
-    prob = prob.view(-1, shape[-1])
-    # prob can also be treated as weight in multinomial sample
-    action = torch.multinomial(prob, 1).squeeze(-1)
-    action = action.view(*shape[:-1])
-    return action
-
-
 class TempMLP(torch.nn.Module):
 
     def __init__(self):
