@@ -168,7 +168,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">torch</span>
-
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <span class="n">AdamW</span>
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span>
 <span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">q_nstep_td_data</span><span class="p">,</span> <span class="n">q_nstep_td_error</span><span class="p">,</span> <span class="n">get_nstep_return_data</span><span class="p">,</span> <span class="n">get_train_sample</span><span class="p">,</span> \
     <span class="n">dqfd_nstep_td_error</span><span class="p">,</span> <span class="n">dqfd_nstep_td_data</span>
@@ -302,7 +302,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>
         <span class="c1"># Optimizer</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lambda3</span><span class="p">)</span>
+        <span class="c1"># two optimizers: the performance of adamW is better than adam, so we recommend using the adamW.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">AdamW</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lambda3</span><span class="p">)</span>
+        <span class="c1"># self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">discount_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">nstep</span>
@@ -361,6 +363,8 @@
             <span class="n">target_q_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">])[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
             <span class="n">target_q_action_one_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs_1&#39;</span><span class="p">])[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
 
+        <span class="c1"># modify the tensor type to match the JE computation in dqfd_nstep_td_error</span>
+        <span class="n">is_expert</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;is_expert&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
         <span class="n">data_n</span> <span class="o">=</span> <span class="n">dqfd_nstep_td_data</span><span class="p">(</span>
             <span class="n">q_value</span><span class="p">,</span>
             <span class="n">target_q_value</span><span class="p">,</span>
@@ -372,7 +376,7 @@
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">],</span>
             <span class="n">target_q_value_one_step</span><span class="p">,</span>
             <span class="n">target_q_action_one_step</span><span class="p">,</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;is_expert&#39;</span><span class="p">]</span>  <span class="c1"># set is_expert flag(expert 1, agent 0)</span>
+            <span class="n">is_expert</span>  <span class="c1"># set is_expert flag(expert 1, agent 0)</span>
         <span class="p">)</span>
         <span class="n">value_gamma</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value_gamma&#39;</span><span class="p">)</span>
         <span class="n">loss</span><span class="p">,</span> <span class="n">td_error_per_sample</span><span class="p">,</span> <span class="n">loss_statistics</span> <span class="o">=</span> <span class="n">dqfd_nstep_td_error</span><span class="p">(</span>
