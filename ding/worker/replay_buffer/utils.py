@@ -181,6 +181,9 @@ class PeriodicThruputMonitor:
         """
         self._end_flag = True
 
+    def __del__(self) -> None:
+        self.close()
+
     @property
     def push_data_count(self) -> int:
         return self._history_push_count
