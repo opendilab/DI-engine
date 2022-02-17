@@ -32,7 +32,7 @@ def build_logger(
         name = 'default'
     logger = LoggerFactory.create_logger(path, name=name) if need_text else None
     tb_name = name + '_tb_logger'
-    tb_logger = TBLoggerFactory.get_logger(os.path.join(path, tb_name)) if need_tb else None
+    tb_logger = TBLoggerFactory.create_logger(os.path.join(path, tb_name)) if need_tb else None
     return logger, tb_logger
 
 
@@ -40,12 +40,12 @@ class TBLoggerFactory(object):
 
     tb_loggers = {}
 
-    @staticmethod
-    def get_logger(logdir: str) -> DistributedWriter:
-        if logdir in TBLoggerFactory.tb_loggers:
-            return TBLoggerFactory.tb_loggers[logdir]
+    @classmethod
+    def create_logger(cls: type, logdir: str) -> DistributedWriter:
+        if logdir in cls.tb_loggers:
+            return cls.tb_loggers[logdir]
         tb_logger = DistributedWriter(logdir)
-        TBLoggerFactory.tb_loggers[logdir] = tb_logger
+        cls.tb_loggers[logdir] = tb_logger
         return tb_logger
 
 

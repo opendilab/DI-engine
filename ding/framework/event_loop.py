@@ -12,7 +12,7 @@ class EventLoop:
         self._name = name
         self._listeners = defaultdict(list)
         self._thread_pool = ThreadPoolExecutor(max_workers=2)
-        self._exc = None
+        self._exception = None
         self._active = True
 
     def on(self, event: str, fn: Callable) -> None:
@@ -63,8 +63,8 @@ class EventLoop:
         Arguments:
             - event (:obj:`str`): Event name.
         """
-        if self._exc:
-            raise self._exc
+        if self._exception:
+            raise self._exception
         if self._active:
             self._thread_pool.submit(self._trigger, event, *args, **kwargs)
 
@@ -83,7 +83,7 @@ class EventLoop:
             try:
                 fn(*args, **kwargs)
             except Exception as e:
-                self._exc = e
+                self._exception = e
 
     def listened(self, event: str) -> bool:
         """
@@ -96,34 +96,27 @@ class EventLoop:
         """
         return event in self._listeners
 
-    @staticmethod
-    def get_event_loop(name: str = "default") -> "EventLoop":
+    @classmethod
+    def get_event_loop(cls: type, name: str = "default") -> "EventLoop":
         """
         Overview:
             Get new event loop when name not exists, or return the existed instance.
         Arguments:
             - name (:obj:`str`): Name of event loop.
         """
-        if name in EventLoop.loops:
-            return EventLoop.loops[name]
-        EventLoop.loops[name] = loop = EventLoop(name)
+        if name in cls.loops:
+            return cls.loops[name]
+        cls.loops[name] = loop = cls(name)
         return loop
 
-    def stop(self):
+    def stop(self) -> None:
         self._active = False
         self._listeners = defaultdict(list)
-        self._exc = None
+        self._exception = None
         self._thread_pool.shutdown()
         if self._name in EventLoop.loops:
             del EventLoop.loops[self._name]
 
-    @staticmethod
-    def stop_event_loop(name: str) -> None:
-        """
-        Overview:
-            Stop and delete event loop from global instances list.
-        Arguments:
-            - name (:obj:`str`): Name of event loop.
-        """
-        if name in EventLoop.loops:
-            EventLoop.loops[name].stop()
+    def __del__(self) -> None:
+        if self._active:
+            self.stop()
