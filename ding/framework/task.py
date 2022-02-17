@@ -24,19 +24,18 @@ def enable_async(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def runtime_handler(task: "Task", *args, **kwargs) -> "Task":
+    def runtime_handler(task: "Task", *args, async_mode: Optional[bool] = None, **kwargs) -> "Task":
         """
         Overview:
             If task's async mode is enabled, execute the step in current loop executor asyncly,
             or execute the task sync.
         Arguments:
             - task (:obj:`Task`): The task instance.
+            - async_mode (:obj:`Optional[bool]`): Whether using async mode.
         Returns:
             - result (:obj:`Union[Any, Awaitable]`): The result or future object of middleware.
         """
-        if "async_mode" in kwargs:
-            async_mode = kwargs.pop("async_mode")
-        else:
+        if async_mode is None:
             async_mode = task.async_mode
         if async_mode:
             t = task._async_loop.run_in_executor(task._thread_pool, func, task, *args, **kwargs)
@@ -292,7 +291,7 @@ class Task:
         t = self._async_loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
         self._async_stack.append(t)
 
-    def emit(self, event: str, *args, **kwargs) -> None:
+    def emit(self, event: str, *args, only_remote: bool = False, only_local: bool = False, **kwargs) -> None:
         """
         Overview:
             Emit an event, call listeners.
@@ -303,11 +302,9 @@ class Task:
             - args (:obj:`any`): Rest arguments for listeners.
         """
         # Check if need to broadcast event to connected nodes, default is True
-        if kwargs.get("only_local"):
-            kwargs.pop("only_local")
+        if only_local:
             self._event_loop.emit(event, *args, **kwargs)
-        elif kwargs.get("only_remote"):
-            kwargs.pop("only_remote")
+        elif only_remote:
             if self.router.is_active:
                 self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
         else:
