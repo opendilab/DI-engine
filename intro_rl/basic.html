@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -210,11 +211,11 @@
 <h2>Markov Decision Process/MDP<a class="headerlink" href="#markov-decision-process-mdp" title="Permalink to this headline">¶</a></h2>
 <p><strong>Markov Decision Process (MDP)</strong> is the ideal mathematical model of reinforcement learning and the commonest one.</p>
 <ul class="simple">
-<li><p>Markov property：State <img class="math" src="../_images/math/4aabbc49ec51d4fbf17ec43338f4592bda61837d.svg" alt="s_t"/> is Markov, iff <img class="math" src="../_images/math/59917b4a85b8ac4c38540e4ba50e2fbe1f9694bd.svg" alt="P[s_{t+1}|s_t] = P[s_{t+1}|s_1, ..., s_t]"/> .</p></li>
+<li><p>Markov property：State <span class="math notranslate nohighlight">\(s_t\)</span> is Markov, iff <span class="math notranslate nohighlight">\(P[s_{t+1}|s_t] = P[s_{t+1}|s_1, ..., s_t]\)</span> .</p></li>
 <li><p>A Markov process is a memoryless random process, i.e., a sequence of random states S_1,　S_2… with the Markov process.</p></li>
-<li><p>Markov process is a binary tuple <img class="math" src="../_images/math/fc6f9a16e236449fbd45739d491cbf98f1c68f6e.svg" alt="(S, P)"/> , satisfying: <img class="math" src="../_images/math/bb8cc39c82f0fa9cae75f7d6e20647c99eb5d783.svg" alt="S"/> a finite set of states, <img class="math" src="../_images/math/dfb6e4180d45e8c514cc6f128645a36de19230d0.svg" alt="P"/> is a probability transition matrix. There are no rewards or actions in a Markov process. A Markov process that takes actions and rewards into account is called a MDP.</p></li>
-<li><p>MDP is a tuple <img class="math" src="../_images/math/d351ed0a9f50be00128ac370bf92e75781712f90.svg" alt="(S, A, P, R, \gamma)"/>， <img class="math" src="../_images/math/bb8cc39c82f0fa9cae75f7d6e20647c99eb5d783.svg" alt="S"/> is a finite set of states, <img class="math" src="../_images/math/bb2fa1da2a0d41cf7aa7ae01a9d32b98affa34b9.svg" alt="A"/> is a finite set of actions， <img class="math" src="../_images/math/dfb6e4180d45e8c514cc6f128645a36de19230d0.svg" alt="P"/> is a state transition probability matrix, <img class="math" src="../_images/math/67cd39021e4f83e4e1fd43e6cd911774ba6eb877.svg" alt="R"/> is a reward function， <img class="math" src="../_images/math/1f7c32cd87f6900b6edb43745cc6eeb23eade7b4.svg" alt="\gamma"/> is a discount factor used to calculate the accumulated rewards. Unlike the Markov process, the state transfer probability of the Markov decision process is <img class="math" src="../_images/math/0e83b04c66719212b0a61a2f2596993869353196.svg" alt="P(s_{t+1}|s_t, a_t)"/> . <img class="math" src="../_images/math/0e83b04c66719212b0a61a2f2596993869353196.svg" alt="P(s_{t+1}|s_t, a_t)"/> .</p></li>
-<li><p>The goal of reinforcement learning is to seek an optimal policy based on a MDP.  The so-called policy <img class="math" src="../_images/math/64fff4391278558d9305d277c3f7e13b094677a2.svg" alt="\pi(a|s)"/> refers to the mapping of states to actions. In reinforcement learning, we only discuss Markov decision processes with finite state space.</p></li>
+<li><p>Markov process is a binary tuple <span class="math notranslate nohighlight">\((S, P)\)</span> , satisfying: <span class="math notranslate nohighlight">\(S\)</span> a finite set of states, <span class="math notranslate nohighlight">\(P\)</span> is a probability transition matrix. There are no rewards or actions in a Markov process. A Markov process that takes actions and rewards into account is called a MDP.</p></li>
+<li><p>MDP is a tuple <span class="math notranslate nohighlight">\((S, A, P, R, \gamma)\)</span>， <span class="math notranslate nohighlight">\(S\)</span> is a finite set of states, <span class="math notranslate nohighlight">\(A\)</span> is a finite set of actions， <span class="math notranslate nohighlight">\(P\)</span> is a state transition probability matrix, <span class="math notranslate nohighlight">\(R\)</span> is a reward function， <span class="math notranslate nohighlight">\(\gamma\)</span> is a discount factor used to calculate the accumulated rewards. Unlike the Markov process, the state transfer probability of the Markov decision process is <span class="math notranslate nohighlight">\(P(s_{t+1}|s_t, a_t)\)</span> . <span class="math notranslate nohighlight">\(P(s_{t+1}|s_t, a_t)\)</span> .</p></li>
+<li><p>The goal of reinforcement learning is to seek an optimal policy based on a MDP.  The so-called policy <span class="math notranslate nohighlight">\(\pi(a|s)\)</span> refers to the mapping of states to actions. In reinforcement learning, we only discuss Markov decision processes with finite state space.</p></li>
 </ul>
 <p>Common methods for solving MDP problems:</p>
 <ol class="arabic">
@@ -230,140 +231,40 @@
 <li><p><strong>Monte Carlo methods (MC)</strong>  are based directly on the definition of the optimal value function and provide an unbiased estimate of the optimal value function by sampling. MC replaces the actual expected return with the sample return and solves the optimal strategy empirically only.</p>
 <p>MC do not need an environmental model. Data simulation and sampling models can be applied to MC and MC can only evaluate a certain state of interest. In comparison with DP, MC performs better when the Markov property does not hold.</p>
 </li>
-<li><p><strong>Temperal-Differnece learning (TD)</strong>, TD error: <img class="math" src="../_images/math/a631677fbca91d568d1864efbdba5071dba0eca9.svg" alt="\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)"/></p>
-<p>Comparison between TD and MC: The target for MC is <img class="math" src="../_images/math/fb37bd0a717ca454ea94af8da3262d4c07a917e1.svg" alt="G_t"/>, namely, the real return from time t onwards. However, the target for TD (single step TD, TD(0)) is  <img class="math" src="../_images/math/bfc98a2e2587e9e6d72faca04060b2853623c548.svg" alt="R_{t+1} + \gamma V(S_{t+1})"/> .</p>
+<li><p><strong>Temperal-Differnece learning (TD)</strong>, TD error: <span class="math notranslate nohighlight">\(\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)\)</span></p>
+<p>Comparison between TD and MC: The target for MC is <span class="math notranslate nohighlight">\(G_t\)</span>, namely, the real return from time t onwards. However, the target for TD (single step TD, TD(0)) is  <span class="math notranslate nohighlight">\(R_{t+1} + \gamma V(S_{t+1})\)</span> .</p>
 </li>
 </ol>
 </div>
 <div class="section" id="state-spaces">
 <h2>State Spaces<a class="headerlink" href="#state-spaces" title="Permalink to this headline">¶</a></h2>
-<p>State <img class="math" src="../_images/math/6ca1d8558037c00a979b111265e9fd2de5069055.svg" alt="s"/> is a global description of the environment，observation <img class="math" src="../_images/math/2b436cd73add7d7c76d4a2c7ea4918320a69faa1.svg" alt="o"/> is a partial description of the environment. States and observations from an environment can be represented by real vectors, matrix or tensors. For example, RGB pictures are used in Atari games to represent information about the game environment, and vectors are used in MuJoCo control tasks to represent the state of an intelligent body.</p>
-<p>When an agent can receive all information of states in an environment <img class="math" src="../_images/math/6ca1d8558037c00a979b111265e9fd2de5069055.svg" alt="s"/> ，we call its learning process fully observable. When an agent can only receive partial information of states in an environment <img class="math" src="../_images/math/2b436cd73add7d7c76d4a2c7ea4918320a69faa1.svg" alt="o"/>，we call its learning process partially observable，namely, partially observable Markov decision processes (POMDP) <img class="math" src="../_images/math/01f6c4b1e847508b12d1bc58e82efe0ecbe1626b.svg" alt="(O, A, P, R, \gamma)"/>.</p>
+<p>State <span class="math notranslate nohighlight">\(s\)</span> is a global description of the environment，observation <span class="math notranslate nohighlight">\(o\)</span> is a partial description of the environment. States and observations from an environment can be represented by real vectors, matrix or tensors. For example, RGB pictures are used in Atari games to represent information about the game environment, and vectors are used in MuJoCo control tasks to represent the state of an intelligent body.</p>
+<p>When an agent can receive all information of states in an environment <span class="math notranslate nohighlight">\(s\)</span> ，we call its learning process fully observable. When an agent can only receive partial information of states in an environment <span class="math notranslate nohighlight">\(o\)</span>，we call its learning process partially observable，namely, partially observable Markov decision processes (POMDP) <span class="math notranslate nohighlight">\((O, A, P, R, \gamma)\)</span>.</p>
 </div>
 <div class="section" id="action-spaces">
 <h2>Action Spaces<a class="headerlink" href="#action-spaces" title="Permalink to this headline">¶</a></h2>
-<p>Different environments allow different action space. The set of all valid actions <img class="math" src="../_images/math/becb5d56210daf0b2a97f9aa1207dc03838b9fbd.svg" alt="a"/> in an environment is generally referred to as the Action Space. The action space can be classified into a discrete action space or a continuous action space.</p>
+<p>Different environments allow different action space. The set of all valid actions <span class="math notranslate nohighlight">\(a\)</span> in an environment is generally referred to as the Action Space. The action space can be classified into a discrete action space or a continuous action space.</p>
 <p>For example, in Atari games and SMAC games, the action spaces are both discrete and only a limited number of actions can be selected from each space. However, in some robot continuous control tasks such as MuJoCo, the action space is continuous and generally belong to a real-valued vector interval.</p>
 </div>
 <div class="section" id="policy">
 <h2>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h2>
-<p><strong>Policy</strong> determines actions an agent takes when facing different states. If a policy is deterministic, it is usually denoted by <img class="math" src="../_images/math/c0fb6749af3f3266661a04bbb8ef6f5c6f240e58.svg" alt="a_t = \mu(s_t)"/> .
-when a policy is stochastic，it is usually denoted by <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">a_t ~ \pi(·｜s_t')</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-
-LaTeX Warning: Command \textperiodcentered invalid in math mode on input line 3
-0.
-
-
-LaTeX Warning: Command \textperiodcentered invalid in math mode on input line 3
-0.
-
-
-! Package inputenc Error: Unicode character ｜ (U+FF5C)
-(inputenc)                not set up for use with LaTeX.
-
-See the inputenc package documentation for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.30 \fontsize{14}{17}\selectfont $a_t ~ \pi(·｜
-                                                  s_t')$
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 448 bytes).
-Transcript written on math.log.
-</p>
-</div>
-.</p>
-<p>In reinforcement learning，the policy gradient approach requires to learn a parametric representation of the policy (parameterized policy) by fitting a policy function with parameters. <img class="math" src="../_images/math/ed3f405ee761daf64d8e5baedd2d7bb26c33b1a8.svg" alt="\theta"/> is often used as the parameters. Another approach based on value functions does not necessarily require a policy gradient function. In the following sections we describe in a more detail the approach to learning polices in reinforcement learning.</p>
+<p><strong>Policy</strong> determines actions an agent takes when facing different states. If a policy is deterministic, it is usually denoted by <span class="math notranslate nohighlight">\(a_t = \mu(s_t)\)</span> .
+when a policy is stochastic，it is usually denoted by <span class="math notranslate nohighlight">\(a_t ~ \pi(·｜s_t')\)</span>.</p>
+<p>In reinforcement learning，the policy gradient approach requires to learn a parametric representation of the policy (parameterized policy) by fitting a policy function with parameters. <span class="math notranslate nohighlight">\(\theta\)</span> is often used as the parameters. Another approach based on value functions does not necessarily require a policy gradient function. In the following sections we describe in a more detail the approach to learning polices in reinforcement learning.</p>
 </div>
 <div class="section" id="trajectory">
 <h2>Trajectory<a class="headerlink" href="#trajectory" title="Permalink to this headline">¶</a></h2>
-<p>In reinforcement learning, a sample learning sequence in a MDP is called <strong>trajectory</strong> <img class="math" src="../_images/math/a627d9386534e134e745389e9a86348befbfcc5b.svg" alt="(s_0, a_0, ..., s_n, a_n)"/>. Trajectory data includes a state transition function，namely, <img class="math" src="../_images/math/86afb8d63f3ddb889b490a00cf887e8fa498386e.svg" alt="s_{t+1} = f(s_t, a_t)"/> and a policy followed by the agents. Reinforcement learning contains two parts: how to use the policy to sample the trajectory data and how to use the trajectory data to update the learning target. The difference between the two components creates a difference in reinforcement learning methods.</p>
+<p>In reinforcement learning, a sample learning sequence in a MDP is called <strong>trajectory</strong> <span class="math notranslate nohighlight">\((s_0, a_0, ..., s_n, a_n)\)</span>. Trajectory data includes a state transition function，namely, <span class="math notranslate nohighlight">\(s_{t+1} = f(s_t, a_t)\)</span> and a policy followed by the agents. Reinforcement learning contains two parts: how to use the policy to sample the trajectory data and how to use the trajectory data to update the learning target. The difference between the two components creates a difference in reinforcement learning methods.</p>
 <p>As the trajectory also contains information about the dynamics of the model in the environment, it is possible to use the policy data to learn information about the environment as well, which can be used to help the learning of the intelligence. </p>
 <p>Note that the transition function can be deterministic or stochastic. In a grid world, the trainsition function is determistic, i.e., an agent is going to go to a certain state given its current state and action. On the contrary, the state function is stochastic if an agent’s current state and action are given, but the agent may end up with more than one states with each probability samller than one. A stochastic state function is random in nature and cannot be determined completely by an agent.
 This case can be easily illustrated in a simple MDP environment.</p>
 </div>
 <div class="section" id="return-and-reward">
 <h2>Return and reward<a class="headerlink" href="#return-and-reward" title="Permalink to this headline">¶</a></h2>
-<p><strong>Reward</strong> is learning signal assigned to an agent by its surrounding environment. When the enironment changes，the reward function also changes. The reward function is determined by the current state and the action taken by the agent，and can be written as <img class="math" src="../_images/math/8199da86c1ac580d647a2dd336db762cf93d9bc8.svg" alt="r_t = R(s_t, a_t)"/></p>
+<p><strong>Reward</strong> is learning signal assigned to an agent by its surrounding environment. When the enironment changes，the reward function also changes. The reward function is determined by the current state and the action taken by the agent，and can be written as <span class="math notranslate nohighlight">\(r_t = R(s_t, a_t)\)</span></p>
 <p><strong>Cumulative Reward</strong> is the sum of the decaying returns from moment t onwards in a MDP.</p>
-<p><img class="math" src="../_images/math/db1e5ba763d5c209e221840e9994f61e626ce421.svg" alt="G_t = R_{t+1}+\gamma * R_{t+2}+{\gamma}^2 * R_{t+3}+ ..."/></p>
-<p><img class="math" src="../_images/math/1f7c32cd87f6900b6edb43745cc6eeb23eade7b4.svg" alt="\gamma"/> The discount factor reflects the ratio between the value of future rewards and that at the present moment. A value close to 0 indicates a tendency towards a ‘myopic’ assessment and a value close to 1 indicating a more forward-looking interest and confidence in the future. The introduction of the discount factor not only easy to express mathematically, but also avoids falling into an infinite loop and reduces the uncertainty of future benefits.</p>
+<p><span class="math notranslate nohighlight">\(G_t = R_{t+1}+\gamma * R_{t+2}+{\gamma}^2 * R_{t+3}+ ...\)</span></p>
+<p><span class="math notranslate nohighlight">\(\gamma\)</span> The discount factor reflects the ratio between the value of future rewards and that at the present moment. A value close to 0 indicates a tendency towards a ‘myopic’ assessment and a value close to 1 indicating a more forward-looking interest and confidence in the future. The introduction of the discount factor not only easy to express mathematically, but also avoids falling into an infinite loop and reduces the uncertainty of future benefits.</p>
 <p>Other difficulties in dealing with reward functions may exist in different environments, such as sparse rewards where the environment does not give feedback in every state and only acquires rewards after a period of trajectory has elapsed. Therefore, the design and processing of reward functions in reinforcement learning are important directions that have a significant impact on the effectiveness of reinforcement learning.</p>
 </div>
 <div class="section" id="rl-optimization-problem">
@@ -372,21 +273,21 @@ This case can be easily illustrated in a simple MDP environment.</p>
 </div>
 <div class="section" id="value-functions">
 <h2>Value functions<a class="headerlink" href="#value-functions" title="Permalink to this headline">¶</a></h2>
-<p><strong>State Value Function</strong> refers to a long-term expected reward by following a policy <img class="math" src="../_images/math/62f4dddfd372f3c595ec5e86cbad69f811c94f15.svg" alt="\pi"/> under a state <img class="math" src="../_images/math/6ca1d8558037c00a979b111265e9fd2de5069055.svg" alt="s"/> . The state value function is one of the criteria for evaluating a policy function</p>
-<p><img class="math" src="../_images/math/dd91dea6d496a63ab93f5532af9f08803c266f90.svg" alt="V_{\pi}(s) = E_{\pi}[G_t|s_t=s]"/></p>
-<p><strong>Action Value Function</strong> refers to a long-term expected reward by following a policy <img class="math" src="../_images/math/62f4dddfd372f3c595ec5e86cbad69f811c94f15.svg" alt="\pi"/> under a state <img class="math" src="../_images/math/6ca1d8558037c00a979b111265e9fd2de5069055.svg" alt="s"/> ,  and an action <img class="math" src="../_images/math/becb5d56210daf0b2a97f9aa1207dc03838b9fbd.svg" alt="a"/></p>
-<p><img class="math" src="../_images/math/d7db051b9fc5ee7e6c44be682d91937ba7dc3bb1.svg" alt="Q_{\pi}(s, a) = E_{\pi}[G_t|s_t=s, a_t=a]"/></p>
+<p><strong>State Value Function</strong> refers to a long-term expected reward by following a policy <span class="math notranslate nohighlight">\(\pi\)</span> under a state <span class="math notranslate nohighlight">\(s\)</span> . The state value function is one of the criteria for evaluating a policy function</p>
+<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi}[G_t|s_t=s]\)</span></p>
+<p><strong>Action Value Function</strong> refers to a long-term expected reward by following a policy <span class="math notranslate nohighlight">\(\pi\)</span> under a state <span class="math notranslate nohighlight">\(s\)</span> ,  and an action <span class="math notranslate nohighlight">\(a\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q_{\pi}(s, a) = E_{\pi}[G_t|s_t=s, a_t=a]\)</span></p>
 <p>The relationship between the state-valued function and the action-valued function：</p>
-<p><img class="math" src="../_images/math/ee620af699c1d58769902b2fd3b48d3adcf23fb8.svg" alt="V_{\pi}(s) = \sum \pi(a|s)Q_{\pi}(s,a)"/></p>
+<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = \sum \pi(a|s)Q_{\pi}(s,a)\)</span></p>
 <p>We can further obtain the relationship between the optimal state value function and the optimal behavioural value function as follows.</p>
-<p><img class="math" src="../_images/math/e5e7b5cdeaffea08d414e8c956c39e167e4cc353.svg" alt="V*(s)=max_a Q*(s, a)"/></p>
+<p><span class="math notranslate nohighlight">\(V*(s)=max_a Q*(s, a)\)</span></p>
 <p><strong>Bellman Equations</strong>，The Bellman’s equation is the basis of reinforcement learning. The Bellman equation represents the value of the current state in relation to the value of the next state, and the current reward.
 We can express the state value function and the action value function as:</p>
-<p><img class="math" src="../_images/math/1021785052deb07e751cbce77345ddf290cef24f.svg" alt="V_{\pi}(s) = E_{\pi}[R_{t+1}+\gamma * v_{\pi}(s_{t+1})|s_t=s]"/></p>
-<p><img class="math" src="../_images/math/1381069829ee4373310cf11bb9b4411c596f1a62.svg" alt="Q_{\pi}(s, a) = E_{\pi}[R_{t+1}+\gamma * Q(s_{t+1},a_{t+1})|s_t=s, a_t=a]"/></p>
+<p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi}[R_{t+1}+\gamma * v_{\pi}(s_{t+1})|s_t=s]\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q_{\pi}(s, a) = E_{\pi}[R_{t+1}+\gamma * Q(s_{t+1},a_{t+1})|s_t=s, a_t=a]\)</span></p>
 <p><strong>Bellman Optimality Equations</strong>，</p>
-<p><img class="math" src="../_images/math/ed47d6e3f4a813f61aea8584bc7c46d383bb70d7.svg" alt="V*(s)=E[R_{t+1} + \gamma * max_{\pi}V(s_{t+1})|s_t=s]"/></p>
-<p><img class="math" src="../_images/math/eae858b8b5b3346e312d04db5b89db6fc53c49af.svg" alt="Q*(s, a) = E_{\pi}[R_{t+1}+\gamma * max_{a'}Q(s_{t+1},a')|s_t=s, a_t=a]"/></p>
+<p><span class="math notranslate nohighlight">\(V*(s)=E[R_{t+1} + \gamma * max_{\pi}V(s_{t+1})|s_t=s]\)</span></p>
+<p><span class="math notranslate nohighlight">\(Q*(s, a) = E_{\pi}[R_{t+1}+\gamma * max_{a'}Q(s_{t+1},a')|s_t=s, a_t=a]\)</span></p>
 <p>Value based reinforcement learning approach includes two steps：policy evalution and policy improvement. Reinforcement learning first estimate the value function based on the policy，then, improves the policy according to the value function. When the value function reaches the optima, the policy is considered as the optimal policy. This optimal policy is a greedy policy.</p>
 <p>For systems where the model is known, the value function can be obtained using DPs; For systems where the model is unknown, it can be obtained using MC or TD.</p>
 <p>For a grid reinforcement learning environment，the estimation of the value function is obtained by iteratively updating the table of value functions. In many cases，say, state space and action space are not discrete，the value function cannot be represented by a table. In this situation, we need to take advantage of function approximation to approximate the value function.</p>
@@ -412,7 +313,7 @@ RL</a></p>
 <p>Of the above model-free approaches, the value-based approach learns the value function (MC or TD) before updating the policy, while the policy-based approach updates the policy directly. The model-based approach focuses on the environment dynamics, where a model of the environment is learned through sampling, and then the value function/ policy is optimised based on the learned environment model.</p>
 <p>Once the modeling of the environment has been completed, there are also two paths in the model-based approach: one is to generate some simulation trajectories from the learned model and estimate the value function from the simulation trajectories to optimise the strategy; the other is to optimise the policy directly from the learned model, which is the route the model-based approach is usually taking. Learning a model of the environment first can help us to solve the problem of sample efficiency in reinforcement learning methods.</p>
 <p>The definition of a model can be expressed mathematically as a tuple of state transfer distributions and reward functions.</p>
-<p><img class="math" src="../_images/math/8105c11bf07d97e49c01d505c6feb07b2893d3fa.svg" alt="M=(P,R), s_{t+1}~P(s_{t+1}|s_t, a_t), r_{t+1}~R(r_{t+1}|s_t, a_t)"/></p>
+<p><span class="math notranslate nohighlight">\(M=(P,R), s_{t+1}~P(s_{t+1}|s_t, a_t), r_{t+1}~R(r_{t+1}|s_t, a_t)\)</span></p>
 <p>The learning of a model can be extended to different algorithms depending on the model construction.</p>
 <p>Model-based policy optimisation: A classical approach is to first sample a large amount of data by some strategy, then learn a model to minimise the error, apply the learned model to planning to obtain new data, and repeat the above steps. It is by doing planning on top of the learned model that model-based improves the efficiency of the entire iteration of the reinforcement learning algorithm.</p>
 </div>

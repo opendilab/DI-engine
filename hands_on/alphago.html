@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -203,7 +204,7 @@ and continuously train neural networks through self-play.</p>
 <p>After passing offline-RL and self-play online-RL training, AlphaGo’s level has reached and surpassed the level of top professional Go players:</p>
 <img alt="../_images/Go-ranking.jpg" src="../_images/Go-ranking.jpg" />
 <p>The PUCT algorithm:</p>
-<p><img class="math" src="../_images/math/35757981bf7577fc048d0bb52a315d2118528cf3.svg" alt="u(s, a)=c_{\mathrm{puct}} P(s, a) \frac{\sqrt{\sum_{b} N_{r}(s, b)}}{1+N_{r}(s, a)}"/></p>
+<p><span class="math notranslate nohighlight">\(u(s, a)=c_{\mathrm{puct}} P(s, a) \frac{\sqrt{\sum_{b} N_{r}(s, b)}}{1+N_{r}(s, a)}\)</span></p>
 <p>The Monte Carlo Tree Search process of AlphaGo:</p>
 <img alt="../_images/Go-mcts.jpg" src="../_images/Go-mcts.jpg" />
 <p>The fly in the ointment is that AlphaGo used a lot of Human prior knowledge. In addition to using replays of professional Go players,

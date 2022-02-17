@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -293,7 +294,7 @@ the users can refer to <a class="reference external" href="../feature/policy_ove
 </div>
 <div class="section" id="shared-model-model-wrapper">
 <h4>Shared Model + Model Wrapper<a class="headerlink" href="#shared-model-model-wrapper" title="Permalink to this headline">¶</a></h4>
-<p>Neural network, often called model, is the one of most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(<code class="docutils literal notranslate"><span class="pre">__init__</span></code>) or out of policy and passed to the policy as arguments. Therefore, the model is shared among different modes for convenience. And DI-engine extends the model with more runtime function by <code class="docutils literal notranslate"><span class="pre">Model</span> <span class="pre">Wrapper</span></code> , which makes the shared model can exhibit different behaviors in different modes, such as sampling action by multinomial distribution in collect mode while <img class="math" src="../_images/math/e9c72170ab36b189ee4e1d2412d897148bdb76bc.svg" alt="argmax"/> in evaluating mode. Here are some concrete code examples:</p>
+<p>Neural network, often called model, is the one of most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(<code class="docutils literal notranslate"><span class="pre">__init__</span></code>) or out of policy and passed to the policy as arguments. Therefore, the model is shared among different modes for convenience. And DI-engine extends the model with more runtime function by <code class="docutils literal notranslate"><span class="pre">Model</span> <span class="pre">Wrapper</span></code> , which makes the shared model can exhibit different behaviors in different modes, such as sampling action by multinomial distribution in collect mode while <span class="math notranslate nohighlight">\(argmax\)</span> in evaluating mode. Here are some concrete code examples:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span><span class="p">,</span> <span class="n">DQN</span>
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">),</span> <span class="n">action_shape</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>

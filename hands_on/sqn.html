@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -197,30 +198,30 @@ Q-function and construct a policy from Q-function</p></li>
 <p>An entropy-regularized version of RL objective could lead to better
 exploration and stability. The most general way to define
 entropy-augmented return is</p>
-<div class="math">
-<p><img src="../_images/math/c02039fc67c544f43cc5dedf87d84e7c2b7ac0c9.svg" alt="\sum_{t=0}^{\infty} \gamma^{t}\left(r_{t}-\tau H_{t}\right),"/></p>
-</div><p><img class="math" src="../_images/math/64c65697b91f9827c531a1bc0a4271e7e76fbff1.svg" alt="\bar{\pi}"/> is some “reference” policy,
-<img class="math" src="../_images/math/4c8d74661d63607f98ef3db6f004981af71ee516.svg" alt="\tau"/> is a “temperature” parameter, and
-<img class="math" src="../_images/math/b73bbc28db74ea2753d071dbc175edd23a6a5b15.svg" alt="H"/> is the Kullback-Leibler divergence. Note that the temperature
-<img class="math" src="../_images/math/4c8d74661d63607f98ef3db6f004981af71ee516.svg" alt="\tau"/> can be eliminated by re-scaling the rewards. So the definition of
+<div class="math notranslate nohighlight">
+\[\sum_{t=0}^{\infty} \gamma^{t}\left(r_{t}-\tau H_{t}\right),\]</div>
+<p><span class="math notranslate nohighlight">\(\bar{\pi}\)</span> is some “reference” policy,
+<span class="math notranslate nohighlight">\(\tau\)</span> is a “temperature” parameter, and
+<span class="math notranslate nohighlight">\(H\)</span> is the Kullback-Leibler divergence. Note that the temperature
+<span class="math notranslate nohighlight">\(\tau\)</span> can be eliminated by re-scaling the rewards. So the definition of
 Q-function changing to:</p>
-<div class="math">
-<p><img src="../_images/math/22bd6ac5ad16bbfa01abe4cebb583861a7416811.svg" alt="Q^{\pi}(s, a)=\mathbb{E}\left[r_{0}+\sum_{t=1}^{\infty} \gamma^{t}\left(r_{t}-\tau \mathrm{KL}_{t}\right) \mid s_{0}=s, a_{0}=a\right]"/></p>
-</div><p>Additionally, an optimal policy called Boltzmann-Policy can be derived by
+<div class="math notranslate nohighlight">
+\[Q^{\pi}(s, a)=\mathbb{E}\left[r_{0}+\sum_{t=1}^{\infty} \gamma^{t}\left(r_{t}-\tau \mathrm{KL}_{t}\right) \mid s_{0}=s, a_{0}=a\right]\]</div>
+<p>Additionally, an optimal policy called Boltzmann-Policy can be derived by
 varying the action probabilities as a graded function of estimated value:</p>
-<div class="math">
-<p><img src="../_images/math/4672299914812857447a942e92d8c6969863ba80.svg" alt="\begin{aligned}
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
     \pi^Q(\cdot \mid s)
     % &amp;=\underset{\pi}{\arg \max }\left\{\mathbb{E}_{a \sim \pi}[Q(s, a)]-\tau D_{\mathrm{KL}}[\pi \| \bar{\pi}](s)\right\} \\
     &amp;=\frac{\bar{\pi}(a \mid s) \exp (Q(s, a) / \tau)}{\underbrace{\mathbb{E}_{a^{\prime} \sim \bar{\pi}}\left[\exp \left(Q\left(s, a^{\prime}\right) / \tau\right)\right]}_{\text {normalizing constant }}}
-    \end{aligned}"/></p>
-</div><p>Generally speaking, we can use an uniformly $bar{pi} \sim U$, so $r_t
+    \end{aligned}\end{split}\]</div>
+<p>Generally speaking, we can use an uniformly $bar{pi} \sim U$, so $r_t
 - \tau \mathrm{KL}_t = r_t + \mathcal{H} - \log{mathcal{N}}$. Thus
 optimal policy additionally aims to maximize its entropy at each visited
 state and the TD-target becomes:</p>
-<div class="math">
-<p><img src="../_images/math/86c2cf8452f674ce2fe1341a860cbb0ff97abf06.svg" alt="y_t = r + \gamma\left[Q_{\bar{\theta}}\left(\mathbf{s}', \mathbf{a}'\right)-\tau \log \pi_{\phi}\left(\mathbf{a}' \mid \mathbf{s}')\right]\right."/></p>
-</div></div>
+<div class="math notranslate nohighlight">
+\[y_t = r + \gamma\left[Q_{\bar{\theta}}\left(\mathbf{s}', \mathbf{a}'\right)-\tau \log \pi_{\phi}\left(\mathbf{a}' \mid \mathbf{s}')\right]\right.\]</div>
+</div>
 <div class="section" id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/sqn.png" class="align-center" src="../_images/sqn.png" />

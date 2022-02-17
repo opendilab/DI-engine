@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -187,15 +188,15 @@
 <div class="section" id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>SAC considers a more general maximum entropy objective, which favors stochastic policies by augmenting the objective with the expected entropy of the policy:</p>
-<div class="math">
-<p><img src="../_images/math/16396ec55f6dbafedb1feba98c9a4cb78346c79e.svg" alt="J(\pi)=\sum_{t=0}^{T} \mathbb{E}_{\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right) \sim \rho_{\pi}}\left[r\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right)+\alpha \mathcal{H}\left(\pi\left(\cdot \mid \mathbf{s}_{t}\right)\right)\right]."/></p>
-</div><p>The temperature parameters <img class="math" src="../_images/math/f88265d67ed6d4829e3cda99a1cff1f5509c23a4.svg" alt="\alpha &gt; 0"/> controls the stochasticity of the optimal policy.
+<div class="math notranslate nohighlight">
+\[J(\pi)=\sum_{t=0}^{T} \mathbb{E}_{\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right) \sim \rho_{\pi}}\left[r\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right)+\alpha \mathcal{H}\left(\pi\left(\cdot \mid \mathbf{s}_{t}\right)\right)\right].\]</div>
+<p>The temperature parameters <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span> controls the stochasticity of the optimal policy.
 <a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> considers a parameterized state value function, soft Q-function, and a tractable policy.
 Specifically, the value functions are modeled as expressive neural networks, and the policy as a Gaussian with mean and covariance given by neural networks.
 In particular, SAC applys the reparameterization trick instead of directly minimizing the expected KL-divergence for policy parameters as</p>
-<div class="math">
-<p><img src="../_images/math/3a0db19b08484e4da40ddaecbb1ad8ea1659ae83.svg" alt="J_{\pi}(\phi)=\mathbb{E}_{\mathbf{s}_{t} \sim \mathcal{D}, \epsilon_{t} \sim \mathcal{N}}\left[\log \pi_{\phi}\left(f_{\phi}\left(\epsilon_{t} ; \mathbf{s}_{t}\right) \mid \mathbf{s}_{t}\right)-Q_{\theta}\left(\mathbf{s}_{t}, f_{\phi}\left(\epsilon_{t} ; \mathbf{s}_{t}\right)\right)\right]"/></p>
-</div><div class="admonition note">
+<div class="math notranslate nohighlight">
+\[J_{\pi}(\phi)=\mathbb{E}_{\mathbf{s}_{t} \sim \mathcal{D}, \epsilon_{t} \sim \mathcal{N}}\left[\log \pi_{\phi}\left(f_{\phi}\left(\epsilon_{t} ; \mathbf{s}_{t}\right) \mid \mathbf{s}_{t}\right)-Q_{\theta}\left(\mathbf{s}_{t}, f_{\phi}\left(\epsilon_{t} ; \mathbf{s}_{t}\right)\right)\right]\]</div>
+<div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Compared with the vanilla version modeling state value function and soft Q-function, our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.</p>
 </div>
@@ -203,10 +204,8 @@ In particular, SAC applys the reparameterization trick instead of directly minim
 <div class="section" id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/SAC-algorithm.png" class="align-center" src="../_images/SAC-algorithm.png" />
-<div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">:nowrap:
-
-\begin{algorithm}[H]
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}:nowrap:\\\begin{algorithm}[H]
     \caption{Soft Actor-Critic}
     \label{alg1}
 \begin{algorithmic}[1]
@@ -242,273 +241,7 @@ In particular, SAC applys the reparameterization trick instead of directly minim
         \ENDIF
     \UNTIL{convergence}
 \end{algorithmic}
-\end{algorithm}</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-! Argument of \align* has an extra }.
-&lt;inserted text&gt; 
-                \par 
-l.69 \end{aligned}\end{align*}
-                              
-Runaway argument?
- y (r,s',d) 
-! Paragraph ended before \align* was complete.
-&lt;to be read again&gt; 
-                   \par 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.69 \end{aligned}\end{align*}
-                              
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Display math should end with $$.
-&lt;to be read again&gt; 
-                   \&#64;&#64;par 
-l.69 \end{aligned}\end{align*}
-                              
-! Extra }, or forgotten \endgroup.
-\par ...m \&#64;noitemerr {\&#64;&#64;par }\fi \else {\&#64;&#64;par }
-                                                  \fi 
-l.69 \end{aligned}\end{align*}
-                              
-! Extra }, or forgotten \endgroup.
-&lt;recently read&gt; }
-                 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.69 \end{aligned}\end{align*}
-                              
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.69 \end{aligned}\end{align*}
-                              
-
-! LaTeX Error: \begin{aligned} on input line 69 ended by \end{align*}.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H &lt;return&gt;  for immediate help.
- ...                                              
-                                                  
-l.69 \end{aligned}\end{align*}
-                              
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.69 \end{aligned}\end{align*}
-                              
-! Display math should end with $$.
-&lt;to be read again&gt; 
-                   \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.69 \end{aligned}\end{align*}
-                              
-! Undefined control sequence.
-&lt;argument&gt; ...a }(\cdot |s') \end {align*} \STATE 
-                                                  Update Q-functions by one ...
-l.69 \end{aligned}\end{align*}
-                              
-! Argument of \push&#64;begins has an extra }.
-&lt;inserted text&gt; 
-                \par 
-l.69 \end{aligned}\end{align*}
-                              
-Runaway argument?
- 
-! Paragraph ended before \push&#64;begins was complete.
-&lt;to be read again&gt; 
-                   \par 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing \endgroup inserted.
-&lt;inserted text&gt; 
-                \endgroup 
-l.69 \end{aligned}\end{align*}
-                              
-! Missing } inserted.
-&lt;inserted text&gt; 
-                }
-l.69 \end{aligned}\end{align*}
-                              
-! TeX capacity exceeded, sorry [input stack size=5000].
-&lt;to be read again&gt; 
-                   \expandafter 
-l.69 \end{aligned}\end{align*}
-                              
-No pages of output.
-Transcript written on math.log.
-</p>
-</div>
+\end{algorithm}\end{aligned}\end{align} \]</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Compared with the vanilla version, we only optimize q network and actor network in our second implementation version.</p>
@@ -520,7 +253,7 @@ Transcript written on math.log.
 <dt>SAC can be combined with:</dt><dd><ul>
 <li><p>Auto alpha strategy</p>
 <blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a> proposes entropy coefficient <img class="math" src="../_images/math/72a78864cdfef57b672539363ebf3487397f53c4.svg" alt="\alpha"/> used to determine the relative importance of entropy and reward.
+<div><p><a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a> proposes entropy coefficient <span class="math notranslate nohighlight">\(\alpha\)</span> used to determine the relative importance of entropy and reward.
 Extensive experiments conducted by <a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> demonstrate Soft actor-critic is sensitive to reward scaling since it is related to the temperature of the optimal policy. The optimal reward scale varies between environments, and should be tuned for each task separately.
 Since we implement auto alpha strategy depending on maximum entropy through configuring <code class="docutils literal notranslate"><span class="pre">learn.is_auto_alpha</span></code> and <code class="docutils literal notranslate"><span class="pre">learn.alpha</span></code>.</p>
 </div></blockquote>
@@ -924,7 +657,7 @@ We implement reparameterization trick through configuring <code class="docutils 
 <p>SAC applys an invertible squashing function to the Gaussian samples, and employ the change of variables formula to compute the likelihoods of the bounded actions.
 Specifically, we use unbounded Gaussian as the action distribution through <code class="docutils literal notranslate"><span class="pre">Independent(Normal(mean,</span> <span class="pre">std),</span> <span class="pre">1)</span></code>, which creates a diagonal Normal distribution with the same shape as a Multivariate Normal distribution.
 This is equal to <code class="docutils literal notranslate"><span class="pre">log_prob.sum(axis=-1)</span></code>.
-Then, the action is squashed by <img class="math" src="../_images/math/11d0c74bbc67ceda43e1f1f5aec0e1e914463cb0.svg" alt="\tanh(\text{mean})"/>, and the log-likelihood of action has a simple form <img class="math" src="../_images/math/073c194539a03fd9eaba29145cc99e9d853a8d6f.svg" alt="\log \pi(\mathbf{a} \mid \mathbf{s})=\log \mu(\mathbf{u} \mid \mathbf{s})-\sum_{i=1}^{D} \log \left(1-\tanh ^{2}\left(u_{i}\right)\right)"/>.
+Then, the action is squashed by <span class="math notranslate nohighlight">\(\tanh(\text{mean})\)</span>, and the log-likelihood of action has a simple form <span class="math notranslate nohighlight">\(\log \pi(\mathbf{a} \mid \mathbf{s})=\log \mu(\mathbf{u} \mid \mathbf{s})-\sum_{i=1}^{D} \log \left(1-\tanh ^{2}\left(u_{i}\right)\right)\)</span>.
 In particular, the <code class="docutils literal notranslate"><span class="pre">std</span></code> in SAC is predicted from observation, which is different from PPO(learnable parameter) and TD3(heuristic parameter).</p>
 </div>
 </div></blockquote>
@@ -985,7 +718,7 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>We implement reparameterization trick trough <img class="math" src="../_images/math/82d67ac5be09eb34f3e6a1a5cd112ce2e9b68141.svg" alt="(\text{mean} + \text{std} * \mathcal{N}(0,1))"/>. In particular, the gradient back propagation for <code class="docutils literal notranslate"><span class="pre">sigma</span></code> is through <code class="docutils literal notranslate"><span class="pre">log_prob</span></code> in policy loss.</p>
+<p>We implement reparameterization trick trough <span class="math notranslate nohighlight">\((\text{mean} + \text{std} * \mathcal{N}(0,1))\)</span>. In particular, the gradient back propagation for <code class="docutils literal notranslate"><span class="pre">sigma</span></code> is through <code class="docutils literal notranslate"><span class="pre">log_prob</span></code> in policy loss.</p>
 </div>
 </div></blockquote>
 <p>Auto alpha strategy</p>

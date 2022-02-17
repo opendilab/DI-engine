@@ -25,6 +25,7 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -279,7 +280,7 @@
 <dt class="sig sig-object py" id="ding.rl_utils.exploration.GaussianNoise">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.rl_utils.exploration.</span></span><span class="sig-name descname"><span class="pre">GaussianNoise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/rl_utils/exploration.html#GaussianNoise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.rl_utils.exploration.GaussianNoise" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Derived class for generating gaussian noise, which satisfies <img class="math" src="../../_images/math/40a32645ec182a9b71bf556e0bd3557cda3ae84e.svg" alt="X \sim N(\mu, \sigma^2)"/></p>
+<dt>Overview:</dt><dd><p>Derived class for generating gaussian noise, which satisfies <span class="math notranslate nohighlight">\(X \sim N(\mu, \sigma^2)\)</span></p>
 </dd>
 <dt>Interface:</dt><dd><p>__init__, __call__</p>
 </dd>
@@ -306,11 +307,11 @@
 <dt class="sig sig-object py" id="ding.rl_utils.exploration.GaussianNoise.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/rl_utils/exploration.html#GaussianNoise.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.rl_utils.exploration.GaussianNoise.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Initialize <img class="math" src="../../_images/math/d53f85e57711cda553a4cb8ae5f52e0227ad49af.svg" alt="\mu"/> and <img class="math" src="../../_images/math/bebe583ab698ba666ded37f32ec1ed23579b9249.svg" alt="\sigma"/> in Gaussian Distribution</p>
+<dt>Overview:</dt><dd><p>Initialize <span class="math notranslate nohighlight">\(\mu\)</span> and <span class="math notranslate nohighlight">\(\sigma\)</span> in Gaussian Distribution</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>):  <img class="math" src="../../_images/math/d53f85e57711cda553a4cb8ae5f52e0227ad49af.svg" alt="\mu"/> , mean value</p></li>
-<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): <img class="math" src="../../_images/math/bebe583ab698ba666ded37f32ec1ed23579b9249.svg" alt="\sigma"/> , standard deviation, should be positive</p></li>
+<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>):  <span class="math notranslate nohighlight">\(\mu\)</span> , mean value</p></li>
+<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): <span class="math notranslate nohighlight">\(\sigma\)</span> , standard deviation, should be positive</p></li>
 </ul>
 </dd>
 </dl>
@@ -326,8 +327,8 @@
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.rl_utils.exploration.</span></span><span class="sig-name descname"><span class="pre">OUNoise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/rl_utils/exploration.html#OUNoise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.rl_utils.exploration.OUNoise" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Derived class for generating Ornstein-Uhlenbeck process noise.
-Satisfies <img class="math" src="../../_images/math/36de30fbaa483c5ee7b7af31c29b3464b581dcf2.svg" alt="dx_t=\theta(\mu-x_t)dt + \sigma dW_t"/>,
-where <img class="math" src="../../_images/math/182f96b87b0f4262f2ee2e310c312e1858a4675c.svg" alt="W_t"/> denotes Weiner Process, acting as a random perturbation term.</p>
+Satisfies <span class="math notranslate nohighlight">\(dx_t=\theta(\mu-x_t)dt + \sigma dW_t\)</span>,
+where <span class="math notranslate nohighlight">\(W_t\)</span> denotes Weiner Process, acting as a random perturbation term.</p>
 </dd>
 <dt>Interface:</dt><dd><p>__init__, reset, __call__</p>
 </dd>
@@ -341,7 +342,7 @@ where <img class="math" src="../../_images/math/182f96b87b0f4262f2ee2e310c312e18
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>shape (<code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code>): size of the action tensor, output noise’s size should be the same</p></li>
 <li><p>device (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): device of the action tensor, output noise’s device should be the same as it</p></li>
-<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): new mean value <img class="math" src="../../_images/math/d53f85e57711cda553a4cb8ae5f52e0227ad49af.svg" alt="\mu"/>, you can set it to <cite>None</cite> if don’t need it</p></li>
+<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): new mean value <span class="math notranslate nohighlight">\(\mu\)</span>, you can set it to <cite>None</cite> if don’t need it</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -355,98 +356,11 @@ where <img class="math" src="../../_images/math/182f96b87b0f4262f2ee2e310c312e18
 <dt class="sig sig-object py" id="ding.rl_utils.exploration.OUNoise.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/rl_utils/exploration.html#OUNoise.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.rl_utils.exploration.OUNoise.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">_alpha</span></code> <div class="system-message">
-<p class="system-message-title">System Message: WARNING/2 (<span class="docutils literal">=      heta * dt\</span>)</p>
-<p>latex exited with error
-[stdout]
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=latex)
- restricted \write18 enabled.
-entering extended mode
-(./math.tex
-LaTeX2e &lt;2020-02-02&gt; patch level 2
-L3 programming layer &lt;2020-02-14&gt;
-(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
-(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo))
-(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
-For additional information on amsmath, use the `?' option.
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/anyfontsize/anyfontsize.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/tools/bm.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithm.sty
-(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/algorithms/algorithmic.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty))
-(/usr/share/texlive/texmf-dist/tex/latex/cancel/cancel.sty)
-(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
-(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
-
-Package geometry Warning: `bmargin' results in NEGATIVE (-144.54pt).
-    `height' or `tmargin' should be shortened in length.
-
-(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def)
-(./math.aux)
-*geometry* driver: auto-detecting
-*geometry* detected driver: dvips
-*geometry* verbose mode - [ preamble ] result:
-* driver: dvips
-* paper: letterpaper
-* layout: &lt;same size as paper&gt;
-* layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: 
-* h-part:(L,W,R)=(72.27pt, 469.75499pt, 72.27pt)
-* v-part:(T,H,B)=(72.26999pt, 867.23999pt, -144.54pt)
-* \paperwidth=614.295pt
-* \paperheight=794.96999pt
-* \textwidth=469.75499pt
-* \textheight=867.23999pt
-* \oddsidemargin=0.00002pt
-* \evensidemargin=0.00002pt
-* \topmargin=-37.0pt
-* \headheight=12.0pt
-* \headsep=25.0pt
-* \topskip=12.0pt
-* \footskip=30.0pt
-* \marginparwidth=44.0pt
-* \marginparsep=10.0pt
-* \columnsep=10.0pt
-* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
-* \hoffset=0.0pt
-* \voffset=0.0pt
-* \mag=1000
-* \&#64;twocolumnfalse
-* \&#64;twosidefalse
-* \&#64;mparswitchfalse
-* \&#64;reversemarginfalse
-* (1in=72.27pt=25.4mm, 1cm=28.453pt)
-
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
-(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
-! Missing $ inserted.
-&lt;inserted text&gt; 
-                $
-l.31 \end{document}
-                   
-[1] (./math.aux) )
-(see the transcript file for additional information)
-Output written on math.dvi (1 page, 380 bytes).
-Transcript written on math.log.
-</p>
-</div>
- <img class="math" src="../../_images/math/46c1522c3c76ce131d14b8d0d93285a4803d3085.svg" alt="= \sigma * \sqrt{dt}"/>,  in Ornstein-Uhlenbeck process</p>
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">_alpha</span></code> <span class="math notranslate nohighlight">\(=      heta * dt\\)</span> <span class="math notranslate nohighlight">\(= \sigma * \sqrt{dt}\)</span>,  in Ornstein-Uhlenbeck process</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>):  <img class="math" src="../../_images/math/d53f85e57711cda553a4cb8ae5f52e0227ad49af.svg" alt="\mu"/> , mean value</p></li>
-<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): <img class="math" src="../../_images/math/bebe583ab698ba666ded37f32ec1ed23579b9249.svg" alt="\sigma"/> , standard deviation of the perturbation noise</p></li>
+<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>):  <span class="math notranslate nohighlight">\(\mu\)</span> , mean value</p></li>
+<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): <span class="math notranslate nohighlight">\(\sigma\)</span> , standard deviation of the perturbation noise</p></li>
 <li><p>theta (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): how strongly the noise reacts to perturbations,                 greater value means stronger reaction</p></li>
 <li><p>dt (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): derivative of time t</p></li>
 <li><p>x0 (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): initial action</p></li>

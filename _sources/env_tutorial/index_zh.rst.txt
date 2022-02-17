@@ -14,7 +14,7 @@
    lunarlander_zh
 
    bipedalwalker_zh
-   bit_flip_zh
+   bitflip_zh
    
    minigrid_zh
 

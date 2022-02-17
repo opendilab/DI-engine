@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -220,10 +221,10 @@ pipeline几个部分。<strong>config</strong>是整个实验的配置文件，<
 <a class="reference internal image-reference" href="../_images/cartpole_x_theta.png"><img alt="../_images/cartpole_x_theta.png" class="align-center" src="../_images/cartpole_x_theta.png" style="width: 438.24px; height: 298.32px;" /></a>
 <p><strong>observation</strong></p>
 <p>四维向量：</p>
-<p><img class="math" src="../_images/math/c0fc4df9a6f2dc7a15e93396a9ca82f66f331ca4.svg" alt="x"/>: 小车的位置，取值范围[-4.8, 4.8]</p>
-<p><img class="math" src="../_images/math/044e66bb9e7c4d1fad3dc6bcf411dc56287c250a.svg" alt="\frac{dx}{dt}"/> : 小车的速度，取值范围(-Inf, Inf)</p>
-<p><img class="math" src="../_images/math/ed3f405ee761daf64d8e5baedd2d7bb26c33b1a8.svg" alt="\theta"/>: 竖杆的角度，取值范围[-24 degree, 24 degree]</p>
-<p><img class="math" src="../_images/math/86c5c5c07b2d43243aaa78b3a26ec136b151e46f.svg" alt="\frac{d\theta}{dt}"/> : 竖杆顶端的速度，取值范围(-Inf, Inf)</p>
+<p><span class="math notranslate nohighlight">\(x\)</span>: 小车的位置，取值范围[-4.8, 4.8]</p>
+<p><span class="math notranslate nohighlight">\(\frac{dx}{dt}\)</span> : 小车的速度，取值范围(-Inf, Inf)</p>
+<p><span class="math notranslate nohighlight">\(\theta\)</span>: 竖杆的角度，取值范围[-24 degree, 24 degree]</p>
+<p><span class="math notranslate nohighlight">\(\frac{d\theta}{dt}\)</span> : 竖杆顶端的速度，取值范围(-Inf, Inf)</p>
 <p><strong>action</strong></p>
 <p>离散的一维动作。0表示小车向左移动，1表示小车向右移动。</p>
 <p>注：action施加的力的大小是固定的，但作用在小车上，使得校车减小或增大的速度不是固定的，它取决于当时竖杆的角度。</p>

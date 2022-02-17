@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -184,11 +185,11 @@ expert’s decisions.</p>
 <p>The simplest idea of imitation learning is behavioral cloning(BC). BC
 can be described as the following steps:</p>
 <ul class="simple">
-<li><p>Collect demonstrations (<img class="math" src="../_images/math/a679e1740b6b9cff0c223de4f713ca6e44dcfbdd.svg" alt="\tau^{*}"/> trajectories) from expert</p></li>
+<li><p>Collect demonstrations (<span class="math notranslate nohighlight">\(\tau^{*}\)</span> trajectories) from expert</p></li>
 <li><p>Treat the demonstrations as i.i.d state-action pairs:
-<img class="math" src="../_images/math/c170323538be020f739ca8996d60f9ce0a017c3c.svg" alt="(s_0^*,a_0^*),(s_1^*,a_1^*),..."/></p></li>
-<li><p>Learn <img class="math" src="../_images/math/9051eb994865d6c6bb37ee5a9ed9799840a72a81.svg" alt="\pi_{\theta}"/> policy using supervised learning by
-minimizing the loss function <img class="math" src="../_images/math/a0e03dfebd997616d7377f304b0670986eabdee0.svg" alt="L(a^*,\pi_{\theta}(s))"/></p></li>
+<span class="math notranslate nohighlight">\((s_0^*,a_0^*),(s_1^*,a_1^*),...\)</span></p></li>
+<li><p>Learn <span class="math notranslate nohighlight">\(\pi_{\theta}\)</span> policy using supervised learning by
+minimizing the loss function <span class="math notranslate nohighlight">\(L(a^*,\pi_{\theta}(s))\)</span></p></li>
 </ul>
 <p>Behavioral cloning can be quite problematic. The main reason for this is
 the i.i.d. assumption: while supervised learning assumes that the

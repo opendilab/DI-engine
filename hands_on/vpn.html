@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -193,7 +194,7 @@ sufficient for computing future rewards and values)</p>
 <li><p>In order to solve some of the existing problems of model-based algorithms, the VPN proposes a method between traditional model-based algorithms and model-free algorithms, using dynamics model to model the environment.</p></li>
 <li><p>From a model-based perspective, the dynamics model models the state transition process, reward and discount function of the environment by extracting the form of abstract state.</p></li>
 <li><p>From a model-free perspective, the extraction of abstract state by dynamics model can be regarded as an auxiliary task of training critic to predict reward and value, in order to better extract the relevant representation of the state.</p></li>
-<li><p>VPN uses simple rollout and beam search, VPN + Monte Carlo Tree Search(MCTS) <img class="math" src="../_images/math/f4e3b64b573e1e1c0fbbad82a6c7f67706783858.svg" alt="\approxeq"/> Muzero.</p></li>
+<li><p>VPN uses simple rollout and beam search, VPN + Monte Carlo Tree Search(MCTS) <span class="math notranslate nohighlight">\(\approxeq\)</span> Muzero.</p></li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -213,27 +214,27 @@ which makes it difficult for model-based algorithms to learn the observation-pre
 <div class="section" id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>Value Prediction Network mainly consists of 4 parts:</p>
-<p>The VPN consists of the following modules parameterized by <img class="math" src="../_images/math/dc79f1bc1fa5f2eac55818cd63c13e7a1093c26a.svg" alt="\theta=\left\{\theta^{\text {enc }}, \theta^{\text {value }}, \theta^{\text {out }}, \theta^{\text {trans }}\right\}"/>:</p>
+<p>The VPN consists of the following modules parameterized by <span class="math notranslate nohighlight">\(\theta=\left\{\theta^{\text {enc }}, \theta^{\text {value }}, \theta^{\text {out }}, \theta^{\text {trans }}\right\}\)</span>:</p>
 <blockquote>
-<div><p>Encoding <img class="math" src="../_images/math/16e24225da6a383d316509aaf9e4586a736ecdd6.svg" alt="f_{\theta}^{\text {enc }}: \mathbf{x} \mapsto \mathbf{s} \quad"/></p>
-<p>Value <img class="math" src="../_images/math/2faf94aa31084d91f519b39d648219d4dae1ac25.svg" alt="f_{\theta}^{\text {value }}: \mathbf{s} \mapsto V_{\theta}(\mathbf{s})"/></p>
-<p>Outcome <img class="math" src="../_images/math/ecc20f0d1dae9eaf00d4a8ce4b2804fb98a55685.svg" alt="f_{\theta}^{\text {out }}: \mathbf{s}, \mathbf{o} \mapsto r, \gamma"/></p>
-<p>Transition <img class="math" src="../_images/math/75d9738c4b5579ba07dfaf015a4578c277934a3c.svg" alt="f_{\theta}^{\text {trans }}:"/> s, <img class="math" src="../_images/math/d25636c944df46d7e6eba984821669b621c278c7.svg" alt="\mathbf{o} \mapsto \mathbf{s}^{\prime}"/></p>
+<div><p>Encoding <span class="math notranslate nohighlight">\(f_{\theta}^{\text {enc }}: \mathbf{x} \mapsto \mathbf{s} \quad\)</span></p>
+<p>Value <span class="math notranslate nohighlight">\(f_{\theta}^{\text {value }}: \mathbf{s} \mapsto V_{\theta}(\mathbf{s})\)</span></p>
+<p>Outcome <span class="math notranslate nohighlight">\(f_{\theta}^{\text {out }}: \mathbf{s}, \mathbf{o} \mapsto r, \gamma\)</span></p>
+<p>Transition <span class="math notranslate nohighlight">\(f_{\theta}^{\text {trans }}:\)</span> s, <span class="math notranslate nohighlight">\(\mathbf{o} \mapsto \mathbf{s}^{\prime}\)</span></p>
 </div></blockquote>
 <ul class="simple">
-<li><p>Encoding module maps the observation <img class="math" src="../_images/math/fe50ad1729ba6851308d8b3c4f780b46d46bd610.svg" alt="(\mathbf{x})"/> to the abstract state <img class="math" src="../_images/math/11dfed96d9450de0a4f7ed24cbfa1eedf6bc9ce7.svg" alt="\left(\mathbf{s} \in \mathbb{R}^{m}\right)"/> using neural networks (e.g., CNN for visual observations). Thus, <img class="math" src="../_images/math/e15d3321356cc3f376f9498dd2a3880b9556c7ec.svg" alt="\mathbf{s}"/> is an abstract-state representation which will be learned by the network (and not an environment state or even an approximation to one).</p></li>
-<li><p>Value module estimates the value of the abstract-state <img class="math" src="../_images/math/44463263672452e9979dd15e1420831177c4ed35.svg" alt="\left(V_{\theta}(\mathbf{s})\right)"/>. Note that the value module is not a function of the observation, but a function of the abstract-state.</p></li>
-<li><p>Outcome module predicts the option-reward <img class="math" src="../_images/math/dee7139f976a13219881b3a0688a132ebaec8da2.svg" alt="(r \in \mathbb{R})"/> for executing the option <img class="math" src="../_images/math/4ce10d9a01e2a7cb27d5887a807e7608a72c9d5e.svg" alt="\mathbf{0}"/> at abstract-state s. If the option takes <img class="math" src="../_images/math/95db303724a5bdccab31e81270983f8898f67138.svg" alt="k"/> primitive actions before termination, the outcome module should predict the discounted sum of the <img class="math" src="../_images/math/95db303724a5bdccab31e81270983f8898f67138.svg" alt="k"/> immediate rewards as a scalar. The outcome module also predicts the option-discount <img class="math" src="../_images/math/d0199b1ea9257c618eabc6bd9a5e257afaaa0791.svg" alt="(\gamma \in \mathbb{R})"/> induced by the number of steps taken by the option.</p></li>
-<li><p>Transition module transforms the abstract-state to the next abstract-state <img class="math" src="../_images/math/2e8907ce3c3ea63cf7fc59a3b86cdddb7eed18e3.svg" alt="\left(\mathbf{s}^{\prime} \in \mathbb{R}^{m}\right)"/> in an optionconditional manner.</p></li>
+<li><p>Encoding module maps the observation <span class="math notranslate nohighlight">\((\mathbf{x})\)</span> to the abstract state <span class="math notranslate nohighlight">\(\left(\mathbf{s} \in \mathbb{R}^{m}\right)\)</span> using neural networks (e.g., CNN for visual observations). Thus, <span class="math notranslate nohighlight">\(\mathbf{s}\)</span> is an abstract-state representation which will be learned by the network (and not an environment state or even an approximation to one).</p></li>
+<li><p>Value module estimates the value of the abstract-state <span class="math notranslate nohighlight">\(\left(V_{\theta}(\mathbf{s})\right)\)</span>. Note that the value module is not a function of the observation, but a function of the abstract-state.</p></li>
+<li><p>Outcome module predicts the option-reward <span class="math notranslate nohighlight">\((r \in \mathbb{R})\)</span> for executing the option <span class="math notranslate nohighlight">\(\mathbf{0}\)</span> at abstract-state s. If the option takes <span class="math notranslate nohighlight">\(k\)</span> primitive actions before termination, the outcome module should predict the discounted sum of the <span class="math notranslate nohighlight">\(k\)</span> immediate rewards as a scalar. The outcome module also predicts the option-discount <span class="math notranslate nohighlight">\((\gamma \in \mathbb{R})\)</span> induced by the number of steps taken by the option.</p></li>
+<li><p>Transition module transforms the abstract-state to the next abstract-state <span class="math notranslate nohighlight">\(\left(\mathbf{s}^{\prime} \in \mathbb{R}^{m}\right)\)</span> in an optionconditional manner.</p></li>
 </ul>
 <p>The Q value can be estimated through the above four parts,
 that is, input observation and the corresponding option (action), and output the corresponding value estimation.</p>
 <p>The corresponding Q-value prediction formula is:</p>
 <blockquote>
-<div><p><img class="math" src="../_images/math/b021322adf9442d7c085307ac591491e382bc511.svg" alt="Q_{\theta}^{d}(\mathbf{s}, \mathbf{o})=r+\gamma V_{\theta}^{d}\left(\mathbf{s}^{\prime}\right) \quad V_{\theta}^{d}(\mathbf{s})=\left\{\begin{array}{ll}
+<div><p><span class="math notranslate nohighlight">\(Q_{\theta}^{d}(\mathbf{s}, \mathbf{o})=r+\gamma V_{\theta}^{d}\left(\mathbf{s}^{\prime}\right) \quad V_{\theta}^{d}(\mathbf{s})=\left\{\begin{array}{ll}
 V_{\theta}(\mathbf{s}) &amp; \text { if } d=1 \\
 \frac{1}{d} V_{\theta}(\mathbf{s})+\frac{d-1}{d} \max _{\mathbf{0}} Q_{\theta}^{d-1}(\mathbf{s}, \mathbf{o}) &amp; \text { if } d&gt;1
-\end{array}\right."/></p>
+\end{array}\right.\)</span></p>
 </div></blockquote>
 <p>The d-step planning process is shown below:</p>
 <blockquote>
@@ -241,10 +242,10 @@ V_{\theta}(\mathbf{s}) &amp; \text { if } d=1 \\
 </div></blockquote>
 <p>When training, VPN use k-step prediction to train:</p>
 <blockquote>
-<div><p><img class="math" src="../_images/math/c9db31accb3bb65468d463f8c3da46833e407c26.svg" alt="\mathbf{s}_{t}^{k}=\left\{\begin{array}{ll}
+<div><p><span class="math notranslate nohighlight">\(\mathbf{s}_{t}^{k}=\left\{\begin{array}{ll}
 f_{\theta}^{\text {enc }}\left(\mathbf{x}_{t}\right) &amp; \text { if } k=0 \\
 f_{\theta}^{\text {trans }}\left(\mathbf{s}_{t-1}^{k-1}, \mathbf{o}_{t-1}\right) &amp; \text { if } k&gt;0
-\end{array} \quad v_{t}^{k}=f_{\theta}^{\text {value }}\left(\mathbf{s}_{t}^{k}\right) \quad r_{t}^{k}, \gamma_{t}^{k}=f_{\theta}^{\text {out }}\left(\mathbf{s}_{t}^{k-1}, \mathbf{o}_{t}\right)\right."/></p>
+\end{array} \quad v_{t}^{k}=f_{\theta}^{\text {value }}\left(\mathbf{s}_{t}^{k}\right) \quad r_{t}^{k}, \gamma_{t}^{k}=f_{\theta}^{\text {out }}\left(\mathbf{s}_{t}^{k-1}, \mathbf{o}_{t}\right)\right.\)</span></p>
 </div></blockquote>
 <p>The entire update flow chart is as follows:</p>
 <img alt="../_images/vpn-learning.png" class="align-center" src="../_images/vpn-learning.png" />

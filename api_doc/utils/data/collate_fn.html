@@ -25,6 +25,7 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -264,7 +265,7 @@ For short, this process can be represented by:
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Union[torch.Tensor,</span> <span class="pre">list]]</span></code>): the collated data, with timestep and batch size             into each data field. By using <code class="docutils literal notranslate"><span class="pre">default_collate</span></code>, timestep would come to the first dim.             So the final shape is <img class="math" src="../../../_images/math/098fa74a33bbe8e3b431a7b9357b3249ef4a491d.svg" alt="(T, B, dim1, dim2, ...)"/></p></li>
+<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Union[torch.Tensor,</span> <span class="pre">list]]</span></code>): the collated data, with timestep and batch size             into each data field. By using <code class="docutils literal notranslate"><span class="pre">default_collate</span></code>, timestep would come to the first dim.             So the final shape is <span class="math notranslate nohighlight">\((T, B, dim1, dim2, ...)\)</span></p></li>
 </ul>
 </dd>
 </dl>

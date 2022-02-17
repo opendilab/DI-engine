@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -186,8 +187,8 @@ observation in atari games. After that, RNN has become an important
 method to solve the environments of complex temporal dependence.</p>
 <p>After many years of research, RNN has many variants like LSTM, GRU, etc.
 The core update process still remains similar. In every timestep
-<img class="math" src="../_images/math/e48104dd66607eacbb7ecd176b7c5f4c1a44e75e.svg" alt="t"/> in MDP, agent needs observation <img class="math" src="../_images/math/4aabbc49ec51d4fbf17ec43338f4592bda61837d.svg" alt="s_t"/> and historical
-observations <img class="math" src="../_images/math/c83f66335a2f079f7d713e8368d04e441649b820.svg" alt="s_{t-1}, s_{t-2}, ..."/> to infer <img class="math" src="../_images/math/072de9503f54e335416338d3804a782de8214c38.svg" alt="a_t"/>. This
+<span class="math notranslate nohighlight">\(t\)</span> in MDP, agent needs observation <span class="math notranslate nohighlight">\(s_t\)</span> and historical
+observations <span class="math notranslate nohighlight">\(s_{t-1}, s_{t-2}, ...\)</span> to infer <span class="math notranslate nohighlight">\(a_t\)</span>. This
 requires RNN agent to hold previous observations and maintain RNN hidden
 states.</p>
 <p>DI-engine supports for RNN , and provides easy to use API to allow users to
@@ -375,17 +376,17 @@ sure the length of sequence data matches your algorithm. For most cases,
 <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> should be equal to RNN’s historical length (a.k.a sequence length), but in some cases it’s not the case, e.g.
 In r2d2, we use burn-in operation, the sequence length is equal to
 <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> plus <code class="docutils literal notranslate"><span class="pre">burnin_step</span></code>. This will be explained in following section.</p>
-<p>For example, the original sampled data is <img class="math" src="../_images/math/9c8e930cf8dbe8342f8cffc9879ef18b4e802fb4.svg" alt="[x_1,x_2,x_3,x_4,x_5,x_6]"/>, each
-<img class="math" src="../_images/math/c0fc4df9a6f2dc7a15e93396a9ca82f66f331ca4.svg" alt="x"/> represents <img class="math" src="../_images/math/29142227fa554cebaba2a1ba3d8684ee92c53f26.svg" alt="[s_t,a_t,r_t,d_t,s_{t+1}]"/> (maybe
-<img class="math" src="../_images/math/12817fb4c2097495e17c7fb0dd031903207e0de4.svg" alt="log_\pi(a_t|s_t)"/>, hidden state, etc in it), and we need RNN’s
+<p>For example, the original sampled data is <span class="math notranslate nohighlight">\([x_1,x_2,x_3,x_4,x_5,x_6]\)</span>, each
+<span class="math notranslate nohighlight">\(x\)</span> represents <span class="math notranslate nohighlight">\([s_t,a_t,r_t,d_t,s_{t+1}]\)</span> (maybe
+<span class="math notranslate nohighlight">\(log_\pi(a_t|s_t)\)</span>, hidden state, etc in it), and we need RNN’s
 sequence length to be 3.</p>
 <p>1. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &gt;= <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> and <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> is divided by <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> :
-e.g. <code class="docutils literal notranslate"><span class="pre">unroll_len=3</span></code>, the data will be arranged as <img class="math" src="../_images/math/19d9bf399342146fe83aa4d9ad92184d643dbc5c.svg" alt="[[x_1,x_2,x_3],[x_4,x_5,x_6]]"/>.</p>
+e.g. <code class="docutils literal notranslate"><span class="pre">unroll_len=3</span></code>, the data will be arranged as <span class="math notranslate nohighlight">\([[x_1,x_2,x_3],[x_4,x_5,x_6]]\)</span>.</p>
 <p>2. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &gt;= <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> and <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code> is not divided by <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> :
 residual data will be filled by last sample by default, e.g. if <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> and <code class="docutils literal notranslate"><span class="pre">unroll_len=4</span></code> , the data will be arranged as
-<img class="math" src="../_images/math/34e0915de3abd37670685b46da4970596c333fab.svg" alt="[[x_1,x_2,x_3,x_4],[x_3,x_4,x_5,x_6]]"/>.</p>
+<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4],[x_3,x_4,x_5,x_6]]\)</span>.</p>
 <p>3. <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> &lt; <code class="docutils literal notranslate"><span class="pre">unroll_len</span></code>: e.g. if <code class="docutils literal notranslate"><span class="pre">n_sample=6</span></code> and <code class="docutils literal notranslate"><span class="pre">unroll_len=7</span></code>, by default, alg. use <code class="docutils literal notranslate"><span class="pre">null_padding</span></code> method, the data will be arranged as
-<img class="math" src="../_images/math/6caabf7600f37f179244bde3ad56a6d77e8de4f6.svg" alt="[[x_1,x_2,x_3,x_4,x_5,x_6,x_{null}]]"/>.  <img class="math" src="../_images/math/c45f86343e7f0d2758391fe6964fd83bca0e68cb.svg" alt="x_{null}"/> is similar to <img class="math" src="../_images/math/876dda13427f206b8ea52e00897c1f43e4c28a12.svg" alt="x_6"/> but its <code class="docutils literal notranslate"><span class="pre">done=True</span></code> and <code class="docutils literal notranslate"><span class="pre">reward=0</span></code>.</p>
+<span class="math notranslate nohighlight">\([[x_1,x_2,x_3,x_4,x_5,x_6,x_{null}]]\)</span>.  <span class="math notranslate nohighlight">\(x_{null}\)</span> is similar to <span class="math notranslate nohighlight">\(x_6\)</span> but its <code class="docutils literal notranslate"><span class="pre">done=True</span></code> and <code class="docutils literal notranslate"><span class="pre">reward=0</span></code>.</p>
 <p>Here, taking the r2d2 algorithm as an example, in r2d2, in method <code class="docutils literal notranslate"><span class="pre">_get_train_sample</span></code> it calls the function
 <code class="docutils literal notranslate"><span class="pre">get_nstep_return_data</span></code> and  <code class="docutils literal notranslate"><span class="pre">get_train_sample</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_get_train_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>

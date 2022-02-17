@@ -25,6 +25,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -192,7 +193,7 @@ SQIL and SQL can be easily generalised to continuous action spaces</p>
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>SQL considers a more general maximum entropy policy, such that the optimal policy aims to maximize its entropy at each visited state:</p>
 <img alt="../_images/policy_sqil_2.png" src="../_images/policy_sqil_2.png" />
-<p>where <img class="math" src="../_images/math/55d07b9e359e0a564a414b092a5a7db12896fa56.svg" alt="{\alpha}"/>   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, <img class="math" src="../_images/math/55d07b9e359e0a564a414b092a5a7db12896fa56.svg" alt="{\alpha}"/>  is a hyperparameter that has to be tuned (This is not a parameter to learn).</p>
+<p>where <span class="math notranslate nohighlight">\({\alpha}\)</span>   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, <span class="math notranslate nohighlight">\({\alpha}\)</span>  is a hyperparameter that has to be tuned (This is not a parameter to learn).</p>
 <p>With respect to discrete action spaces, one can write down the Bellman’s equation for action-value function:</p>
 <img alt="../_images/Q_sqil.png" src="../_images/Q_sqil.png" />
 <p>Therefore, the value function is given by:</p>
