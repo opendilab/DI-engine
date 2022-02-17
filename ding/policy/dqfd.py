@@ -136,8 +136,9 @@ class DQFDPolicy(DQNPolicy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
-        # self._optimizer = torch.optim.AdamW(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)  # alternative optimizer
+        # two optimizers: the performance of adamW is better than adam, so we recommend using the adamW.
+        self._optimizer = torch.optim.AdamW(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
+        # self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
