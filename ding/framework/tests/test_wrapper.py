@@ -3,7 +3,7 @@
 # Wrapper in wrapper
 
 import pytest
-from ding.framework.task import Task
+from ding.framework import task
 from ding.framework.wrapper import StepTimer
 
 
@@ -24,7 +24,7 @@ def test_step_timer():
 
     # Lazy mode (with use statment)
     step_timer = StepTimer()
-    with Task() as task:
+    with task.start(async_mode=True):
         task.use_step_wrapper(step_timer)
         task.use(step1)
         task.use(step2)
@@ -37,7 +37,7 @@ def test_step_timer():
 
     # Eager mode (with forward statment)
     step_timer = StepTimer()
-    with Task() as task:
+    with task.start():
         task.use_step_wrapper(step_timer)
         for _ in range(3):
             task.forward(step1)  # Step 1
@@ -51,7 +51,7 @@ def test_step_timer():
     # Wrapper in wrapper
     step_timer1 = StepTimer()
     step_timer2 = StepTimer()
-    with Task() as task:
+    with task.start():
         task.use_step_wrapper(step_timer1)
         task.use_step_wrapper(step_timer2)
         task.use(step1)

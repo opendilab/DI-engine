@@ -3,8 +3,8 @@ import copy
 from easydict import EasyDict
 import numpy as np
 
-from ding.worker.buffer import DequeBuffer
-from ding.worker.buffer.middleware import use_time_check, PriorityExperienceReplay
+from ding.data.buffer import DequeBuffer
+from ding.data.buffer.middleware import use_time_check, PriorityExperienceReplay
 from ding.utils import BUFFER_REGISTRY
 
 
@@ -61,7 +61,7 @@ class DequeBufferWrapper(object):
             self.last_sample_index = None
             self.last_sample_meta = None
 
-    def sample(self, size: int, train_iter: int):
+    def sample(self, size: int, train_iter: int = 0):
         output = self.buffer.sample(size=size, ignore_insufficient=True)
         if len(output) > 0:
             if self.last_log_train_iter == -1 or train_iter - self.last_log_train_iter >= self.cfg.train_iter_per_log:
@@ -78,6 +78,7 @@ class DequeBufferWrapper(object):
                     self.tb_logger.add_scalar('{}/priority_avg'.format(self.name), priority_avg, train_iter)
                     self.tb_logger.add_scalar('{}/priority_max'.format(self.name), priority_max, train_iter)
                 self.tb_logger.add_scalar('{}/buffer_data_count'.format(self.name), self.buffer.count(), train_iter)
+                self.last_log_train_iter = train_iter
 
             data = [o.data for o in output]
             if self.cfg.priority_IS_weight:

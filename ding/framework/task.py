@@ -38,6 +38,7 @@ def enable_async(func: Callable) -> Callable:
         if async_mode is None:
             async_mode = task.async_mode
         if async_mode:
+            assert not kwargs, "Should not use kwargs in async_mode, use position parameters, kwargs: {}".format(kwargs)
             t = task._async_loop.run_in_executor(task._thread_pool, func, task, *args, **kwargs)
             task._async_stack.append(t)
             return task
@@ -53,20 +54,20 @@ class Task:
     and generate new context objects.
     """
 
-    def __init__(
+    def start(
             self,
             async_mode: bool = False,
             n_async_workers: int = 3,
-            middleware: Optional[List[Callable]] = None,
-            step_wrappers: Optional[List[Callable]] = None,
-            labels: Optional[Set[str]] = None,
-            **_
-    ) -> None:
+            ctx: Optional[Context] = None,
+            labels: Optional[Set[str]] = None
+    ) -> "Task":
+        # This flag can be modified by external or associated processes
         self._finish = False
-        self.middleware = middleware or []
-        self.step_wrappers = step_wrappers or []
-        self.ctx = Context()
-        self.parallel_ctx = Context()
+        # This flag can only be modified inside the class, it will be set to False in the end of stop
+        self._running = True
+        self.middleware = []
+        self.step_wrappers = []
+        self.ctx = ctx or Context()
         self._backward_stack = []
         # Bind event loop functions
         self._event_loop = EventLoop("task_{}".format(id(self)))
@@ -83,8 +84,7 @@ class Task:
         # Parallel segment
         self.router = Parallel()
         if async_mode or self.router.is_active:
-            self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
-            self._async_loop = asyncio.new_event_loop()
+            self._activate_async()
 
         if self.router.is_active:
 
@@ -94,6 +94,7 @@ class Task:
             self.on("finish", sync_finish)
 
         self.init_labels()
+        return self
 
     def init_labels(self):
         if self.async_mode:
@@ -147,6 +148,7 @@ class Task:
         Arguments:
             - max_step (:obj:`int`): Max step of iterations.
         """
+        assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if len(self.middleware) == 0:
             return
         for i in range(max_step):
@@ -172,6 +174,7 @@ class Task:
         Arguments:
             - fn (:obj:`Callable`): Function with contain the ctx argument in middleware.
         """
+        assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if not backward_stack:
             backward_stack = self._backward_stack
         if not ctx:
@@ -193,6 +196,7 @@ class Task:
         Overview:
             Execute the rest part of middleware, by the reversed order of registry.
         """
+        assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if not backward_stack:
             backward_stack = self._backward_stack
         while backward_stack:
@@ -213,6 +217,8 @@ class Task:
             - fn (:obj:`Callable`): Chain a sequence of middleware, wrap them into one middleware function.
         """
 
+        assert self.async_mode, "There is no need to use sequence when async_mode is False"
+
         def _sequence(ctx):
             backward_stack = []
             for fn in fns:
@@ -224,16 +230,36 @@ class Task:
         _sequence.__name__ = "sequence<{}>".format(name)
         return _sequence
 
+    def parallel(self, *fns: List[Callable]) -> Callable:
+        """
+        Overview:
+            Wrap functions and keep them run in parallel, should not use this funciton in async mode.
+        Arguments:
+            - fn (:obj:`Callable`): Parallelized middleware, wrap them into one middleware function.
+        """
+        assert not self.async_mode, "There is no need to use sequence when async_mode is True"
+        self._activate_async()
+
+        def _parallel(ctx):
+            backward_stack = []
+            for fn in fns:
+                self.forward(fn, ctx, backward_stack, async_mode=True)
+            self.sync()
+            yield
+            self.backward(backward_stack, async_mode=True)
+            self.sync()
+
+        name = ",".join([fn.__name__ for fn in fns])
+        _parallel.__name__ = "parallel<{}>".format(name)
+        return _parallel
+
     def renew(self) -> 'Task':
         """
         Overview:
             Renew the context instance, this function should be called after backward in the end of iteration.
         """
-        # Renew context
-        old_ctx = self.ctx
-        new_ctx = old_ctx.renew()
-        new_ctx.total_step = old_ctx.total_step + 1
-        self.ctx = new_ctx
+        assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
+        self.ctx = self.ctx.renew()
         return self
 
     def __enter__(self) -> "Task":
@@ -250,15 +276,17 @@ class Task:
         if self._thread_pool:
             self._thread_pool.shutdown()
         self._event_loop.stop()
-        if self._async_loop:
-            self._async_loop.close()
         self.router.off(self._wrap_event_name("*"))
+        if self._async_loop:
+            self._async_loop.stop()
+            self._async_loop.close()
         # The middleware and listeners may contain some methods that reference to task,
         # If we do not clear them after the task exits, we may find that gc will not clean up the task object.
         self.middleware.clear()
         self.step_wrappers.clear()
         self._backward_stack.clear()
         self._async_stack.clear()
+        self._running = False
 
     def sync(self) -> 'Task':
         if self._async_loop:
@@ -302,6 +330,7 @@ class Task:
             - args (:obj:`any`): Rest arguments for listeners.
         """
         # Check if need to broadcast event to connected nodes, default is True
+        assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if only_local:
             self._event_loop.emit(event, *args, **kwargs)
         elif only_remote:
@@ -357,6 +386,7 @@ class Task:
             - timeout (:obj:`float`): Timeout in seconds.
             - ignore_timeout_exception (:obj:`bool`): If this is False, an exception will occur when meeting timeout.
         """
+        assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         received = False
         result = None
 
@@ -378,9 +408,6 @@ class Task:
         else:
             raise TimeoutError("Timeout when waiting for event: {}".format(event))
 
-    def __copy__(self):
-        return Task(**self.__dict__)
-
     @property
     def finish(self):
         return self._finish
@@ -399,3 +426,12 @@ class Task:
             - event (:obj:`str`): Event name
         """
         return "task.{}".format(event)
+
+    def _activate_async(self):
+        if not self._thread_pool:
+            self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=self.n_async_workers)
+        if not self._async_loop:
+            self._async_loop = asyncio.new_event_loop()
+
+
+task = Task()

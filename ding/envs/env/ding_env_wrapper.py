@@ -78,7 +78,7 @@ class DingEnvWrapper(BaseEnv):
         np.random.seed(self._seed)
 
     # override
-    def step(self, action: np.ndarray) -> BaseEnvTimestep:
+    def step(self, action: Union[np.int64, np.ndarray]) -> BaseEnvTimestep:
         action = self._judge_action_type(action)
         obs, rew, done, info = self._env.step(action)
         obs = to_ndarray(obs).astype(np.float32)

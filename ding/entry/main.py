@@ -9,13 +9,13 @@ from ding.config import compile_config
 from ding.policy import SACPolicy
 
 from ding.framework.middleware import basic_collector, basic_evaluator, basic_learner
-from ding.framework import Task
+from ding.framework import task
 from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
 from ding.worker.buffer import DequeBuffer
 
 
 def main(cfg, model):
-    with Task(async_mode=False) as task:
+    with task.start(async_mode=False):
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
 
         collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)

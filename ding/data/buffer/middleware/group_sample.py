@@ -1,6 +1,6 @@
 import random
 from typing import Callable, List
-from ding.worker.buffer.buffer import BufferedData
+from ding.data.buffer.buffer import BufferedData
 
 
 def group_sample(size_in_group: int, ordered_in_group: bool = True, max_use_in_group: bool = True) -> Callable:

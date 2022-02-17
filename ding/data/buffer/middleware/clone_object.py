@@ -1,6 +1,6 @@
 from typing import Callable, Any, List, Union
-from ding.worker.buffer import BufferedData
-from ding.worker.buffer.utils import fastcopy
+from ding.data.buffer import BufferedData
+from ding.utils import fastcopy
 
 
 def clone_object():

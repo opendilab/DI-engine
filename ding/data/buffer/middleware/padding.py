@@ -1,8 +1,8 @@
 import random
 from typing import Callable, Union, List
 
-from ding.worker.buffer import BufferedData
-from ding.worker.buffer.utils import fastcopy
+from ding.data.buffer import BufferedData
+from ding.utils import fastcopy
 
 
 def padding(policy="random"):

@@ -2,6 +2,7 @@ from collections.abc import Sequence, Mapping
 from typing import List, Dict, Union, Any
 
 import torch
+import treetensor.torch as ttorch
 import re
 from torch._six import string_classes
 import collections.abc as container_abcs
@@ -63,6 +64,12 @@ def default_collate(batch: Sequence,
             # return torch.stack(batch, 0, out=out)
         else:
             return torch.stack(batch, 0, out=out)
+    elif isinstance(elem, ttorch.Tensor):
+        ret = ttorch.stack(batch).json()
+        for k in ret:
+            if len(ret[k].shape) == 2 and ret[k].shape[1] == 1:  # reshape (B, 1) -> (B)
+                ret[k] = ret[k].squeeze(1)
+        return ret
     elif elem_type.__module__ == 'numpy' and elem_type.__name__ != 'str_' \
             and elem_type.__name__ != 'string_':
         if elem_type.__name__ == 'ndarray':

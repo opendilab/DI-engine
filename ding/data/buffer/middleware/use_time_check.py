@@ -1,6 +1,6 @@
 from collections import defaultdict
 from typing import Callable, Any, List, Optional, Union
-from ding.worker.buffer import BufferedData
+from ding.data.buffer import BufferedData
 
 
 def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable:  # noqa

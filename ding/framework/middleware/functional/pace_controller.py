@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Callable
 import time
 import math
+from ding.framework import task
 if TYPE_CHECKING:
-    from ding.framework import Task, Context
+    from ding.framework import Context
 
 
 def pace_controller(
-        task: "Task",
         theme: str = "",
         identity: str = "",
         timeout: float = math.inf,

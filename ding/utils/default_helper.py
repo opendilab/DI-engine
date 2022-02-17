@@ -1,7 +1,7 @@
+from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any, Dict
 import copy
 import logging
 import random
-from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 from functools import lru_cache  # in python3.9, we can change to cache
 import numpy as np
 import torch
@@ -546,3 +546,17 @@ class RunningMeanStd(object):
             obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
         """
         return obs_shape, act_shape, rew_shape
+
+
+def make_key_as_identifier(data: Dict[str, Any]) -> Dict[str, Any]:
+
+    def legalization(s: str) -> str:
+        if s[0].isdigit():
+            s = '_' + s
+        return s.replace('.', '_')
+
+    new_data = {}
+    for k in data:
+        new_k = legalization(k)
+        new_data[new_k] = data[k]
+    return new_data

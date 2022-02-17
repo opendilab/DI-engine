@@ -1,17 +1,14 @@
 import pytest
-import unittest
-from unittest import mock
-from unittest.mock import patch
 import math
 import time
-from typing import Callable
 
-from ding.framework import Task, Context
+from ding.framework import task, Context
 from ding.framework import Parallel
-from ding.framework.middleware import pace_controller
+from ding.framework.middleware.functional.pace_controller import pace_controller
 
 
-def fn(task: "Task", delay: float = 0.3):
+def fn(delay: float = 0.3):
+    time.sleep(0.5)
 
     def _fn(ctx: "Context"):
         time.sleep(delay)
@@ -29,7 +26,7 @@ def delay_fn():
 
 
 def parallel_main(theme: str = "", timeout: float = math.inf, identity_num: int = 1):
-    with Task(async_mode=True) as task:
+    with task.start(async_mode=True):
         max_step = 10
 
         def _listen_to_finish(value):
@@ -48,18 +45,18 @@ def parallel_main(theme: str = "", timeout: float = math.inf, identity_num: int 
                 identity = "0"
 
         if task.router.node_id > 0:
-            task.use(task.sequence(delay_fn(), pace_controller(task, theme=theme, identity=identity, timeout=timeout)))
-            task.use(fn(task))
+            task.use(task.sequence(delay_fn(), pace_controller(theme=theme, identity=identity, timeout=timeout)))
+            task.use(fn())
         else:
-            task.use(task.sequence(delay_fn(), pace_controller(task, theme=theme, identity=identity, timeout=timeout)))
-            task.use(fn(task, delay=0.02))
+            task.use(task.sequence(delay_fn(), pace_controller(theme=theme, identity=identity, timeout=timeout)))
+            task.use(fn(delay=0.02))
         task.run(max_step=max_step)
 
 
 def main():
-    with Task(async_mode=True) as task:
+    with task.start(async_mode=True):
         assert not task.router.is_active
-        task.use(pace_controller(task, timeout=1))
+        task.use(pace_controller(timeout=1))
         task.run(max_step=10)
 
 

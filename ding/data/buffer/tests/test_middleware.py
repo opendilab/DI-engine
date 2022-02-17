@@ -1,9 +1,9 @@
 import pytest
 import torch
-from ding.worker.buffer import DequeBuffer
-from ding.worker.buffer.middleware import clone_object, use_time_check, staleness_check
-from ding.worker.buffer.middleware import PriorityExperienceReplay, group_sample
-from ding.worker.buffer.middleware.padding import padding
+from ding.data.buffer import DequeBuffer
+from ding.data.buffer.middleware import clone_object, use_time_check, staleness_check
+from ding.data.buffer.middleware import PriorityExperienceReplay, group_sample
+from ding.data.buffer.middleware.padding import padding
 
 
 @pytest.mark.unittest

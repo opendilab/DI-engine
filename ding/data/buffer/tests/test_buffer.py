@@ -2,8 +2,8 @@ import pytest
 import time
 import random
 from typing import Callable
-from ding.worker.buffer import DequeBuffer
-from ding.worker.buffer.buffer import BufferedData
+from ding.data.buffer import DequeBuffer
+from ding.data.buffer.buffer import BufferedData
 from torch.utils.data import DataLoader
 
 

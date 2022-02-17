@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Union, Callable
 import copy
 from dataclasses import dataclass
 from functools import wraps
+from ding.utils import fastcopy
 
 
 def apply_middleware(func_name: str):
@@ -42,6 +43,14 @@ class BufferedData:
     data: Any
     index: str
     meta: dict
+
+
+# Register new dispatcher on fastcopy to avoid circular references
+def _copy_buffereddata(d: BufferedData) -> BufferedData:
+    return BufferedData(data=fastcopy.copy(d.data), index=d.index, meta=fastcopy.copy(d.meta))
+
+
+fastcopy.dispatch[BufferedData] = _copy_buffereddata
 
 
 class Buffer:

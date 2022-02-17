@@ -2,7 +2,7 @@ from typing import Callable, Any, List, Dict, Optional, Union
 import copy
 import numpy as np
 from ding.utils import SumSegmentTree, MinSegmentTree
-from ding.worker.buffer.buffer import BufferedData
+from ding.data.buffer.buffer import BufferedData
 
 
 class PriorityExperienceReplay:

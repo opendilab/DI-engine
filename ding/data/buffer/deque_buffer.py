@@ -4,9 +4,8 @@ import uuid
 import logging
 from typing import Any, Iterable, List, Optional, Tuple, Union
 from collections import defaultdict, deque, OrderedDict
-
-from ding.worker.buffer import Buffer, apply_middleware, BufferedData
-from ding.worker.buffer.utils import fastcopy
+from ding.data.buffer import Buffer, apply_middleware, BufferedData
+from ding.utils import fastcopy
 
 
 class BufferIndex():
