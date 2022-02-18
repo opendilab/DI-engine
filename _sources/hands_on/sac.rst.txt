@@ -3,17 +3,24 @@ SAC
 
 Overview
 ---------
-Soft actor-critic (SAC) is an off-policy maximum entropy actor-critic algorithm, which is proposed in the 2018 paper `Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_
+Soft actor-critic (SAC) is a stable and efficient model-free off-policy maximum entropy actor-critic algorithm for
+continuous state and action spaces, which is proposed in the 2018 paper `Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_.
+The augmented entropy objective of the policy brings a number of conceptual and practical
+advantages including a more powerful exploration and the ability of the policy to capture multiple modes of near optimal
+behavior. The authors also showed that this method by combining off-policy
+updates with a stable stochastic actor-critic formulation, achieves state-of-the-art performance on a range of continuous control benchmark tasks, outperforming prior on-policy and
+off-policy methods.
+
 
 Quick Facts
 -----------
 1. SAC is implemented for environments with **continuous** action spaces.(i.e. MuJoCo, Pendulum, and LunarLander)
 
-2. SAC is an **off-policy** and **model-free** algorithm, combined with replay buffer start size for policy exploration.
+2. SAC is an **off-policy** and **model-free** algorithm, combined with non-empty replay buffer for policy exploration.
 
 3. SAC is a **actor-critic** RL algorithm, which optimizes actor network and critic network, respectively,
 
-4. SAC is implemented for  **multi-continuous** action space.
+4. SAC is also implemented for **multi-continuous** action space.
 
 Key Equations or Key Graphs
 ---------------------------
@@ -23,15 +30,24 @@ SAC considers a more general maximum entropy objective, which favors stochastic 
     J(\pi)=\sum_{t=0}^{T} \mathbb{E}_{\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right) \sim \rho_{\pi}}\left[r\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right)+\alpha \mathcal{H}\left(\pi\left(\cdot \mid \mathbf{s}_{t}\right)\right)\right].
 
 The temperature parameters :math:`\alpha > 0` controls the stochasticity of the optimal policy.
+
 `Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_ considers a parameterized state value function, soft Q-function, and a tractable policy.
-Specifically, the value functions are modeled as expressive neural networks, and the policy as a Gaussian with mean and covariance given by neural networks.
-In particular, SAC applys the reparameterization trick instead of directly minimizing the expected KL-divergence for policy parameters as
+Specifically, the value function and the soft Q-function are modeled as expressive neural networks, and the policy as a Gaussian with mean and covariance given by neural networks.
+In particular, SAC applies the reparameterization trick instead of directly minimizing the expected KL-divergence for policy parameters as
 
 .. math::
     J_{\pi}(\phi)=\mathbb{E}_{\mathbf{s}_{t} \sim \mathcal{D}, \epsilon_{t} \sim \mathcal{N}}\left[\log \pi_{\phi}\left(f_{\phi}\left(\epsilon_{t} ; \mathbf{s}_{t}\right) \mid \mathbf{s}_{t}\right)-Q_{\theta}\left(\mathbf{s}_{t}, f_{\phi}\left(\epsilon_{t} ; \mathbf{s}_{t}\right)\right)\right]
 
+We implement reparameterization trick through configuring ``learn.reparameterization``.
+
 .. note::
    Compared with the vanilla version modeling state value function and soft Q-function, our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
+
+.. note::
+`Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_ considers a parameterized state value function, soft Q-function, and a tractable policy.
+Our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
+We configure ``model.value_network``, ``model.twin_q``, and ``learn.learning_rate_value`` to switch implementation version.
+
 
 Pseudocode
 ----------
@@ -95,16 +111,6 @@ SAC can be combined with:
         Extensive experiments conducted by `Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_ demonstrate Soft actor-critic is sensitive to reward scaling since it is related to the temperature of the optimal policy. The optimal reward scale varies between environments, and should be tuned for each task separately.
         Since we implement auto alpha strategy depending on maximum entropy through configuring ``learn.is_auto_alpha`` and ``learn.alpha``.
 
-    - Critic network(state value function and soft Q function)
-
-        `Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_ considers a parameterized state value function, soft Q-function, and a tractable policy.
-        Our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
-        We configure ``model.value_network``, ``model.twin_q``, and ``learn.learning_rate_value`` to switch implementation version.
-
-    - Reparameterization trick for tractable policy
-
-        `Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_  applys the reparameterization trick instead of directly minimizing the expected KL-divergence for policy parameters.
-        We implement reparameterization trick through configuring ``learn.reparameterization``.
 
 Implementation
 ---------------------------------
@@ -185,17 +191,25 @@ Entropy-Regularized Reinforcement Learning as follows:
 
         # target q value. SARSA: first predict next action, then calculate next q value
         with torch.no_grad():
-            next_data = {'obs': next_obs}
-            next_action = self._learn_model.forward(data['obs'], mode='compute_actor', deterministic_eval=False)
-            next_data['action'] = next_action['action']
-            next_data['log_prob'] = next_action['log_prob']
+            (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
+
+            dist = Independent(Normal(mu, sigma), 1)
+            pred = dist.rsample()
+            next_action = torch.tanh(pred)
+            y = 1 - next_action.pow(2) + 1e-6
+            # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
+            next_log_prob = dist.log_prob(pred).unsqueeze(-1)
+            next_log_prob = next_log_prob - torch.log(y).sum(-1, keepdim=True)
+
+            next_data = {'obs': next_obs, 'action': next_action}
+            target_q_value = self._target_model.forward(next_data, mode='compute_critic')['q_value']
             # the value of a policy according to the maximum entropy objective
-            if self._twin_q:
+            if self._twin_critic:
                 # find min one as target q value
                 target_q_value = torch.min(target_q_value[0],
-                                           target_q_value[1]) - self._alpha * next_data['log_prob'].squeeze(-1)
+                                           target_q_value[1]) - self._alpha * next_log_prob.squeeze(-1)
             else:
-                target_q_value = target_q_value - self._alpha * next_data['log_prob'].squeeze(-1)
+                target_q_value = target_q_value - self._alpha * next_log_prob.squeeze(-1)
 
     Soft Q value network update.
 
@@ -227,11 +241,9 @@ Entropy-Regularized Reinforcement Learning as follows:
     .. code-block:: python
 
         # compute policy loss
-        if not self._reparameterization:
-            target_log_policy = new_q_value - v_value
-            policy_loss = (log_prob * (log_prob - target_log_policy.unsqueeze(-1))).mean()
-        else:
-            policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
+        policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
+
+        loss_dict['policy_loss'] = policy_loss
 
         # update policy network
         self._optimizer_policy.zero_grad()
@@ -270,7 +282,40 @@ Auto alpha strategy
             self._alpha_optim.step()
             self._alpha = self._log_alpha.detach().exp()
 
-The Benchmark result of SAC implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
+
+Benchmark
+-----------
+
+
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+| environment         |best mean reward | evaluation results                                  | config link              | comparison           |
++=====================+=================+=====================================================+==========================+======================+
+|                     |                 |                                                     |`config_link_ha <https:// | Spinning Up (13000)  |
+|                     |                 |                                                     |github.com/opendilab/     |                      |
+|                     |                 |                                                     |DI-engine/blob/main/dizoo/| SB3(9535)            |
+|Halfcheetah          |  12900          |.. image:: images/benchmark/halfcheetah_sac.png      |mujoco/config/halfcheetah_|                      |
+|                     |                 |                                                     |sac_default_config.py>`_  | Tianshou(12138)      |
+|(Halfcheetah-v3)     |                 |                                                     |                          |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_w <https://  | Spinning Up (5300)   |
+|                     |                 |                                                     |github.com/opendilab/     |                      |
+|Walker2d             |                 |                                                     |DI-engine/blob/main/dizoo/| SB3(3863)            |
+|                     |  5172           |.. image:: images/benchmark/walker2d_sac.png         |mujoco/config/walker2d_   |                      |
+|(Walker2d-v2)        |                 |                                                     |sac_default_config.py>`_  | Tianshou(5007)       |
+|                     |                 |                                                     |                          |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_ho <https:// | Spinning Up (3500)   |
+|                     |                 |                                                     |github.com/opendilab/     |                      |
+|Hopper               |                 |                                                     |DI-engine/blob/main/dizoo/| SB3(2325)            |
+|                     |  3653           |.. image:: images/benchmark/hopper_sac.png           |mujoco/config/hopper_sac_ |                      |
+|(Hopper-v2)          |                 |                                                     |default_config.py>`_      | Tianshou(3542)       |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+
+Reference
+---------
+- Haarnoja, et al. Soft Actor-Critic Algorithms and Applications. [https://arxiv.org/abs/1812.05905 arXiv:1812.05905], 2019.
+
+- Haarnoja, et al. Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor. [https://arxiv.org/abs/1801.01290 arXiv:1801.01290], 2018.
 
 Other Public Implementations
 ----------------------------

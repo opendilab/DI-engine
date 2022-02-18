@@ -174,15 +174,21 @@
 <h1>SAC<a class="headerlink" href="#sac" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>Soft actor-critic (SAC) is an off-policy maximum entropy actor-critic algorithm, which is proposed in the 2018 paper <a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a></p>
+<p>Soft actor-critic (SAC) is a stable and efficient model-free off-policy maximum entropy actor-critic algorithm for
+continuous state and action spaces, which is proposed in the 2018 paper <a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a>.
+The augmented entropy objective of the policy brings a number of conceptual and practical
+advantages including a more powerful exploration and the ability of the policy to capture multiple modes of near optimal
+behavior. The authors also showed that this method by combining off-policy
+updates with a stable stochastic actor-critic formulation, achieves state-of-the-art performance on a range of continuous control benchmark tasks, outperforming prior on-policy and
+off-policy methods.</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SAC is implemented for environments with <strong>continuous</strong> action spaces.(i.e. MuJoCo, Pendulum, and LunarLander)</p></li>
-<li><p>SAC is an <strong>off-policy</strong> and <strong>model-free</strong> algorithm, combined with replay buffer start size for policy exploration.</p></li>
+<li><p>SAC is an <strong>off-policy</strong> and <strong>model-free</strong> algorithm, combined with non-empty replay buffer for policy exploration.</p></li>
 <li><p>SAC is a <strong>actor-critic</strong> RL algorithm, which optimizes actor network and critic network, respectively,</p></li>
-<li><p>SAC is implemented for  <strong>multi-continuous</strong> action space.</p></li>
+<li><p>SAC is also implemented for <strong>multi-continuous</strong> action space.</p></li>
 </ol>
 </div>
 <div class="section" id="key-equations-or-key-graphs">
@@ -190,16 +196,20 @@
 <p>SAC considers a more general maximum entropy objective, which favors stochastic policies by augmenting the objective with the expected entropy of the policy:</p>
 <div class="math notranslate nohighlight">
 \[J(\pi)=\sum_{t=0}^{T} \mathbb{E}_{\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right) \sim \rho_{\pi}}\left[r\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right)+\alpha \mathcal{H}\left(\pi\left(\cdot \mid \mathbf{s}_{t}\right)\right)\right].\]</div>
-<p>The temperature parameters <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span> controls the stochasticity of the optimal policy.
-<a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> considers a parameterized state value function, soft Q-function, and a tractable policy.
-Specifically, the value functions are modeled as expressive neural networks, and the policy as a Gaussian with mean and covariance given by neural networks.
-In particular, SAC applys the reparameterization trick instead of directly minimizing the expected KL-divergence for policy parameters as</p>
+<p>The temperature parameters <span class="math notranslate nohighlight">\(\alpha &gt; 0\)</span> controls the stochasticity of the optimal policy.</p>
+<p><a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> considers a parameterized state value function, soft Q-function, and a tractable policy.
+Specifically, the value function and the soft Q-function are modeled as expressive neural networks, and the policy as a Gaussian with mean and covariance given by neural networks.
+In particular, SAC applies the reparameterization trick instead of directly minimizing the expected KL-divergence for policy parameters as</p>
 <div class="math notranslate nohighlight">
 \[J_{\pi}(\phi)=\mathbb{E}_{\mathbf{s}_{t} \sim \mathcal{D}, \epsilon_{t} \sim \mathcal{N}}\left[\log \pi_{\phi}\left(f_{\phi}\left(\epsilon_{t} ; \mathbf{s}_{t}\right) \mid \mathbf{s}_{t}\right)-Q_{\theta}\left(\mathbf{s}_{t}, f_{\phi}\left(\epsilon_{t} ; \mathbf{s}_{t}\right)\right)\right]\]</div>
+<p>We implement reparameterization trick through configuring <code class="docutils literal notranslate"><span class="pre">learn.reparameterization</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Compared with the vanilla version modeling state value function and soft Q-function, our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.</p>
 </div>
+<p><a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> considers a parameterized state value function, soft Q-function, and a tractable policy.
+Our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
+We configure <code class="docutils literal notranslate"><span class="pre">model.value_network</span></code>, <code class="docutils literal notranslate"><span class="pre">model.twin_q</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.learning_rate_value</span></code> to switch implementation version.</p>
 </div>
 <div class="section" id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
@@ -256,19 +266,6 @@ In particular, SAC applys the reparameterization trick instead of directly minim
 <div><p><a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a> proposes entropy coefficient <span class="math notranslate nohighlight">\(\alpha\)</span> used to determine the relative importance of entropy and reward.
 Extensive experiments conducted by <a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> demonstrate Soft actor-critic is sensitive to reward scaling since it is related to the temperature of the optimal policy. The optimal reward scale varies between environments, and should be tuned for each task separately.
 Since we implement auto alpha strategy depending on maximum entropy through configuring <code class="docutils literal notranslate"><span class="pre">learn.is_auto_alpha</span></code> and <code class="docutils literal notranslate"><span class="pre">learn.alpha</span></code>.</p>
-</div></blockquote>
-</li>
-<li><p>Critic network(state value function and soft Q function)</p>
-<blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> considers a parameterized state value function, soft Q-function, and a tractable policy.
-Our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
-We configure <code class="docutils literal notranslate"><span class="pre">model.value_network</span></code>, <code class="docutils literal notranslate"><span class="pre">model.twin_q</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.learning_rate_value</span></code> to switch implementation version.</p>
-</div></blockquote>
-</li>
-<li><p>Reparameterization trick for tractable policy</p>
-<blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a>  applys the reparameterization trick instead of directly minimizing the expected KL-divergence for policy parameters.
-We implement reparameterization trick through configuring <code class="docutils literal notranslate"><span class="pre">learn.reparameterization</span></code>.</p>
 </div></blockquote>
 </li>
 </ul>
@@ -666,17 +663,25 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 <div><p>Entropy in target q value.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># target q value. SARSA: first predict next action, then calculate next q value</span>
 <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-    <span class="n">next_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">next_obs</span><span class="p">}</span>
-    <span class="n">next_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="n">deterministic_eval</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">next_data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_action</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
-    <span class="n">next_data</span><span class="p">[</span><span class="s1">&#39;log_prob&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_action</span><span class="p">[</span><span class="s1">&#39;log_prob&#39;</span><span class="p">]</span>
+    <span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_obs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">Independent</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">()</span>
+    <span class="n">next_action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">next_action</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-6</span>
+    <span class="c1"># keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)</span>
+    <span class="n">next_log_prob</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">log_prob</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">next_log_prob</span> <span class="o">=</span> <span class="n">next_log_prob</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">next_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">next_obs</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">next_action</span><span class="p">}</span>
+    <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">next_data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
     <span class="c1"># the value of a policy according to the maximum entropy objective</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_q</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
         <span class="c1"># find min one as target q value</span>
         <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">target_q_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                                   <span class="n">target_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_data</span><span class="p">[</span><span class="s1">&#39;log_prob&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                                   <span class="n">target_q_value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_log_prob</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">target_q_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_data</span><span class="p">[</span><span class="s1">&#39;log_prob&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">target_q_value</span> <span class="o">=</span> <span class="n">target_q_value</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">next_log_prob</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Soft Q value network update.</p>
@@ -704,11 +709,9 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 </div>
 <p>Entropy in policy loss.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># compute policy loss</span>
-<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reparameterization</span><span class="p">:</span>
-    <span class="n">target_log_policy</span> <span class="o">=</span> <span class="n">new_q_value</span> <span class="o">-</span> <span class="n">v_value</span>
-    <span class="n">policy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">log_prob</span> <span class="o">*</span> <span class="p">(</span><span class="n">log_prob</span> <span class="o">-</span> <span class="n">target_log_policy</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="n">policy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">log_prob</span> <span class="o">-</span> <span class="n">new_q_value</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">policy_loss</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alpha</span> <span class="o">*</span> <span class="n">log_prob</span> <span class="o">-</span> <span class="n">new_q_value</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;policy_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">policy_loss</span>
 
 <span class="c1"># update policy network</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_policy</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
@@ -747,7 +750,71 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 </pre></div>
 </div>
 </div></blockquote>
-<p>The Benchmark result of SAC implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview.html">Benchmark</a></p>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Halfcheetah</p>
+<p>(Halfcheetah-v3)</p>
+</td>
+<td><p>12900</p></td>
+<td><img alt="../_images/halfcheetah_sac.png" src="../_images/halfcheetah_sac.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mujoco/config/halfcheetah_sac_default_config.py">config_link_ha</a></p></td>
+<td><p>Spinning Up (13000)</p>
+<p>SB3(9535)</p>
+<p>Tianshou(12138)</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Walker2d</p>
+<p>(Walker2d-v2)</p>
+</td>
+<td><p>5172</p></td>
+<td><img alt="../_images/walker2d_sac.png" src="../_images/walker2d_sac.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mujoco/config/walker2d_sac_default_config.py">config_link_w</a></p></td>
+<td><p>Spinning Up (5300)</p>
+<p>SB3(3863)</p>
+<p>Tianshou(5007)</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>Hopper</p>
+<p>(Hopper-v2)</p>
+</td>
+<td><p>3653</p></td>
+<td><img alt="../_images/hopper_sac.png" src="../_images/hopper_sac.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/mujoco/config/hopper_sac_default_config.py">config_link_ho</a></p></td>
+<td><p>Spinning Up (3500)</p>
+<p>SB3(2325)</p>
+<p>Tianshou(3542)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Haarnoja, et al. Soft Actor-Critic Algorithms and Applications. [<a class="reference external" href="https://arxiv.org/abs/1812.05905">https://arxiv.org/abs/1812.05905</a> arXiv:1812.05905], 2019.</p></li>
+<li><p>Haarnoja, et al. Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor. [<a class="reference external" href="https://arxiv.org/abs/1801.01290">https://arxiv.org/abs/1801.01290</a> arXiv:1801.01290], 2018.</p></li>
+</ul>
 </div>
 <div class="section" id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>

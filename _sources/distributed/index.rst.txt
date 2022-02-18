@@ -298,35 +298,31 @@ let us split it out and put it on other processes:
 
 .. code-block:: python
 
-    def evaluate(evaluator, model):
-        last_train_iter = -1
+    def evaluate(task, evaluator, model):
         def _evaluate(ctx):
-            ctx.setdefault("envstep", -1)  # Avoid attribute not existing
+            ctx.setdefault("env_step", -1)  # Avoid attribute not existing
             ctx.setdefault("train_iter", -1)
 
-            ### New code
-            if task.router.is_active:
-                nonlocal last_train_iter
-                while True:
-                    if ctx.finish:
-                        return
-                    if task.parallel_ctx.get("state_dict") and task.parallel_ctx.get("train_iter") > last_train_iter:
-                        model.load_state_dict(task.parallel_ctx.state_dict)
-                        ctx.train_iter = task.parallel_ctx.train_ter
-                        ctx.envstep = task.parallel_ctx.envstep
-                        last_train_iter = task.parallel_ctx.get("train_iter")
-                        break
-                    time.sleep(0.01)
-            ###
-
-            if evaluator.should_eval(ctx.train_iter):
-                stop, reward = evaluator.eval(None, ctx.train_iter, ctx.envstep)
-                if stop:
-                    ctx.finish = True  # Write finish state
+            ### Wait for new model
+            if ctx.train_iter > 0:
+                learn_output = task.wait_for("learn_output")[0][0]
+                ctx.train_iter, ctx.env_step = learn_output["train_iter"], learn_output["env_step"]
+                if not evaluator.should_eval(ctx.train_iter):
                     return
+                state_dict = learn_output.get("state_dict")
+                if not state_dict:
+                    return
+                model.load_state_dict(state_dict)
+            ###
+            if evaluator.should_eval(ctx.train_iter):
+                stop, reward = evaluator.eval(None, ctx.train_iter, ctx.env_step)
+                if stop:
+                    task.finish = True  # Write finish state
         return _evaluate
 
-    def train(task, learner, model, replay_buffer):
+    def train(task, learner, model, replay_buffer, cfg):
+        last_eval_iter = 0
+
         def _train(ctx):
             ctx.setdefault("envstep", -1)
             for i in range(cfg.policy.learn.update_per_collect):
@@ -335,13 +331,17 @@ let us split it out and put it on other processes:
                     learner.train(train_data, ctx.envstep)
                     ctx.train_iter = learner.train_iter
 
-                    ### New code
+                    ### Broadcast state dict
                     if task.router.is_active:
-                        ctx.state_dict = model.state_dict()
+                        nonlocal last_eval_iter
+                        if learner.train_iter - last_eval_iter >= cfg.policy.eval.evaluator.eval_freq:
+                            learn_output = {
+                                "env_step": ctx.env_step,
+                                "train_iter": learner.train_iter,
+                                "state_dict": model.state_dict()
+                            }
+                            task.emit("learn_output", learn_output)
                     ###
-
-            if ctx.finish:
-                learner.save_checkpoint()
 
         return _train
 
@@ -349,25 +349,36 @@ let us split it out and put it on other processes:
         ...
         # Seperate into different middleware
         with Task() as task:
-            task.use(evaluate(task, evaluator, model), filter_labels=["standalone", "node.1"])
-            task.use(collect(epsilon_greedy, collector, replay_buffer), filter_labels=["standalone", "node.0"])
-            task.use(train(task, learner, model, replay_buffer), filter_labels=["standalone", "node.0"])
+            if task.match_labels(["node.0"]):
+                task.use(collect(epsilon_greedy, collector, replay_buffer))
+                task.use(train(task, learner, model, replay_buffer, cfg))
+            else:
+                task.use(evaluate(task, evaluator, model))
+
             task.run(max_step=max_iteration)
 
     Parallel.runner(n_parallel_workers=2, topology="star")(main)
 
 The above mainly updated two parts of the code:
 
-The ``filter_labels`` parameter is added to ``task.use``. This is to determine which middleware should be executed on the corresponding hardware in distributed mode. \
-DI-engine will write ``standalone``, ``distributed``, ``async``, ``node.*`` by default. You can also pass in different labels through environment variables.
+Part of it is to use the ``task.match_labels`` method to determine which middleware to execute on the corresponding process in distributed mode, \
+DI-engine will write default labels such as ``standalone``, ``distributed``, ``async``, and ``node.*`` numbered in process order by default. \
+You can also pass in different tags through environment variables to distinguish. \
 
-The second part is to add two pieces of code to ``evaluate`` and ``train`` respectively. ``state_dict`` is written to ``ctx`` in train, \
-because in parallel mode we will send ``ctx`` as a message to other connected processes at the end of each loop ( Remember the topological?), \
-the ``ctx`` received by the other party will be written into the ``task.parallel_ctx`` object, so in the ``evaluate``, \
-just loop to check whether ``task.parallel_ctx`` is updated, if there is an update, load the ``state_dict`` sent within ``ctx``, \
-and according to The same ``should_eval`` condition of the stand-alone machine can be evaluated.
+The second part is to add two pieces of code to ``evaluate`` and ``train`` respectively. In ``train``, ``state_dict`` is broadcast to each process with ``task.emit``, \
+The evaluate process uses ``task.wait_for`` to wait for the broadcast event to update the model and take the next action.
 
-The result of this execution can completely avoid the time that ``evaluate`` takes up training, and in some environments, it can greatly speed up the training process.
+The result of this execution can completely avoid ``evaluate`` taking up the training time, and in some environments, it can greatly speed up the training process.
+
+.. note ::
+
+    1. It is necessary to briefly introduce the event system here. We have added ``emit``, ``on``, ``once``, ``wait_for`` and other event-related methods to ``task`` , \
+    in any middleware, if you want to send data or messages to the outside world, you can use the event system.\
+    And we connect the distributed system with the local event system in Parallel, so that events sent from process A can also be heard by process B. \
+    This way ensures code independence. A rough schematic is as follows:
+
+.. image:: images/event_system.png
+    :align: center
 
 .. toctree::
    :maxdepth: 1
