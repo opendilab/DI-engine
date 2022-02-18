@@ -9,6 +9,7 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHea
 
 @MODEL_REGISTRY.register('bc')
 class BC(nn.Module):
+
     def __init__(
             self,
             obs_shape: Union[int, SequenceType],

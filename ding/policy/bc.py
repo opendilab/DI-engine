@@ -19,6 +19,7 @@ from ding.utils import POLICY_REGISTRY
 
 @POLICY_REGISTRY.register('bc')
 class BehaviourCloningPolicy(Policy):
+
     def default_model(self) -> Tuple[str, List[str]]:
         return 'bc', ['ding.model.template.bc']
 

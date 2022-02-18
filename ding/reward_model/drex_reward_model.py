@@ -95,7 +95,7 @@ class DrexRewardModel(TrexRewardModel):
         step = np.random.randint(3, 7, size=num_trajs)
         for n in range(num_trajs):
             # pick two random demonstrations
-            bi, bj = np.random.choice(num_bins, size=(2,), replace=False)
+            bi, bj = np.random.choice(num_bins, size=(2, ), replace=False)
             ti = np.random.choice(len(self.created_data[bi]))
             tj = np.random.choice(len(self.created_data[bj]))
             # create random partial trajs by finding random start frame and random skip frame
@@ -112,7 +112,7 @@ class DrexRewardModel(TrexRewardModel):
         rand_length = np.random.randint(min_snippet_length, max_snippet_length, size=num_snippets)
         for n in range(num_snippets):
             # pick two random demonstrations
-            bi, bj = np.random.choice(num_bins, size=(2,), replace=False)
+            bi, bj = np.random.choice(num_bins, size=(2, ), replace=False)
             ti = np.random.choice(len(self.created_data[bi]))
             tj = np.random.choice(len(self.created_data[bj]))
             # create random snippets
@@ -204,4 +204,3 @@ class DrexRewardModel(TrexRewardModel):
         res = [torch.sum(default_collate(data[i])['reward']).item() for i in range(len(data))]
         pred_returns = [self.predict_traj_return(self.reward_model, obs[i]) for i in range(len(obs))]
         return {'real': res, 'pred': pred_returns}
-

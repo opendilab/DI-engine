@@ -19,16 +19,16 @@ from ding.utils.data import default_collate, offline_data_save_type
 
 
 def collect_episodic_demo_data_for_drex(
-        cfg: easydict,
-        seed: int,
-        collect_count: int,
-        rank: int,
-        save_cfg_path: str,
-        noise: float,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
-        state_dict_path: Optional[str] = None,
+    cfg: easydict,
+    seed: int,
+    collect_count: int,
+    rank: int,
+    save_cfg_path: str,
+    noise: float,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
+    state_dict_path: Optional[str] = None,
 ):
     r"""
     Overview:
@@ -163,8 +163,9 @@ def load_bc(load_path, cfg):
 
 def create_data_drex(bc_policy, cfg):
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(copy.deepcopy(cfg.env))
-    collector_env = create_env_manager(copy.deepcopy(cfg.env.manager),
-                                       [partial(env_fn, cfg=c) for c in collector_env_cfg])
+    collector_env = create_env_manager(
+        copy.deepcopy(cfg.env.manager), [partial(env_fn, cfg=c) for c in collector_env_cfg]
+    )
     collector = EpisodeSerialCollector(
         cfg.policy.collect.collector,
         env=collector_env,
@@ -195,9 +196,7 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
         cfg, create_cfg = read_config(args.cfg)
     else:
         cfg, create_cfg = deepcopy(args.cfg)
-    cfg = compile_config(
-        cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True
-    )
+    cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
     pre_expert_data = drex_generating_data(cfg)
     if 'bc_path' in cfg.reward_model and os.path.exists(cfg.reward_model.bc_path):
         bc_policy = load_bc(cfg.reward_model.bc_path, cfg)
@@ -206,9 +205,7 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
     created_data, created_data_returns = create_data_drex(bc_policy, cfg)
     offline_data_path = cfg.reward_model.offline_data_path
     offline_data_save_type(
-        created_data,
-        offline_data_path + '/created_data.pkl',
-        data_type=cfg.policy.collect.get('data_type', 'naive')
+        created_data, offline_data_path + '/created_data.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
 
     offline_data_save_type(
