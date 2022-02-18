@@ -164,6 +164,7 @@ def emit_remote_main():
             for _ in range(10):
                 task.emit("Greeting", "Hi", only_remote=True)
                 time.sleep(0.01)
+        time.sleep(0.3)  # Wait for event handler
         if task.router.node_id == 0:
             assert len(greets) > 5
         else:
@@ -228,7 +229,7 @@ def test_async_exception():
 
 def early_stop_main():
     with Task() as task:
-        task.use(lambda _: time.sleep(0.2))
+        task.use(lambda _: time.sleep(0.5))
         if task.match_labels("node.0"):
             task.run(max_step=10)
         else:
