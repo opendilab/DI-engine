@@ -1,7 +1,7 @@
 from collections import deque, defaultdict
+import logging
 from types import GeneratorType
 from typing import Callable
-from rich import print
 import numpy as np
 import time
 
@@ -37,7 +37,7 @@ class StepTimer:
                 time_cost = time.time() - start_time
             self.records[step_id].append(time_cost * 1000)
             if ctx.total_step % self.print_per_step == 0:
-                print(
+                logging.warning(
                     "[Step Timer] {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
                         step_name, time_cost * 1000, np.mean(self.records[step_id])
                     )

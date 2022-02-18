@@ -20,11 +20,12 @@ def serial_pipeline_reward_model_onpolicy(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry with reward model.
+        Serial pipeline entry with reward model.for on-policy RL
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -33,8 +34,8 @@ def serial_pipeline_reward_model_onpolicy(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -85,7 +86,8 @@ def serial_pipeline_reward_model_onpolicy(
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
-    for iter in range(max_iterations):
+    count = 0
+    while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -100,10 +102,10 @@ def serial_pipeline_reward_model_onpolicy(
             reward_model.collect_data(new_data)
         # update reward_model
         reward_model.train()
-        if iter % cfg.reward_model.clear_buffer_per_iters == 0:
+        if count % cfg.reward_model.clear_buffer_per_iters == 0:
             reward_model.clear_data()
         # Learn policy from collected data
-        for i in range(cfg.policy.learn.update_per_collect):  # 1
+        for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
             train_data = new_data
             if train_data is None:
@@ -119,9 +121,9 @@ def serial_pipeline_reward_model_onpolicy(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
+        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

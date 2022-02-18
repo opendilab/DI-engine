@@ -13,7 +13,7 @@ from ..common import RegressionHead, ReparameterizationHead, DiscreteHead, Multi
 class QAC(nn.Module):
     r"""
     Overview:
-        The QAC model.
+        The QAC network, which is used in DDPG/TD3/SAC.
     Interfaces:
         ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``
     """
@@ -34,23 +34,24 @@ class QAC(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the QAC Model according to arguments.
+            Initailize the QAC Model according to input arguments.
         Arguments:
-            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
-            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's space, such as 4, (3, ), \
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation's shape, such as 128, (156, ).
+            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action's shape, such as 4, (3, ), \
                 EasyDict({'action_type_shape': 3, 'action_args_shape': 4}).
-            - action_space (:obj:`str`): Whether choose ``regression`` or ``reparameterization`` or ``hybrid`` .
-            - twin_critic (:obj:`bool`): Whether include twin critic.
-            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn's ``Head``.
+            - action_space (:obj:`str`): The type of action space, \
+                including [``regression``, ``reparameterization``, ``hybrid``]
+            - twin_critic (:obj:`bool`): Whether to use twin critic, one of tricks in TD3.
+            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.
             - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
-                for actor's nn.
-            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn's ``Head``.
+                for actor head.
+            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic head.
             - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \
-                for critic's nn.
+                for critic head.
             - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \
-                after ``layer_fn``, if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`Optional[str]`): The type of normalization to use, \
-                see ``ding.torch_utils.netwrok`` for more details.
+                after each FC layer, if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer(FC, Conv), \
+                see ``ding.torch_utils.network`` for more details.
         """
         super(QAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)

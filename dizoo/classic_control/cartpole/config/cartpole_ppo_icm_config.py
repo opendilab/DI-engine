@@ -2,7 +2,7 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model
 
 cartpole_ppo_icm_config = dict(
-    exp_name='cartpole_ppo',
+    exp_name='cartpole_ppo_icm',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,

@@ -4,15 +4,14 @@ import torch
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
+from torch.utils.data import DataLoader
 
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer
 from ding.config import read_config, compile_config
-from ding.policy import create_policy, PolicyFactory
+from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.utils.data import create_dataset
-
-from torch.utils.data import DataLoader
 
 
 def serial_pipeline_offline(
@@ -20,6 +19,7 @@ def serial_pipeline_offline(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
+        max_train_iter: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -32,8 +32,7 @@ def serial_pipeline_offline(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -80,6 +79,8 @@ def serial_pipeline_offline(
                 if stop:
                     break
             learner.train(train_data)
+            if learner.train_iter >= max_train_iter:
+                stop = True
         if stop:
             break
 

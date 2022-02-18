@@ -21,9 +21,9 @@ class TD3Policy(DDPGPolicy):
     == ====================  ========    ==================  =================================   =======================
     ID Symbol                Type        Default Value       Description                         Other(Shape)
     == ====================  ========    ==================  =================================   =======================
-    1  ``type``              str         td3                 | RL policy register name, refer    | this arg is optional,
-                                                             | to registry ``POLICY_REGISTRY``   | a placeholder
-    2  ``cuda``              bool        True                | Whether to use cuda for network   |
+    1  | ``type``            str         td3                 | RL policy register name, refer    | this arg is optional,
+       |                                                     | to registry ``POLICY_REGISTRY``   | a placeholder
+    2  | ``cuda``            bool        False               | Whether to use cuda for network   |
     3  | ``random_``         int         25000               | Number of randomly collected      | Default to 25000 for
        | ``collect_size``                                    | training samples in replay        | DDPG/TD3, 10000 for
        |                                                     | buffer when training starts.      | sac.
@@ -51,12 +51,12 @@ class TD3Policy(DDPGPolicy):
        | ``ignore_done``                                     | done flag.                        | in halfcheetah env.
     11 | ``learn.-``         float       0.005               | Used for soft update of the       | aka. Interpolation
        | ``target_theta``                                    | target network.                   | factor in polyak aver
-       |                                                     |                                   | aging for target
+       |                                                     |                                   | -aging for target
        |                                                     |                                   | networks.
     12 | ``collect.-``       float       0.1                 | Used for add noise during co-     | Sample noise from dis
-       | ``noise_sigma``                                     | llection, through controlling     | tribution, Ornstein-
+       | ``noise_sigma``                                     | llection, through controlling     | -tribution, Ornstein-
        |                                                     | the sigma of distribution         | Uhlenbeck process in
-       |                                                     |                                   | DDPG paper, Guassian
+       |                                                     |                                   | DDPG paper, Gaussian
        |                                                     |                                   | process in ours.
     == ====================  ========    ==================  =================================   =======================
    """

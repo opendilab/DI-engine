@@ -85,7 +85,7 @@ setup(
             'pytest-forked~=1.3.0',
             'pytest-mock~=3.3.1',
             'pytest-rerunfailures~=9.1.1',
-            'pytest-timeouts~=1.2.1',
+            'pytest-timeouts~=1.2.1'
         ],
         'style': [
             'yapf==0.29.0',
