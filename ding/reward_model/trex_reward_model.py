@@ -196,7 +196,6 @@ class TrexRewardModel(BaseRewardModel):
         self._logger, self._tb_logger = build_logger(
             path='./{}/log/{}'.format(self.cfg.exp_name, 'trex_reward_model'), name='trex_reward_model'
         )
-        self.load_expert_data()
 
     def load_expert_data(self) -> None:
         """
@@ -290,6 +289,7 @@ class TrexRewardModel(BaseRewardModel):
         return self.training_obs, self.training_labels
 
     def train(self):
+        self.load_expert_data()
         # check if gpu available
         device = self.device  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # Assume that we are on a CUDA machine, then this should print a CUDA device:

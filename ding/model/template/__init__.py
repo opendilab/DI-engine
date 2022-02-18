@@ -3,6 +3,7 @@ from .q_learning import DQN, RainbowDQN, QRDQN, IQN, DRQN, C51DQN
 from .qac import QAC, DiscreteQAC
 from .pdqn import PDQN
 from .vac import VAC
+from .bc import BC
 # algorithm-specific
 from .ppg import PPG
 from .qmix import Mixer, QMix, CollaQ
