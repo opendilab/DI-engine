@@ -1,5 +1,5 @@
 from types import MethodType
-from typing import Union, Any, List, Callable, Dict, Optional
+from typing import Tuple, Union, Any, List, Callable, Dict, Optional
 from functools import partial, wraps
 from easydict import EasyDict
 import copy
@@ -106,6 +106,7 @@ class BaseEnvManager(object):
         self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn[0]()
+        self._env_ref.reset()
         self._observation_space = self._env_ref.observation_space
         self._action_space = self._env_ref.action_space
         self._reward_space = self._env_ref.reward_space
@@ -202,7 +203,8 @@ class BaseEnvManager(object):
         self._ready_obs = {i: None for i in range(self.env_num)}
         self._envs = [e() for e in self._env_fn]
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
-        self._env_ref = self._envs[0]
+        self._env_ref = self._envs[0]()
+        self._env_ref.reset()
         assert len(self._envs) == self._env_num
         self._reset_param = {i: {} for i in range(self.env_num)}
         self._env_states = {i: EnvState.INIT for i in range(self.env_num)}

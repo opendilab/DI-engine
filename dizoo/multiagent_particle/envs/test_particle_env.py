@@ -111,7 +111,8 @@ class TestCooperativeNavigation:
                 'n_agent': num_agent,
                 'num_landmarks': num_landmark,
                 'max_step': 100,
-                'discrete_action': False
+                'discrete_action': False,
+                'agent_obs_only': False
             }
         )
         env.seed = 2
