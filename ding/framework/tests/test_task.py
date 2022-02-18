@@ -1,11 +1,8 @@
 import pytest
 import time
 import random
-from mpire import WorkerPool
 from ding.framework import Task
-from ding.framework.context import Context
 from ding.framework.parallel import Parallel
-from ding.utils.design_helper import SingletonMetaclass
 
 
 @pytest.mark.unittest
@@ -152,20 +149,22 @@ def test_emit():
 
         task.use(step1)
         task.run(max_step=10)
+        time.sleep(0.1)
     assert len(greets) == 10
 
 
 def emit_remote_main():
     with Task() as task:
-        time.sleep(0.3)  # Wait for bound
         greets = []
         if task.router.node_id == 0:
             task.on("Greeting", lambda msg: greets.append(msg))
+            time.sleep(0.7)  # Wait for receiving messages
         else:
+            time.sleep(0.3)  # Wait for subscribing on node 0
             for _ in range(10):
-                task.emit("Greeting", "Hi")
-                time.sleep(0.1)
-        time.sleep(1.2)
+                task.emit("Greeting", "Hi", only_remote=True)
+                time.sleep(0.01)
+        time.sleep(0.3)  # Wait for event handler
         if task.router.node_id == 0:
             assert len(greets) > 5
         else:
@@ -230,7 +229,7 @@ def test_async_exception():
 
 def early_stop_main():
     with Task() as task:
-        task.use(lambda _: time.sleep(0.2))
+        task.use(lambda _: time.sleep(0.5))
         if task.match_labels("node.0"):
             task.run(max_step=10)
         else:
