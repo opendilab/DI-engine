@@ -3,17 +3,19 @@ import time
 import copy
 import pytest
 import numpy as np
+import gym
 from easydict import EasyDict
 from functools import partial
 
 from ding.worker import SampleSerialCollector, NaiveReplayBuffer
 from ding.envs import get_vec_env_setting, create_env_manager, AsyncSubprocessEnvManager, SyncSubprocessEnvManager,\
-    BaseEnvManager, get_env_manager_cls
+    BaseEnvManager, get_env_manager_cls, DingEnvWrapper
 from ding.utils import deep_merge_dicts, set_pkg_seed, pretty_print
 
 from ding.worker.collector.tests.speed_test.fake_policy import FakePolicy
 from ding.worker.collector.tests.speed_test.fake_env import FakeEnv
 
+n_sample = 80
 env_policy_cfg_dict = dict(
     # Small env and policy, such as Atari/Mujoco
     small=dict(
@@ -57,7 +59,47 @@ env_policy_cfg_dict = dict(
         ),
         policy=dict(forward_time=0.02)
     ),
+    # cartpole env
+    cartpole=dict(
+        size='cartpole',
+        env=dict(
+            collector_env_num=8,
+            stop_value=195,
+            reset_time=0.5,
+        ),
+        policy=dict(
+            cuda=False,
+            model=dict(
+                obs_shape=4,
+                action_shape=2,
+                encoder_hidden_size_list=[128, 128, 64],
+                dueling=True,
+            ),
+            collect=dict(
+                n_sample=n_sample,
+                collector=dict(collect_print_freq=1000000),
+            ),
+            other=dict(
+                eps=dict(
+                    type='exp',
+                    start=0.95,
+                    end=0.1,
+                    decay=10000,
+                ),
+                replay_buffer=dict(replay_buffer_size=20000, ),
+            ),
+        ),
+    )
 )
+
+
+def wrapped_cartpole_env():
+    return DingEnvWrapper(gym.make('CartPole-v0'))
+
+
+def wrapped_gym_cartpole_env():
+    return gym.make('CartPole-v0')
+
 
 # SLOW MODE: used in normal test
 #   - Repeat 3 times; Collect 300 times;
@@ -72,24 +114,22 @@ env_policy_cfg_dict = dict(
 FAST_MODE = True
 if FAST_MODE:
     # Note: 'base' takes approximately 6 times longer than 'subprocess'
-    test_env_manager_list = ['base', 'subprocess']
-    test_env_policy_cfg_dict = {'small': env_policy_cfg_dict['small']}
+    test_env_manager_list = ['base', 'subprocess', 'gym_vector']
+    test_env_policy_cfg_dict = {'small': env_policy_cfg_dict['small'], 'cartpole': env_policy_cfg_dict['cartpole']}
     env_reset_ratio_list = [1]
     repeat_times_per_test = 1
     collect_times_per_repeat = 50
-    n_sample = 80
 else:
-    test_env_manager_list = ['base', 'subprocess', 'sync_subprocess']
+    test_env_manager_list = ['base', 'subprocess', 'sync_subprocess', 'gym_vector']
     test_env_policy_cfg_dict = env_policy_cfg_dict
     env_reset_ratio_list = [1, 5]
     repeat_times_per_test = 3
     collect_times_per_repeat = 300
-    n_sample = 80
 
 
 def compare_test(cfg: EasyDict, seed: int, test_name: str) -> None:
     print('=' * 100 + '\nTest Name: {}\nCfg:'.format(test_name))
-    pretty_print(cfg)
+    # pretty_print(cfg)
 
     duration_list = []
     total_collected_sample = n_sample * collect_times_per_repeat
@@ -97,7 +137,13 @@ def compare_test(cfg: EasyDict, seed: int, test_name: str) -> None:
         # create collector_env
         collector_env_cfg = copy.deepcopy(cfg.env)
         collector_env_num = collector_env_cfg.collector_env_num
-        collector_env_fns = [partial(FakeEnv, cfg=collector_env_cfg) for _ in range(collector_env_num)]
+        if cfg.size == 'cartpole':
+            if cfg.env.manager.type == 'gym_vector':
+                collector_env_fns = [wrapped_gym_cartpole_env for _ in range(collector_env_num)]
+            else:
+                collector_env_fns = [wrapped_cartpole_env for _ in range(collector_env_num)]
+        else:
+            collector_env_fns = [partial(FakeEnv, cfg=collector_env_cfg) for _ in range(collector_env_num)]
 
         collector_env = create_env_manager(cfg.env.manager, collector_env_fns)
         collector_env.seed(seed)

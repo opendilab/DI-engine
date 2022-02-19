@@ -23,12 +23,16 @@ def env_sleep(duration):
 class FakeEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
-        self._obs_dim = cfg.get('obs_dim', 8)
+        self._obs_dim = cfg.get('obs_dim', 4)
         self._action_dim = cfg.get('action_dim', 2)
         self._episode_step_base = cfg.get('episode_step', 200)
         self._reset_time = cfg.get('reset_time', 0.)
         self._step_time = cfg.get('step_time', 0.)
         self.reset()
+        # gym attribute
+        self.metadata = {'render.modes': ['human', 'rgb_array'], 'video.frames_per_second': 1}
+        self.observation_space = gym.spaces.Box(-1, 1, (self._obs_dim, ))
+        self.action_space = gym.spaces.Discrete(self._action_dim)
 
     def reset(self) -> np.ndarray:
         if hasattr(self, '_seed'):
