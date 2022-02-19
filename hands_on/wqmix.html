@@ -1,0 +1,571 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>WQMIX &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>WQMIX</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/wqmix.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="wqmix">
+<h1>WQMIX<a class="headerlink" href="#wqmix" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>WQMIX was first proposed in <a class="reference external" href="https://arxiv.org/abs/2006.10800">Weighted QMIX: Expanding Monotonic Value Function Factorisation for Deep Multi-Agent Reinforcement Learning</a>.
+Their focus of study is the unique properties of the particular function space represented by monotonic structure of Q functions in QMIX,
+and the tradeoffs in representation quality across different joint actions induced by projection into that space.
+They show that the projection in QMIX can fail to recover the optimal policy,
+which primarily stems from the equal weighting placed on each joint action.
+WQMIX rectify this by introducing a weighting into the projection, in order to place more importance on the better joint actions.</p>
+<p>WQMIX propose two weighting schemes and prove that they recover the correct maximal action for any joint action Q-values.</p>
+<p>WQMIX introduce two scalable versions:
+Centrally-Weighted (CW) QMIX and Optimistically-Weighted (OW) QMIX and demonstrate improved performance on both predator-prey and challenging multi-agent StarCraft benchmark tasks.</p>
+</div>
+<div class="section" id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>WQMIX is an <strong>off-policy model-free value-based multi-agent</strong> RL algorithm using the paradigm of <strong>centralized training with decentralized execution</strong>.
+And only support <strong>discrete</strong> action spaces.</p></li>
+<li><p>WQMIX considers a <strong>partially observable</strong> scenario in which each agent only obtains individual observations.</p></li>
+<li><p>WQMIX accepts <strong>DRQN</strong> as individual value network.</p></li>
+<li><p>WQMIX represents the joint value function using an architecture consisting of agent networks and a <strong>mixing network</strong>.
+The mixing network is a feed-forward neural network that takes the agent network outputs as input and mixes them monotonically, producing joint action values.</p></li>
+</ol>
+</div>
+<div class="section" id="key-equations-or-key-graphs">
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<p>The overall WQMIX architecture including individual agent networks and the mixing network structure:</p>
+<a class="reference internal image-reference" href="../_images/wqmix_setup.png"><img alt="../_images/wqmix_setup.png" class="align-center" src="../_images/wqmix_setup.png" style="width: 735.6px; height: 232.79999999999998px;" /></a>
+<p>First, WQMIX examine an operator that represents an idealised version of QMIX in a tabular setting.
+The purpose of this analysis is primarily to understand the fundamental limitations of QMIX that stem from its training objective and the restricted function class it uses.
+This is the space of all <span class="math notranslate nohighlight">\(Q_{tot}\)</span> that can be represented by monotonic funtions of tabular <span class="math notranslate nohighlight">\(Q_{a}(s,u)\)</span> :</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{Q}^{m i x}:=\left\{Q_{t o t} \mid Q_{t o t}(s, \mathbf{u})=f_{s}\left(Q_{1}\left(s, u_{1}\right), \ldots Q_{n}\left(s, u_{n}\right)\right), \frac{\partial f_{s}}{\partial Q_{a}} \geq 0, Q_{a}(s, u) \in \mathbb{R}\right\}\]</div>
+<p>At each iteration of our idealised QMIX algorithm, we constrain <span class="math notranslate nohighlight">\(Q_{tot}\)</span> to lie in the above space by solving the following optimisation problem:</p>
+<div class="math notranslate nohighlight">
+\[\underset{q \in \mathcal{Q}^{m i x}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}}\left(\mathcal{T}^{*} Q_{t o t}(s, \mathbf{u})-q(s, \mathbf{u})\right)^{2}\]</div>
+<p>where, the Bellman optimality operator is defined by:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{T}^{*} Q(s, \mathbf{u}):=\mathbb{E}\left[r+\gamma \max _{\mathbf{u}^{\prime}} Q\left(s^{\prime}, \mathbf{u}^{\prime}\right)\right]\]</div>
+<p>Then define the corresponding projection operator <span class="math notranslate nohighlight">\(T^{Qmix}\)</span> as follows:</p>
+<div class="math notranslate nohighlight">
+\[\Pi_{\mathrm{Qmix}} Q:=\underset{q \in \mathcal{Q}^{\text {mix }}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}}(Q(s, \mathbf{u})-q(s, \mathbf{u}))^{2}\]</div>
+<p>Properties of <span class="math notranslate nohighlight">\(T_{*}^{Qmix}\)</span> :</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(T_{*}^{Qmix}\)</span> is not a contraction.</p></li>
+<li><p>QMIX’s argmax is not always correct.</p></li>
+<li><p>QMIX can underestimate the value of the optimal joint action.</p></li>
+</ul>
+<p>The WQMIX paper argues that this equal weighting over joint actions when performing the optimisation in QMIX.
+is responsible for the possibly incorrect argmax of the objective minimising solution.
+To prioritise estimating <span class="math notranslate nohighlight">\(T_{tot}(u^{*})\)</span> well, while still anchoring down the value estimates for other joint actions,
+we can add a suitable weighting function w into the projection operator of QMIX:</p>
+<div class="math notranslate nohighlight">
+\[\Pi_{w} Q:=\underset{q \in \mathcal{Q}^{\text {mix }}}{\operatorname{argmin}} \sum_{\mathbf{u} \in \mathbf{U}} w(s, \mathbf{u})(Q(s, \mathbf{u})-q(s, \mathbf{u}))^{2}\]</div>
+<p>The choice of weighting is crucial to ensure that WQMIX can overcome the limitations of QMIX.
+WQMIX considers two different weightings and proved that
+these choices of w ensure that the <span class="math notranslate nohighlight">\(Q_{tot}\)</span> returned from the projection has the correct argmax.</p>
+<p><strong>Idealised Central Weighting</strong>:
+It implies down-weight every suboptimal action. However, this weighting requires computing the maximum across the joint action space, which is often infeasible.
+In implementation WQMIX takes an approximation to this weighting in the deep RL setting.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}w(s, \mathbf{u})=\left\{\begin{array}{ll} 1 &amp; \mathbf{u}=\mathbf{u}^{*}=\operatorname{argmax}_{\mathbf{u}} Q(s, \mathbf{u}) \\ \alpha &amp; \text { otherwise } \end{array}\right.\end{split}\]</div>
+<p><strong>Optimistic Weighting</strong>:
+This weighting assigns a higher weighting to those joint actions that are underestimated relative to Q,
+and hence could be the true optimal actions (in an optimistic outlook).</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}w(s, \mathbf{u})=\left\{\begin{array}{ll} 1 &amp; Q_{t o t}(s, \mathbf{u})&lt;Q(s, \mathbf{u}) \\ \alpha &amp; \text { otherwise } \end{array}\right.\end{split}\]</div>
+<p>For the details analysis, please refer to the  <a class="reference external" href="https://arxiv.org/abs/2006.10800">WQMIX paper</a>.</p>
+</div>
+<div class="section" id="implementations">
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<p>The default config is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.wqmix.</span></span><span class="sig-name descname"><span class="pre">WQMIXPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/wqmix.html#WQMIXPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><dl class="simple">
+<dt>Policy class of WQMIX algorithm. WQMIX is a reinforcement learning algorithm modified from Qmix, </dt><dd><p>you can view the paper in the following link <a class="reference external" href="https://arxiv.org/abs/2006.10800">https://arxiv.org/abs/2006.10800</a></p>
+</dd>
+</dl>
+</dd>
+<dt>Interface:</dt><dd><dl class="simple">
+<dt>_init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn</dt><dd><p>_init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval_reset_eval, _get_train_sample, default_model</p>
+</dd>
+</dl>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 19%" />
+<col style="width: 7%" />
+<col style="width: 13%" />
+<col style="width: 37%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>qmix</p></td>
+<td><div class="line-block">
+<div class="line">RL policy register name, refer to</div>
+<div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg is optional,</div>
+<div class="line">a placeholder</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use cuda for network</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg can be diff-</div>
+<div class="line">erent from modes</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on_policy</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether the RL algorithm is on-policy</div>
+<div class="line">or off-policy</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><ol class="arabic simple" start="4">
+<li></li>
+</ol>
+</td>
+<td><p><code class="docutils literal notranslate"><span class="pre">priority</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use priority(PER)</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">priority sample,</div>
+<div class="line">update priority</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">priority_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">IS_weight</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use Importance Sampling</div>
+<div class="line">Weight to correct biased update.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">IS weight</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.update_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>20</p></td>
+<td><div class="line-block">
+<div class="line">How many updates(iterations) to train</div>
+<div class="line">after collector’s one collection. Only</div>
+<div class="line">valid in serial training</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this args can be vary</div>
+<div class="line">from envs. Bigger val</div>
+<div class="line">means more off-policy</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.target_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">update_theta</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.001</p></td>
+<td><div class="line-block">
+<div class="line">Target network update momentum</div>
+<div class="line">parameter.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">between[0,1]</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.discount</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_factor</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.99</p></td>
+<td><div class="line-block">
+<div class="line">Reward’s future discount factor, aka.</div>
+<div class="line">gamma</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">may be 1 when sparse</div>
+<div class="line">reward env</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+<p>The network interface WQMIX used is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.</span></span><span class="sig-name descname"><span class="pre">WQMix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gru'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dueling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/wqmix.html#WQMix"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>WQMIX network, which is same as Qmix network</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward, _setup_global_encoder</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_star</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/wqmix.html#WQMix.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>forward computation graph of qmix network</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): input data dict with keys [‘obs’, ‘prev_state’, ‘action’]</dt><dd><ul>
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent local state(obs)</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): global state(obs)</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): previous rnn state</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or None): if action is None, use argmax q_value index as action to                    calculate <code class="docutils literal notranslate"><span class="pre">agent_q_act</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>single_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether single_step forward, if so, add timestep dim before forward and                remove it after forward</p></li>
+<li><p>Q_star (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether Q_star network forward. If True, using the Q_star network, where the                agent networks have the same architecture as Q network but do not share parameters and the mixing                network is a feedforward network with 3 hidden layers of 256 dim; if False, using the Q network,                same as the Q network in Qmix paper.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): output data dict with keys [<code class="docutils literal notranslate"><span class="pre">total_q</span></code>, <code class="docutils literal notranslate"><span class="pre">logit</span></code>, <code class="docutils literal notranslate"><span class="pre">next_state</span></code>]</p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): total q_value, which is the result of mixer network</p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): each agent q_value</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): next rnn state</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>agent_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, N)\)</span>, where T is timestep, B is batch_size                A is agent_num, N is obs_shape</p></li>
+<li><p>global_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, M)\)</span>, where M is global_obs_shape</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(T, B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A)\)</span></p></li>
+<li><p>total_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
+<li><p>agent_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((T, B, A, P)\)</span>, where P is action_shape</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): math:<cite>(T, B, A)</cite>, a list of length B, and each element is a list of length A</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<p>The Benchmark result of WQMIX in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 37%" />
+<col style="width: 18%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>smac map</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>1.00</p></td>
+<td><img alt="../_images/WQMIX_MMM.png" src="../_images/WQMIX_MMM.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_MMM_wqmix_config.py">config_link</a></p></td>
+<td><p><a class="reference external" href="https://github.com/oxwhirl/wqmix">wqmix(Tabish)</a>
+(1.0)</p></td>
+</tr>
+<tr class="row-odd"><td><p>3s5z</p></td>
+<td><p>0.72</p></td>
+<td><img alt="../_images/WQMIX_3s5z.png" src="../_images/WQMIX_3s5z.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_3s5z_wqmix_config.py">config_link</a></p></td>
+<td><p><a class="reference external" href="https://github.com/oxwhirl/wqmix">wqmix(Tabish)</a>
+(0.94)</p></td>
+</tr>
+<tr class="row-even"><td><p>5m6m</p></td>
+<td><p>0.45</p></td>
+<td><img alt="../_images/WQMIX_5m6m.png" src="../_images/WQMIX_5m6m.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_3s5z_wqmix_config.py">config_link</a></p></td>
+<td><p><a class="reference external" href="https://github.com/oxwhirl/wqmix">wqmix(Tabish)</a>
+(0.9)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Rashid, Tabish, et al. “Weighted qmix: Expanding monotonic value function factorisation for deep multi-agent reinforcement learning.” arXiv preprint arXiv:2006.10800 (2020).</p></li>
+<li><p>Tabish Rashid, Mikayel Samvelyan, Christian Schroeder de Witt, Gregory Farquhar, Jakob Foerster, Shimon Whiteson. Qmix: Monotonic value function factorisation for deep multi-agent reinforcement learning. International Conference on Machine Learning. PMLR, 2018.</p></li>
+<li><p>Peter Sunehag, Guy Lever, Audrunas Gruslys, Wojciech Marian Czarnecki, Vinicius Zambaldi, Max Jaderberg, Marc Lanctot, Nicolas Sonnerat, Joel Z. Leibo, Karl Tuyls, Thore Graepel. Value-decomposition networks for cooperative multi-agent learning. arXiv preprint arXiv:1706.05296, 2017.</p></li>
+<li><p>Kyunghwan Son, Daewoo Kim, Wan Ju Kang, David Earl Hostallero, Yung Yi. QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. International Conference on Machine Learning. PMLR, 2019.</p></li>
+<li><p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
