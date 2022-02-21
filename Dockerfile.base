@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:1.7.1-cuda11.0-cudnn8-runtime
+FROM pytorch/pytorch:1.7.1-cuda11.0-cudnn8-runtime as base
 
 WORKDIR /ding
 
@@ -21,3 +21,33 @@ RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install --ignore-installed 'PyYAML<6.0' \
     && python3 -m pip install --no-cache-dir .[fast] \
     && python3 -m pip uninstall dataclasses -y
+
+FROM python:3.8-ubuntu as doc
+
+WORKDIR /ding
+
+RUN apt update \
+    && apt install libgl1-mesa-glx libglib2.0-0 libsm6 libxext6 libxrender-dev swig curl git vim gcc \g++ make locales -y \
+    && apt clean \
+    && rm -rf /var/cache/apt/* \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen
+
+ENV LANG        en_US.UTF-8
+ENV LANGUAGE    en_US:UTF-8
+ENV LC_ALL      en_US.UTF-8
+
+ADD setup.py setup.py
+ADD dizoo dizoo
+ADD ding ding
+
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install --ignore-installed 'PyYAML<6.0' \
+    && python3 -m pip install --no-cache-dir .[fast] \
+    && python3 -m pip uninstall dataclasses -y
+
+WORKDIR /ding_doc
+
+RUN git clone -b main https://github.com/opendilab/DI-engine-docs.git \
+    && cd DI-engine-docs \
+    && python -m pip install -r requirements.txt
