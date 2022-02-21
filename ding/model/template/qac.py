@@ -110,6 +110,7 @@ class QAC(nn.Module):
                 )
             )
             self.actor = nn.ModuleList([actor_action_type, actor_action_args])
+
         self.twin_critic = twin_critic
         if self.action_space == 'hybrid':
             critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
@@ -144,61 +145,23 @@ class QAC(nn.Module):
                 )
             )
 
-    def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
+    def forward(self, inputs: Union[torch.Tensor, Dict[str, torch.Tensor]], mode: str) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Use observation and action tensor to predict output.
-            Parameter updates with QAC's MLPs forward setup.
-        Arguments:
-            Forward with ``compute_actor``:
-                - inputs (:obj:`torch.Tensor`): The encoded embedding tensor, determined with given ``hidden_size``, \
-                    i.e. ``(B, N=hidden_size)``.
-
-            Forward with ``compute_critic``:
-                - inputs (:obj:`Dict`)
-
-            - mode (:obj:`str`): Name of the forward mode.
-        Returns:
-            - outputs (:obj:`Dict`): Outputs of network forward.
-
-                Forward with ``compute_actor``
-                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.
-                    - logit (:obj:`torch.Tensor`): Logit tensor encoding ``mu`` and ``sigma``, both with same size \
-                        as input ``x``.
-
-                Forward with ``compute_critic``
-                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.
-        Actor Shapes:
-            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``
-            - action (:obj:`torch.Tensor`): :math:`(B, N0)`
-            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.
-
-        Critic Shapes:
-            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``
-            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``
-            - logit (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N3 is ``action_shape``
-
-        Actor Examples:
-            >>> # Regression mode
-            >>> model = QAC(64, 64, 'regression')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
-            >>> # Reparameterization Mode
-            >>> model = QAC(64, 64, 'reparameterization')
-            >>> inputs = torch.randn(4, 64)
-            >>> actor_outputs = model(inputs,'compute_actor')
-            >>> actor_outputs['logit'][0].shape # mu
-            >>> torch.Size([4, 64])
-            >>> actor_outputs['logit'][1].shape # sigma
-            >>> torch.Size([4, 64])
-
-        Critic Examples:
-            >>> inputs = {'obs': torch.randn(4,N), 'action': torch.randn(4,1)}
-            >>> model = QAC(obs_shape=(N, ),action_shape=1,action_space='regression')
-            >>> model(inputs, mode='compute_critic')['q_value'] # q value
-            tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=<SqueezeBackward1>)
-
+            The unique execution (forward) method of QAC method, and one can indicate different modes to implement \
+            different computation graph, including ``compute_actor`` and ``compute_critic`` in QAC.
+        Mode compute_actor:
+            Arguments:
+                - inputs (:obj:`torch.Tensor`): Observation data, defaults to tensor.
+            Returns:
+                - output (:obj:`Dict`): Output dict data, including differnet key-values among distinct action_space.
+        Mode compute_critic:
+            Arguments:
+                - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
+            Returns:
+                - output (:obj:`Dict`): Output dict data, including q_value tensor
+        .. note::
+            For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.
         """
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)

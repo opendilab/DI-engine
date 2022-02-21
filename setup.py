@@ -59,6 +59,7 @@ setup(
         'yapf==0.29.0',
         'responses~=0.12.1',
         'flask~=1.1.2',
+        'MarkupSafe<=2.0.1',
         'lz4',
         'cloudpickle',
         'tabulate',

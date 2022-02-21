@@ -335,8 +335,11 @@ class TrexRewardModel(BaseRewardModel):
         self._logger.info("finished training")
         # print out predicted cumulative returns and actual returns
         sorted_returns = sorted(self.learning_returns)
+        demonstrations = [
+            x for _, x in sorted(zip(self.learning_returns, self.pre_expert_data), key=lambda pair: pair[0])
+        ]
         with torch.no_grad():
-            pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in self.pre_expert_data]
+            pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in demonstrations]
         for i, p in enumerate(pred_returns):
             self._logger.info("{} {} {}".format(i, p, sorted_returns[i]))
         info = {
