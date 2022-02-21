@@ -38,7 +38,7 @@ class FakeEnv(object):
             low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32
         )
 
-    def reset(self, stat):
+    def reset(self, stat=None):
         if isinstance(stat, str) and stat == 'error':
             self.dead()
         if isinstance(stat, str) and stat == 'error_once':
@@ -115,7 +115,7 @@ class FakeEnv(object):
 
 class FakeAsyncEnv(FakeEnv):
 
-    def reset(self, stat):
+    def reset(self, stat=None):
         super().reset(stat)
         time.sleep(random.randint(1, 3))
         return to_ndarray(torch.randn(3))

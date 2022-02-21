@@ -1,4 +1,3 @@
-from doctest import UnexpectedException
 from typing import Any, List, Union, Optional, Dict
 import gym
 import numpy as np
@@ -23,7 +22,7 @@ class PettingZooEnv(BaseEnv):
         self._replay_path = None
         self._env_family = self._cfg.env_family
         self._env_id = self._cfg.env_id
-        # self._num_agent = self._cfg.n_agent
+        # self._num_agents = self._cfg.n_agent
         self._num_landmarks = self._cfg.n_landmark
         self._continuous_actions = self._cfg.get('continuous_actions', False)
         self._max_cycles = self._cfg.get('max_cycles', 25)
@@ -64,7 +63,7 @@ class PettingZooEnv(BaseEnv):
             elif isinstance(single_agent_obs_space, gym.spaces.Discrete):
                 self._action_dim = single_agent_obs_space.n
             else:
-                raise UnexpectedException('Only support `Box` or `Discrte` obs space for single agent.')
+                raise Exception('Only support `Box` or `Discrte` obs space for single agent.')
             self._reward_space = gym.spaces.Dict(
                 {
                     agent: gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
