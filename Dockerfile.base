@@ -24,6 +24,8 @@ RUN python3 -m pip install --upgrade pip \
 
 FROM ubuntu:20.04 as doc
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 WORKDIR /ding
 
 RUN apt-get update && \
