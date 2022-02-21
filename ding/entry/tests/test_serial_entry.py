@@ -27,13 +27,6 @@ from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_
 from dizoo.classic_control.pendulum.config import pendulum_d4pg_config, pendulum_d4pg_create_config
 from dizoo.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
 from dizoo.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
-from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_wqmix_config, cooperative_navigation_wqmix_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_qtran_config, cooperative_navigation_qtran_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config, cooperative_navigation_atoc_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_atoc_config, ptz_simple_spread_atoc_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_collaq_config, ptz_simple_spread_collaq_create_config  # noqa
 from dizoo.petting_zoo.config import ptz_simple_spread_coma_config, ptz_simple_spread_coma_create_config  # noqa
