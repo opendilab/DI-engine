@@ -2,7 +2,7 @@ name: deploy  # deploy docker
 
 on:
   push:
-    branches: [main, 'deploy/*']
+    branches: [main, '*deploy*', '*docker*']
 
 jobs:
   docker_base:
