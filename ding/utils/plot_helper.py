@@ -86,7 +86,7 @@ def plotter(root: str, titles: str, labels: str, x_axes: str, y_axes: str):
             sns.lineplot(x=steps, y=value, label=label, color='#ad1457')
             sns.set(style="darkgrid", font_scale=1.5)
             plt.title(title)
-            plt.legend(loc='upper left', prop={'size': 8})  # 显示图例
+            plt.legend(loc='upper left', prop={'size': 8})
             plt.xlabel(x_axis, fontsize=15)
             plt.ylabel(y_axis, fontsize=15)
             plt.show()
@@ -95,7 +95,6 @@ def plotter(root: str, titles: str, labels: str, x_axes: str, y_axes: str):
             for i, _ in enumerate(steps):
                 csv_dicts.append({'steps': steps[i], 'value': value[i]})
             with open(os.path.join(exp_path, '{}.csv'.format(d)), 'w', newline='') as f:
-                # 标头在这里传入，作为第一行数据
                 writer = csv.DictWriter(f, headers)
                 writer.writeheader()
                 writer.writerows(csv_dicts)
