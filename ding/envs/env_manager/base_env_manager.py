@@ -203,7 +203,7 @@ class BaseEnvManager(object):
         self._ready_obs = {i: None for i in range(self.env_num)}
         self._envs = [e() for e in self._env_fn]
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
-        self._env_ref = self._envs[0]()
+        self._env_ref = self._envs[0]
         self._env_ref.reset()
         assert len(self._envs) == self._env_num
         self._reset_param = {i: {} for i in range(self.env_num)}

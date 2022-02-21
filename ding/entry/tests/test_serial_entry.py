@@ -276,21 +276,6 @@ def test_her_dqn():
         assert False, "pipeline fail"
 
 
-# @pytest.mark.unittest
-# def test_collaq():
-#     config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
-#     config[0].policy.cuda = False
-#     config[0].policy.learn.update_per_collect = 1
-#     config[0].env.n_evaluator_episode = 2
-#     config[0].policy.collect.n_sample = 100
-#     try:
-#         serial_pipeline(config, seed=0, max_iterations=1)
-#     except Exception:
-#         assert False, "pipeline fail"
-#     finally:
-#         os.popen('rm -rf log ckpt*')
-
-
 @pytest.mark.unittest
 def test_collaq():
     config = [deepcopy(ptz_simple_spread_collaq_config), deepcopy(ptz_simple_spread_collaq_create_config)]
