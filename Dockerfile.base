@@ -56,4 +56,4 @@ WORKDIR /ding_doc
 
 RUN git clone -b main https://github.com/opendilab/DI-engine-docs.git \
     && cd DI-engine-docs \
-    && python -m pip install -r requirements.txt
+    && python3 -m pip install -r requirements.txt
