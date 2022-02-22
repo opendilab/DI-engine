@@ -42,7 +42,6 @@ def plotter(root: str, titles: str, labels: str, x_axes: str, y_axes: str):
     '''
 
     headers = ['steps', 'value']
-    root = '/mnt/lustre/nieyunpeng/benchmark_draw/pong_dqn'
 
     count_file = 0
     for root, dirs, _ in os.walk(root):
