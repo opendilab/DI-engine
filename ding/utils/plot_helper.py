@@ -7,6 +7,7 @@ import seaborn as sns
 import pandas as pd
 from typing import str
 
+
 def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str = './picture.jpg'):
     """
     Overview:
@@ -27,6 +28,7 @@ def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str = './picture
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
+
 
 def plotter(root: str, titles: str, labels: str, x_axes: str, y_axes: str):
     '''
