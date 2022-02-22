@@ -1,21 +1,19 @@
-import logging
-import os
-from functools import partial
 from typing import Union, Optional, List, Any, Tuple
+import os
+import copy
 import torch
+import logging
+from functools import partial
 from tensorboardX import SummaryWriter
 
-from ding.config import read_config, compile_config
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.policy import create_policy, PolicyFactory
+from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
+from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
+from ding.config import read_config, compile_config
+from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.reward_model.ngu_reward_model import fusion_reward
 from ding.utils import set_pkg_seed
-# from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer, \
-#     create_serial_collector
-from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
-from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
-import copy
 from .utils import random_collect
 
 
@@ -24,7 +22,8 @@ def serial_pipeline_reward_model_ngu(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -37,8 +36,8 @@ def serial_pipeline_reward_model_ngu(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -56,8 +55,6 @@ def serial_pipeline_reward_model_ngu(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    # evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface TODO
-
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
@@ -81,9 +78,6 @@ def serial_pipeline_reward_model_ngu(
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-    # reward_model = create_reward_model(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
-    # cfg.rnd_reward_model.update({'type':'rnd'})
-    # cfg.episodic_reward_model.update({'type':'episodic'})
     rnd_reward_model = create_reward_model(cfg.rnd_reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
     episodic_reward_model = create_reward_model(
         cfg.episodic_reward_model, policy.collect_mode.get_attribute('device'), tb_logger
@@ -96,7 +90,8 @@ def serial_pipeline_reward_model_ngu(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        # backup
+        # Forbackup
+        # from ding.policy import PolicyFactory
         # action_space = collector_env.env_info().act_space
         # random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
         # collector.reset_policy(random_policy)
@@ -108,7 +103,8 @@ def serial_pipeline_reward_model_ngu(
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
 
     estimate_cnt = 0
-    for iter in range(max_iterations):
+    count = 0
+    while True:
         collect_kwargs = commander.step()  # {'eps': 0.95}
         # collect_kwargs.update({'action_shape':cfg.policy.model.action_shape}) # todo
         # Evaluate policy performance
@@ -134,11 +130,10 @@ def serial_pipeline_reward_model_ngu(
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         rnd_reward_model.train()
-        # if iter % 10 == 0:  # TODO(pu):
-        if (iter + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+        if (count + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
             rnd_reward_model.clear_data()
         episodic_reward_model.train()
-        if (iter + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
+        if (count + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
             episodic_reward_model.clear_data()  # TODO(pu):
 
         # Learn policy from collected data
@@ -169,9 +164,9 @@ def serial_pipeline_reward_model_ngu(
             learner.train(train_data_modified, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
+        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

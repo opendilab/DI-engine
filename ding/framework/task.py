@@ -1,16 +1,15 @@
 from asyncio import InvalidStateError
 from asyncio.tasks import FIRST_EXCEPTION
-from collections import defaultdict
-import logging
 import time
 import asyncio
 import concurrent.futures
 import fnmatch
 import math
 from types import GeneratorType
-from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set, Union
+from typing import Any, Awaitable, Callable, Generator, Iterable, List, Optional, Set, Union
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
+from ding.framework.event_loop import EventLoop
 from functools import wraps
 
 
@@ -25,22 +24,21 @@ def enable_async(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def runtime_handler(task: "Task", *args, **kwargs) -> "Task":
+    def runtime_handler(task: "Task", *args, async_mode: Optional[bool] = None, **kwargs) -> "Task":
         """
         Overview:
             If task's async mode is enabled, execute the step in current loop executor asyncly,
             or execute the task sync.
         Arguments:
             - task (:obj:`Task`): The task instance.
+            - async_mode (:obj:`Optional[bool]`): Whether using async mode.
         Returns:
             - result (:obj:`Union[Any, Awaitable]`): The result or future object of middleware.
         """
-        if "async_mode" in kwargs:
-            async_mode = kwargs.pop("async_mode")
-        else:
+        if async_mode is None:
             async_mode = task.async_mode
         if async_mode:
-            t = task._loop.run_in_executor(task._thread_pool, func, task, *args, **kwargs)
+            t = task._async_loop.run_in_executor(task._thread_pool, func, task, *args, **kwargs)
             task._async_stack.append(t)
             return task
         else:
@@ -61,8 +59,6 @@ class Task:
             n_async_workers: int = 3,
             middleware: Optional[List[Callable]] = None,
             step_wrappers: Optional[List[Callable]] = None,
-            event_listeners: Optional[Dict[str, List]] = None,
-            once_listeners: Optional[Dict[str, List]] = None,
             labels: Optional[Set[str]] = None,
             **_
     ) -> None:
@@ -72,26 +68,25 @@ class Task:
         self.ctx = Context()
         self.parallel_ctx = Context()
         self._backward_stack = []
+        # Bind event loop functions
+        self._event_loop = EventLoop("task_{}".format(id(self)))
 
         # Async segment
         self.async_mode = async_mode
         self.n_async_workers = n_async_workers
         self._async_stack = []
-        self._loop = None
+        self._async_loop = None
         self._thread_pool = None
         self._exception = None
-        self.event_listeners = event_listeners or defaultdict(list)
-        self.once_listeners = once_listeners or defaultdict(list)
         self.labels = labels or set()
 
         # Parallel segment
         self.router = Parallel()
         if async_mode or self.router.is_active:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
-            self._loop = asyncio.new_event_loop()
+            self._async_loop = asyncio.new_event_loop()
 
         if self.router.is_active:
-            self.router.register_rpc("task._emit", self._emit)
 
             def sync_finish(value):
                 self._finish = value
@@ -252,21 +247,22 @@ class Task:
         Overview:
             Stop and cleanup every thing in the runtime of task.
         """
-        self.emit("exit", only_local=True)
         if self._thread_pool:
             self._thread_pool.shutdown()
+        self._event_loop.stop()
+        if self._async_loop:
+            self._async_loop.close()
+        self.router.off(self._wrap_event_name("*"))
         # The middleware and listeners may contain some methods that reference to task,
         # If we do not clear them after the task exits, we may find that gc will not clean up the task object.
         self.middleware.clear()
-        self.event_listeners.clear()
-        self.once_listeners.clear()
         self.step_wrappers.clear()
         self._backward_stack.clear()
         self._async_stack.clear()
 
     def sync(self) -> 'Task':
-        if self._loop:
-            self._loop.run_until_complete(self.sync_tasks())
+        if self._async_loop:
+            self._async_loop.run_until_complete(self.sync_tasks())
         return self
 
     async def sync_tasks(self) -> Awaitable[None]:
@@ -290,12 +286,12 @@ class Task:
         Arguments:
             - fn (:obj:`Callable`): Synchronization fuction.
         """
-        if not self._loop:
+        if not self._async_loop:
             raise Exception("Event loop was not initialized, please call this function in async or parallel mode")
-        t = self._loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
+        t = self._async_loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
         self._async_stack.append(t)
 
-    def emit(self, event: str, *args, **kwargs) -> None:
+    def emit(self, event: str, *args, only_remote: bool = False, only_local: bool = False, **kwargs) -> None:
         """
         Overview:
             Emit an event, call listeners.
@@ -306,26 +302,15 @@ class Task:
             - args (:obj:`any`): Rest arguments for listeners.
         """
         # Check if need to broadcast event to connected nodes, default is True
-        if kwargs.get("only_local"):
-            kwargs.pop("only_local")
-            self._emit(event, *args, **kwargs)
-        elif kwargs.get("only_remote"):
-            kwargs.pop("only_remote")
+        if only_local:
+            self._event_loop.emit(event, *args, **kwargs)
+        elif only_remote:
             if self.router.is_active:
-                self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
+                self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
         else:
             if self.router.is_active:
-                self.async_executor(self.router.send_rpc, "task._emit", event, *args, **kwargs)
-            self._emit(event, *args, **kwargs)
-
-    def _emit(self, event: str, *args, **kwargs) -> None:
-        if event in self.event_listeners:
-            for fn in self.event_listeners[event]:
-                fn(*args, **kwargs)
-        if event in self.once_listeners:
-            while self.once_listeners[event]:
-                fn = self.once_listeners[event].pop()
-                fn(*args, **kwargs)
+                self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
+            self._event_loop.emit(event, *args, **kwargs)
 
     def on(self, event: str, fn: Callable) -> None:
         """
@@ -335,7 +320,9 @@ class Task:
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): The function.
         """
-        self.event_listeners[event].append(fn)
+        self._event_loop.on(event, fn)
+        if self.router.is_active:
+            self.router.on(self._wrap_event_name(event), self._event_loop.emit)
 
     def once(self, event: str, fn: Callable) -> None:
         """
@@ -345,7 +332,21 @@ class Task:
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): The function.
         """
-        self.once_listeners[event].append(fn)
+        self._event_loop.once(event, fn)
+        if self.router.is_active:
+            self.router.on(self._wrap_event_name(event), self._event_loop.emit)
+
+    def off(self, event: str, fn: Optional[Callable] = None) -> None:
+        """
+        Overview:
+            Unsubscribe an event
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - fn (:obj:`Callable`): The function.
+        """
+        self._event_loop.off(event, fn)
+        if self.router.is_active:
+            self.router.off(self._wrap_event_name(event))
 
     def wait_for(self, event: str, timeout: float = math.inf, ignore_timeout_exception: bool = True) -> Any:
         """
@@ -389,3 +390,12 @@ class Task:
         self._finish = value
         if self.router.is_active and value is True:
             self.emit("finish", value)
+
+    def _wrap_event_name(self, event: str) -> str:
+        """
+        Overview:
+            Wrap the event name sent to the router.
+        Arguments:
+            - event (:obj:`str`): Event name
+        """
+        return "task.{}".format(event)

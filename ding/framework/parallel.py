@@ -12,8 +12,8 @@ from os import path
 from typing import Callable, Dict, List, Optional, Tuple, Union, Set
 from threading import Thread
 from pynng.nng import Bus0, Socket
+from ding.framework.event_loop import EventLoop
 from ding.utils.design_helper import SingletonMetaclass
-from rich import print
 
 # Avoid ipc address conflict, random should always use random seed
 random = random.Random()
@@ -24,13 +24,13 @@ class Parallel(metaclass=SingletonMetaclass):
     def __init__(self) -> None:
         self._listener = None
         self._sock: Socket = None
-        self._rpc = {}
         self._bind_addr = None
         self.is_active = False
         self.attach_to = None
         self.finished = False
         self.node_id = None
         self.labels = set()
+        self._event_loop = EventLoop("parallel_{}".format(id(self)))
 
     def run(
             self,
@@ -212,8 +212,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
 
             while True:
                 try:
-                    msg = sock.recv_msg()
-                    self.recv_rpc(msg.bytes)
+                    msg = sock.recv()
+                    self._handle_message(msg)
                 except pynng.Timeout:
                     logging.warning("Timeout on node {} when waiting for message from bus".format(self._bind_addr))
                 except pynng.Closed:
@@ -224,53 +224,75 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
                     logging.error("Meet exception when listening for new messages", e)
                     break
 
-    def register_rpc(self, fn_name: str, fn: Callable) -> None:
+    def on(self, event: str, fn: Callable) -> None:
         """
         Overview:
-            Register an rpc on parallel instance, this function will be executed \
-            when a remote process call this function via network.
+            Register an remote event on parallel instance, this function will be executed \
+            when a remote process emit this event via network.
         Arguments:
-            - fn_name (:obj:`str`): Function name.
+            - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): Function body.
         """
-        self._rpc[fn_name] = fn
+        self._event_loop.on(event, fn)
 
-    def unregister_rpc(self, fn_name: str) -> None:
+    def once(self, event: str, fn: Callable) -> None:
         """
         Overview:
-            Unregister an rpc function.
+            Register an remote event which will only call once on parallel instance,
+            this function will be executed when a remote process emit this event via network.
         Arguments:
-            - fn_name (:obj:`str`): Function name.
+            - event (:obj:`str`): Event name.
+            - fn (:obj:`Callable`): Function body.
         """
-        if fn_name in self._rpc:
-            del self._rpc[fn_name]
+        self._event_loop.once(event, fn)
 
-    def send_rpc(self, func_name: str, *args, **kwargs) -> None:
+    def off(self, event: str) -> None:
         """
         Overview:
-            Send an rpc via network to subscribed processes.
+            Unregister an event.
         Arguments:
-            - fn_name (:obj:`str`): Function name.
+            - event (:obj:`str`): Event name.
+        """
+        self._event_loop.off(event)
+
+    def emit(self, event: str, *args, **kwargs) -> None:
+        """
+        Overview:
+            Send an remote event via network to subscribed processes.
+        Arguments:
+            - event (:obj:`str`): Event name.
         """
         if self.is_active:
-            payload = {"f": func_name, "a": args, "k": kwargs}
+            topic = event + "::"
+            payload = {"a": args, "k": kwargs}
             try:
-                payload_str = pickle.dumps(payload, protocol=-1)
+                data = pickle.dumps(payload, protocol=-1)
             except AttributeError as e:
-                logging.error("Arguments are not pickable! Function: {}, Args: {}".format(func_name, args))
+                logging.error("Arguments are not pickable! Event: {}, Args: {}".format(event, args))
                 raise e
-            return self._sock and self._sock.send(payload_str)
+            data = topic.encode() + data
+            return self._sock and self._sock.send(data)
 
-    def recv_rpc(self, msg: bytes):
+    def _handle_message(self, msg: bytes) -> None:
+        """
+        Overview:
+            Recv and parse payload from other processes, and call local functions.
+        Arguments:
+            - msg (:obj:`bytes`): Recevied message.
+        """
+        # Use topic at the beginning of the message, so we don't need to call pickle.loads
+        # when the current process is not subscribed to the topic.
+        topic, payload = msg.split(b"::", maxsplit=1)
+        event = topic.decode()
+        if not self._event_loop.listened(event):
+            logging.warning("Event {} was not listened in parallel".format(event))
+            return
         try:
-            payload = pickle.loads(msg)
+            payload = pickle.loads(payload)
         except Exception as e:
-            logging.warning("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
-        if payload["f"] in self._rpc:
-            fn = self._rpc[payload["f"]]
-            fn(*payload["a"], **payload["k"])
-        else:
-            logging.warning("There was no function named {} in rpc table".format(payload["f"]))
+            logging.error("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
+            return
+        self._event_loop.emit(event, *payload["a"], **payload["k"])
 
     @staticmethod
     def get_ip():
@@ -295,9 +317,9 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
         self.finished = True
         self.is_active = False
-        self._rpc.clear()
         time.sleep(0.03)
         if self._sock:
             self._sock.close()
         if self._listener:
             self._listener.join(timeout=1)
+        self._event_loop.stop()
