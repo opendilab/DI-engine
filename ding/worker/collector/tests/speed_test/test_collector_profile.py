@@ -62,11 +62,7 @@ env_policy_cfg_dict = dict(
     # cartpole env
     cartpole=dict(
         size='cartpole',
-        env=dict(
-            collector_env_num=8,
-            stop_value=195,
-            reset_time=0.5,
-        ),
+        env=dict(collector_env_num=8, stop_value=195, reset_time=0.5, manager=dict(reset_inplace=True, )),
         policy=dict(
             cuda=False,
             model=dict(
@@ -204,7 +200,8 @@ def test_collector_profile():
                     NaiveReplayBuffer.default_config(), copy_cfg.policy.other.replay_buffer
                 )
                 copy_cfg.env.reset_time *= env_reset_ratio
-                copy_cfg.env.manager = get_env_manager_cls(env_manager_cfg).default_config()
+                manager_cfg = get_env_manager_cls(env_manager_cfg).default_config()
+                copy_cfg.env.manager = deep_merge_dicts(manager_cfg, copy_cfg.env.manager)
                 copy_cfg.env.manager.type = env_manager_type
 
                 compare_test(copy_cfg, seed, test_name)
