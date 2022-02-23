@@ -108,6 +108,7 @@ class BaseEnvManager(object):
         self._observation_space = self._env_ref.observation_space
         self._action_space = self._env_ref.action_space
         self._reward_space = self._env_ref.reward_space
+        self._env_ref.close()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
         self._env_seed = {i: None for i in range(self._env_num)}
 

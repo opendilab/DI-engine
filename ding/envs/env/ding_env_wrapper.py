@@ -120,7 +120,9 @@ class DingEnvWrapper(BaseEnv):
         return random_action
 
     def _wrap_env(self) -> None:
-        wrapper_cfgs = self._cfg.get('env_wrapper', [])
+        wrapper_cfgs = self._cfg.get('env_wrapper', None)
+        if wrapper_cfgs is None:
+            wrapper_cfgs = 'default'
         if isinstance(wrapper_cfgs, str):
             wrapper_cfgs = get_default_wrappers(wrapper_cfgs, self._cfg.get('env_id', None))
         self._wrapper_cfgs = wrapper_cfgs

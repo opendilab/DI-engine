@@ -222,6 +222,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._env_ref.observation_space
+            self._env_ref.close()
             if isinstance(obs_space, list):
                 shape = (len(obs_space), ) + obs_space[0].shape
                 dtype = obs_space[0].dtype
