@@ -210,9 +210,10 @@
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Create a BaseEnvManager to manage multiple environments.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p>reset, step, seed, close, enable_save_replay, launch, env_info, default_config</p>
+<dt>Interfaces:</dt><dd><p>reset, step, seed, close, enable_save_replay, launch, default_config</p>
 </dd>
-<dt>Properties:</dt><dd><p>env_num, ready_obs, done, method_name_list，active_env</p>
+<dt>Properties:</dt><dd><p>env_num, ready_obs, done, method_name_list, active_env,
+observation_space, action_space, reward_space</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -232,19 +233,6 @@
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>replay_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[List[str],</span> <span class="pre">str]</span></code>): List of paths for each environment;                 Or one path for all environments.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.envs.env_manager.base_env_manager.BaseEnvManager.env_info">
-<span class="sig-name descname"><span class="pre">env_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">collections.namedtuple</span></span></span><a class="reference internal" href="../../_modules/ding/envs/env_manager/base_env_manager.html#BaseEnvManager.env_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.envs.env_manager.base_env_manager.BaseEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Get one env’s info, for example, action space, observation space, reward space, etc.</p>
-</dd>
-<dt>Returnns:</dt><dd><ul class="simple">
-<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): Usually a namedtuple <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code>, each element is <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -480,19 +468,6 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.env_info">
-<span class="sig-name descname"><span class="pre">env_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">collections.namedtuple</span></span></span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Get one env’s info, for example, action space, observation space, reward space, etc.</p>
-</dd>
-<dt>Returnns:</dt><dd><ul class="simple">
-<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): Usually a namedtuple <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code>, each element is <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code>.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.launch">
 <span class="sig-name descname"><span class="pre">launch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reset_param</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.launch" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
@@ -592,7 +567,7 @@
 <dt>Overview:</dt><dd><p>Create an AsyncSubprocessEnvManager to manage multiple environments.
 Each Environment is run by a respective subprocess.</p>
 </dd>
-<dt>Interfaces:</dt><dd><p>seed, launch, ready_obs, step, reset, env_info，active_env</p>
+<dt>Interfaces:</dt><dd><p>seed, launch, ready_obs, step, reset, active_env</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -612,19 +587,6 @@ Each Environment is run by a respective subprocess.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>replay_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[List[str],</span> <span class="pre">str]</span></code>): List of paths for each environment;                 Or one path for all environments.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.env_info">
-<span class="sig-name descname"><span class="pre">env_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">collections.namedtuple</span></span></span><a class="headerlink" href="#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.env_info" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Get one env’s info, for example, action space, observation space, reward space, etc.</p>
-</dd>
-<dt>Returnns:</dt><dd><ul class="simple">
-<li><p>info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): Usually a namedtuple <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code>, each element is <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code>.</p></li>
 </ul>
 </dd>
 </dl>

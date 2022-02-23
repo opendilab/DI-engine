@@ -182,8 +182,8 @@
 <span class="sd">    Overview:</span>
 <span class="sd">        basic environment class, extended from ``gym.Env``</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        ``__init__``, ``reset``, ``close``, ``step``, ``info``, ``create_collector_env_cfg``, \</span>
-<span class="sd">            ``create_evaluator_env_cfg``, ``enable_save_replay``</span>
+<span class="sd">        ``__init__``, ``reset``, ``close``, ``step``, ``create_collector_env_cfg``, \</span>
+<span class="sd">        ``create_evaluator_env_cfg``, ``enable_save_replay``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseEnv.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.__init__">[docs]</a>    <span class="nd">@abstractmethod</span>
@@ -230,16 +230,6 @@
 <span class="sd">            Sets the seed for this env&#39;s random number generator(s). Abstract Method from ``gym.Env``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-
-<div class="viewcode-block" id="BaseEnv.info"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.info">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;BaseEnvInfo&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Show space in code and return namedlist.</span>
-<span class="sd">        Returns:</span>
-<span class="sd">             - info (:obj:`BaseEnvInfo`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>

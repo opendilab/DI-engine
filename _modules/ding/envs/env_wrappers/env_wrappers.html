@@ -167,16 +167,40 @@
 <span></span><span class="c1"># Borrow a lot from openai baselines:</span>
 <span class="c1"># https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">float32</span>
 <span class="c1"># import matplotlib.pyplot as plt</span>
 
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">to_ndarray</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">ENV_WRAPPER_REGISTRY</span><span class="p">,</span> <span class="n">import_module</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Env Wrapper List:</span>
+<span class="sd">    - NoopResetWrapper: Sample initial states by taking random number of no-ops on reset.</span>
+<span class="sd">    - MaxAndSkipWrapper: Max pooling across time steps</span>
+<span class="sd">    - WarpFrameWrapper: Warp frames to 84x84 as done in the Nature paper and later work.</span>
+<span class="sd">    - ScaledFloatFrameWrapper: Normalize observations to 0~1.</span>
+<span class="sd">    - ClipRewardWrapper: Clip the reward to {+1, 0, -1} by its sign.</span>
+<span class="sd">    - DelayRewardWrapper: Return cumulative reward at intervals; At other time, return reward of 0.</span>
+<span class="sd">    - FrameStackWrapper: Stack latest n frames(usually 4 in Atari) as one observation.</span>
+<span class="sd">    - ObsTransposeWrapper: Transpose observation to put channel to first dim.</span>
+<span class="sd">    - ObsNormWrapper: Normalize observations according to running mean and std.</span>
+<span class="sd">    - RewardNormWrapper: Normalize reward according to running std.</span>
+<span class="sd">    - RamWrapper: Wrap ram env into image-like env</span>
+<span class="sd">    - EpisodicLifeWrapper: Make end-of-life == end-of-episode, but only reset on true game over.</span>
+<span class="sd">    - FireResetWrapper: Take fire action at environment reset.</span>
+<span class="sd">    - GymHybridDictActionWrapper: Transform Gym-Hybrid&#39;s original ``gym.spaces.Tuple`` action space</span>
+<span class="sd">        to ``gym.spaces.Dict``.</span>
+<span class="sd">&#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="NoopResetEnv"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetEnv">[docs]</a><span class="k">class</span> <span class="nc">NoopResetEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;noop_reset&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">NoopResetWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Sample initial states by taking random number of no-ops on reset.  \</span>
@@ -188,7 +212,7 @@
 <span class="sd">        - noop_max (:obj:`int`): the maximum value of no-ops to run.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="NoopResetEnv.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetEnv.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">noop_max</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
@@ -199,9 +223,9 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">noop_max</span> <span class="o">=</span> <span class="n">noop_max</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">noop_action</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">assert</span> <span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">get_action_meanings</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;NOOP&#39;</span></div>
+        <span class="k">assert</span> <span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">get_action_meanings</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;NOOP&#39;</span>
 
-<div class="viewcode-block" id="NoopResetEnv.reset"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetEnv.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and returns an initial observation.</span>
@@ -214,29 +238,11 @@
             <span class="n">obs</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noop_action</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
                 <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">obs</span></div>
-
-<div class="viewcode-block" id="NoopResetEnv.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetEnv.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-
-<span class="sd">        .. note::</span>
-<span class="sd">            Shapes space such as\</span>
-<span class="sd">                observation space shape, could be some nested strcutures, \</span>
-<span class="sd">                but for some simple environments, like pong in Atari, \</span>
-<span class="sd">                    observation space shape is a ``tuple``——``(4, 84, 84)``.</span>
-<span class="sd">            Same case applies for the ``new_shape`` interface in the following wrapper classes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">obs</span>
 
 
-<div class="viewcode-block" id="MaxAndSkipEnv"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipEnv">[docs]</a><span class="k">class</span> <span class="nc">MaxAndSkipEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;max_and_skip&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MaxAndSkipWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Return only every `skip`-th frame (frameskipping) using most  \</span>
@@ -246,10 +252,9 @@
 <span class="sd">    Properties:</span>
 <span class="sd">        - env (:obj:`gym.Env`): the environment to wrap.</span>
 <span class="sd">        - skip (:obj:`int`): number of `skip`-th frame.</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MaxAndSkipEnv.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipEnv.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
@@ -258,9 +263,9 @@
 <span class="sd">            - skip (:obj:`int`): number of `skip`-th frame.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span> <span class="o">=</span> <span class="n">skip</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span> <span class="o">=</span> <span class="n">skip</span>
 
-<div class="viewcode-block" id="MaxAndSkipEnv.step"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipEnv.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action,  \</span>
@@ -284,22 +289,11 @@
             <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
                 <span class="k">break</span>
         <span class="n">max_frame</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">obs_list</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">max_frame</span><span class="p">,</span> <span class="n">total_reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
-
-<div class="viewcode-block" id="MaxAndSkipEnv.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipEnv.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">max_frame</span><span class="p">,</span> <span class="n">total_reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 
 
-<div class="viewcode-block" id="WarpFrame"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrame">[docs]</a><span class="k">class</span> <span class="nc">WarpFrame</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;warp_frame&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">WarpFrameWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Warp frames to 84x84 as done in the Nature paper and later work.</span>
@@ -311,7 +305,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="WarpFrame.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrame.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">84</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
@@ -319,7 +313,7 @@
 <span class="sd">            - env (:obj:`gym.Env`): the environment to wrap.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="mi">84</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
         <span class="n">obs_space</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">observation_space</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">tuple</span><span class="o">.</span><span class="n">Tuple</span><span class="p">):</span>
             <span class="n">obs_space</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_space</span><span class="p">,</span> <span class="p">)</span>
@@ -334,9 +328,9 @@
             <span class="p">]</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<div class="viewcode-block" id="WarpFrame.observation"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrame.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns the current observation from a frame</span>
@@ -346,23 +340,11 @@
 <span class="sd">            - observation (:obj:`Any`): Framed observation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">frame</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2GRAY</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_AREA</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="WarpFrame.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrame.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get new shape of observation, acton, and reward; in this case only  \</span>
-<span class="sd">                observation space wrapped to (4, 84, 84); others unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">),</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="o">.</span><span class="n">INTER_AREA</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ScaledFloatFrame"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrame">[docs]</a><span class="k">class</span> <span class="nc">ScaledFloatFrame</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;scaled_float_frame&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Normalize observations to 0~1.</span>
@@ -370,7 +352,7 @@
 <span class="sd">        ``__init__``, ``observation``, ``new_shape``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ScaledFloatFrame.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrame.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
@@ -382,9 +364,9 @@
         <span class="n">high</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">high</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="n">low</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">high</span> <span class="o">-</span> <span class="n">low</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ScaledFloatFrame.observation"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrame.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns the scaled observation</span>
@@ -394,25 +376,14 @@
 <span class="sd">            - observation (:obj:`Float`): The Scaled Float observation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="p">((</span><span class="n">observation</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="ScaledFloatFrame.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrame.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get new shape of observation, acton, and reward; in this case unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="p">((</span><span class="n">observation</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ClipRewardEnv"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardEnv">[docs]</a><span class="k">class</span> <span class="nc">ClipRewardEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">RewardWrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;clip_reward&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ClipRewardWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">RewardWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">       clips the reward to {+1, 0, -1} by its sign.</span>
+<span class="sd">        Clip the reward to {+1, 0, -1} by its sign.</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        ``__init__``, ``reward``, ``new_shape``</span>
 <span class="sd">    Properties:</span>
@@ -421,7 +392,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ClipRewardEnv.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardEnv.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
@@ -429,9 +400,9 @@
 <span class="sd">            - env (:obj:`gym.Env`): the environment to wrap.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reward_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ClipRewardEnv.reward"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardEnv.reward">[docs]</a>    <span class="k">def</span> <span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Bin reward to {+1, 0, -1} by its sign. Note: np.sign(0) == 0.</span>
@@ -440,25 +411,87 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            - reward(:obj:`Float`): Clipped Reward</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="ClipRewardEnv.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardEnv.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="FrameStack"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStack">[docs]</a><span class="k">class</span> <span class="nc">FrameStack</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;delay_reward&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DelayRewardWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">       Stack n_frames last frames.</span>
+<span class="sd">        Return cumulative reward at intervals; At other time, return reward of 0.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``reset``, ``step``, ``new_shape``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        - env (:obj:`gym.Env`): the environment to wrap.</span>
+<span class="sd">        - ``reward_range``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">delay_reward_step</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - env (:obj:`gym.Env`): the environment to wrap.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delay_reward_step</span> <span class="o">=</span> <span class="n">delay_reward_step</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delay_reward_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_delay_reward</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">obs</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_current_delay_reward</span> <span class="o">+=</span> <span class="n">reward</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delay_reward_duration</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">done</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_reward_duration</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delay_reward_step</span><span class="p">:</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current_delay_reward</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_current_delay_reward</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_delay_reward_duration</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
+
+
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">FinalEvalRewardEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Accumulate rewards at every timestep, and return at the end of the episode in `info`.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``reset``, ``step``, ``new_shape``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        - env (:obj:`gym.Env`): the environment to wrap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - env (:obj:`gym.Env`): the environment to wrap.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span> <span class="o">+=</span> <span class="n">reward</span>
+        <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_final_eval_reward</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
+
+
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;frame_stack&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">FrameStackWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       Stack latest n frames(usually 4 in Atari) as one observation.</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        ``__init__``, ``reset``, ``step``, ``_get_ob``, ``new_shape``</span>
 <span class="sd">    Properties:</span>
@@ -467,7 +500,7 @@
 <span class="sd">        - ``observation_space``, ``frames``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="FrameStack.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStack.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">n_frames</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
@@ -490,9 +523,9 @@
             <span class="p">]</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<div class="viewcode-block" id="FrameStack.reset"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStack.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and append new observation to frames</span>
@@ -502,9 +535,9 @@
         <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ob</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ob</span><span class="p">()</span>
 
-<div class="viewcode-block" id="FrameStack.step"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStack.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward,  \</span>
@@ -522,32 +555,21 @@
 
         <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ob</span><span class="p">(),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ob</span><span class="p">(),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 
-<div class="viewcode-block" id="FrameStack._get_ob"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStack._get_ob">[docs]</a>    <span class="k">def</span> <span class="nf">_get_ob</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_ob</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            The original wrapper use `LazyFrames` but since we use np buffer, it has no effect</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="FrameStack.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStack.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get new shape of observation, acton, and reward; in this case unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="ObsTransposeWrapper"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper">[docs]</a><span class="k">class</span> <span class="nc">ObsTransposeWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="ObsTransposeWrapper"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;obs_transpose&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ObsTransposeWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">       Wrapper to transpose env, usually used in atari environments</span>
+<span class="sd">        Transpose observation to put channel to first dim.</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        ``__init__``, ``observation``, ``new_shape``</span>
 <span class="sd">    Properties:</span>
@@ -580,12 +602,12 @@
                 <span class="n">dtype</span><span class="o">=</span><span class="n">obs_space</span><span class="o">.</span><span class="n">dtype</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="ObsTransposeWrapper.observation"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]):</span>
+<div class="viewcode-block" id="ObsTransposeWrapper.observation"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns the transposed observation</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - observation(:obj:`Union[tuple, np.ndarray]`): The original observation</span>
+<span class="sd">            - observation (:obj:`Union[tuple, np.ndarray]`): The original observation</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - observation (:obj:`Union[tuple, np.ndarray]`): The transposed observation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -596,27 +618,7 @@
             <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">new_obs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">obs</span> <span class="o">=</span> <span class="n">obs</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">obs</span></div>
-
-<div class="viewcode-block" id="ObsTransposeWrapper.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get new shape of observation, acton, and reward; in this case with  \</span>
-<span class="sd">                obs_space transposed and others unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-            <span class="n">new_obs</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)):</span>
-                <span class="n">new_obs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-            <span class="n">obs_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">new_obs</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">obs</span></div></div>
 
 
 <div class="viewcode-block" id="RunningMeanStd"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd">[docs]</a><span class="k">class</span> <span class="nc">RunningMeanStd</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -627,7 +629,6 @@
 <span class="sd">        ``__init__``, ``update``, ``reset``, ``new_shape``</span>
 <span class="sd">    Properties:</span>
 <span class="sd">        - env (:obj:`gym.Env`): the environment to wrap.</span>
-
 <span class="sd">        - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -693,22 +694,11 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Property ``std`` calculated  from ``self._var`` and the epsilon value of ``self._epsilon``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epsilon</span>
-
-<div class="viewcode-block" id="RunningMeanStd.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_var</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epsilon</span></div>
 
 
-<div class="viewcode-block" id="ObsNormEnv"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormEnv">[docs]</a><span class="k">class</span> <span class="nc">ObsNormEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;obs_norm&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ObsNormWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Normalize observations according to running mean and std.</span>
@@ -720,7 +710,7 @@
 <span class="sd">        - ``data_count``, ``clip_range``, ``rms``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="ObsNormEnv.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormEnv.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \</span>
@@ -731,9 +721,9 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clip_range</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rms</span> <span class="o">=</span> <span class="n">RunningMeanStd</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rms</span> <span class="o">=</span> <span class="n">RunningMeanStd</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ObsNormEnv.step"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormEnv.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward,  \</span>
@@ -754,9 +744,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">data_count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">observation</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rms</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation</span><span class="p">(</span><span class="n">observation</span><span class="p">),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation</span><span class="p">(</span><span class="n">observation</span><span class="p">),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 
-<div class="viewcode-block" id="ObsNormEnv.observation"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormEnv.observation">[docs]</a>    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get obeservation</span>
@@ -769,9 +759,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_count</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="n">observation</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rms</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">rms</span><span class="o">.</span><span class="n">std</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">clip_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">observation</span></div>
+            <span class="k">return</span> <span class="n">observation</span>
 
-<div class="viewcode-block" id="ObsNormEnv.reset"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormEnv.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties.</span>
@@ -784,22 +774,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">data_count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rms</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
         <span class="n">observation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="ObsNormEnv.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormEnv.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">observation</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="RewardNormEnv"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormEnv">[docs]</a><span class="k">class</span> <span class="nc">RewardNormEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">RewardWrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;reward_norm&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RewardNormWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">RewardWrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">       Normalize reward according to running std.</span>
@@ -810,7 +789,7 @@
 <span class="sd">        - ``cum_reward``, ``reward_discount``, ``data_count``, ``rms``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="RewardNormEnv.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormEnv.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">reward_discount</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">reward_discount</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature;  \</span>
@@ -822,9 +801,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cum_reward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="s1">&#39;float64&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reward_discount</span> <span class="o">=</span> <span class="n">reward_discount</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_count</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rms</span> <span class="o">=</span> <span class="n">RunningMeanStd</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">))</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rms</span> <span class="o">=</span> <span class="n">RunningMeanStd</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">))</span>
 
-<div class="viewcode-block" id="RewardNormEnv.step"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormEnv.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward,  \</span>
@@ -847,9 +826,9 @@
         <span class="n">reward</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">reward</span><span class="p">],</span> <span class="s1">&#39;float64&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cum_reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cum_reward</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_discount</span> <span class="o">+</span> <span class="n">reward</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rms</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cum_reward</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">observation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="n">reward</span><span class="p">),</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
+        <span class="k">return</span> <span class="n">observation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward</span><span class="p">(</span><span class="n">reward</span><span class="p">),</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 
-<div class="viewcode-block" id="RewardNormEnv.reward"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormEnv.reward">[docs]</a>    <span class="k">def</span> <span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">           Normalize reward if ``data_count`` is more than 30</span>
@@ -861,9 +840,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_count</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">reward</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">rms</span><span class="o">.</span><span class="n">std</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
 
-<div class="viewcode-block" id="RewardNormEnv.reset"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormEnv.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties (`NumType` ones to 0, \</span>
@@ -874,25 +853,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cum_reward</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rms</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="RewardNormEnv.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormEnv.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="RamWrapper"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper">[docs]</a><span class="k">class</span> <span class="nc">RamWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="RamWrapper"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper">[docs]</a><span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;ram&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RamWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">       Wrapper ram env into image-like env</span>
+<span class="sd">       Wrap ram env into image-like env</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        ``__init__``, ``reset``, ``step``, ``new_shape``</span>
 <span class="sd">    Properties:</span>
@@ -947,23 +915,11 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">obs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
-
-<div class="viewcode-block" id="RamWrapper.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get new shape of observation, acton, and reward; in this case only observation \</span>
-<span class="sd">                space wrapped to (128,1,1); others unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">obs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div></div>
 
 
-<div class="viewcode-block" id="EpisodicLifeEnv"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeEnv">[docs]</a><span class="k">class</span> <span class="nc">EpisodicLifeEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;episodic_life&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">EpisodicLifeWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Make end-of-life == end-of-episode, but only reset on true game over. It helps \</span>
@@ -976,7 +932,7 @@
 <span class="sd">        - ``lives``, ``was_real_done``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="EpisodicLifeEnv.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeEnv.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; set \</span>
@@ -986,9 +942,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lives</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">was_real_done</span> <span class="o">=</span> <span class="kc">True</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">was_real_done</span> <span class="o">=</span> <span class="kc">True</span>
 
-<div class="viewcode-block" id="EpisodicLifeEnv.step"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeEnv.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Step the environment with the given action. Repeat action, sum reward; set \</span>
@@ -1012,14 +968,14 @@
         <span class="c1"># handle bonus lives</span>
         <span class="n">lives</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">ale</span><span class="o">.</span><span class="n">lives</span><span class="p">()</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">lives</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">lives</span><span class="p">:</span>
-            <span class="c1"># for Qbert sometimes we stay in lives == 0 condition for a few</span>
-            <span class="c1"># frames, so its important to keep lives &gt; 0, so that we only reset</span>
+            <span class="c1"># For Qbert sometimes we stay in lives == 0 condition for a few frames,</span>
+            <span class="c1"># so it is important to keep lives &gt; 0, so that we only reset</span>
             <span class="c1"># once the environment is actually done.</span>
             <span class="n">done</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lives</span> <span class="o">=</span> <span class="n">lives</span>
-        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span></div>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
 
-<div class="viewcode-block" id="EpisodicLifeEnv.reset"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeEnv.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Calls the Gym environment reset, only when lives are exhausted. This way all states are \</span>
@@ -1036,33 +992,22 @@
             <span class="c1"># no-op step to advance from terminal/lost life state</span>
             <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lives</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">ale</span><span class="o">.</span><span class="n">lives</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">obs</span></div>
-
-<div class="viewcode-block" id="EpisodicLifeEnv.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeEnv.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="k">return</span> <span class="n">obs</span>
 
 
-<div class="viewcode-block" id="FireResetEnv"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetEnv">[docs]</a><span class="k">class</span> <span class="nc">FireResetEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;fire_reset&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">FireResetWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Take action on reset for environments that are fixed until firing. \</span>
-<span class="sd">            Related discussion: https://github.com/openai/baselines/issues/240</span>
+<span class="sd">        Take fire action at environment reset.</span>
+<span class="sd">        Related discussion: https://github.com/openai/baselines/issues/240</span>
 <span class="sd">    Interface:</span>
 <span class="sd">        ``__init__``, ``reset``, ``new_shape``</span>
 <span class="sd">    Properties:</span>
 <span class="sd">        - env (:obj:`gym.Env`): the environment to wrap.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="FireResetEnv.__init__"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetEnv.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
@@ -1071,27 +1016,80 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">get_action_meanings</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;FIRE&#39;</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">get_action_meanings</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">3</span></div>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">unwrapped</span><span class="o">.</span><span class="n">get_action_meanings</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">3</span>
 
-<div class="viewcode-block" id="FireResetEnv.reset"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetEnv.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Resets the state of the environment and reset properties i.e. reset with action 1</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-<div class="viewcode-block" id="FireResetEnv.new_shape"><a class="viewcode-back" href="../../../../api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetEnv.new_shape">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
+
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gym_hybrid_dict_action&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GymHybridDictActionWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ActionWrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       Transform Gym-Hybrid&#39;s original ``gym.spaces.Tuple`` action space to ``gym.spaces.Dict``.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``action``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        - env (:obj:`gym.Env`): the environment to wrap.</span>
+<span class="sd">        - ``self.action_space``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">           Get new shape of observation, acton, and reward; in this case unchanged.</span>
+<span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
+<span class="sd">            - env (:obj:`gym.Env`): the environment to wrap.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span></div></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+                <span class="c1"># shape = (2, )  0 is for acceleration; 1 is for rotation</span>
+                <span class="s1">&#39;mask&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+                <span class="s1">&#39;args&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+                    <span class="n">low</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                    <span class="n">high</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                    <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="p">),</span>
+                    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+                <span class="p">),</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="c1"># # From Dict to Tuple</span>
+        <span class="c1"># action_type = action[0]</span>
+        <span class="c1"># if action_type == 0:</span>
+        <span class="c1">#     action_mask = np.array([1, 0], dtype=np.int64)</span>
+        <span class="c1">#     action_args = np.array([action[1][0], 0], dtype=np.float32)</span>
+        <span class="c1"># elif action_type == 1:</span>
+        <span class="c1">#     action_mask = np.array([0, 1], dtype=np.int64)</span>
+        <span class="c1">#     action_args = np.array([0, action[1][1]], dtype=np.float32)</span>
+        <span class="c1"># elif action_type == 2:</span>
+        <span class="c1">#     action_mask = np.array([0, 0], dtype=np.int64)</span>
+        <span class="c1">#     action_args = np.array([0, 0], dtype=np.float32)</span>
+
+        <span class="c1"># From Dict to Tuple</span>
+        <span class="n">action_type</span><span class="p">,</span> <span class="n">action_mask</span><span class="p">,</span> <span class="n">action_args</span> <span class="o">=</span> <span class="n">action</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="n">action</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">],</span> <span class="n">action</span><span class="p">[</span><span class="s1">&#39;args&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">((</span><span class="n">action_type</span><span class="p">,</span> <span class="n">action_args</span><span class="p">))</span>
+
+    <span class="c1"># @staticmethod</span>
+    <span class="c1"># def new_shape(obs_shape, act_shape, rew_shape, size=84):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Overview:</span>
+    <span class="c1">#         Get new shape of observation, acton, and reward; in this case only  \</span>
+    <span class="c1">#             observation space wrapped to (4, 84, 84); others unchanged.</span>
+    <span class="c1">#     Arguments:</span>
+    <span class="c1">#         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
+    <span class="c1">#     Returns:</span>
+    <span class="c1">#         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     return (size, size), act_shape, rew_shape</span>
 
 
 <span class="k">def</span> <span class="nf">update_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">,</span> <span class="n">wrapper_names</span><span class="p">):</span>
@@ -1110,6 +1108,37 @@
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">continue</span>
     <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span>
+
+
+<span class="k">def</span> <span class="nf">create_env_wrapper</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">,</span> <span class="n">env_wrapper_cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create an env wrapper according to env_wrapper_cfg and env instance.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - env (:obj:`gym.Env`): An env instance to be wrapped.</span>
+<span class="sd">        - env_wrapper_cfg (:obj:`EasyDict`): Env wrapper config.</span>
+<span class="sd">    ArgumentsKeys:</span>
+<span class="sd">        - `env_wrapper_cfg`&#39;s necessary: `type`</span>
+<span class="sd">        - `env_wrapper_cfg`&#39;s optional: `import_names`, `kwargs`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">env_wrapper_cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">env_wrapper_cfg</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;import_names&#39;</span> <span class="ow">in</span> <span class="n">env_wrapper_cfg</span><span class="p">:</span>
+        <span class="n">import_module</span><span class="p">(</span><span class="n">env_wrapper_cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">))</span>
+    <span class="n">env_wrapper_type</span> <span class="o">=</span> <span class="n">env_wrapper_cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">env_wrapper_type</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="o">**</span><span class="n">env_wrapper_cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;kwargs&#39;</span><span class="p">,</span> <span class="p">{}))</span>
+
+
+<span class="k">def</span> <span class="nf">get_env_wrapper_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Get an env wrapper class according to cfg.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Env wrapper config.</span>
+<span class="sd">    ArgumentsKeys:</span>
+<span class="sd">        - necessary: `type`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="k">return</span> <span class="n">ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
 </pre></div>
 
            </div>
