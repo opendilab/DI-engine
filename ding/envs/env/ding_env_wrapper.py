@@ -5,7 +5,7 @@ import numpy as np
 from numpy.lib.arraysetops import isin
 
 from ding.envs.common.env_element import EnvElementInfo
-from ding.envs.env_wrappers import create_env_wrapper, get_env_wrapper_cls
+from ding.envs.env_wrappers import create_env_wrapper
 from ding.torch_utils import to_ndarray
 from ding.utils import ENV_WRAPPER_REGISTRY, import_module
 from .base_env import BaseEnv, BaseEnvTimestep, BaseEnvInfo

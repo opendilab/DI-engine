@@ -78,7 +78,8 @@ setup(
         'mpire',
         'pynng',
         'pettingzoo',
-        'pyglet>=1.4.0'
+        'pyglet>=1.4.0',
+        'box2d-py'
     ],
     extras_require={
         'test': [
