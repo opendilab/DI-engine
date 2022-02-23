@@ -3,7 +3,7 @@ from easydict import EasyDict
 cartpole_dqfd_config = dict(
     exp_name='cartpole_dqfd',
     env=dict(
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
@@ -27,7 +27,7 @@ cartpole_dqfd_config = dict(
             lambda2 = 3.0,
             lambda3 = 0,  # set this to be 0 (L2 loss = 0) with expert_replay_buffer_size = 0 and lambda1 = 0 recover the one step pdd dqn
             per_train_iter_k = 10,
-            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer 
+            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer
         ),
         # Users should add their own path here (path should lead to a well-trained model)
         collect=dict(n_sample=8, demonstration_info_path = 'path'),

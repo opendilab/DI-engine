@@ -12,7 +12,7 @@ pong_r2d3_config = dict(
     exp_name='pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
@@ -100,7 +100,7 @@ expert_pong_r2d3_config = dict(
     exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,

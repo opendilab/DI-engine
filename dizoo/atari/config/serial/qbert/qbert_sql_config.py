@@ -11,7 +11,7 @@ qbert_sql_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,

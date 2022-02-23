@@ -68,9 +68,9 @@ class ShmBuffer():
             - src_arr (:obj:`np.ndarray`): array to fill the buffer.
         """
         assert isinstance(src_arr, np.ndarray), type(src_arr)
-        dst_arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
+        dst_arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype)
         with self.buffer.get_lock():
-            np.copyto(dst_arr, src_arr)
+            np.copyto(dst_arr, src_arr.flatten())
 
     def get(self) -> np.ndarray:
         """
@@ -79,8 +79,7 @@ class ShmBuffer():
         Return:
             - copy_data (:obj:`np.ndarray`): A copy of the data stored in the buffer.
         """
-        arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
-        return arr.copy()
+        return np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
 
 
 class ShmBufferContainer(object):
@@ -175,6 +174,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         wait_num=2,
         step_wait_timeout=0.01,
         connect_timeout=60,
+        reset_inplace=False,
     )
 
     def __init__(
@@ -208,6 +208,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 'timeout': self._step_wait_timeout
             }
         }
+        self._reset_inplace = self._cfg.reset_inplace
 
     def _create_state(self) -> None:
         r"""
@@ -234,8 +235,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     def _create_env_subprocess(self, env_id):
         # start a new one
-        self._pipe_parents[env_id], self._pipe_children[env_id] = Pipe()
         ctx = get_context(self._context)
+        self._pipe_parents[env_id], self._pipe_children[env_id] = ctx.Pipe()
         self._subprocesses[env_id] = ctx.Process(
             # target=self.worker_fn,
             target=self.worker_fn_robust,
@@ -247,6 +248,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 self.method_name_list,
                 self._reset_timeout,
                 self._step_timeout,
+                self._reset_inplace,
             ),
             daemon=True,
             name='subprocess_env_manager{}_{}'.format(env_id, time.time())
@@ -369,7 +371,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 assert isinstance(self._reset_param[env_id], dict), type(self._reset_param[env_id])
                 self._pipe_parents[env_id].send(['reset', [], self._reset_param[env_id]])
             else:
-                self._pipe_parents[env_id].send(['reset', [], {}])
+                self._pipe_parents[env_id].send(['reset', [], None])
 
             if not self._pipe_parents[env_id].poll(self._connect_timeout):
                 raise ConnectionError("env reset connection timeout")  # Leave it to try again
@@ -439,7 +441,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                    )
 
         for env_id, act in actions.items():
-            self._pipe_parents[env_id].send(['step', [act], {}])
+            self._pipe_parents[env_id].send(['step', [act], None])
 
         timesteps = {}
         step_args = self._async_args['step']
@@ -488,10 +490,14 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             if timestep.done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
-                    self._env_states[env_id] = EnvState.RESET
-                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
-                    reset_thread.daemon = True
-                    reset_thread.start()
+                    if self._reset_inplace:  # reset in subprocess at once
+                        self._env_states[env_id] = EnvState.RUN
+                        self._ready_obs[env_id] = timestep.obs
+                    else:
+                        self._env_states[env_id] = EnvState.RESET
+                        reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
+                        reset_thread.daemon = True
+                        reset_thread.start()
                 else:
                     self._env_states[env_id] = EnvState.DONE
             else:
@@ -503,8 +509,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     # A more robust version is used by default. But this one is also preserved.
     @staticmethod
     def worker_fn(
-            p: connection.Connection, c: connection.Connection, env_fn_wrapper: 'CloudPickleWrapper',
-            obs_buffer: ShmBuffer, method_name_list: list
+            p: connection.Connection,
+            c: connection.Connection,
+            env_fn_wrapper: 'CloudPickleWrapper',
+            obs_buffer: ShmBuffer,
+            method_name_list: list,
+            reset_inplace: bool = False,
     ) -> None:  # noqa
         """
         Overview:
@@ -530,6 +540,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                             if is_abnormal_timestep(timestep):
                                 ret = timestep
                             else:
+                                if reset_inplace and timestep.done:
+                                    obs = env.reset()
+                                    timestep = timestep._replace(obs=obs)
                                 if obs_buffer is not None:
                                     obs_buffer.fill(timestep.obs)
                                     timestep = timestep._replace(obs=None)
@@ -569,6 +582,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             method_name_list,
             reset_timeout=None,
             step_timeout=None,
+            reset_inplace=False,
     ) -> None:
         """
         Overview:
@@ -585,6 +599,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             if is_abnormal_timestep(timestep):
                 ret = timestep
             else:
+                if reset_inplace and timestep.done:
+                    obs = env.reset()
+                    timestep = timestep._replace(obs=obs)
                 if obs_buffer is not None:
                     obs_buffer.fill(timestep.obs)
                     timestep = timestep._replace(obs=None)
@@ -615,8 +632,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     ret = getattr(env, args[0])
                 elif cmd in method_name_list:
                     if cmd == 'step':
-                        ret = step_fn(*args, **kwargs)
+                        ret = step_fn(*args)
                     elif cmd == 'reset':
+                        if kwargs is None:
+                            kwargs = {}
                         ret = reset_fn(*args, **kwargs)
                     elif args is None and kwargs is None:
                         ret = getattr(env, cmd)()
@@ -746,16 +765,8 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         wait_num=float("inf"),  # inf mean all the environments
         step_wait_timeout=None,
         connect_timeout=60,
-        force_reproducibility=False,
+        reset_inplace=False,  # if reset_inplace=True in SyncSubprocessEnvManager, the interaction can be reproducible.
     )
-
-    def __init__(
-            self,
-            env_fn: List[Callable],
-            cfg: EasyDict = EasyDict({}),
-    ) -> None:
-        super(SyncSubprocessEnvManager, self).__init__(env_fn, cfg)
-        self._force_reproducibility = self._cfg.force_reproducibility
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
         """
@@ -785,7 +796,9 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
                         for env_id in env_ids}
                    )
         for env_id, act in actions.items():
-            self._pipe_parents[env_id].send(['step', [act], {}])
+            # it is necessary to set kwargs as None for saving cost of serialization in some env like cartpole,
+            # and step method never uses kwargs in known envs.
+            self._pipe_parents[env_id].send(['step', [act], None])
 
         # ===     This part is different from async one.     ===
         # === Because operate in this way is more efficient. ===
@@ -806,6 +819,7 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         # ======================================================
 
         if self._shared_memory:
+            # TODO(nyz) optimize sync shm
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
         for env_id, timestep in timesteps.items():
@@ -815,12 +829,14 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
             if timestep.done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
-                    self._env_states[env_id] = EnvState.RESET
-                    reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
-                    reset_thread.daemon = True
-                    reset_thread.start()
-                    if self._force_reproducibility:
-                        reset_thread.join()
+                    if self._reset_inplace:  # reset in subprocess at once
+                        self._env_states[env_id] = EnvState.RUN
+                        self._ready_obs[env_id] = timestep.obs
+                    else:
+                        self._env_states[env_id] = EnvState.RESET
+                        reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
+                        reset_thread.daemon = True
+                        reset_thread.start()
                 else:
                     self._env_states[env_id] = EnvState.DONE
             else:

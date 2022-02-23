@@ -10,7 +10,7 @@ qbert_dqn_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -49,7 +49,7 @@ qbert_dqn_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess', force_reproducibility=True),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
 qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
