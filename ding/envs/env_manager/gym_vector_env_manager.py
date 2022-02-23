@@ -20,9 +20,7 @@ class GymVectorEnvManager(BaseEnvManager):
     Interfaces:
         seed, ready_obs, step, reset
     """
-    config = dict(
-        shared_memory=False,
-    )
+    config = dict(shared_memory=False, )
 
     def __init__(self, env_fn: List[Callable], cfg: EasyDict) -> None:
         """

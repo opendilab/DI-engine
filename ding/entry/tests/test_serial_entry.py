@@ -1,4 +1,5 @@
 import pytest
+from itertools import product
 import time
 import os
 from copy import deepcopy
@@ -24,8 +25,8 @@ from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum
 from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
 from dizoo.classic_control.pendulum.config import pendulum_d4pg_config, pendulum_d4pg_create_config
-from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
-from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
+from dizoo.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
+from dizoo.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_wqmix_config, cooperative_navigation_wqmix_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
@@ -48,12 +49,11 @@ from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_con
 
 
 @pytest.mark.unittest
-@pytest.mark.dqn
 def test_dqn():
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
@@ -65,7 +65,7 @@ def test_ddpg():
     config = [deepcopy(pendulum_ddpg_config), deepcopy(pendulum_ddpg_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -75,7 +75,7 @@ def test_hybrid_ddpg():
     config = [deepcopy(gym_hybrid_ddpg_config), deepcopy(gym_hybrid_ddpg_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -85,7 +85,7 @@ def test_hybrid_pdqn():
     config = [deepcopy(gym_hybrid_pdqn_config), deepcopy(gym_hybrid_pdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -95,7 +95,7 @@ def test_hybrid_mpdqn():
     config = [deepcopy(gym_hybrid_mpdqn_config), deepcopy(gym_hybrid_mpdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -105,7 +105,7 @@ def test_td3():
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -115,7 +115,7 @@ def test_rainbow():
     config = [deepcopy(cartpole_rainbow_config), deepcopy(cartpole_rainbow_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -125,7 +125,7 @@ def test_iqn():
     config = [deepcopy(cartpole_iqn_config), deepcopy(cartpole_iqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -135,7 +135,7 @@ def test_c51():
     config = [deepcopy(cartpole_c51_config), deepcopy(cartpole_c51_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -145,7 +145,7 @@ def test_qrdqn():
     config = [deepcopy(cartpole_qrdqn_config), deepcopy(cartpole_qrdqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -154,8 +154,9 @@ def test_qrdqn():
 def test_ppo():
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'ppo_offpolicy_unittest'
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -166,7 +167,7 @@ def test_ppo_nstep_return():
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.nstep_return = True
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -177,7 +178,7 @@ def test_sac():
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.learn.auto_alpha = False
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -189,7 +190,7 @@ def test_sac_auto_alpha():
     config[0].policy.learn.auto_alpha = True
     config[0].policy.learn.log_space = False
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -201,19 +202,39 @@ def test_sac_log_space():
     config[0].policy.learn.auto_alpha = True
     config[0].policy.learn.log_space = True
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
+    except Exception:
+        assert False, "pipeline fail"
+
+
+auto_alpha = [True, False]
+log_space = [True, False]
+args = [item for item in product(*[auto_alpha, log_space])]
+
+
+@pytest.mark.unittest
+@pytest.mark.parametrize('auto_alpha, log_space', args)
+def test_discrete_sac(auto_alpha, log_space):
+    config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
+    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.auto_alpha = auto_alpha
+    config[0].policy.learn.log_space = log_space
+    try:
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
 
 @pytest.mark.unittest
-def test_discrete_sac():
+def test_discrete_sac_twin_critic():
     config = [deepcopy(cartpole_sac_config), deepcopy(cartpole_sac_create_config)]
+    config[0].cuda = True
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.learn.auto_alpha = True
     config[0].policy.learn.log_space = True
+    config[0].policy.model.twin_critic = False
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -223,7 +244,7 @@ def test_r2d2():
     config = [deepcopy(cartpole_r2d2_config), deepcopy(cartpole_r2d2_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=5)
+        serial_pipeline(config, seed=0, max_train_iter=5)
     except Exception:
         assert False, "pipeline fail"
 
@@ -233,7 +254,7 @@ def test_impala():
     config = [deepcopy(cartpole_impala_config), deepcopy(cartpole_impala_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -242,7 +263,7 @@ def test_impala():
 def test_her_dqn():
     bitflip_her_dqn_config.policy.cuda = False
     try:
-        bitflip_dqn_main(bitflip_her_dqn_config, seed=0, max_iterations=1)
+        bitflip_dqn_main(bitflip_her_dqn_config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -252,8 +273,10 @@ def test_collaq():
     config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
@@ -265,8 +288,10 @@ def test_coma():
     config = [deepcopy(cooperative_navigation_coma_config), deepcopy(cooperative_navigation_coma_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
@@ -278,8 +303,10 @@ def test_qmix():
     config = [deepcopy(cooperative_navigation_qmix_config), deepcopy(cooperative_navigation_qmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
@@ -291,8 +318,10 @@ def test_wqmix():
     config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
@@ -304,8 +333,10 @@ def test_qtran():
     config = [deepcopy(cooperative_navigation_qtran_config), deepcopy(cooperative_navigation_qtran_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
@@ -316,8 +347,10 @@ def test_qtran():
 def test_atoc():
     config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
     config[0].policy.cuda = False
+    config[0].env.n_evaluator_episode = 2
+    config[0].policy.collect.n_sample = 100
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
@@ -328,7 +361,7 @@ def test_atoc():
 def test_ppg():
     cartpole_ppg_config.policy.use_cuda = False
     try:
-        ppg_main(cartpole_ppg_config, seed=0, max_iterations=1)
+        ppg_main(cartpole_ppg_config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -336,9 +369,10 @@ def test_ppg():
 @pytest.mark.unittest
 def test_sqn():
     config = [deepcopy(cartpole_sqn_config), deepcopy(cartpole_sqn_create_config)]
-    config[0].policy.learn.update_per_collect = 1
+    config[0].policy.learn.update_per_collect = 8
+    config[0].policy.learn.batch_size = 8
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=2)
     except Exception:
         assert False, "pipeline fail"
     finally:
@@ -348,7 +382,7 @@ def test_sqn():
 @pytest.mark.unittest
 def test_selfplay():
     try:
-        selfplay_main(deepcopy(league_demo_ppo_config), seed=0, max_iterations=1)
+        selfplay_main(deepcopy(league_demo_ppo_config), seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -356,7 +390,7 @@ def test_selfplay():
 @pytest.mark.unittest
 def test_league():
     try:
-        league_main(deepcopy(league_demo_ppo_config), seed=0, max_iterations=1)
+        league_main(deepcopy(league_demo_ppo_config), seed=0, max_train_iter=1)
     except Exception as e:
         assert False, "pipeline fail"
 
@@ -366,7 +400,7 @@ def test_acer():
     config = [deepcopy(cartpole_acer_config), deepcopy(cartpole_acer_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -378,7 +412,7 @@ def test_cql():
     config[0].policy.learn.update_per_collect = 1
     config[0].exp_name = 'sac'
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 
@@ -413,7 +447,7 @@ def test_d4pg():
     config = [deepcopy(pendulum_d4pg_config), deepcopy(pendulum_d4pg_create_config)]
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception as e:
         assert False, "pipeline fail"
         print(repr(e))
@@ -426,7 +460,7 @@ def test_discrete_cql():
     config[0].policy.learn.update_per_collect = 1
     config[0].exp_name = 'cql_cartpole'
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     # collect expert data
@@ -455,14 +489,14 @@ def test_discrete_cql():
         os.popen('rm -rf cartpole cartpole_cql')
 
 
-@pytest.mark.algotest
+@pytest.mark.unittest
 def test_td3_bc():
     # train expert
     config = [deepcopy(pendulum_td3_config), deepcopy(pendulum_td3_create_config)]
     config[0].exp_name = 'td3'
     config[0].policy.learn.update_per_collect = 1
     try:
-        serial_pipeline(config, seed=0, max_iterations=1)
+        serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
 

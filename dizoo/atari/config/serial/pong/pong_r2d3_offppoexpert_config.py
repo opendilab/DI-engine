@@ -6,10 +6,11 @@ module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
 evaluator_env_num = 5
-expert_replay_buffer_size=1000  #TODO 1000
+expert_replay_buffer_size = int(5e3)  # TODO(pu)
+
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='debug_pong_r2d3_offppoexpert_k0_pho1-256_rbs2e4',
+    exp_name='pong_r2d3_offppoexpert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, reset_inplace=True),
@@ -62,7 +63,7 @@ pong_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/256,  # 1/256,  #TODO(pu), 0.25,
+            pho=1/4,  # TODO(pu)
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -98,7 +99,7 @@ create_config = pong_r2d3_create_config
 
 """export config"""
 expert_pong_r2d3_config = dict(
-    exp_name='expert_pong_r2d3_ppoexpert_k0_pho1-256_rbs2e4',
+    exp_name='expert_pong_r2d3_ppoexpert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, reset_inplace=True),

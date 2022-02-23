@@ -6,6 +6,7 @@ lunarlander_ppo_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),
@@ -18,11 +19,12 @@ lunarlander_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=False,
+        action_space='discrete',
         recompute_adv=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
+            action_space='discrete',
         ),
         learn=dict(
             update_per_collect=8,

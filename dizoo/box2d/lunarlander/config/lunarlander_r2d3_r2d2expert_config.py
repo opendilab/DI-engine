@@ -2,14 +2,12 @@ import os
 from easydict import EasyDict
 
 from ding.entry import serial_pipeline_r2d3
-import os
 
 module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
 evaluator_env_num = 5
-expert_replay_buffer_size=int(5e3)
-
+expert_replay_buffer_size = int(5e3)
 """agent config"""
 lunarlander_r2d3_config = dict(
     exp_name='debug_lunarlander_r2d3_r2d2expert_k0_pho1-4_rbs1e4_ds5e3',
@@ -18,6 +16,7 @@ lunarlander_r2d3_config = dict(
         manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),
@@ -63,7 +62,7 @@ lunarlander_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/4,  # TODO(pu)
+            pho=1 / 4,  # TODO(pu)
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -73,12 +72,13 @@ lunarlander_r2d3_config = dict(
                 end=0.1,
                 decay=100000,
             ),
-            replay_buffer=dict(replay_buffer_size=int(1e4),
-                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                               alpha=0.6,  # priority exponent default=0.6
-                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                               beta=0.4,
-                               )
+            replay_buffer=dict(
+                replay_buffer_size=int(1e4),
+                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                alpha=0.6,  # priority exponent default=0.6
+                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                beta=0.4,
+            )
         ),
     ),
 )
@@ -94,8 +94,6 @@ lunarlander_r2d3_create_config = dict(
 )
 lunarlander_r2d3_create_config = EasyDict(lunarlander_r2d3_create_config)
 create_config = lunarlander_r2d3_create_config
-
-
 """export config"""
 expert_lunarlander_r2d3_config = dict(
     exp_name='expert_lunarlander_r2d3_r2d2expert_k0_pho1-4_ds5e3',
@@ -121,9 +119,7 @@ expert_lunarlander_r2d3_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=5,
-        learn=dict(
-            expert_replay_buffer_size=expert_replay_buffer_size,
-        ),
+        learn=dict(expert_replay_buffer_size=expert_replay_buffer_size, ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             each_iter_n_sample=32,
@@ -131,17 +127,19 @@ expert_lunarlander_r2d3_config = dict(
             # demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_12948.pth.tar',
             demonstration_info_path=module_path + '/demo_path/r2d2_iteration_13000.pth.tar',
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
-            unroll_len=40,  # TODO(pu): if in ppo_offpolicy, this key should equals self._unroll_len_add_burnin_step in r2d2 policy
+            unroll_len=
+            40,  # TODO(pu): if in ppo_offpolicy, this key should equals self._unroll_len_add_burnin_step in r2d2 policy
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
-            replay_buffer=dict(replay_buffer_size=expert_replay_buffer_size,
-                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                               alpha=0.9,  # priority exponent default=0.6
-                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                               beta=0.4,
-                               )
+            replay_buffer=dict(
+                replay_buffer_size=expert_replay_buffer_size,
+                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                alpha=0.9,  # priority exponent default=0.6
+                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                beta=0.4,
+            )
         ),
     ),
 )

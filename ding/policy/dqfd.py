@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Tuple
 from collections import namedtuple
 import copy
 import torch
-
+from torch.optim import AdamW
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, get_nstep_return_data, get_train_sample, \
     dqfd_nstep_td_error, dqfd_nstep_td_data
@@ -136,7 +136,9 @@ class DQFDPolicy(DQNPolicy):
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
         # Optimizer
-        self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
+        # two optimizers: the performance of adamW is better than adam, so we recommend using the adamW.
+        self._optimizer = AdamW(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
+        # self._optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate, weight_decay=self.lambda3)
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
@@ -195,6 +197,8 @@ class DQFDPolicy(DQNPolicy):
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
             target_q_action_one_step = self._learn_model.forward(data['next_obs_1'])['action']
 
+        # modify the tensor type to match the JE computation in dqfd_nstep_td_error
+        is_expert = data['is_expert'].float()
         data_n = dqfd_nstep_td_data(
             q_value,
             target_q_value,
@@ -206,10 +210,10 @@ class DQFDPolicy(DQNPolicy):
             data['weight'],
             target_q_value_one_step,
             target_q_action_one_step,
-            data['is_expert']  # set is_expert flag(expert 1, agent 0)
+            is_expert  # set is_expert flag(expert 1, agent 0)
         )
         value_gamma = data.get('value_gamma')
-        loss, td_error_per_sample = dqfd_nstep_td_error(
+        loss, td_error_per_sample, loss_statistics = dqfd_nstep_td_error(
             data_n,
             self._gamma,
             self.lambda1,

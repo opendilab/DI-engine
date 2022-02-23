@@ -17,7 +17,7 @@ def wrapped_cartpole_env():
     return DingEnvWrapper(gym.make('CartPole-v0'))
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
+def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
@@ -72,6 +72,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 learner.train(train_data, collector.envstep)
         policy_buffer.clear()
         value_buffer.clear()
+        if learner.train_iter >= max_train_iter or collector.envstep >= max_env_step:
+            break
 
 
 if __name__ == "__main__":

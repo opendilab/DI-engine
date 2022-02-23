@@ -10,7 +10,7 @@ from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import ca
 from dizoo.classic_control.cartpole.envs import CartPoleEnv
 from ding.entry import serial_pipeline, eval, collect_demo_data
 from ding.config import compile_config
-from ding.entry.application_entry import collect_episodic_demo_data, epsiode_to_transitions
+from ding.entry.application_entry import collect_episodic_demo_data, episode_to_transitions
 
 
 @pytest.fixture(scope='module')
@@ -65,8 +65,11 @@ class TestApplication:
 
     def test_collect_episodic_demo_data(self, setup_state_dict):
         config = deepcopy(cartpole_trex_ppo_offpolicy_config), deepcopy(cartpole_trex_ppo_offpolicy_create_config)
+        config[0].exp_name = 'cartpole_trex_offppo_episodic'
         collect_count = 16
-        expert_data_path = './expert.data'
+        if not os.path.exists('./test_episode'):
+            os.mkdir('./test_episode')
+        expert_data_path = './test_episode/expert.data'
         collect_episodic_demo_data(
             config,
             seed=0,
@@ -79,11 +82,13 @@ class TestApplication:
         assert isinstance(exp_data, list)
         assert isinstance(exp_data[0][0], dict)
 
-    def test_epsiode_to_transitions(self):
-        expert_data_path = './expert.data'
-        epsiode_to_transitions(data_path=expert_data_path, expert_data_path=expert_data_path, nstep=3)
+    def test_episode_to_transitions(self, setup_state_dict):
+        self.test_collect_episodic_demo_data(setup_state_dict)
+        expert_data_path = './test_episode/expert.data'
+        episode_to_transitions(data_path=expert_data_path, expert_data_path=expert_data_path, nstep=3)
         with open(expert_data_path, 'rb') as f:
             exp_data = pickle.load(f)
         assert isinstance(exp_data, list)
         assert isinstance(exp_data[0], dict)
-        os.popen('rm -rf ./expert.data ckpt* log')
+        os.popen('rm -rf ./test_episode/expert.data ckpt* log')
+        os.popen('rm -rf ./test_episode')

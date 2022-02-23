@@ -66,9 +66,7 @@ walker_trex_ppo_create_default_config = dict(
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(
-        type='ppo',
-    ),
+    policy=dict(type='ppo', ),
 )
 walker_trex_ppo_create_default_config = EasyDict(walker_trex_ppo_create_default_config)
 create_config = walker_trex_ppo_create_default_config

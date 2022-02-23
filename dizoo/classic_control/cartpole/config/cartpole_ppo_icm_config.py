@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline_reward_model
 
 
 cartpole_ppo_icm_config = dict(
-    exp_name='cartpole_ppo',
+    exp_name='cartpole_ppo_icm',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -20,10 +20,11 @@ cartpole_ppo_icm_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=False,
+        action_space='discrete',
         model=dict(
             obs_shape=4,
             action_shape=2,
+            action_space='discrete',
             encoder_hidden_size_list=[64, 64, 128],
             critic_head_hidden_size=128,
             actor_head_hidden_size=128,

@@ -78,6 +78,7 @@ class CQLPolicy(SACPolicy):
         # on-policy setting influences the behaviour of buffer.
         # Default False in SAC.
         on_policy=False,
+        multi_agent=False,
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Default False in SAC.
         priority=False,
@@ -98,7 +99,9 @@ class CQLPolicy(SACPolicy):
             # and learning_rate_policy in `cfg.policy.learn`.
             # Default to False.
             # value_network=False,
-            actor_head_type='reparameterization',
+
+            # (str type) action_space: Use reparameterization trick for continous action
+            action_space='reparameterization',
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -165,14 +168,10 @@ class CQLPolicy(SACPolicy):
             lagrange_thresh=-1,
             # (float) Loss weight for conservative item.
             min_q_weight=1.0,
-            # (bool) Whether to use entory in target q.
+            # (bool) Whether to use entropy in target q.
             with_q_entropy=False,
         ),
         collect=dict(
-            # You can use either "n_sample" or "n_episode" in actor.collect.
-            # Get "n_sample" samples per collect.
-            # Default n_sample to 1.
-            n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -391,7 +390,7 @@ class CQLPolicy(SACPolicy):
         std_q1 = torch.std(cat_q1, dim=1)
         std_q2 = torch.std(cat_q2, dim=1)
         if self._min_q_version == 3:
-            # importance sammpled version
+            # importance sampled version
             random_density = np.log(0.5 ** curr_actions_tensor.shape[-1])
             cat_q1 = torch.cat(
                 [
@@ -603,8 +602,6 @@ class CQLDiscretePolicy(DQNPolicy):
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),

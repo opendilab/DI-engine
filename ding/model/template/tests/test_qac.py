@@ -17,16 +17,16 @@ args = list(product(*[action_shape_args, [True, False], ['regression', 'reparame
 
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('action_shape, twin, actor_head_type', args)
+@pytest.mark.parametrize('action_shape, twin, action_space', args)
 class TestQAC:
 
-    def test_fcqac(self, action_shape, twin, actor_head_type):
+    def test_fcqac(self, action_shape, twin, action_space):
         N = 32
         inputs = {'obs': torch.randn(B, N), 'action': torch.randn(B, squeeze(action_shape))}
         model = QAC(
             obs_shape=(N, ),
             action_shape=action_shape,
-            actor_head_type=actor_head_type,
+            action_space=action_space,
             critic_head_hidden_size=embedding_size,
             actor_head_hidden_size=embedding_size,
             twin_critic=twin,
@@ -41,7 +41,7 @@ class TestQAC:
 
         # compute_action
         print(model)
-        if actor_head_type == 'regression':
+        if action_space == 'regression':
             action = model(inputs['obs'], mode='compute_actor')['action']
             if squeeze(action_shape) == 1:
                 assert action.shape == (B, )
@@ -49,7 +49,7 @@ class TestQAC:
                 assert action.shape == (B, squeeze(action_shape))
             assert action.eq(action.clamp(-1, 1)).all()
             is_differentiable(action.sum(), model.actor)
-        elif actor_head_type == 'reparameterization':
+        elif action_space == 'reparameterization':
             (mu, sigma) = model(inputs['obs'], mode='compute_actor')['logit']
             assert mu.shape == (B, *action_shape)
             assert sigma.shape == (B, *action_shape)

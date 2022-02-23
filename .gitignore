@@ -10,6 +10,7 @@
 *.log
 *.log.*
 *.sig
+*.mov
 
 pkg/
 src/
@@ -1419,3 +1420,5 @@ formatted_*
 eval_config.py
 collect_demo_data_config.py
 default*
+!ding/**/*.py
+events.*

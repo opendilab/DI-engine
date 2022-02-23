@@ -27,8 +27,8 @@ from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_
 from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
-from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
-from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
+from dizoo.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
+from dizoo.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_wqmix_config, cooperative_navigation_wqmix_create_config  # noqa
 from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
@@ -229,6 +229,9 @@ def test_iqn():
 def test_her_dqn():
     try:
         bitflip_dqn_main(bitflip_her_dqn_config, seed=0)
+        bitflip_her_dqn_config.env.n_bits = 5
+        bitflip_her_dqn_config.policy.model.obs_shape = 10
+        bitflip_her_dqn_config.policy.model.action_shape = 5
     except Exception:
         assert False, "pipeline fail"
     with open("./algo_record.log", "a+") as f:

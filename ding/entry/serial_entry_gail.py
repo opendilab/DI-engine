@@ -1,19 +1,21 @@
 from typing import Optional, Tuple
 import os
+import torch
 import logging
 from functools import partial
 from tensorboardX import SummaryWriter
+import numpy as np
 
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
-from ding.config import compile_config, read_config
-from ding.policy import create_policy, PolicyFactory
+from ding.config import read_config, compile_config
+from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from ding.entry import collect_demo_data
 from ding.utils import save_file
-import numpy as np
+from .utils import random_collect
 
 
 def save_reward_model(path, reward_model, weights_name='best'):
@@ -33,12 +35,14 @@ def serial_pipeline_gail(
         input_cfg: Tuple[dict, dict],
         expert_cfg: Tuple[dict, dict],
         seed: int = 0,
-        max_iterations: Optional[int] = int(1e9),
+        model: Optional[torch.nn.Module] = None,
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
         collect_data: bool = True,
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry with reward model.
+        Serial pipeline entry for GAIL reward model.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -47,8 +51,9 @@ def serial_pipeline_gail(
             ``str`` type means config file path. \
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
         - seed (:obj:`int`): Random seed.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
         - collect_data (:obj:`bool`): Collect expert data.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
@@ -58,9 +63,9 @@ def serial_pipeline_gail(
     else:
         cfg, create_cfg = input_cfg
     if isinstance(expert_cfg, str):
-        expert_cfg, expert_create_cfg = read_config(input_cfg)
+        expert_cfg, expert_create_cfg = read_config(expert_cfg)
     else:
-        cfg, create_cfg = input_cfg
+        expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
     # Load expert data
@@ -68,7 +73,7 @@ def serial_pipeline_gail(
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:
             expert_cfg.policy.other.eps.collect = -1
         if expert_cfg.policy.get('load_path', None) is None:
-            expert_cfg.policy.load_path = os.path.join(expert_cfg.exp_name, 'ckpt/ckpt_best.pth.tar')
+            expert_cfg.policy.load_path = cfg.reward_model.expert_load_path
         collect_demo_data(
             (expert_cfg, expert_create_cfg),
             seed,
@@ -83,7 +88,7 @@ def serial_pipeline_gail(
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
-    policy = create_policy(cfg.policy, enable_field=['learn', 'collect', 'eval', 'command'])
+    policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -112,16 +117,11 @@ def serial_pipeline_gail(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(random_policy)
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size)
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
+        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     best_reward = -np.inf
-    for _ in range(max_iterations):
-        # Evaluate policy performance
+    while True:
         collect_kwargs = commander.step()
+        # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if reward >= best_reward:
@@ -154,12 +154,12 @@ def serial_pipeline_gail(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
 
     # Learner's after_run hook.
     learner.call_hook('after_run')
     save_reward_model(cfg.exp_name, reward_model, 'last')
     # evaluate
-    evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+    # evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
+    return policy

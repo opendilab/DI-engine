@@ -18,6 +18,7 @@ from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
+from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy, SACDiscretePolicy
 from .qmix import QMIXPolicy
@@ -53,12 +54,12 @@ class EpsCommandModePolicy(CommandModePolicy):
         Overview:
             Collect mode setting information including eps
         Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step', 'envstep']
+            - command_info (:obj:`dict`): Dict type, including at least ['learner_train_iter', 'collector_envstep']
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        # Decay according to `learner_step`
-        # step = command_info['learner_step']
+        # Decay according to `learner_train_iter`
+        # step = command_info['learner_train_iter']
         # Decay according to `envstep`
         step = command_info['envstep']
         return {'eps': self.epsilon_greedy(step)}
@@ -211,6 +212,11 @@ class DDPGCommandModePolicy(DDPGPolicy, CommandModePolicy):
 
 @POLICY_REGISTRY.register('td3_command')
 class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('td3_vae_command')
+class TD3VAECommandModePolicy(TD3VAEPolicy, DummyCommandModePolicy):
     pass
 
 

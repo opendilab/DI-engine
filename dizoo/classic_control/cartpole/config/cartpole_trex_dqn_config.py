@@ -60,7 +60,7 @@ cartpole_trex_dqn_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
 cartpole_trex_dqn_create_config = EasyDict(cartpole_trex_dqn_create_config)

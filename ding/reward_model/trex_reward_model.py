@@ -27,7 +27,7 @@ from .base_reward_model import BaseRewardModel
 from .rnd_reward_model import collect_states
 
 
-class ConvEncoder(nn.Module):
+class TrexConvEncoder(nn.Module):
     r"""
     Overview:
         The ``Convolution Encoder`` used in models. Used to encoder raw 2-dim observation.
@@ -44,7 +44,9 @@ class ConvEncoder(nn.Module):
     ) -> None:
         r"""
         Overview:
-            Init the Convolution Encoder according to arguments.
+            Init the Trex Convolution Encoder according to arguments. TrexConvEncoder is different \
+                from the ConvEncoder in model.common.encoder, their stride and kernel size parameters \
+                are different
         Arguments:
             - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, some ``output size``
             - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``
@@ -54,7 +56,7 @@ class ConvEncoder(nn.Module):
             - norm_type (:obj:`str`):
                 The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details
         """
-        super(ConvEncoder, self).__init__()
+        super(TrexConvEncoder, self).__init__()
         self.obs_shape = obs_shape
         self.act = activation
         self.hidden_size_list = hidden_size_list
@@ -112,7 +114,7 @@ class TrexModel(nn.Module):
             self.encoder = nn.Sequential(FCEncoder(obs_shape, [512, 64]), nn.Linear(64, 1))
         # Conv Encoder
         elif len(obs_shape) == 3:
-            self.encoder = ConvEncoder(obs_shape)
+            self.encoder = TrexConvEncoder(obs_shape)
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own Trex model".
@@ -125,11 +127,8 @@ class TrexModel(nn.Module):
         if mode == 'sum':
             sum_rewards = torch.sum(r)
             sum_abs_rewards = torch.sum(torch.abs(r))
-            # print(sum_rewards)
-            # print(r)
             return sum_rewards, sum_abs_rewards
         elif mode == 'batch':
-            # print(r)
             return r, torch.abs(r)
         else:
             raise KeyError("not support mode: {}, please choose mode=sum or mode=batch".format(mode))
@@ -157,6 +156,8 @@ class TrexRewardModel(BaseRewardModel):
         batch_size=64,
         target_new_data_count=64,
         hidden_size=128,
+        num_trajs=0,  # number of downsampled full trajectories
+        num_snippets=6000,  # number of short subtrajectories to sample
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
@@ -173,7 +174,7 @@ class TrexRewardModel(BaseRewardModel):
         assert device in ["cpu", "cuda"] or "cuda" in device
         self.device = device
         self.tb_logger = tb_logger
-        self.reward_model = TrexModel(self.cfg.policy.model.get('obs_shape'))
+        self.reward_model = TrexModel(self.cfg.policy.model.obs_shape)
         self.reward_model.to(self.device)
         self.pre_expert_data = []
         self.train_data = []
@@ -184,8 +185,8 @@ class TrexRewardModel(BaseRewardModel):
         self.learning_rewards = []
         self.training_obs = []
         self.training_labels = []
-        self.num_trajs = 0  # number of downsampled full trajectories
-        self.num_snippets = 6000  # number of short subtrajectories to sample
+        self.num_trajs = self.cfg.reward_model.num_trajs
+        self.num_snippets = self.cfg.reward_model.num_snippets
         # minimum number of short subtrajectories to sample
         self.min_snippet_length = config.reward_model.min_snippet_length
         # maximum number of short subtrajectories to sample
@@ -240,19 +241,15 @@ class TrexRewardModel(BaseRewardModel):
         #collect training data
         max_traj_length = 0
         num_demos = len(demonstrations)
+        assert num_demos >= 2
 
         #add full trajs (for use on Enduro)
         si = np.random.randint(6, size=num_trajs)
         sj = np.random.randint(6, size=num_trajs)
         step = np.random.randint(3, 7, size=num_trajs)
         for n in range(num_trajs):
-            ti = 0
-            tj = 0
-            #only add trajectories that are different returns
-            while (ti == tj):
-                #pick two random demonstrations
-                ti = np.random.randint(num_demos)
-                tj = np.random.randint(num_demos)
+            #pick two random demonstrations
+            ti, tj = np.random.choice(num_demos, size=(2, ), replace=False)
             #create random partial trajs by finding random start frame and random skip frame
             traj_i = demonstrations[ti][si[n]::step[n]]  # slice(start,stop,step)
             traj_j = demonstrations[tj][sj[n]::step[n]]
@@ -266,13 +263,8 @@ class TrexRewardModel(BaseRewardModel):
         #fixed size snippets with progress prior
         rand_length = np.random.randint(min_snippet_length, max_snippet_length, size=num_snippets)
         for n in range(num_snippets):
-            ti = 0
-            tj = 0
-            #only add trajectories that are different returns
-            while (ti == tj):
-                #pick two random demonstrations
-                ti = np.random.randint(num_demos)
-                tj = np.random.randint(num_demos)
+            #pick two random demonstrations
+            ti, tj = np.random.choice(num_demos, size=(2, ), replace=False)
             #create random snippets
             #find min length of both demos to ensure we can pick a demo no earlier
             #than that chosen in worse preferred demo
@@ -285,8 +277,8 @@ class TrexRewardModel(BaseRewardModel):
                 tj_start = np.random.randint(min_length - rand_length[n] + 1)
                 # print(tj_start, len(demonstrations[ti]))
                 ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - rand_length[n] + 1)
-            traj_i = demonstrations[ti][ti_start:ti_start + rand_length[n]:2
-                                        ]  # skip everyother framestack to reduce size
+            # skip everyother framestack to reduce size
+            traj_i = demonstrations[ti][ti_start:ti_start + rand_length[n]:2]
             traj_j = demonstrations[tj][tj_start:tj_start + rand_length[n]:2]
 
             max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
@@ -334,7 +326,6 @@ class TrexRewardModel(BaseRewardModel):
                 item_loss = loss.item()
                 cum_loss += item_loss
                 if i % 100 == 99:
-                    # print(i)
                     self._logger.info("epoch {}:{} loss {}".format(epoch, i, cum_loss))
                     self._logger.info("abs_returns: {}".format(abs_rewards))
                     cum_loss = 0.0
@@ -344,8 +335,11 @@ class TrexRewardModel(BaseRewardModel):
         self._logger.info("finished training")
         # print out predicted cumulative returns and actual returns
         sorted_returns = sorted(self.learning_returns)
+        demonstrations = [
+            x for _, x in sorted(zip(self.learning_returns, self.pre_expert_data), key=lambda pair: pair[0])
+        ]
         with torch.no_grad():
-            pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in self.pre_expert_data]
+            pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in demonstrations]
         for i, p in enumerate(pred_returns):
             self._logger.info("{} {} {}".format(i, p, sorted_returns[i]))
         info = {

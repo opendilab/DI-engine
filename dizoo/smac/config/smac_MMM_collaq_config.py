@@ -18,7 +18,11 @@ main_config = dict(
         shared_memory=False,
         stop_value=0.999,
         n_evaluator_episode=32,
-        obs_alone=True
+        obs_alone=True,
+        manager=dict(
+            shared_memory=False,
+            reset_timeout=6000,
+        ),
     ),
     policy=dict(
         model=dict(

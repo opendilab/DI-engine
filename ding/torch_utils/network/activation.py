@@ -9,7 +9,7 @@ class GLU(nn.Module):
         Gating Linear Unit.
         This class does a thing like this:
 
-        .. code::python
+        .. code:: python
 
             # Inputs: input, context, output_size
             # The gate value is a learnt function of the input.
@@ -20,6 +20,7 @@ class GLU(nn.Module):
             return output
     Interfaces:
         forward
+
     .. tip::
 
         This module also supports 2D convolution, in which case, the input and context must have the same shape.
