@@ -819,6 +819,7 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         # ======================================================
 
         if self._shared_memory:
+            # TODO(nyz) optimize sync shm
             for i, (env_id, timestep) in enumerate(timesteps.items()):
                 timesteps[env_id] = timestep._replace(obs=self._obs_buffers[env_id].get())
         for env_id, timestep in timesteps.items():

@@ -1,7 +1,10 @@
 from typing import Any, Union, List, Tuple, Dict, Callable, Optional
+import logging
+import numpy as np
 from easydict import EasyDict
 from collections import namedtuple
 from gym.vector.async_vector_env import AsyncVectorEnv
+
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
@@ -17,18 +20,26 @@ class GymVectorEnvManager(BaseEnvManager):
     Interfaces:
         seed, ready_obs, step, reset
     """
+    config = dict(
+        shared_memory=False,
+    )
 
     def __init__(self, env_fn: List[Callable], cfg: EasyDict) -> None:
         """
         .. note::
             ``env_fn`` must create gym-type environment instance, which may different DI-engine environment.
         """
-        super().__init__(env_fn, cfg=cfg)
+        self._cfg = cfg
+        self._env_fn = env_fn
+        self._env_num = len(self._env_fn)
+        self._closed = True
+        self._env_replay_path = None
+
         self.env_manager = AsyncVectorEnv(
             env_fns=self._env_fn,
             # observation_space=observation_space,
             # action_space=action_space,
-            shared_memory=True,
+            shared_memory=cfg.shared_memory,
         )
         self.final_eval_reward = [0. for _ in range(self._env_num)]
 
@@ -38,7 +49,9 @@ class GymVectorEnvManager(BaseEnvManager):
         self.final_eval_reward = [0. for _ in range(self._env_num)]
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
-        actions = [v.item() for k, v in actions.items()]
+        elem = list(actions.values())[0]
+        if isinstance(elem, np.ndarray) and elem.shape == (1, ):
+            actions = [v.item() for k, v in actions.items()]
         timestep = self.env_manager.step(actions)
         timestep_collate_result = {}
         for i in range(len(actions)):
@@ -56,3 +69,4 @@ class GymVectorEnvManager(BaseEnvManager):
     def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
         # TODO dynamic_seed
         self.env_manager.seed(seed)
+        logging.warning("gym env doesn't support dynamic_seed in different episode")

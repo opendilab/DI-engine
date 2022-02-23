@@ -11,7 +11,7 @@ pong_sql_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
         cuda=False,
@@ -43,7 +43,7 @@ pong_sql_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility=True),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='sql'),
 )
 pong_sql_create_config = EasyDict(pong_sql_create_config)

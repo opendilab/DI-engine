@@ -4,7 +4,7 @@ lunarlander_dqfd_config = dict(
     exp_name='lunarlander_dqfd',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
@@ -25,7 +25,7 @@ lunarlander_dqfd_config = dict(
             lambda2 = 1.0,
             lambda3 = 1e-5,
             per_train_iter_k = 10,
-            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer 
+            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer
         ),
         collect=dict(
             n_sample=64,

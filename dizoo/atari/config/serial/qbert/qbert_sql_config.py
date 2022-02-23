@@ -48,7 +48,7 @@ qbert_dqn_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess', force_reproducibility=True),
+    env_manager=dict(type='subprocess', reset_inplace=True),
     policy=dict(type='sql'),
 )
 qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
