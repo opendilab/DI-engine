@@ -634,6 +634,7 @@ class DRQN(nn.Module):
                 head_hidden_size, action_shape, head_layer_num, activation=activation, norm_type=norm_type
             )
 
+    @profile
     def forward(
             self, inputs: Dict, inference: bool = False, saved_hidden_state_timesteps: Optional[list] = None
     ) -> Dict:
