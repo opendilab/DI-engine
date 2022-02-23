@@ -7,6 +7,8 @@ from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
     QuantileHead, QRDQNHead, DistributionHead
 
+import timeit
+
 
 @MODEL_REGISTRY.register('dqn')
 class DQN(nn.Module):
@@ -685,16 +687,16 @@ class DRQN(nn.Module):
         # for both inference and other cases, the network structure is encoder -> rnn network -> head
         # the difference is inference take the data with seq_len=1 (or T = 1)
         if inference:
-            x = self.encoder(x)
+            x = self.encoder(x)  # OPTIMIZE 8.6
             if self.res_link:
                 a = x
             x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
             # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
-            x, next_state = self.rnn(x, prev_state)
+            x, next_state = self.rnn(x, prev_state)   # OPTIMIZE 7.2
             x = x.squeeze(0)  # to delete the seq_len dim to match head network input
             if self.res_link:
                 x = x + a
-            x = self.head(x)
+            x = self.head(x)  # OPTIMIZE 5.4
             x['next_state'] = next_state
             return x
         else:
@@ -708,13 +710,15 @@ class DRQN(nn.Module):
             if saved_hidden_state_timesteps is not None:
                 saved_hidden_state = []
             for t in range(x.shape[0]):  # T timesteps
-                output, prev_state = self.rnn(x[t:t + 1], prev_state)  # output: (1,B, head_hidden_size)
+                output, prev_state = self.rnn(x[t:t + 1], prev_state)  # OPTIMIZE 67.8 (76611178) output: (1,B, head_hidden_size)
                 if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
                     saved_hidden_state.append(prev_state)
                 lstm_embedding.append(output)
-                hidden_state = list(zip(*prev_state))  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
+                #start = timeit.default_timer()
+                hidden_state = prev_state[0]  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
                 # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
-                hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
+                hidden_state_list.append(torch.cat(hidden_state, dim=1))  # OPTIMIZE 6.4 (optimized to ???)
+                #end = timeit.default_timer()
             x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
             if self.res_link:
                 x = x + a
