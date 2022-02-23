@@ -57,6 +57,5 @@ space_invaders_dqn_create_config = EasyDict(space_invaders_dqn_create_config)
 create_config = space_invaders_dqn_create_config
 
 if __name__ == '__main__':
-    model = DataParallel(DQN(obs_shape=[4, 84, 84],action_shape=6))
+    model = DataParallel(DQN(obs_shape=[4, 84, 84], action_shape=6))
     serial_pipeline((main_config, create_config), seed=0, model=model)
-

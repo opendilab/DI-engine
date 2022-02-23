@@ -20,6 +20,7 @@ config2 = dict(
 cfg2 = EasyDict(copy.deepcopy(config2))
 cfg2.cfg_type = 'MiniGridEnvDict'
 
+
 @pytest.mark.envtest
 class TestMiniGridEnv:
 

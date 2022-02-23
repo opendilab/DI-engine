@@ -7,7 +7,6 @@ module_path = os.path.dirname(__file__)
 collector_env_num = 8
 evaluator_env_num = 5
 expert_replay_buffer_size = int(5e3)  # TODO(pu)
-
 """agent config"""
 pong_r2d3_config = dict(
     exp_name='pong_r2d3_offppoexpert_k0_pho1-4_rbs2e4_ds5e3',
@@ -63,7 +62,7 @@ pong_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/4,  # TODO(pu)
+            pho=1 / 4,  # TODO(pu)
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -74,7 +73,8 @@ pong_r2d3_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=20000,  # TODO(pu) sequence_length 42 10000 obs need 11GB memory, if rbs=20000, at least 140gb
+                replay_buffer_size=
+                20000,  # TODO(pu) sequence_length 42 10000 obs need 11GB memory, if rbs=20000, at least 140gb
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -95,8 +95,6 @@ pong_r2d3_create_config = dict(
 )
 pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
 create_config = pong_r2d3_create_config
-
-
 """export config"""
 expert_pong_r2d3_config = dict(
     exp_name='expert_pong_r2d3_ppoexpert_k0_pho1-4_rbs2e4_ds5e3',
@@ -126,7 +124,7 @@ expert_pong_r2d3_config = dict(
         burnin_step=20,
         nstep=5,
         learn=dict(
-            expert_replay_buffer_size= expert_replay_buffer_size,  # TODO(pu)
+            expert_replay_buffer_size=expert_replay_buffer_size,  # TODO(pu)
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
@@ -142,7 +140,7 @@ expert_pong_r2d3_config = dict(
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
             replay_buffer=dict(
-                replay_buffer_size= expert_replay_buffer_size,  # TODO(pu)
+                replay_buffer_size=expert_replay_buffer_size,  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

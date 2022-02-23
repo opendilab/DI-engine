@@ -157,7 +157,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         Create an AsyncSubprocessEnvManager to manage multiple environments.
         Each Environment is run by a respective subprocess.
     Interfaces:
-        seed, launch, ready_obs, step, reset, env_info，active_env
+        seed, launch, ready_obs, step, reset, active_env
     """
 
     config = dict(
@@ -218,11 +218,17 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
         self._env_ref = self._env_fn[0]()
+        self._env_ref.reset()
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
-            obs_space = self._env_ref.info().obs_space
-            shape = obs_space.shape
-            dtype = np.dtype(obs_space.value['dtype']) if obs_space.value is not None else np.dtype(np.float32)
+            obs_space = self._env_ref.observation_space
+            self._env_ref.close()
+            if isinstance(obs_space, list):
+                shape = (len(obs_space), ) + obs_space[0].shape
+                dtype = obs_space[0].dtype
+            else:
+                shape = obs_space.shape
+                dtype = obs_space.dtype
             self._obs_buffers = {env_id: ShmBufferContainer(dtype, shape) for env_id in range(self.env_num)}
         else:
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}

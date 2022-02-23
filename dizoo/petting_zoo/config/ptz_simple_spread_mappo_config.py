@@ -3,14 +3,18 @@ from ding.entry import serial_pipeline_onpolicy
 from easydict import EasyDict
 
 n_agent = 5
+n_landmark = n_agent
 collector_env_num = 4
 evaluator_env_num = 2
-num_landmarks = n_agent
 main_config = dict(
     env=dict(
-        num_landmarks=num_landmarks,
-        max_step=100,
+        env_family='mpe',
+        env_id='simple_spread_v2',
         n_agent=n_agent,
+        n_landmark=n_landmark,
+        max_cycles=100,
+        agent_obs_only=False,
+        continuous_actions=False,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         manager=dict(shared_memory=False, ),
@@ -24,8 +28,8 @@ main_config = dict(
         model=dict(
             action_space='discrete',
             agent_num=n_agent,
-            agent_obs_shape=2 + 2 + (n_agent - 1) * 2 + num_landmarks * 2,
-            global_obs_shape=n_agent * 2 + num_landmarks * 2 + n_agent * 2,
+            agent_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
+            global_obs_shape=n_agent * 4 + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
             action_shape=5,
         ),
         learn=dict(
@@ -70,16 +74,16 @@ main_config = dict(
 main_config = EasyDict(main_config)
 create_config = dict(
     env=dict(
-        import_names=['dizoo.multiagent_particle.envs.particle_env'],
-        type='cooperative_navigation',
+        import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
+        type='petting_zoo',
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo'),
 )
 create_config = EasyDict(create_config)
 
-cooperative_navigation_mappo_config = main_config
-cooperative_navigation_mappo_create_config = create_config
+ptz_simple_spread_mappo_config = main_config
+ptz_simple_spread_mappo_create_config = create_config
 
 
 def train(args):

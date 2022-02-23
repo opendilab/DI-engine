@@ -27,13 +27,13 @@ from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_
 from dizoo.classic_control.pendulum.config import pendulum_d4pg_config, pendulum_d4pg_create_config
 from dizoo.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
 from dizoo.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
-from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_wqmix_config, cooperative_navigation_wqmix_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_qtran_config, cooperative_navigation_qtran_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config, cooperative_navigation_atoc_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_atoc_config, ptz_simple_spread_atoc_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_collaq_config, ptz_simple_spread_collaq_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_coma_config, ptz_simple_spread_coma_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_qmix_config, ptz_simple_spread_qmix_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_qtran_config, ptz_simple_spread_qtran_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_vdn_config, ptz_simple_spread_vdn_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_wqmix_config, ptz_simple_spread_wqmix_create_config  # noqa
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
@@ -270,7 +270,7 @@ def test_her_dqn():
 
 @pytest.mark.unittest
 def test_collaq():
-    config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
+    config = [deepcopy(ptz_simple_spread_collaq_config), deepcopy(ptz_simple_spread_collaq_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     config[0].env.n_evaluator_episode = 2
@@ -285,7 +285,7 @@ def test_collaq():
 
 @pytest.mark.unittest
 def test_coma():
-    config = [deepcopy(cooperative_navigation_coma_config), deepcopy(cooperative_navigation_coma_create_config)]
+    config = [deepcopy(ptz_simple_spread_coma_config), deepcopy(ptz_simple_spread_coma_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     config[0].env.n_evaluator_episode = 2
@@ -300,7 +300,7 @@ def test_coma():
 
 @pytest.mark.unittest
 def test_qmix():
-    config = [deepcopy(cooperative_navigation_qmix_config), deepcopy(cooperative_navigation_qmix_create_config)]
+    config = [deepcopy(ptz_simple_spread_qmix_config), deepcopy(ptz_simple_spread_qmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     config[0].env.n_evaluator_episode = 2
@@ -315,7 +315,7 @@ def test_qmix():
 
 @pytest.mark.unittest
 def test_wqmix():
-    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
+    config = [deepcopy(ptz_simple_spread_wqmix_config), deepcopy(ptz_simple_spread_wqmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     config[0].env.n_evaluator_episode = 2
@@ -330,7 +330,7 @@ def test_wqmix():
 
 @pytest.mark.unittest
 def test_qtran():
-    config = [deepcopy(cooperative_navigation_qtran_config), deepcopy(cooperative_navigation_qtran_create_config)]
+    config = [deepcopy(ptz_simple_spread_qtran_config), deepcopy(ptz_simple_spread_qtran_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
     config[0].env.n_evaluator_episode = 2
@@ -345,7 +345,7 @@ def test_qtran():
 
 @pytest.mark.unittest
 def test_atoc():
-    config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
+    config = [deepcopy(ptz_simple_spread_atoc_config), deepcopy(ptz_simple_spread_atoc_create_config)]
     config[0].policy.cuda = False
     config[0].env.n_evaluator_episode = 2
     config[0].policy.collect.n_sample = 100

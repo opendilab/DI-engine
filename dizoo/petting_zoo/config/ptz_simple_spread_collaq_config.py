@@ -1,14 +1,18 @@
 from easydict import EasyDict
 
 n_agent = 5
-num_landmarks = n_agent
+n_landmark = n_agent
 collector_env_num = 4
 evaluator_env_num = 2
-cooperative_navigation_collaq_config = dict(
+ptz_simple_spread_collaq_config = dict(
     env=dict(
+        env_family='mpe',
+        env_id='simple_spread_v2',
         n_agent=n_agent,
-        num_landmarks=num_landmarks,
-        max_step=100,
+        n_landmark=n_landmark,
+        max_cycles=100,
+        agent_obs_only=False,
+        continuous_actions=False,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=10,
@@ -19,9 +23,9 @@ cooperative_navigation_collaq_config = dict(
         cuda=True,
         model=dict(
             agent_num=n_agent,
-            obs_shape=2 + 2 + (n_agent - 1) * 2 + num_landmarks * 2,
-            alone_obs_shape=2 + 2 + (num_landmarks) * 2,
-            global_obs_shape=n_agent * 2 + num_landmarks * 2 + n_agent * 2,
+            obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
+            alone_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2,
+            global_obs_shape=n_agent * 4 + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
             action_shape=5,
             hidden_size_list=[128, 128, 64],
             attention=True,
@@ -51,15 +55,15 @@ cooperative_navigation_collaq_config = dict(
         ), ),
     ),
 )
-cooperative_navigation_collaq_config = EasyDict(cooperative_navigation_collaq_config)
-main_config = cooperative_navigation_collaq_config
-cooperative_navigation_collaq_create_config = dict(
+ptz_simple_spread_collaq_config = EasyDict(ptz_simple_spread_collaq_config)
+main_config = ptz_simple_spread_collaq_config
+ptz_simple_spread_collaq_create_config = dict(
     env=dict(
-        import_names=['dizoo.multiagent_particle.envs.particle_env'],
-        type='cooperative_navigation',
+        import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
+        type='petting_zoo',
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='collaq'),
 )
-cooperative_navigation_collaq_create_config = EasyDict(cooperative_navigation_collaq_create_config)
-create_config = cooperative_navigation_collaq_create_config
+ptz_simple_spread_collaq_create_config = EasyDict(ptz_simple_spread_collaq_create_config)
+create_config = ptz_simple_spread_collaq_create_config

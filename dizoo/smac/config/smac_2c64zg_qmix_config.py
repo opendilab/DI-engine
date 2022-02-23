@@ -69,7 +69,6 @@ create_config = dict(
         import_names=['dizoo.smac.envs.smac_env'],
     ),
     env_manager=dict(type='base'),
-
     policy=dict(type='qmix'),
     collector=dict(type='episode', get_train_sample=True),
 )

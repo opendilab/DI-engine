@@ -58,5 +58,4 @@ create_config = space_invaders_dqn_create_config
 
 if __name__ == '__main__':
     with DistContext():
-       serial_pipeline((main_config, create_config), seed=0)
-
+        serial_pipeline((main_config, create_config), seed=0)

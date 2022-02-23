@@ -2,6 +2,7 @@ from easydict import EasyDict
 
 bipedalwalker_td3_config = dict(
     env=dict(
+        env_id='BipedalWalker-v3',
         collector_env_num=1,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
