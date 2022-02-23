@@ -74,7 +74,7 @@ class FakePolicy(Policy):
         data_id = list(data.keys())
         data = default_collate(list(data.values()))
         self.policy_sleep(random_change(self._forward_time))
-        output = {'action': torch.ones(data.shape[0], 2)}
+        output = {'action': torch.ones(data.shape[0], 1).long()}
         output = default_decollate(output)
         output = {i: d for i, d in zip(data_id, output)}
         return output

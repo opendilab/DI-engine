@@ -37,7 +37,7 @@ class StepTimer:
                 time_cost = time.time() - start_time
             self.records[step_id].append(time_cost * 1000)
             if ctx.total_step % self.print_per_step == 0:
-                logging.warning(
+                logging.info(
                     "[Step Timer] {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
                         step_name, time_cost * 1000, np.mean(self.records[step_id])
                     )

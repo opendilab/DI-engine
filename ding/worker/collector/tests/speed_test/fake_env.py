@@ -22,11 +22,14 @@ def env_sleep(duration):
 class FakeEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
-        self._obs_dim = cfg.get('obs_dim', 8)
+        self._obs_dim = cfg.get('obs_dim', 4)
         self._action_dim = cfg.get('action_dim', 2)
         self._episode_step_base = cfg.get('episode_step', 200)
         self._reset_time = cfg.get('reset_time', 0.)
         self._step_time = cfg.get('step_time', 0.)
+        self.reset()
+        # gym attribute
+        self.metadata = {'render.modes': ['human', 'rgb_array'], 'video.frames_per_second': 1}
         self._observation_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(self._obs_dim, ), dtype=np.float32)
         self._action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(self._action_dim, ), dtype=np.float32)
         self._reward_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(1, ), dtype=np.float32)

@@ -285,7 +285,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         topic, payload = msg.split(b"::", maxsplit=1)
         event = topic.decode()
         if not self._event_loop.listened(event):
-            logging.warning("Event {} was not listened in parallel".format(event))
+            logging.debug("Event {} was not listened in parallel {}".format(event, self.node_id))
             return
         try:
             payload = pickle.loads(payload)

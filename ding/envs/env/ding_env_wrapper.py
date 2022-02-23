@@ -15,6 +15,12 @@ from .default_wrapper import get_default_wrappers
 class DingEnvWrapper(BaseEnv):
 
     def __init__(self, env: gym.Env = None, cfg: dict = None) -> None:
+        '''
+        You can pass in either an env instance, or a config to create an env instance:
+            - An env instance: Parameter `env` must not be `None`, but should be the instance.
+                               Do not support subprocess env manager; Thus usually used in simple env.
+            - A config to create an env instance: Parameter `cfg` dict must contain `env_id`.
+        '''
         self._cfg = cfg
         if self._cfg is None:
             self._cfg = dict()
@@ -28,6 +34,7 @@ class DingEnvWrapper(BaseEnv):
                 low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
         else:
+            assert 'env_id' in self._cfg
             self._init_flag = False
             self._observation_space = None
             self._action_space = None

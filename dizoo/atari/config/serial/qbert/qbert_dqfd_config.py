@@ -9,7 +9,7 @@ qbert_dqn_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=True, force_reproducibility=True)
+        manager=dict(shared_memory=True, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -30,10 +30,10 @@ qbert_dqn_config = dict(
             lambda2=1.0,
             lambda3=1e-5,
             per_train_iter_k=10,
-            expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer 
+            expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
         ),
         collect=dict(n_sample=100, demonstration_info_path='path'
-                     ),  #Users should add their own path here (path should lead to a well-trained model)
+                     ),  # Users should add their own path here (path should lead to a well-trained model)
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

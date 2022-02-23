@@ -9,8 +9,6 @@ import numbers
 import logging
 import enum
 import time
-import traceback
-import gym
 
 from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning
 from ding.envs.env.base_env import BaseEnvTimestep
@@ -127,15 +125,15 @@ class BaseEnvManager(object):
         return self._env_num
 
     @property
-    def observation_space(self) -> gym.spaces.Space:
+    def observation_space(self) -> 'gym.spaces.Space':  # noqa
         return self._observation_space
 
     @property
-    def action_space(self) -> gym.spaces.Space:
+    def action_space(self) -> 'gym.spaces.Space':  # noqa
         return self._action_space
 
     @property
-    def reward_space(self) -> gym.spaces.Space:
+    def reward_space(self) -> 'gym.spaces.Space':  # noqa
         return self._reward_space
 
     @property
