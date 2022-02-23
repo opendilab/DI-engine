@@ -634,7 +634,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     if cmd == 'step':
                         ret = step_fn(*args)
                     elif cmd == 'reset':
-                        ret = reset_fn(*args)
+                        if kwargs is None:
+                            kwargs = {}
+                        ret = reset_fn(*args, **kwargs)
                     elif args is None and kwargs is None:
                         ret = getattr(env, cmd)()
                     else:
