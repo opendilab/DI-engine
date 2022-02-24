@@ -617,56 +617,71 @@ class from DDPG class by changing <code class="docutils literal notranslate"><sp
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">compute_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC.compute_actor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="sig-name descname"><span class="pre">compute_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC.compute_actor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><p>Use encoded embedding tensor to predict output.
-Execute parameter updates with <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code> mode
-Use encoded embedding tensor to predict output.</p>
+<dt>Overview:</dt><dd><p>The forward computation graph of compute_actor mode, uses observation tensor to produce actor output,
+such as <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">logit</span></code> and so on.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>):</dt><dd><p>The encoded embedding tensor, determined with given <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">N=hidden_size)</span></code>.                 <code class="docutils literal notranslate"><span class="pre">hidden_size</span> <span class="pre">=</span> <span class="pre">actor_head_hidden_size</span></code></p>
-</dd>
-</dl>
-</li>
-<li><p>mode (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Name of the forward mode.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Observation tensor data, now supports a batch of 1-dim vector data,                 i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">obs_shape)</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Outputs of forward pass encoder and head.</p></li>
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Union[torch.Tensor,</span> <span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]]]</span></code>): Actor output varying                 from action_space: <code class="docutils literal notranslate"><span class="pre">regression</span></code>, <code class="docutils literal notranslate"><span class="pre">reparameterization</span></code>, <code class="docutils literal notranslate"><span class="pre">hybrid</span></code>.</p></li>
 </ul>
 </dd>
-<dt>ReturnsKeys (either):</dt><dd><ul class="simple">
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Continuous action tensor with same size as <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Logit tensor encoding <code class="docutils literal notranslate"><span class="pre">mu</span></code> and <code class="docutils literal notranslate"><span class="pre">sigma</span></code>, both with same size                 as input <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<dt>ReturnsKeys (either):</dt><dd><ul>
+<li><dl class="simple">
+<dt>regression action_space</dt><dd><ul class="simple">
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Continuous action with same size as <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>, usually in DDPG.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>reparameterization action_space</dt><dd><ul>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): Reparameterization logit, usually in SAC.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Mean of parameterization gaussion distribution.</p></li>
+<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Standard variation of parameterization gaussion distribution.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>hybrid action_space</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Discrete action type logit.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Continuous action arguments.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span></p></li>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[list,</span> <span class="pre">torch.Tensor]</span></code>):</p>
-<ul>
-<li><p>case1(continuous space, list): 2 elements, mu and sigma, each is the shape of <span class="math notranslate nohighlight">\((B, N0)\)</span>.</p></li>
-<li><p>case2(hybrid space, torch.Tensor): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where N1 is action_type_shape</p></li>
-</ul>
-</li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, B is batch size.</p></li>
-<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, where N2 is action_args_shape                 (action_args are continuous real value)</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
 </ul>
 </dd>
 <dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;regression&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Reparameterization Mode</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="c1"># mu</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="c1"># sigma</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>  <span class="c1"># mu</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span> <span class="c1"># sigma</span>
 </pre></div>
 </div>
 </dd>
@@ -675,32 +690,24 @@ Use encoded embedding tensor to predict output.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">compute_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC.compute_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="sig-name descname"><span class="pre">compute_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC.compute_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl>
-<dt>Overview:</dt><dd><p>Execute parameter updates with <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code> mode
-Use encoded embedding tensor to predict output.</p>
+<dt>Overview:</dt><dd><p>The forward computation graph of compute_critic mode, uses observation and action tensor to produce critic
+output, such as <code class="docutils literal notranslate"><span class="pre">q_value</span></code>.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): <code class="docutils literal notranslate"><span class="pre">obs</span></code>, <code class="docutils literal notranslate"><span class="pre">action</span></code> and <code class="docutils literal notranslate"><span class="pre">logit</span></code> tensors.</p></li>
-<li><p>mode (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Name of the forward mode.</p></li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): Dict strcture of input data, including <code class="docutils literal notranslate"><span class="pre">obs</span></code> and <code class="docutils literal notranslate"><span class="pre">action</span></code>                 tensor, also contains <code class="docutils literal notranslate"><span class="pre">logit</span></code> tensor in hybrid action_space.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Q-value output.</p></li>
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): Critic output, such as <code class="docutils literal notranslate"><span class="pre">q_value</span></code>.</p></li>
 </ul>
 </dd>
 <dt>ArgumentsKeys:</dt><dd><ul class="simple">
-<li><p>necessary:</p>
-<ul>
-<li><p>obs: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): 2-dim vector observation</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">Dict]</span></code>): action from actor</p></li>
-</ul>
-</li>
-<li><p>optional:</p>
-<ul>
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): discrete action logit</p></li>
-</ul>
-</li>
+<li><p>obs: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Observation tensor data, now supports a batch of 1-dim vector data.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">Dict]</span></code>): Continuous action with same size as <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Discrete action logit, only in hybrid action_space.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Continuous action arguments, only in hybrid action_space.</p></li>
 </ul>
 </dd>
 <dt>ReturnKeys:</dt><dd><ul class="simple">
@@ -708,15 +715,17 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Shapes:</dt><dd><ul class="simple">
-<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, where B is batch size and N2 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
-<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N4)\)</span>, where B is batch size and N4 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
 </ul>
 </dd>
-<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QAC</span><span class="p">(</span><span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="p">),</span><span class="n">action_shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">)</span>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QAC</span><span class="p">(</span><span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="p">),</span><span class="n">action_shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>  <span class="c1"># q value</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">tensor</span><span class="p">([</span><span class="mf">0.0773</span><span class="p">,</span> <span class="mf">0.1639</span><span class="p">,</span> <span class="mf">0.0917</span><span class="p">,</span> <span class="mf">0.0370</span><span class="p">],</span> <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">SqueezeBackward1</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="gp">... </span><span class="n">tensor</span><span class="p">([</span><span class="mf">0.0773</span><span class="p">,</span> <span class="mf">0.1639</span><span class="p">,</span> <span class="mf">0.0917</span><span class="p">,</span> <span class="mf">0.0370</span><span class="p">],</span> <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">SqueezeBackward1</span><span class="o">&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd>
@@ -746,7 +755,7 @@ Use encoded embedding tensor to predict output.</p>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Output dict data, including q_value tensor</p></li>
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Output dict data, including q_value tensor.</p></li>
 </ul>
 </dd>
 </dl>

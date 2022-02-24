@@ -206,7 +206,7 @@
 <span class="sd">            - action_shape (:obj:`Union[int, SequenceType, EasyDict]`): Action&#39;s shape, such as 4, (3, ), \</span>
 <span class="sd">                EasyDict({&#39;action_type_shape&#39;: 3, &#39;action_args_shape&#39;: 4}).</span>
 <span class="sd">            - action_space (:obj:`str`): The type of action space, \</span>
-<span class="sd">                including [``regression``, ``reparameterization``, ``hybrid``]</span>
+<span class="sd">                including [``regression``, ``reparameterization``, ``hybrid``].</span>
 <span class="sd">            - twin_critic (:obj:`bool`): Whether to use twin critic, one of tricks in TD3.</span>
 <span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor head.</span>
 <span class="sd">            - actor_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \</span>
@@ -215,8 +215,8 @@
 <span class="sd">            - critic_head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output \</span>
 <span class="sd">                for critic head.</span>
 <span class="sd">            - activation (:obj:`Optional[nn.Module]`): The type of activation function to use in ``MLP`` \</span>
-<span class="sd">                after each FC layer, if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer(FC, Conv), \</span>
+<span class="sd">                after each FC layer, if ``None`` then default set to ``nn.ReLU()``.</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`): The type of normalization to after network layer (FC, Conv), \</span>
 <span class="sd">                see ``ding.torch_utils.network`` for more details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">QAC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -325,98 +325,101 @@
 <span class="sd">            Arguments:</span>
 <span class="sd">                - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.</span>
 <span class="sd">            Returns:</span>
-<span class="sd">                - output (:obj:`Dict`): Output dict data, including q_value tensor</span>
+<span class="sd">                - output (:obj:`Dict`): Output dict data, including q_value tensor.</span>
 <span class="sd">        .. note::</span>
 <span class="sd">            For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QAC.compute_actor"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QAC.compute_actor"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
-<span class="sd">            Execute parameter updates with ``compute_actor`` mode</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">            The forward computation graph of compute_actor mode, uses observation tensor to produce actor output,</span>
+<span class="sd">            such as ``action``, ``logit`` and so on.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`):</span>
-<span class="sd">                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``. \</span>
-<span class="sd">                ``hidden_size = actor_head_hidden_size``</span>
-<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data, \</span>
+<span class="sd">                i.e. ``(B, obs_shape)``.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.</span>
+<span class="sd">            - outputs (:obj:`Dict[str, Union[torch.Tensor, Dict[str, torch.Tensor]]]`): Actor output varying \</span>
+<span class="sd">                from action_space: ``regression``, ``reparameterization``, ``hybrid``.</span>
 
 <span class="sd">        ReturnsKeys (either):</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.</span>
-<span class="sd">            - logit (:obj:`torch.Tensor`): Logit tensor encoding ``mu`` and ``sigma``, both with same size \</span>
-<span class="sd">                as input ``x``.</span>
-<span class="sd">        Shapes:</span>
-<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
-<span class="sd">            - logit (:obj:`Union[list, torch.Tensor]`):</span>
+<span class="sd">            - regression action_space</span>
+<span class="sd">                - action (:obj:`torch.Tensor`): Continuous action with same size as ``action_shape``, usually in DDPG.</span>
+<span class="sd">            - reparameterization action_space</span>
+<span class="sd">                - logit (:obj:`Dict[str, torch.Tensor]`): Reparameterization logit, usually in SAC.</span>
 
-<span class="sd">              - case1(continuous space, list): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.</span>
-<span class="sd">              - case2(hybrid space, torch.Tensor): :math:`(B, N1)`, where N1 is action_type_shape</span>
-<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.</span>
-<span class="sd">            - action_args (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where N2 is action_args_shape \</span>
-<span class="sd">                (action_args are continuous real value)</span>
+<span class="sd">                    - mu (:obj:`torch.Tensor`): Mean of parameterization gaussion distribution.</span>
+<span class="sd">                    - sigma (:obj:`torch.Tensor`): Standard variation of parameterization gaussion distribution.</span>
+<span class="sd">            - hybrid action_space</span>
+<span class="sd">                - logit (:obj:`torch.Tensor`): Discrete action type logit.</span>
+<span class="sd">                - action_args (:obj:`torch.Tensor`): Continuous action arguments.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``obs_shape``.</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.</span>
+<span class="sd">            - logit.mu (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size and N1 corresponds to ``action_shape``.</span>
+<span class="sd">            - logit.sigma (:obj:`torch.Tensor`): :math:`(B, N1)`, B is batch size.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \</span>
+<span class="sd">                ``action_shape.action_type_shape``.</span>
+<span class="sd">            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \</span>
+<span class="sd">                ``action_shape.action_args_shape``.</span>
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; # Regression mode</span>
 <span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;regression&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
 <span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
 <span class="sd">            &gt;&gt;&gt; model = QAC(64, 64, &#39;reparameterization&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
-<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
-<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape # sigma</span>
-<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(obs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;logit&#39;][0].shape == torch.Size([4, 64])  # mu</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape == torch.Size([4, 64]) # sigma</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]]}</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;hybrid&#39;</span><span class="p">:</span>
-            <span class="n">logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">inputs</span><span class="p">)</span>
-            <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="n">logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">action_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">[</span><span class="mi">1</span><span class="p">](</span><span class="n">obs</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="s1">&#39;action_args&#39;</span><span class="p">:</span> <span class="n">action_args</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span></div>
 
-<div class="viewcode-block" id="QAC.compute_critic"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="QAC.compute_critic"><a class="viewcode-back" href="../../../../hands_on/td3.html#ding.model.template.QAC.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Execute parameter updates with ``compute_critic`` mode</span>
-<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">            The forward computation graph of compute_critic mode, uses observation and action tensor to produce critic</span>
+<span class="sd">            output, such as ``q_value``.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - inputs (:obj:`Dict`): ``obs``, ``action`` and ``logit`` tensors.</span>
-<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">            - inputs (:obj:`Dict[str, torch.Tensor]`): Dict strcture of input data, including ``obs`` and ``action`` \</span>
+<span class="sd">                tensor, also contains ``logit`` tensor in hybrid action_space.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`Dict`): Q-value output.</span>
+<span class="sd">            - outputs (:obj:`Dict[str, torch.Tensor]`): Critic output, such as ``q_value``.</span>
 
 <span class="sd">        ArgumentsKeys:</span>
-<span class="sd">            - necessary:</span>
-
-<span class="sd">              - obs: (:obj:`torch.Tensor`): 2-dim vector observation</span>
-<span class="sd">              - action (:obj:`Union[torch.Tensor, Dict]`): action from actor</span>
-<span class="sd">            - optional:</span>
-
-<span class="sd">              - logit (:obj:`torch.Tensor`): discrete action logit</span>
+<span class="sd">            - obs: (:obj:`torch.Tensor`): Observation tensor data, now supports a batch of 1-dim vector data.</span>
+<span class="sd">            - action (:obj:`Union[torch.Tensor, Dict]`): Continuous action with same size as ``action_shape``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): Discrete action logit, only in hybrid action_space.</span>
+<span class="sd">            - action_args (:obj:`torch.Tensor`): Continuous action arguments, only in hybrid action_space.</span>
 <span class="sd">        ReturnKeys:</span>
 <span class="sd">            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
 <span class="sd">        Shapes:</span>
-<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
-<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
-<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`): :math:`(B, N2)`, B is batch size and N2 corresponds to \</span>
+<span class="sd">                ``action_shape.action_type_shape``.</span>
+<span class="sd">            - action_args (:obj:`torch.Tensor`): :math:`(B, N3)`, B is batch size and N3 corresponds to \</span>
+<span class="sd">                ``action_shape.action_args_shape``.</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N4)`, where B is batch size and N4 is ``action_shape``.</span>
+<span class="sd">            - q_value (:obj:`torch.Tensor`): :math:`(B, )`, where B is batch size.</span>
 
 <span class="sd">        Examples:</span>
-<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, N), &#39;action&#39;: torch.randn(4, 1)}</span>
-<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(N, ),action_shape=1,action_space=&#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4, 8), &#39;action&#39;: torch.randn(4, 1)}</span>
+<span class="sd">            &gt;&gt;&gt; model = QAC(obs_shape=(8, ),action_shape=1, action_space=&#39;regression&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; model(inputs, mode=&#39;compute_critic&#39;)[&#39;q_value&#39;]  # q value</span>
-<span class="sd">            &gt;&gt;&gt; tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=&lt;SqueezeBackward1&gt;)</span>
+<span class="sd">            ... tensor([0.0773, 0.1639, 0.0917, 0.0370], grad_fn=&lt;SqueezeBackward1&gt;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">obs</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
@@ -443,7 +446,7 @@
 <span class="k">class</span> <span class="nc">DiscreteQAC</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The Discrete QAC model.</span>
+<span class="sd">        The Discrete QAC model, used in DiscreteSAC.</span>
 <span class="sd">    Interfaces:</span>
 <span class="sd">        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
