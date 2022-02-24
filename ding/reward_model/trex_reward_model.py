@@ -277,7 +277,7 @@ class TrexRewardModel(BaseRewardModel):
                 tj_start = np.random.randint(min_length - rand_length[n] + 1)
                 # print(tj_start, len(demonstrations[ti]))
                 ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - rand_length[n] + 1)
-            # skip everyother framestack to reduce size
+            # skip everyother FrameStackWrapper to reduce size
             traj_i = demonstrations[ti][ti_start:ti_start + rand_length[n]:2]
             traj_j = demonstrations[tj][tj_start:tj_start + rand_length[n]:2]
 

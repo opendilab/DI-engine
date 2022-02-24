@@ -2,7 +2,7 @@ from typing import Dict
 import gym
 import numpy as np
 import logging
-from ding.envs import ObsNormEnv, RewardNormEnv
+from ding.envs import ObsNormWrapper, RewardNormWrapper
 
 try:
     import d4rl  # register d4rl enviroments with open ai gym
@@ -30,14 +30,14 @@ def wrap_d4rl(
     if not only_info:
         env = gym.make(env_id)
         if norm_obs is not None and norm_obs.use_norm:
-            env = ObsNormEnv(env)
+            env = ObsNormWrapper(env)
         if norm_reward is not None and norm_reward.use_norm:
-            env = RewardNormEnv(env, norm_reward.reward_discount)
+            env = RewardNormWrapper(env, norm_reward.reward_discount)
         return env
     else:
         wrapper_info = ''
         if norm_obs is not None and norm_obs.use_norm:
-            wrapper_info = ObsNormEnv.__name__ + '\n'
+            wrapper_info = ObsNormWrapper.__name__ + '\n'
         if norm_reward is not None and norm_reward.use_norm:
-            wrapper_info += RewardNormEnv.__name__ + '\n'
+            wrapper_info += RewardNormWrapper.__name__ + '\n'
         return wrapper_info

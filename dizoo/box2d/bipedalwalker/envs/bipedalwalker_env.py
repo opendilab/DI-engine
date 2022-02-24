@@ -2,7 +2,7 @@ from typing import Any, List, Union, Optional
 import time
 import gym
 import numpy as np
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, FrameStack
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, FrameStackWrapper
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.torch_utils import to_ndarray, to_list
 from ding.envs.common.common_function import affine_transform
@@ -22,6 +22,11 @@ class BipedalWalkerEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make('BipedalWalker-v3')
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            )
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -55,8 +60,7 @@ class BipedalWalkerEnv(BaseEnv):
         if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         if self._act_scale:
-            action_range = self.info().act_space.value
-            action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
+            action = affine_transform(action, min_val=self.action_space.low, max_val=self.action_space.high)
 
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
@@ -70,38 +74,6 @@ class BipedalWalkerEnv(BaseEnv):
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T(
-                (24, ),
-                {
-                    'min': [float("-inf")] * 24,
-                    'max': [float("inf")] * 24,
-                    'dtype': np.float32,
-                },
-            ),
-            # [min, max)
-            act_space=T(
-                (4, ),
-                {
-                    'min': -1.0,
-                    'max': 1.0,
-                    'dtype': np.float32,
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                {
-                    'min': -300,
-                    'max': 400,
-                    'dtype': np.float32,
-                },
-            ),
-            use_wrappers=None,
-        )
-
     def __repr__(self) -> str:
         return "DI-engine BipedalWalker Env"
 
@@ -109,7 +81,15 @@ class BipedalWalkerEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-        # this function can lead to the meaningless result
-        self._env = gym.wrappers.Monitor(
-            self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-        )
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space

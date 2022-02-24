@@ -1,18 +1,22 @@
 from easydict import EasyDict
 
-n_agent = 5
+n_agent = 4
+n_landmark = n_agent  # In simple_spread_v2, n_landmark must = n_agent
 collector_env_num = 4
 evaluator_env_num = 2
 communication = True
-cooperative_navigation_atoc_config = dict(
+ptz_simple_spread_atoc_config = dict(
     env=dict(
+        env_family='mpe',
+        env_id='simple_spread_v2',
         n_agent=n_agent,
-        num_landmarks=n_agent,
-        max_step=100,
+        n_landmark=n_landmark,
+        max_cycles=100,
+        agent_obs_only=True,
+        continuous_actions=True,
+        act_scale=True,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        agent_obs_only=True,
-        discrete_action=False,
         n_evaluator_episode=10,
         stop_value=0,
     ),
@@ -20,7 +24,7 @@ cooperative_navigation_atoc_config = dict(
         cuda=True,
         priority=False,
         model=dict(
-            obs_shape=2 + 2 + (n_agent - 1) * 2 + n_agent * 2,
+            obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
             action_shape=5,
             n_agent=n_agent,
             communication=communication,
@@ -52,15 +56,15 @@ cooperative_navigation_atoc_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=100000, ), )
     ),
 )
-cooperative_navigation_atoc_config = EasyDict(cooperative_navigation_atoc_config)
-main_config = cooperative_navigation_atoc_config
-cooperative_navigation_atoc_create_config = dict(
+ptz_simple_spread_atoc_config = EasyDict(ptz_simple_spread_atoc_config)
+main_config = ptz_simple_spread_atoc_config
+ptz_simple_spread_atoc_create_config = dict(
     env=dict(
-        import_names=['dizoo.multiagent_particle.envs.particle_env'],
-        type='cooperative_navigation',
+        import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
+        type='petting_zoo',
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='atoc'),
 )
-cooperative_navigation_atoc_create_config = EasyDict(cooperative_navigation_atoc_create_config)
-create_config = cooperative_navigation_atoc_create_config
+ptz_simple_spread_atoc_create_config = EasyDict(ptz_simple_spread_atoc_create_config)
+create_config = ptz_simple_spread_atoc_create_config
