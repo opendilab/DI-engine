@@ -520,7 +520,7 @@ class PPGPolicy(Policy):
         data['action'] = torch.cat(actions)
         data['return_'] = torch.cat(return_)
         data['value'] = torch.cat(old_values)
-        data['weight'] = torch.cat(weights)
+        data['weight'] = torch.cat(weights).float()
         # compute current policy logit_old
         with torch.no_grad():
             data['logit_old'] = self._model.forward(data['obs'], mode='compute_actor')['logit']

@@ -4,8 +4,8 @@ import gym
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
-from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray, to_list
+from ding.utils import ENV_REGISTRY
 
 
 def disable_gym_view_window():
@@ -23,8 +23,8 @@ def disable_gym_view_window():
     rendering.get_window = get_window
 
 
-@ENV_REGISTRY.register('maze')
-class MazeEnv(BaseEnv):
+@ENV_REGISTRY.register('bigfish')
+class BigfishEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
@@ -33,15 +33,15 @@ class MazeEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make('procgen:procgen-maze-v0', start_level=0, num_levels=1)
+            self._env = gym.make('procgen:procgen-bigfish-v0', start_level=0, num_levels=1)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.close()
-            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed + np_seed, num_levels=1)
+            self._env = gym.make('procgen:procgen-bigfish-v0', start_level=self._seed + np_seed, num_levels=1)
         elif hasattr(self, '_seed'):
             self._env.close()
-            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed, num_levels=1)
+            self._env = gym.make('procgen:procgen-bigfish-v0', start_level=self._seed, num_levels=1)
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
@@ -92,7 +92,7 @@ class MazeEnv(BaseEnv):
                 {
                     'min': 0,
                     'max': 15,
-                    'dtype': np.float32
+                    'dtype': np.float32,
                 },
             ),
             rew_space=T(
@@ -107,7 +107,7 @@ class MazeEnv(BaseEnv):
         )
 
     def __repr__(self) -> str:
-        return "DI-engine Maze Env"
+        return "DI-engine CoinRun Env"
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:

@@ -46,6 +46,7 @@ class CoinRunEnv(BaseEnv):
         obs = self._env.reset()
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
+        obs = obs.astype(np.float32)
         return obs
 
     def close(self) -> None:
@@ -68,7 +69,9 @@ class CoinRunEnv(BaseEnv):
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
+        obs = obs.astype(np.float32)
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = rew.astype(np.float32)
         return BaseEnvTimestep(obs, rew, bool(done), info)
 
     def info(self) -> BaseEnvInfo:
