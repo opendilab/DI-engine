@@ -3,6 +3,7 @@ from easydict import EasyDict
 ant_ddpg_default_config = dict(
     env=dict(
         env_id='Ant-v3',
+        env_wrapper='mujoco_default',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,

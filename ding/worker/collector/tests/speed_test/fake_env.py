@@ -1,7 +1,6 @@
 from typing import Any, List, Union, Optional
 import time
 import gym
-import torch
 import numpy as np
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
@@ -23,12 +22,18 @@ def env_sleep(duration):
 class FakeEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
-        self._obs_dim = cfg.get('obs_dim', 8)
+        self._obs_dim = cfg.get('obs_dim', 4)
         self._action_dim = cfg.get('action_dim', 2)
         self._episode_step_base = cfg.get('episode_step', 200)
         self._reset_time = cfg.get('reset_time', 0.)
         self._step_time = cfg.get('step_time', 0.)
         self.reset()
+        # gym attribute
+        self.metadata = {'render.modes': ['human', 'rgb_array'], 'video.frames_per_second': 1}
+        self._observation_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(self._obs_dim, ), dtype=np.float32)
+        self._action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(self._action_dim, ), dtype=np.float32)
+        self._reward_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(1, ), dtype=np.float32)
+        self._init_flag = True
 
     def reset(self) -> np.ndarray:
         if hasattr(self, '_seed'):
@@ -36,12 +41,12 @@ class FakeEnv(BaseEnv):
         self._episode_step = int(random_change(self._episode_step_base))
         env_sleep(random_change(self._reset_time))
         self._step_count = 0
-        self._final_eval_reward = 0
-        obs = np.random.randn(self._obs_dim)
+        self._final_eval_reward = 0.
+        obs = np.random.randn(self._obs_dim).astype(np.float32)
         return obs
 
     def close(self) -> None:
-        pass
+        self._init_flag = False
 
     def seed(self, seed: Optional[int] = None) -> None:
         if seed is not None:
@@ -61,31 +66,22 @@ class FakeEnv(BaseEnv):
         rew = to_ndarray([rew])  # to shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T((self._obs_dim, ), {'dtype': np.float32}),
-            act_space=T((self._action_dim, ), {
-                'min': 0,
-                'max': 2
-            }),
-            rew_space=T((1, ), {
-                'min': 0.0,
-                'max': 1.0
-            }),
-            use_wrappers=None,
-        )
-
     def __repr__(self) -> str:
         return "DI-engine Fake Env for collector profile test"
 
-    @staticmethod
-    def create_collector_env_cfg(cfg: dict) -> List[dict]:
-        collector_env_num = cfg.get('collector_env_num', 1)
-        return [cfg for _ in range(collector_env_num)]
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
 
-    @staticmethod
-    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.get('evaluator_env_num', 1)
-        return [cfg for _ in range(evaluator_env_num)]
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._replay_path = replay_path

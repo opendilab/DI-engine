@@ -12,15 +12,13 @@ class TestCartPoleEnv:
         env = BaseEnvManager([lambda: CartPoleEnv({}) for _ in range(env_num)], BaseEnvManager.default_config())
         env.seed(314, dynamic_seed=False)
         env.launch()
-        act_val = env.env_info().act_space.value
-        min_val, max_val = act_val['min'], act_val['max']
         for _ in range(5):
             env.reset()
             np.random.seed(314)
             for i in range(10):
                 obs = env.ready_obs
                 assert len(obs) == env_num
-                random_action = {i: np.random.randint(min_val, max_val, size=(1, )) for i in range(env_num)}
+                random_action = {i: np.array([env.action_space.sample()]) for i in range(env_num)}
                 timesteps = env.step(random_action)
                 # print(timesteps)
                 assert isinstance(timesteps, dict)
@@ -30,7 +28,7 @@ class TestCartPoleEnv:
                 assert isinstance(timestep.done, bool)
                 assert timestep.obs.shape == (4, )
                 assert timestep.reward.shape == (1, )
-                assert timestep.reward >= env.env_info().rew_space.value['min']
-                assert timestep.reward <= env.env_info().rew_space.value['max']
-        print(env.env_info())
+                assert timestep.reward >= env.reward_space.low
+                assert timestep.reward <= env.reward_space.high
+        print(env.observation_space, env.action_space, env.reward_space)
         env.close()

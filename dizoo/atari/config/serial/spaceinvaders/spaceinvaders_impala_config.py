@@ -56,9 +56,7 @@ space_invaders_impala_config = dict(
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=10000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
     ),
 )
 main_config = EasyDict(space_invaders_impala_config)

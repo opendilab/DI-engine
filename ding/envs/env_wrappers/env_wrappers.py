@@ -1,16 +1,40 @@
 # Borrow a lot from openai baselines:
 # https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
-from typing import Union
+import copy
+from typing import Union, List, Tuple
 import cv2
+from easydict import EasyDict
 import gym
 import numpy as np
 from collections import deque
 from torch import float32
 # import matplotlib.pyplot as plt
 
+from ding.torch_utils import to_ndarray
+from ding.utils import ENV_WRAPPER_REGISTRY, import_module
+'''
+Env Wrapper List:
+    - NoopResetWrapper: Sample initial states by taking random number of no-ops on reset.
+    - MaxAndSkipWrapper: Max pooling across time steps
+    - WarpFrameWrapper: Warp frames to 84x84 as done in the Nature paper and later work.
+    - ScaledFloatFrameWrapper: Normalize observations to 0~1.
+    - ClipRewardWrapper: Clip the reward to {+1, 0, -1} by its sign.
+    - DelayRewardWrapper: Return cumulative reward at intervals; At other time, return reward of 0.
+    - FrameStackWrapper: Stack latest n frames(usually 4 in Atari) as one observation.
+    - ObsTransposeWrapper: Transpose observation to put channel to first dim.
+    - ObsNormWrapper: Normalize observations according to running mean and std.
+    - RewardNormWrapper: Normalize reward according to running std.
+    - RamWrapper: Wrap ram env into image-like env
+    - EpisodicLifeWrapper: Make end-of-life == end-of-episode, but only reset on true game over.
+    - FireResetWrapper: Take fire action at environment reset.
+    - GymHybridDictActionWrapper: Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space
+        to ``gym.spaces.Dict``.
+'''
 
-class NoopResetEnv(gym.Wrapper):
+
+@ENV_WRAPPER_REGISTRY.register('noop_reset')
+class NoopResetWrapper(gym.Wrapper):
     """
     Overview:
        Sample initial states by taking random number of no-ops on reset.  \
@@ -50,27 +74,9 @@ class NoopResetEnv(gym.Wrapper):
                 obs = self.env.reset()
         return obs
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
 
-        .. note::
-            Shapes space such as\
-                observation space shape, could be some nested strcutures, \
-                but for some simple environments, like pong in Atari, \
-                    observation space shape is a ``tuple``——``(4, 84, 84)``.
-            Same case applies for the ``new_shape`` interface in the following wrapper classes.
-        """
-        return obs_shape, act_shape, rew_shape
-
-
-class MaxAndSkipEnv(gym.Wrapper):
+@ENV_WRAPPER_REGISTRY.register('max_and_skip')
+class MaxAndSkipWrapper(gym.Wrapper):
     """
     Overview:
        Return only every `skip`-th frame (frameskipping) using most  \
@@ -80,7 +86,6 @@ class MaxAndSkipEnv(gym.Wrapper):
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
         - skip (:obj:`int`): number of `skip`-th frame.
-
     """
 
     def __init__(self, env, skip=4):
@@ -120,20 +125,9 @@ class MaxAndSkipEnv(gym.Wrapper):
         max_frame = np.max(obs_list[-2:], axis=0)
         return max_frame, total_reward, done, info
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
-
-class WarpFrame(gym.ObservationWrapper):
+@ENV_WRAPPER_REGISTRY.register('warp_frame')
+class WarpFrameWrapper(gym.ObservationWrapper):
     """
     Overview:
        Warp frames to 84x84 as done in the Nature paper and later work.
@@ -145,7 +139,7 @@ class WarpFrame(gym.ObservationWrapper):
 
     """
 
-    def __init__(self, env):
+    def __init__(self, env, size=84):
         """
         Overview:
             Initialize ``self.`` See ``help(type(self))`` for accurate signature.
@@ -153,7 +147,7 @@ class WarpFrame(gym.ObservationWrapper):
             - env (:obj:`gym.Env`): the environment to wrap.
         """
         super().__init__(env)
-        self.size = 84
+        self.size = size
         obs_space = env.observation_space
         if not isinstance(obs_space, gym.spaces.tuple.Tuple):
             obs_space = (obs_space, )
@@ -182,21 +176,9 @@ class WarpFrame(gym.ObservationWrapper):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         return cv2.resize(frame, (self.size, self.size), interpolation=cv2.INTER_AREA)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case only  \
-                observation space wrapped to (4, 84, 84); others unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return (4, 84, 84), act_shape, rew_shape
 
-
-class ScaledFloatFrame(gym.ObservationWrapper):
+@ENV_WRAPPER_REGISTRY.register('scaled_float_frame')
+class ScaledFloatFrameWrapper(gym.ObservationWrapper):
     """
     Overview:
        Normalize observations to 0~1.
@@ -230,23 +212,12 @@ class ScaledFloatFrame(gym.ObservationWrapper):
 
         return ((observation - self.bias) / self.scale).astype('float32')
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
-
-class ClipRewardEnv(gym.RewardWrapper):
+@ENV_WRAPPER_REGISTRY.register('clip_reward')
+class ClipRewardWrapper(gym.RewardWrapper):
     """
     Overview:
-       clips the reward to {+1, 0, -1} by its sign.
+        Clip the reward to {+1, 0, -1} by its sign.
     Interface:
         ``__init__``, ``reward``, ``new_shape``
     Properties:
@@ -276,23 +247,85 @@ class ClipRewardEnv(gym.RewardWrapper):
         """
         return np.sign(reward)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
-
-class FrameStack(gym.Wrapper):
+@ENV_WRAPPER_REGISTRY.register('delay_reward')
+class DelayRewardWrapper(gym.Wrapper):
     """
     Overview:
-       Stack n_frames last frames.
+        Return cumulative reward at intervals; At other time, return reward of 0.
+    Interface:
+        ``__init__``, ``reset``, ``step``, ``new_shape``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+        - ``reward_range``
+    """
+
+    def __init__(self, env, delay_reward_step=0):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+        self._delay_reward_step = delay_reward_step
+
+    def reset(self):
+        self._delay_reward_duration = 0
+        self._current_delay_reward = 0.
+        obs = self.env.reset()
+        return obs
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self._current_delay_reward += reward
+        self._delay_reward_duration += 1
+        if done or self._delay_reward_duration >= self._delay_reward_step:
+            reward = self._current_delay_reward
+            self._current_delay_reward = 0.
+            self._delay_reward_duration = 0
+        else:
+            reward = 0.
+        return obs, reward, done, info
+
+
+@ENV_WRAPPER_REGISTRY.register('final_eval_reward')
+class FinalEvalRewardEnv(gym.Wrapper):
+    """
+    Overview:
+        Accumulate rewards at every timestep, and return at the end of the episode in `info`.
+    Interface:
+        ``__init__``, ``reset``, ``step``, ``new_shape``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+    """
+
+    def __init__(self, env):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+
+    def reset(self):
+        self._final_eval_reward = 0.
+        return self.env.reset()
+
+    def step(self, action):
+        obs, reward, done, info = self.env.step(action)
+        self._final_eval_reward += reward
+        if done:
+            info['final_eval_reward'] = to_ndarray([self._final_eval_reward], dtype=np.float32)
+        return obs, reward, done, info
+
+
+@ENV_WRAPPER_REGISTRY.register('frame_stack')
+class FrameStackWrapper(gym.Wrapper):
+    """
+    Overview:
+       Stack latest n frames(usually 4 in Atari) as one observation.
     Interface:
         ``__init__``, ``reset``, ``step``, ``_get_ob``, ``new_shape``
     Properties:
@@ -301,7 +334,7 @@ class FrameStack(gym.Wrapper):
         - ``observation_space``, ``frames``
     """
 
-    def __init__(self, env, n_frames):
+    def __init__(self, env, n_frames=4):
         """
         Overview:
             Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
@@ -365,23 +398,12 @@ class FrameStack(gym.Wrapper):
         """
         return np.stack(self.frames, axis=0)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
-
+@ENV_WRAPPER_REGISTRY.register('obs_transpose')
 class ObsTransposeWrapper(gym.ObservationWrapper):
     """
     Overview:
-       Wrapper to transpose env, usually used in atari environments
+        Transpose observation to put channel to first dim.
     Interface:
         ``__init__``, ``observation``, ``new_shape``
     Properties:
@@ -414,12 +436,12 @@ class ObsTransposeWrapper(gym.ObservationWrapper):
                 dtype=obs_space.dtype
             )
 
-    def observation(self, obs: Union[tuple, np.ndarray]):
+    def observation(self, obs: Union[tuple, np.ndarray]) -> Union[tuple, np.ndarray]:
         """
         Overview:
             Returns the transposed observation
         Arguments:
-            - observation(:obj:`Union[tuple, np.ndarray]`): The original observation
+            - observation (:obj:`Union[tuple, np.ndarray]`): The original observation
         Returns:
             - observation (:obj:`Union[tuple, np.ndarray]`): The transposed observation
         """
@@ -432,26 +454,6 @@ class ObsTransposeWrapper(gym.ObservationWrapper):
             obs = obs.transpose(2, 0, 1)
         return obs
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case with  \
-                obs_space transposed and others unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        if isinstance(obs_shape, tuple):
-            new_obs = []
-            for i in range(len(obs_shape)):
-                new_obs.append(obs_shape[i].transpose(2, 0, 1))
-            obs_shape = np.stack(new_obs)
-        else:
-            obs_shape = obs_shape.transpose(2, 0, 1)
-        return obs_shape, act_shape, rew_shape
-
 
 class RunningMeanStd(object):
     """
@@ -461,7 +463,6 @@ class RunningMeanStd(object):
         ``__init__``, ``update``, ``reset``, ``new_shape``
     Properties:
         - env (:obj:`gym.Env`): the environment to wrap.
-
         - ``mean``, ``std``, ``_epsilon``, ``_shape``, ``_mean``, ``_var``, ``_count``
     """
 
@@ -529,20 +530,9 @@ class RunningMeanStd(object):
         """
         return np.sqrt(self._var) + self._epsilon
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
-
-class ObsNormEnv(gym.ObservationWrapper):
+@ENV_WRAPPER_REGISTRY.register('obs_norm')
+class ObsNormWrapper(gym.ObservationWrapper):
     """
     Overview:
        Normalize observations according to running mean and std.
@@ -620,20 +610,9 @@ class ObsNormEnv(gym.ObservationWrapper):
         observation = self.env.reset(**kwargs)
         return self.observation(observation)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
-
-class RewardNormEnv(gym.RewardWrapper):
+@ENV_WRAPPER_REGISTRY.register('reward_norm')
+class RewardNormWrapper(gym.RewardWrapper):
     """
     Overview:
        Normalize reward according to running std.
@@ -710,23 +689,12 @@ class RewardNormEnv(gym.RewardWrapper):
         self.rms.reset()
         return self.env.reset(**kwargs)
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
-
+@ENV_WRAPPER_REGISTRY.register('ram')
 class RamWrapper(gym.Wrapper):
     """
     Overview:
-       Wrapper ram env into image-like env
+       Wrap ram env into image-like env
     Interface:
         ``__init__``, ``reset``, ``step``, ``new_shape``
     Properties:
@@ -783,21 +751,9 @@ class RamWrapper(gym.Wrapper):
         obs, reward, done, info = self.env.step(action)
         return obs.reshape(128, 1, 1).astype(np.float32), reward, done, info
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-            Get new shape of observation, acton, and reward; in this case only observation \
-                space wrapped to (128,1,1); others unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return (128, 1, 1), act_shape, rew_shape
 
-
-class EpisodicLifeEnv(gym.Wrapper):
+@ENV_WRAPPER_REGISTRY.register('episodic_life')
+class EpisodicLifeWrapper(gym.Wrapper):
     """
     Overview:
         Make end-of-life == end-of-episode, but only reset on true game over. It helps \
@@ -846,8 +802,8 @@ class EpisodicLifeEnv(gym.Wrapper):
         # handle bonus lives
         lives = self.env.unwrapped.ale.lives()
         if 0 < lives < self.lives:
-            # for Qbert sometimes we stay in lives == 0 condition for a few
-            # frames, so its important to keep lives > 0, so that we only reset
+            # For Qbert sometimes we stay in lives == 0 condition for a few frames,
+            # so it is important to keep lives > 0, so that we only reset
             # once the environment is actually done.
             done = True
         self.lives = lives
@@ -872,24 +828,13 @@ class EpisodicLifeEnv(gym.Wrapper):
         self.lives = self.env.unwrapped.ale.lives()
         return obs
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
-        """
-        Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
-        Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        """
-        return obs_shape, act_shape, rew_shape
 
-
-class FireResetEnv(gym.Wrapper):
+@ENV_WRAPPER_REGISTRY.register('fire_reset')
+class FireResetWrapper(gym.Wrapper):
     """
     Overview:
-        Take action on reset for environments that are fixed until firing. \
-            Related discussion: https://github.com/openai/baselines/issues/240
+        Take fire action at environment reset.
+        Related discussion: https://github.com/openai/baselines/issues/240
     Interface:
         ``__init__``, ``reset``, ``new_shape``
     Properties:
@@ -915,17 +860,70 @@ class FireResetEnv(gym.Wrapper):
         self.env.reset()
         return self.env.step(1)[0]
 
-    @staticmethod
-    def new_shape(obs_shape, act_shape, rew_shape):
+
+@ENV_WRAPPER_REGISTRY.register('gym_hybrid_dict_action')
+class GymHybridDictActionWrapper(gym.ActionWrapper):
+    """
+    Overview:
+       Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space to ``gym.spaces.Dict``.
+    Interface:
+        ``__init__``, ``action``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+        - ``self.action_space``
+    """
+
+    def __init__(self, env):
         """
         Overview:
-           Get new shape of observation, acton, and reward; in this case unchanged.
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature.
         Arguments:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-        Returns:
-            obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+            - env (:obj:`gym.Env`): the environment to wrap.
         """
-        return obs_shape, act_shape, rew_shape
+        super().__init__(env)
+        self.action_space = gym.spaces.Dict(
+            {
+                'type': gym.spaces.Discrete(3),
+                # shape = (2, )  0 is for acceleration; 1 is for rotation
+                'mask': gym.spaces.Box(low=0, high=1, shape=(2, ), dtype=np.int64),
+                'args': gym.spaces.Box(
+                    low=np.array([0., -1.], dtype=np.float32),
+                    high=np.array([1., 1.], dtype=np.float32),
+                    shape=(2, ),
+                    dtype=np.float32
+                ),
+            }
+        )
+
+    def step(self, action):
+        # # From Dict to Tuple
+        # action_type = action[0]
+        # if action_type == 0:
+        #     action_mask = np.array([1, 0], dtype=np.int64)
+        #     action_args = np.array([action[1][0], 0], dtype=np.float32)
+        # elif action_type == 1:
+        #     action_mask = np.array([0, 1], dtype=np.int64)
+        #     action_args = np.array([0, action[1][1]], dtype=np.float32)
+        # elif action_type == 2:
+        #     action_mask = np.array([0, 0], dtype=np.int64)
+        #     action_args = np.array([0, 0], dtype=np.float32)
+
+        # From Dict to Tuple
+        action_type, action_mask, action_args = action['type'], action['mask'], action['args']
+        return self.env.step((action_type, action_args))
+
+    # @staticmethod
+    # def new_shape(obs_shape, act_shape, rew_shape, size=84):
+    #     """
+    #     Overview:
+    #         Get new shape of observation, acton, and reward; in this case only  \
+    #             observation space wrapped to (4, 84, 84); others unchanged.
+    #     Arguments:
+    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+    #     Returns:
+    #         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
+    #     """
+    #     return (size, size), act_shape, rew_shape
 
 
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
@@ -944,3 +942,34 @@ def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
             except Exception:
                 continue
     return obs_shape, act_shape, rew_shape
+
+
+def create_env_wrapper(env: gym.Env, env_wrapper_cfg: dict) -> gym.Wrapper:
+    r"""
+    Overview:
+        Create an env wrapper according to env_wrapper_cfg and env instance.
+    Arguments:
+        - env (:obj:`gym.Env`): An env instance to be wrapped.
+        - env_wrapper_cfg (:obj:`EasyDict`): Env wrapper config.
+    ArgumentsKeys:
+        - `env_wrapper_cfg`'s necessary: `type`
+        - `env_wrapper_cfg`'s optional: `import_names`, `kwargs`
+    """
+    env_wrapper_cfg = copy.deepcopy(env_wrapper_cfg)
+    if 'import_names' in env_wrapper_cfg:
+        import_module(env_wrapper_cfg.pop('import_names'))
+    env_wrapper_type = env_wrapper_cfg.pop('type')
+    return ENV_WRAPPER_REGISTRY.build(env_wrapper_type, env, **env_wrapper_cfg.get('kwargs', {}))
+
+
+def get_env_wrapper_cls(cfg: EasyDict) -> type:
+    r"""
+    Overview:
+        Get an env wrapper class according to cfg.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Env wrapper config.
+    ArgumentsKeys:
+        - necessary: `type`
+    """
+    import_module(cfg.get('import_names', []))
+    return ENV_WRAPPER_REGISTRY.get(cfg.type)

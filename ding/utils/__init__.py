@@ -16,8 +16,8 @@ from .lock_helper import LockContext, LockContextType, get_file_lock, get_rw_fil
 from .log_helper import build_logger, pretty_print, LoggerFactory
 from .registry_factory import registries, POLICY_REGISTRY, ENV_REGISTRY, LEARNER_REGISTRY, COMM_LEARNER_REGISTRY, \
     SERIAL_COLLECTOR_REGISTRY, PARALLEL_COLLECTOR_REGISTRY, COMM_COLLECTOR_REGISTRY, \
-    COMMANDER_REGISTRY, LEAGUE_REGISTRY, PLAYER_REGISTRY, MODEL_REGISTRY, \
-    ENV_MANAGER_REGISTRY, REWARD_MODEL_REGISTRY, BUFFER_REGISTRY, DATASET_REGISTRY, SERIAL_EVALUATOR_REGISTRY
+    COMMANDER_REGISTRY, LEAGUE_REGISTRY, PLAYER_REGISTRY, MODEL_REGISTRY, ENV_MANAGER_REGISTRY, ENV_WRAPPER_REGISTRY, \
+    REWARD_MODEL_REGISTRY, BUFFER_REGISTRY, DATASET_REGISTRY, SERIAL_EVALUATOR_REGISTRY
 from .segment_tree import SumSegmentTree, MinSegmentTree, SegmentTree
 from .slurm_helper import find_free_port_slurm, node_to_host, node_to_partition
 from .system_helper import get_ip, get_pid, get_task_uid, PropagatingThread, find_free_port
@@ -26,6 +26,7 @@ from .type_helper import SequenceType
 from .scheduler_helper import Scheduler
 from .profiler_helper import Profiler, register_profiler
 from .log_writer_helper import DistributedWriter
+from .logging_rich_config import *
 
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \

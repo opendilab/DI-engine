@@ -49,9 +49,7 @@ pendulum_td3_generation_config = dict(
             data_type='hdf5',
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=40000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=40000, ), ),
     ),
 )
 pendulum_td3_generation_config = EasyDict(pendulum_td3_generation_config)

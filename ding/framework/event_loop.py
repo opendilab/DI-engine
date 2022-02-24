@@ -77,7 +77,7 @@ class EventLoop:
             - event (:obj:`str`): Event name.
         """
         if event not in self._listeners:
-            logging.warning("Event {} is not registered in the callbacks!".format(event))
+            logging.debug("Event {} is not registered in the callbacks of {}!".format(event, self._name))
             return
         for fn in self._listeners[event]:
             try:

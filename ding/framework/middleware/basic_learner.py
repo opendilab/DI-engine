@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from ding.policy import Policy
 from ding.worker.buffer import Buffer
-from rich import print
+import logging
 
 if TYPE_CHECKING:
     from ding.framework import Task, Context
@@ -21,7 +21,7 @@ def basic_learner(task: "Task", cfg: dict, policy: Policy, buffer_: Buffer):
             data = [d.data for d in buffered_data]
             learn_output = policy.learn_mode.forward(data)
             if ctx.train_iter % 20 == 0:
-                print(
+                logging.info(
                     'Current Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, learn_output['total_loss'])
                 )
             ctx.train_iter += 1

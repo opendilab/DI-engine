@@ -1,5 +1,5 @@
 from ding.framework import Task
-from rich import print
+import logging
 import os
 import torch
 
@@ -57,7 +57,7 @@ def main():
 
     with Task(async_mode=True, n_async_workers=3, auto_sync_ctx=False) as task:
         if not task.router.is_active:
-            print("League should be executed in parallel mode, use `main_league.sh` to execute league!")
+            logging.info("League should be executed in parallel mode, use `main_league.sh` to execute league!")
             exit(1)
         if task.match_labels(["league"]):
             task.use(league_dispatcher(task, cfg=cfg, tb_logger=tb_logger, league=league, policies=policies))

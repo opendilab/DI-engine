@@ -2,6 +2,7 @@ from .registry import Registry
 
 POLICY_REGISTRY = Registry()
 ENV_REGISTRY = Registry()
+ENV_WRAPPER_REGISTRY = Registry()
 LEARNER_REGISTRY = Registry()
 COMM_LEARNER_REGISTRY = Registry()
 SERIAL_COLLECTOR_REGISTRY = Registry()
@@ -20,6 +21,7 @@ SERIAL_EVALUATOR_REGISTRY = Registry()
 registries = {
     'policy': POLICY_REGISTRY,
     'env': ENV_REGISTRY,
+    'env_wrapper': ENV_WRAPPER_REGISTRY,
     'model': MODEL_REGISTRY,
     'reward_model': REWARD_MODEL_REGISTRY,
     'learner': LEARNER_REGISTRY,

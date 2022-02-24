@@ -17,6 +17,25 @@ class PendulumEnv(BaseEnv):
         self._env = gym.make('Pendulum-v0')
         self._init_flag = False
         self._replay_path = None
+        self._observation_space = gym.spaces.Box(
+            low=np.array([-1.0, -1.0, -8.0]), high=np.array([1.0, 1.0, 8.0]), shape=(3, ), dtype=np.float32
+        )
+        self._action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(1, ), dtype=np.float32)
+        self._reward_space = gym.spaces.Box(
+            low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32
+        )
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -49,8 +68,7 @@ class PendulumEnv(BaseEnv):
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
         if self._act_scale:
-            action_range = self.info().act_space.value
-            action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
+            action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs).astype(np.float32)
@@ -58,37 +76,6 @@ class PendulumEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
-
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T(
-                (3, ),
-                {
-                    'min': [-1.0, -1.0, -8.0],
-                    'max': [1.0, 1.0, 8.0],
-                    'dtype': np.float32,
-                },
-            ),
-            act_space=T(
-                (1, ),
-                {
-                    'min': -2.0,
-                    'max': 2.0,
-                    'dtype': np.float32
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                {
-                    'min': -1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2),
-                    'max': -0.0,
-                    'dtype': np.float32
-                },
-            ),
-            use_wrappers=None,
-        )
 
     def __repr__(self) -> str:
         return "DI-engine Pendulum Env({})".format(self._cfg.env_id)
