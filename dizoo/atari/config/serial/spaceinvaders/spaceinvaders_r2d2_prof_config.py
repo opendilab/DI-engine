@@ -23,6 +23,7 @@ spaceinvaders_r2d2_config = dict(
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
             res_link=False,
+            lstm_type='pytorch',
         ),
         discount_factor=0.997,
         burnin_step=20,
