@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import copy
-from torch.optim import SGD
+from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
@@ -35,11 +35,9 @@ class BehaviourCloningPolicy(Policy):
     )
 
     def _init_learn(self):
-        self._optimizer = SGD(
+        self._optimizer = Adam(
             self._model.parameters(),
             lr=self._cfg.learn.learning_rate,
-            # weight_decay=self._cfg.learn.weight_decay,
-            momentum=0.9
         )
         self._timer = EasyTimer(cuda=True)
 
@@ -128,8 +126,7 @@ class BehaviourCloningPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         #self._gamma = self._cfg.discount_factor  # necessary for parallel
         #self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = copy.deepcopy(self._model)
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
     def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:

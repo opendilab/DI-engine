@@ -1,7 +1,8 @@
 import argparse
 import copy
 import pickle
-
+import random
+from torch.utils.data import dataloader
 import easydict
 import torch
 from typing import Optional, List, Any
@@ -87,50 +88,22 @@ def drex_get_args():
     return args
 
 
-def drex_generating_data(compiled_cfg):
-    offline_data_path = compiled_cfg.reward_model.offline_data_path
-    expert_model_path = compiled_cfg.reward_model.expert_model_path
-    checkpoint_min = compiled_cfg.reward_model.checkpoint_min
-    checkpoint_max = compiled_cfg.reward_model.checkpoint_max
-    checkpoint_step = compiled_cfg.reward_model.checkpoint_step
-    checkpoints = []
-    for i in range(checkpoint_min, checkpoint_max + checkpoint_step, checkpoint_step):
-        checkpoints.append(str(i))
-    data_for_save = {}
-    learning_returns = []
-    learning_rewards = []
-    episodes_data = []
-    for checkpoint in checkpoints:
-        model_path = expert_model_path + \
-                     '/ckpt/iteration_' + checkpoint + '.pth.tar'
-        seed = compiled_cfg.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
-        exp_data = collect_episodic_demo_data_for_drex(
-            deepcopy(compiled_cfg),
-            seed,
-            noise=0,
-            state_dict_path=model_path,
-            save_cfg_path=offline_data_path,
-            collect_count=1,
-            rank=(int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step) + 1
-        )
-        data_for_save[(int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)] = exp_data[0]
-        obs = list(default_collate(exp_data[0])['obs'].numpy())
-        learning_rewards.append(default_collate(exp_data[0])['reward'].tolist())
-        sum_reward = torch.sum(default_collate(exp_data[0])['reward']).item()
-        learning_returns.append(sum_reward)
-        episodes_data.append(obs)
-
-    offline_data_save_type(
-        data_for_save,
-        offline_data_path + '/suboptimal_data.pkl',
-        data_type=compiled_cfg.policy.collect.get('data_type', 'naive')
-    )
-
-    return data_for_save
+def eval_bc(validation_set, policy, use_cuda):
+    tot = 0
+    tot_acc = 0
+    device = 'cuda' if use_cuda else 'cpu'
+    for _, data in enumerate(validation_set):
+        x, y = {'obs': data['obs'].to(device).squeeze(0)}, data['action'].squeeze(-1)
+        y_pred = policy.forward(x, eps=-1)['obs']['action']
+        tot += y_pred.shape[0]
+        tot_acc += (y_pred == y).sum().item()
+    acc = tot_acc / tot
+    return acc
 
 
-def train_bc(cfg, pre_expert_data=None):
+def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
     bc_policy = bc.BehaviourCloningPolicy(copy.deepcopy(cfg).policy)
+
     if pre_expert_data is None:
         with open(cfg.reward_model.offline_data_path + '/suboptimal_data.pkl', 'rb') as f:
             pre_expert_data = pickle.load(f)
@@ -141,16 +114,35 @@ def train_bc(cfg, pre_expert_data=None):
     for i in range(len(pre_expert_data)):
         push_data += pre_expert_data[i]
 
+    random.shuffle(push_data)
+    validation_set = push_data[- len(push_data) // 10:]
+    push_data = push_data[:- len(push_data) // 10]
     replay_buffer.push(push_data, cur_collector_envstep=0)
     learner = BaseLearner(cfg.policy.learn.learner, bc_policy.learn_mode)
 
-    for i in range(6000):
+    best_acc = 0
+    cnt = 0
+    for i in range(max_iterations):
         train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+        if i % 100 == 0:
+            acc = eval_bc(validation_set, bc_policy.collect_mode, cfg.policy.cuda)
+            if acc < best_acc:
+                cnt += 1
+                if cnt > 100:
+                    break
+            else:
+                cnt = 0
+                best_acc = acc
+                torch.save(bc_policy.collect_mode.state_dict(), cfg.reward_model.offline_data_path + '/bc_best.pth.tar')
         if train_data is None:
             replay_buffer.push(push_data, cur_collector_envstep=0)
             train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
         learner.train(train_data)
+
+    ckpt = torch.load(cfg.reward_model.offline_data_path + '/bc_best.pth.tar')
+    bc_policy.collect_mode.load_state_dict(ckpt)
     return bc_policy
+
 
 
 def load_bc(load_path, cfg):
@@ -176,7 +168,6 @@ def create_data_drex(bc_policy, cfg):
     created_data = []
     created_data_returns = []
     for eps in eps_list:
-        print('Noise: {}'.format(eps))
         policy_kwargs = {'eps': eps}
         # Let's collect some sub-optimal demostrations
         exp_data = collector.collect(n_episode=cfg.reward_model.num_trajs_per_bin, policy_kwargs=policy_kwargs)
@@ -187,8 +178,44 @@ def create_data_drex(bc_policy, cfg):
             returns.append(torch.sum(default_collate(data)['reward']).item())
         created_data.append(episodes)
         created_data_returns.append(returns)
-
+        print('noise: {}, returns: {}, avg: {}'.format(eps, returns, cal_mean(returns)))
     return created_data, created_data_returns
+
+
+def drex_generating_data(compiled_cfg):
+    offline_data_path = compiled_cfg.reward_model.offline_data_path
+    expert_model_path = compiled_cfg.reward_model.expert_model_path
+    data_for_save = {}
+    learning_returns = []
+    learning_rewards = []
+    episodes_data = []
+    for i in range(10):
+        model_path = expert_model_path
+        seed = compiled_cfg.seed + i
+        exp_data = collect_episodic_demo_data_for_drex(
+            deepcopy(compiled_cfg),
+            seed,
+            noise=-1,
+            state_dict_path=model_path,
+            save_cfg_path=offline_data_path,
+            collect_count=1,
+            rank=i
+        )
+        data_for_save[i] = exp_data[0]
+        obs = list(default_collate(exp_data[0])['obs'].numpy())
+        learning_rewards.append(default_collate(exp_data[0])['reward'].tolist())
+        sum_reward = torch.sum(default_collate(exp_data[0])['reward']).item()
+        learning_returns.append(sum_reward)
+        episodes_data.append(obs)
+
+    offline_data_save_type(
+        data_for_save,
+        offline_data_path + '/suboptimal_data.pkl',
+        data_type=compiled_cfg.policy.collect.get('data_type', 'naive')
+    )
+
+    return data_for_save
+
 
 
 def drex_collecting_data(args=drex_get_args(), seed=0):
@@ -198,10 +225,15 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
         cfg, create_cfg = deepcopy(args.cfg)
     cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
     pre_expert_data = drex_generating_data(cfg)
+    rewards = []
+    for k in pre_expert_data:
+        exp_data = pre_expert_data[k]
+        rewards.append(torch.sum(default_collate(exp_data)['reward']).item())
+    print('demonstrations rewards: ' + str(rewards))
     if 'bc_path' in cfg.reward_model and os.path.exists(cfg.reward_model.bc_path):
         bc_policy = load_bc(cfg.reward_model.bc_path, cfg)
     else:
-        bc_policy = train_bc(cfg=cfg, pre_expert_data=pre_expert_data)
+        bc_policy = train_bc(cfg=cfg, pre_expert_data=pre_expert_data, max_iterations=50000)
     created_data, created_data_returns = create_data_drex(bc_policy, cfg)
     offline_data_path = cfg.reward_model.offline_data_path
     offline_data_save_type(
@@ -217,3 +249,4 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
 
 if __name__ == '__main__':
     drex_collecting_data()
+

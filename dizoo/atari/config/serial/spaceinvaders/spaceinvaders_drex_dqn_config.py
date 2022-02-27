@@ -17,16 +17,16 @@ space_invaders_drex_dqn_config = dict(
         env_id='SpaceInvadersNoFrameskip-v4',
         min_snippet_length=30,
         max_snippet_length=100,
-        checkpoint_min=0,
-        checkpoint_max=100,
-        checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        eps_list=[0, 0.5, 1],
-        num_trajs_per_bin=20,
         expert_model_path='abs model path',
         reward_model_path='abs data path + ./spaceinvaders.params',
         offline_data_path='abs data path',
+        # path to pretrained bc model. If ommitted, bc will be trained instead.
+        bc_path='abs path to xxx.pth.tar',
+        # list of noises
+        eps_list=[0, 0.5, 1],
+        num_trajs_per_bin=20,
     ),
     policy=dict(
         cuda=True,
