@@ -12,7 +12,7 @@ maze_ppg_default_config = dict(
         cuda=True,
         model=dict(
             obs_shape=[3, 64, 64],
-            action_shape=5,
+            action_shape=15,
             encoder_hidden_size_list=[32, 32, 64],
         ),
         learn=dict(
