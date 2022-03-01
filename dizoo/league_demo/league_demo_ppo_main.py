@@ -4,18 +4,17 @@ import gym
 import numpy as np
 import torch
 from tensorboardX import SummaryWriter
+from easydict import EasyDict
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, BattleEpisodeSerialCollector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
-from ding.utils import set_pkg_seed, Scheduler
+from ding.utils import set_pkg_seed, Scheduler, deep_merge_dicts
 from dizoo.league_demo.game_env import GameEnv
 from dizoo.league_demo.demo_league import DemoLeague
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
-from easydict import EasyDict
-from ding.utils.default_helper import deep_merge_dicts
 
 
 class EvalPolicy1:
@@ -108,7 +107,7 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
             collector_env,
             tb_logger=tb_logger,
             exp_name=cfg.exp_name,
-            instance_name=player_id + '_colllector',
+            instance_name=player_id + '_collector',
         )
 
     model = VAC(**cfg.policy.model)

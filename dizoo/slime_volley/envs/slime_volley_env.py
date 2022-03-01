@@ -80,9 +80,12 @@ class SlimeVolleyEnv(BaseEnv):
             if done:
                 info[0]['final_eval_reward'] = self._final_eval_reward
                 info[1]['final_eval_reward'] = -self._final_eval_reward
+                info[0]['result'] = self.get_episode_result(self._final_eval_reward)
+                info[1]['result'] = self.get_episode_result(-self._final_eval_reward)
         else:
             if done:
                 info['final_eval_reward'] = self._final_eval_reward
+                info['result'] = self.get_episode_result(self._final_eval_reward)
         reward = to_ndarray([rew]).astype(np.float32)
         if self._agent_vs_agent:
             obs2 = info[1]['obs']
@@ -94,6 +97,12 @@ class SlimeVolleyEnv(BaseEnv):
         else:
             return BaseEnvTimestep(obs1, reward, done, info)
 
+    def get_episode_result(self, final_eval_reward: float):
+        if final_eval_reward >= 0:
+            return "wins"
+        else:
+            return "losses"
+
     def reset(self):
         if not self._init_flag:
             self._env = gym.make(self._cfg.env_id)
@@ -101,7 +110,12 @@ class SlimeVolleyEnv(BaseEnv):
                 self._env = GymSelfPlayMonitor(
                     self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
                 )
-            self._observation_space = self._env.observation_space
+            self._observation_space = gym.spaces.Box(
+                low=float("-inf"),
+                high=float("inf"),
+                shape=(len(self.agents), ) + self._env.observation_space.shape,
+                dtype=np.float32
+            )
             self._action_space = gym.spaces.Discrete(6)
             self._reward_space = gym.spaces.Box(low=-5, high=5, shape=(1, ), dtype=np.float32)
             self._init_flag = True
@@ -130,6 +144,13 @@ class SlimeVolleyEnv(BaseEnv):
     @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
+
+    @property
+    def agents(self) -> List[str]:
+        if self._agent_vs_agent:
+            return ['home', 'away']
+        else:
+            return ['home']
 
     def random_action(self) -> np.ndarray:
         high = self.action_space.n

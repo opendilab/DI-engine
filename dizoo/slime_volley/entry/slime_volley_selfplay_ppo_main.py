@@ -17,6 +17,10 @@ from dizoo.slime_volley.config.slime_volley_ppo_config import main_config
 
 
 def main(cfg, seed=0, max_iterations=int(1e10)):
+    """
+    Overview:
+        Naive self-play, no any historial player.
+    """
     cfg = compile_config(
         cfg,
         SyncSubprocessEnvManager,
