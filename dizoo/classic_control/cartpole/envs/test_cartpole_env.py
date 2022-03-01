@@ -17,7 +17,10 @@ class TestCartPoleEnv:
             np.random.seed(314)
             print('=' * 60)
             for i in range(10):
-                random_action = np.array([env.action_space.sample()])
+                if i < 5:
+                    random_action = np.array([env.action_space.sample()])
+                else:
+                    random_action = env.random_action()
                 timestep = env.step(random_action)
                 print(timestep)
                 assert isinstance(timestep.obs, np.ndarray)

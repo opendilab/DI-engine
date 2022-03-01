@@ -89,6 +89,9 @@ class MujocoEnv(BaseEnv):
             replay_path = './video'
         self._replay_path = replay_path
 
+    def random_action(self) -> np.ndarray:
+        return self.action_space.sample()
+
     def __repr__(self) -> str:
         return "DI-engine Mujoco Env({})".format(self._cfg.env_id)
 

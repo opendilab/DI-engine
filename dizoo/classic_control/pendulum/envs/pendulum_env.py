@@ -25,18 +25,6 @@ class PendulumEnv(BaseEnv):
             low=-1 * (3.14 * 3.14 + 0.1 * 8 * 8 + 0.001 * 2 * 2), high=0.0, shape=(1, ), dtype=np.float32
         )
 
-    @property
-    def observation_space(self) -> gym.spaces.Space:
-        return self._observation_space
-
-    @property
-    def action_space(self) -> gym.spaces.Space:
-        return self._action_space
-
-    @property
-    def reward_space(self) -> gym.spaces.Space:
-        return self._reward_space
-
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make('Pendulum-v0')
@@ -77,10 +65,25 @@ class PendulumEnv(BaseEnv):
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def __repr__(self) -> str:
-        return "DI-engine Pendulum Env({})".format(self._cfg.env_id)
-
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
+
+    def random_action(self) -> np.ndarray:
+        return self.action_space.sample()
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
+
+    def __repr__(self) -> str:
+        return "DI-engine Pendulum Env({})".format(self._cfg.env_id)

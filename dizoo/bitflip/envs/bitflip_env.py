@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Union, List
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
+from ding.torch_utils import to_ndarray
 
 
 @ENV_REGISTRY.register('bitflip')
@@ -68,8 +69,12 @@ class BitFlipEnv(BaseEnv):
             info['final_eval_reward'] = self._final_eval_reward
         self._curr_step += 1
         obs = np.concatenate([self._state, self._goal], axis=0)
-
         return BaseEnvTimestep(obs, rew, done, info)
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
 
     @property
     def observation_space(self) -> gym.spaces.Space:
