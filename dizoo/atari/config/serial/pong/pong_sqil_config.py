@@ -1,9 +1,9 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline_sqil
 from easydict import EasyDict
 
 pong_sqil_config = dict(
-    exp_name='pong_sqil',
+    exp_name='pong_sqil_gamma_0.97_alpha_0.1_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -11,19 +11,19 @@ pong_sqil_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, reset_inplace=True)
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
-        cuda=False,
-        priority=False,
+        cuda=True,
+        priority=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
         nstep=3,
-        discount_factor=0.99,
-        learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.12),
+        discount_factor=0.97,
+        learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.1),
         collect=dict(n_sample=96, demonstration_info_path='path'
                      ),  #Users should add their own path here (path should lead to a well-trained model)
         other=dict(
@@ -44,11 +44,11 @@ pong_sqil_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base', force_reproducibility=True),
     policy=dict(type='sql'),
 )
 pong_sqil_create_config = EasyDict(pong_sqil_create_config)
 create_config = pong_sqil_create_config
 
 if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+    serial_pipeline_sqil('pong_sqil_config.py', 'pong_dqn_config.py', seed=0)
