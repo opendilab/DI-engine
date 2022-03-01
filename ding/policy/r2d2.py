@@ -336,8 +336,9 @@ class R2D2Policy(Policy):
 
         # the information for debug
         batch_range = torch.arange(action[0].shape[0])
-        q_s_a_t0 = q_value[0][batch_range, action[0]]
-        target_q_s_a_t0 = target_q_value[0][batch_range, target_q_action[0]]
+        with torch.no_grad():
+            q_s_a_t0 = q_value[0][batch_range, target_q_action[0]]
+            target_q_s_a_t0 = target_q_value[0][batch_range, target_q_action[0]]
 
         return {
             'cur_lr': self._optimizer.defaults['lr'],
