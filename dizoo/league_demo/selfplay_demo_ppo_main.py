@@ -109,11 +109,9 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
 
     while True:
         if evaluator1.should_eval(learner1.train_iter):
-            stop_flag1, reward, _ = evaluator1.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
-            tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, collector.envstep)
+            stop_flag1, _ = evaluator1.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
         if evaluator2.should_eval(learner1.train_iter):
-            stop_flag2, reward, _ = evaluator2.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
-            tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, collector.envstep)
+            stop_flag2, _ = evaluator2.eval(learner1.save_checkpoint, learner1.train_iter, collector.envstep)
         if stop_flag1 and stop_flag2:
             break
         train_data, _ = collector.collect(train_iter=learner1.train_iter)

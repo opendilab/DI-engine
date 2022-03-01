@@ -126,15 +126,19 @@ def main(cfg, seed=0):
     for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
         league.judge_snapshot(player_id, force=True)
-    init_main_player_rating = league.metric_env.create_rating(mu=0)
 
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     count = 0
     while True:
         if evaluator.should_eval(main_learner.train_iter):
-            stop_flag, reward = evaluator.eval(
+            stop_flag, eval_episode_info = evaluator.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
+            )
+            win_loss_result = [e['result'] for e in eval_episode_info]
+            # set eval bot rating as 100
+            main_player.rating = league.metric_env.rate_1vsC(
+                main_player.rating, league.metric_env.create_rating(mu=100, sigma=1e-8), win_loss_result
             )
             if stop_flag:
                 break
@@ -176,7 +180,10 @@ def main(cfg, seed=0):
             }
             league.finish_job(job_finish_info)
         if count % 10 == 0:
-            print(repr(league.payoff))
+            payoff_string = repr(league.payoff)
+            rank_string = league.player_rank(string=True)
+            tb_logger.add_text('payoff_step', payoff_string, main_collector.envstep)
+            tb_logger.add_text('rank_step', rank_string, main_collector.envstep)
         count += 1
 
 

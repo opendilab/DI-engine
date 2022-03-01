@@ -170,7 +170,7 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     count = 0
     while True:
         if evaluator1.should_eval(main_learner.train_iter):
-            stop_flag1, reward, episode_info = evaluator1.eval(
+            stop_flag1, episode_info = evaluator1.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -178,10 +178,9 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
             main_player.rating = league.metric_env.rate_1vsC(
                 main_player.rating, league.metric_env.create_rating(mu=10, sigma=1e-8), win_loss_result
             )
-            tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
 
         if evaluator2.should_eval(main_learner.train_iter):
-            stop_flag2, reward, episode_info = evaluator2.eval(
+            stop_flag2, episode_info = evaluator2.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -189,9 +188,8 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
             main_player.rating = league.metric_env.rate_1vsC(
                 main_player.rating, league.metric_env.create_rating(mu=0, sigma=1e-8), win_loss_result
             )
-            tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
         if evaluator3.should_eval(main_learner.train_iter):
-            _, reward, episode_info = evaluator3.eval(
+            _, episode_info = evaluator3.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -199,7 +197,6 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
             main_player.rating, init_main_player_rating = league.metric_env.rate_1vs1(
                 main_player.rating, init_main_player_rating, win_loss_result
             )
-            tb_logger.add_scalar('init_evaluator_step/reward_mean', reward, main_collector.envstep)
             tb_logger.add_scalar(
                 'league/init_main_player_trueskill', init_main_player_rating.exposure, main_collector.envstep
             )
