@@ -14,7 +14,6 @@ from ding.utils import set_pkg_seed
 from .utils import random_collect
 
 
-
 def serial_pipeline_sqil(
         input_cfg: Union[str, Tuple[dict, dict]],
         expert_cfg: Union[str, Tuple[dict, dict]],
@@ -60,7 +59,7 @@ def serial_pipeline_sqil(
     expert_cfg = compile_config(
         expert_cfg, seed=seed, env=env_fn, auto=True, create_cfg=expert_create_cfg, save_cfg=True
     )
-    expert_cfg.policy.collect.n_sample=cfg.policy.collect.n_sample 
+    expert_cfg.policy.collect.n_sample = cfg.policy.collect.n_sample
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
