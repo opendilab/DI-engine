@@ -67,6 +67,8 @@ cartpole_r2d2_create_config = dict(
 cartpole_r2d2_create_config = EasyDict(cartpole_r2d2_create_config)
 create_config = cartpole_r2d2_create_config
 
+# kernprof -l cartpole_r2d2_prof_config.py
+# python -m line_profiler cartpole_r2d2_prof_config.py.lprof
 if __name__ == "__main__":
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0, max_env_step=100000)

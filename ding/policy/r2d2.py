@@ -247,6 +247,7 @@ class R2D2Policy(Policy):
 
         return data
 
+    @profile
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
         Overview:
@@ -382,6 +383,7 @@ class R2D2Policy(Policy):
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
+    @profile
     def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
         Overview:
