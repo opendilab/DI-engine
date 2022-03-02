@@ -2,6 +2,7 @@ import os
 import random
 
 import pytest
+import copy
 from easydict import EasyDict
 import torch
 
@@ -144,8 +145,13 @@ class TestOneVsOneLeague:
         print("Finish!")
 
     def test_league_info(self):
-        league = create_league(one_vs_one_league_default_config.league)
+        cfg = copy.deepcopy(one_vs_one_league_default_config.league)
+        cfg.path_policy = 'test_league_info'
+        league = create_league(cfg)
         active_player_id = [p.player_id for p in league.active_players][0]
+        active_player_ckpt = [p.checkpoint_path for p in league.active_players][0]
+        tmp = torch.tensor([1, 2, 3])
+        torch.save(tmp, active_player_ckpt)
         assert (len(league.active_players) == 1)
         assert (len(league.historical_players) == 0)
         print('\n')
@@ -170,6 +176,7 @@ class TestOneVsOneLeague:
                 home.rating, away.rating = league.metric_env.rate_1vs1(home.rating, away.rating, win_loss_result)
         print(repr(league.payoff))
         print(league.player_rank(string=True))
+        os.popen("rm -rf {}".format(cfg.path_policy))
 
 
 if __name__ == '__main__':
