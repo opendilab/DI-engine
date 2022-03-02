@@ -93,8 +93,10 @@ def get_data_decompressor(name: str):
         Get the data decompressor according to the input name
     Arguments:
         - name(:obj:`str`): Name of the decompressor, support ``['lz4', 'zlib', 'none']``
-        .. note::
-            For all the decompressors, the input of a bytes-like object is required.
+
+    .. note::
+
+        For all the decompressors, the input of a bytes-like object is required.
 
     Returns:
         - (:obj:`Callable`): Corresponding data_decompressor.

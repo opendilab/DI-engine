@@ -52,6 +52,137 @@ class ActorMLP(torch.nn.Module):
         return ret
 
 
+class HybridActorMLP(torch.nn.Module):
+
+    def __init__(self):
+        super(HybridActorMLP, self).__init__()
+        self.fc1 = nn.Linear(3, 4)
+        self.bn1 = nn.BatchNorm1d(4)
+        self.fc2 = nn.Linear(4, 6)
+        self.act = nn.ReLU()
+        self.out = nn.Softmax()
+
+        self.fc2_cont = nn.Linear(4, 6)
+        self.act_cont = nn.ReLU()
+
+    def forward(self, inputs, tmp=0):
+        x = self.fc1(inputs['obs'])
+        x = self.bn1(x)
+        x_ = self.act(x)
+
+        x = self.fc2(x_)
+        x = self.act(x)
+        x_disc = self.out(x)
+
+        x = self.fc2_cont(x_)
+        x_cont = self.act_cont(x)
+
+        ret = {'logit': x_disc, 'action_args': x_cont, 'tmp': tmp}
+
+        if 'mask' in inputs:
+            ret['action_mask'] = inputs['mask']
+        return ret
+
+
+class HybridReparamActorMLP(torch.nn.Module):
+
+    def __init__(self):
+        super(HybridReparamActorMLP, self).__init__()
+        self.fc1 = nn.Linear(3, 4)
+        self.bn1 = nn.BatchNorm1d(4)
+        self.fc2 = nn.Linear(4, 6)
+        self.act = nn.ReLU()
+        self.out = nn.Softmax()
+
+        self.fc2_cont_mu = nn.Linear(4, 6)
+        self.act_cont_mu = nn.ReLU()
+
+        self.fc2_cont_sigma = nn.Linear(4, 6)
+        self.act_cont_sigma = nn.ReLU()
+
+    def forward(self, inputs, tmp=0):
+        x = self.fc1(inputs['obs'])
+        x = self.bn1(x)
+        x_ = self.act(x)
+
+        x = self.fc2(x_)
+        x = self.act(x)
+        x_disc = self.out(x)
+
+        x = self.fc2_cont_mu(x_)
+        x_cont_mu = self.act_cont_mu(x)
+
+        x = self.fc2_cont_sigma(x_)
+        x_cont_sigma = self.act_cont_sigma(x) + 1e-8
+
+        ret = {'logit': {'action_type': x_disc, 'action_args': {'mu': x_cont_mu, 'sigma': x_cont_sigma}}, 'tmp': tmp}
+
+        if 'mask' in inputs:
+            ret['action_mask'] = inputs['mask']
+        return ret
+
+
+class ReparamActorMLP(torch.nn.Module):
+
+    def __init__(self):
+        super(ReparamActorMLP, self).__init__()
+        self.fc1 = nn.Linear(3, 4)
+        self.bn1 = nn.BatchNorm1d(4)
+        self.fc2 = nn.Linear(4, 6)
+        self.act = nn.ReLU()
+        self.out = nn.Softmax()
+
+        self.fc2_cont_mu = nn.Linear(4, 6)
+        self.fc2_cont_sigma = nn.Linear(4, 6)
+
+    def forward(self, inputs, tmp=0):
+        x = self.fc1(inputs['obs'])
+        x = self.bn1(x)
+        x_ = self.act(x)
+
+        x = self.fc2_cont_mu(x_)
+        x_cont_mu = self.act(x)
+
+        x = self.fc2_cont_sigma(x_)
+        x_cont_sigma = self.act(x) + 1e-8
+
+        ret = {'logit': {'mu': x_cont_mu, 'sigma': x_cont_sigma}, 'tmp': tmp}
+
+        if 'mask' in inputs:
+            ret['action_mask'] = inputs['mask']
+        return ret
+
+
+class DeterministicActorMLP(torch.nn.Module):
+
+    def __init__(self):
+        super(DeterministicActorMLP, self).__init__()
+        self.fc1 = nn.Linear(3, 4)
+        self.bn1 = nn.BatchNorm1d(4)
+        self.act = nn.ReLU()
+
+        self.fc2_cont_mu = nn.Linear(4, 6)
+        self.act_cont_mu = nn.ReLU()
+
+    def forward(self, inputs):
+        x = self.fc1(inputs['obs'])
+        x = self.bn1(x)
+        x_ = self.act(x)
+
+        x = self.fc2_cont_mu(x_)
+        x_cont_mu = self.act_cont_mu(x)
+
+        ret = {
+            'logit': {
+                'mu': x_cont_mu,
+            }
+        }
+
+        if 'mask' in inputs:
+            ret['action_mask'] = inputs['mask']
+        return ret
+
+
 class TempLSTM(torch.nn.Module):
 
     def __init__(self):
@@ -169,6 +300,93 @@ class TestModelWrappers:
             assert isinstance(output, dict)
         assert output['tmp'] == 1
 
+    def test_multinomial_sample_wrapper(self):
+        model = model_wrap(ActorMLP(), wrapper_name='multinomial_sample')
+        data = {'obs': torch.randn(4, 3)}
+        output = model.forward(data)
+        assert output['action'].shape == (4, )
+        data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
+        output = model.forward(data)
+        assert output['action'].shape == (4, )
+
+    def test_eps_greedy_multinomial_wrapper(self):
+        model = ActorMLP()
+        model = model_wrap(model, wrapper_name='eps_greedy_multinomial_sample')
+        model.eval()
+        eps_threshold = 0.5
+        data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
+        with torch.no_grad():
+            output = model.forward(data, eps=eps_threshold, alpha=0.2)
+        assert output['tmp'] == 0
+        for i in range(10):
+            if i == 5:
+                data.pop('mask')
+            with torch.no_grad():
+                output = model.forward(data, eps=eps_threshold, tmp=1, alpha=0.2)
+            assert isinstance(output, dict)
+        assert output['tmp'] == 1
+
+    def test_hybrid_eps_greedy_wrapper(self):
+        model = HybridActorMLP()
+        model = model_wrap(model, wrapper_name='hybrid_eps_greedy_sample')
+        model.eval()
+        eps_threshold = 0.5
+        data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
+        with torch.no_grad():
+            output = model.forward(data, eps=eps_threshold)
+        # logit = output['logit']
+        # assert output['action']['action_type'].eq(logit.argmax(dim=-1)).all()
+        assert isinstance(output['action']['action_args'],
+                          torch.Tensor) and output['action']['action_args'].shape == (4, 6)
+        for i in range(10):
+            if i == 5:
+                data.pop('mask')
+            with torch.no_grad():
+                output = model.forward(data, eps=eps_threshold, tmp=1)
+            assert isinstance(output, dict)
+
+    def test_hybrid_eps_greedy_multinomial_wrapper(self):
+        model = HybridActorMLP()
+        model = model_wrap(model, wrapper_name='hybrid_eps_greedy_multinomial_sample')
+        model.eval()
+        eps_threshold = 0.5
+        data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
+        with torch.no_grad():
+            output = model.forward(data, eps=eps_threshold)
+        assert isinstance(output['logit'], torch.Tensor) and output['logit'].shape == (4, 6)
+        assert isinstance(output['action']['action_type'],
+                          torch.Tensor) and output['action']['action_type'].shape == (4, )
+        assert isinstance(output['action']['action_args'],
+                          torch.Tensor) and output['action']['action_args'].shape == (4, 6)
+        for i in range(10):
+            if i == 5:
+                data.pop('mask')
+            with torch.no_grad():
+                output = model.forward(data, eps=eps_threshold, tmp=1)
+            assert isinstance(output, dict)
+
+    def test_hybrid_reparam_multinomial_wrapper(self):
+        model = HybridReparamActorMLP()
+        model = model_wrap(model, wrapper_name='hybrid_reparam_multinomial_sample')
+        model.eval()
+        data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
+        with torch.no_grad():
+            output = model.forward(data)
+        assert isinstance(output['logit'], dict) and output['logit']['action_type'].shape == (4, 6)
+        assert isinstance(output['logit']['action_args'], dict) and output['logit']['action_args']['mu'].shape == (
+            4, 6
+        ) and output['logit']['action_args']['sigma'].shape == (4, 6)
+        assert isinstance(output['action']['action_type'],
+                          torch.Tensor) and output['action']['action_type'].shape == (4, )
+        assert isinstance(output['action']['action_args'],
+                          torch.Tensor) and output['action']['action_args'].shape == (4, 6)
+        for i in range(10):
+            if i == 5:
+                data.pop('mask')
+            with torch.no_grad():
+                output = model.forward(data, tmp=1)
+            assert isinstance(output, dict)
+
     def test_argmax_sample_wrapper(self):
         model = model_wrap(ActorMLP(), wrapper_name='argmax_sample')
         data = {'obs': torch.randn(4, 3)}
@@ -180,14 +398,68 @@ class TestModelWrappers:
         logit = output['logit'].sub(1e8 * (1 - data['mask']))
         assert output['action'].eq(logit.argmax(dim=-1)).all()
 
-    def test_multinomial_sample_wrapper(self):
-        model = model_wrap(ActorMLP(), wrapper_name='multinomial_sample')
+    def test_hybrid_argmax_sample_wrapper(self):
+        model = model_wrap(HybridActorMLP(), wrapper_name='hybrid_argmax_sample')
         data = {'obs': torch.randn(4, 3)}
         output = model.forward(data)
-        assert output['action'].shape == (4, )
+        logit = output['logit']
+        assert output['action']['action_type'].eq(logit.argmax(dim=-1)).all()
+        assert isinstance(output['action']['action_args'],
+                          torch.Tensor) and output['action']['action_args'].shape == (4, 6)
         data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
         output = model.forward(data)
-        assert output['action'].shape == (4, )
+        logit = output['logit'].sub(1e8 * (1 - data['mask']))
+        assert output['action']['action_type'].eq(logit.argmax(dim=-1)).all()
+        assert output['action']['action_args'].shape == (4, 6)
+
+    def test_hybrid_deterministic_argmax_sample_wrapper(self):
+        model = model_wrap(HybridReparamActorMLP(), wrapper_name='hybrid_deterministic_argmax_sample')
+        data = {'obs': torch.randn(4, 3)}
+        output = model.forward(data)
+        assert output['action']['action_type'].eq(output['logit']['action_type'].argmax(dim=-1)).all()
+        assert isinstance(output['action']['action_args'],
+                          torch.Tensor) and output['action']['action_args'].shape == (4, 6)
+        assert output['action']['action_args'].eq(output['logit']['action_args']['mu']).all
+
+    def test_deterministic_sample_wrapper(self):
+        model = model_wrap(DeterministicActorMLP(), wrapper_name='deterministic_sample')
+        data = {'obs': torch.randn(4, 3)}
+        output = model.forward(data)
+        assert output['action'].eq(output['logit']['mu']).all()
+        assert isinstance(output['action'], torch.Tensor) and output['action'].shape == (4, 6)
+
+    def test_reparam_wrapper(self):
+        model = ReparamActorMLP()
+        model = model_wrap(model, wrapper_name='reparam_sample')
+        model.eval()
+        data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
+        with torch.no_grad():
+            output = model.forward(data)
+        assert isinstance(output['logit'],
+                          dict) and output['logit']['mu'].shape == (4, 6) and output['logit']['sigma'].shape == (4, 6)
+        for i in range(10):
+            if i == 5:
+                data.pop('mask')
+            with torch.no_grad():
+                output = model.forward(data, tmp=1)
+            assert isinstance(output, dict)
+
+    def test_eps_greedy_ngu_wrapper(self):
+        model = ActorMLP()
+        model = model_wrap(model, wrapper_name='eps_greedy_sample_ngu')
+        model.eval()
+        eps_threshold = 0.5
+        data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
+        with torch.no_grad():
+            output = model.forward(data, eps=eps_threshold)
+        assert output['tmp'] == 0
+        for i in range(10):
+            if i == 5:
+                data.pop('mask')
+            with torch.no_grad():
+                output = model.forward(data, eps=eps_threshold, tmp=1)
+            assert isinstance(output, dict)
+        assert output['tmp'] == 1
 
     def test_action_noise_wrapper(self):
         model = model_wrap(

@@ -3,6 +3,7 @@ from easydict import EasyDict
 ant_ddpg_default_config = dict(
     env=dict(
         env_id='Ant-v3',
+        env_wrapper='mujoco_default',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
@@ -20,7 +21,7 @@ ant_ddpg_default_config = dict(
             twin_critic=False,
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
-            actor_head_type='regression',
+            action_space='regression',
         ),
         learn=dict(
             update_per_collect=1,

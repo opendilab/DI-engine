@@ -49,7 +49,6 @@ class Task:
         Task object of the connections.
         Linking call is fully supported.
     Example:
-        - A simple and common usage
         >>> with master.new_connection('cnn1,', '127.0.0.1', 2333) as connection:
         >>>     task = connection.new_task({'data': 233})
         >>>     # task is not sent yet

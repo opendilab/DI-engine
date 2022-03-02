@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_sql_config = dict(
-    exp_name='pong_sql',
+    exp_name='pong_sql_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -11,10 +11,10 @@ pong_sql_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],
@@ -24,7 +24,7 @@ pong_sql_config = dict(
         nstep=3,
         discount_factor=0.99,
         learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.12),
-        collect=dict(n_sample=96, demonstration_info_path=None),
+        collect=dict(n_sample=96),
         other=dict(
             eps=dict(
                 type='exp',
@@ -43,7 +43,7 @@ pong_sql_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility=True),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='sql'),
 )
 pong_sql_create_config = EasyDict(pong_sql_create_config)

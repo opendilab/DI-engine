@@ -3,12 +3,14 @@ from ding.entry import serial_pipeline
 
 nstep = 3
 lunarlander_dqn_default_config = dict(
+    exp_name='lunarlander_dqn',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, ),
         # Env number respectively for collector and evaluator.
         collector_env_num=8,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),

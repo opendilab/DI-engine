@@ -95,9 +95,7 @@ cartpole_ngu_create_config = dict(
     # TODO(pu)
     rnd_reward_model=dict(type='rnd'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(
-        type='sample_ngu',
-    )
+    collector=dict(type='sample_ngu', )
 )
 cartpole_ngu_create_config = EasyDict(cartpole_ngu_create_config)
 create_config = cartpole_ngu_create_config

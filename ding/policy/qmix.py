@@ -13,13 +13,13 @@ from .base_policy import Policy
 
 @POLICY_REGISTRY.register('qmix')
 class QMIXPolicy(Policy):
-    r"""
+    """
     Overview:
         Policy class of QMIX algorithm. QMIX is a multi model reinforcement learning algorithm, \
             you can view the paper in the following link https://arxiv.org/abs/1803.11485
     Interface:
-        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
-            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
+        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn \
+            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval \
             _reset_eval, _get_train_sample, default_model
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -76,7 +76,7 @@ class QMIXPolicy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_episode=32,
+            # n_episode=32,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=10,
@@ -122,7 +122,11 @@ class QMIXPolicy(Policy):
         self._priority_IS_weight = self._cfg.priority_IS_weight
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in QMIX"
         self._optimizer = RMSprop(
-            params=self._model.parameters(), lr=self._cfg.learn.learning_rate, alpha=0.99, eps=0.00001
+            params=self._model.parameters(),
+            lr=self._cfg.learn.learning_rate,
+            alpha=0.99,
+            eps=0.00001,
+            weight_decay=1e-5
         )
         self._gamma = self._cfg.learn.discount_factor
 
@@ -257,11 +261,12 @@ class QMIXPolicy(Policy):
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
-        r"""
+        """
         Overview:
             Load the state_dict variable into policy learn mode.
         Arguments:
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
             load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
@@ -416,6 +421,7 @@ class QMIXPolicy(Policy):
             Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For QMIX, ``ding.model.qmix.qmix``

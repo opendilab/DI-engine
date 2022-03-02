@@ -4,6 +4,7 @@ import torch
 import numpy as np
 import pytest
 import os
+import gym
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -18,6 +19,12 @@ class FakeCompetitiveRlEnv(BaseEnv):
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._is_evaluator = cfg.is_evaluator
+        self.num_agents = 2
+        self.observation_space = gym.spaces.Box(low=0, high=256, shape=(2, 4, 84, 84), dtype=np.int64)
+        self.action_space = gym.spaces.Box(low=0, high=3, shape=(1, ), dtype=np.float32)
+        self.reward_space = gym.spaces.Box(
+            low=np.float32("-inf"), high=np.float32("inf"), shape=(1, ), dtype=np.float32
+        )
 
     def reset(self) -> np.ndarray:
         self._step_times = 0
@@ -45,36 +52,6 @@ class FakeCompetitiveRlEnv(BaseEnv):
             info['final_eval_reward'] = np.array([21.]) if self._is_evaluator else np.array([5., -5.])
         self._step_times += 1
         return BaseEnvTimestep(obs, rew, done, info)
-
-    def info(self) -> BaseEnvInfo:
-        return BaseEnvInfo(
-            agent_num=2,
-            obs_space=EnvElementInfo(
-                shape=(2, 4, 84, 84),
-                value={
-                    'min': 0,
-                    'max': 256,
-                    'dtype': np.int
-                },
-            ),
-            act_space=EnvElementInfo(
-                shape=(1, ),
-                value={
-                    'min': 0,
-                    'max': 3,
-                    'dtype': np.float32
-                },
-            ),
-            rew_space=EnvElementInfo(
-                shape=(1, ),
-                value={
-                    'min': np.float32("-inf"),
-                    'max': np.float32("inf"),
-                    'dtype': np.float32
-                },
-            ),
-            use_wrappers=None,
-        )
 
     def __repr__(self) -> str:
         return "Fake Competitve RL Env({})".format(self._cfg.env_id)

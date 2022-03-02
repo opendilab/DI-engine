@@ -40,29 +40,48 @@ class DQNPolicy(Policy):
         8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
-        9  | ``learn.batch_``   int      64             | The number of samples of an iteration
+        9  | ``learn.multi``    bool     False          | whether to use multi gpu during
+           | ``_gpu``
+        10 | ``learn.batch_``   int      64             | The number of samples of an iteration
            | ``size``
-        10 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
+        11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
            | ``_rate``
-        11 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
+        12 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update
            | ``update_freq``
-        12 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
+        13 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
            | ``done``                                   | calculation.                           | fake termination env
-        13 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
+        14 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
                                                         | call of collector.                     | different envs
-        14 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
+        15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
            | ``_len``
+        16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp',
+                                                                                                 | 'linear'].
+        17 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]
+           | ``start``
+        18 | ``other.eps.``     float    0.1            | end value of exploration rate          | [0,1]
+           | ``end``
+        19 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set
+           | ``decay``                                                                           | decay=10000 means
+                                                                                                 | the exploration rate
+                                                                                                 | decay from start
+                                                                                                 | value to end value
+                                                                                                 | during decay length.
         == ==================== ======== ============== ======================================== =======================
     """
 
     config = dict(
         type='dqn',
+        # (bool) Whether use cuda in policy
         cuda=False,
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy)
         on_policy=False,
+        # (bool) Whether enable priority experience sample
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (float) Discount factor(gamma) for returns
         discount_factor=0.97,
+        # (int) The number of step for calculating target q_value
         nstep=1,
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -71,7 +90,9 @@ class DQNPolicy(Policy):
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=3,
+            # (int) How many samples in a training batch
             batch_size=64,
+            # (float) The step size of gradient descent
             learning_rate=0.001,
             # ==============================================================
             # The following configs are algorithm-specific
@@ -95,7 +116,9 @@ class DQNPolicy(Policy):
             eps=dict(
                 # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
+                # (float) Epsilon start value
                 start=0.95,
+                # (float) Epsilon end value
                 end=0.1,
                 # (int) Decay length(env step)
                 decay=10000,

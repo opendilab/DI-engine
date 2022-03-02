@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from ding.torch_utils import get_tensor_data
 from ding.rl_utils import create_noise_generator
-from torch.distributions import Categorical
+from torch.distributions import Categorical, Independent, Normal
 
 
 class IModelWrapper(ABC):
@@ -89,18 +89,20 @@ class HiddenStateWrapper(IModelWrapper):
         """
         super().__init__(model)
         self._state_num = state_num
+        # This is to maintain hidden states （when it comes to this wrapper, \
+        # map self._state into data['prev_value] and update next_state, store in self._state)
         self._state = {i: init_fn() for i in range(state_num)}
         self._save_prev_state = save_prev_state
         self._init_fn = init_fn
 
     def forward(self, data, **kwargs):
         state_id = kwargs.pop('data_id', None)
-        valid_id = kwargs.pop('valid_id', None)
-        data, state_info = self.before_forward(data, state_id)
+        valid_id = kwargs.pop('valid_id', None)  # None, not used in any code in DI-engine
+        data, state_info = self.before_forward(data, state_id)  # update data['prev_state'] with self._state
         output = self._model.forward(data, **kwargs)
         h = output.pop('next_state', None)
-        if h:
-            self.after_forward(h, state_info, valid_id)
+        if h is not None:
+            self.after_forward(h, state_info, valid_id)  # this is to store the 'next hidden state' for each time step
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
             output['prev_state'] = prev_state
@@ -208,12 +210,16 @@ class HybridArgmaxSampleWrapper(IModelWrapper):
 class MultinomialSampleWrapper(IModelWrapper):
     r"""
     Overview:
-        Used to helper the model get the corresponding action from the output['logits']
+        Used to help the model get the corresponding action from the output['logits']
     Interfaces:
         register
     """
 
     def forward(self, *args, **kwargs):
+        if 'alpha' in kwargs.keys():
+            alpha = kwargs.pop('alpha')
+        else:
+            alpha = None
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         logit = output['logit']
@@ -225,7 +231,11 @@ class MultinomialSampleWrapper(IModelWrapper):
             if isinstance(mask, torch.Tensor):
                 mask = [mask]
             logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
-        action = [sample_action(logit=l) for l in logit]
+        if alpha is None:
+            action = [sample_action(logit=l) for l in logit]
+        else:
+            # Note that if alpha is passed in here, we will divide logit by alpha.
+            action = [sample_action(logit=l / alpha) for l in logit]
         if len(action) == 1:
             action, logit = action[0], logit[0]
         output['action'] = action
@@ -259,6 +269,53 @@ class EpsGreedySampleWrapper(IModelWrapper):
         for i, l in enumerate(logit):
             if np.random.random() > eps:
                 action.append(l.argmax(dim=-1))
+            else:
+                if mask:
+                    action.append(sample_action(prob=mask[i].float()))
+                else:
+                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+        if len(action) == 1:
+            action, logit = action[0], logit[0]
+        output['action'] = action
+        return output
+
+
+class EpsGreedyMultinomialSampleWrapper(IModelWrapper):
+    r"""
+    Overview:
+        Epsilon greedy sampler coupled with multinomial sample used in collector_model
+        to help balance exploration and exploitation.
+    Interfaces:
+        register
+    """
+
+    def forward(self, *args, **kwargs):
+        eps = kwargs.pop('eps')
+        if 'alpha' in kwargs.keys():
+            alpha = kwargs.pop('alpha')
+        else:
+            alpha = None
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        logit = output['logit']
+        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
+        if isinstance(logit, torch.Tensor):
+            logit = [logit]
+        if 'action_mask' in output:
+            mask = output['action_mask']
+            if isinstance(mask, torch.Tensor):
+                mask = [mask]
+            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
+        else:
+            mask = None
+        action = []
+        for i, l in enumerate(logit):
+            if np.random.random() > eps:
+                if alpha is None:
+                    action = [sample_action(logit=l) for l in logit]
+                else:
+                    # Note that if alpha is passed in here, we will divide logit by alpha.
+                    action = [sample_action(logit=l / alpha) for l in logit]
             else:
                 if mask:
                     action.append(sample_action(prob=mask[i].float()))
@@ -309,51 +366,6 @@ class HybridEpsGreedySampleWrapper(IModelWrapper):
         return output
 
 
-class EpsGreedyMultinomialSampleWrapper(IModelWrapper):
-    r"""
-    Overview:
-        Epsilon greedy sampler coupled with multinomial sample used in collector_model
-        to help balance exploration and exploitation.
-    Interfaces:
-        register
-    """
-
-    def forward(self, *args, **kwargs):
-        eps = kwargs.pop('eps')
-        alpha = kwargs.pop('alpha')
-        output = self._model.forward(*args, **kwargs)
-        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-        logit = output['logit']
-        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
-        if isinstance(logit, torch.Tensor):
-            logit = [logit]
-        if 'action_mask' in output:
-            mask = output['action_mask']
-            if isinstance(mask, torch.Tensor):
-                mask = [mask]
-            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
-        else:
-            mask = None
-        action = []
-        for i, l in enumerate(logit):
-            if np.random.random() > eps:
-                prob = torch.softmax(output['logit'] / alpha, dim=-1)
-                prob = prob / torch.sum(prob, 1, keepdims=True)
-                pi_action = torch.zeros(prob.shape)
-                pi_action = Categorical(prob)
-                pi_action = pi_action.sample()
-                action.append(pi_action)
-            else:
-                if mask:
-                    action.append(sample_action(prob=mask[i].float()))
-                else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
-        if len(action) == 1:
-            action, logit = action[0], logit[0]
-        output['action'] = action
-        return output
-
-
 class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
     """
     Overview:
@@ -368,6 +380,9 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
         eps = kwargs.pop('eps')
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        if 'logit' not in output:
+            return output
+
         logit = output['logit']
         assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
         if isinstance(logit, torch.Tensor):
@@ -382,11 +397,7 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
         action = []
         for i, l in enumerate(logit):
             if np.random.random() > eps:
-                prob = torch.softmax(l, dim=-1)
-                prob = prob / torch.sum(prob, 1, keepdims=True)
-                pi_action = Categorical(prob)
-                pi_action = pi_action.sample()
-                action.append(pi_action)
+                action = [sample_action(logit=l) for l in logit]
             else:
                 if mask:
                     action.append(sample_action(prob=mask[i].float()))
@@ -395,6 +406,91 @@ class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):
         if len(action) == 1:
             action, logit = action[0], logit[0]
         output = {'action': {'action_type': action, 'action_args': output['action_args']}, 'logit': logit}
+        return output
+
+
+class HybridReparamMultinomialSampleWrapper(IModelWrapper):
+    """
+    Overview:
+        Reparameterization sampler coupled with multinomial sample used in collector_model
+        to help balance exploration and exploitation.
+        In hybrid action space, i.e.{'action_type': discrete, 'action_args', continuous}
+    Interfaces:
+        forward
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+
+        logit = output['logit']  # logit: {'action_type': action_type_logit, 'action_args': action_args_logit}
+        # discrete part
+        action_type_logit = logit['action_type']
+        prob = torch.softmax(action_type_logit, dim=-1)
+        pi_action = Categorical(prob)
+        action_type = pi_action.sample()
+        # continuous part
+        mu, sigma = logit['action_args']['mu'], logit['action_args']['sigma']
+        dist = Independent(Normal(mu, sigma), 1)
+        action_args = dist.sample()
+        action = {'action_type': action_type, 'action_args': action_args}
+        output['action'] = action
+        return output
+
+
+class HybridDeterministicArgmaxSampleWrapper(IModelWrapper):
+    """
+    Overview:
+        Deterministic sampler coupled with argmax sample used in eval_model.
+        In hybrid action space, i.e.{'action_type': discrete, 'action_args', continuous}
+    Interfaces:
+        forward
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        logit = output['logit']  # logit: {'action_type': action_type_logit, 'action_args': action_args_logit}
+        # discrete part
+        action_type_logit = logit['action_type']
+        action_type = action_type_logit.argmax(dim=-1)
+        # continuous part
+        mu = logit['action_args']['mu']
+        action_args = mu
+        action = {'action_type': action_type, 'action_args': action_args}
+        output['action'] = action
+        return output
+
+
+class DeterministicSample(IModelWrapper):
+    """
+    Overview:
+        Deterministic sampler (just use mu directly) used in eval_model.
+    Interfaces:
+        forward
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        output['action'] = output['logit']['mu']
+        return output
+
+
+class ReparamSample(IModelWrapper):
+    """
+    Overview:
+        Reparameterization gaussian sampler used in collector_model.
+    Interfaces:
+        forward
+    """
+
+    def forward(self, *args, **kwargs):
+        output = self._model.forward(*args, **kwargs)
+        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
+        mu, sigma = output['logit']['mu'], output['logit']['sigma']
+        dist = Independent(Normal(mu, sigma), 1)
+        output['action'] = dist.sample()
         return output
 
 
@@ -409,7 +505,7 @@ class EpsGreedySampleNGUWrapper(IModelWrapper):
 
     def forward(self, *args, **kwargs):
         kwargs.pop('eps')
-        eps = {i: 0.4 ** (1 + 8 * i / (args[0]['obs'].shape[0] - 1)) for i in range(args[0]['obs'].shape[0])}  # TODO
+        eps = {i: 0.4 ** (1 + 8 * i / (args[0]['obs'].shape[0] - 1)) for i in range(args[0]['obs'].shape[0])}
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
         logit = output['logit']
@@ -427,51 +523,6 @@ class EpsGreedySampleNGUWrapper(IModelWrapper):
         for i, l in enumerate(logit):
             if np.random.random() > eps[i]:
                 action.append(l.argmax(dim=-1))
-            else:
-                if mask:
-                    action.append(sample_action(prob=mask[i].float()))
-                else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
-        if len(action) == 1:
-            action, logit = action[0], logit[0]
-        output['action'] = action
-        return output
-
-
-class EpsGreedySampleWrapperSql(IModelWrapper):
-    r"""
-    Overview:
-        Epsilon greedy sampler coupled with multinomial sample used in collector_model
-        to help balance exploration and exploitation.
-    Interfaces:
-        register
-    """
-
-    def forward(self, *args, **kwargs):
-        eps = kwargs.pop('eps')
-        alpha = kwargs.pop('alpha')
-        output = self._model.forward(*args, **kwargs)
-        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-        logit = output['logit']
-        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
-        if isinstance(logit, torch.Tensor):
-            logit = [logit]
-        if 'action_mask' in output:
-            mask = output['action_mask']
-            if isinstance(mask, torch.Tensor):
-                mask = [mask]
-            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
-        else:
-            mask = None
-        action = []
-        for i, l in enumerate(logit):
-            if np.random.random() > eps:
-                prob = torch.softmax(output['logit'] / alpha, dim=-1)
-                prob = prob / torch.sum(prob, 1, keepdims=True)
-                pi_action = torch.zeros(prob.shape)
-                pi_action = Categorical(prob)
-                pi_action = pi_action.sample()
-                action.append(pi_action)
             else:
                 if mask:
                     action.append(sample_action(prob=mask[i].float()))
@@ -516,11 +567,12 @@ class ActionNoiseWrapper(IModelWrapper):
     def forward(self, *args, **kwargs):
         output = self._model.forward(*args, **kwargs)
         assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-        if 'action' in output:
-            action = output['action']
+        if 'action' in output or 'action_args' in output:
+            key = 'action' if 'action' in output else 'action_args'
+            action = output[key]
             assert isinstance(action, torch.Tensor)
             action = self.add_noise(action)
-            output['action'] = action
+            output[key] = action
         return output
 
     def add_noise(self, action: torch.Tensor) -> torch.Tensor:
@@ -577,20 +629,21 @@ class TargetNetworkWrapper(IModelWrapper):
         Arguments:
             - state_dict (:obj:`dict`): the state_dict from learner model
             - direct (:obj:`bool`): whether to update the target network directly, \
-                if ture then will simply call the load_state_dict method of the model
+                if true then will simply call the load_state_dict method of the model
         """
         if direct:
             self._model.load_state_dict(state_dict, strict=True)
             self._update_count = 0
-        elif self._update_type == 'assign':
-            if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
-                self._model.load_state_dict(state_dict, strict=True)
-            self._update_count += 1
-        elif self._update_type == 'momentum':
-            theta = self._update_kwargs['theta']
-            for name, p in self._model.named_parameters():
-                # default theta = 0.001
-                p.data = (1 - theta) * p.data + theta * state_dict[name]
+        else:
+            if self._update_type == 'assign':
+                if (self._update_count + 1) % self._update_kwargs['freq'] == 0:
+                    self._model.load_state_dict(state_dict, strict=True)
+                self._update_count += 1
+            elif self._update_type == 'momentum':
+                theta = self._update_kwargs['theta']
+                for name, p in self._model.named_parameters():
+                    # default theta = 0.001
+                    p.data = (1 - theta) * p.data + theta * state_dict[name]
 
     def reset_state(self, target_update_count: int = None) -> None:
         r"""
@@ -624,10 +677,13 @@ wrapper_name_map = {
     'hybrid_argmax_sample': HybridArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
     'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
-    'eps_greedy_sample_sql': EpsGreedySampleWrapperSql,
     'eps_greedy_multinomial_sample': EpsGreedyMultinomialSampleWrapper,
+    'deterministic_sample': DeterministicSample,
+    'reparam_sample': ReparamSample,
     'hybrid_eps_greedy_sample': HybridEpsGreedySampleWrapper,
     'hybrid_eps_greedy_multinomial_sample': HybridEpsGreedyMultinomialSampleWrapper,
+    'hybrid_reparam_multinomial_sample': HybridReparamMultinomialSampleWrapper,
+    'hybrid_deterministic_argmax_sample': HybridDeterministicArgmaxSampleWrapper,
     'multinomial_sample': MultinomialSampleWrapper,
     'action_noise': ActionNoiseWrapper,
     # model wrapper
@@ -641,6 +697,8 @@ def model_wrap(model, wrapper_name: str = None, **kwargs):
         if not isinstance(model, IModelWrapper):
             model = wrapper_name_map['base'](model)
         model = wrapper_name_map[wrapper_name](model, **kwargs)
+    else:
+        raise TypeError("not support model_wrapper type: {}".format(wrapper_name))
     return model
 
 

@@ -50,7 +50,7 @@ setup(
         'requests>=2.25.1',
         'six',
         'gym==0.20.0',  # pypy incompatible
-        'torch>=1.1.0,<=1.9.0',  # PyTorch 1.9.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
+        'torch>=1.1.0,<=1.10.0',  # PyTorch 1.10.0 is available, if some errors, you need to do something like https://github.com/opendilab/DI-engine/discussions/81
         'pyyaml<6.0',
         'easydict==1.9',
         'tensorboardX>=2.1,<=2.2',
@@ -59,6 +59,7 @@ setup(
         'yapf==0.29.0',
         'responses~=0.12.1',
         'flask~=1.1.2',
+        'MarkupSafe<=2.0.1',
         'lz4',
         'cloudpickle',
         'tabulate',
@@ -73,16 +74,17 @@ setup(
         'scipy',
         'trueskill',
         'h5py',
+        'rich',
+        'mpire',
+        'pynng',
+        'pettingzoo',
+        'pyglet>=1.4.0',
+        'box2d-py'
     ],
     extras_require={
         'test': [
-            'pytest==5.1.1',
-            'pytest-xdist==1.31.0',
-            'pytest-cov==2.8.1',
-            'pytest-forked~=1.3.0',
-            'pytest-mock~=3.3.1',
-            'pytest-rerunfailures~=9.1.1',
-            'pytest-timeouts~=1.2.1',
+            'pytest==5.1.1', 'pytest-xdist==1.31.0', 'pytest-cov==2.8.1', 'pytest-forked~=1.3.0', 'pytest-mock~=3.3.1',
+            'pytest-rerunfailures~=9.1.1', 'pytest-timeouts~=1.2.1'
         ],
         'style': [
             'yapf==0.29.0',
@@ -135,7 +137,6 @@ setup(
         # 'gym_soccer_env': [
         #     'gym-soccer @ git+https://github.com/LikeJulia/gym-soccer@dev-install-packages#egg=gym-soccer',
         # ],
-
         'sc2_env': [
             'absl-py>=0.1.0',
             'future',
@@ -159,7 +160,7 @@ setup(
             'envpool',
         ],
     },
-    entry_points={'console_scripts': ['ding=ding.entry.cli:cli']},
+    entry_points={'console_scripts': ['ding=ding.entry.cli:cli', 'ditask=ding.entry.cli_ditask:cli_ditask']},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         "Intended Audience :: Science/Research",

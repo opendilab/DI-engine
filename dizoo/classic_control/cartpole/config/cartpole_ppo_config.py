@@ -10,10 +10,11 @@ cartpole_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=False,
+        action_space='discrete',
         model=dict(
             obs_shape=4,
             action_shape=2,
+            action_space='discrete',
             encoder_hidden_size_list=[64, 64, 128],
             critic_head_hidden_size=128,
             actor_head_hidden_size=128,
@@ -25,6 +26,7 @@ cartpole_ppo_config = dict(
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
+            learner=dict(hook=dict(save_ckpt_after_iter=100)),
         ),
         collect=dict(
             n_sample=256,
@@ -32,14 +34,7 @@ cartpole_ppo_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
-        eval=dict(
-            evaluator=dict(
-                eval_freq=1000,
-                cfg_type='InteractionSerialEvaluatorDict',
-                stop_value=195,
-                n_episode=5,
-            ),
-        ),
+        eval=dict(evaluator=dict(eval_freq=100, ), ),
     ),
 )
 cartpole_ppo_config = EasyDict(cartpole_ppo_config)

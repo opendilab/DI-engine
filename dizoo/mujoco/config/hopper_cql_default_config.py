@@ -17,7 +17,7 @@ hopper_cql_default_config = dict(
             obs_shape=11,
             action_shape=3,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
         ),
@@ -37,7 +37,6 @@ hopper_cql_default_config = dict(
             min_q_weight=5.0,
         ),
         collect=dict(
-            n_sample=1,
             unroll_len=1,
             data_type='naive',
             data_path='./default_experiment/expert_iteration_200000.pkl',

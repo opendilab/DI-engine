@@ -4,6 +4,7 @@ from ding.entry import serial_pipeline_onpolicy
 bipedalwalker_ppo_config = dict(
     exp_name='bipedalwalker_ppo',
     env=dict(
+        env_id='BipedalWalker-v3',
         collector_env_num=8,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
@@ -15,22 +16,19 @@ bipedalwalker_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=True,
+        action_space='continuous',
         model=dict(
-            continuous=True,
+            action_space='continuous',
             obs_shape=24,
             action_shape=4,
         ),
         learn=dict(
             epoch_per_collect=10,
-            # update_per_collect=4, # offpolicy
             batch_size=64,
             learning_rate=0.001,
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
-            nstep=1,
-            nstep_return=False,
             adv_norm=True,
         ),
         collect=dict(
@@ -48,9 +46,7 @@ bipedalwalker_ppo_create_config = dict(
         type='bipedalwalker',
         import_names=['dizoo.box2d.bipedalwalker.envs.bipedalwalker_env'],
     ),
-
     env_manager=dict(type='base'),
-    # policy=dict(type='ppo_offpolicy'),  # TODO
     policy=dict(type='ppo'),
 )
 bipedalwalker_ppo_create_config = EasyDict(bipedalwalker_ppo_create_config)

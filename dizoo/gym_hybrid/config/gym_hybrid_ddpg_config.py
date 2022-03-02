@@ -1,4 +1,5 @@
 from easydict import EasyDict
+from ding.entry import serial_pipeline
 
 gym_hybrid_ddpg_config = dict(
     exp_name='gym_hybrid_ddpg_seed0',
@@ -23,10 +24,9 @@ gym_hybrid_ddpg_config = dict(
                 action_args_shape=2,
             ),
             twin_critic=False,
-            actor_head_type='hybrid',
+            action_space='hybrid',
         ),
         learn=dict(
-            action_space='hybrid',
             update_per_collect=10,  # [5, 10]
             batch_size=32,
             discount_factor=0.99,
@@ -65,3 +65,6 @@ gym_hybrid_ddpg_create_config = dict(
 )
 gym_hybrid_ddpg_create_config = EasyDict(gym_hybrid_ddpg_create_config)
 create_config = gym_hybrid_ddpg_create_config
+
+if __name__ == "__main__":
+    serial_pipeline([main_config, create_config], seed=0)

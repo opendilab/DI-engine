@@ -16,7 +16,7 @@ hybrid_args = {
         'action_args_shape': (6, )
     }),
     'twin': True,
-    'actor_head_type': 'hybrid'
+    'action_space': 'hybrid'
 }
 
 
@@ -27,10 +27,10 @@ class TestHybridQAC:
         self,
         action_shape=hybrid_args['action_shape'],
         twin=hybrid_args['twin'],
-        actor_head_type=hybrid_args['actor_head_type']
+        action_space=hybrid_args['action_space']
     ):
         N = 32
-        assert actor_head_type == 'hybrid'
+        assert action_space == 'hybrid'
         inputs = {
             'obs': torch.randn(B, N),
             'action': {
@@ -42,7 +42,7 @@ class TestHybridQAC:
         model = QAC(
             obs_shape=(N, ),
             action_shape=action_shape,
-            actor_head_type=actor_head_type,
+            action_space=action_space,
             critic_head_hidden_size=embedding_size,
             actor_head_hidden_size=embedding_size,
             twin_critic=twin,

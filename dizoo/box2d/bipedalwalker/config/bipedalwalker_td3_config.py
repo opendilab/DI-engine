@@ -2,6 +2,7 @@ from easydict import EasyDict
 
 bipedalwalker_td3_config = dict(
     env=dict(
+        env_id='BipedalWalker-v3',
         collector_env_num=1,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
@@ -20,7 +21,7 @@ bipedalwalker_td3_config = dict(
             twin_critic=True,
             actor_head_hidden_size=400,
             critic_head_hidden_size=400,
-            actor_head_type='regression',
+            action_space='regression',
         ),
         learn=dict(
             update_per_collect=4,

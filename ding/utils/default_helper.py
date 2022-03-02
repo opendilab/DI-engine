@@ -410,6 +410,17 @@ def one_time_warning(warning_msg: str) -> None:
     logging.warning(warning_msg)
 
 
+def split_fn(data, indices, start, end):
+    if data is None:
+        return None
+    elif isinstance(data, list):
+        return [split_fn(d, indices, start, end) for d in data]
+    elif isinstance(data, dict):
+        return {k1: split_fn(v1, indices, start, end) for k1, v1 in data.items()}
+    else:
+        return data[indices[start:end]]
+
+
 def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> dict:
     assert isinstance(data, dict), type(data)
     length = []
@@ -425,7 +436,8 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
         else:
             length.append(len(v))
     assert len(length) > 0
-    assert len(set(length)) == 1, "data values must have the same length: {}".format(length)
+    # assert len(set(length)) == 1, "data values must have the same length: {}".format(length)
+    # if continuous action, data['logit'] is list of length 2
     length = length[0]
     assert split_size >= 1 and split_size <= length
     if shuffle:
@@ -435,18 +447,7 @@ def split_data_generator(data: dict, split_size: int, shuffle: bool = True) -> d
     for i in range(0, length, split_size):
         if i + split_size > length:
             i = length - split_size
-        batch = {}
-        for k in data.keys():
-            if data[k] is None:
-                batch[k] = None
-            elif k.startswith('prev_state'):
-                batch[k] = [data[k][t] for t in indices[i:i + split_size]]
-            elif isinstance(data[k], list) or isinstance(data[k], tuple):
-                batch[k] = [t[indices[i:i + split_size]] for t in data[k]]
-            elif isinstance(data[k], dict):
-                batch[k] = {k1: v1[indices[i:i + split_size]] for k1, v1 in data[k].items()}
-            else:
-                batch[k] = data[k][indices[i:i + split_size]]
+        batch = split_fn(data, indices, i, i + split_size)
         yield batch
 
 
