@@ -25,13 +25,6 @@ def enable_rich_handler(level: int = logging.INFO, terminal_width: Optional[int]
             except (AttributeError, ValueError, OSError):
                 pass
 
-    columns = os.environ.get("COLUMNS")
-    if columns is not None and columns.isdigit():
-        width = int(columns)
-    lines = os.environ.get("LINES")
-    if lines is not None and lines.isdigit():
-        height = int(lines)
-
     # get_terminal_size can report 0, 0 if run from pseudo-terminal
     width = terminal_width or width or 285
     height = height or 25
