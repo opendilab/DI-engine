@@ -8,14 +8,14 @@ from rich import console
 
 
 def enable_rich_handler(level: int = logging.INFO) -> None:
-    r'''
+    """
     Overview:
-        Enable rich handler decoration to logger. Default logging.StreamHandler will be replaced.
+        Enable rich handler decoration to logger. Default logging.StreamHandler will be replaced. \
+            Default terminal size is automatic dectected for logging message. \
+            If no terminal detected, a default value is set for Rich handeler.
     Arguments:
         - level (:obj:`int`): Logger Level for Rich handeler, default set to ``logging.INFO``.
-         Default terminal size is automatic dectected for logging message.
-         If no terminal detected, a default value is set for Rich handeler.
-    '''
+    """
 
     width: Optional[int] = None
     height: Optional[int] = None
@@ -27,9 +27,14 @@ def enable_rich_handler(level: int = logging.INFO) -> None:
             pass
     else:
         try:
+            #Try to get terminal size from the standard input file descriptor.
             width, height = os.get_terminal_size(sys.__stdin__.fileno())
         except (AttributeError, ValueError, OSError):
+            # AttributeError for access non-exist attribution.
+            # ValueError for illegal size data format, such as expecting 2 varianbles but got 0.
+            # OSError for inappropriate ioctl for the device, such as running in kubenetes.
             try:
+                #Try to get terminal size from the standard output file descriptor.
                 width, height = os.get_terminal_size(sys.__stdout__.fileno())
             except (AttributeError, ValueError, OSError):
                 pass
@@ -57,12 +62,13 @@ def enable_rich_handler(level: int = logging.INFO) -> None:
 
 
 def disable_rich_handler(level: int = logging.INFO) -> None:
-    r'''
+    """
     Overview:
         Disable rich handler decoration to logger. RichHandler will be replaced by logging.StreamHandler.
     Arguments:
         - level (:obj:`int`): Logger Level for Rich handeler, default set to ``logging.INFO``.
-    '''
+    """
+
     root = logging.getLogger()
     other_handlers = []
 

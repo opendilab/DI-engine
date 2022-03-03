@@ -1,4 +1,5 @@
 import ding
+import os
 from .collection_helper import iter_mapping
 from .compression_helper import get_data_compressor, get_data_decompressor
 from .default_helper import override, dicts_to_lists, lists_to_dicts, squeeze, default_get, error_wrapper, list_split, \
@@ -27,7 +28,8 @@ from .scheduler_helper import Scheduler
 from .profiler_helper import Profiler, register_profiler
 from .log_writer_helper import DistributedWriter
 from .logging_rich_config import enable_rich_handler, disable_rich_handler
-enable_rich_handler()
+if os.environ.get('ENABLE_RICH_LOGGING', 'true').lower() == 'true':
+    enable_rich_handler()
 
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
