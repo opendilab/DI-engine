@@ -46,7 +46,7 @@ def enable_rich_handler(
     other_handlers = []
 
     if root.handlers:
-        for handler in root.handlers:
+        for handler in root.handlers[:]:
             root.removeHandler(handler)
             if isinstance(handler,
                           logging.StreamHandler) and not isinstance(handler, logging.FileHandler) or isinstance(
@@ -71,7 +71,7 @@ def disable_rich_handler(level: int = logging.INFO) -> None:
     other_handlers = []
 
     if root.handlers:
-        for handler in root.handlers:
+        for handler in root.handlers[:]:
             root.removeHandler(handler)
             if isinstance(handler,
                           logging.StreamHandler) and not isinstance(handler, logging.FileHandler) or isinstance(
