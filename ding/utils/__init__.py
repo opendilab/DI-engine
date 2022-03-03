@@ -26,7 +26,8 @@ from .type_helper import SequenceType
 from .scheduler_helper import Scheduler
 from .profiler_helper import Profiler, register_profiler
 from .log_writer_helper import DistributedWriter
-from .logging_rich_config import *
+from .logging_rich_config import enable_rich_handler, disable_rich_handler
+enable_rich_handler()
 
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
