@@ -7,17 +7,13 @@ from rich.logging import RichHandler
 from rich import console
 
 
-def enable_rich_handler(
-        level: int = logging.INFO, terminal_width: Optional[int] = None, terminal_height: Optional[int] = None
-) -> None:
+def enable_rich_handler(level: int = logging.INFO) -> None:
     r'''
     Overview:
         Enable rich handler decoration to logger. Default logging.StreamHandler will be replaced.
     Arguments:
         - level (:obj:`int`): Logger Level for Rich handeler, default set to ``logging.INFO``.
-        - terminal_width (:obj:`int`): The designed terminal width for logging message.
-        - terminal_height (:obj:`int`): The designed terminal height for logging message,  
-         default set to ``None`` for an automatic dectection is activated.
+         Default terminal size is automatic dectected for logging message.
          If no terminal detected, a default value is set for Rich handeler.
     '''
 
@@ -39,8 +35,8 @@ def enable_rich_handler(
                 pass
 
     # get_terminal_size can report 0, 0 if run from pseudo-terminal
-    width = terminal_width or width or 285
-    height = terminal_height or height or 25
+    width = width or 285
+    height = height or 25
 
     root = logging.getLogger()
     other_handlers = []
