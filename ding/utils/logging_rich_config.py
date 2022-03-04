@@ -18,30 +18,28 @@ def enable_rich_handler(level: int = logging.INFO) -> None:
     """
 
     width: Optional[int] = None
-    height: Optional[int] = None
 
     if platform.system() == "Windows":  # pragma: no cover
         try:
-            width, height = os.get_terminal_size()
+            width, _ = os.get_terminal_size()
         except OSError:  # Probably not a terminal
             pass
     else:
         try:
             #Try to get terminal size from the standard input file descriptor.
-            width, height = os.get_terminal_size(sys.__stdin__.fileno())
+            width, _ = os.get_terminal_size(sys.__stdin__.fileno())
         except (AttributeError, ValueError, OSError):
             # AttributeError for access non-exist attribution.
             # ValueError for illegal size data format, such as expecting 2 varianbles but got 0.
             # OSError for inappropriate ioctl for the device, such as running in kubenetes.
             try:
                 #Try to get terminal size from the standard output file descriptor.
-                width, height = os.get_terminal_size(sys.__stdout__.fileno())
+                width, _ = os.get_terminal_size(sys.__stdout__.fileno())
             except (AttributeError, ValueError, OSError):
                 pass
 
     # get_terminal_size can report 0, 0 if run from pseudo-terminal
     width = width or 285
-    height = height or 25
 
     root = logging.getLogger()
     other_handlers = []
@@ -49,9 +47,7 @@ def enable_rich_handler(level: int = logging.INFO) -> None:
     if root.handlers:
         for handler in root.handlers[:]:
             root.removeHandler(handler)
-            if isinstance(handler,
-                          logging.StreamHandler) and not isinstance(handler, logging.FileHandler) or isinstance(
-                              handler, RichHandler):
+            if type(handler) is logging.StreamHandler or type(handler) is RichHandler:
                 handler.close()
             else:
                 other_handlers.append(handler)
@@ -75,9 +71,7 @@ def disable_rich_handler(level: int = logging.INFO) -> None:
     if root.handlers:
         for handler in root.handlers[:]:
             root.removeHandler(handler)
-            if isinstance(handler,
-                          logging.StreamHandler) and not isinstance(handler, logging.FileHandler) or isinstance(
-                              handler, RichHandler):
+            if type(handler) is logging.StreamHandler or type(handler) is RichHandler:
                 handler.close()
             else:
                 other_handlers.append(handler)
