@@ -290,3 +290,20 @@ def test_dataset():
     dataloader = DataLoader(buffer, batch_size=6, shuffle=True, collate_fn=lambda batch: batch)
     for batch in dataloader:
         assert len(batch) in [4, 6]
+
+
+@pytest.mark.unittest
+def test_sample_by_rolling_window_in_group():
+    buffer = DequeBuffer(size=100)
+    for i in range(3):
+        for env_id in list("ABC"):
+            buffer.push({"env": env_id, "step": i})
+
+    sampled_data = buffer.sample(4, groupby="env")
+    assert len(sampled_data) == 4
+    for grouped_data in sampled_data:
+        assert len(grouped_data) >= 1
+        assert len(grouped_data) <= 3
+        # Ensure each group has the same env
+        env_ids = map(lambda sample: sample.data["env"], grouped_data)
+        assert len(set(env_ids)) == 1
