@@ -69,6 +69,17 @@ class TestPettingZooEnv:
             timestep = env.step(random_action)
             print(timestep)
             assert isinstance(timestep.obs, dict), timestep.obs
+            assert isinstance(timestep.obs['agent_state'], np.ndarray), timestep.obs
+            assert timestep.obs['agent_state'].shape == (
+                n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2
+            )
+            assert timestep.obs['global_state'].shape == (
+                n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
+            )
+            assert timestep.obs['agent_alone_state'].shape == (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2)
+            assert timestep.obs['agent_alone_padding_state'].shape == (
+                n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2
+            )
             assert isinstance(timestep.done, bool), timestep.done
             assert isinstance(timestep.reward, np.ndarray), timestep.reward
         print(env.observation_space, env.action_space, env.reward_space)

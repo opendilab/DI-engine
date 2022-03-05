@@ -15,6 +15,8 @@ class TestPendulumEnv:
         obs = env.reset()
         assert obs.shape == (3, )
         for i in range(10):
+            # Both ``env.random_action()``, and utilizing ``np.random`` as well as action space,
+            # can generate legal random action.
             if i < 5:
                 random_action = np.tanh(np.random.random(1))
             else:

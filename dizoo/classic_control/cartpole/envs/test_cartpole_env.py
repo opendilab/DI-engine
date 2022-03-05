@@ -17,6 +17,8 @@ class TestCartPoleEnv:
             np.random.seed(314)
             print('=' * 60)
             for i in range(10):
+                # Both ``env.random_action()``, and utilizing ``np.random`` as well as action space,
+                # can generate legal random action.
                 if i < 5:
                     random_action = np.array([env.action_space.sample()])
                 else:

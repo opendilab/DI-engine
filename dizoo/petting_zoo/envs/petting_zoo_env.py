@@ -150,7 +150,7 @@ class PettingZooEnv(BaseEnv):
         #              - position of items that the agent can observe(e.g. other agents, landmarks)
         #              - communication
         ret['agent_state'] = obs
-        # global_state: Shape (n_agent * (2 + 2) + n_landamrk * 2 + n_agent * (n_agent - 1) * 2, ).
+        # global_state: Shape (n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2, ).
         #               1-dim vector. Contains
         #               - all agents' state(velocity + position) +
         #               - all landmarks' position +

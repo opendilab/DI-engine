@@ -20,6 +20,8 @@ class TestAtariEnv:
         act_dim = pong_env.action_space.n
         i = 0
         while True:
+            # Both ``env.random_action()``, and utilizing ``np.random`` as well as action space,
+            # can generate legal random action.
             if i < 10:
                 random_action = np.random.choice(range(act_dim), size=(1, ))
                 i += 1
