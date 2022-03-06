@@ -3,7 +3,7 @@ from easydict import EasyDict
 cartpole_trex_ppo_offpolicy_config = dict(
     exp_name='cartpole_trex_offppo',
     env=dict(
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,

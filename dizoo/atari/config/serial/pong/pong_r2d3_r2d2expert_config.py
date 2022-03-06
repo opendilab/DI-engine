@@ -6,13 +6,12 @@ module_path = os.path.dirname(__file__)
 collector_env_num = 8
 evaluator_env_num = 5
 expert_replay_buffer_size = int(5e3)  # TODO(pu)
-
 """agent config"""
 pong_r2d3_config = dict(
     exp_name='pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
@@ -62,7 +61,7 @@ pong_r2d3_config = dict(
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
-            pho=1/4,  # TODO(pu)
+            pho=1 / 4,  # TODO(pu)
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
@@ -94,13 +93,12 @@ pong_r2d3_create_config = dict(
 )
 pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
 create_config = pong_r2d3_create_config
-
 """export config"""
 expert_pong_r2d3_config = dict(
     exp_name='expert_pong_r2d3_r2d2expert_k0_pho1-4_rbs2e4_ds5e3',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
@@ -122,9 +120,7 @@ expert_pong_r2d3_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=5,
-        learn=dict(
-            expert_replay_buffer_size=expert_replay_buffer_size,
-        ),
+        learn=dict(expert_replay_buffer_size=expert_replay_buffer_size, ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             each_iter_n_sample=32,
@@ -155,7 +151,7 @@ expert_pong_r2d3_create_config = dict(
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='r2d2_collect_traj'),   # this policy is designed to collect r2d2 expert traj for r2d3
+    policy=dict(type='r2d2_collect_traj'),  # this policy is designed to collect r2d2 expert traj for r2d3
 )
 expert_pong_r2d3_create_config = EasyDict(expert_pong_r2d3_create_config)
 expert_create_config = expert_pong_r2d3_create_config

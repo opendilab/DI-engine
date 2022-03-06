@@ -3,21 +3,21 @@ from ding.entry import serial_pipeline
 
 collector_env_num = 8
 evaluator_env_num = 5
-space_invaders_r2d2_config = dict(
-    exp_name='space_invaders_r2d2',
+spaceinvaders_r2d2_config = dict(
+    exp_name='spaceinvaders_r2d2_n5_bs20_ul80_rbs1e4',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
-        stop_value=10000000000,
+        stop_value=int(1e6),
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
-        priority=False,
-        priority_IS_weight=False,
+        priority=True,
+        priority_IS_weight=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -25,12 +25,12 @@ space_invaders_r2d2_config = dict(
             res_link=False,
         ),
         discount_factor=0.997,
-        burnin_step=2,
+        burnin_step=20,
         nstep=5,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=40,
+        unroll_len=80,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
@@ -65,9 +65,9 @@ space_invaders_r2d2_config = dict(
         ),
     ),
 )
-space_invaders_r2d2_config = EasyDict(space_invaders_r2d2_config)
-main_config = space_invaders_r2d2_config
-space_invaders_r2d2_create_config = dict(
+spaceinvaders_r2d2_config = EasyDict(spaceinvaders_r2d2_config)
+main_config = spaceinvaders_r2d2_config
+spaceinvaders_r2d2_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -75,8 +75,29 @@ space_invaders_r2d2_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='r2d2'),
 )
-space_invaders_r2d2_create_config = EasyDict(space_invaders_r2d2_create_config)
-create_config = space_invaders_r2d2_create_config
+spaceinvaders_r2d2_create_config = EasyDict(spaceinvaders_r2d2_create_config)
+create_config = spaceinvaders_r2d2_create_config
+
+# if __name__ == "__main__":
+#     serial_pipeline([main_config, create_config], seed=0)
+
+
+def train(args):
+    main_config.exp_name = 'spaceinvaders_r2d2_n5_bs20_ul80_rbs1e4' + '_seed' + f'{args.seed}'
+    import copy
+    # 3125 iterations= 10M env steps / (100*32) env steps
+    serial_pipeline(
+        [copy.deepcopy(main_config), copy.deepcopy(create_config)],
+        seed=args.seed,
+        max_iterations=int(3125),
+    )
+
 
 if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+    import argparse
+    for seed in [0, 1, 2, 3, 4]:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--seed', '-s', type=int, default=seed)
+        args = parser.parse_args()
+
+        train(args)

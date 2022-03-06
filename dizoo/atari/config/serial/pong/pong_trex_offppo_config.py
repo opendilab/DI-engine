@@ -64,7 +64,8 @@ pong_trex_ppo_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(pong_trex_ppo_config)
+pong_trex_ppo_config = EasyDict(pong_trex_ppo_config)
+main_config = pong_trex_ppo_config
 
 pong_trex_ppo_create_config = dict(
     env=dict(
@@ -75,4 +76,5 @@ pong_trex_ppo_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
 )
-create_config = EasyDict(pong_trex_ppo_create_config)
+pong_trex_ppo_create_config = EasyDict(pong_trex_ppo_create_config)
+create_config = pong_trex_ppo_create_config

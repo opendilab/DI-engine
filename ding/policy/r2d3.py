@@ -102,7 +102,7 @@ class R2D3Policy(Policy):
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # each_iter_n_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,

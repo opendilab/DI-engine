@@ -14,10 +14,13 @@ from dizoo.classic_control.cartpole.config.cartpole_ppg_config import cartpole_p
 
 
 def wrapped_cartpole_env():
-    return DingEnvWrapper(gym.make('CartPole-v0'))
+    return DingEnvWrapper(
+        gym.make('CartPole-v0'),
+        EasyDict(env_wrapper='default'),
+    )
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
+def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
@@ -55,7 +58,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         cfg.policy.other.replay_buffer.value, tb_logger, exp_name=cfg.exp_name, instance_name='value_buffer'
     )
 
-    for _ in range(max_iterations):
+    while True:
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
@@ -72,6 +75,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 learner.train(train_data, collector.envstep)
         policy_buffer.clear()
         value_buffer.clear()
+        if learner.train_iter >= max_train_iter or collector.envstep >= max_env_step:
+            break
 
 
 if __name__ == "__main__":

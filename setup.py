@@ -59,6 +59,7 @@ setup(
         'yapf==0.29.0',
         'responses~=0.12.1',
         'flask~=1.1.2',
+        'MarkupSafe<=2.0.1',
         'lz4',
         'cloudpickle',
         'tabulate',
@@ -75,17 +76,15 @@ setup(
         'h5py',
         'rich',
         'mpire',
-        'pynng'
+        'pynng',
+        'pettingzoo',
+        'pyglet>=1.4.0',
+        'box2d-py'
     ],
     extras_require={
         'test': [
-            'pytest==5.1.1',
-            'pytest-xdist==1.31.0',
-            'pytest-cov==2.8.1',
-            'pytest-forked~=1.3.0',
-            'pytest-mock~=3.3.1',
-            'pytest-rerunfailures~=9.1.1',
-            'pytest-timeouts~=1.2.1',
+            'pytest==5.1.1', 'pytest-xdist==1.31.0', 'pytest-cov==2.8.1', 'pytest-forked~=1.3.0', 'pytest-mock~=3.3.1',
+            'pytest-rerunfailures~=9.1.1', 'pytest-timeouts~=1.2.1'
         ],
         'style': [
             'yapf==0.29.0',

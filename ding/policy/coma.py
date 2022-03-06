@@ -84,7 +84,7 @@ class COMAPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration time
-            n_episode=32,
+            # n_episode=32,
             # (int) unroll length of a train iteration(gradient update step)
             unroll_len=20,
         ),

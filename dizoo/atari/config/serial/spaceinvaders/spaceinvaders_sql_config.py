@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 space_invaders_sql_config = dict(
-    exp_name='space_invaders_sql',
+    exp_name='space_invaders_sql_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -11,10 +11,10 @@ space_invaders_sql_config = dict(
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],
@@ -24,14 +24,14 @@ space_invaders_sql_config = dict(
         nstep=3,
         discount_factor=0.99,
         learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.1),
-        collect=dict(n_sample=100, demonstration_info_path=None),
-        eval=dict(evaluator=dict(eval_freq=4000, )),
+        collect=dict(n_sample=100),
+        eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(
             eps=dict(
                 type='exp',
                 start=1.,
                 end=0.05,
-                decay=1000000,
+                decay=500000,
             ),
             replay_buffer=dict(replay_buffer_size=400000, ),
         ),
@@ -44,7 +44,7 @@ space_invaders_sql_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base', force_reproducibility=True),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='sql'),
 )
 space_invaders_sql_create_config = EasyDict(space_invaders_sql_create_config)

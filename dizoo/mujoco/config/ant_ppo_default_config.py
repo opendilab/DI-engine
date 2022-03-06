@@ -1,9 +1,9 @@
 from easydict import EasyDict
 
 ant_ppo_default_config = dict(
-    exp_name = 'ant_onppo',
+    exp_name='ant_onppo',
     env=dict(
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         env_id='Ant-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),

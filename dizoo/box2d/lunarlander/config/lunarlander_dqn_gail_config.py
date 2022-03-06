@@ -1,5 +1,6 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline_gail
+from lunarlander_dqn_config import lunarlander_dqn_default_config, lunarlander_dqn_create_config
 
 nstep = 1
 lunarlander_dqn_gail_default_config = dict(
@@ -21,7 +22,8 @@ lunarlander_dqn_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='lunarlander_dqn/expert_data_test.pkl',
+        expert_data_path='lunarlander_dqn/expert_data.pkl',  # path where the expert data is stored
+        expert_load_path='lunarlander_dqn/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
         collect_count=100000,
         load_path='lunarlander_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',
     ),
@@ -85,3 +87,10 @@ lunarlander_dqn_gail_create_config = dict(
 )
 lunarlander_dqn_gail_create_config = EasyDict(lunarlander_dqn_gail_create_config)
 create_config = lunarlander_dqn_gail_create_config
+
+if __name__ == "__main__":
+    serial_pipeline_gail(
+        [main_config, create_config], [lunarlander_dqn_default_config, lunarlander_dqn_create_config],
+        seed=0,
+        collect_data=True
+    )

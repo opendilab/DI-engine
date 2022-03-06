@@ -6,6 +6,7 @@ from click.core import Context, Option
 import numpy as np
 
 from ding import __TITLE__, __VERSION__, __AUTHOR__, __AUTHOR_EMAIL__
+from ding.config import read_config
 from .predefined_config import get_predefined_config
 
 
@@ -58,8 +59,18 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     '--mode',
     type=click.Choice(
         [
-            'serial', 'serial_onpolicy', 'serial_sqil', 'serial_dqfd', 'serial_trex', 'serial_trex_onpolicy',
-            'parallel', 'dist', 'eval', 'serial_reward_model', 'serial_gail'
+            'serial',
+            'serial_onpolicy',
+            'serial_sqil',
+            'serial_dqfd',
+            'serial_trex',
+            'serial_trex_onpolicy',
+            'parallel',
+            'dist',
+            'eval',
+            'serial_reward_model',
+            'serial_gail',
+            'serial_offline',
         ]
     ),
     help='serial-train or parallel-train or dist-train or eval'
@@ -75,7 +86,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 )
 @click.option('-e', '--env', type=str, help='RL env name')
 @click.option('-p', '--policy', type=str, help='DRL policy name')
-@click.option('--train-iter', type=int, default=int(1e8), help='Policy training iterations')
+@click.option('--exp-name', type=str, help='experiment directory name')
+@click.option('--train-iter', type=str, default='1e8', help='Maximum policy update iterations in training')
+@click.option('--env-step', type=str, default='1e8', help='Maximum collected environment steps for training')
 @click.option('--load-path', type=str, default=None, help='Path to load ckpt')
 @click.option('--replay-path', type=str, default=None, help='Path to save replay')
 # the following arguments are only applied to dist mode
@@ -123,9 +136,11 @@ def cli(
     mode: str,
     config: str,
     seed: Union[int, List],
+    exp_name: str,
     env: str,
     policy: str,
-    train_iter: int,
+    train_iter: str,  # transform into int
+    env_step: str,  # transform into int
     load_path: str,
     replay_path: str,
     # parallel/dist
@@ -161,55 +176,51 @@ def cli(
         profiler = Profiler()
         profiler.profile(profile)
 
+    train_iter = int(float(train_iter))
+    env_step = int(float(env_step))
+
     def run_single_pipeline(seed, config):
+        if config is None:
+            config = get_predefined_config(env, policy)
+        config = read_config(config)
+        if exp_name is not None:
+            config[0].exp_name = exp_name
+
         if mode == 'serial':
             from .serial_entry import serial_pipeline
-            if config is None:
-                config = get_predefined_config(env, policy)
-            serial_pipeline(config, seed, max_iterations=train_iter)
+            serial_pipeline(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_onpolicy':
             from .serial_entry_onpolicy import serial_pipeline_onpolicy
-            if config is None:
-                config = get_predefined_config(env, policy)
-            serial_pipeline_onpolicy(config, seed, max_iterations=train_iter)
+            serial_pipeline_onpolicy(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_sqil':
-            if config == 'lunarlander_sqil_config.py' or 'cartpole_sqil_config.py' or 'pong_sqil_config.py' \
-            or 'spaceinvaders_sqil_config.py' or 'qbert_sqil_config.py':
-                from .serial_entry_sqil import serial_pipeline_sqil
-            if config is None:
-                config = get_predefined_config(env, policy)
+            from .serial_entry_sqil import serial_pipeline_sqil
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
-            serial_pipeline_sqil(config, expert_config, seed, max_iterations=train_iter)
+            serial_pipeline_sqil(config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_reward_model':
             from .serial_entry_reward_model import serial_pipeline_reward_model
-            if config is None:
-                config = get_predefined_config(env, policy)
-            serial_pipeline_reward_model(config, seed, max_iterations=train_iter)
+            serial_pipeline_reward_model(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_gail':
             from .serial_entry_gail import serial_pipeline_gail
-            if config is None:
-                config = get_predefined_config(env, policy)
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
-            serial_pipeline_gail(config, expert_config, seed, max_iterations=train_iter, collect_data=True)
+            serial_pipeline_gail(
+                config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step, collect_data=True
+            )
         elif mode == 'serial_dqfd':
             from .serial_entry_dqfd import serial_pipeline_dqfd
-            if config is None:
-                config = get_predefined_config(env, policy)
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
             assert (expert_config == config[:config.find('_dqfd')] + '_dqfd_config.py'), "DQFD only supports "\
             + "the models used in q learning now; However, one should still type the DQFD config in this "\
             + "place, i.e., {}{}".format(config[:config.find('_dqfd')], '_dqfd_config.py')
-            serial_pipeline_dqfd(config, expert_config, seed, max_iterations=train_iter)
+            serial_pipeline_dqfd(config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_trex':
             from .serial_entry_trex import serial_pipeline_reward_model_trex
-            if config is None:
-                config = get_predefined_config(env, policy)
-            serial_pipeline_reward_model_trex(config, seed, max_iterations=train_iter)
+            serial_pipeline_reward_model_trex(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_trex_onpolicy':
             from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
-            if config is None:
-                config = get_predefined_config(env, policy)
-            serial_pipeline_reward_model_trex_onpolicy(config, seed, max_iterations=train_iter)
+            serial_pipeline_reward_model_trex_onpolicy(config, seed, max_train_iter=train_iter, max_env_step=env_step)
+        elif mode == 'serial_offline':
+            from .serial_entry_offline import serial_pipeline_offline
+            serial_pipeline_offline(config, seed, max_train_iter=train_iter)
         elif mode == 'parallel':
             from .parallel_entry import parallel_pipeline
             parallel_pipeline(config, seed, enable_total_log, disable_flask_log)
@@ -245,8 +256,6 @@ def cli(
                 raise Exception
         elif mode == 'eval':
             from .application_entry import eval
-            if config is None:
-                config = get_predefined_config(env, policy)
             eval(config, seed, load_path=load_path, replay_path=replay_path)
 
     if isinstance(seed, (list, tuple)):
@@ -254,7 +263,10 @@ def cli(
         if len(seed) == 1:  # necessary
             run_single_pipeline(seed[0], config)
         else:
-            multi_exp_root = os.path.basename(config).split('.')[0] + '_result'
+            if exp_name is None:
+                multi_exp_root = os.path.basename(config).split('.')[0] + '_result'
+            else:
+                multi_exp_root = exp_name
             if not os.path.exists(multi_exp_root):
                 os.mkdir(multi_exp_root)
             abs_config_path = os.path.abspath(config)

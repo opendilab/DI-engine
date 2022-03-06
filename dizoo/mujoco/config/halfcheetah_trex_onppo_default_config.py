@@ -3,7 +3,7 @@ from easydict import EasyDict
 halfCheetah_trex_ppo_default_config = dict(
     exp_name='HalfCheetah_trex_onppo',
     env=dict(
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
@@ -19,9 +19,10 @@ halfCheetah_trex_ppo_default_config = dict(
         env_id='HalfCheetah-v3',
         min_snippet_length=30,
         max_snippet_length=100,
-        checkpoint_min=100,
-        checkpoint_max=900,
-        checkpoint_step=100,
+        checkpoint_min=10000,
+        checkpoint_max=90000,
+        checkpoint_step=10000,
+        num_snippets=60000,
         learning_rate=1e-5,
         update_per_collect=1,
         expert_model_path='abs model path',

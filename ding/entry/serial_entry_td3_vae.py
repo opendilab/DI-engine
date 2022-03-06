@@ -2,6 +2,7 @@ from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
 import logging
+import copy
 from functools import partial
 from tensorboardX import SummaryWriter
 
@@ -9,9 +10,9 @@ from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
-from ding.policy import create_policy, PolicyFactory
+from ding.policy import create_policy
 from ding.utils import set_pkg_seed
-import copy
+from .utils import random_collect, mark_not_expert, mark_warm_up
 
 
 def serial_pipeline_td3_vae(
@@ -19,11 +20,12 @@ def serial_pipeline_td3_vae(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry.
+        Serial pipeline entry for VAE latent action.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -32,8 +34,8 @@ def serial_pipeline_td3_vae(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -83,18 +85,29 @@ def serial_pipeline_td3_vae(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        if cfg.policy.get('transition_with_policy_data', False):
-            collector.reset_policy(policy.collect_mode)
-        else:
-            action_space = collector_env.env_info().act_space
-            random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-            collector.reset_policy(random_policy)
-        collect_kwargs = commander.step()
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
-        for item in new_data:
-            item['warm_up'] = True
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
+        # backup
+        # if cfg.policy.get('transition_with_policy_data', False):
+        #     collector.reset_policy(policy.collect_mode)
+        # else:
+        #     action_space = collector_env.action_space
+        #     random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
+        #     collector.reset_policy(random_policy)
+        # collect_kwargs = commander.step()
+        # new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
+        # for item in new_data:
+        #     item['warm_up'] = True
+        # replay_buffer.push(new_data, cur_collector_envstep=0)
+        # collector.reset_policy(policy.collect_mode)
+        # postprocess_data_fn = lambda x: mark_warm_up(mark_not_expert(x))
+        random_collect(
+            cfg.policy,
+            policy,
+            collector,
+            collector_env,
+            commander,
+            replay_buffer,
+            postprocess_data_fn=lambda x: mark_warm_up(mark_not_expert(x))  # postprocess_data_fn
+        )
         # warm_up
         # Learn policy from collected data
         for i in range(cfg.policy.learn.warm_up_update):
@@ -119,7 +132,8 @@ def serial_pipeline_td3_vae(
     # latent_action=False, cannot be used in rl_vae phase.
     collector.reset(policy.collect_mode)
 
-    for iter in range(max_iterations):
+    count = 0
+    while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -141,7 +155,7 @@ def serial_pipeline_td3_vae(
         replay_buffer_recent.push(copy.deepcopy(new_data), cur_collector_envstep=collector.envstep)
 
         #  rl phase
-        if iter % cfg.policy.learn.rl_vae_update_circle in range(0, cfg.policy.learn.rl_vae_update_circle):
+        if count % cfg.policy.learn.rl_vae_update_circle in range(0, cfg.policy.learn.rl_vae_update_circle):
             # Learn policy from collected data
             for i in range(cfg.policy.learn.update_per_collect_rl):
                 # Learner will train ``update_per_collect`` times in one iteration.
@@ -162,8 +176,8 @@ def serial_pipeline_td3_vae(
                     replay_buffer.update(learner.priority_info)
 
         #  vae phase
-        if iter % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1,
-                                                                 cfg.policy.learn.rl_vae_update_circle):
+        if count % cfg.policy.learn.rl_vae_update_circle in range(cfg.policy.learn.rl_vae_update_circle - 1,
+                                                                  cfg.policy.learn.rl_vae_update_circle):
             for i in range(cfg.policy.learn.update_per_collect_vae):
                 # Learner will train ``update_per_collect`` times in one iteration.
                 # TODO(pu):
@@ -194,6 +208,9 @@ def serial_pipeline_td3_vae(
                 # if learner.policy.get_attribute('priority'):
                 #     replay_buffer.update(learner.priority_info)
             replay_buffer_recent.clear()  # TODO(pu)
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
+        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

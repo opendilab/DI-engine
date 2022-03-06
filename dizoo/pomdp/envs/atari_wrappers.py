@@ -9,10 +9,10 @@ from copy import deepcopy
 from torch import float32
 import matplotlib.pyplot as plt
 
-from ding.envs import RamWrapper, NoopResetEnv, MaxAndSkipEnv, EpisodicLifeEnv, FireResetEnv, WarpFrame, ClipRewardEnv, FrameStack
+from ding.envs import RamWrapper, NoopResetWrapper, MaxAndSkipWrapper, EpisodicLifeWrapper, FireResetWrapper, WarpFrameWrapper, ClipRewardWrapper, FrameStackWrapper
 
 
-class ScaledFloatFrame(gym.ObservationWrapper):
+class ScaledFloatFrameWrapper(gym.ObservationWrapper):
     """Normalize observations to -1~1.
 
     :param gym.Env env: the environment to wrap.
@@ -32,7 +32,7 @@ class ScaledFloatFrame(gym.ObservationWrapper):
         # return (observation - self.bias) / self.scale
 
 
-class FrameStackRam(gym.Wrapper):
+class FrameStackWrapperRam(gym.Wrapper):
     """Stack n_frames last frames.
     :param gym.Env env: the environment to wrap.
     :param int n_frames: the number of frames to stack.
@@ -155,45 +155,45 @@ def wrap_deepmind(
     if not only_info:
         env = gym.make(env_id)
         env = RamWrapper(env)
-        env = NoopResetEnv(env, noop_max=30)
-        env = MaxAndSkipEnv(env, skip=4)
+        env = NoopResetWrapper(env, noop_max=30)
+        env = MaxAndSkipWrapper(env, skip=4)
         if episode_life:
-            env = EpisodicLifeEnv(env)
+            env = EpisodicLifeWrapper(env)
         if 'FIRE' in env.unwrapped.get_action_meanings():
-            env = FireResetEnv(env)
+            env = FireResetWrapper(env)
         if warp_frame:
-            env = WarpFrame(env)
+            env = WarpFrameWrapper(env)
         if scale:
-            env = ScaledFloatFrame(env)
+            env = ScaledFloatFrameWrapper(env)
         if clip_rewards:
-            env = ClipRewardEnv(env)
+            env = ClipRewardWrapper(env)
 
         if frame_stack:
             if use_ram:
-                env = FrameStackRam(env, frame_stack, pomdp, render)
+                env = FrameStackWrapperRam(env, frame_stack, pomdp, render)
             else:
-                env = FrameStack(env, frame_stack)
+                env = FrameStackWrapper(env, frame_stack)
 
         return env
     else:
         wrapper_info = RamWrapper.__name__ + '\n'
-        wrapper_info += NoopResetEnv.__name__ + '\n'
-        wrapper_info += MaxAndSkipEnv.__name__ + '\n'
+        wrapper_info += NoopResetWrapper.__name__ + '\n'
+        wrapper_info += MaxAndSkipWrapper.__name__ + '\n'
         if episode_life:
-            wrapper_info = EpisodicLifeEnv.__name__ + '\n'
+            wrapper_info = EpisodicLifeWrapper.__name__ + '\n'
         if 'Pong' in env_id or 'Qbert' in env_id or 'SpaceInvader' in env_id or 'Montezuma' in env_id:
-            wrapper_info = FireResetEnv.__name__ + '\n'
+            wrapper_info = FireResetWrapper.__name__ + '\n'
         if warp_frame:
-            wrapper_info = WarpFrame.__name__ + '\n'
+            wrapper_info = WarpFrameWrapper.__name__ + '\n'
         if scale:
-            wrapper_info = ScaledFloatFrame.__name__ + '\n'
+            wrapper_info = ScaledFloatFrameWrapper.__name__ + '\n'
         if clip_rewards:
-            wrapper_info = ClipRewardEnv.__name__ + '\n'
+            wrapper_info = ClipRewardWrapper.__name__ + '\n'
 
         if frame_stack:
             if use_ram:
-                wrapper_info = FrameStackRam.__name__ + '\n'
+                wrapper_info = FrameStackWrapperRam.__name__ + '\n'
             else:
-                wrapper_info = FrameStack.__name__ + '\n'
+                wrapper_info = FrameStackWrapper.__name__ + '\n'
 
         return wrapper_info

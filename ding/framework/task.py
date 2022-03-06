@@ -1,13 +1,15 @@
-from collections import defaultdict
-import logging
+from asyncio import InvalidStateError
+from asyncio.tasks import FIRST_EXCEPTION
 import time
 import asyncio
 import concurrent.futures
 import fnmatch
+import math
 from types import GeneratorType
-from typing import Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set
+from typing import Any, Awaitable, Callable, Generator, Iterable, List, Optional, Set, Union
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
+from ding.framework.event_loop import EventLoop
 from functools import wraps
 
 
@@ -22,22 +24,21 @@ def enable_async(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def runtime_handler(task: "Task", *args, **kwargs) -> "Task":
+    def runtime_handler(task: "Task", *args, async_mode: Optional[bool] = None, **kwargs) -> "Task":
         """
         Overview:
             If task's async mode is enabled, execute the step in current loop executor asyncly,
             or execute the task sync.
         Arguments:
             - task (:obj:`Task`): The task instance.
+            - async_mode (:obj:`Optional[bool]`): Whether using async mode.
         Returns:
             - result (:obj:`Union[Any, Awaitable]`): The result or future object of middleware.
         """
-        if "async_mode" in kwargs:
-            async_mode = kwargs.pop("async_mode")
-        else:
+        if async_mode is None:
             async_mode = task.async_mode
         if async_mode:
-            t = task._loop.run_in_executor(task._thread_pool, func, task, *args, **kwargs)
+            t = task._async_loop.run_in_executor(task._thread_pool, func, task, *args, **kwargs)
             task._async_stack.append(t)
             return task
         else:
@@ -58,39 +59,39 @@ class Task:
             n_async_workers: int = 3,
             middleware: Optional[List[Callable]] = None,
             step_wrappers: Optional[List[Callable]] = None,
-            event_listeners: Optional[Dict[str, List]] = None,
-            once_listeners: Optional[Dict[str, List]] = None,
-            attach_callback: Optional[Callable] = None,
             labels: Optional[Set[str]] = None,
             **_
     ) -> None:
+        self._finish = False
         self.middleware = middleware or []
         self.step_wrappers = step_wrappers or []
         self.ctx = Context()
         self.parallel_ctx = Context()
         self._backward_stack = []
+        # Bind event loop functions
+        self._event_loop = EventLoop("task_{}".format(id(self)))
 
         # Async segment
         self.async_mode = async_mode
         self.n_async_workers = n_async_workers
         self._async_stack = []
-        self._loop = None
+        self._async_loop = None
         self._thread_pool = None
-        self.event_listeners = event_listeners or defaultdict(list)
-        self.once_listeners = once_listeners or defaultdict(list)
+        self._exception = None
         self.labels = labels or set()
 
         # Parallel segment
         self.router = Parallel()
         if async_mode or self.router.is_active:
             self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=n_async_workers)
-            self._loop = asyncio.new_event_loop()
+            self._async_loop = asyncio.new_event_loop()
 
         if self.router.is_active:
-            self.router.register_rpc("task.emit", self.emit)
-            if attach_callback:
-                self.wait_for_attach_callback(attach_callback)
-            self.on("sync_parallel_ctx", self.sync_parallel_ctx)
+
+            def sync_finish(value):
+                self._finish = value
+
+            self.on("finish", sync_finish)
 
         self.init_labels()
 
@@ -112,7 +113,7 @@ class Task:
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
         """
-        if not filter_labels or any([fnmatch.filter(self.labels, v) for v in filter_labels]):
+        if not filter_labels or self.match_labels(filter_labels):
             self.middleware.append(fn)
         return self
 
@@ -127,6 +128,17 @@ class Task:
         self.step_wrappers.append(fn)
         return self
 
+    def match_labels(self, patterns: Union[Iterable[str], str]) -> bool:
+        """
+        Overview:
+            A list of patterns to match labels.
+        Arguments:
+            - patterns (:obj:`Union[Iterable[str], str]`): Glob like pattern, e.g. node.1, node.*.
+        """
+        if isinstance(patterns, str):
+            patterns = [patterns]
+        return any([fnmatch.filter(self.labels, p) for p in patterns])
+
     def run(self, max_step: int = int(1e10)) -> None:
         """
         Overview:
@@ -140,12 +152,16 @@ class Task:
         for i in range(max_step):
             for fn in self.middleware:
                 self.forward(fn)
+            # Sync should be called before backward, otherwise it is possible
+            # that some generators have not been pushed to backward_stack.
+            self.sync()
             self.backward()
+            self.sync()
             if i == max_step - 1:
-                self.ctx.finish = True
-            self.renew()
+                self.finish = True
             if self.finish:
                 break
+            self.renew()
 
     @enable_async
     def forward(self, fn: Callable, ctx: Context = None, backward_stack: List[Generator] = None) -> 'Task':
@@ -213,17 +229,8 @@ class Task:
         Overview:
             Renew the context instance, this function should be called after backward in the end of iteration.
         """
-        # Sync should be called before backward, otherwise it is possible
-        # that some generators have not been pushed to backward_stack.
-        self.sync()
-        self.backward()
-        self.sync()
         # Renew context
         old_ctx = self.ctx
-        if self.router.is_active:
-            # Send context to other parallel processes
-            self.async_executor(self.router.send_rpc, "task.emit", "sync_parallel_ctx", old_ctx)
-
         new_ctx = old_ctx.renew()
         new_ctx.total_step = old_ctx.total_step + 1
         self.ctx = new_ctx
@@ -240,50 +247,37 @@ class Task:
         Overview:
             Stop and cleanup every thing in the runtime of task.
         """
-        self.emit("exit")
         if self._thread_pool:
             self._thread_pool.shutdown()
+        self._event_loop.stop()
+        if self._async_loop:
+            self._async_loop.close()
+        self.router.off(self._wrap_event_name("*"))
         # The middleware and listeners may contain some methods that reference to task,
         # If we do not clear them after the task exits, we may find that gc will not clean up the task object.
         self.middleware.clear()
-        self.event_listeners.clear()
-        self.once_listeners.clear()
+        self.step_wrappers.clear()
+        self._backward_stack.clear()
+        self._async_stack.clear()
 
     def sync(self) -> 'Task':
-        if self._loop:
-            self._loop.run_until_complete(self.sync_tasks())
+        if self._async_loop:
+            self._async_loop.run_until_complete(self.sync_tasks())
         return self
 
     async def sync_tasks(self) -> Awaitable[None]:
-        while self._async_stack:
-            # FIFO
-            t = self._async_stack.pop(0)
-            await t
-
-    def wait_for_attach_callback(self, attach_callback: Callable, n_timeout: int = 30):
-        if len(self.router.attach_to) > 0:
-            logging.warning(
-                "The attach mode will wait for the latest context, an exception will \
-be thrown after the timeout {}s is reached".format(n_timeout)
-            )
-            is_timeout = True
-            ctx = None
-
-            def on_sync_parallel_ctx(new_ctx):
-                nonlocal ctx
-                ctx = new_ctx
-
-            self.once("sync_parallel_ctx", on_sync_parallel_ctx)
-            for _ in range(n_timeout * 10):
-                if ctx:
-                    is_timeout = False
-                    break
-                time.sleep(0.1)
-            if is_timeout:
-                # If attach callback is defined, the attach mode should wait for callback finished,
-                # otherwise it may overwrite the training results of other processes
-                raise TimeoutError("Attach timeout, not received the latest context.")
-            attach_callback(ctx)
+        if self._async_stack:
+            await asyncio.wait(self._async_stack, return_when=FIRST_EXCEPTION)
+            while self._async_stack:
+                t = self._async_stack.pop(0)
+                try:
+                    e = t.exception()
+                    if e:
+                        self._exception = e
+                        raise e
+                except InvalidStateError:
+                    # Not finished. https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.exception
+                    pass
 
     def async_executor(self, fn: Callable, *args, **kwargs) -> None:
         """
@@ -292,26 +286,31 @@ be thrown after the timeout {}s is reached".format(n_timeout)
         Arguments:
             - fn (:obj:`Callable`): Synchronization fuction.
         """
-        if not self._loop:
+        if not self._async_loop:
             raise Exception("Event loop was not initialized, please call this function in async or parallel mode")
-        t = self._loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
+        t = self._async_loop.run_in_executor(self._thread_pool, fn, *args, **kwargs)
         self._async_stack.append(t)
 
-    def emit(self, event_name: str, *args, **kwargs):
+    def emit(self, event: str, *args, only_remote: bool = False, only_local: bool = False, **kwargs) -> None:
         """
         Overview:
-            Emit a event, call listeners.
+            Emit an event, call listeners.
         Arguments:
-            - event_name (:obj:`str`): Event name.
+            - event (:obj:`str`): Event name.
+            - only_remote (:obj:`bool`): Only broadcast the event to the connected nodes, default is False.
+            - only_local (:obj:`bool`): Only emit local event, default is False.
             - args (:obj:`any`): Rest arguments for listeners.
         """
-        if event_name in self.event_listeners:
-            for fn in self.event_listeners[event_name]:
-                fn(*args, **kwargs)
-        if event_name in self.once_listeners:
-            while self.once_listeners[event_name]:
-                fn = self.once_listeners[event_name].pop()
-                fn(*args, **kwargs)
+        # Check if need to broadcast event to connected nodes, default is True
+        if only_local:
+            self._event_loop.emit(event, *args, **kwargs)
+        elif only_remote:
+            if self.router.is_active:
+                self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
+        else:
+            if self.router.is_active:
+                self.async_executor(self.router.emit, self._wrap_event_name(event), event, *args, **kwargs)
+            self._event_loop.emit(event, *args, **kwargs)
 
     def on(self, event: str, fn: Callable) -> None:
         """
@@ -321,7 +320,9 @@ be thrown after the timeout {}s is reached".format(n_timeout)
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): The function.
         """
-        self.event_listeners[event].append(fn)
+        self._event_loop.on(event, fn)
+        if self.router.is_active:
+            self.router.on(self._wrap_event_name(event), self._event_loop.emit)
 
     def once(self, event: str, fn: Callable) -> None:
         """
@@ -331,24 +332,70 @@ be thrown after the timeout {}s is reached".format(n_timeout)
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): The function.
         """
-        self.once_listeners[event].append(fn)
+        self._event_loop.once(event, fn)
+        if self.router.is_active:
+            self.router.on(self._wrap_event_name(event), self._event_loop.emit)
 
-    @property
-    def finish(self) -> bool:
+    def off(self, event: str, fn: Optional[Callable] = None) -> None:
         """
         Overview:
-            Link the ctx's finish state, in order to be easily called externally.
+            Unsubscribe an event
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - fn (:obj:`Callable`): The function.
         """
-        return self.ctx.finish
+        self._event_loop.off(event, fn)
+        if self.router.is_active:
+            self.router.off(self._wrap_event_name(event))
+
+    def wait_for(self, event: str, timeout: float = math.inf, ignore_timeout_exception: bool = True) -> Any:
+        """
+        Overview:
+            Wait for an event and block the thread.
+        Arguments:
+            - event (:obj:`str`): Event name.
+            - timeout (:obj:`float`): Timeout in seconds.
+            - ignore_timeout_exception (:obj:`bool`): If this is False, an exception will occur when meeting timeout.
+        """
+        received = False
+        result = None
+
+        def _receive_event(*args, **kwargs):
+            nonlocal result, received
+            result = (args, kwargs)
+            received = True
+
+        self.once(event, _receive_event)
+
+        start = time.time()
+        while time.time() - start < timeout:
+            if received or self._exception:
+                return result
+            time.sleep(0.01)
+
+        if ignore_timeout_exception:
+            return result
+        else:
+            raise TimeoutError("Timeout when waiting for event: {}".format(event))
 
     def __copy__(self):
         return Task(**self.__dict__)
 
-    def sync_parallel_ctx(self, ctx):
+    @property
+    def finish(self):
+        return self._finish
+
+    @finish.setter
+    def finish(self, value: bool):
+        self._finish = value
+        if self.router.is_active and value is True:
+            self.emit("finish", value)
+
+    def _wrap_event_name(self, event: str) -> str:
         """
         Overview:
-            Sync parallel ctx
+            Wrap the event name sent to the router.
+        Arguments:
+            - event (:obj:`str`): Event name
         """
-        self.parallel_ctx = ctx
-        if self.parallel_ctx.finish:
-            self.ctx.finish = True
+        return "task.{}".format(event)

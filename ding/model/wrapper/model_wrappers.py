@@ -363,7 +363,7 @@ class HybridEpsGreedySampleWrapper(IModelWrapper):
         if len(action) == 1:
             action, logit = action[0], logit[0]
         output = {'action': {'action_type': action, 'action_args': output['action_args']}, 'logit': logit}
-        return
+        return output
 
 
 class HybridEpsGreedyMultinomialSampleWrapper(IModelWrapper):

@@ -168,14 +168,10 @@ class CQLPolicy(SACPolicy):
             lagrange_thresh=-1,
             # (float) Loss weight for conservative item.
             min_q_weight=1.0,
-            # (bool) Whether to use entory in target q.
+            # (bool) Whether to use entropy in target q.
             with_q_entropy=False,
         ),
         collect=dict(
-            # You can use either "n_sample" or "n_episode" in actor.collect.
-            # Get "n_sample" samples per collect.
-            # Default n_sample to 1.
-            n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -394,7 +390,7 @@ class CQLPolicy(SACPolicy):
         std_q1 = torch.std(cat_q1, dim=1)
         std_q2 = torch.std(cat_q2, dim=1)
         if self._min_q_version == 3:
-            # importance sammpled version
+            # importance sampled version
             random_density = np.log(0.5 ** curr_actions_tensor.shape[-1])
             cat_q1 = torch.cat(
                 [
@@ -606,8 +602,6 @@ class CQLDiscretePolicy(DQNPolicy):
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            # n_sample=8,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
