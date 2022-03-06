@@ -14,6 +14,8 @@ car_racing_ppo_config = dict(
         rew_clip=True,
         replay_path=None,
         frame_stack=4,
+        is_train=True,
+        render=False,
     ),
     policy=dict(
         cuda=False,

@@ -10,7 +10,7 @@ from ding.policy import PPOPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed
 from dizoo.box2d.car_racing.envs import CarRacingEnv
-from dizoo.box2d.car_racing.config.car_racing_ppg_config import car_racing_ppg_config
+from dizoo.box2d.car_racing.config.car_racing_ppo_config import car_racing_ppo_config
 
 
 def main(cfg, seed=0, max_iterations=int(1e10)):
@@ -55,4 +55,4 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
 
 if __name__ == "__main__":
-    main(car_racing_ppg_config)
+    main(car_racing_ppo_config)
