@@ -4,6 +4,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.distributions import Normal, Independent
 
 from ding.torch_utils import fc_block, noise_block, NoiseLinearLayer, MLP
 from ding.rl_utils import beta_function_map
@@ -25,7 +26,7 @@ class DiscreteHead(nn.Module):
         Overview:
             Init the Head according to arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DiscreteHead``
             - output_size (:obj:`int`): The number of output
             - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
             - activation (:obj:`nn.Module`):
@@ -95,7 +96,7 @@ class DistributionHead(nn.Module):
         Overview:
             Init the Head according to arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DistributionHead``
             - output_size (:obj:`int`): The num of output
             - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
             - activation (:obj:`nn.Module`):
@@ -176,7 +177,7 @@ class RainbowHead(nn.Module):
         Overview:
             Init the Head according to arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``RainbowHead``
             - output_size (:obj:`int`): The num of output
             - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
             - activation (:obj:`nn.Module`):
@@ -268,7 +269,7 @@ class QRDQNHead(nn.Module):
         Overview:
             Init the Head according to arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``QRDQNHead``
             - output_size (:obj:`int`): The num of output
             - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
             - activation (:obj:`nn.Module`):
@@ -348,7 +349,7 @@ class QuantileHead(nn.Module):
         Overview:
             Init the Head according to arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``QuantileHead``
             - output_size (:obj:`int`): The num of output
             - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
             - activation (:obj:`nn.Module`):
@@ -532,8 +533,123 @@ class DuelingHead(nn.Module):
         """
         a = self.A(x)
         v = self.V(x)
-        logit = a - a.mean(dim=-1, keepdim=True) + v
-        return {'logit': logit}
+        q_value = a - a.mean(dim=-1, keepdim=True) + v
+        return {'logit': q_value}
+
+
+class StochasticDuelingHead(nn.Module):
+
+    def __init__(
+        self,
+        hidden_size: int,
+        output_size: int,
+        action_shape: int,
+        layer_num: int = 1,
+        a_layer_num: Optional[int] = None,
+        v_layer_num: Optional[int] = None,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
+    ) -> None:
+        """
+        Overview:
+            The Stochastic Dueling Network proposed in paper ACER (arxiv 1611.01224) \
+            Initialize the head according to arguments.
+        Arguments:
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``StochasticDuelingHead``
+            - output_size (:obj:`int`): The num of output, usually action shape
+            - a_layer_num (:obj:`int`): The num of layers used in the network to compute action output
+            - v_layer_num (:obj:`int`): The num of layers used in the network to compute value output
+            - activation (:obj:`nn.Module`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`str`):
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
+            - noise (:obj:`bool`): Whether use noisy ``fc_block``
+        """
+        super(StochasticDuelingHead, self).__init__()
+        if a_layer_num is None:
+            a_layer_num = layer_num
+        if v_layer_num is None:
+            v_layer_num = layer_num
+        layer = NoiseLinearLayer if noise else nn.Linear
+        block = noise_block if noise else fc_block
+        self.A = nn.Sequential(
+            MLP(
+                hidden_size + action_shape,
+                hidden_size + action_shape,
+                hidden_size + action_shape,
+                a_layer_num,
+                layer_fn=layer,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_size + action_shape, output_size)
+        )
+        self.V = nn.Sequential(
+            MLP(
+                hidden_size,
+                hidden_size,
+                hidden_size,
+                v_layer_num,
+                layer_fn=layer,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_size, 1)
+        )
+
+    def forward(
+            self,
+            s: torch.Tensor,
+            a: torch.Tensor,
+            mu_t: torch.Tensor,
+            sigma_t: torch.Tensor,
+            sample_size: int = 10
+    ) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict Dueling output.
+            Parameter updates with DuelingHead's MLPs forward setup.
+        Arguments:
+            - s (:obj:`torch.Tensor`):
+                The encoded embedding state tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - a (:obj:`torch.Tensor`):
+                The encoded embedding action tensor, determined with ``action_size``, i.e. ``(B, N=action_size)``.
+            - mu_t (:obj:`torch.Tensor`):
+                The mu output of actor head at timestep t, size (B, action_size)
+            - sigma_t (:obj:`torch.Tensor`):
+                The sigma output of actor head at timestep t, size (B, action_size)
+            - sample_size (:obj:`int`):
+                The num to samples for action when computing the Q value
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run ``MLP`` with ``StochasticDuelingHead`` setups and return the result prediction dictionary.
+                Necessary Keys:
+                    - pred (:obj:`torch.Tensor`): Pred tensor of size ``(B, 1)``.
+        """
+
+        batch_size = s.shape[0]  # batch size * T
+        hidden_size = s.shape[1]
+        action_size = a.shape[1]
+        state_cat_action = torch.cat((s, a), dim=1)  # size (B, action_size + state_size)
+        a_value = self.A(state_cat_action)  # size (B, 1)
+        v_value = self.V(s)  # size (B,1)
+        # size (B, sample_size, hidden_size)
+        expand_s = (torch.unsqueeze(s, 1)).expand((batch_size, sample_size, hidden_size))
+
+        # in case for gradient back propagation
+        dist = Independent(Normal(mu_t, sigma_t), 1)
+        action_sample_pred = dist.rsample(sample_shape=(sample_size, ))
+        action_sample = torch.tanh(action_sample_pred)
+        # (sample_size, B, action_size)->(B, sample_size, action_size)
+        action_sample = action_sample.permute(1, 0, 2)
+
+        # size (B, sample_size, action_size + hidden_size)
+        state_cat_action_sample = torch.cat((expand_s, action_sample), dim=-1)
+        a_val_sample = self.A(state_cat_action_sample)  # size (B, sample_size, 1)
+        a_val_sample = torch.squeeze(a_val_sample, -1)  # (B, sample_size)
+        q_value = v_value + a_value - a_val_sample.mean(dim=-1, keepdim=True)  # size (B,1)
+
+        return {'q_value': q_value, 'v_value': v_value}
 
 
 class RegressionHead(nn.Module):
@@ -551,7 +667,7 @@ class RegressionHead(nn.Module):
         Overview:
             Init the Head according to arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``RegressionHead``
             - output_size (:obj:`int`): The num of output
             - final_tanh (:obj:`Optional[bool]`): Whether a final tanh layer is needed
             - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
@@ -617,7 +733,7 @@ class ReparameterizationHead(nn.Module):
         Overview:
             Init the Head according to arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``ReparameterizationHead``
             - output_size (:obj:`int`): The num of output
             - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
             - sigma_type (:obj:`Optional[str]`): Sigma type used in ``['fixed', 'independent', 'conditioned']``
@@ -660,8 +776,8 @@ class ReparameterizationHead(nn.Module):
                 Run ``MLP`` with ``ReparameterizationHead`` setups and return the result prediction dictionary.
 
                 Necessary Keys:
-                    - mu (:obj:`torch.Tensor`) Tensor of cells of updated mu values, with same size as ``x``.
-                    - sigma (:obj:`torch.Tensor`) Tensor of cells of updated sigma values, with same size as ``x``.
+                    - mu (:obj:`torch.Tensor`) Tensor of cells of updated mu values of size ``(B, action_size)``
+                    - sigma (:obj:`torch.Tensor`) Tensor of cells of updated sigma values of size ``(B, action_size)``
         Examples:
             >>> head =  ReparameterizationHead(64, 64, sigma_type='fixed')
             >>> inputs = torch.randn(4, 64)
@@ -740,6 +856,7 @@ head_cls_map = {
     # discrete
     'discrete': DiscreteHead,
     'dueling': DuelingHead,
+    'sdn': StochasticDuelingHead,
     'distribution': DistributionHead,
     'rainbow': RainbowHead,
     'qrdqn': QRDQNHead,
