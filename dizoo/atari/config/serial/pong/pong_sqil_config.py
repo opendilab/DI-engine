@@ -1,9 +1,7 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline_sqil
 from easydict import EasyDict
 
 pong_sqil_config = dict(
-    exp_name='pong_sqil_gamma_0.97_alpha_0.1_seed0',
+    exp_name='pong_sqil_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -24,8 +22,8 @@ pong_sqil_config = dict(
         nstep=3,
         discount_factor=0.97,
         learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500, alpha=0.1),
-        collect=dict(n_sample=96, demonstration_info_path='path'
-                     ),  #Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(n_sample=96, demonstration_info_path='model_path'
+                     ),  # Users should add their own model path here. Model path should lead to a model (In DI-engine, it is ``ckpt_best.pth.tar``.)
         other=dict(
             eps=dict(
                 type='exp',
@@ -51,4 +49,8 @@ pong_sqil_create_config = EasyDict(pong_sqil_create_config)
 create_config = pong_sqil_create_config
 
 if __name__ == '__main__':
-    serial_pipeline_sqil('pong_sqil_config.py', 'pong_dqn_config.py', seed=0)
+    from ding.entry import serial_pipeline_sqil
+    from dizoo.atari.config.serial.pong import pong_dqn_config, pong_dqn_create_config
+    expert_main_config=pong_dqn_config
+    expert_create_config=pong_dqn_create_config
+    serial_pipeline_sqil([main_config, create_config], [expert_main_config, expert_create_config], seed=0)
