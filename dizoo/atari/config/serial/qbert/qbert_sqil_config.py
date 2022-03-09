@@ -1,8 +1,7 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-qbert_dqn_config = dict(
+qbert_sqil_config = dict(
+    exp_name='qbert_sqil_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -14,22 +13,23 @@ qbert_dqn_config = dict(
     ),
     policy=dict(
         cuda=True,
-        priority=False,
+        priority=True,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
         nstep=3,
-        discount_factor=0.99,
+        discount_factor=0.97, # discount_factor: 0.97-0.99
         learn=dict(
             update_per_collect=10,
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=500,
+            alpha=0.1 # alpha: 0.08-0.12
         ),
-        collect=dict(n_sample=100, demonstration_info_path='path'
-                     ),  #Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(n_sample=100, demonstration_info_path='model_path'
+                     ),  # Users should add their own model path here. Model path should lead to a model (In DI-engine, it is ``ckpt_best.pth.tar``.)
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -42,9 +42,9 @@ qbert_dqn_config = dict(
         ),
     ),
 )
-qbert_dqn_config = EasyDict(qbert_dqn_config)
-main_config = qbert_dqn_config
-qbert_dqn_create_config = dict(
+qbert_sqil_config = EasyDict(qbert_sqil_config)
+main_config = qbert_sqil_config
+qbert_sqil_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -52,8 +52,15 @@ qbert_dqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
-qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
-create_config = qbert_dqn_create_config
+qbert_sqil_create_config = EasyDict(qbert_sqil_create_config)
+create_config = qbert_sqil_create_config
 
 if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+    from ding.entry import serial_pipeline_sqil
+    from dizoo.atari.config.serial.qbert import qbert_dqn_config, qbert_dqn_create_config
+    expert_main_config=qbert_dqn_config
+    expert_create_config=qbert_dqn_create_config
+    serial_pipeline_sqil([main_config, create_config], [expert_main_config, expert_create_config], seed=0)
+
+# Alternatively, one can be opt to run the following command to directly execute this config file
+# ding -m serial_sqil -c qbert_sqil_config.py -s 0
