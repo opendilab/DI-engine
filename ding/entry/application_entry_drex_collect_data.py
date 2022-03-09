@@ -102,7 +102,7 @@ def eval_bc(validation_set, policy, use_cuda):
 
 
 def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
-    bc_policy = bc.BehaviourCloningPolicy(copy.deepcopy(cfg).policy)
+    bc_policy = bc.DiscreteBehaviourCloningPolicy(copy.deepcopy(cfg).policy)
 
     if pre_expert_data is None:
         with open(cfg.reward_model.offline_data_path + '/suboptimal_data.pkl', 'rb') as f:
@@ -172,7 +172,7 @@ def create_data_drex(bc_policy, cfg):
     created_data_returns = []
     for eps in eps_list:
         policy_kwargs = {'eps': eps}
-        # Let's collect some sub-optimal demostrations
+        # Let's collect some sub-optimal demonstrations
         exp_data = collector.collect(n_episode=cfg.reward_model.num_trajs_per_bin, policy_kwargs=policy_kwargs)
         episodes = []
         returns = []
