@@ -7,7 +7,7 @@ from scipy.special import softmax
 
 
 class Node:
-    def __init__(self, prior: float, action_num: int, ):
+    def __init__(self, prior: float, action_num: int,):
         self.prior = prior
         self.action_num = action_num
 
@@ -65,7 +65,7 @@ class Node:
         return child
 
     def expanded(self):
-        child_num = len(self.children_index)
+        child_num = len(self.children)
         return child_num > 0
 
     def value(self):
@@ -82,24 +82,21 @@ class Roots:
         self.pool_size = pool_size
 
         self.roots = []
-        self.node_pools = []
         for i in range(self.root_num):
-            self.node_pools.append([])
-            self.roots.append(Node(0, action_num, self.node_pools[i]))
+            self.roots.append(Node(0, action_num,))
 
-    def prepare(self, root_exploration_fraction, noises, value_prefixs, policies):
+    def prepare(self, root_exploration_fraction, noises, rewards, policies):
         for i in range(self.root_num):
-            self.roots[i].expand(0, 0, i, value_prefixs[i], policies[i])
+            self.roots[i].expand(0, 0, i, rewards[i], policies[i])
             self.roots[i].add_exploration_noise(root_exploration_fraction, noises[i])
             self.roots[i].visit_count += 1
 
-    def prepare_no_noise(self, value_prefixs, policies):
+    def prepare_no_noise(self, rewards, policies):
         for i in range(self.root_num):
-            self.roots[i].expand(0, 0, i, value_prefixs[i], policies[i])
+            self.roots[i].expand(0, 0, i, rewards[i], policies[i])
             self.roots[i].visit_count += 1
 
     def clear(self):
-        self.node_pools.clear()
         self.roots.clear()
 
     def get_trajectories(self):
@@ -120,40 +117,19 @@ class Roots:
             values.append(self.roots[i].value())
         return values
 
+    @property
+    def num(self):
+        return self.root_num
 
 class SearchResults:
     def __init__(self, num):
         self.num = num
         self.nodes = []
-        self.search_paths = []
+        self.search_paths = [[] for _ in range(self.num)]
         self.hidden_state_index_x_lst = []
         self.hidden_state_index_y_lst = []
         self.last_actions = []
         self.search_lens = []
-        self.search_paths = []
-
-
-def update_tree_q(root: Node, min_max_stats, discount: float):
-    node_stack = []
-    node_stack.append(root)
-    parent_value_prefix = 0.0
-    is_reset = 0
-    while node_stack.size() > 0:
-        node = node_stack[-1]
-        node_stack.pop()
-
-        if node != root:
-            true_reward = node.value_prefix - parent_value_prefix
-            if is_reset == 1:
-                true_reward = node.value_prefix
-            qsa = true_reward + discount * node.value()
-            min_max_stats.update(qsa)
-        for a in range(node.action_num):
-            child = node.get_child(a)
-            if child.extended:
-                node_stack.append(child)
-        parent_value_prefix = node.value_prefix
-        is_reset = node.is_reset
 
 
 # TODO(only consider single player)
@@ -169,14 +145,14 @@ def back_propagate(search_path, min_max_stats, to_play: int, value: float, disco
 def batch_back_propagate(hidden_state_index_x: int, discount: float,
                          rewards: List, values: List[float],
                          policies: List[float], min_max_stats_lst: List,
-                         results: List, ) -> None:
+                         results: List,) -> None:
     for i in range(results.num):
         results.nodes[i].expand(0, hidden_state_index_x, i, rewards[i], policies[i])
         back_propagate(results.search_paths[i], min_max_stats_lst.stats_lst[i], 0, values[i], discount)
 
 
 def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, discount: float, ) -> int:
-    max_score = -str('inf')
+    max_score = -float('inf')
     epsilon = 0.000001
     max_index_lst = []
     for a in range(root.action_num):
@@ -220,6 +196,7 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
     for i in range(results.num):
         node = roots.roots[i]
         search_len = 0
+
         results.search_paths[i].append(node)
 
         while node.expanded():
@@ -239,4 +216,4 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
             results.last_actions.append(last_action)
             results.search_lens.append(search_len)
             results.nodes.append(node)
-    return results.cresults.hidden_state_index_x_lst, results.cresults.hidden_state_index_y_lst, results.cresults.last_actions
+    return results.hidden_state_index_x_lst, results.hidden_state_index_y_lst, results.last_actions

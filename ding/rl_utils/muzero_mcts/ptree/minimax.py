@@ -21,4 +21,4 @@ class MinMaxStats:
 class MinMaxStatsList:
     def __init__(self, num):
         self.num = num
-        self.state_list = [MinMaxStats() for _ in range(self.num)]
+        self.stats_lst = [MinMaxStats() for _ in range(self.num)]
