@@ -18,20 +18,24 @@ from ding.utils import POLICY_REGISTRY
 
 
 @POLICY_REGISTRY.register('bc')
-class BehaviourCloningPolicy(Policy):
+class DiscreteBehaviourCloningPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'bc', ['ding.model.template.bc']
 
     config = dict(
-        type='fc',
+        type='bc',
+        cuda=False,
         on_policy=False,
-        collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            #n_sample=8,  # collect 8 samples and put them in collector
-            # (int) Cut trajectories into pieces with length "unroll_len".
-            unroll_len=1,
+        learn=dict(
+            multi_gpu=False,
+            update_per_collect=1,
+            batch_size=32,
+            learning_rate=1e-5,
         ),
+        collect=dict(unroll_len=1, ),
+        eval=dict(),
+        other=dict(replay_buffer=dict(replay_buffer_size=10000, )),
     )
 
     def _init_learn(self):

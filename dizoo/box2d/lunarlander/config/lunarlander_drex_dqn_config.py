@@ -91,4 +91,3 @@ lunarlander_drex_dqn_create_config = dict(
 )
 lunarlander_drex_dqn_create_config = EasyDict(lunarlander_drex_dqn_create_config)
 create_config = lunarlander_drex_dqn_create_config
-main_config

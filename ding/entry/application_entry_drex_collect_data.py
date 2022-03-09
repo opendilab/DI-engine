@@ -2,7 +2,6 @@ import argparse
 import copy
 import pickle
 import random
-from torch.utils.data import dataloader
 import easydict
 import torch
 from typing import Optional, List, Any
@@ -17,6 +16,7 @@ from ding.policy import create_policy, bc
 from ding.torch_utils import to_device
 from ding.utils import set_pkg_seed
 from ding.utils.data import default_collate, offline_data_save_type
+from functools import reduce
 
 
 def collect_episodic_demo_data_for_drex(
@@ -115,8 +115,8 @@ def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
         push_data += pre_expert_data[i]
 
     random.shuffle(push_data)
-    validation_set = push_data[- len(push_data) // 10:]
-    push_data = push_data[:- len(push_data) // 10]
+    validation_set = push_data[-len(push_data) // 10:]
+    push_data = push_data[:-len(push_data) // 10]
     replay_buffer.push(push_data, cur_collector_envstep=0)
     learner = BaseLearner(cfg.policy.learn.learner, bc_policy.learn_mode)
 
@@ -144,13 +144,16 @@ def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
     return bc_policy
 
 
-
 def load_bc(load_path, cfg):
     bc_policy = bc.BehaviourCloningPolicy(copy.deepcopy(cfg).policy)
     state_dict = torch.load(load_path, map_location='cpu')
     bc_policy.collect_mode.load_state_dict(state_dict)
     print('Load bc from {}'.format(load_path))
     return bc_policy
+
+
+def cal_mean(lis):
+    return reduce(lambda x, y: x + y, lis) / len(lis)
 
 
 def create_data_drex(bc_policy, cfg):
@@ -217,7 +220,6 @@ def drex_generating_data(compiled_cfg):
     return data_for_save
 
 
-
 def drex_collecting_data(args=drex_get_args(), seed=0):
     if isinstance(args.cfg, str):
         cfg, create_cfg = read_config(args.cfg)
@@ -249,4 +251,3 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
 
 if __name__ == '__main__':
     drex_collecting_data()
-
