@@ -3,14 +3,14 @@ import gym_chess
 import numpy as np
 import sys
 
-from dizoo.chess_games.base_game_env import BaseGameEnv
+from dizoo.board_games.base_game_env import BaseGameEnv
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
 
 
-@ENV_REGISTRY.register('chess')
-class ChessEnv(BaseGameEnv):
+@ENV_REGISTRY.register('ChessAlphaZero-v0')
+class ChessAlphaZeroV0Env(BaseGameEnv):
     def __init__(self, cfg={}):
         self.cfg = cfg
         self.player = 1
@@ -39,9 +39,12 @@ class ChessEnv(BaseGameEnv):
     def seed(self, seed: int) -> None:
         pass
 
-    def expert_action(self):
+    def random_action(self):
         action_list = self.env.legal_actions
         return np.random.choice(action_list)
+
+    def expert_action(self):
+        pass
 
     def render(self):
         print(self.env.unwrapped.render())
@@ -121,14 +124,26 @@ class ChessEnv(BaseGameEnv):
             use_wrappers=None,
         )
 
+    def current_player(self):
+        pass
+
+    def do_action(self, action):
+        pass
+
+    def game_end(self):
+        """Check whether the game is ended or not"""
+        pass
+
+    def close(self) -> None:
+        pass
+
     def __repr__(self) -> str:
         return 'chess'
 
 
 if __name__ == '__main__':
-    from dizoo.chess_games.chess_env.envs.chess_env import ChessEnv
-
-    env = ChessEnv()
+    # from dizoo.board_games.chess_gl.envs.chess_env import ChessEnv
+    env = ChessAlphaZeroV0Env()
     env.reset()
     done = False
     while True:
@@ -143,7 +158,7 @@ if __name__ == '__main__':
                 print('draw')
             break
         env.render()
-        action = env.expert_action()
+        action = env.random_action()
         print('computer player ' + env.action_to_string(action))
         obs, reward, done, info = env.step(action)
         if done:

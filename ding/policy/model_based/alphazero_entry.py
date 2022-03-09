@@ -63,7 +63,13 @@ def serial_alphazero_pipeline(
     # Setup Policy
     # ============
     model = model if model else create_model(cfg.model)
-    policy = AlphaZeroPolicy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', ])
+    policy = AlphaZeroPolicy(
+        cfg.policy, model=model, enable_field=[
+            'learn',
+            'collect',
+            'eval',
+        ]
+    )
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -107,9 +113,7 @@ def serial_alphazero_pipeline(
         train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
         if train_data is None:
             # It is possible that replay buffer's data count is too few to train
-            logging.warning(
-                "replay buffer's data count is too few to train need more data"
-            )
+            logging.warning("replay buffer's data count is too few to train need more data")
             continue
         learner.train(train_data, collector.envstep)
 

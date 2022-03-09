@@ -10,14 +10,16 @@ from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY
 
 @SERIAL_COLLECTOR_REGISTRY.register('alphazero_eval')
 class AlphazeroEvaluator:
-    def __init__(self,
-                 cfg: EasyDict,
-                 env: BaseEnv = None,
-                 policy: namedtuple = None,
-                 tb_logger: 'SummaryWriter' = None,  # noqa
-                 exp_name: Optional[str] = 'default_experiment',
-                 instance_name: Optional[str] = 'evaluator'
-                 ):
+
+    def __init__(
+        self,
+        cfg: EasyDict,
+        env: BaseEnv = None,
+        policy: namedtuple = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'evaluator'
+    ):
         self._cfg = cfg
         self._env = env
         self._policy = policy
@@ -37,7 +39,7 @@ class AlphazeroEvaluator:
                 path='./{}/log/{}'.format(self._exp_name, self._instance_name), name=self._instance_name
             )
         self._last_eval_iter = 0
-        self._eval_freq= self._cfg.eval_freq
+        self._eval_freq = self._cfg.eval_freq
         self._default_n_episode = self._cfg.n_episode
         self._stop_value = self._cfg.stop_value
         self._eval_freq = self._cfg.eval_freq
@@ -54,16 +56,19 @@ class AlphazeroEvaluator:
         self._last_eval_iter = train_iter
         return True
 
-    def eval(self,test_episode_num=None):
+    def eval(self, test_episode_num=None):
         test_episode_num = test_episode_num if test_episode_num else self._default_n_episode
 
         sp_stop, sp_winrate = self.self_play((test_episode_num))
         expert_winrate_list_first, expert_winrate_list_next = self.start_play_with_expert(test_episode_num)
         expert_winrate_first = expert_winrate_list_first.mean()
-        expert_stop =  expert_winrate_first>= self._stop_value
+        expert_stop = expert_winrate_first >= self._stop_value
         return sp_stop, sp_winrate
 
-    def self_play(self,test_episode_num=1,):
+    def self_play(
+        self,
+        test_episode_num=1,
+    ):
         winner_list = []
 
         for i in range(test_episode_num):
@@ -98,7 +103,10 @@ class AlphazeroEvaluator:
         stop = winrate >= self._stop_value
         return stop, winrate
 
-    def start_play_with_expert(self, test_episode_num=1, ):
+    def start_play_with_expert(
+        self,
+        test_episode_num=1,
+    ):
         winner_list = []
         print('agent start first')
         for i in range(test_episode_num):
@@ -188,19 +196,26 @@ class AlphazeroEvaluator:
         """
         self.close()
 
+
 if __name__ == '__main__':
     from ding.config.config import read_config_yaml
     from ding.policy.model_based.alphazero_policy import AlphaZeroPolicy
     from ding.envs import get_env_cls
     from ding.model import create_model
 
-    cfg_path = os.path.join(os.getcwd(),'alphazero_config_ding.yaml')
+    cfg_path = os.path.join(os.getcwd(), 'alphazero_config_ding.yaml')
     cfg = read_config_yaml(cfg_path)
 
     env_fn = get_env_cls(cfg.env)
     collector_env = env_fn(cfg.env)
     model = create_model(cfg.model)
-    policy = AlphaZeroPolicy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', ])
+    policy = AlphaZeroPolicy(
+        cfg.policy, model=model, enable_field=[
+            'learn',
+            'collect',
+            'eval',
+        ]
+    )
 
     evaluator = AlphazeroEvaluator(
         cfg=cfg.policy.eval.evaluator,

@@ -8,6 +8,7 @@ import torch.nn as nn
 
 
 class Node(object):
+
     def __init__(self, parent, prior_p: float):
         # Tree Structure
         self._parent = parent
@@ -55,6 +56,7 @@ class Node(object):
 
 
 class MCTS(object):
+
     def __init__(self, cfg):
         """
         policy_value_fn: a function that takes in a board state and outputs
@@ -76,11 +78,12 @@ class MCTS(object):
         self._pb_c_init = self._cfg.get('pb_c_init', 1.25)  # 1.25
 
         # Root prior exploration noise.
-        self._root_dirichlet_alpha = self._cfg.get('root_dirichlet_alpha',
-                                                   0.3)  # 0.3  # for chess, 0.03 for Go and 0.15 for shogi.
+        self._root_dirichlet_alpha = self._cfg.get(
+            'root_dirichlet_alpha', 0.3
+        )  # 0.3  # for chess, 0.03 for Go and 0.15 for shogi.
         self._root_exploration_fraction = self._cfg.get('root_exploration_fraction', 0.25)  # 0.25
 
-    def get_next_action(self, state, policy_forward_fn, temperature=1.0,sample=True):
+    def get_next_action(self, state, policy_forward_fn, temperature=1.0, sample=True):
         root = Node(None, 1.0)
         self._expand_leaf_node(root, state, policy_forward_fn)
         if sample:
@@ -93,9 +96,9 @@ class MCTS(object):
         action_visits = []
         for action in range(state.num_actions):
             if action in root.children:
-                action_visits.append((action,root.children[action].visit_count))
+                action_visits.append((action, root.children[action].visit_count))
             else:
-                action_visits.append((action,0))
+                action_visits.append((action, 0))
 
         actions, visits = zip(*action_visits)
         action_probs = nn.functional.softmax(1.0 / temperature * np.log(torch.as_tensor(visits) + 1e-10)).numpy()
@@ -147,8 +150,7 @@ class MCTS(object):
     # The score for a node is based on its value, plus an exploration bonus based on
     # the prior.
     def _ucb_score(self, parent: Node, child: Node):
-        pb_c = math.log((parent.visit_count + self._pb_c_base + 1) /
-                        self._pb_c_base) + self._pb_c_init
+        pb_c = math.log((parent.visit_count + self._pb_c_base + 1) / self._pb_c_base) + self._pb_c_init
         pb_c *= math.sqrt(parent.visit_count) / (child.visit_count + 1)
 
         prior_score = pb_c * child.prior_p

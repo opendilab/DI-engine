@@ -1,24 +1,19 @@
-import gym
-import numpy as np
 import sys
 
-from dizoo.chess_games.base_game_env import BaseGameEnv
-from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
-from ding.utils import ENV_REGISTRY
+import numpy as np
+
+from ding.envs.common.env_element import EnvElementInfo
+from ding.envs.env.base_env import BaseEnvInfo, BaseEnvTimestep
+from ding.utils.registry_factory import ENV_REGISTRY
+from dizoo.board_games.base_game_env import BaseGameEnv
 
 
-@ENV_REGISTRY.register('gomoku')
-class GomokuEnv(BaseGameEnv):
-    def __init__(self, cfg={}):
-        self.cfg = cfg
-        self.board_size = self.cfg.get('board_size', 15)
+@ENV_REGISTRY.register('tictactoe')
+class TicTacToeEnv(BaseGameEnv):
+    def __init__(self, cfg=None):
+        self.board_size = 3
         self.players = [1, 2]
-        self.board_markers = [
-            chr(x) for x in range(ord("A"), ord("A") + self.board_size)
-        ]
-        self.num_actions = self.board_size * self.board_size
-
+        self.num_actions = 9
 
     @property
     def current_player(self):
@@ -27,7 +22,6 @@ class GomokuEnv(BaseGameEnv):
     @property
     def current_opponent_player(self):
         return self.players[0] if self.current_player == self.players[1] else self.players[1]
-
 
     @property
     def legal_actions(self):
@@ -43,8 +37,8 @@ class GomokuEnv(BaseGameEnv):
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         return self.current_state()
 
-    def do_action(self,action):
-        row, col =self.action_to_coord(action)
+    def do_action(self, action):
+        row, col = self.action_to_coord(action)
         self.board[row, col] = self.current_player
         self._current_player = self.current_opponent_player
 
@@ -76,62 +70,78 @@ class GomokuEnv(BaseGameEnv):
         return coord
 
     def have_winner(self):
-        has_legal_actions = False
-        directions = ((1, -1), (1, 0), (1, 1), (0, 1))
+        # Horizontal and vertical checks
         for i in range(self.board_size):
-            for j in range(self.board_size):
-                # if no stone is on the position, don't need to consider this position
-                if self.board[i][j] == 0:
-                    has_legal_actions = True
-                    continue
-                # value-value at a coord, i-row, j-col
-                player = self.board[i][j]
-                # check if there exist 5 in a line
-                for d in directions:
-                    x, y = i, j
-                    count = 0
-                    for _ in range(5):
-                        if (x not in range(self.board_size)) or (
-                                y not in range(self.board_size)
-                        ):
-                            break
-                        if self.board[x][y] != player:
-                            break
-                        x += d[0]
-                        y += d[1]
-                        count += 1
-                        # if 5 in a line, store positions of all stones, return value
-                        if count == 5:
-                            return True, player
-        return not has_legal_actions, -1
+            if len(set(self.board[i, :])) == 1 and (self.board[i, 0] != 0):
+                return True, self.board[i, 0]
+            if len(set(self.board[:, i])) == 1 and (self.board[0, i] != 0):
+                return True, self.board[0, i]
+
+        # Diagonal checks
+        if self.board[0, 0] == self.board[1, 1] == self.board[2, 2] != 0:
+            return True, self.board[0, 0]
+        if self.board[2, 0] == self.board[1, 1] == self.board[0, 2] != 0:
+            return True, self.board[2, 0]
+
+        return False, -1
 
     def game_end(self):
-        end, winner = self.have_winner()
-        return end, winner
+        """Check whether the game is ended or not"""
+        win, winner = self.have_winner()
+        if win:
+            return True, winner
+        elif len(self.legal_actions) == 0:
+            return True, -1
+        else:
+            return False, -1
 
     def seed(self, seed: int) -> None:
         pass
 
     def expert_action(self):
-        action_list = self.legal_actions
-        return np.random.choice(action_list)
+        board = self.board
+        action = np.random.choice(self.legal_actions)
+        # Horizontal and vertical checks
+        for i in range(3):
+            if abs(sum(board[i, :])) == 2:
+                ind = np.where(board[i, :] == 0)[0][0]
+                action = np.ravel_multi_index(
+                    (np.array([i]), np.array([ind])), (3, 3)
+                )[0]
+                if self.current_player * sum(board[i, :]) > 0:
+                    return action
+
+            if abs(sum(board[:, i])) == 2:
+                ind = np.where(board[:, i] == 0)[0][0]
+                action = np.ravel_multi_index(
+                    (np.array([ind]), np.array([i])), (3, 3)
+                )[0]
+                if self.current_player * sum(board[:, i]) > 0:
+                    return action
+
+        # Diagonal checks
+        diag = board.diagonal()
+        anti_diag = np.fliplr(board).diagonal()
+        if abs(sum(diag)) == 2:
+            ind = np.where(diag == 0)[0][0]
+            action = np.ravel_multi_index(
+                (np.array([ind]), np.array([ind])), (3, 3)
+            )[0]
+            if self.current_player * sum(diag) > 0:
+                return action
+
+        if abs(sum(anti_diag)) == 2:
+            ind = np.where(anti_diag == 0)[0][0]
+            action = np.ravel_multi_index(
+                (np.array([ind]), np.array([2 - ind])), (3, 3)
+            )[0]
+            if self.current_player * sum(anti_diag) > 0:
+                return action
+
+        return action
 
     def render(self):
-        marker = "  "
-        for i in range(self.board_size):
-            marker = marker + self.board_markers[i] + " "
-        print(marker)
-        for row in range(self.board_size):
-            print(chr(ord("A") + row), end=" ")
-            for col in range(self.board_size):
-                ch = self.board[row][col]
-                if ch == 0:
-                    print(".", end=" ")
-                elif ch == 1:
-                    print("X", end=" ")
-                elif ch == 2:
-                    print("O", end=" ")
-            print()
+        print(self.board[::-1])
 
     def human_to_action(self):
         """
@@ -144,15 +154,15 @@ class GomokuEnv(BaseGameEnv):
             try:
                 row = int(
                     input(
-                        f"Enter the row (1, 2, ...,{self.board_size}, from up to bottom) to play for the player {self.current_player}: "
+                        f"Enter the row (1, 2 or 3, from bottom to up) to play for the player {self.current_player}: "
                     )
                 )
                 col = int(
                     input(
-                        f"Enter the column (1, 2, ...,{self.board_size}, from left to right) to play for the player {self.current_player}: "
+                        f"Enter the column (1, 2 or 3, from left to right) to play for the player {self.current_player}: "
                     )
                 )
-                choice = self.coord_to_action(row-1,col-1)
+                choice = self.coord_to_action(row - 1, col - 1)
                 if (
                         choice in self.legal_actions
                         and 1 <= row
@@ -179,7 +189,7 @@ class GomokuEnv(BaseGameEnv):
         Returns:
             String representing the action.
         """
-        row = action_number // self.board_size+ 1
+        row = action_number // self.board_size + 1
         col = action_number % self.board_size + 1
         return f"Play row {row}, column {col}"
 
@@ -243,11 +253,11 @@ class GomokuEnv(BaseGameEnv):
         pass
 
     def __repr__(self) -> str:
-        return 'gomoku'
+        return 'TicTacToe'
 
 
 if __name__ == '__main__':
-    env = GomokuEnv()
+    env = TicTacToeEnv()
     env.reset()
     done = False
     while True:

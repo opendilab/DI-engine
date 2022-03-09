@@ -1,7 +1,7 @@
-from dizoo.chess_games.chess_env.envs.chess_env import ChessEnv
+from dizoo.board_games.chess_gl.envs.chess_env import ChessAlphaZeroV0Env
 
 
-env = ChessEnv()
+env = ChessAlphaZeroV0Env()
 env.reset()
 done = False
 while True:
@@ -16,7 +16,7 @@ while True:
             print('draw')
         break
     env.render()
-    action = env.expert_action()
+    action = env.random_action()
     print('computer player ' + env.action_to_string(action))
     obs, reward, done, info = env.step(action)
     if done:

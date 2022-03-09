@@ -16,17 +16,16 @@ from ding.utils.data import default_collate
 
 @POLICY_REGISTRY.register('alphazero')
 class AlphaZeroPolicy(Policy):
+
     def _init_learn(self):
         # Optimizer
         self._grad_norm = self._cfg.learn.get('grad_norm', 1)
         self._learning_rate = self._cfg.learn.learning_rate
         self._weight_decay = self._cfg.learn.get('weight_decay', 0)
-        self._optimizer = Adam(self._model.parameters(),
-                               weight_decay=self._weight_decay,
-                               lr=self._learning_rate)
+        self._optimizer = Adam(self._model.parameters(), weight_decay=self._weight_decay, lr=self._learning_rate)
 
         # Algorithm config
-        self._value_weight = self._cfg.learn.get('value_weight',1)
+        self._value_weight = self._cfg.learn.get('value_weight', 1)
         # Main and target models
         self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
@@ -49,7 +48,7 @@ class AlphaZeroPolicy(Policy):
         # ============
         # policy loss
         # ============
-        policy_loss = - torch.mean(torch.sum(mcts_probs * log_probs))
+        policy_loss = -torch.mean(torch.sum(mcts_probs * log_probs))
 
         # ============
         # value loss
@@ -66,9 +65,7 @@ class AlphaZeroPolicy(Policy):
         )
         self._optimizer.step()
         # calc policy entropy, for monitoring only
-        entropy = -torch.mean(
-            torch.sum(torch.exp(log_probs) * log_probs, 1)
-        )
+        entropy = -torch.mean(torch.sum(torch.exp(log_probs) * log_probs, 1))
 
         # =============
         # after update
@@ -102,8 +99,9 @@ class AlphaZeroPolicy(Policy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        action, move_probs = self._collect_mcts.get_next_action(env, policy_forward_fn=self._policy_value_fn,
-                                                                temperature=1.0, sample=True)
+        action, move_probs = self._collect_mcts.get_next_action(
+            env, policy_forward_fn=self._policy_value_fn, temperature=1.0, sample=True
+        )
         return action, move_probs
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
@@ -150,8 +148,9 @@ class AlphaZeroPolicy(Policy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        action, move_probs = self._eval_mcts.get_next_action(env, policy_forward_fn=self._policy_value_fn,
-                                                             temperature=1.0, sample=False)
+        action, move_probs = self._eval_mcts.get_next_action(
+            env, policy_forward_fn=self._policy_value_fn, temperature=1.0, sample=False
+        )
         return action, move_probs
 
     @torch.no_grad()

@@ -7,16 +7,19 @@ import numpy as np
 from ding.utils.data import default_decollate
 from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY
 
+
 @SERIAL_COLLECTOR_REGISTRY.register('alphazero')
 class AlphazeroCollector:
-    def __init__(self,
-                 cfg: EasyDict,
-                 env: BaseEnv = None,
-                 policy: namedtuple = None,
-                 tb_logger: 'SummaryWriter' = None,  # noqa
-                 exp_name: Optional[str] = 'default_experiment',
-                 instance_name: Optional[str] = 'collector'
-                 ):
+
+    def __init__(
+        self,
+        cfg: EasyDict,
+        env: BaseEnv = None,
+        policy: namedtuple = None,
+        tb_logger: 'SummaryWriter' = None,  # noqa
+        exp_name: Optional[str] = 'default_experiment',
+        instance_name: Optional[str] = 'collector'
+    ):
         self._cfg = cfg
         self._env = env
         self._policy = policy
@@ -43,7 +46,10 @@ class AlphazeroCollector:
         self.envstep = 0
         self.winner_list = []
 
-    def collect(self, n_episode: Optional[int] = None, train_iter: int = 0, policy_kwargs: Optional[dict] = None) -> List[Any]:
+    def collect(self,
+                n_episode: Optional[int] = None,
+                train_iter: int = 0,
+                policy_kwargs: Optional[dict] = None) -> List[Any]:
         if n_episode is None:
             n_episode = self._collect_n_episode
         data_all = []
@@ -53,7 +59,7 @@ class AlphazeroCollector:
             data_all.extend(data)
         self._iter_count += 1
         if self._iter_count % self._collect_print_freq == 0:
-            winrate =( (np.array(self.winner_list) == 1) + 0.5 *(np.array(self.winner_list) == -1) ).mean()
+            winrate = ((np.array(self.winner_list) == 1) + 0.5 * (np.array(self.winner_list) == -1)).mean()
             self._logger.info(f'winrate_list:{self.winner_list}')
             self._logger.info(f'player1 winrate:{winrate}')
             self._logger.info(f'player2 winrate:{1-winrate}')
@@ -61,7 +67,7 @@ class AlphazeroCollector:
 
         return data_all
 
-    def _self_play(self,):
+    def _self_play(self, ):
         """ start a self-play game using a MCTS player, reuse the search tree,
         and store the self-play data: (state, mcts_probs, z) for training
         """
@@ -79,7 +85,7 @@ class AlphazeroCollector:
             done, winner = self.env.game_end()
             if done:
                 # winner from the perspective of the current player of each state
-                winners = np.zeros(len(current_players),dtype=np.float32)
+                winners = np.zeros(len(current_players), dtype=np.float32)
                 if winner != -1:
                     winners[np.array(current_players) == winner] = 1.0
                     winners[np.array(current_players) != winner] = -1.0
@@ -92,7 +98,13 @@ class AlphazeroCollector:
                 # mini_batch['mcts_prob'] = mcts_probs
                 # mini_batch['winner'] = winner
                 # mini_batch = default_decollate(mini_batch)
-                data = [{'state':state,'mcts_prob':mcts_prob,'winner':winner} for state, mcts_prob, winner in zip(states,mcts_probs,winners)]
+                data = [
+                    {
+                        'state': state,
+                        'mcts_prob': mcts_prob,
+                        'winner': winner
+                    } for state, mcts_prob, winner in zip(states, mcts_probs, winners)
+                ]
                 # return winner, zip(states,mcts_probs,winners)
                 self.envstep += len(data)
                 if self._use_augmentation:
@@ -104,6 +116,7 @@ class AlphazeroCollector:
             return self.env.get_equi_data(data)
         else:
             return data
+
     @property
     def env(self):
         return self._env
@@ -133,19 +146,26 @@ class AlphazeroCollector:
         """
         self.close()
 
+
 if __name__ == '__main__':
     from ding.config.config import read_config_yaml
     from ding.policy.model_based.alphazero_policy import AlphaZeroPolicy
     from ding.envs import get_env_cls
     from ding.model import create_model
 
-    cfg_path = os.path.join(os.getcwd(),'alphazero_config_ding.yaml')
+    cfg_path = os.path.join(os.getcwd(), 'alphazero_config_ding.yaml')
     cfg = read_config_yaml(cfg_path)
 
     env_fn = get_env_cls(cfg.env)
     collector_env = env_fn(cfg.env)
     model = create_model(cfg.model)
-    policy = AlphaZeroPolicy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', ])
+    policy = AlphaZeroPolicy(
+        cfg.policy, model=model, enable_field=[
+            'learn',
+            'collect',
+            'eval',
+        ]
+    )
 
     collector = AlphazeroCollector(
         cfg=cfg.policy.collect.collector,
