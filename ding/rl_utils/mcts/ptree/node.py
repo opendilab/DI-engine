@@ -36,12 +36,12 @@ class Node:
             self.ptr_node_pool.append(
                 Node(prior=priors[a], action_num=self.action_num, ptr_node_pool=self.ptr_node_pool))
 
-    def add_exploration_noise(self, explorion_fraction: float, noises: List[float]):
+    def add_exploration_noise(self, exploration_fraction: float, noises: List[float]):
         for a in range(self.action_num):
             noise = noises[a]
             child = self.get_child(a)
             prior = child.prior
-            child.prior = prior * (1 - explorion_fraction) + noise * explorion_fraction
+            child.prior = prior * (1 - exploration_fraction) + noise * exploration_fraction
 
     def get_mean_q(self, isRoot: int, parent_q: float, discount: float):
         total_unsigned_q = 0.0
@@ -98,7 +98,7 @@ class Node:
         if self.visit_count == 0:
             return 0
         else:
-            return self.value_sun / self.visit_count
+            return self.value_sum/ self.visit_count
 
 
 class Roots:
