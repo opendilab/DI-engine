@@ -1,0 +1,7 @@
+MCTS:
+  action_space_size: 10
+  num_simulations: 100
+  batch_size: 10
+  pb_c_base: 1
+  pb_c_base: 1
+  discount: 0.9

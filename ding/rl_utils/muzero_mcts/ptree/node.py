@@ -7,60 +7,37 @@ from scipy.special import softmax
 
 
 class Node:
-    def __init__(self, prior: float, action_num: int, ptr_node_pool: List = []):
+    def __init__(self, prior: float, action_num: int, ):
         self.prior = prior
         self.action_num = action_num
 
-        self.is_reset = 0
+        # self.is_reset = 0
         self.visit_count = 0
         self.value_sum = 0
         self.best_action = -1
         self.to_play = 0
-        self.value_prefix = 0.0
-        self.ptr_node_pool = ptr_node_pool
-        self.children_index = []
+        self.children = {}
         self.hidden_state_index_x = -1
         self.hidden_state_index_y = -1
+        self.reward = 0
 
-    def expand(self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, value_prefix: float,
-               policy_logits: List[float]):
+    def expand(self, to_play: int, hidden_state_index_x: int, hidden_state_index_y: int, reward: float,
+               policy_logits: List[float], ):
         self.to_play = to_play
         self.hidden_state_index_x = hidden_state_index_x
         self.hidden_state_index_y = hidden_state_index_y
-        self.value_prefix = value_prefix
+        self.reward = reward
 
         priors = softmax(np.array(policy_logits))
         for a in range(self.action_num):
-            index = len(self.ptr_node_pool)
-            self.children_index.append(index)
-            self.ptr_node_pool.append(
-                Node(prior=priors[a], action_num=self.action_num, ptr_node_pool=self.ptr_node_pool))
+            self.children[a] = Node(prior=priors[a], action_num=self.action_num, )
 
-    def add_exploration_noise(self, explorion_fraction: float, noises: List[float]):
+    def add_exploration_noise(self, exploration_fraction: float, noises: List[float]):
         for a in range(self.action_num):
             noise = noises[a]
-            child = self.get_child(a)
+            child = self.get_child(action=a)
             prior = child.prior
-            child.prior = prior * (1 - explorion_fraction) + noise * explorion_fraction
-
-    def get_mean_q(self, isRoot: int, parent_q: float, discount: float):
-        total_unsigned_q = 0.0
-        total_visits = 0
-        parent_value_prefix = self.value_prefix
-        for a in range(self.action_num):
-            child = self.get_child(a)
-            if child.visit_count > 0:
-                true_reward = child.value_prefix - parent_value_prefix
-                if self.is_reset == 1:
-                    true_reward = child.value_prefix
-                qsa = true_reward + discount * child.value
-                total_unsigned_q += qsa
-                total_visits += 1
-        if isRoot and total_visits > 0:
-            mean_q = total_unsigned_q / total_visits
-        else:
-            mean_q = (parent_q + total_unsigned_q) / (total_visits + 1)
-        return mean_q
+            child.prior = prior * (1 - exploration_fraction) + noise * exploration_fraction
 
     def print_out(self):
         pass
@@ -71,34 +48,31 @@ class Node:
         best_action = node.best_action
         while best_action >= 0:
             traj.append(best_action)
-
             node = node.get_child(best_action)
             best_action = node.best_action
         return traj
 
     def get_children_distribution(self):
         distribution = [0 for _ in range(self.action_num)]
-        if self.expanded:
+        if self.expanded():
             for a in range(self.action_num):
                 child = self.get_child(a)
                 distribution[a] = child.visit_count
         return distribution
 
     def get_child(self, action):
-        index = self.children_index[action]
-        return self.ptr_node_pool[index]
+        child = self.children[action]
+        return child
 
-    @property
     def expanded(self):
         child_num = len(self.children_index)
         return child_num > 0
 
-    @property
     def value(self):
         if self.visit_count == 0:
             return 0
         else:
-            return self.value_sun / self.visit_count
+            return self.value_sum / self.visit_count
 
 
 class Roots:
@@ -143,7 +117,7 @@ class Roots:
     def get_values(self):
         values = []
         for i in range(self.root_num):
-            values.append(self.roots[i].value)
+            values.append(self.roots[i].value())
         return values
 
 
@@ -172,7 +146,7 @@ def update_tree_q(root: Node, min_max_stats, discount: float):
             true_reward = node.value_prefix - parent_value_prefix
             if is_reset == 1:
                 true_reward = node.value_prefix
-            qsa = true_reward + discount * node.value
+            qsa = true_reward + discount * node.value()
             min_max_stats.update(qsa)
         for a in range(node.action_num):
             child = node.get_child(a)
@@ -182,83 +156,56 @@ def update_tree_q(root: Node, min_max_stats, discount: float):
         is_reset = node.is_reset
 
 
+# TODO(only consider single player)
 def back_propagate(search_path, min_max_stats, to_play: int, value: float, discount: float):
     bootstrap_value = value
-    path_len = len(search_path)
-    for i in range(path_len - 1, -1, -1):
-        node = search_path[i]
+    for node in reversed(search_path):
         node.value_sum += bootstrap_value
         node.visit_count += 1
-
-        parent_value_prefix = 0.0
-        is_reset = 0
-        if i >= 1:
-            parent = search_path[i - 1]
-            parent_value_prefix = parent.value_prefix
-            is_reset = parent.is_reset
-
-        true_reward = node.value_prefix - parent_value_prefix
-        if is_reset == 1:
-            true_reward = node.value_prefix
-
-        bootstrap_value = true_reward + discount * bootstrap_value
-
-    min_max_stats.clear()
-    root = search_path[0]
-    update_tree_q(root, min_max_stats, discount)
+        min_max_stats.update(node.reward + discount * node.value())
+        bootstrap_value = node.reward + discount * bootstrap_value
 
 
 def batch_back_propagate(hidden_state_index_x: int, discount: float,
-                         value_prefixs: List, values: List[float],
+                         rewards: List, values: List[float],
                          policies: List[float], min_max_stats_lst: List,
-                         results: List, is_reset_lst: List) -> None:
+                         results: List, ) -> None:
     for i in range(results.num):
-        results.nodes[i].expand(0, hidden_state_index_x, i, value_prefixs[i], policies[i])
-        ## reset
-        results.nodes[i].is_reset = is_reset_lst[i]
+        results.nodes[i].expand(0, hidden_state_index_x, i, rewards[i], policies[i])
         back_propagate(results.search_paths[i], min_max_stats_lst.stats_lst[i], 0, values[i], discount)
 
 
-def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, discount: float, mean_q: float) -> int:
+def select_child(root: Node, min_max_stats, pb_c_base: int, pb_c_int: float, discount: float, ) -> int:
     max_score = -str('inf')
     epsilon = 0.000001
     max_index_lst = []
     for a in range(root.action_num):
         child = root.get_child(a)
-        temp_score = ucb_score(child, min_max_stats, mean_q, root.is_reset, root.visit_count - 1, root.value_prefix,
+        temp_score = ucb_score(child, min_max_stats, root.visit_count - 1,
                                pb_c_base, pb_c_int, discount)
         if max_score < temp_score:
             max_score = temp_score
             max_index_lst.clear()
             max_index_lst.append(a)
         elif temp_score >= max_score - epsilon:
-            max_index_lst.push_back(a)
+            max_index_lst.append(a)
     action = 0
     if len(max_index_lst) > 0:
         action = random.choice(max_index_lst)
     return action
 
 
-def ucb_score(child: Node, min_max_stats, parent_mean_q, is_reset: int, total_children_visit_counts: float,
-              parent_value_prefix: float, pb_c_base: float, pb_c_init: float, discount: float):
+def ucb_score(child: Node, min_max_stats, total_children_visit_counts: float, pb_c_base: float, pb_c_init: float,
+              discount: float):
     pb_c = math.log((total_children_visit_counts + pb_c_base + 1) / pb_c_base) + pb_c_init
     pb_c *= (math.sqrt(total_children_visit_counts) / (child.visit_count + 1))
 
     prior_score = pb_c * child.prior
     if child.visit_count == 0:
-        value_score = parent_mean_q
+        value_score = min_max_stats.normalize(
+            child.reward + discount * child.value())  # TODO(not consider case when we have 2 players)
     else:
-        true_reward = child.value_prefix - parent_value_prefix
-        if is_reset == 1:
-            true_reward = child.value_prefix
-        value_score = true_reward + discount * child.value
-
-    value_score = min_max_stats.normalize(value_score)
-
-    if value_score < 0:
         value_score = 0
-    if value_score > 1:
-        value_score = 1
     ucb_score = prior_score + value_score
     return ucb_score
 
@@ -270,20 +217,13 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
     # gettimeofday( & t1, NULL);
     # srand(t1.tv_usec);
 
-    last_action = -1
-    parent_q = 0.0
-    results.search_lens = []
     for i in range(results.num):
-        node = roots.roots[i]  # TODO (zsh)
-        is_root = 1
+        node = roots.roots[i]
         search_len = 0
         results.search_paths[i].append(node)
 
-        while node.expanded:
-            mean_q = node.get_mean_q(is_root, parent_q, discount)
-            is_root = 0
-            parent_q = mean_q
-            action = select_child(node, min_max_stats_lst.stats_lst[i], pb_c_base, pb_c_init, discount, mean_q)
+        while node.expanded():
+            action = select_child(node, min_max_stats_lst.stats_lst[i], pb_c_base, pb_c_init, discount, )
             node.best_action = action
             ##  next
             node = node.get_child(action)
@@ -291,7 +231,7 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
             results.search_paths[i].append(node)
             search_len += 1
 
-            parent = results.search_paths[i][len(results.search_paths[i]) - 2]
+            parent = results.search_paths[i][len(results.search_paths[i]) - 2]  # TODO (zsh) why -2
 
             results.hidden_state_index_x_lst.append(parent.hidden_state_index_x)
             results.hidden_state_index_y_lst.append(parent.hidden_state_index_y)
@@ -299,7 +239,4 @@ def batch_traverse(roots, pb_c_base: int, pb_c_init: float, discount: float, min
             results.last_actions.append(last_action)
             results.search_lens.append(search_len)
             results.nodes.append(node)
-
-
-def batch_back_propagate():
-    pass
+    return results.cresults.hidden_state_index_x_lst, results.cresults.hidden_state_index_y_lst, results.cresults.last_actions
