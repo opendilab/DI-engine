@@ -15,8 +15,7 @@ from dizoo.procgen.maze.envs import MazeEnv
 from dizoo.procgen.maze.entry.maze_ppg_config import maze_ppg_default_config
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
-    cfg.exp_name = 'maze_ppg'
+def main(cfg, seed=0):
     cfg = compile_config(
         cfg,
         SyncSubprocessEnvManager,
@@ -37,7 +36,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         env_fn=[lambda: MazeEnv(cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
     )
 
-    collector_env.seed(seed)
+    collector_env.seed(seed, dynamic_seed=False)
     evaluator_env.seed(seed, dynamic_seed=False)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
@@ -49,7 +48,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
     evaluator = InteractionSerialEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+        cfg.policy.eval.evaluator, evaluator_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
     policy_buffer = AdvancedReplayBuffer(
         cfg.policy.other.replay_buffer.policy, tb_logger, exp_name=cfg.exp_name, instance_name='policy_buffer'
@@ -73,8 +72,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             if policy_data is not None and value_data is not None:
                 train_data = {'policy': policy_data, 'value': value_data}
                 learner.train(train_data, collector.envstep)
-        policy_buffer.clear()
-        value_buffer.clear()
 
 
 if __name__ == "__main__":

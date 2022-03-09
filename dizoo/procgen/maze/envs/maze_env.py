@@ -1,26 +1,12 @@
 from typing import Any, List, Union, Optional
 import time
 import gym
+import logging
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray, to_list
-
-
-def disable_gym_view_window():
-    from gym.envs.classic_control import rendering
-    import pyglet
-
-    def get_window(width, height, display):
-        screen = display.get_screens()
-        config = screen[0].get_best_config()
-        context = config.create_context(None)
-        return pyglet.window.Window(
-            width=width, height=height, display=display, config=config, context=context, visible=False
-        )
-
-    rendering.get_window = get_window
 
 
 @ENV_REGISTRY.register('maze')
@@ -30,18 +16,15 @@ class MazeEnv(BaseEnv):
         self._cfg = cfg
         self._seed = 0
         self._init_flag = False
+        self._num_levels = cfg.get('num_levels', 1)
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make('procgen:procgen-maze-v0', start_level=0, num_levels=1)
+            self._env = gym.make('procgen:procgen-maze-v0', start_level=0, num_levels=self._num_levels)
             self._init_flag = True
-        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
-            np_seed = 100 * np.random.randint(1, 1000)
+        if hasattr(self, '_seed'):
             self._env.close()
-            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed + np_seed, num_levels=1)
-        elif hasattr(self, '_seed'):
-            self._env.close()
-            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed, num_levels=1)
+            self._env = gym.make('procgen:procgen-maze-v0', start_level=self._seed, num_levels=self._num_levels)
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
@@ -56,8 +39,9 @@ class MazeEnv(BaseEnv):
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
-        self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
+        if dynamic_seed:
+            logging.warning('procgen env use num_levels to control the diversity among different episodes')
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
@@ -113,8 +97,6 @@ class MazeEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-        # this function can lead to the meaningless result
-        # disable_gym_view_window()
         self._env = gym.wrappers.Monitor(
             self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
         )
