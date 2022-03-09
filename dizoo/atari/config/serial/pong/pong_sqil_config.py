@@ -54,3 +54,6 @@ if __name__ == '__main__':
     expert_main_config=pong_dqn_config
     expert_create_config=pong_dqn_create_config
     serial_pipeline_sqil([main_config, create_config], [expert_main_config, expert_create_config], seed=0)
+
+# Alternatively, one can be opt to run the following command to directly execute this config file
+# ding -m serial_sqil -c pong_sqil_config.py -s 0
