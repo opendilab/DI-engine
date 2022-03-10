@@ -35,9 +35,9 @@ class TestGTrXL:
                 input = torch.transpose(input, 1, 0)
             input.requires_grad_(True)
             if m is None:
-                model.reset(batch_size=bs)
+                model.reset_memory(batch_size=bs)
             else:
-                model.reset(state=m)
+                model.reset_memory(state=m)
             output = model(input, batch_first=bf)
             loss = output['logit'].mean()
             loss.backward()

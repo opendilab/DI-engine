@@ -563,18 +563,3 @@ class GTrXL(nn.Module):
         else:
             output = {"logit": out}
         return output
-
-
-if __name__ == "__main__":
-    dim_size = 128
-    seq_len = 64
-    bs = 32
-    action_dim = 4
-    embedding_dim = 256
-    # input shape: cur_seq x bs x input_dim
-    a = torch.rand(seq_len, bs, dim_size)
-    print('input:', a.shape)
-    m = GTrXL(128, memory_len=50, embedding_dim=embedding_dim)
-    o = m(a)
-    print('output', o['logit'].shape)
-    print('memory', o['memory'].shape)
