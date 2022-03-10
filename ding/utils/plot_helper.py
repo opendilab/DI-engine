@@ -5,10 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-from typing import str
+from typing import List
 
 
-def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str = './picture.jpg'):
+def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str = './picture.png'):
     """
     Overview:
         Draw training polyline
@@ -25,13 +25,23 @@ def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str = './picture
     for nowdata in data:
         step, value, label = nowdata['x'], nowdata['y'], nowdata['label']
         sns.lineplot(x=step, y=value, label=label)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    plt.xlabel(xlabel, fontsize=15)
+    plt.ylabel(ylabel, fontsize=15)
     plt.title(title)
     plt.savefig(pth)
 
 
-def plotter(root: str, titles: str, labels: str, x_axes: str, y_axes: str):
+def plotter(
+    root: str,
+    titles: List[str],
+    labels: List[str],
+    x_axes: List[str],
+    y_axes: List[str],
+    plot_together: bool = False,
+    plot_together_x_axis: str = None,
+    plot_together_y_axis: str = None,
+    plot_together_title: str = None
+):
     '''
     root: the location of file containing all algorithms. Each is a file containing\
          five seeds of event file generated from tensorboard
@@ -39,19 +49,28 @@ def plotter(root: str, titles: str, labels: str, x_axes: str, y_axes: str):
     labels: the labels for each algorithm
     x_axes: the x-axis for each diagram
     y_axes: the y-axis for each diagram
+    plot_together: whether to plot together or not
+    plot_together_x_axis: if plot_together, indicates the x axis for the plot
+    plot_together_y_axis: if plot_together, indicates the y axis for the plot
+    plot_together_title: if plot_together, indicates the title for the plot
     '''
 
     headers = ['steps', 'value']
 
     count_file = 0
+    data_holder = []  # for plotting together only
+    foot_root = root  # for plotting together only
     for root, dirs, _ in os.walk(root):
-        for d in dirs:  # ToDo: plot together
+
+        for d in dirs:
+
             title = titles[count_file]
             label = labels[count_file]
             x_axis = x_axes[count_file]
             y_axis = y_axes[count_file]
             count_file += 1
             exp_path = os.path.join(root, d)
+            print(exp_path)
             env, agent = d.split('_')
             print(env, agent)
             results = {}
@@ -84,15 +103,19 @@ def plotter(root: str, titles: str, labels: str, x_axes: str, y_axes: str):
             value = []
             for i in range(len(results)):
                 value.extend(results[i])
-
-            sns.lineplot(x=steps, y=value, label=label, color='#ad1457')
-            sns.set(style="darkgrid", font_scale=1.5)
-            plt.title(title)
-            plt.legend(loc='upper left', prop={'size': 8})
-            plt.xlabel(x_axis, fontsize=15)
-            plt.ylabel(y_axis, fontsize=15)
-            plt.show()
-
+            if not plot_together:
+                figure_lineplot = sns.lineplot(x=steps, y=value, label=label, color='#ad1457')
+                sns.set(style="darkgrid", font_scale=1.5)
+                plt.title(title)
+                plt.legend(loc='upper left', prop={'size': 8})
+                plt.xlabel(x_axis, fontsize=15)
+                plt.ylabel(y_axis, fontsize=15)
+                #plt.show()
+                figure = figure_lineplot.get_figure()
+                figure.savefig(exp_path + '/' + title + '.png')
+                plt.close()
+            else:
+                data_holder.append({'x': steps, 'y': value, 'label': label})
             csv_dicts = []
             for i, _ in enumerate(steps):
                 csv_dicts.append({'steps': steps[i], 'value': value[i]})
@@ -100,3 +123,14 @@ def plotter(root: str, titles: str, labels: str, x_axes: str, y_axes: str):
                 writer = csv.DictWriter(f, headers)
                 writer.writeheader()
                 writer.writerows(csv_dicts)
+    if plot_together:
+        assert type(plot_together_x_axis) is str and type(plot_together_y_axis) is str and type(
+            plot_together_title
+        ) is str, 'Please indicate the x-axis, the y-axis and the title'
+        plot(
+            data_holder,
+            plot_together_x_axis,
+            plot_together_y_axis,
+            plot_together_title,
+            pth=foot_root + foot_root[foot_root.rfind('/'):] + '.png'
+        )
