@@ -27,9 +27,7 @@ class TestLunarLanderEnvEnv:
         obs = env.reset()
         assert obs.shape == (8, )
         for i in range(10):
-            random_action = env.action_space.sample()
-            if not isinstance(random_action, np.ndarray):
-                random_action = np.array([random_action])
+            random_action = env.random_action()
             timestep = env.step(random_action)
             print(timestep)
             assert isinstance(timestep.obs, np.ndarray)

@@ -85,7 +85,7 @@ class GymHybridEnv(BaseEnv):
         info['action_args_mask'] = np.array([[1, 0], [0, 1], [0, 0]])
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def get_random_action(self) -> Dict:
+    def random_action(self) -> Dict:
         # action_type: 0, 1, 2
         # action_args:
         #   - acceleration_value: [0, 1]

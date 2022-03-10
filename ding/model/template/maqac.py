@@ -34,8 +34,10 @@ class MAQAC(nn.Module):
     ) -> None:
         r"""
         Overview:
-            Init the QAC Model according to arguments.
+            Init the MAQAC Model according to arguments.
         Arguments:
+            - agent_obs_shape (:obj:`Union[int, SequenceType]`): Agent's observation's space.
+            - global_obs_shape (:obj:`Union[int, SequenceType]`): Global observation's space.
             - obs_shape (:obj:`Union[int, SequenceType]`): Observation's space.
             - action_shape (:obj:`Union[int, SequenceType]`): Action's space.
             - twin_critic (:obj:`bool`): Whether include twin critic.
@@ -92,7 +94,7 @@ class MAQAC(nn.Module):
     def forward(self, inputs: Union[torch.Tensor, Dict], mode: str) -> Dict:
         r"""
         Overview:
-            Use bbservation and action tensor to predict output.
+            Use observation and action tensor to predict output.
             Parameter updates with QAC's MLPs forward setup.
         Arguments:
             Forward with ``'compute_actor'``:
@@ -101,7 +103,7 @@ class MAQAC(nn.Module):
                     Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.
             Forward with ``'compute_critic'``, inputs (`Dict`) Necessary Keys:
                 - ``obs``, ``action`` encoded tensors.
-            - mode (:obj:`str`): Name of the forward mode.
+                - mode (:obj:`str`): Name of the forward mode.
         Returns:
             - outputs (:obj:`Dict`): Outputs of network forward.
                 Forward with ``'compute_actor'``, Necessary Keys (either):
@@ -120,7 +122,7 @@ class MAQAC(nn.Module):
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
-    def compute_actor(self, inputs: torch.Tensor) -> Dict:
+    def compute_actor(self, inputs: Dict) -> Dict:
         r"""
         Overview:
             Use encoded embedding tensor to predict output.
@@ -346,7 +348,7 @@ class ContinuousMAQAC(nn.Module):
         assert mode in self.mode, "not support forward mode: {}/{}".format(mode, self.mode)
         return getattr(self, mode)(inputs)
 
-    def compute_actor(self, inputs: torch.Tensor) -> Dict:
+    def compute_actor(self, inputs: Dict) -> Dict:
         r"""
         Overview:
             Use encoded embedding tensor to predict output.

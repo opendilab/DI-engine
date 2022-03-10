@@ -15,10 +15,15 @@ def test_mujoco_env_delay_reward(delay_reward_step):
     env.seed(1234)
     env.reset()
     action_dim = env.action_space.shape
-    for _ in range(25):
-        action = np.random.random(size=action_dim)
+    for i in range(25):
+        # Both ``env.random_action()``, and utilizing ``np.random`` as well as action space,
+        # can generate legal random action.
+        if i < 10:
+            action = np.random.random(size=action_dim)
+        else:
+            action = env.random_action()
         timestep = env.step(action)
-        print(_, timestep.reward)
+        print(timestep.reward)
         assert timestep.reward.shape == (1, ), timestep.reward.shape
 
 

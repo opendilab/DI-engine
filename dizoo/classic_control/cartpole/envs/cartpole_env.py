@@ -26,18 +26,6 @@ class CartPoleEnv(BaseEnv):
         self._action_space = gym.spaces.Discrete(2)
         self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
 
-    @property
-    def observation_space(self) -> gym.spaces.Space:
-        return self._observation_space
-
-    @property
-    def action_space(self) -> gym.spaces.Space:
-        return self._action_space
-
-    @property
-    def reward_space(self) -> gym.spaces.Space:
-        return self._reward_space
-
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make('CartPole-v0')
@@ -78,10 +66,27 @@ class CartPoleEnv(BaseEnv):
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def __repr__(self) -> str:
-        return "DI-engine CartPole Env"
-
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
+
+    def __repr__(self) -> str:
+        return "DI-engine CartPole Env"

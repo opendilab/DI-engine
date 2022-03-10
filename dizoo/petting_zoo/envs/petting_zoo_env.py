@@ -61,7 +61,7 @@ class PettingZooEnv(BaseEnv):
             if isinstance(single_agent_obs_space, gym.spaces.Box):
                 self._action_dim = single_agent_obs_space.shape
             elif isinstance(single_agent_obs_space, gym.spaces.Discrete):
-                self._action_dim = single_agent_obs_space.n
+                self._action_dim = (single_agent_obs_space.n, )
             else:
                 raise Exception('Only support `Box` or `Discrte` obs space for single agent.')
             self._reward_space = gym.spaces.Dict(
@@ -150,7 +150,7 @@ class PettingZooEnv(BaseEnv):
         #              - position of items that the agent can observe(e.g. other agents, landmarks)
         #              - communication
         ret['agent_state'] = obs
-        # global_state: Shape (n_agent * (2 + 2) + n_landamrk * 2 + n_agent * (n_agent - 1) * 2, ).
+        # global_state: Shape (n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2, ).
         #               1-dim vector. Contains
         #               - all agents' state(velocity + position) +
         #               - all landmarks' position +
@@ -187,7 +187,7 @@ class PettingZooEnv(BaseEnv):
             1
         )
         # action_mask: All actions are of use(either 1 for discrete or 5 for continuous). Thus all 1.
-        ret['action_mask'] = np.ones((self._num_agents, self._action_dim))
+        ret['action_mask'] = np.ones((self._num_agents, *self._action_dim))
         return ret
 
     def _process_action(self, action: 'torch.Tensor') -> Dict[str, np.ndarray]:  # noqa
@@ -198,6 +198,15 @@ class PettingZooEnv(BaseEnv):
                 agent_action = agent_action.squeeze()  # 0-dim array
             dict_action[agent] = agent_action
         return dict_action
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        for k in random_action:
+            if isinstance(random_action[k], np.ndarray):
+                pass
+            elif isinstance(random_action[k], int):
+                random_action[k] = to_ndarray([random_action[k]], dtype=np.int64)
+        return random_action
 
     def __repr__(self) -> str:
         return "DI-engine PettingZoo Env"
