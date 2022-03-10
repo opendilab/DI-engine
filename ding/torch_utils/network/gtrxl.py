@@ -3,6 +3,9 @@ from ding.torch_utils.network.nn_module import *
 from ding.utils import MODEL_REGISTRY
 import warnings
 import numpy as np
+import torch
+import torch.nn as nn
+from ding.torch_utils.network.nn_module import fc_block, build_normalization, F
 
 
 class PositionalEmbedding(nn.Module):

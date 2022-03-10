@@ -123,7 +123,7 @@ class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('r2d2_gtrxl_command')
-class R2D2CommandModePolicy(R2D2GTrXLPolicy, EpsCommandModePolicy):
+class R2D2GTrXLCommandModePolicy(R2D2GTrXLPolicy, EpsCommandModePolicy):
     pass
 
 

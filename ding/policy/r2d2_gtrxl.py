@@ -10,6 +10,7 @@ from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
+import torch
 
 from ding.model.common.head import *
 
