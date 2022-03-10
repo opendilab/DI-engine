@@ -7,7 +7,7 @@ import torch.nn as nn
 from efficientzero_base_model import BaseNet, renormalize
 
 ## this is for tic-tac-toc model
-## input size (3,3,3)  ->  reshape 27
+## input size (3,3,3)  ->  reshape (27,)
 
 def mlp(
     input_size,
@@ -50,6 +50,7 @@ def mlp(
 
     return nn.Sequential(*layers)
 
+# test mlp
 # fc = mlp(27, [64,32,16,16], 9)
 # print(fc)
 
@@ -93,7 +94,8 @@ class DynamicsNetwork(nn.Module):
         self.fc = mlp(self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum)
 
     def forward(self, x, reward_hidden):
-        state = x[:,:-1,:,:]  # todo: not know the atari state or tic-tac-toc state
+        # state = x[:,:-1,:,:]  # todo: not know the atari state or tic-tac-toc state
+        state = x
 
         x = x.view(-1, self.block_output_size_reward).unsqueeze(0)
         value_prefix, reward_hidden = self.lstm(x, reward_hidden)
@@ -171,9 +173,6 @@ class EfficientZeroNet(BaseNet):
         observation_shape,
         action_space_size,
 
-        reduced_channels_reward,
-        reduced_channels_value,
-        reduced_channels_policy,
         fc_reward_layers,
         fc_value_layers,
         fc_policy_layers,
@@ -253,7 +252,6 @@ class EfficientZeroNet(BaseNet):
 
 
         self.dynamics_network = DynamicsNetwork(
-            reduced_channels_reward,
             fc_reward_layers,
             reward_support_size,
             lstm_hidden_size=lstm_hidden_size,
@@ -272,9 +270,7 @@ class EfficientZeroNet(BaseNet):
         )
 
         # projection
-        # todo: projection meaning?
-        in_dim = num_channels * math.ceil(observation_shape[1] / 16) * math.ceil(observation_shape[2] / 16)
-        self.porjection_in_dim = in_dim
+        self.porjection_in_dim = observation_shape  # just for tic-tac-toe
         self.projection = nn.Sequential(
             nn.Linear(self.porjection_in_dim, self.proj_hid),
             nn.BatchNorm1d(self.proj_hid),
