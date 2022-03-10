@@ -40,7 +40,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     model = VAC(**cfg.policy.model)
     policy = PPOPolicy(cfg.policy, model=model)
-    tb_logger = SummaryWriter(os.path.join('./log/', 'serial'))
+    tb_logger = SummaryWriter(os.path.join('../../../../../Opendi/2022-3-10/tb_ppo_car_racing/log/', 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger)
     collector = SampleSerialCollector(cfg.policy.collect.collector, collector_env, policy.collect_mode, tb_logger)
     evaluator = InteractionSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger)
