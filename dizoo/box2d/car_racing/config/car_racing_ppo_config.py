@@ -5,7 +5,7 @@ car_racing_ppo_config = dict(
     exp_name='car_racing_ppo',
     env=dict(
         env_id='CarRacing-v0',
-        collector_env_num=8,
+        collector_env_num=16,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
         act_scale=True,
@@ -23,23 +23,25 @@ car_racing_ppo_config = dict(
         model=dict(
             action_space='continuous',
             obs_shape=[4, 84, 84],
+            # encoder_hidden_size_list=[64, 64],
             action_shape=4,
         ),
         learn=dict(
             epoch_per_collect=10,
             batch_size=64,
-            learning_rate=0.001,
+            learning_rate=3e-5,
             value_weight=0.5,
             entropy_weight=0.01,
             clip_ratio=0.2,
             adv_norm=True,
         ),
         collect=dict(
-            n_sample=2048,
+            n_sample=400,
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,
         ),
+        eval=dict(evaluator=dict(eval_freq=200, ))
     ),
 )
 car_racing_ppo_config = EasyDict(car_racing_ppo_config)

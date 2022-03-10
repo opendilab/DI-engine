@@ -29,6 +29,6 @@ class TestAtariEnv:
             assert timestep.reward.shape == (1,)
             assert timestep.reward >= env.reward_space.low
             assert timestep.reward <= env.reward_space.high
-            # assert isinstance(timestep, tuple)
+            assert isinstance(timestep, tuple)
         print(env.observation_space, env.action_space, env.reward_space)
         env.close()

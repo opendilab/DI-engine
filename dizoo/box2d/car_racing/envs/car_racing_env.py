@@ -3,11 +3,10 @@ import copy
 import numpy as np
 import gym
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
-from .car_racing_env_wrapper import wrap_deepmind, wrap_deepmind_mr
+from .car_racing_env_wrapper import wrap_car_racing
 
 
 @ENV_REGISTRY.register("car_racing")
@@ -72,15 +71,14 @@ class CarRacingEnv(BaseEnv):
         return self._reward_space
 
     def _make_env(self):
-        return wrap_deepmind(
+        return wrap_car_racing(
             self._cfg.env_id,
             frame_stack=self._cfg.frame_stack,
-            # episode_life=self._cfg.is_train,
             clip_rewards=self._cfg.is_train
         )
 
     def __repr__(self) -> str:
-        return "DI-engine Atari Env({})".format(self._cfg.env_id)
+        return "DI-engine CarRacing Env({})".format(self._cfg.env_id)
 
     @staticmethod
     def create_collector_env_cfg(cfg: dict) -> List[dict]:
