@@ -34,7 +34,7 @@ class MuzeroModel(torch.nn.Module):
         return output
 
 
-if __name__ == '__main__':
+def check_mcts():
     import os
     import yaml
     import easydict
@@ -66,3 +66,20 @@ if __name__ == '__main__':
 
     MCTS(mcts_cfg).search(roots, model, hidden_state_roots,)
     roots_distributions = roots.get_distributions()
+
+
+if __name__ == '__main__':
+    import cProfile
+
+
+    def profile_mcts():
+        for i in range(100):
+            check_mcts()
+
+
+    # # 直接把分析结果打印到控制台
+    # cProfile.run("profile_mcts()")
+    # # 把分析结果保存到文件中
+    cProfile.run("profile_mcts()", filename="result.out")
+    # 增加排序方式
+    # cProfile.run("profile_mcts()", filename="result.out", sort="cumulative")
