@@ -186,7 +186,6 @@
 <span class="sd">        Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .</span>
 <span class="sd">        R2D2 proposes that several tricks should be used to improve upon DRQN,</span>
 <span class="sd">        namely some recurrent experience replay tricks such as burn-in.</span>
-
 <span class="sd">    Config:</span>
 <span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
 <span class="sd">        ID Symbol               Type     Default Value  Description                              Other(Shape)</span>
@@ -295,12 +294,9 @@
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the learner model of R2D2Policy</span>
-
 <span class="sd">        Arguments:</span>
 <span class="sd">            .. note::</span>
-
 <span class="sd">                The _init_learn method takes the argument from the self._cfg.learn in the config file</span>
-
 <span class="sd">            - learning_rate (:obj:`float`): The learning rate fo the optimizer</span>
 <span class="sd">            - gamma (:obj:`float`): The discount factor</span>
 <span class="sd">            - nstep (:obj:`int`): The num of n step return</span>
@@ -348,10 +344,8 @@
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Preprocess the data to fit the required data format for learning</span>
-
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`List[Dict[str, Any]]`): the data collected from collect function</span>
-
 <span class="sd">        Returns:</span>
 <span class="sd">            - data (:obj:`Dict[str, Any]`): the processed data, including at least \</span>
 <span class="sd">                [&#39;main_obs&#39;, &#39;target_obs&#39;, &#39;burnin_obs&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;done&#39;, &#39;weight&#39;]</span>
@@ -418,11 +412,9 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Forward and backward function of learn mode.</span>
 <span class="sd">            Acquire the data, calculate the loss and optimize learner model.</span>
-
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`dict`): Dict type data, including at least \</span>
 <span class="sd">                [&#39;main_obs&#39;, &#39;target_obs&#39;, &#39;burnin_obs&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;done&#39;, &#39;weight&#39;]</span>
-
 <span class="sd">        Returns:</span>
 <span class="sd">            - info_dict (:obj:`Dict[str, Any]`): Including cur_lr and total_loss</span>
 <span class="sd">                - cur_lr (:obj:`float`): Current learning rate</span>
@@ -604,10 +596,8 @@
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the trajectory and the n step return data, then sample from the n_step return data</span>
-
 <span class="sd">        Arguments:</span>
 <span class="sd">            - data (:obj:`list`): The trajectory&#39;s cache</span>
-
 <span class="sd">        Returns:</span>
 <span class="sd">            - samples (:obj:`dict`): The training samples generated</span>
 <span class="sd">        &quot;&quot;&quot;</span>

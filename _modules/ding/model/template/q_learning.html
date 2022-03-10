@@ -172,6 +172,7 @@
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">MODEL_REGISTRY</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">squeeze</span>
 <span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">FCEncoder</span><span class="p">,</span> <span class="n">ConvEncoder</span><span class="p">,</span> <span class="n">DiscreteHead</span><span class="p">,</span> <span class="n">DuelingHead</span><span class="p">,</span> <span class="n">MultiHead</span><span class="p">,</span> <span class="n">RainbowHead</span><span class="p">,</span> \
     <span class="n">QuantileHead</span><span class="p">,</span> <span class="n">QRDQNHead</span><span class="p">,</span> <span class="n">DistributionHead</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils.network.gtrxl</span> <span class="kn">import</span> <span class="n">GTrXL</span>
 
 
 <div class="viewcode-block" id="DQN"><a class="viewcode-back" href="../../../../hands_on/dqn_zh.html#ding.model.template.q_learning.DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn&#39;</span><span class="p">)</span>
@@ -892,6 +893,165 @@
             <span class="k">if</span> <span class="n">saved_hidden_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">x</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved_hidden_state</span>  <span class="c1"># the selected saved hidden states, including h and c</span>
             <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gtrxl_discrete&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GTrXLDiscreteHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Add a discrete head on top of the GTrXL module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">att_head_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="n">att_head_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">att_mlp_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">att_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="n">memory_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">head_norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span>
+        <span class="n">gru_gating</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">gru_bias</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.</span><span class="p">,</span>
+        <span class="n">dueling</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
+        <span class="n">encoder_norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init the model according to arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            Refer to GTrXl class in `ding.torch_utils.network.gtrxl` for more details about the input arguments.</span>
+<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Used by Transformer. Observation&#39;s space.</span>
+<span class="sd">            - action_shape (:obj:Union[int, SequenceType]): Used by Head. Action&#39;s space.</span>
+<span class="sd">            - head_layer_num (:obj:`int`): Used by Head. Number of layers.</span>
+<span class="sd">            - att_head_dim (:obj:`int`): Used by Transformer.</span>
+<span class="sd">            - hidden_size (:obj:`int`): Used by Transformer and Head.</span>
+<span class="sd">            - att_head_num (:obj:`int`): Used by Transformer.</span>
+<span class="sd">            - att_mlp_num (:obj:`int`): Used by Transformer.</span>
+<span class="sd">            - att_layer_num (:obj:`int`): Used by Transformer.</span>
+<span class="sd">            - memory_len (:obj:`int`): Used by Transformer.</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head. if ``None`` then default set to</span>
+<span class="sd">             ``nn.ReLU()``.</span>
+<span class="sd">            - head_norm_type (:obj:`Optional[str]`): Used by Head. The type of normalization to use, see</span>
+<span class="sd">             ``ding.torch_utils.fc_block`` for more details`.</span>
+<span class="sd">            - dropout (:obj:`bool`): Used by Transformer.</span>
+<span class="sd">            - gru_gating (:obj:`bool`): Used by Transformer.</span>
+<span class="sd">            - gru_bias (:obj:`float`): Used by Transformer.</span>
+<span class="sd">            - dueling (:obj:`bool`): Used by Head. Make the head dueling.</span>
+<span class="sd">            - encoder_hidden_size_list(:obj:`SequenceType`): Used by Encoder. The collection of ``hidden_size`` if using</span>
+<span class="sd">              a custom convolutional encoder.</span>
+<span class="sd">            - encoder_norm_type (:obj:`Optional[str]`): Used by Encoder. The type of normalization to use, see</span>
+<span class="sd">             ``ding.torch_utils.fc_block`` for more details`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GTrXLDiscreteHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">GTrXL</span><span class="p">(</span>
+            <span class="n">input_dim</span><span class="o">=</span><span class="n">obs_shape</span><span class="p">,</span>
+            <span class="n">head_dim</span><span class="o">=</span><span class="n">att_head_dim</span><span class="p">,</span>
+            <span class="n">embedding_dim</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">head_num</span><span class="o">=</span><span class="n">att_head_num</span><span class="p">,</span>
+            <span class="n">mlp_num</span><span class="o">=</span><span class="n">att_mlp_num</span><span class="p">,</span>
+            <span class="n">layer_num</span><span class="o">=</span><span class="n">att_layer_num</span><span class="p">,</span>
+            <span class="n">memory_len</span><span class="o">=</span><span class="n">memory_len</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+            <span class="n">dropout_ratio</span><span class="o">=</span><span class="n">dropout</span><span class="p">,</span>
+            <span class="n">gru_gating</span><span class="o">=</span><span class="n">gru_gating</span><span class="p">,</span>
+            <span class="n">gru_bias</span><span class="o">=</span><span class="n">gru_bias</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="c1"># replace the embedding layer of Transformer with Conv Encoder</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">encoder_hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">hidden_size</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span>
+                <span class="n">obs_shape</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">encoder_norm_type</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">use_embedding_layer</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">, please customize your own GTrXL&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="c1"># Head Type</span>
+        <span class="k">if</span> <span class="n">dueling</span><span class="p">:</span>
+            <span class="n">head_cls</span> <span class="o">=</span> <span class="n">DuelingHead</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">head_cls</span> <span class="o">=</span> <span class="n">DiscreteHead</span>
+        <span class="n">multi_head</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">multi_head</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">MultiHead</span><span class="p">(</span>
+                <span class="n">head_cls</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">action_shape</span><span class="p">,</span>
+                <span class="n">layer_num</span><span class="o">=</span><span class="n">head_layer_num</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                <span class="n">norm_type</span><span class="o">=</span><span class="n">head_norm_type</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">head_cls</span><span class="p">(</span>
+                <span class="n">hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">head_norm_type</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Let input tensor go through GTrXl and the Head sequentially.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): input tensor of shape (seq_len, bs, obs_shape).</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - out (:obj:`Dict`): run ``GTrXL`` with ``DiscreteHead`` setups and return the result prediction dictionary.</span>
+<span class="sd">            Necessary Keys:</span>
+<span class="sd">                - logit (:obj:`torch.Tensor`): discrete Q-value output of each action dimension.</span>
+<span class="sd">                 Shape is (bs, action_space)</span>
+<span class="sd">                - memory (:obj:`torch.Tensor`):</span>
+<span class="sd">                memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``</span>
+<span class="sd">                - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; # Init input&#39;s Keys:</span>
+<span class="sd">            &gt;&gt;&gt; obs_dim, seq_len, bs, action_dim = 128, 64, 32, 4</span>
+<span class="sd">            &gt;&gt;&gt; obs = torch.rand(seq_len, bs, obs_dim)</span>
+<span class="sd">            &gt;&gt;&gt; model = GTrXLDiscreteHead(obs_dim, action_dim)</span>
+<span class="sd">            &gt;&gt;&gt; outputs = model(obs)</span>
+<span class="sd">            &gt;&gt;&gt; assert isinstance(outputs, dict)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="c1"># 3d obs: cur_seq, bs, ch, h, w</span>
+            <span class="n">x_</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]))</span>
+            <span class="n">x_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_encoder</span><span class="p">(</span><span class="n">x_</span><span class="p">))</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">o1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">o1</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">])</span>
+        <span class="c1"># layer_num+1 x memory_len x bs embedding_dim -&gt; bs x layer_num+1 x memory_len x embedding_dim</span>
+        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;memory&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">o1</span><span class="p">[</span><span class="s1">&#39;memory&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">permute</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;transformer_out&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">o1</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>  <span class="c1"># output of gtrxl, out[&#39;logit&#39;] is final output</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">def</span> <span class="nf">reset_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Clear or set the memory of GTrXL.</span>
+<span class="sd">         Arguments:</span>
+<span class="sd">            - batch_size (:obj:`Optional[int]`): batch size</span>
+<span class="sd">            - state (:obj:`Optional[torch.Tensor]`): input memory.</span>
+<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">reset_memory</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the memory of GTrXL.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.</span>
+<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_memory</span><span class="p">()</span>
 
 
 <span class="k">class</span> <span class="nc">GeneralQNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
