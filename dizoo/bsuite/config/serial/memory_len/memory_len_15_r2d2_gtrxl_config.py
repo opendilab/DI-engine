@@ -4,12 +4,12 @@ from ding.entry import serial_pipeline
 collector_env_num = 8
 evaluator_env_num = 1
 memory_len_r2d2_gtrxl_config = dict(
-    exp_name='memory_len_22_r2d2_gtrxl',
+    exp_name='memory_len_15_r2d2_gtrxl',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=100,
-        env_id='memory_len/22',  # 100 memory steps, 101 obs per episode
+        n_evaluator_episode=20,
+        env_id='memory_len/15',  # 30 memory steps, 31 obs per episode
         stop_value=1.,
     ),
     policy=dict(
@@ -19,27 +19,28 @@ memory_len_r2d2_gtrxl_config = dict(
         model=dict(
             obs_shape=3,
             action_shape=2,
-            memory_len=2,
+            memory_len=0,
             hidden_size=64,
             gru_bias=1.
         ),
         discount_factor=0.997,
         nstep=2,
-        unroll_len=103,
-        seq_len=103,
         burnin_step=0,
+        unroll_len=35,
+        seq_len=33,  # for better converge should be > memory steps=30
         learn=dict(
             update_per_collect=8,
             batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
+            init_memory='old',  # 'zero' or 'old', how to initialize the memory
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             each_iter_n_sample=32,
             env_num=collector_env_num,
         ),
-        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=100, )),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=10, )),
         other=dict(
             eps=dict(
                 type='exp',

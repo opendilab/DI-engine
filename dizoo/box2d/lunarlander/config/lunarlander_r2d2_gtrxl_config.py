@@ -9,7 +9,7 @@ lunarlander_r2d2_gtrxl_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        stop_value=195,
+        stop_value=200,
         env_id='LunarLander-v2',
     ),
     policy=dict(
