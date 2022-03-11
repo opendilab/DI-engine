@@ -9,7 +9,7 @@ from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
 from .base_env_manager import BaseEnvManager
-
+from .base_env_manager import EnvState
 
 @ENV_MANAGER_REGISTRY.register('gym_vector')
 class GymVectorEnvManager(BaseEnvManager):
@@ -18,7 +18,7 @@ class GymVectorEnvManager(BaseEnvManager):
         Create an GymVectorEnvManager to manage multiple environments.
         Each Environment is run by a respective subprocess.
     Interfaces:
-        seed, ready_obs, step, reset
+        seed, ready_obs, step, reset, close
     """
     config = dict(shared_memory=False, )
 
@@ -68,3 +68,18 @@ class GymVectorEnvManager(BaseEnvManager):
         # TODO dynamic_seed
         self.env_manager.seed(seed)
         logging.warning("gym env doesn't support dynamic_seed in different episode")
+
+    def close(self) -> None:
+        """
+        Overview:
+            Release the environment resources
+            Since not calling super.__init__, no need to release BaseEnvManager's resources
+        """
+        if self._closed:
+            return
+        self._closed = True
+        self.env_manager.close()
+        self.env_manager.close_extras(terminate = True)
+
+
+#TODO(lwq): check close method; add unittest and ask questions in WeCom group
