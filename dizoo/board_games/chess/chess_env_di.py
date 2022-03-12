@@ -9,7 +9,9 @@ from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
 
-
+"""
+Adapte Chess to DI-engine from pettingzoo: https://github.com/Farama-Foundation/PettingZoo
+"""
 @ENV_REGISTRY.register('ChessDI')
 class ChessDIEnv(BaseGameEnv):
     def __init__(self, cfg=None):

@@ -1,4 +1,3 @@
-import go
 import sys
 from dizoo.board_games.base_game_env import BaseGameEnv
 from ding.envs import BaseEnv, BaseEnvInfo, BaseEnvTimestep
@@ -23,6 +22,9 @@ def get_image(path):
     return sfc
 
 
+"""
+Adapte Go to DI-engine from pettingzoo: https://github.com/Farama-Foundation/PettingZoo
+"""
 @ENV_REGISTRY.register('GoDI')
 class GoDIEnv(BaseGameEnv):
     def __init__(self, board_size: int = 19, komi: float = 7.5):
