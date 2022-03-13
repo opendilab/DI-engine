@@ -59,6 +59,8 @@ def serial_pipeline_sqil(
     expert_cfg = compile_config(
         expert_cfg, seed=seed, env=env_fn, auto=True, create_cfg=expert_create_cfg, save_cfg=True
     )
+    # expert config must have the same `n_sample`. The line below ensure we do not need to modify the expert configs
+    expert_cfg.policy.collect.n_sample = cfg.policy.collect.n_sample
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)

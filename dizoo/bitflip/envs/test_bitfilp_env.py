@@ -13,7 +13,12 @@ def test_bitfilp_env():
     obs = env.reset()
     assert obs.shape == (2 * n_bits, )
     for i in range(10):
-        action = np.random.randint(0, n_bits, size=(1, ))
+        # Both ``env.random_action()``, and utilizing ``np.random`` as well as action space,
+        # can generate legal random action.
+        if i < 5:
+            action = np.random.randint(0, n_bits, size=(1, ))
+        else:
+            action = env.random_action()
         timestep = env.step(action)
         assert timestep.obs.shape == (2 * n_bits, )
         assert timestep.reward.shape == (1, )
