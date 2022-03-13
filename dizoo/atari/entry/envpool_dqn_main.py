@@ -4,22 +4,18 @@ from tensorboardX import SummaryWriter
 from easydict import EasyDict
 from copy import deepcopy
 from functools import partial
+import envpool
+import numpy as np
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
-from ding.envs import SyncSubprocessEnvManager
+from ding.envs import SyncSubprocessEnvManager, BaseEnvTimestep
 from ding.policy import DQNPolicy
 from ding.model import DQN
 from ding.utils import set_pkg_seed, deep_merge_dicts
 from ding.rl_utils import get_epsilon_greedy_fn
 from dizoo.atari.envs import AtariEnv
 from dizoo.atari.config.serial.pong.pong_dqn_config import pong_dqn_config
-
-import envpool
-import numpy as np
-from easydict import EasyDict
-from copy import deepcopy
-from ding.envs import BaseEnvTimestep
 
 
 class PoolEnvManager:
@@ -28,21 +24,13 @@ class PoolEnvManager:
     def default_config(cls):
         return EasyDict(deepcopy(cls.config))
 
-    config = dict(type='pool', )
+    config = dict(type='envpool', )
 
     def __init__(self, cfg):
         self._cfg = cfg
         self._env_num = cfg.env_num
         self._batch_size = cfg.batch_size
         self._ready_obs = None
-
-    @property
-    def env_num(self):
-        return self._env_num
-
-    @property
-    def ready_obs(self):
-        return self._ready_obs
 
     def launch(self):
         self._envs = envpool.make(self._cfg.env_id, env_type="gym", num_envs=self._env_num, batch_size=self._batch_size)
@@ -81,6 +69,14 @@ class PoolEnvManager:
     def seed(self, seed, dynamic_seed=False):
         pass
 
+    @property
+    def env_num(self):
+        return self._env_num
+
+    @property
+    def ready_obs(self):
+        return self._ready_obs
+
 
 def main(cfg, seed=0, max_iterations=int(1e10)):
     cfg.exp_name = 'atari_dqn_envpool'
@@ -95,8 +91,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         save_cfg=True
     )
     cfg.env.env_id = 'Pong-v5'
-    cfg.env.collector_batch_size = cfg.env.collector_env_num
-    cfg.env.evaluator_batch_size = cfg.env.evaluator_env_num
+    # Sync  mode: batch_size == env_num
+    # Async mode: batch_size <  env_num
+    cfg.env.collector_batch_size = cfg.env.collector_env_num - 2
+    cfg.env.evaluator_batch_size = cfg.env.evaluator_env_num - 2
     collector_env_cfg = EasyDict(
         {
             'env_id': cfg.env.env_id,
