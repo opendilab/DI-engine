@@ -26,6 +26,7 @@ class PositionalEmbedding(nn.Module):
         inv_freq = 1 / (10000 ** (torch.arange(0.0, embedding_dim, 2.0) / embedding_dim))  # (embedding_dim / 2)
         self.register_buffer('inv_freq', inv_freq)
 
+    @profile
     def forward(self, pos_seq: torch.Tensor):
         """
         Overview:
@@ -68,6 +69,7 @@ class GRUGatingUnit(torch.nn.Module):
         self.sigmoid = torch.nn.Sigmoid()
         self.tanh = torch.nn.Tanh()
 
+    @profile
     def forward(self, x: torch.Tensor, y: torch.Tensor):
         """
         Overview:
@@ -117,6 +119,7 @@ class Memory:
         self.memory = None
         self.init(memory)
 
+    @profile
     def init(self, memory: Optional[torch.Tensor] = None):
         """
         Overview:
@@ -135,6 +138,7 @@ class Memory:
                 self.layer_num + 1, self.memory_len, self.bs, self.embedding_dim, dtype=torch.float
             )
 
+    @profile
     def update(self, hidden_state: List[torch.Tensor]):
         """
         Overview:
@@ -169,6 +173,7 @@ class Memory:
         self.memory = new_memory
         return new_memory
 
+    @profile
     def get(self):
         """
         Overview:
@@ -179,6 +184,7 @@ class Memory:
         """
         return self.memory
 
+    @profile
     def to(self, device: str = 'cpu'):
         self.memory = self.memory.to(device)
 
@@ -208,6 +214,7 @@ class AttentionXL(torch.nn.Module):
         self.project_pos = fc_block(input_dim, head_dim * head_num)  # project the positional embedding
         self.scale = 1 / (head_dim ** 0.5)  # for scaled dot product attention
 
+    @profile
     def _rel_shift(self, x: torch.Tensor):
         """
         Overview:
@@ -237,6 +244,7 @@ class AttentionXL(torch.nn.Module):
         x = x * torch.tril(ones.to(x.device), x.size(3) - x.size(2))  # step 4
         return x
 
+    @profile
     def forward(
             self,
             inputs: torch.Tensor,
@@ -357,6 +365,7 @@ class GatedTransformerXLLayer(torch.nn.Module):
         self.layernorm2 = build_normalization('LN')(input_dim)
         self.activation = activation
 
+    @profile
     def forward(
             self,
             inputs: torch.Tensor,
@@ -464,6 +473,7 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
         )
 
+    @profile
     def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
         r"""
         Overview:
@@ -479,6 +489,7 @@ class GTrXL(nn.Module):
         elif state is not None:
             self.memory.init(state)
 
+    @profile
     def get_memory(self):
         r"""
         Overview:
@@ -492,6 +503,7 @@ class GTrXL(nn.Module):
         else:
             return self.memory.get()
 
+    @profile
     def forward(self, x: torch.Tensor, batch_first: bool = False, return_mem: bool = True) -> Dict[str, torch.Tensor]:
         r"""
         Overview:
