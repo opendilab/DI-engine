@@ -15,6 +15,14 @@ class MazeEnv(BaseEnv):
         self._cfg = cfg
         self._seed = 0
         self._init_flag = False
+        self._observation_space = gym.spaces.Box(
+            low=np.zeros(shape=(3, 64, 64)),
+            high=np.ones(shape=(3, 64, 64)) * 255,
+            shape=(3, 64, 64),
+            dtype=np.float32
+        )
+        self._action_space = gym.spaces.Discrete(15)
+        self._reward_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -31,6 +39,7 @@ class MazeEnv(BaseEnv):
         obs = self._env.reset()
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
+        obs = obs.astype(np.float32)
         return obs
 
     def close(self) -> None:
@@ -53,7 +62,9 @@ class MazeEnv(BaseEnv):
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
+        obs = obs.astype(np.float32)
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = rew.astype(np.float32)
         return BaseEnvTimestep(obs, rew, bool(done), info)
 
     def info(self) -> BaseEnvInfo:
@@ -87,6 +98,19 @@ class MazeEnv(BaseEnv):
             ),
             use_wrappers=None,
         )
+
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
     def __repr__(self) -> str:
         return "DI-engine Maze Env"

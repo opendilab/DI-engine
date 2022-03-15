@@ -52,8 +52,8 @@ def serial_pipeline_onpolicy(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    collector_env.seed(cfg.seed)
-    evaluator_env.seed(cfg.seed, dynamic_seed=False)
+    collector_env.seed(cfg.seed, dynamic_seed=True)
+    evaluator_env.seed(cfg.seed, dynamic_seed=True)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
 
@@ -68,7 +68,7 @@ def serial_pipeline_onpolicy(
         exp_name=cfg.exp_name
     )
     evaluator = InteractionSerialEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+        cfg.policy.eval.evaluator, evaluator_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, None, policy.command_mode
@@ -98,4 +98,3 @@ def serial_pipeline_onpolicy(
     # Learner's after_run hook.
     learner.call_hook('after_run')
     return policy
-

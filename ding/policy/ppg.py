@@ -4,10 +4,10 @@ import copy
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-from ding.utils import POLICY_REGISTRY
+from ding.utils import POLICY_REGISTRY, split_data_generator, RunningMeanStd
 from ding.utils.data import default_collate, default_decollate
 from ding.torch_utils import Adam, to_device
-from ding.rl_utils import get_gae_with_default_last_value, get_train_sample, \
+from ding.rl_utils import get_gae_with_default_last_value, get_train_sample, gae, gae_data, get_gae, \
     ppo_policy_data, ppo_policy_error, ppo_value_data, ppo_value_error, ppg_data, ppg_joint_error
 from ding.model import model_wrap
 from .base_policy import Policy
@@ -93,7 +93,7 @@ class PPGPolicy(Policy):
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
-            update_per_collect=5,
+            epoch_per_collect=1,
             batch_size=64,
             learning_rate=0.001,
             # ==============================================================
@@ -105,6 +105,7 @@ class PPGPolicy(Policy):
             entropy_weight=0.01,
             # (float) PPO clip ratio, defaults to 0.2
             clip_ratio=0.2,
+            value_norm=False,
             # (bool) Whether to use advantage norm in a whole training batch
             adv_norm=False,
             # (int) The frequency(normal update times) of auxiliary phase training
@@ -127,14 +128,6 @@ class PPGPolicy(Policy):
             gae_lambda=0.95,
         ),
         eval=dict(),
-        other=dict(
-            replay_buffer=dict(
-                # PPG use two separate buffer for different reuse
-                multi_buffer=True,
-                policy=dict(replay_buffer_size=1000, ),
-                value=dict(replay_buffer_size=1000, ),
-            ),
-        ),
     )
 
     def _init_learn(self) -> None:
@@ -160,6 +153,9 @@ class PPGPolicy(Policy):
         assert not self._priority and not self._priority_IS_weight, "Priority is not implemented in PPG"
         self._value_weight = self._cfg.learn.value_weight
         self._entropy_weight = self._cfg.learn.entropy_weight
+        self._value_norm = self._cfg.learn.value_norm
+        if self._value_norm:
+            self._running_mean_std = RunningMeanStd(epsilon=1e-4, device=self._device)
         self._clip_ratio = self._cfg.learn.clip_ratio
         self._adv_norm = self._cfg.learn.adv_norm
 
@@ -184,15 +180,13 @@ class PPGPolicy(Policy):
             - data (:obj:`Dict[str, Any]`): the processed data, including at least ['done', 'weight']
         """
         # data preprocess
-        for k, data_item in data.items():
-            data_item = default_collate(data_item)
-            ignore_done = self._cfg.learn.ignore_done
-            if ignore_done:
-                data_item['done'] = None
-            else:
-                data_item['done'] = data_item['done'].float()
-            data_item['weight'] = None
-            data[k] = data_item
+        data = default_collate(data)
+        ignore_done = self._cfg.learn.ignore_done
+        if ignore_done:
+            data['done'] = None
+        else:
+            data['done'] = data['done'].float()
+        data['weight'] = None
         if self._cuda:
             data = to_device(data, self._device)
         return data
@@ -232,31 +226,57 @@ class PPGPolicy(Policy):
         # PPG forward
         # ====================
         self._learn_model.train()
-        policy_data, value_data = data['policy'], data['value']
-        policy_adv, value_adv = policy_data['adv'], value_data['adv']
-        return_ = value_data['value'] + value_adv
-        if self._adv_norm:
-            # Normalize advantage in a total train_batch
-            policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
-            value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
-        # Policy Phase(Policy)
-        policy_output = self._learn_model.forward(policy_data['obs'], mode='compute_actor')
-        policy_error_data = ppo_policy_data(
-            policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
-        )
-        ppo_policy_loss, ppo_info = ppo_policy_error(policy_error_data, self._clip_ratio)
-        policy_loss = ppo_policy_loss.policy_loss - self._entropy_weight * ppo_policy_loss.entropy_loss
-        self._optimizer_ac.zero_grad()
-        policy_loss.backward()
-        self._optimizer_ac.step()
+        return_infos = []
+        for epoch in range(self._cfg.learn.epoch_per_collect):
+            if self._value_norm:
+                unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
+                data['return'] = unnormalized_return / self._running_mean_std.std
+                self._running_mean_std.update(unnormalized_return.cpu().numpy())
+            else:
+                data['return'] = data['adv'] + data['value']
+            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+                policy_data, value_data = batch, copy.deepcopy(batch)
+                policy_adv, value_adv = policy_data['adv'], value_data['adv']
+                return_ = value_data['return']
+                if self._adv_norm:
+                    # Normalize advantage in a total train_batch
+                    policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
+                    value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
+                # Policy Phase(Policy)
+                policy_output = self._learn_model.forward(policy_data['obs'], mode='compute_actor')
+                policy_error_data = ppo_policy_data(
+                    policy_output['logit'], policy_data['logit'], policy_data['action'], policy_adv, policy_data['weight']
+                )
+                ppo_policy_loss, ppo_info = ppo_policy_error(policy_error_data, self._clip_ratio)
+                policy_loss = ppo_policy_loss.policy_loss - self._entropy_weight * ppo_policy_loss.entropy_loss
+                self._optimizer_ac.zero_grad()
+                policy_loss.backward()
+                self._optimizer_ac.step()
 
-        # Policy Phase(Value)
-        value_output = self._learn_model.forward(value_data['obs'], mode='compute_critic')
-        value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
-        value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
-        self._optimizer_aux_critic.zero_grad()
-        value_loss.backward()
-        self._optimizer_aux_critic.step()
+                # Policy Phase(Value)
+                value_output = self._learn_model.forward(value_data['obs'], mode='compute_critic')
+                value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
+                value_loss = self._value_weight * ppo_value_error(value_error_data, self._clip_ratio)
+                self._optimizer_aux_critic.zero_grad()
+                value_loss.backward()
+                self._optimizer_aux_critic.step()
+
+                self._train_iteration += 1
+
+                return_info = {
+                    'policy_cur_lr': self._optimizer_ac.defaults['lr'],
+                    'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
+                    'policy_loss': ppo_policy_loss.policy_loss.item(),
+                    'value_loss': value_loss.item(),
+                    'entropy_loss': ppo_policy_loss.entropy_loss.item(),
+                    'policy_adv_abs_max': policy_adv.abs().max().item(),
+                    'approx_kl': ppo_info.approx_kl,
+                    'clipfrac': ppo_info.clipfrac,
+                    }
+                return_infos.append(return_info)
+
+        data['return_'] = data['return']
+        self._aux_memories.append(copy.deepcopy(data))
 
         # ====================
         # PPG update
@@ -265,37 +285,24 @@ class PPGPolicy(Policy):
 
         # Auxiliary Phase
         # record data for auxiliary head
-        data = data['value']
-        data['return_'] = return_.data
-        self._aux_memories.append(copy.deepcopy(data))
 
-        self._train_iteration += 1
-        if self._train_iteration % self._cfg.learn.aux_freq == 0:
-            aux_loss, bc_loss, aux_value_loss = self.learn_aux()
-            return {
-                'policy_cur_lr': self._optimizer_ac.defaults['lr'],
-                'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
-                'policy_loss': ppo_policy_loss.policy_loss.item(),
-                'value_loss': value_loss.item(),
-                'entropy_loss': ppo_policy_loss.entropy_loss.item(),
-                'policy_adv_abs_max': policy_adv.abs().max().item(),
-                'approx_kl': ppo_info.approx_kl,
-                'clipfrac': ppo_info.clipfrac,
-                'aux_value_loss': aux_value_loss,
-                'auxiliary_loss': aux_loss,
-                'behavioral_cloning_loss': bc_loss,
-            }
-        else:
-            return {
-                'policy_cur_lr': self._optimizer_ac.defaults['lr'],
-                'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
-                'policy_loss': ppo_policy_loss.policy_loss.item(),
-                'value_loss': value_loss.item(),
-                'entropy_loss': ppo_policy_loss.entropy_loss.item(),
-                'policy_adv_abs_max': policy_adv.abs().max().item(),
-                'approx_kl': ppo_info.approx_kl,
-                'clipfrac': ppo_info.clipfrac,
-            }
+        
+        aux_loss, bc_loss, aux_value_loss = self.learn_aux()
+        return_info = {
+            'policy_cur_lr': self._optimizer_ac.defaults['lr'],
+            'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
+            'policy_loss': ppo_policy_loss.policy_loss.item(),
+            'value_loss': value_loss.item(),
+            'entropy_loss': ppo_policy_loss.entropy_loss.item(),
+            'policy_adv_abs_max': policy_adv.abs().max().item(),
+            'approx_kl': ppo_info.approx_kl,
+            'clipfrac': ppo_info.clipfrac,
+            'aux_value_loss': aux_value_loss,
+            'auxiliary_loss': aux_loss,
+            'behavioral_cloning_loss': bc_loss,
+        }
+        return_infos.append(return_info)
+        return return_infos
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         r"""
@@ -380,6 +387,7 @@ class PPGPolicy(Policy):
         """
         transition = {
             'obs': obs,
+            'next_obs': timestep.obs,
             'logit': model_output['logit'],
             'action': model_output['action'],
             'value': model_output['value'],
@@ -397,17 +405,35 @@ class PPGPolicy(Policy):
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """
-        data = get_gae_with_default_last_value(
+        data = to_device(data, self._device)
+        if self._cfg.learn.ignore_done:
+            data[-1]['done'] = False
+
+        if data[-1]['done']:
+            last_value = torch.zeros_like(data[-1]['value'])
+        else:
+            with torch.no_grad():
+                last_value = self._collect_model.forward(
+                    data[-1]['next_obs'].unsqueeze(0), mode='compute_actor_critic'
+                )['value']
+        if self._value_norm:
+            last_value *= self._running_mean_std.std
+            for i in range(len(data)):
+                data[i]['value'] *= self._running_mean_std.std
+        data = get_gae(
             data,
-            data[-1]['done'],
+            to_device(last_value, self._device),
             gamma=self._gamma,
             gae_lambda=self._gae_lambda,
             cuda=False,
         )
-        data = get_train_sample(data, self._unroll_len)
-        for d in data:
-            d['buffer_name'] = ["policy", "value"]
-        return data
+        if self._value_norm:
+            for i in range(len(data)):
+                data[i]['value'] /= self._running_mean_std.std
+        
+        for i in range(len(data)):
+            data[i].pop('next_obs')
+        return get_train_sample(data, self._unroll_len)
 
     def _get_batch_size(self) -> Dict[str, int]:
         """
@@ -520,7 +546,7 @@ class PPGPolicy(Policy):
         data['action'] = torch.cat(actions)
         data['return_'] = torch.cat(return_)
         data['value'] = torch.cat(old_values)
-        data['weight'] = torch.cat(weights)
+        data['weight'] = torch.cat(weights).float()
         # compute current policy logit_old
         with torch.no_grad():
             data['logit_old'] = self._model.forward(data['obs'], mode='compute_actor')['logit']

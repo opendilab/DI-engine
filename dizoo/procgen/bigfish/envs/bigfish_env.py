@@ -8,8 +8,23 @@ from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
 
-@ENV_REGISTRY.register('coinrun')
-class CoinRunEnv(BaseEnv):
+def disable_gym_view_window():
+    from gym.envs.classic_control import rendering
+    import pyglet
+
+    def get_window(width, height, display):
+        screen = display.get_screens()
+        config = screen[0].get_best_config()
+        context = config.create_context(None)
+        return pyglet.window.Window(
+            width=width, height=height, display=display, config=config, context=context, visible=False
+        )
+
+    rendering.get_window = get_window
+
+
+@ENV_REGISTRY.register('bigfish')
+class BigfishEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
@@ -28,15 +43,15 @@ class CoinRunEnv(BaseEnv):
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make('procgen:procgen-coinrun-v0', start_level=0, num_levels=1)
+            self._env = gym.make('procgen:procgen-bigfish-v0', start_level=0, num_levels=1)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.close()
-            self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed + np_seed, num_levels=1)
+            self._env = gym.make('procgen:procgen-bigfish-v0', start_level=self._seed + np_seed, num_levels=1)
         elif hasattr(self, '_seed'):
             self._env.close()
-            self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed, num_levels=1)
+            self._env = gym.make('procgen:procgen-bigfish-v0', start_level=self._seed, num_levels=1)
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
@@ -101,6 +116,7 @@ class CoinRunEnv(BaseEnv):
             use_wrappers=None,
         )
 
+
     @property
     def observation_space(self) -> gym.spaces.Space:
         return self._observation_space
@@ -113,6 +129,7 @@ class CoinRunEnv(BaseEnv):
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
 
+
     def __repr__(self) -> str:
         return "DI-engine CoinRun Env"
 
@@ -120,6 +137,8 @@ class CoinRunEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
+        # this function can lead to the meaningless result
+        # disable_gym_view_window()
         self._env = gym.wrappers.Monitor(
             self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
         )
