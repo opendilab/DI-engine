@@ -5,13 +5,13 @@ from copy import deepcopy
 import numpy as np
 from collections import namedtuple
 from typing import Any, Union, List, Tuple, Dict, Callable, Optional
+import logging
 try:
     import envpool
 except ImportError:
-    import logging
     import sys
     logging.warning("Please install envpool first, use 'pip install envpool'")
-    sys.exit(1)
+    # sys.exit(1)
 
 from ding.envs import BaseEnvTimestep
 from ding.utils import ENV_MANAGER_REGISTRY
@@ -24,7 +24,7 @@ class PoolEnvManager:
         Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
         Here we list some commonly used env_ids as follows.
         For more examples, you can refer to <https://envpool.readthedocs.io/en/latest/api/atari.html>.
-        
+
         - Atari: "Pong-v5", "SpaceInvaders-v5", "Qbert-v5"
         - Classic Control: "CartPole-v0", "CartPole-v1", "Pendulum-v0"
     '''
