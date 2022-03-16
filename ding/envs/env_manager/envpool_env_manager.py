@@ -21,7 +21,10 @@ from ding.utils import ENV_MANAGER_REGISTRY
 class PoolEnvManager:
     '''
     Overview:
-        Envpool now supports Atari, Classic Control, Toy Text, ViZDoom. Here we list some commonly used env_ids as follows. For more examples, you can refer to <https://envpool.readthedocs.io/en/latest/api/atari.html>.
+        Envpool now supports Atari, Classic Control, Toy Text, ViZDoom.
+        Here we list some commonly used env_ids as follows.
+        For more examples, you can refer to <https://envpool.readthedocs.io/en/latest/api/atari.html>.
+        
         - Atari: "Pong-v5", "SpaceInvaders-v5", "Qbert-v5"
         - Classic Control: "CartPole-v0", "CartPole-v1", "Pendulum-v0"
     '''

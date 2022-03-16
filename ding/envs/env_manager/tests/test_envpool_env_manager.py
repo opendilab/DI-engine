@@ -1,7 +1,5 @@
 import time
-import signal
 import pytest
-import torch
 import numpy as np
 from easydict import EasyDict
 
