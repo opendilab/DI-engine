@@ -49,14 +49,11 @@ pong_dqn_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
-    # replay_buffer=dict(type='deque'),
 )
 pong_dqn_create_config = EasyDict(pong_dqn_create_config)
 create_config = pong_dqn_create_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pong_dqn_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)
-
-# Alternatively, one can be opt to run the following command to directly execute this config file
-# ding -m serial -c pong_dqn_config.py -s 0
