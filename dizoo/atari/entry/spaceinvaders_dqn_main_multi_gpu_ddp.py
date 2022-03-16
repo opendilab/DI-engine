@@ -7,7 +7,7 @@ from ding.policy import DQNPolicy
 from ding.model import DQN
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
-from dizoo.atari.config.serial.spaceinvaders.spaceinvaders_dqn_config_multi_gpu_ddp import space_invaders_dqn_config, create_config
+from dizoo.atari.config.serial.spaceinvaders.spaceinvaders_dqn_config_multi_gpu_ddp import spaceinvaders_dqn_config, create_config
 from ding.utils import DistContext
 from functools import partial
 from ding.envs import get_vec_env_setting, create_env_manager
@@ -68,4 +68,4 @@ def main(cfg, create_cfg, seed=0):
 
 if __name__ == "__main__":
     with DistContext():
-        main(space_invaders_dqn_config, create_config)
+        main(spaceinvaders_dqn_config, create_config)

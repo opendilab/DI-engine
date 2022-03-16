@@ -61,6 +61,8 @@ create_config = qbert_sqil_create_config
 
 if __name__ == '__main__':
     # or you can enter `ding -m serial_sqil -c qbert_sqil_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. qbert_dqn_config.py
     from ding.entry import serial_pipeline_sqil
     from dizoo.atari.config.serial.qbert import qbert_dqn_config, qbert_dqn_create_config
     expert_main_config = qbert_dqn_config

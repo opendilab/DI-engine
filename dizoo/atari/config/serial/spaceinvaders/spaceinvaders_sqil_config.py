@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-space_invaders_sqil_config = dict(
+spaceinvaders_sqil_config = dict(
     exp_name='spaceinvaders_sqil_seed0',
     env=dict(
         collector_env_num=8,
@@ -43,9 +43,9 @@ space_invaders_sqil_config = dict(
         ),
     ),
 )
-space_invaders_sqil_config = EasyDict(space_invaders_sqil_config)
-main_config = space_invaders_sqil_config
-space_invaders_sqil_create_config = dict(
+spaceinvaders_sqil_config = EasyDict(spaceinvaders_sqil_config)
+main_config = spaceinvaders_sqil_config
+spaceinvaders_sqil_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -53,13 +53,15 @@ space_invaders_sqil_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='sql'),
 )
-space_invaders_sqil_create_config = EasyDict(space_invaders_sqil_create_config)
-create_config = space_invaders_sqil_create_config
+spaceinvaders_sqil_create_config = EasyDict(spaceinvaders_sqil_create_config)
+create_config = spaceinvaders_sqil_create_config
 
 if __name__ == '__main__':
     # or you can enter `ding -m serial_sqil -c spaceinvaders_sqil_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. spaceinvaders_dqn_config.py
     from ding.entry import serial_pipeline_sqil
-    from dizoo.atari.config.serial.spaceinvaders import space_invaders_dqn_config, space_invaders_dqn_create_config
-    expert_main_config = space_invaders_dqn_config
-    expert_create_config = space_invaders_dqn_create_config
+    from dizoo.atari.config.serial.spaceinvaders import spaceinvaders_dqn_config, spaceinvaders_dqn_create_config
+    expert_main_config = spaceinvaders_dqn_config
+    expert_create_config = spaceinvaders_dqn_create_config
     serial_pipeline_sqil([main_config, create_config], [expert_main_config, expert_create_config], seed=0)
