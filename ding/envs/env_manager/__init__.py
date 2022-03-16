@@ -1,3 +1,4 @@
 from .base_env_manager import BaseEnvManager, create_env_manager, get_env_manager_cls
+from .envpool_env_manager import PoolEnvManager
 from .subprocess_env_manager import AsyncSubprocessEnvManager, SyncSubprocessEnvManager
 from .gym_vector_env_manager import GymVectorEnvManager

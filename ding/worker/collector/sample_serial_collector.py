@@ -239,6 +239,10 @@ class SampleSerialCollector(ISerialCollector):
             # TODO(nyz) vectorize this for loop
             for env_id, timestep in timesteps.items():
                 with self._timer:
+                    # In async mode, this env is reset successfully just now.
+                    if self._obs_pool[env_id] is None:
+                        self._obs_pool.update({env_id: timestep.obs})
+                        continue
                     if timestep.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
                         # suppose there is no reset param, just reset this env
