@@ -1,8 +1,8 @@
 from copy import deepcopy
 from easydict import EasyDict
 
-space_invaders_trex_dqn_config = dict(
-    exp_name='space_invaders_trex_dqn',
+spaceinvaders_trex_dqn_config = dict(
+    exp_name='spaceinvaders_trex_dqn',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -57,9 +57,9 @@ space_invaders_trex_dqn_config = dict(
         ),
     ),
 )
-space_invaders_trex_dqn_config = EasyDict(space_invaders_trex_dqn_config)
-main_config = space_invaders_trex_dqn_config
-space_invaders_trex_dqn_create_config = dict(
+spaceinvaders_trex_dqn_config = EasyDict(spaceinvaders_trex_dqn_config)
+main_config = spaceinvaders_trex_dqn_config
+spaceinvaders_trex_dqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -67,5 +67,5 @@ space_invaders_trex_dqn_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
-space_invaders_trex_dqn_create_config = EasyDict(space_invaders_trex_dqn_create_config)
-create_config = space_invaders_trex_dqn_create_config
+spaceinvaders_trex_dqn_create_config = EasyDict(spaceinvaders_trex_dqn_create_config)
+create_config = spaceinvaders_trex_dqn_create_config

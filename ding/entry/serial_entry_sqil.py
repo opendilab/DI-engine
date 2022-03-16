@@ -78,7 +78,7 @@ def serial_pipeline_sqil(
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     expert_policy.collect_mode.load_state_dict(
-        torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu')
+        torch.load(cfg.policy.collect.model_path, map_location='cpu')
     )
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-space_invaders_dqfd_config = dict(
-    exp_name='space_invaders_dqfd',
+spaceinvaders_dqfd_config = dict(
+    exp_name='spaceinvaders_dqfd',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -46,9 +46,9 @@ space_invaders_dqfd_config = dict(
         ),
     ),
 )
-space_invaders_dqfd_config = EasyDict(space_invaders_dqfd_config)
-main_config = space_invaders_dqfd_config
-space_invaders_dqfd_create_config = dict(
+spaceinvaders_dqfd_config = EasyDict(spaceinvaders_dqfd_config)
+main_config = spaceinvaders_dqfd_config
+spaceinvaders_dqfd_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -56,5 +56,5 @@ space_invaders_dqfd_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqfd'),
 )
-space_invaders_dqfd_create_config = EasyDict(space_invaders_dqfd_create_config)
-create_config = space_invaders_dqfd_create_config
+spaceinvaders_dqfd_create_config = EasyDict(spaceinvaders_dqfd_create_config)
+create_config = spaceinvaders_dqfd_create_config
