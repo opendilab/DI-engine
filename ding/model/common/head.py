@@ -542,7 +542,6 @@ class StochasticDuelingHead(nn.Module):
     def __init__(
         self,
         hidden_size: int,
-        output_size: int,
         action_shape: int,
         layer_num: int = 1,
         a_layer_num: Optional[int] = None,
@@ -550,22 +549,22 @@ class StochasticDuelingHead(nn.Module):
         activation: Optional[nn.Module] = nn.ReLU(),
         norm_type: Optional[str] = None,
         noise: Optional[bool] = False,
+        last_tanh: Optional[bool] = True,
     ) -> None:
         """
         Overview:
-            The Stochastic Dueling Network proposed in paper ACER (arxiv 1611.01224) \
-            Initialize the head according to arguments.
+            The Stochastic Dueling Network proposed in paper ACER (arxiv 1611.01224), dueling netwowrk architecture in \
+            continuous action space. Initialize the head according to input arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``StochasticDuelingHead``
-            - output_size (:obj:`int`): The num of output, usually action shape
-            - a_layer_num (:obj:`int`): The num of layers used in the network to compute action output
-            - v_layer_num (:obj:`int`): The num of layers used in the network to compute value output
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+            - hidden_size (:obj:`int`): The num of observation embedding size.
+            - action_shape (:obj:`int`): The num of continuous action shape, usually integer value.
+            - a_layer_num (:obj:`int`): The num of layers used in the network to compute action output.
+            - v_layer_num (:obj:`int`): The num of layers used in the network to compute value output.
+            - activation (:obj:`nn.Module`): The type of activation function to use in ``MLP`` after ``layer_fn``, \
                 if ``None`` then default set to ``nn.ReLU()``
-            - norm_type (:obj:`str`):
-                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
-            - noise (:obj:`bool`): Whether use noisy ``fc_block``
+            - norm_type (:obj:`str`): The type of normalization to use, see ``ding.torch_utils.fc_block`` for \
+                more details.
+            - noise (:obj:`bool`): Whether to use noisy ``fc_block`` for more exploration.
         """
         super(StochasticDuelingHead, self).__init__()
         if a_layer_num is None:
@@ -577,13 +576,13 @@ class StochasticDuelingHead(nn.Module):
         self.A = nn.Sequential(
             MLP(
                 hidden_size + action_shape,
-                hidden_size + action_shape,
-                hidden_size + action_shape,
+                hidden_size,
+                hidden_size,
                 a_layer_num,
                 layer_fn=layer,
                 activation=activation,
                 norm_type=norm_type
-            ), block(hidden_size + action_shape, output_size)
+            ), block(hidden_size, 1)
         )
         self.V = nn.Sequential(
             MLP(
@@ -596,58 +595,59 @@ class StochasticDuelingHead(nn.Module):
                 norm_type=norm_type
             ), block(hidden_size, 1)
         )
+        if last_tanh:
+            self.tanh = nn.Tanh()
+        else:
+            self.tanh = None
 
     def forward(
             self,
             s: torch.Tensor,
             a: torch.Tensor,
-            mu_t: torch.Tensor,
-            sigma_t: torch.Tensor,
-            sample_size: int = 10
-    ) -> Dict:
-        r"""
+            mu: torch.Tensor,
+            sigma: torch.Tensor,
+            sample_size: int = 10,
+    ) -> Dict[str, torch.Tensor]:
+        """
         Overview:
-            Use encoded embedding tensor to predict Dueling output.
-            Parameter updates with DuelingHead's MLPs forward setup.
+            Use encoded observation, behaviour action and sampled actions with (mu, sigma) output by actor head \
+            at current timestep to get dueling Q-value, i.e. continuous dueling head.
         Arguments:
-            - s (:obj:`torch.Tensor`):
-                The encoded embedding state tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-            - a (:obj:`torch.Tensor`):
-                The encoded embedding action tensor, determined with ``action_size``, i.e. ``(B, N=action_size)``.
-            - mu_t (:obj:`torch.Tensor`):
-                The mu output of actor head at timestep t, size (B, action_size)
-            - sigma_t (:obj:`torch.Tensor`):
-                The sigma output of actor head at timestep t, size (B, action_size)
-            - sample_size (:obj:`int`):
-                The num to samples for action when computing the Q value
+            - s (:obj:`torch.Tensor`): The encoded embedding state tensor, determined with given ``hidden_size``, \
+                i.e. shape is ``(B, N=hidden_size)``.
+            - a (:obj:`torch.Tensor`): The original continuous behaviour action, determined with ``action_size`` \
+                i.e. shape is ``(B, N=action_size)``.
+            - mu (:obj:`torch.Tensor`):
+                The mu gaussian reparameterization output of actor head at current timestep, size (B, action_size)
+            - sigma (:obj:`torch.Tensor`):
+                The sigma gaussian reparameterization output of actor head at current timestep, size (B, action_size)
+            - sample_size (:obj:`int`): The number of samples for continuous action when computing the Q value
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``StochasticDuelingHead`` setups and return the result prediction dictionary.
-                Necessary Keys:
-                    - pred (:obj:`torch.Tensor`): Pred tensor of size ``(B, 1)``.
+            - outputs (:obj:`Dict[str, torch.Tensor]`): Output dict data, including q_value and v_value tensor, \
+                and their shape is ``(B, 1)``.
         """
 
-        batch_size = s.shape[0]  # batch size * T
+        batch_size = s.shape[0]  # batch_size or batch_size * T
         hidden_size = s.shape[1]
         action_size = a.shape[1]
         state_cat_action = torch.cat((s, a), dim=1)  # size (B, action_size + state_size)
         a_value = self.A(state_cat_action)  # size (B, 1)
-        v_value = self.V(s)  # size (B,1)
+        v_value = self.V(s)  # size (B, 1)
         # size (B, sample_size, hidden_size)
         expand_s = (torch.unsqueeze(s, 1)).expand((batch_size, sample_size, hidden_size))
 
         # in case for gradient back propagation
-        dist = Independent(Normal(mu_t, sigma_t), 1)
-        action_sample_pred = dist.rsample(sample_shape=(sample_size, ))
-        action_sample = torch.tanh(action_sample_pred)
+        dist = Independent(Normal(mu, sigma), 1)
+        action_sample = dist.rsample(sample_shape=(sample_size, ))
+        if self.tanh:
+            action_sample = self.tanh(action_sample)
         # (sample_size, B, action_size)->(B, sample_size, action_size)
         action_sample = action_sample.permute(1, 0, 2)
 
         # size (B, sample_size, action_size + hidden_size)
         state_cat_action_sample = torch.cat((expand_s, action_sample), dim=-1)
         a_val_sample = self.A(state_cat_action_sample)  # size (B, sample_size, 1)
-        a_val_sample = torch.squeeze(a_val_sample, -1)  # (B, sample_size)
-        q_value = v_value + a_value - a_val_sample.mean(dim=-1, keepdim=True)  # size (B,1)
+        q_value = v_value + a_value - a_val_sample.mean(dim=1)  # size (B, 1)
 
         return {'q_value': q_value, 'v_value': v_value}
 

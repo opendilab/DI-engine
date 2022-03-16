@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pytest
 
-from ding.model.common.head import DuelingHead, ReparameterizationHead, MultiHead
+from ding.model.common.head import DuelingHead, ReparameterizationHead, MultiHead, StochasticDuelingHead
 from ding.torch_utils import is_differentiable
 
 B = 4
@@ -67,3 +67,20 @@ class TestHead:
         self.output_check(head, outputs['logit'])
         for i, d in enumerate(output_size_list):
             assert outputs['logit'][i].shape == (B, d)
+
+    @pytest.mark.tmp
+    def test_stochastic_dueling(self):
+        obs = torch.randn(B, embedding_dim)
+        behaviour_action = torch.randn(B, action_shape).clamp(-1, 1)
+        mu = torch.randn(B, action_shape).requires_grad_(True)
+        sigma = torch.rand(B, action_shape).requires_grad_(True)
+        model = StochasticDuelingHead(embedding_dim, action_shape, 3, 3)
+
+        assert mu.grad is None and sigma.grad is None
+        outputs = model(obs, behaviour_action, mu, sigma)
+        self.output_check(model, outputs['q_value'])
+        assert isinstance(mu.grad, torch.Tensor)
+        print(mu.grad)
+        assert isinstance(sigma.grad, torch.Tensor)
+        assert outputs['q_value'].shape == (B, 1)
+        assert outputs['v_value'].shape == (B, 1)
