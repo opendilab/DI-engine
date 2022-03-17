@@ -33,6 +33,10 @@ cudatest:
 	pytest ${TEST_DIR} \
 		-sv -m cudatest
 
+envpooltest:
+	pytest ${TEST_DIR} \
+		-sv -m envpooltest
+
 dockertest:
 	./ding/scripts/docker-test-entry.sh
 
