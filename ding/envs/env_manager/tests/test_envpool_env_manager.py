@@ -2,11 +2,6 @@ import time
 import pytest
 import numpy as np
 from easydict import EasyDict
-try:
-    import envpool
-except ImportError:
-    import os
-    os.system('pip install envpool')
 
 from ..envpool_env_manager import PoolEnvManager
 
