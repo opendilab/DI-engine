@@ -18,7 +18,7 @@ pendulum_td3_generation_config = dict(
             obs_shape=3,
             action_shape=1,
             twin_critic=True,
-            actor_head_type='regression',
+            action_space='regression',
         ),
         learn=dict(
             update_per_collect=2,
@@ -33,7 +33,7 @@ pendulum_td3_generation_config = dict(
                 min=-0.5,
                 max=0.5,
             ),
-            learner = dict(
+            learner=dict(
                 load_path='./td3/ckpt/ckpt_best.pth.tar',
                 hook=dict(
                     load_ckpt_before_run='./td3/ckpt/ckpt_best.pth.tar',
@@ -46,12 +46,10 @@ pendulum_td3_generation_config = dict(
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
             save_path='./td3/expert.pkl',
-            data_type = 'hdf5',
+            data_type='hdf5',
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=40000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=40000, ), ),
     ),
 )
 pendulum_td3_generation_config = EasyDict(pendulum_td3_generation_config)

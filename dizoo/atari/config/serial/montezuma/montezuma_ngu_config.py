@@ -108,9 +108,7 @@ montezuma_ppo_rnd_create_config = dict(
     # reward_model=dict(type='rnd'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(
-        type='sample_ngu',
-    )
+    collector=dict(type='sample_ngu', )
 )
 montezuma_ppo_rnd_create_config = EasyDict(montezuma_ppo_rnd_create_config)
 create_config = montezuma_ppo_rnd_create_config

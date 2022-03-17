@@ -14,12 +14,12 @@ hopper_ppo_default_config = dict(
     policy=dict(
         cuda=True,
         recompute_adv=True,
+        action_space='continuous',
         model=dict(
             obs_shape=11,
             action_shape=3,
-            continuous=True,
+            action_space='continuous',
         ),
-        continuous=True,
         learn=dict(
             epoch_per_collect=10,
             batch_size=64,
@@ -48,9 +48,7 @@ hopper_ppo_create_default_config = dict(
         import_names=['dizoo.pybullet.envs.pybullet_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(
-        type='ppo',
-    ),
+    policy=dict(type='ppo', ),
 )
 hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
 create_config = hopper_ppo_create_default_config

@@ -101,7 +101,7 @@ pong_ppo_rnd_create_config = dict(
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(type='sample_ngu',)
+    collector=dict(type='sample_ngu', )
 )
 pong_ppo_rnd_create_config = EasyDict(pong_ppo_rnd_create_config)
 create_config = pong_ppo_rnd_create_config

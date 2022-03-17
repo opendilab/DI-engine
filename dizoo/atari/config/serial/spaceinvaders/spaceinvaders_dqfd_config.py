@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-space_invaders_dqfd_config = dict(
-    exp_name='space_invaders_dqfd',
+spaceinvaders_dqfd_config = dict(
+    exp_name='spaceinvaders_dqfd',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -9,7 +9,7 @@ space_invaders_dqfd_config = dict(
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=True, force_reproducibility=True)
+        manager=dict(shared_memory=True, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -26,13 +26,14 @@ space_invaders_dqfd_config = dict(
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=500,
-            lambda1 = 1.0,
-            lambda2 = 1.0,
-            lambda3 = 1e-5,
-            per_train_iter_k = 10,
-            expert_replay_buffer_size = 10000, # justify the buffer size of the expert buffer
+            lambda1=1.0,
+            lambda2=1.0,
+            lambda3=1e-5,
+            per_train_iter_k=10,
+            expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
         ),
-        collect=dict(n_sample=100, demonstration_info_path = 'path'), #Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(n_sample=100, demonstration_info_path='path'
+                     ),  #Users should add their own path here (path should lead to a well-trained model)
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -45,9 +46,9 @@ space_invaders_dqfd_config = dict(
         ),
     ),
 )
-space_invaders_dqfd_config = EasyDict(space_invaders_dqfd_config)
-main_config = space_invaders_dqfd_config
-space_invaders_dqfd_create_config = dict(
+spaceinvaders_dqfd_config = EasyDict(spaceinvaders_dqfd_config)
+main_config = spaceinvaders_dqfd_config
+spaceinvaders_dqfd_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -55,5 +56,5 @@ space_invaders_dqfd_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqfd'),
 )
-space_invaders_dqfd_create_config = EasyDict(space_invaders_dqfd_create_config)
-create_config = space_invaders_dqfd_create_config
+spaceinvaders_dqfd_create_config = EasyDict(spaceinvaders_dqfd_create_config)
+create_config = spaceinvaders_dqfd_create_config

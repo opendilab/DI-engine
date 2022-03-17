@@ -34,6 +34,9 @@ pong_ppo_config = dict(
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
             clip_ratio=0.1,
+            learner=dict(
+                hook=dict(save_ckpt_after_iter=1000)
+            ),
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
@@ -49,7 +52,8 @@ pong_ppo_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(pong_ppo_config)
+pong_ppo_config = EasyDict(pong_ppo_config)
+main_config = pong_ppo_config
 
 pong_ppo_create_config = dict(
     env=dict(
@@ -60,7 +64,8 @@ pong_ppo_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
 )
-create_config = EasyDict(pong_ppo_create_config)
+pong_ppo_create_config = EasyDict(pong_ppo_create_config)
+create_config = pong_ppo_create_config
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)

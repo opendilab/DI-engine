@@ -188,7 +188,8 @@ class CheckpointHelper:
             - logger_prefix (:obj:`str`): prefix of logger
             - state_dict_mask (:obj:`list`): A list containing state_dict keys, \
                 which shouldn't be loaded into model(after prefix op)
-        ..note:
+
+        .. note::
 
             The checkpoint loaded from load_path is a dict, whose format is like '{'state_dict': OrderedDict(), ...}'
         """

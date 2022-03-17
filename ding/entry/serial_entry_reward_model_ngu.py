@@ -1,22 +1,20 @@
-import logging
-import os
-from functools import partial
 from typing import Union, Optional, List, Any, Tuple
-
+import os
+import copy
 import torch
+import logging
+from functools import partial
 from tensorboardX import SummaryWriter
 
-from ding.config import read_config, compile_config
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.policy import create_policy, PolicyFactory
+from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
+from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
+from ding.config import read_config, compile_config
+from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.reward_model.ngu_reward_model import fusion_reward
 from ding.utils import set_pkg_seed
-# from ding.worker import BaseLearner, SampleCollector, BaseSerialEvaluator, BaseSerialCommander, create_buffer, \
-#     create_serial_collector
-from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
-from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
-import copy
+from .utils import random_collect
 
 
 def serial_pipeline_reward_model_ngu(
@@ -24,7 +22,8 @@ def serial_pipeline_reward_model_ngu(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -37,8 +36,8 @@ def serial_pipeline_reward_model_ngu(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -56,7 +55,7 @@ def serial_pipeline_reward_model_ngu(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    # evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface TODO(pu)
+    # evaluator_env.enable_save_replay(cfg.env.replay_path)  # if save replay
 
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
@@ -93,30 +92,20 @@ def serial_pipeline_reward_model_ngu(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(random_policy)
-        collect_kwargs = commander.step()
-        # collect_kwargs.update({'action_shape':cfg.policy.model.action_shape}) # todo
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
+        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
+
     estimate_cnt = 0
     for iter in range(max_iterations):
-        # collect_kwargs = commander.step()  # {'eps': 0.95}
         eps = {i: 0.4 ** (1 + 8 * i / (cfg.policy.collect.env_num - 1)) for i in range(cfg.policy.collect.env_num)}
         collect_kwargs = {'eps': eps}
 
-        # collect_kwargs.update({'action_shape':cfg.policy.model.action_shape}) # todo
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        # new_data_count, target_new_data_count = 0, cfg.rnd_reward_model.get('target_new_data_count', 1)
-        # while new_data_count < target_new_data_count:
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):
             new_data = collector.collect(
                 n_sample=cfg.policy.collect.each_iter_n_sample,
                 train_iter=learner.train_iter,
@@ -124,11 +113,12 @@ def serial_pipeline_reward_model_ngu(
             )
         else:
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-        # new_data_count += len(new_data)
+
         # collect data for reward_model training
-        rnd_reward_model.collect_data(new_data)  # TODO(pu)
-        episodic_reward_model.collect_data(new_data)  # TODO(pu)
+        rnd_reward_model.collect_data(new_data)
+        episodic_reward_model.collect_data(new_data)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        
         # update reward_model
         rnd_reward_model.train()
         if (iter + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
@@ -165,9 +155,9 @@ def serial_pipeline_reward_model_ngu(
             learner.train(train_data_modified, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        if cfg.policy.on_policy:
-            # On-policy algorithm must clear the replay buffer.
-            replay_buffer.clear()
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
+        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

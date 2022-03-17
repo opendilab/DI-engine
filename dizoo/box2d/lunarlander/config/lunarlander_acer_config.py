@@ -9,13 +9,15 @@ lunarlander_acer_default_config = dict(
         # Env number respectively for collector and evaluator.
         collector_env_num=8,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),
     policy=dict(
         # Whether to use cuda for network.
         cuda=False,
-        # Model config used for model creating. Remember to change this, especially "obs_dim" and "action_dim" according to specific env.
+        # Model config used for model creating. Remember to change this,
+        # especially "obs_shape" and "action_shape" according to specific env.
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -57,10 +59,7 @@ lunarlander_acer_default_config = dict(
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(
-            type='naive',
-            replay_buffer_size=50000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=50000, ), ),
     ),
 )
 lunarlander_acer_default_config = EasyDict(lunarlander_acer_default_config)
@@ -73,6 +72,7 @@ lunarlander_acer_create_config = dict(
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='acer'),
+    replay_buffer=dict(type='naive')
 )
 lunarlander_acer_create_config = EasyDict(lunarlander_acer_create_config)
 create_config = lunarlander_acer_create_config

@@ -1,4 +1,3 @@
-from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
@@ -7,6 +6,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
+    exp_name='smac_MMM2_qmix',
     env=dict(
         map_name='MMM2',
         difficulty=7,
@@ -37,8 +37,8 @@ main_config = dict(
             learning_rate=0.0005,
             clip_value=5,
             double_q=False,
-            target_update_theta=0.01,
-            discount_factor=0.95,
+            target_update_theta=0.005,
+            discount_factor=0.99,
         ),
         collect=dict(
             n_episode=32,

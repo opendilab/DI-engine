@@ -1,6 +1,6 @@
 import sys
 from copy import deepcopy
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline_onpolicy
 from easydict import EasyDict
 
 agent_num = 5
@@ -18,7 +18,7 @@ main_config = dict(
         agent_num=agent_num,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=16,
+        n_evaluator_episode=32,
         stop_value=0.99,
         death_mask=True,
         special_global_state=special_global_state,
@@ -30,7 +30,7 @@ main_config = dict(
     policy=dict(
         cuda=True,
         multi_agent=True,
-        continuous=False,
+        action_space='discrete',
         model=dict(
             # (int) agent_num: The number of the agent.
             # For SMAC 3s5z, agent_num=8; for 2c_vs_64zg, agent_num=2.
@@ -48,6 +48,7 @@ main_config = dict(
             action_shape=12,
             # (List[int]) The size of hidden layer
             # hidden_size_list=[64],
+            action_space='discrete',
         ),
         # used in state_num of hidden_state
         learn=dict(
@@ -74,7 +75,7 @@ main_config = dict(
             ignore_done=False,
         ),
         collect=dict(env_num=collector_env_num, n_sample=3200),
-        eval=dict(env_num=evaluator_env_num),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=50, )),
     ),
 )
 main_config = EasyDict(main_config)

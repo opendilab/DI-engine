@@ -18,7 +18,7 @@ halfcheetah_sac_default_config = dict(
             obs_shape=17,
             action_shape=6,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
         ),

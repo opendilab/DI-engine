@@ -84,7 +84,7 @@ class COMAPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration time
-            n_episode=32,
+            # n_episode=32,
             # (int) unroll length of a train iteration(gradient update step)
             unroll_len=20,
         ),
@@ -364,6 +364,7 @@ class COMAPolicy(Policy):
             Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For coma, ``ding.model.coma.coma``

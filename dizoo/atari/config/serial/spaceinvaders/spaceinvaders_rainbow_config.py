@@ -2,7 +2,7 @@ from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-space_invaders_rainbow_config = dict(
+spaceinvaders_rainbow_config = dict(
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -46,9 +46,9 @@ space_invaders_rainbow_config = dict(
         ),
     ),
 )
-space_invaders_rainbow_config = EasyDict(space_invaders_rainbow_config)
-main_config = space_invaders_rainbow_config
-space_invaders_rainbow_create_config = dict(
+spaceinvaders_rainbow_config = EasyDict(spaceinvaders_rainbow_config)
+main_config = spaceinvaders_rainbow_config
+spaceinvaders_rainbow_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -56,8 +56,8 @@ space_invaders_rainbow_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='rainbow'),
 )
-space_invaders_rainbow_create_config = EasyDict(space_invaders_rainbow_create_config)
-create_config = space_invaders_rainbow_create_config
+spaceinvaders_rainbow_create_config = EasyDict(spaceinvaders_rainbow_create_config)
+create_config = spaceinvaders_rainbow_create_config
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)

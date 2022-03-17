@@ -6,6 +6,7 @@ from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
     QuantileHead, QRDQNHead, DistributionHead
+from ding.torch_utils.network.gtrxl import GTrXL
 
 
 @MODEL_REGISTRY.register('dqn')
@@ -577,7 +578,8 @@ class DRQN(nn.Module):
             head_layer_num: int = 1,
             lstm_type: Optional[str] = 'normal',
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            res_link: bool = False
     ) -> None:
         r"""
         Overview:
@@ -593,6 +595,7 @@ class DRQN(nn.Module):
                 if ``None`` then default set to ``nn.ReLU()``
             - norm_type (:obj:`Optional[str]`):
                 The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details`
+            - res_link (:obj:`bool`): use the residual link or not, default to False
         """
         super(DRQN, self).__init__()
         # For compatibility: 1, (1, ), [4, 32, 32]
@@ -611,6 +614,7 @@ class DRQN(nn.Module):
             )
         # LSTM Type
         self.rnn = get_lstm(lstm_type, input_size=head_hidden_size, hidden_size=head_hidden_size)
+        self.res_link = res_link
         # Head Type
         if dueling:
             head_cls = DuelingHead
@@ -678,17 +682,26 @@ class DRQN(nn.Module):
         """
 
         x, prev_state = inputs['obs'], inputs['prev_state']
+        # for both inference and other cases, the network structure is encoder -> rnn network -> head
+        # the difference is inference take the data with seq_len=1 (or T = 1)
         if inference:
             x = self.encoder(x)
-            x = x.unsqueeze(0)
+            if self.res_link:
+                a = x
+            x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
+            # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
             x, next_state = self.rnn(x, prev_state)
-            x = x.squeeze(0)
+            x = x.squeeze(0)  # to delete the seq_len dim to match head network input
+            if self.res_link:
+                x = x + a
             x = self.head(x)
             x['next_state'] = next_state
             return x
         else:
             assert len(x.shape) in [3, 5], x.shape
             x = parallel_wrapper(self.encoder)(x)  # (T, B, N)
+            if self.res_link:
+                a = x
             lstm_embedding = []
             # TODO(nyz) how to deal with hidden_size key-value
             hidden_state_list = []
@@ -700,14 +713,179 @@ class DRQN(nn.Module):
                     saved_hidden_state.append(prev_state)
                 lstm_embedding.append(output)
                 hidden_state = list(zip(*prev_state))  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
+                # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
                 hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
             x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
+            if self.res_link:
+                x = x + a
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
-            x['next_state'] = prev_state  # the last timestep state including h and c
-            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)  # the all hidden state h
+            # the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
+            x['next_state'] = prev_state
+            # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
+            # This key is used in qtran, the algorithm requires to retain all h_{t} during training
+            x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
             if saved_hidden_state_timesteps is not None:
                 x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
             return x
+
+
+@MODEL_REGISTRY.register('gtrxl_discrete')
+class GTrXLDiscreteHead(nn.Module):
+    """
+    Overview:
+        Add a discrete head on top of the GTrXL module.
+    """
+
+    def __init__(
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        head_layer_num: int = 1,
+        att_head_dim: int = 16,
+        hidden_size: int = 16,
+        att_head_num: int = 2,
+        att_mlp_num: int = 2,
+        att_layer_num: int = 3,
+        memory_len: int = 64,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        head_norm_type: Optional[str] = None,
+        dropout: float = 0.,
+        gru_gating: bool = True,
+        gru_bias: float = 2.,
+        dueling: bool = True,
+        encoder_hidden_size_list: SequenceType = [128, 128, 256],
+        encoder_norm_type: Optional[str] = None,
+    ) -> None:
+        r"""
+        Overview:
+            Init the model according to arguments.
+        Arguments:
+            Refer to GTrXl class in `ding.torch_utils.network.gtrxl` for more details about the input arguments.
+            - obs_shape (:obj:`Union[int, SequenceType]`): Used by Transformer. Observation's space.
+            - action_shape (:obj:Union[int, SequenceType]): Used by Head. Action's space.
+            - head_layer_num (:obj:`int`): Used by Head. Number of layers.
+            - att_head_dim (:obj:`int`): Used by Transformer.
+            - hidden_size (:obj:`int`): Used by Transformer and Head.
+            - att_head_num (:obj:`int`): Used by Transformer.
+            - att_mlp_num (:obj:`int`): Used by Transformer.
+            - att_layer_num (:obj:`int`): Used by Transformer.
+            - memory_len (:obj:`int`): Used by Transformer.
+            - activation (:obj:`Optional[nn.Module]`): Used by Transformer and Head. if ``None`` then default set to
+             ``nn.ReLU()``.
+            - head_norm_type (:obj:`Optional[str]`): Used by Head. The type of normalization to use, see
+             ``ding.torch_utils.fc_block`` for more details`.
+            - dropout (:obj:`bool`): Used by Transformer.
+            - gru_gating (:obj:`bool`): Used by Transformer.
+            - gru_bias (:obj:`float`): Used by Transformer.
+            - dueling (:obj:`bool`): Used by Head. Make the head dueling.
+            - encoder_hidden_size_list(:obj:`SequenceType`): Used by Encoder. The collection of ``hidden_size`` if using
+              a custom convolutional encoder.
+            - encoder_norm_type (:obj:`Optional[str]`): Used by Encoder. The type of normalization to use, see
+             ``ding.torch_utils.fc_block`` for more details`.
+        """
+        super(GTrXLDiscreteHead, self).__init__()
+        self.core = GTrXL(
+            input_dim=obs_shape,
+            head_dim=att_head_dim,
+            embedding_dim=hidden_size,
+            head_num=att_head_num,
+            mlp_num=att_mlp_num,
+            layer_num=att_layer_num,
+            memory_len=memory_len,
+            activation=activation,
+            dropout_ratio=dropout,
+            gru_gating=gru_gating,
+            gru_bias=gru_bias,
+        )
+
+        if isinstance(obs_shape, int) or len(obs_shape) == 1:
+            pass
+        # replace the embedding layer of Transformer with Conv Encoder
+        elif len(obs_shape) == 3:
+            assert encoder_hidden_size_list[-1] == hidden_size
+            self.obs_encoder = ConvEncoder(
+                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=encoder_norm_type
+            )
+            self.dropout = nn.Dropout(dropout)
+            self.core.use_embedding_layer = False
+        else:
+            raise RuntimeError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own GTrXL".format(obs_shape)
+            )
+        # Head Type
+        if dueling:
+            head_cls = DuelingHead
+        else:
+            head_cls = DiscreteHead
+        multi_head = not isinstance(action_shape, int)
+        if multi_head:
+            self.head = MultiHead(
+                head_cls,
+                hidden_size,
+                action_shape,
+                layer_num=head_layer_num,
+                activation=activation,
+                norm_type=head_norm_type
+            )
+        else:
+            self.head = head_cls(
+                hidden_size, action_shape, head_layer_num, activation=activation, norm_type=head_norm_type
+            )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            Let input tensor go through GTrXl and the Head sequentially.
+        Arguments:
+            - x (:obj:`torch.Tensor`): input tensor of shape (seq_len, bs, obs_shape).
+        Returns:
+            - out (:obj:`Dict`): run ``GTrXL`` with ``DiscreteHead`` setups and return the result prediction dictionary.
+            Necessary Keys:
+                - logit (:obj:`torch.Tensor`): discrete Q-value output of each action dimension.
+                 Shape is (bs, action_space)
+                - memory (:obj:`torch.Tensor`):
+                memory tensor of size ``(bs x layer_num+1 x memory_len x embedding_dim)``
+                - transformer_out (:obj:`torch.Tensor`): output tensor of transformer with same size as input ``x``.
+        Examples:
+            >>> # Init input's Keys:
+            >>> obs_dim, seq_len, bs, action_dim = 128, 64, 32, 4
+            >>> obs = torch.rand(seq_len, bs, obs_dim)
+            >>> model = GTrXLDiscreteHead(obs_dim, action_dim)
+            >>> outputs = model(obs)
+            >>> assert isinstance(outputs, dict)
+        """
+        if len(x.shape) == 5:
+            # 3d obs: cur_seq, bs, ch, h, w
+            x_ = x.reshape([x.shape[0] * x.shape[1]] + list(x.shape[-3:]))
+            x_ = self.dropout(self.obs_encoder(x_))
+            x = x_.reshape(x.shape[0], x.shape[1], -1)
+        o1 = self.core(x)
+        out = self.head(o1['logit'])
+        # layer_num+1 x memory_len x bs embedding_dim -> bs x layer_num+1 x memory_len x embedding_dim
+        out['memory'] = o1['memory'].permute((2, 0, 1, 3)).contiguous()
+        out['transformer_out'] = o1['logit']  # output of gtrxl, out['logit'] is final output
+        return out
+
+    def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
+        r"""
+        Overview:
+            Clear or set the memory of GTrXL.
+         Arguments:
+            - batch_size (:obj:`Optional[int]`): batch size
+            - state (:obj:`Optional[torch.Tensor]`): input memory.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
+        """
+        self.core.reset_memory(batch_size, state)
+
+    def get_memory(self) -> Optional[torch.Tensor]:
+        r"""
+        Overview:
+            Return the memory of GTrXL.
+        Returns:
+            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.
+            Shape is (layer_num, memory_len, bs, embedding_dim).
+        """
+        return self.core.get_memory()
 
 
 class GeneralQNetwork(nn.Module):

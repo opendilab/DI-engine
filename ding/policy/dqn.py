@@ -56,12 +56,12 @@ class DQNPolicy(Policy):
            | ``_len``
         16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support ['exp',
                                                                                                  | 'linear'].
-        17 | ``other.eps.       float    0.95           | start value of exploration rate        | [0,1]
-           |  start``
-        18 | ``other.eps.       float    0.1            | end value of exploration rate          | [0,1]
-           |  end``
-        19 | ``other.eps.       int      10000          | decay length of exploration            | greater than 0. set
-           |  decay``                                                                            | decay=10000 means
+        17 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]
+           | ``start``
+        18 | ``other.eps.``     float    0.1            | end value of exploration rate          | [0,1]
+           | ``end``
+        19 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set
+           | ``decay``                                                                           | decay=10000 means
                                                                                                  | the exploration rate
                                                                                                  | decay from start
                                                                                                  | value to end value
@@ -71,12 +71,17 @@ class DQNPolicy(Policy):
 
     config = dict(
         type='dqn',
+        # (bool) Whether use cuda in policy
         cuda=False,
+        # (bool) Whether learning policy is the same as collecting data policy(on-policy)
         on_policy=False,
+        # (bool) Whether enable priority experience sample
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (float) Discount factor(gamma) for returns
         discount_factor=0.97,
+        # (int) The number of step for calculating target q_value
         nstep=1,
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -85,7 +90,9 @@ class DQNPolicy(Policy):
             # Bigger "update_per_collect" means bigger off-policy.
             # collect data -> update policy-> collect data -> ...
             update_per_collect=3,
+            # (int) How many samples in a training batch
             batch_size=64,
+            # (float) The step size of gradient descent
             learning_rate=0.001,
             # ==============================================================
             # The following configs are algorithm-specific
@@ -109,7 +116,9 @@ class DQNPolicy(Policy):
             eps=dict(
                 # (str) Decay type. Support ['exp', 'linear'].
                 type='exp',
+                # (float) Epsilon start value
                 start=0.95,
+                # (float) Epsilon end value
                 end=0.1,
                 # (int) Decay length(env step)
                 decay=10000,

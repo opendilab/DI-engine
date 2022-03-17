@@ -16,8 +16,8 @@ class BaseEnv(ABC, gym.Env):
     Overview:
         basic environment class, extended from ``gym.Env``
     Interface:
-        ``__init__``, ``reset``, ``close``, ``step``, ``info``, ``create_collector_env_cfg``, \
-            ``create_evaluator_env_cfg``, ``enable_save_replay``
+        ``__init__``, ``reset``, ``close``, ``step``, ``create_collector_env_cfg``, \
+        ``create_evaluator_env_cfg``, ``enable_save_replay``
     """
 
     @abstractmethod
@@ -62,16 +62,6 @@ class BaseEnv(ABC, gym.Env):
         """
         Overview:
             Sets the seed for this env's random number generator(s). Abstract Method from ``gym.Env``.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def info(self) -> 'BaseEnvInfo':
-        """
-        Overview:
-            Show space in code and return namedlist.
-        Returns:
-             - info (:obj:`BaseEnvInfo`)
         """
         raise NotImplementedError
 

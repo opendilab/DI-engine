@@ -4,13 +4,11 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_reward_model_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
-collector_env_num = 32  # TODO 32 5
+collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
-minigrid_ppo_rnd_config = dict(
-    # exp_name='debug_minigrid_empty8_ngu_ul98_er01_n32_rbs5e4_fixepseval',
-    # exp_name='debug_minigrid_fourrooms_ngu_ul98_er01_n32_rbs5e4_fixepseval_seed3',
-    exp_name='debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval_ee0.1_ed1e7_upc16_seed0',
+minigrid_ppo_ngu_config = dict(
+    exp_name='debug_minigrid_doorkey_ngu_ul298_er01_rbs3e4_n32',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -32,7 +30,6 @@ minigrid_ppo_rnd_config = dict(
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='rnd-ngu',
-
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
@@ -48,8 +45,6 @@ minigrid_ppo_rnd_config = dict(
         type='episodic',
     ),
     policy=dict(
-        continuous=False,
-        on_policy=False,
         cuda=True,
         priority=True,
         priority_IS_weight=True,
@@ -83,18 +78,19 @@ minigrid_ppo_rnd_config = dict(
                 end=0.1,  # TODO(pu) 0.05
                 decay=1e7,  # TODO(pu) 1e5
             ),
-            replay_buffer=dict(replay_buffer_size=int(3e4),
-                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                               alpha=0.6,
-                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                               beta=0.4,
-                               )
+            replay_buffer=dict(
+                replay_buffer_size=30000,
+                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full
+                alpha=0.6,
+                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                beta=0.4,
+            )
         ),
     ),
 )
-minigrid_ppo_rnd_config = EasyDict(minigrid_ppo_rnd_config)
-main_config = minigrid_ppo_rnd_config
-minigrid_ppo_rnd_create_config = dict(
+minigrid_ppo_ngu_config = EasyDict(minigrid_ppo_ngu_config)
+main_config = minigrid_ppo_ngu_config
+minigrid_ppo_ngu_create_config = dict(
     env=dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
@@ -104,10 +100,10 @@ minigrid_ppo_rnd_create_config = dict(
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(type='sample_ngu',)
+    collector=dict(type='sample_ngu', )
 )
-minigrid_ppo_rnd_create_config = EasyDict(minigrid_ppo_rnd_create_config)
-create_config = minigrid_ppo_rnd_create_config
+minigrid_ppo_ngu_create_config = EasyDict(minigrid_ppo_ngu_create_config)
+create_config = minigrid_ppo_ngu_create_config
 
 if __name__ == "__main__":
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)

@@ -34,7 +34,6 @@ maze_dqn_default_config = dict(
             ),
             replay_buffer=dict(replay_buffer_size=100000, ),
         ),
-        cuda=True,
     ),
 )
 maze_dqn_default_config = EasyDict(maze_dqn_default_config)
