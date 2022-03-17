@@ -6,12 +6,11 @@ name: envpool_test
 on: [push, pull_request]
 
 jobs:
-  test_unittest:
-    runs-on: ${{ matrix.os }}
+  test_envpooltest:
+    runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     strategy:
       matrix:
-        # os: [windows-latest]
         python-version: [3.7, 3.8] # Envpool only supports python>=3.7
 
     steps:
@@ -25,6 +24,5 @@ jobs:
           python -m pip install .
           python -m pip install ".[test,k8s]"
           python -m pip install ".[envpool]"
-          # python -m pip uninstall pytest-timeouts -y
           ./ding/scripts/install-k8s-tools.sh
           make envpooltest
