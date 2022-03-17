@@ -6,7 +6,7 @@ from easydict import EasyDict
 from ..envpool_env_manager import PoolEnvManager
 
 
-@pytest.mark.unittest
+@pytest.mark.envpooltest
 class TestPoolEnvManager:
 
     def test_naive(self):
