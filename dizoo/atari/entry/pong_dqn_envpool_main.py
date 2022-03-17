@@ -7,10 +7,8 @@ from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEva
 from ding.envs import PoolEnvManager
 from ding.policy import DQNPolicy
 from ding.model import DQN
-from ding.utils import set_pkg_seed, deep_merge_dicts
+from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
-from dizoo.atari.envs import AtariEnv
-# from dizoo.atari.config.serial.pong.pong_dqn_envpool_config import pong_dqn_envpool_config
 from dizoo.atari.config.serial import pong_dqn_envpool_config
 
 

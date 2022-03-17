@@ -1,4 +1,3 @@
-from tkinter.messagebox import NO
 import gym
 from easydict import EasyDict
 from copy import deepcopy
@@ -11,10 +10,10 @@ try:
 except ImportError:
     import sys
     logging.warning("Please install envpool first, use 'pip install envpool'")
-    sys.exit(1)
+    envpool = None
 
 from ding.envs import BaseEnvTimestep
-from ding.utils import ENV_MANAGER_REGISTRY
+from ding.utils import ENV_MANAGER_REGISTRY, deep_merge_dicts
 
 
 @ENV_MANAGER_REGISTRY.register('env_pool')
@@ -37,7 +36,7 @@ class PoolEnvManager:
         type='envpool',
         # Sync  mode: batch_size == env_num
         # Async mode: batch_size <  env_num
-        env_num=16,
+        env_num=8,
         batch_size=8,
         # Unlike other env managers, envpool's seed should be specified in config.
         seed=0,
@@ -48,7 +47,7 @@ class PoolEnvManager:
         self._env_num = cfg.env_num
         self._batch_size = cfg.batch_size
         self._seed = cfg.seed
-        self._ready_obs = None
+        self._ready_obs = {}
         self._closed = True
 
     def launch(self) -> None:
@@ -61,10 +60,11 @@ class PoolEnvManager:
 
     def reset(self) -> None:
         self._envs.async_reset()
-        obs, _, _, _ = self._envs.recv()
-        # obs = self._envs.reset()
+        obs, _, _, info = self._envs.recv()
+        env_id = info['env_id']
+        print(env_id)
         obs = obs.astype(np.float32)
-        self._ready_obs = {i: o for i, o in enumerate(obs)}
+        self._ready_obs = {i: o for i, o in zip(env_id, obs)}
 
     def step(self, action) -> Dict[int, namedtuple]:
         env_id = np.array(list(action.keys()))

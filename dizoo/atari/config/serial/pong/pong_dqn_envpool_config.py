@@ -3,7 +3,7 @@ from easydict import EasyDict
 pong_dqn_envpool_config = dict(
     exp_name='pong_dqn_envpool',
     env=dict(
-        collector_env_num=16,
+        collector_env_num=8,
         collector_batch_size=8,
         evaluator_env_num=8,
         evaluator_batch_size=8,

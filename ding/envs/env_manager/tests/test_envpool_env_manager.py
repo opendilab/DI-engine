@@ -5,15 +5,18 @@ from easydict import EasyDict
 
 from ..envpool_env_manager import PoolEnvManager
 
+env_num_args = [[16, 8]]
 
-@pytest.mark.unittest
+
+@pytest.mark.envpooltest
+@pytest.mark.parametrize('env_num, batch_size', env_num_args)
 class TestPoolEnvManager:
 
-    def test_naive(self):
+    def test_naive(self, env_num, batch_size):
         env_manager_cfg = EasyDict({
             'env_id': 'Pong-v5',
-            'env_num': 16,
-            'batch_size': 8,
+            'env_num': env_num,
+            'batch_size': batch_size,
             'seed': 3,
         })
         env_manager = PoolEnvManager(env_manager_cfg)
