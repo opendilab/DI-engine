@@ -11,7 +11,7 @@ try:
 except ImportError:
     import sys
     logging.warning("Please install envpool first, use 'pip install envpool'")
-    # sys.exit(1)
+    sys.exit(1)
 
 from ding.envs import BaseEnvTimestep
 from ding.utils import ENV_MANAGER_REGISTRY
