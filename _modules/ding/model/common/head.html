@@ -170,6 +170,7 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+<span class="kn">from</span> <span class="nn">torch.distributions</span> <span class="kn">import</span> <span class="n">Normal</span><span class="p">,</span> <span class="n">Independent</span>
 
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">fc_block</span><span class="p">,</span> <span class="n">noise_block</span><span class="p">,</span> <span class="n">NoiseLinearLayer</span><span class="p">,</span> <span class="n">MLP</span>
 <span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">beta_function_map</span>
@@ -191,7 +192,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the Head according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DiscreteHead``</span>
 <span class="sd">            - output_size (:obj:`int`): The number of output</span>
 <span class="sd">            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
 <span class="sd">            - activation (:obj:`nn.Module`):</span>
@@ -261,7 +262,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the Head according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DistributionHead``</span>
 <span class="sd">            - output_size (:obj:`int`): The num of output</span>
 <span class="sd">            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
 <span class="sd">            - activation (:obj:`nn.Module`):</span>
@@ -342,7 +343,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the Head according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``RainbowHead``</span>
 <span class="sd">            - output_size (:obj:`int`): The num of output</span>
 <span class="sd">            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
 <span class="sd">            - activation (:obj:`nn.Module`):</span>
@@ -434,7 +435,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the Head according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``QRDQNHead``</span>
 <span class="sd">            - output_size (:obj:`int`): The num of output</span>
 <span class="sd">            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
 <span class="sd">            - activation (:obj:`nn.Module`):</span>
@@ -514,7 +515,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the Head according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``QuantileHead``</span>
 <span class="sd">            - output_size (:obj:`int`): The num of output</span>
 <span class="sd">            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
 <span class="sd">            - activation (:obj:`nn.Module`):</span>
@@ -698,8 +699,123 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">logit</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">a</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="n">v</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">logit</span><span class="p">}</span></div></div>
+        <span class="n">q_value</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">a</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="n">v</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">q_value</span><span class="p">}</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">StochasticDuelingHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">a_layer_num</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">v_layer_num</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">noise</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">last_tanh</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The Stochastic Dueling Network proposed in paper ACER (arxiv 1611.01224), dueling netwowrk architecture in \</span>
+<span class="sd">            continuous action space. Initialize the head according to input arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - hidden_size (:obj:`int`): The num of observation embedding size.</span>
+<span class="sd">            - action_shape (:obj:`int`): The num of continuous action shape, usually integer value.</span>
+<span class="sd">            - a_layer_num (:obj:`int`): The num of layers used in the network to compute action output.</span>
+<span class="sd">            - v_layer_num (:obj:`int`): The num of layers used in the network to compute value output.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): The type of activation function to use in ``MLP`` after ``layer_fn``, \</span>
+<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
+<span class="sd">            - norm_type (:obj:`str`): The type of normalization to use, see ``ding.torch_utils.fc_block`` for \</span>
+<span class="sd">                more details.</span>
+<span class="sd">            - noise (:obj:`bool`): Whether to use noisy ``fc_block`` for more exploration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">StochasticDuelingHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">a_layer_num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">a_layer_num</span> <span class="o">=</span> <span class="n">layer_num</span>
+        <span class="k">if</span> <span class="n">v_layer_num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">v_layer_num</span> <span class="o">=</span> <span class="n">layer_num</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">NoiseLinearLayer</span> <span class="k">if</span> <span class="n">noise</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="n">noise_block</span> <span class="k">if</span> <span class="n">noise</span> <span class="k">else</span> <span class="n">fc_block</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">MLP</span><span class="p">(</span>
+                <span class="n">hidden_size</span> <span class="o">+</span> <span class="n">action_shape</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">a_layer_num</span><span class="p">,</span>
+                <span class="n">layer_fn</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+            <span class="p">),</span> <span class="n">block</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">MLP</span><span class="p">(</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">v_layer_num</span><span class="p">,</span>
+                <span class="n">layer_fn</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span>
+                <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+            <span class="p">),</span> <span class="n">block</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">last_tanh</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">s</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+            <span class="n">a</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+            <span class="n">mu</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+            <span class="n">sigma</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+            <span class="n">sample_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use encoded observation, behaviour action and sampled actions with (mu, sigma) output by actor head \</span>
+<span class="sd">            at current timestep to get dueling Q-value, i.e. continuous dueling head.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - s (:obj:`torch.Tensor`): The encoded embedding state tensor, determined with given ``hidden_size``, \</span>
+<span class="sd">                i.e. shape is ``(B, N=hidden_size)``.</span>
+<span class="sd">            - a (:obj:`torch.Tensor`): The original continuous behaviour action, determined with ``action_size`` \</span>
+<span class="sd">                i.e. shape is ``(B, N=action_size)``.</span>
+<span class="sd">            - mu (:obj:`torch.Tensor`):</span>
+<span class="sd">                The mu gaussian reparameterization output of actor head at current timestep, size (B, action_size)</span>
+<span class="sd">            - sigma (:obj:`torch.Tensor`):</span>
+<span class="sd">                The sigma gaussian reparameterization output of actor head at current timestep, size (B, action_size)</span>
+<span class="sd">            - sample_size (:obj:`int`): The number of samples for continuous action when computing the Q value</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict[str, torch.Tensor]`): Output dict data, including q_value and v_value tensor, \</span>
+<span class="sd">                and their shape is ``(B, 1)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># batch_size or batch_size * T</span>
+        <span class="n">hidden_size</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">action_size</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">state_cat_action</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># size (B, action_size + state_size)</span>
+        <span class="n">a_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">(</span><span class="n">state_cat_action</span><span class="p">)</span>  <span class="c1"># size (B, 1)</span>
+        <span class="n">v_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>  <span class="c1"># size (B, 1)</span>
+        <span class="c1"># size (B, sample_size, hidden_size)</span>
+        <span class="n">expand_s</span> <span class="o">=</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">expand</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">))</span>
+
+        <span class="c1"># in case for gradient back propagation</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">Independent</span><span class="p">(</span><span class="n">Normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">action_sample</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">rsample</span><span class="p">(</span><span class="n">sample_shape</span><span class="o">=</span><span class="p">(</span><span class="n">sample_size</span><span class="p">,</span> <span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span><span class="p">:</span>
+            <span class="n">action_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">action_sample</span><span class="p">)</span>
+        <span class="c1"># (sample_size, B, action_size)-&gt;(B, sample_size, action_size)</span>
+        <span class="n">action_sample</span> <span class="o">=</span> <span class="n">action_sample</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># size (B, sample_size, action_size + hidden_size)</span>
+        <span class="n">state_cat_action_sample</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">expand_s</span><span class="p">,</span> <span class="n">action_sample</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">a_val_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">(</span><span class="n">state_cat_action_sample</span><span class="p">)</span>  <span class="c1"># size (B, sample_size, 1)</span>
+        <span class="n">q_value</span> <span class="o">=</span> <span class="n">v_value</span> <span class="o">+</span> <span class="n">a_value</span> <span class="o">-</span> <span class="n">a_val_sample</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># size (B, 1)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">q_value</span><span class="p">,</span> <span class="s1">&#39;v_value&#39;</span><span class="p">:</span> <span class="n">v_value</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="RegressionHead"><a class="viewcode-back" href="../../../../api_doc/model/common/head.html#ding.model.common.head.RegressionHead">[docs]</a><span class="k">class</span> <span class="nc">RegressionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -717,7 +833,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the Head according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``RegressionHead``</span>
 <span class="sd">            - output_size (:obj:`int`): The num of output</span>
 <span class="sd">            - final_tanh (:obj:`Optional[bool]`): Whether a final tanh layer is needed</span>
 <span class="sd">            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
@@ -783,7 +899,7 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the Head according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``</span>
+<span class="sd">            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``ReparameterizationHead``</span>
 <span class="sd">            - output_size (:obj:`int`): The num of output</span>
 <span class="sd">            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
 <span class="sd">            - sigma_type (:obj:`Optional[str]`): Sigma type used in ``[&#39;fixed&#39;, &#39;independent&#39;, &#39;conditioned&#39;]``</span>
@@ -826,8 +942,8 @@
 <span class="sd">                Run ``MLP`` with ``ReparameterizationHead`` setups and return the result prediction dictionary.</span>
 
 <span class="sd">                Necessary Keys:</span>
-<span class="sd">                    - mu (:obj:`torch.Tensor`) Tensor of cells of updated mu values, with same size as ``x``.</span>
-<span class="sd">                    - sigma (:obj:`torch.Tensor`) Tensor of cells of updated sigma values, with same size as ``x``.</span>
+<span class="sd">                    - mu (:obj:`torch.Tensor`) Tensor of cells of updated mu values of size ``(B, action_size)``</span>
+<span class="sd">                    - sigma (:obj:`torch.Tensor`) Tensor of cells of updated sigma values of size ``(B, action_size)``</span>
 <span class="sd">        Examples:</span>
 <span class="sd">            &gt;&gt;&gt; head =  ReparameterizationHead(64, 64, sigma_type=&#39;fixed&#39;)</span>
 <span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
@@ -906,6 +1022,7 @@
     <span class="c1"># discrete</span>
     <span class="s1">&#39;discrete&#39;</span><span class="p">:</span> <span class="n">DiscreteHead</span><span class="p">,</span>
     <span class="s1">&#39;dueling&#39;</span><span class="p">:</span> <span class="n">DuelingHead</span><span class="p">,</span>
+    <span class="s1">&#39;sdn&#39;</span><span class="p">:</span> <span class="n">StochasticDuelingHead</span><span class="p">,</span>
     <span class="s1">&#39;distribution&#39;</span><span class="p">:</span> <span class="n">DistributionHead</span><span class="p">,</span>
     <span class="s1">&#39;rainbow&#39;</span><span class="p">:</span> <span class="n">RainbowHead</span><span class="p">,</span>
     <span class="s1">&#39;qrdqn&#39;</span><span class="p">:</span> <span class="n">QRDQNHead</span><span class="p">,</span>

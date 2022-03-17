@@ -231,7 +231,7 @@
 <dt>Overview:</dt><dd><p>Init the Head according to arguments.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code></p></li>
+<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DiscreteHead</span></code></p></li>
 <li><p>output_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The number of output</p></li>
 <li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
 <li><dl class="simple">
@@ -306,7 +306,7 @@ and return the result prediction dictionary.</p>
 <dt>Overview:</dt><dd><p>Init the Head according to arguments.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code></p></li>
+<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DistributionHead</span></code></p></li>
 <li><p>output_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of output</p></li>
 <li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
 <li><dl class="simple">
@@ -384,7 +384,7 @@ Parameter updates with DistributionHead’s MLPs forward setup.</p>
 <dt>Overview:</dt><dd><p>Init the Head according to arguments.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code></p></li>
+<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">RainbowHead</span></code></p></li>
 <li><p>output_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of output</p></li>
 <li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
 <li><dl class="simple">
@@ -462,7 +462,7 @@ Parameter updates with RainbowHead’s MLPs forward setup.</p>
 <dt>Overview:</dt><dd><p>Init the Head according to arguments.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code></p></li>
+<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">QRDQNHead</span></code></p></li>
 <li><p>output_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of output</p></li>
 <li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
 <li><dl class="simple">
@@ -542,7 +542,7 @@ Parameter updates with QRDQNHead’s MLPs forward setup.</p>
 <dt>Overview:</dt><dd><p>Init the Head according to arguments.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code></p></li>
+<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">QuantileHead</span></code></p></li>
 <li><p>output_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of output</p></li>
 <li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
 <li><dl class="simple">
@@ -729,7 +729,7 @@ Parameter updates with DuelingHead’s MLPs forward setup.</p>
 <dt>Overview:</dt><dd><p>Init the Head according to arguments.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code></p></li>
+<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">RegressionHead</span></code></p></li>
 <li><p>output_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of output</p></li>
 <li><p>final_tanh (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[bool]</span></code>): Whether a final tanh layer is needed</p></li>
 <li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
@@ -804,7 +804,7 @@ Parameter updates with RegressionHead’s MLPs forward setup.</p>
 <dt>Overview:</dt><dd><p>Init the Head according to arguments.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code></p></li>
+<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The <code class="docutils literal notranslate"><span class="pre">hidden_size</span></code> used before connected to <code class="docutils literal notranslate"><span class="pre">ReparameterizationHead</span></code></p></li>
 <li><p>output_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of output</p></li>
 <li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of layers used in the network to compute Q value output</p></li>
 <li><p>sigma_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): Sigma type used in <code class="docutils literal notranslate"><span class="pre">['fixed',</span> <span class="pre">'independent',</span> <span class="pre">'conditioned']</span></code></p></li>
@@ -849,8 +849,8 @@ Parameter updates with ReparameterizationHead’s MLPs forward setup.</p>
 <dt>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>):</dt><dd><p>Run <code class="docutils literal notranslate"><span class="pre">MLP</span></code> with <code class="docutils literal notranslate"><span class="pre">ReparameterizationHead</span></code> setups and return the result prediction dictionary.</p>
 <dl class="simple">
 <dt>Necessary Keys:</dt><dd><ul class="simple">
-<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Tensor of cells of updated mu values, with same size as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
-<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Tensor of cells of updated sigma values, with same size as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Tensor of cells of updated mu values of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">action_size)</span></code></p></li>
+<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) Tensor of cells of updated sigma values of size <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">action_size)</span></code></p></li>
 </ul>
 </dd>
 </dl>
