@@ -207,7 +207,7 @@
 <p>强化学习的环境有一些普遍地、被大多数环境实现了的主要接口，如 <code class="docutils literal notranslate"><span class="pre">reset()</span></code>, <code class="docutils literal notranslate"><span class="pre">step()</span></code>, <code class="docutils literal notranslate"><span class="pre">seed()</span></code> 等。在 DI-engine 中， <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 将对这些接口进行进一步的封装，下面大部分情况下将以 Atari 为例进行说明。具体代码可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_env.py">Atari Env</a> 和 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_wrappers.py">Atari Env Wrapper</a></p>
 <ol class="arabic">
 <li><p><code class="docutils literal notranslate"><span class="pre">__init__()</span></code></p>
-<p>一般情况下，可能会在 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法中将环境实例化，但是在 DI-engine 中，为了便于支持 <code class="docutils literal notranslate"><span class="pre">EnvManager</span></code> 中的”环境向量化”等并行操作，环境实例一般采用 <strong>Lazy Init</strong> 的方式，即 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法不初始化真正的原始环境实例，只是设置相关 <strong>参数配置值</strong> ，在第一次调用 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法时，才会进行实际的环境初始化。</p>
+<p>一般情况下，可能会在 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法中将环境实例化，但是在 DI-engine 中，为了便于支持 <code class="docutils literal notranslate"><span class="pre">EnvManager</span></code> 中的“环境向量化”等并行操作，环境实例一般采用 <strong>Lazy Init</strong> 的方式，即 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法不初始化真正的原始环境实例，只是设置相关 <strong>参数配置值</strong> ，在第一次调用 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法时，才会进行实际的环境初始化。</p>
 <p>以 Atari 为例。 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 并不实例化环境，只是设置配置项 <code class="docutils literal notranslate"><span class="pre">self._cfg</span></code> ，以及初始化变量 <code class="docutils literal notranslate"><span class="pre">self._init_flag</span></code> 用于记录是否是第一次调用 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法（即环境是否还没有被初始化）。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
 
@@ -330,97 +330,47 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">RamWrapper</span></code>: 将 Ram 类型的环境的 observation 的 shape 转换为类似图像的 (128, 1, 1)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">EpisodicLifeEnv</span></code>: 将内置多条生命的环境（例如Qbert），将每条生命看作一个 episode</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">FireResetEnv</span></code>: 在环境 reset 后立即执行动作1（开火）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GymHybridDictActionWrapper</span></code>: 将 Gym-Hybrid 环境原始的 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Tuple</span></code> 类型的动作空间，转换为 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Dict</span></code> 类型的动作空间.</p></li>
 </ul>
 </div></blockquote>
 <p>如果上述 wrapper 不能满足你的需要，也可以自行定制 wrapper。</p>
-<p>值得一提的是，每个 wrapper 都还实现了一个 <code class="docutils literal notranslate"><span class="pre">new_shape</span></code> 的静态方法，输入参数为使用 wrapper 前的 observation, action,  reward 的 shape，输出为使用 wrapper 后的三者的 shape，这个方法将在下一节 <code class="docutils literal notranslate"><span class="pre">info</span></code> 中被使用。</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RamWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-
-   <span class="nd">@staticmethod</span>
-   <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-      <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">      Overview:</span>
-<span class="sd">         Get new shape of observation, acton, and reward; in this case only observation \</span>
-<span class="sd">         space wrapped to (128,1,1); others unchanged.</span>
-<span class="sd">      Arguments:</span>
-<span class="sd">         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">      Returns:</span>
-<span class="sd">         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">      &quot;&quot;&quot;</span>
-      <span class="k">return</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span>
-</pre></div>
-</div>
+<p>值得一提的是，每个 wrapper 不仅要完成对相应的 observation/action/reward 值的变化，还要对应地修改其 space （当且仅当 shpae, dtype 等被修改时），这个方法将在下一节中详细介绍。</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">info()</span></code></p>
-<p>如果希望可以根据环境的维度自动创建神经网络，或是在 <code class="docutils literal notranslate"><span class="pre">EnvManager</span></code> 中使用 <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> 技术加快环境返回的大型张量数据的传输速度，就需要在环境的 <code class="docutils literal notranslate"><span class="pre">info</span></code> 方法中给出 <code class="docutils literal notranslate"><span class="pre">obs</span></code> <code class="docutils literal notranslate"><span class="pre">action</span></code> <code class="docutils literal notranslate"><span class="pre">reward</span></code> 等数据的 <strong>shape</strong> 和 <strong>dtype</strong> 。</p>
-<p>例如，这个是 cartpole 的 <code class="docutils literal notranslate"><span class="pre">info</span></code> 方法：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvInfo</span>
-<span class="kn">from</span> <span class="nn">ding.envs.common.env_element</span> <span class="kn">import</span> <span class="n">EnvElementInfo</span>
+<li><p>三个空间属性 observation/action/reward space</p>
+<p>如果希望可以根据环境的维度自动创建神经网络，或是在 <code class="docutils literal notranslate"><span class="pre">EnvManager</span></code> 中使用 <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> 技术加快环境返回的大型张量数据的传输速度，就需要让环境支持提供属性 <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> <code class="docutils literal notranslate"><span class="pre">action_space</span></code> <code class="docutils literal notranslate"><span class="pre">reward_space</span></code>。</p>
+<p>这里的 space 都是 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Space</span></code> 的子类的实例，最常用的 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Space</span></code> 包括 <code class="docutils literal notranslate"><span class="pre">Discrete</span></code> <code class="docutils literal notranslate"><span class="pre">Box</span></code> <code class="docutils literal notranslate"><span class="pre">Tuple</span></code> <code class="docutils literal notranslate"><span class="pre">Dict</span></code> 等。space 中需要给出 <strong>shape</strong> 和 <strong>dtype</strong> 。在 gym 原始环境中，大多都会支持 <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> <code class="docutils literal notranslate"><span class="pre">action_space</span></code> 和 <code class="docutils literal notranslate"><span class="pre">reward_range</span></code>，在 DI-engine 中，将 <code class="docutils literal notranslate"><span class="pre">reward_range</span></code> 也扩充成了 <code class="docutils literal notranslate"><span class="pre">reward_space</span></code>，使这三者保持一致。</p>
+<p>例如，这个是 cartpole 的三个属性：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CartpoleEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
 
-<span class="k">class</span> <span class="nc">CartpoleEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
-
-   <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvInfo</span><span class="p">:</span>
-      <span class="n">obs_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">observation_space</span>
-      <span class="n">act_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">action_space</span>
-      <span class="k">return</span> <span class="n">BaseEnvInfo</span><span class="p">(</span>
-         <span class="n">agent_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-         <span class="n">obs_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
-               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">low</span><span class="p">,</span>
-               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">high</span><span class="p">,</span>
-               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-            <span class="p">},</span>
-         <span class="p">),</span>
-         <span class="n">act_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">act_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="p">),</span>
-            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
-               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">act_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
-               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-            <span class="p">},</span>
-         <span class="p">),</span>
-         <span class="n">rew_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
-               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
-               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-            <span class="p">},</span>
-         <span class="p">),</span>
-         <span class="n">use_wrappers</span><span class="o">=</span><span class="kc">None</span>
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+            <span class="n">low</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">4.8</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.42</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">)]),</span>
+            <span class="n">high</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">4.8</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="mf">0.42</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)]),</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">),</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
       <span class="p">)</span>
-</pre></div>
-</div>
-<p>其中， <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> 的定义为： <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span> <span class="pre">=</span> <span class="pre">namedlist('BaseEnvInfo',</span> <span class="pre">['agent_num',</span> <span class="pre">'obs_space',</span> <span class="pre">'act_space',</span> <span class="pre">'rew_space',</span> <span class="pre">'use_wrappers'])</span></code> ，用于指定数据的几个域（agent数量、observation、action、reward、wrapper等）； <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code> 的定义为： <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span> <span class="pre">=</span> <span class="pre">namedlist('EnvElementInfo',</span> <span class="pre">['shape',</span> <span class="pre">'value'])</span></code> ，用于指出 observation、action、reward 等域的 shape 和 dtype。</p>
-<p>由于 cartpole 没有使用任何 wrapper，因此 <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> 比较好定义，但如果像 Atari 这种经过了多重 wrapper 装饰的环境，就需要知道每一个 wrapper 对 <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> 做出了何种改变，这也就是上一节中在每个 wrapper 中实现 <code class="docutils literal notranslate"><span class="pre">new_shape</span></code> 方法的意义。如代码：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-   <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvInfo</span><span class="p">:</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span> <span class="ow">in</span> <span class="n">ATARIENV_INFO_DICT</span><span class="p">:</span>
-         <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">ATARIENV_INFO_DICT</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span><span class="p">])</span>
-         <span class="n">info</span><span class="o">.</span><span class="n">use_wrappers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_env</span><span class="p">(</span><span class="n">only_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-         <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span> <span class="o">=</span> <span class="n">update_shape</span><span class="p">(</span>
-               <span class="n">info</span><span class="o">.</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">act_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">rew_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">use_wrappers</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-         <span class="p">)</span>
-         <span class="n">info</span><span class="o">.</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
-         <span class="n">info</span><span class="o">.</span><span class="n">act_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">act_shape</span>
-         <span class="n">info</span><span class="o">.</span><span class="n">rew_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">rew_shape</span>
-         <span class="k">return</span> <span class="n">info</span>
-      <span class="k">else</span><span class="p">:</span>
-         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> not found in ATARIENV_INFO_DICT [</span><span class="si">{}</span><span class="s1">]&#39;</span>\
-            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span><span class="p">,</span> <span class="n">ATARIENV_INFO_DICT</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">observation_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span>
+
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">action_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span>
+
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">reward_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span>
 </pre></div>
 </div>
-<p>其中， <code class="docutils literal notranslate"><span class="pre">update_shape</span></code> 函数如下：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">update_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">,</span> <span class="n">wrapper_names</span><span class="p">):</span>
-   <span class="k">for</span> <span class="n">wrapper_name</span> <span class="ow">in</span> <span class="n">wrapper_names</span><span class="p">:</span>
-      <span class="k">if</span> <span class="n">wrapper_name</span><span class="p">:</span>
-         <span class="k">try</span><span class="p">:</span>
-            <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">wrapper_name</span><span class="p">)</span><span class="o">.</span><span class="n">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">)</span>
-         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">continue</span>
-   <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span>
+<p>由于 cartpole 没有使用任何 wrapper，因此其三个 space 是固定不变的。但如果像 Atari 这种经过了多重 wrapper 装饰的环境，就需要在每个 wrapper 对原始环境进行包装之后，修改其对应的 space。例如，Atari 会使用 <code class="docutils literal notranslate"><span class="pre">ScaledFloatFrameWrapper</span></code>，将 observation 归一化到 [0, 1] 区间内，那么相应地，就会修改其 <code class="docutils literal notranslate"><span class="pre">observation_space</span></code>：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+      <span class="c1"># ...</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -469,13 +419,17 @@
 </div>
 <p>设置 <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span></code> 项，将相应地在 wrapper 中使用不同的修饰方式。例如，若 <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span> <span class="pre">==</span> <span class="pre">True</span></code> ，则将对 reward 使用符号函数映射至 <code class="docutils literal notranslate"><span class="pre">{+1,</span> <span class="pre">0,</span> <span class="pre">-1}</span></code> 方便训练，若 <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span> <span class="pre">==</span> <span class="pre">False</span></code> 则将保留原 reward 值，方便测试时评估 agent 的性能。</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">random_action()</span></code></p>
+<p>一些 off-policy 算法希望可以在训练开始之前，用随机策略收集一些数据填充 buffer，完成 buffer 的初始化。出于这样的需求，DI-engine 鼓励实现 <code class="docutils literal notranslate"><span class="pre">random_action</span></code> 方法。</p>
+<p>由于环境已经实现了 <code class="docutils literal notranslate"><span class="pre">action_space</span></code>，所以可以直接调用 gym 中提供的 <code class="docutils literal notranslate"><span class="pre">Space.sample()</span></code> 方法来随机选取动作。但需要注意的是，由于 DI-engine 要求所有返回的 action 需要是 <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> 格式的，所以可能需要做一些必要的格式转换。例如：</p>
+</li>
 </ol>
 </div>
 <div class="section" id="dingenvwrapper">
 <h2>DingEnvWrapper<a class="headerlink" href="#dingenvwrapper" title="Permalink to this headline">¶</a></h2>
 <p>(in <code class="docutils literal notranslate"><span class="pre">ding/envs/env/ding_env_wrapper.py</span></code>)</p>
-<p><code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 可以快速将 cartpole, pendulum 等简单环境转换为符合 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的环境。但暂时不支持更加复杂的环境。</p>
-<p>TBD</p>
+<p><code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 可以快速将 ClassicControl, Box2d, Atari, Mujoco, GymHybrid 等简单环境转换为符合 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的环境。</p>
+<p>可以查看 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env/tests/test_ding_env_wrapper.py">使用实例</a> 获取更多信息。</p>
 </div>
 <div class="section" id="q-a">
 <h2>Q &amp; A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>

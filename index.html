@@ -175,12 +175,12 @@
 <p>DI-engine is a generalized Decision Intelligence engine. It supports most basic deep reinforcement learning (DRL) algorithms,
 such as DQN, PPO, SAC, and domain-specific algorithms like QMIX in multi-agent RL, GAIL in inverse RL, and RND in exploration problems.
 The whole supported algorithms introduction can be found in <a class="reference external" href="./feature/algorithm_overview.html">Algorithm</a>.</p>
-<p>For scalability, DI-engine supports three different training pipeline:</p>
+<p>For scalability, DI-engine supports three different training pipelines:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">serial</span></code></p>
 <ul>
-<li><p>feature: single-machine, learner-collector loop executes sequencially</p></li>
+<li><p>feature: single-machine, learner-collector loop executes sequentially</p></li>
 <li><p>usage: academic research</p></li>
 </ul>
 </li>
@@ -204,11 +204,11 @@ The whole supported algorithms introduction can be found in <a class="reference 
 <h2>Main Features<a class="headerlink" href="#main-features" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ul class="simple">
-<li><p>DI-zoo: High performance DRL algorithm zoo, algorithm support list. <a class="reference external" href="feature/algorithm_overview.html">Link</a></p></li>
+<li><p>DI-zoo: High-performance DRL algorithm zoo, algorithm support list. <a class="reference external" href="feature/algorithm_overview.html">Link</a></p></li>
 <li><p>Generalized decision intelligence algorithms: DRL family, IRL family, MARL family, searching family(MCTS) and etc.</p></li>
 <li><p>Customized DRL demand implementation, such as Inverse RL/RL hybrid training; Multi-buffer training; League self-play training</p></li>
 <li><p>Large scale DRL training demonstration and application</p></li>
-<li><p>Various efficiency optimization module: DI-hpc, DI-store, EnvManager, DataLoader</p></li>
+<li><p>Various efficiency optimization modules: DI-hpc, DI-store, EnvManager, DataLoader</p></li>
 <li><p>k8s support, DI-orchestrator k8s cluster scheduler for dynamic collectors and other services</p></li>
 </ul>
 </div></blockquote>

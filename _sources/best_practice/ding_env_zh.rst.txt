@@ -17,7 +17,7 @@
 
 1. ``__init__()``
 
-   一般情况下，可能会在 ``__init__`` 方法中将环境实例化，但是在 DI-engine 中，为了便于支持 ``EnvManager`` 中的"环境向量化"等并行操作，环境实例一般采用 **Lazy Init** 的方式，即 ``__init__`` 方法不初始化真正的原始环境实例，只是设置相关 **参数配置值** ，在第一次调用 ``reset`` 方法时，才会进行实际的环境初始化。
+   一般情况下，可能会在 ``__init__`` 方法中将环境实例化，但是在 DI-engine 中，为了便于支持 ``EnvManager`` 中的“环境向量化”等并行操作，环境实例一般采用 **Lazy Init** 的方式，即 ``__init__`` 方法不初始化真正的原始环境实例，只是设置相关 **参数配置值** ，在第一次调用 ``reset`` 方法时，才会进行实际的环境初始化。
 
    以 Atari 为例。 ``__init__`` 并不实例化环境，只是设置配置项 ``self._cfg`` ，以及初始化变量 ``self._init_flag`` 用于记录是否是第一次调用 ``reset`` 方法（即环境是否还没有被初始化）。
 
@@ -157,108 +157,56 @@
       - ``RamWrapper``: 将 Ram 类型的环境的 observation 的 shape 转换为类似图像的 (128, 1, 1)
       - ``EpisodicLifeEnv``: 将内置多条生命的环境（例如Qbert），将每条生命看作一个 episode
       - ``FireResetEnv``: 在环境 reset 后立即执行动作1（开火）
+      - ``GymHybridDictActionWrapper``: 将 Gym-Hybrid 环境原始的 ``gym.spaces.Tuple`` 类型的动作空间，转换为 ``gym.spaces.Dict`` 类型的动作空间.
 
    如果上述 wrapper 不能满足你的需要，也可以自行定制 wrapper。
 
-   值得一提的是，每个 wrapper 都还实现了一个 ``new_shape`` 的静态方法，输入参数为使用 wrapper 前的 observation, action,  reward 的 shape，输出为使用 wrapper 后的三者的 shape，这个方法将在下一节 ``info`` 中被使用。
+   值得一提的是，每个 wrapper 不仅要完成对相应的 observation/action/reward 值的变化，还要对应地修改其 space （当且仅当 shpae, dtype 等被修改时），这个方法将在下一节中详细介绍。
+
+2. 三个空间属性 observation/action/reward space
+
+   如果希望可以根据环境的维度自动创建神经网络，或是在 ``EnvManager`` 中使用 ``shared_memory`` 技术加快环境返回的大型张量数据的传输速度，就需要让环境支持提供属性 ``observation_space`` ``action_space`` ``reward_space``。
+   
+   这里的 space 都是 ``gym.spaces.Space`` 的子类的实例，最常用的 ``gym.spaces.Space`` 包括 ``Discrete`` ``Box`` ``Tuple`` ``Dict`` 等。space 中需要给出 **shape** 和 **dtype** 。在 gym 原始环境中，大多都会支持 ``observation_space`` ``action_space`` 和 ``reward_range``，在 DI-engine 中，将 ``reward_range`` 也扩充成了 ``reward_space``，使这三者保持一致。
+
+   例如，这个是 cartpole 的三个属性：
 
    .. code:: python
-
-      class RamWrapper(gym.Wrapper):
-
-         @staticmethod
-         def new_shape(obs_shape, act_shape, rew_shape):
-            """
-            Overview:
-               Get new shape of observation, acton, and reward; in this case only observation \
-               space wrapped to (128,1,1); others unchanged.
-            Arguments:
-               obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-            Returns:
-               obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-            """
-            return (128, 1, 1), act_shape, rew_shape
-
-2. ``info()``
-
-   如果希望可以根据环境的维度自动创建神经网络，或是在 ``EnvManager`` 中使用 ``shared_memory`` 技术加快环境返回的大型张量数据的传输速度，就需要在环境的 ``info`` 方法中给出 ``obs`` ``action`` ``reward`` 等数据的 **shape** 和 **dtype** 。
-
-   例如，这个是 cartpole 的 ``info`` 方法：
-
-   .. code:: python
-      
-      from ding.envs import BaseEnvInfo
-      from ding.envs.common.env_element import EnvElementInfo
 
       class CartpoleEnv(BaseEnv):
          
-         def info(self) -> BaseEnvInfo:
-            obs_space = self._env.observation_space
-            act_space = self._env.action_space
-            return BaseEnvInfo(
-               agent_num=1,
-               obs_space=EnvElementInfo(
-                  shape=obs_space.shape,
-                  value={
-                     'min': obs_space.low,
-                     'max': obs_space.high,
-                     'dtype': np.float32
-                  },
-               ),
-               act_space=EnvElementInfo(
-                  shape=(act_space.n, ),
-                  value={
-                     'min': 0,
-                     'max': act_space.n,
-                     'dtype': np.float32
-                  },
-               ),
-               rew_space=EnvElementInfo(
-                  shape=1,
-                  value={
-                     'min': -1,
-                     'max': 1,
-                     'dtype': np.float32
-                  },
-               ),
-               use_wrappers=None
+         def __init__(self, cfg: dict = {}) -> None:
+            self._observation_space = gym.spaces.Box(
+                  low=np.array([-4.8, float("-inf"), -0.42, float("-inf")]),
+                  high=np.array([4.8, float("inf"), 0.42, float("inf")]),
+                  shape=(4, ),
+                  dtype=np.float32
             )
-   
-   其中， ``BaseEnvInfo`` 的定义为： ``BaseEnvInfo = namedlist('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'use_wrappers'])`` ，用于指定数据的几个域（agent数量、observation、action、reward、wrapper等）； ``EnvElementInfo`` 的定义为： ``EnvElementInfo = namedlist('EnvElementInfo', ['shape', 'value'])`` ，用于指出 observation、action、reward 等域的 shape 和 dtype。
+            self._action_space = gym.spaces.Discrete(2)
+            self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
 
-   由于 cartpole 没有使用任何 wrapper，因此 ``BaseEnvInfo`` 比较好定义，但如果像 Atari 这种经过了多重 wrapper 装饰的环境，就需要知道每一个 wrapper 对 ``BaseEnvInfo`` 做出了何种改变，这也就是上一节中在每个 wrapper 中实现 ``new_shape`` 方法的意义。如代码：
+         @property
+         def observation_space(self) -> gym.spaces.Space:
+            return self._observation_space
 
-   .. code:: python
+         @property
+         def action_space(self) -> gym.spaces.Space:
+            return self._action_space
 
-      class AtariEnv(BaseEnv):
+         @property
+         def reward_space(self) -> gym.spaces.Space:
+            return self._reward_space
 
-         def info(self) -> BaseEnvInfo:
-            if self._cfg.env_id in ATARIENV_INFO_DICT:
-               info = copy.deepcopy(ATARIENV_INFO_DICT[self._cfg.env_id])
-               info.use_wrappers = self._make_env(only_info=True)
-               obs_shape, act_shape, rew_shape = update_shape(
-                     info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
-               )
-               info.obs_space.shape = obs_shape
-               info.act_space.shape = act_shape
-               info.rew_space.shape = rew_shape
-               return info
-            else:
-               raise NotImplementedError('{} not found in ATARIENV_INFO_DICT [{}]'\
-                  .format(self._cfg.env_id, ATARIENV_INFO_DICT.keys()))
-
-   其中， ``update_shape`` 函数如下：
+   由于 cartpole 没有使用任何 wrapper，因此其三个 space 是固定不变的。但如果像 Atari 这种经过了多重 wrapper 装饰的环境，就需要在每个 wrapper 对原始环境进行包装之后，修改其对应的 space。例如，Atari 会使用 ``ScaledFloatFrameWrapper``，将 observation 归一化到 [0, 1] 区间内，那么相应地，就会修改其 ``observation_space``：
 
    .. code:: python
 
-      def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
-         for wrapper_name in wrapper_names:
-            if wrapper_name:
-               try:
-                  obs_shape, act_shape, rew_shape = eval(wrapper_name).new_shape(obs_shape, act_shape, rew_shape)
-               except Exception:
-                  continue
-         return obs_shape, act_shape, rew_shape
+      class ScaledFloatFrameWrapper(gym.ObservationWrapper):
+         
+         def __init__(self, env):
+            # ...
+            self.observation_space = gym.spaces.Box(low=0., high=1., shape=env.observation_space.shape, dtype=np.float32)
+
 
 3. ``enable_save_replay()``
 
@@ -314,13 +262,38 @@
 
    设置 ``cfg.is_train`` 项，将相应地在 wrapper 中使用不同的修饰方式。例如，若 ``cfg.is_train == True`` ，则将对 reward 使用符号函数映射至 ``{+1, 0, -1}`` 方便训练，若 ``cfg.is_train == False`` 则将保留原 reward 值，方便测试时评估 agent 的性能。
 
+5. ``random_action()``
+
+   一些 off-policy 算法希望可以在训练开始之前，用随机策略收集一些数据填充 buffer，完成 buffer 的初始化。出于这样的需求，DI-engine 鼓励实现 ``random_action`` 方法。
+
+   由于环境已经实现了 ``action_space``，所以可以直接调用 gym 中提供的 ``Space.sample()`` 方法来随机选取动作。但需要注意的是，由于 DI-engine 要求所有返回的 action 需要是 ``np.ndarray`` 格式的，所以可能需要做一些必要的格式转换。例如：
+
+   .. python::
+
+      def random_action(self) -> np.ndarray:
+         random_action = self.action_space.sample()
+         if isinstance(random_action, np.ndarray):
+               pass
+         elif isinstance(random_action, int):
+               random_action = to_ndarray([random_action], dtype=np.int64)
+         elif isinstance(random_action, dict):
+               random_action = to_ndarray(random_action)
+         else:
+               raise TypeError(
+                  '`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
+                     type(random_action), random_action
+                  )
+               )
+         return random_action
+
 DingEnvWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~
 (in ``ding/envs/env/ding_env_wrapper.py``)
 
-``DingEnvWrapper`` 可以快速将 cartpole, pendulum 等简单环境转换为符合 ``BaseEnv`` 的环境。但暂时不支持更加复杂的环境。
+``DingEnvWrapper`` 可以快速将 ClassicControl, Box2d, Atari, Mujoco, GymHybrid 等简单环境转换为符合 ``BaseEnv`` 的环境。
 
-TBD
+可以查看 `使用实例 <https://github.com/opendilab/DI-engine/blob/main/ding/envs/env/tests/test_ding_env_wrapper.py>`_ 获取更多信息。
+
 
 
 Q & A

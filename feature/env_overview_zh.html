@@ -100,8 +100,6 @@
 <li class="toctree-l2"><a class="reference internal" href="algorithm_overview_zh.html">Algorithm Overview</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Env Overview</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#baseenv">BaseEnv</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#envelement">EnvElement</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#envelementrunner">EnvElementRunner</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="collector_overview_zh.html">Collector Overview</a></li>
@@ -195,44 +193,37 @@
 <dl>
 <dt>概述：</dt><dd><p>环境模块，是强化学习中重要的模块之一。在一些常见的强化学习任务中，例如 <a class="reference external" href="https://gym.openai.com/envs/#atari">atari</a> 相关任务，<a class="reference external" href="https://gym.openai.com/envs/#mujoco">mujoco</a> 相关任务，我们所训练的智能体就是在这样的环境中去进行探索和学习。通常，定义一个环境需要从环境的输入输出入手，并充分考虑其中可能的 <code class="docutils literal notranslate"><span class="pre">observation</span> <span class="pre">space</span></code> 与 <code class="docutils literal notranslate"><span class="pre">action</span> <span class="pre">space</span></code>。OpenAI 所出品的 <cite>gym</cite> 模块已经帮我们定义了绝大多数常用的学术环境。<cite>DI-engine</cite> 也遵循 <cite>gym.Env</cite> 的定义，并在其基础上增加了一系列更为方便的功能，使得环境的调用更为简单易懂。</p>
 </dd>
-<dt>具体实现：</dt><dd><p>我们可以很方便的查阅到，<cite>gym.Env</cite> 的 <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/core.py#L8">定义</a> 中，最为关键的部分在于 <code class="docutils literal notranslate"><span class="pre">step</span></code> 和 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法。通过给定的 <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">step()</span></code> 方法依据输入的 <code class="docutils literal notranslate"><span class="pre">action</span></code> 并与环境产生交互，从而得到相应的 <code class="docutils literal notranslate"><span class="pre">reward</span></code>。<code class="docutils literal notranslate"><span class="pre">reset()</span></code> 方法则是对环境进行重置。<cite>ding.envs.BaseEnv</cite> 继承了 <cite>gym.Env</cite>，并实现了：</p>
+<dt>具体实现：</dt><dd><p>我们可以很方便地查阅到，<cite>gym.Env</cite> 的 <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/core.py#L8">定义</a> 中，最为关键的部分在于 <code class="docutils literal notranslate"><span class="pre">step</span></code> 和 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法。通过给定的 <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">step()</span></code> 方法依据输入的 <code class="docutils literal notranslate"><span class="pre">action</span></code> 并与环境产生交互，从而得到相应的 <code class="docutils literal notranslate"><span class="pre">reward</span></code>。 <code class="docutils literal notranslate"><span class="pre">reset()</span></code> 方法则是对环境进行重置。关于环境中的 observation, action, reward，也给出了规范化的定义与限制，分别是 <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> <code class="docutils literal notranslate"><span class="pre">action_space</span></code> 与 <code class="docutils literal notranslate"><span class="pre">reward_range</span></code>。 <cite>ding.envs.BaseEnv</cite> 与 <cite>gym.Env</cite> 类似，除了上述接口与特性外，还定义并实现了：</p>
 <ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep(namedtuple)</span></code>：定义了环境每运行一步返回的内容，一般包括 <code class="docutils literal notranslate"><span class="pre">obs</span></code>，<code class="docutils literal notranslate"><span class="pre">act</span></code>，<code class="docutils literal notranslate"><span class="pre">reward</span></code>，<code class="docutils literal notranslate"><span class="pre">done</span></code>，<code class="docutils literal notranslate"><span class="pre">info</span></code> 五部分，子类可以自定义自己的该变量，但注意必须包含上述五个字段。</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">BaseEnvInfo(namedlist)</span></code>：定义了环境的基本信息，例如环境中智能体的数量，观察空间的维度等等，一般包括 <code class="docutils literal notranslate"><span class="pre">agent_num</span></code>，<code class="docutils literal notranslate"><span class="pre">obs_space</span></code>，<code class="docutils literal notranslate"><span class="pre">act_space</span></code>，<code class="docutils literal notranslate"><span class="pre">rew_space</span></code> 四部分，其中 <code class="docutils literal notranslate"><span class="pre">xxx_space</span></code> 必须使用 <cite>envs/common/env_element.py</cite> 中的 <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code> 进行创建，子类可以自定义自己的该变量，为其增加新的字段。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep(namedtuple)</span></code>：定义了环境每运行一步返回的内容（即 <code class="docutils literal notranslate"><span class="pre">step</span></code> 的返回值），一般包括 <code class="docutils literal notranslate"><span class="pre">obs</span></code> <code class="docutils literal notranslate"><span class="pre">act</span></code> <code class="docutils literal notranslate"><span class="pre">reward</span></code> <code class="docutils literal notranslate"><span class="pre">done</span></code> <code class="docutils literal notranslate"><span class="pre">info</span></code> 五部分，子类可以自定义自己的该变量，但注意必须包含上述五个字段。</p></li>
+<li><p>space属性。保留了 <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> 与 <code class="docutils literal notranslate"><span class="pre">action_space</span></code> 的定义，将 <code class="docutils literal notranslate"><span class="pre">reward_range</span></code> 扩展为 <code class="docutils literal notranslate"><span class="pre">reward_space</span></code>，使其与前两个保持一致。如果是多智能体环境，还应当指明 <code class="docutils literal notranslate"><span class="pre">num_agent</span></code>。</p></li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><code class="docutils literal notranslate"><span class="pre">obs_space</span></code> 和 <code class="docutils literal notranslate"><span class="pre">subprocess_env_manager</span></code> 中 <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> 的相关使用存在强依赖，如要使用则必须按照 <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code> 来实现。</p>
+<p><code class="docutils literal notranslate"><span class="pre">subprocess_env_manager</span></code> 中 <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> 强烈依赖 <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> 的实现，如果要使用请务必保证 <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> 的正确性。</p>
 </div>
 <ol class="arabic simple" start="3">
-<li><p><code class="docutils literal notranslate"><span class="pre">info()</span></code>：快速查阅当前环境的各种 shape，并显示启用的 wrapper 种类</p></li>
-</ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>注意，<code class="docutils literal notranslate"><span class="pre">info()</span></code> 中会根据 wrapper 的种类自动修改对应的 <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code> / <code class="docutils literal notranslate"><span class="pre">act_shape</span></code> / <code class="docutils literal notranslate"><span class="pre">rew_shape</span></code>。如果用户需要添加新的 env wrapper，需要在 wrapper 中实现静态函数 <code class="docutils literal notranslate"><span class="pre">new_shape(obs_shape,</span> <span class="pre">act_shape,</span> <span class="pre">rew_shape)</span></code> 并返回此 wrapper 修改之后的各个 shape。</p>
-</div>
-<ol class="arabic simple" start="4">
 <li><p><code class="docutils literal notranslate"><span class="pre">create_collector_env_cfg()</span></code>：为数据收集创建相应的环境配置文件，与 <code class="docutils literal notranslate"><span class="pre">create_evaluator_env_cfg</span></code> 互相独立，便于使用者对数据收集和性能评测设置不同的环境参数，根据传入的初始配置为每个具体的环境生成相应的配置文件，默认情况会获取配置文件中的环境个数，然后将默认环境配置复制相应份数返回</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">create_evaluator_env_cfg()</span></code>：为性能评测创建相应的环境配置文件，功能同上说明</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">enable_save_replay()</span></code>：使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用，功能上代替常见环境中的 render 方法。（该方法可选实现）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enable_save_replay()</span></code>：使环境可以保存运行过程为视频文件，便于调试和可视化，一般在环境开始实际运行前调用。该方法一半只用于告知环境需要保存 replay 并指定路径。（该方法可选实现）</p></li>
 </ol>
 <p>此外，<cite>ding.envs.BaseEnv</cite> 还针对细节做了一些改动，例如</p>
 <ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">seed()</span></code>: 对于环境内各种处理函数和 wrapper 的种子控制，外界设定的是种子的种子</p></li>
-<li><p>默认都使用 lazy init，即 init 只设置参数，第一次 reset 时启动环境设定种子</p></li>
-<li><p>episode 结束时，在 info 这个 dict 中返回 <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code> 键值对</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed()</span></code>: 对于环境内各种处理函数和 wrapper 的种子控制，外界设定的是种子的种子，当环境用于收集数据时，通常还会区分 <strong>静态种子与动态种子</strong></p></li>
+<li><p>默认都使用 <strong>lazy init</strong>，即 init 只设置参数，第一次 reset 时启动环境、设定种子</p></li>
+<li><p>episode 结束时，在 <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep.info</span></code> 这个 dict 中返回 <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code> 键值对</p></li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>对于一个环境的具体创建（例如打开其他模拟器客户端），该行为不应该在 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法中实现，因为存在创建模型实例但不运行的使用场景（比如获取环境observation的维度等信息），推荐在 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法中实现，即判断运行环境是否已创建，如果没有则进行创建再reset，如果有则直接reset已有环境。如果使用者依然想要在 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法中完成该功能，请自行确认不会有资源浪费或冲突的情况发生。</p>
+<p>对于一个环境的具体创建（例如打开其他模拟器客户端），该行为不应该在 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法中实现，因为存在创建模型实例但不运行的使用场景（比如获取环境 observation 的维度等信息），推荐在 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 方法中实现，即判断运行环境是否已创建，如果没有则进行创建再 reset，如果有则直接reset已有环境。如果使用者依然想要在 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 方法中完成该功能，请自行确认不会有资源浪费或冲突的情况发生。</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>关于 <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> 和 <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep</span></code>，如无特殊需求可以直接调用 <cite>DI-engine</cite> 提供的默认定义，即：</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span><span class="p">,</span> <span class="n">BaseEnvInfo</span>
+<p>关于 <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep</span></code>，如无特殊需求可以直接调用 <cite>DI-engine</cite> 提供的默认定义，即：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvInfo</span>
 </pre></div>
 </div>
-<p>如果需要自定义，按照上文的要求使用 <code class="docutils literal notranslate"><span class="pre">namedtuple(BaseEnvTimestep)</span></code> / <code class="docutils literal notranslate"><span class="pre">namedlist(BaseEnvInfo)</span></code> 实现即可。</p>
+<p>如果需要自定义，按照上文的要求使用 <code class="docutils literal notranslate"><span class="pre">namedtuple(BaseEnvTimestep)</span></code> 实现即可。</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -240,9 +231,9 @@
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p><cite>DI-engine</cite> 对于环境返回的 <code class="docutils literal notranslate"><span class="pre">info</span></code> 字段有一些依赖关系, <code class="docutils literal notranslate"><span class="pre">info</span></code> 是一个 dict，其中某些键值对会有相关依赖要求：</p>
+<p><cite>DI-engine</cite> 对于环境返回的 <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep.info</span></code> 字段有一些依赖关系, <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep.info</span></code> 是一个 dict，其中某些键值对会有相关依赖要求：</p>
 <ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>: 环境一个 episode 结束时（done=True）必须包含该键值，值为 float 类型，表示环境跑完一个 episode 性能的度量</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>: 环境一个 episode 结束时（ <a href="#id2"><span class="problematic" id="id3">``</span></a>done==True``时 ）必须包含该键值，值为 float 类型，表示环境跑完一个 episode 性能的度量</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">abnormal</span></code>: 环境每个时间步都可包含该键值，该键值非必须，是可选键值，值为 bool 类型，表示环境运行该步是是否发生了错误，如果为真 <cite>DI-engine</cite> 的相关模块会进行相应处理（比如将相关数据移除）。</p></li>
 </ol>
 </div>
@@ -252,74 +243,6 @@
 </div></blockquote>
 </dd>
 </dl>
-</div>
-<div class="section" id="envelement">
-<h2>EnvElement<a class="headerlink" href="#envelement" title="Permalink to this headline">¶</a></h2>
-<p>(ding/envs/common/env_element.py)</p>
-<dl class="simple">
-<dt>概述：</dt><dd><p>环境元素基类，<code class="docutils literal notranslate"><span class="pre">observation</span></code>，<code class="docutils literal notranslate"><span class="pre">action</span></code>，<code class="docutils literal notranslate"><span class="pre">reward</span></code> 等可以视为环境元素，该类及其子类负责某一具体环境元素的基本信息和处理函数定义。该类及其子类是 stateless 的，维护静态的属性和方法。</p>
-</dd>
-<dt>类变量：</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">info_template</span></code>：环境元素信息模板，一般包括维度，取值情况，发送给智能体数据的处理函数，从智能体接收到数据的处理函数</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_instance</span></code>：实现单例模型所用的类变量，指向该类的唯一实例</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_name</span></code>：该类的唯一标识名</p></li>
-</ol>
-</dd>
-<dt>类接口方法：</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>: 初始化，注意初始化完成后会调用 <code class="docutils literal notranslate"><span class="pre">_check</span></code> 方法检查是否合法</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">info`</span></code>: 返回该元素类的基本信息和处理函数</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">__repr__</span></code>: 返回提供元素说明的字符串</p></li>
-</ol>
-</dd>
-<dt>子类需继承重写方法：</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">_init</span></code>: 实际上的初始化方法，这样实现是为了让子类调用方法 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 时也必须调用 <code class="docutils literal notranslate"><span class="pre">_check</span></code> 方法，相当于 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 只是一层 wrapper</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_check</span></code>: 检查合法性方法，检查一个环境元素类是否实现了必需属性，子类可以拓展该方法，即重写该方法等价于调用父类的该方法以及实现自身需要检查的部分</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_details</span></code>: 元素类详细信息</p></li>
-</ol>
-</dd>
-</dl>
-</div>
-<div class="section" id="envelementrunner">
-<h2>EnvElementRunner<a class="headerlink" href="#envelementrunner" title="Permalink to this headline">¶</a></h2>
-<p>(ding/envs/common/env_element_runner.py)</p>
-<dl class="simple">
-<dt>概述：</dt><dd><p>环境元素运行时基类，使用装饰模式实现，负责运行时相关的状态管理（比如维护一些状态记录变量）和提供可能的多态机制（对静态处理函数返回的结果进行再加工）。
-在静态环境元素接口基础上，新增了 <code class="docutils literal notranslate"><span class="pre">get</span></code> 和 <code class="docutils literal notranslate"><span class="pre">reset</span></code> 接口。该类将对应的静态环境元素实例作为自己的一个成员变量 <code class="docutils literal notranslate"><span class="pre">_core</span></code> 进行管理。</p>
-</dd>
-<dt>类变量：</dt><dd><p>无</p>
-</dd>
-<dt>类接口方法：</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code>：来源于接口的父类，实际使用时调用静态元素的相应方法</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">__repr__</span></code>：来源于接口的父类，实际使用时调用静态元素的相应方法</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get</span></code>：得到实际运行时的元素值，需要传入具体 env 对象，所有对 env 信息的访问集中在 <code class="docutils literal notranslate"><span class="pre">get</span></code> 方法中，建议访问信息通过 env 的 property 实现</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reset</span></code>：重启状态，一般需要在 env 重启时对应进行调用</p></li>
-</ol>
-</dd>
-<dt>子类需继承重写方法：</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">_init</span></code>：实际上的初始化方法，这样实现是为了让子类调用方法 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 时也必须调用 <code class="docutils literal notranslate"><span class="pre">_check</span></code> 方法，相当于 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 只是一层 wrapper</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_check</span></code>：检查合法性方法，检查一个环境元素类是否实现了必需属性，子类可以拓展该方法，即重写该方法——调用父类的该方法 + 实现自身需要检查的部分</p></li>
-</ol>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ol class="arabic">
-<li><p><code class="docutils literal notranslate"><span class="pre">EnvElement</span></code> 和 <code class="docutils literal notranslate"><span class="pre">EnvElementRunner</span></code> 两个类构成完整的环境元素，其中前者代表静态不变的信息（stateless），后者负责运行时变化的信息（stateful），建议与特定环境元素相关的状态变量一律放在这里维护，env 中只维护通用的状态变量</p></li>
-<li><p>环境元素部分简易的类逻辑图如下：</p>
-<blockquote>
-<div><img alt="../_images/env_element_class.png" src="../_images/env_element_class.png" />
-</div></blockquote>
-</li>
-</ol>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ol class="arabic simple">
-<li><p>所有代码实现中命名建议一般情况使用单数，但如果使用复数可以使某局部代码块逻辑更清晰，该部分也可自由选择。</p></li>
-<li><p>所有代码实现秉承 <strong>自身对外界输入质疑，自身对外界输出负责</strong> 的思想，对输入参数做必要的 check，对输出（返回值）明确规定其格式</p></li>
-<li><p>环境元素的键值如果为空时，一律使用 <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
-</ol>
-</div>
 </div>
 </div>
 

@@ -270,7 +270,7 @@ modules are general in many RL algorithms, but the users can also override their
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If there are some pre-defined neural networks in the environment using GPU, like the feature extractor VAE trained by self-supervised training before RL training, DI-engine recommends to utilize parallel executions in each subprocess rather than stack all the data in the main process and then forward this network. Moreover, it is not an elegant method, DI-engine will try to find some new flexible and general solution.</p>
+<p>If there are some pre-defined neural networks in the environment using GPU, like the feature extractor VAE trained by self-supervised training before RL training, DI-engine recommends utilizing parallel executions in each subprocess rather than stack all the data in the main process and then forward this network. Moreover, it is not an elegant method, DI-engine will try to find some new flexible and general solution.</p>
 </div>
 <p>Besides, for robustness in practical usage, like IPC error(broken pipe, EOF) and environment runtime error, DI-engine also provides a series of <strong>Error Tolerance</strong> tools, e.g.: watchdog and auto-retry.</p>
 <p>For all the mentioned features, the users can refer to <a class="reference external" href="../feature/env_manager_overview.html">EnvManager Overview</a> for more details.</p>
@@ -285,7 +285,7 @@ With these abstractions, plenty of the AI decision algorithms can be summarized 
 the model forward without gradient computation and use epsilon-greedy to select actions for exploration in collecting. Therefore, DI-engine policy unifies all the algorithm content in only one python file,
 prepares some simple interface methods, and combines them into 3 common modes——<strong>learn_mode, collect_mode, eval_mode</strong>, as is shown in the next image:</p>
 <img alt="../_images/policy_mode.svg" src="../_images/policy_mode.svg" /><p>Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
-own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training, and so on. For more details,
+own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training results, selecting battle players in self-play training, and so on. For more details,
 the users can refer to <a class="reference external" href="../feature/policy_overview.html">Policy Overview</a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -294,7 +294,7 @@ the users can refer to <a class="reference external" href="../feature/policy_ove
 </div>
 <div class="section" id="shared-model-model-wrapper">
 <h4>Shared Model + Model Wrapper<a class="headerlink" href="#shared-model-model-wrapper" title="Permalink to this headline">¶</a></h4>
-<p>Neural network, often called model, is the one of most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(<code class="docutils literal notranslate"><span class="pre">__init__</span></code>) or out of policy and passed to the policy as arguments. Therefore, the model is shared among different modes for convenience. And DI-engine extends the model with more runtime function by <code class="docutils literal notranslate"><span class="pre">Model</span> <span class="pre">Wrapper</span></code> , which makes the shared model can exhibit different behaviors in different modes, such as sampling action by multinomial distribution in collect mode while <span class="math notranslate nohighlight">\(argmax\)</span> in evaluating mode. Here are some concrete code examples:</p>
+<p>Neural network, often called model, is one of the most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(<code class="docutils literal notranslate"><span class="pre">__init__</span></code>) or out of policy and passed to the policy as arguments. Therefore, the model is shared among different modes for convenience. And DI-engine extends the model with more runtime function by <code class="docutils literal notranslate"><span class="pre">Model</span> <span class="pre">Wrapper</span></code> , which makes the shared model can exhibit different behaviors in different modes, such as sampling action by multinomial distribution in collect mode while <span class="math notranslate nohighlight">\(argmax\)</span> in evaluating mode. Here are some concrete code examples:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span><span class="p">,</span> <span class="n">DQN</span>
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">84</span><span class="p">),</span> <span class="n">action_shape</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
@@ -309,10 +309,10 @@ the users can refer to <a class="reference external" href="../feature/policy_ove
 </div>
 <div class="section" id="processing-function">
 <h4>Processing Function<a class="headerlink" href="#processing-function" title="Permalink to this headline">¶</a></h4>
-<p>In practical algorithm implementations, the users often need to many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
-algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, DI-engine has provided some common processing functions, which can be called as a pure function. And the users can utilize these functions both in collect mode and in learning mode.</p>
+<p>In practical algorithm implementations, the users often need too many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
+algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, DI-engine has provided some common processing functions, which can be called a pure function. And the users can utilize these functions both in collect mode and in learning mode.</p>
 <p>For example, where should we calculate advantages for some on-policy algorithms, such as A2C/PPO, learn mode or collect mode? The former can distribute computation to different collector nodes in distributed
-training for saving time, and the latter can usually gain better performance due to more accurate approximation, just a trade-off. For a framework, it is more wiser to offer some powerful and efficient tools rather
+training for saving time, and the latter can usually gain better performance due to more accurate approximation, just a trade-off. For a framework, it is much wiser to offer some powerful and efficient tools rather
 than restricting some fixed pipelines. The following table shows some existing processing functions and related information:</p>
 <table class="docutils align-default">
 <colgroup>
@@ -366,7 +366,7 @@ than restricting some fixed pipelines. The following table shows some existing p
 <p>Config module is a component for users to determine what kind of parameters they want to use.
 The overall design is as follows:</p>
 <img alt="" src="../_images/config.png" />
-<p>As you can see from above diagram, the entire config is mainly from two parts. One is called Default Config,
+<p>As you can see from the above diagram, the entire config is mainly from two parts. One is called Default Config,
 which is our recommended setting for policy and env, and may not change a lot. The other is called User Config,
 which users may want to specify case by case.</p>
 <p>In order to get the entire config, we have <strong>compile</strong> phase, a bottom-up process. First we get the default setting
@@ -487,7 +487,7 @@ to <a class="reference external" href="../quick_start/index.html">Quick Start</a
 quantity and quality data for policy training (learner). And collector is only responsible for data collection but decoupled with data management, that is to say, it returns collected trajectories directly and
 these data can be used for training directly or pushed into replay buffer.</p>
 <p>There are 3 core parts for a collector——env manager, policy(collect_mode), collector controller, and these parts can be implemented in a
-single process or located in several machines. Usually, DI-engine use a multi-process env_manager and another main loop controller process with policy to construct a collector, which may be extended in the future.</p>
+single process or located in several machines. Usually, DI-engine uses a multi-process env_manager and another main loop controller process with policy to construct a collector, which may be extended in the future.</p>
 <p>Due to different send/receive data logic, the collector now is divided into two patterns——serial and parallel, we will introduce them separately.</p>
 <div class="section" id="serial-collector">
 <h4>Serial Collector<a class="headerlink" href="#serial-collector" title="Permalink to this headline">¶</a></h4>
@@ -525,7 +525,7 @@ implements <code class="docutils literal notranslate"><span class="pre">SampleCo
 <p>For all cases, the number of collect data, n_sample/n_episode, is fixed in the total training procedure, so our example codes set this field in configs, such as <code class="docutils literal notranslate"><span class="pre">config.policy.collect.n_sample</span></code>.</p>
 </div>
 <p>The structure and main loop of collector can be summarized as the next image, the interaction of policy and env consists of <code class="docutils literal notranslate"><span class="pre">policy.forward</span></code>, <code class="docutils literal notranslate"><span class="pre">env.step</span></code> and the related support codes. Then <code class="docutils literal notranslate"><span class="pre">policy.process_transition</span></code> and
-<code class="docutils literal notranslate"><span class="pre">policy.get_train_sample</span></code> contributes to process data into training samples and pack them to a list. For <code class="docutils literal notranslate"><span class="pre">EpisodeCollector</span></code>, which is usually used in some cases that need to do special post-processing,
+<code class="docutils literal notranslate"><span class="pre">policy.get_train_sample</span></code> contributes to processing data into training samples and packing them into a list. For <code class="docutils literal notranslate"><span class="pre">EpisodeCollector</span></code>, which is usually used in some cases that need to do special post-processing,
 <code class="docutils literal notranslate"><span class="pre">policy.get_train_sample</span></code> is disabled and the users can do anything after receiving the collected data.</p>
 <img alt="../_images/collector_pipeline.svg" class="align-center" src="../_images/collector_pipeline.svg" /><p>Sometimes, we use different policies even different envs to collect data, such as using random policy at the beginning of training to prepare warmup data, and calculate distillation loss with the probability of
 expert policy. And all the demands can be implemented by <code class="docutils literal notranslate"><span class="pre">reset_policy</span></code>, <code class="docutils literal notranslate"><span class="pre">reset_env</span></code>, <code class="docutils literal notranslate"><span class="pre">reset</span></code> method like this:</p>
@@ -602,8 +602,8 @@ users just need to ensure the correct value of <code class="docutils literal not
 <p class="admonition-title">Tip</p>
 <p>By default, most policies in DI-engine adopt <code class="docutils literal notranslate"><span class="pre">AdvancedReplayBuffer</span></code>, because we think monitor and logger are rather important in debugging and policy tuning. However, if you are sure that you do not need all the features above, you can feel free to switch to simpler and faster <code class="docutils literal notranslate"><span class="pre">NaiveReplayBuffer</span></code>.</p>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code> is designed for some special cases where they need a whole episode rather than separated samples. For example: In chess, go or card games, players get reward only when the game is over; In some algorithms like <a class="reference external" href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a>, must sample out a whole episode and operate on it. Therefore, in <code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code>, each element is no longer a training sample, but an episode.</p>
-<p>In DI-engine, we define <strong>full data</strong> and <strong>meta data</strong>. <strong>Full data</strong> is often a dict, with keys <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> and some optional keys like <code class="docutils literal notranslate"><span class="pre">['priority',</span> <span class="pre">'use_count',</span> <span class="pre">'collect_iter',</span> <span class="pre">...]</span></code>. However, in some complex environments(Usually we run them in parallel mode), <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> can be too big to store in memory. Therefore, we store them in file system, and only store <strong>meta data</strong> including <code class="docutils literal notranslate"><span class="pre">'file_path'</span></code> and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.</p>
+<p><code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code> is designed for some special cases where they need a whole episode rather than separated samples. For example: In chess, go or card games, players get a reward only when the game is over; In some algorithms like <a class="reference external" href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a>, must sample out a whole episode and operate on it. Therefore, in <code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code>, each element is no longer a training sample, but an episode.</p>
+<p>In DI-engine, we define <strong>full data</strong> and <strong>meta data</strong>. <strong>Full data</strong> is often a dict, with keys <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> and some optional keys like <code class="docutils literal notranslate"><span class="pre">['priority',</span> <span class="pre">'use_count',</span> <span class="pre">'collect_iter',</span> <span class="pre">...]</span></code>. However, in some complex environments(Usually we run them in parallel mode), <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> can be too big to store in memory. Therefore, we store them in the file system, and only store <strong>meta data</strong> including <code class="docutils literal notranslate"><span class="pre">'file_path'</span></code> and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.</p>
 <p>If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to <a class="reference external" href="../feature/replay_buffer_overview.html">Replay Buffer Overview</a></p>
 </div>
 <div class="section" id="worker-evaluator">
@@ -611,10 +611,10 @@ users just need to ensure the correct value of <code class="docutils literal not
 <p>Evaluator, another key execution component of DI-engine, is used to determine whether the training model is convergent
 or not. Similar to collector, evaluator consists of three key components ——env manager, policy(eval_mode), evaluator
 controller.</p>
-<p>Env manager allow us to run multiple environments one by one(<code class="docutils literal notranslate"><span class="pre">base_env_manager`)</span> <span class="pre">or</span> <span class="pre">in</span> <span class="pre">parallel</span>
+<p>Env manager allows us to run multiple environments one by one(<code class="docutils literal notranslate"><span class="pre">base_env_manager`)</span> <span class="pre">or</span> <span class="pre">in</span> <span class="pre">parallel</span>
 <span class="pre">(``subprocess_env_manager</span></code>). For example, if we use subprocess env manager, we will run different environments
 in different subprocesses, which will greatly increase the efficiency of collecting episodes.</p>
-<p>Policy(eval_mode) is the rl model which we need to check.</p>
+<p>Policy(eval_mode) is the RL model which we need to check.</p>
 <p>Evaluator controller is a component to determine if we should stop evaluating or not. For example, in <code class="docutils literal notranslate"><span class="pre">Serial</span>
 <span class="pre">Evaluator</span></code>, <code class="docutils literal notranslate"><span class="pre">n_evaluator_episode</span></code> is an argument to determine how many episodes we want to collect and evaluate. Once
 we collect these number of episodes, evaluator will stop collecting and start to compute the average reward. If the average
@@ -669,7 +669,7 @@ config(i.e. <code class="docutils literal notranslate"><span class="pre">env.sto
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p><strong>How to judge whether the model converges or not?</strong></p>
-<p>We judge whether the model converges or not based on average reward. In DI-engine, there are three types of average
+<p>We judge whether the model converges or not based on the average reward. In DI-engine, there are three types of average
 reward: winning probability, total cumulative reward and average unit step reward.</p>
 <p>Winning probability: In games like <code class="docutils literal notranslate"><span class="pre">SMAC</span></code>, we focus on the final result and don’t care too much about the
 game process. For such environments, we use winning probability(for <code class="docutils literal notranslate"><span class="pre">SMAC</span></code> 1.0 in 3s5z) as the convergence condition.</p>
@@ -683,12 +683,12 @@ such as the median value and the mean/std value can be more convincing.</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p><strong>How to solve the problem that different environment in evaluator may collect different length episode?</strong></p>
+<p><strong>How to solve the problem that different environments in evaluator may collect different length episode?</strong></p>
 <p>In some cases, this is really a big problem. For example, suppose we want to collect 12 episodes in evaluator
-but only have 5 environments, if we didn’t do any thing, it is likely that we will get more short episodes than long
+but only have 5 environments, if we didn’t do anything, it is likely that we will get more short episodes than long
 episodes. As a result, our average reward will have a bias and may not be accurate. This is obvious since short
 episodes need less time.</p>
-<p>In order to solve such problem, we use <code class="docutils literal notranslate"><span class="pre">VectorEvalMonitor</span></code>, a component to balance how many episodes to collect
+<p>In order to solve the problem, we use <code class="docutils literal notranslate"><span class="pre">VectorEvalMonitor</span></code>, a component to balance how many episodes to collect
 per environment. Let’s go back to the above example, we will collect three episodes for either of the first two
 environments but only two for each of the remaining environments.</p>
 <p>Besides, we use <code class="docutils literal notranslate"><span class="pre">get_episode_reward</span></code> to get the sum of the rewards of k episodes in each environment, and
@@ -699,7 +699,7 @@ environments but only two for each of the remaining environments.</p>
 <div class="section" id="worker-learner">
 <h3>Worker-Learner<a class="headerlink" href="#worker-learner" title="Permalink to this headline">¶</a></h3>
 <p>Learner is one of the most important components among all the workers, who is responsible for optimizing the policy by training data. Unlike another important component <code class="docutils literal notranslate"><span class="pre">Collector</span></code>, learner is not divided into serial and parallel modes, i.e. There is only one learner class, serial and parallel entry can call different methods for training.</p>
-<p><strong>Serial pipeline</strong> would call learner’s <code class="docutils literal notranslate"><span class="pre">train</span></code> method for training. <code class="docutils literal notranslate"><span class="pre">train</span></code> method receives a batch of data, and call learn_mode policy’s <code class="docutils literal notranslate"><span class="pre">_forward_learn</span></code> to train for one iteraton.</p>
+<p><strong>Serial pipeline</strong> would call learner’s <code class="docutils literal notranslate"><span class="pre">train</span></code> method for training. <code class="docutils literal notranslate"><span class="pre">train</span></code> method receives a batch of data, and call learn_mode policy’s <code class="docutils literal notranslate"><span class="pre">_forward_learn</span></code> to train for one iteration.</p>
 <p><strong>Parallel pipeline</strong> would call learner’s <code class="docutils literal notranslate"><span class="pre">start</span></code> method for a complete process of training. <code class="docutils literal notranslate"><span class="pre">start</span></code> method has a loop, which includes fetching data from source(Often file system), and calling <code class="docutils literal notranslate"><span class="pre">train</span></code> for one-iteration training. <code class="docutils literal notranslate"><span class="pre">start</span></code> will train for a specific number of iterations, which is set by use config.</p>
 <p>Besides <code class="docutils literal notranslate"><span class="pre">train</span></code> and <code class="docutils literal notranslate"><span class="pre">start</span></code>, learner also provides a useful interface called <code class="docutils literal notranslate"><span class="pre">save_checkpoint</span></code>, which can save current state_dict as a checkpoint during training.</p>
 <p>In learner, there is a special concept called <code class="docutils literal notranslate"><span class="pre">Hook</span></code>. Hook is responsible for doing some fixed jobs at specific timings, including “before_run”(at the beginning of <code class="docutils literal notranslate"><span class="pre">start</span></code> ), “after_run”(at the ending of <code class="docutils literal notranslate"><span class="pre">start</span></code> ), “before_iter”(at the beginning of <code class="docutils literal notranslate"><span class="pre">train</span></code> ), “after_iter”(at the ending of <code class="docutils literal notranslate"><span class="pre">train</span></code> ).</p>

@@ -102,8 +102,6 @@
 <li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model Overview</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Env Overview</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#baseenv">BaseEnv</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#envelement">EnvElement</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#envelementrunner">EnvElementRunner</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="collector_overview.html">Collector Overview</a></li>
@@ -198,45 +196,41 @@
 <dl>
 <dt>Overview:</dt><dd><p>The Environment module is one of the important modules in reinforcement learning (RL). In some common RL tasks, such as <a class="reference external" href="https://gym.openai.com/envs/#atari">atari</a> tasks and <a class="reference external" href="https://gym.openai.com/envs/#mujoco">mujoco</a> tasks, the agent we train is to explore and learn in such an environment. Generally, to define an environment, you need to start with the input and output of the environment, and fully consider the possible observation space and action space. The <cite>gym</cite> module produced by OpenAI has helped us define most of the commonly used academic environments. <cite>DI-engine</cite> also follows the definition of <cite>gym.Env</cite>, and adds a series of more convenient functions to it, making the call of the environment easier to understand.</p>
 </dd>
-<dt>Implementation:</dt><dd><p>The key concepts of the defination of <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/core.py#L8">gym.Env</a> are methods including <code class="docutils literal notranslate"><span class="pre">step()</span></code> and <code class="docutils literal notranslate"><span class="pre">reset()</span></code>. According to the given <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">step()</span></code> interacts with the environment based on the input <code class="docutils literal notranslate"><span class="pre">action</span></code>, and return related <code class="docutils literal notranslate"><span class="pre">reward</span></code>. The environment is reset when we call <code class="docutils literal notranslate"><span class="pre">reset()</span></code>. Inherited from <cite>gym.Env</cite>，<cite>ding.envs.BaseEnv</cite> also implements:</p>
+<dt>Implementation:</dt><dd><p>The key concepts of the defination of <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/core.py#L8">gym.Env</a> are methods including <code class="docutils literal notranslate"><span class="pre">step()</span></code> and <code class="docutils literal notranslate"><span class="pre">reset()</span></code>. According to the given <code class="docutils literal notranslate"><span class="pre">observation</span></code>, <code class="docutils literal notranslate"><span class="pre">step()</span></code> interacts with the environment based on the input <code class="docutils literal notranslate"><span class="pre">action</span></code>, and return related <code class="docutils literal notranslate"><span class="pre">reward</span></code>. The environment is reset when we call <code class="docutils literal notranslate"><span class="pre">reset()</span></code>. Regarding the observation, action, and reward in the environment, their definitions and restrictions are also given, which are <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> <code class="docutils literal notranslate"><span class="pre">action_space</span></code> and <code class="docutils literal notranslate"><span class="pre">reward_range</span></code>.</p>
+<p><cite>ding.envs.BaseEnv</cite> is similar to <cite>gym.Env</cite>, in addition to the above interfaces and features, <cite>ding.envs.BaseEnv</cite> also defines and implements:</p>
 <p>1. <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep(namedtuple)</span></code>:
 It defines what environment returns when <code class="docutils literal notranslate"><span class="pre">step()</span></code> is called, usually including <code class="docutils literal notranslate"><span class="pre">obs</span></code>, <code class="docutils literal notranslate"><span class="pre">act</span></code>,  <code class="docutils literal notranslate"><span class="pre">reward</span></code>,  <code class="docutils literal notranslate"><span class="pre">done</span></code> and <code class="docutils literal notranslate"><span class="pre">info</span></code>. You can inherit from <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep</span></code> and define your owned variables.</p>
-<p>2. <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo(namedlist)</span></code>:
-It defines the basic information of the environment, usually including the number of agents, the dimension of the observation space. DI-engine now implements it with <code class="docutils literal notranslate"><span class="pre">agent_num</span></code>, <code class="docutils literal notranslate"><span class="pre">obs_space</span></code>, <code class="docutils literal notranslate"><span class="pre">act_space</span></code> and <code class="docutils literal notranslate"><span class="pre">rew_space</span></code>, and <code class="docutils literal notranslate"><span class="pre">xxx_space</span></code> must be inherited from <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code> in <code class="docutils literal notranslate"><span class="pre">envs/common/env_element.py</span></code>. You can add new variables in your <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code>.</p>
+<ol class="arabic simple" start="2">
+<li><p>space property: Di-engine retains the definitions of <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> and <code class="docutils literal notranslate"><span class="pre">action_space</span></code>, and expands <code class="docutils literal notranslate"><span class="pre">reward_range</span></code> to <code class="docutils literal notranslate"><span class="pre">reward_space</span></code>, making it consistent with the previous two. In the case of a multi-agent environment, <code class="docutils literal notranslate"><span class="pre">num_agent</span></code> should also be specified.</p></li>
+</ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> in <code class="docutils literal notranslate"><span class="pre">subprocess_env_manager</span></code> depends on <code class="docutils literal notranslate"><span class="pre">obs_space</span></code>. If you want to use <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code>, you must use <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code> or its subclass.</p>
+<p><code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> in <code class="docutils literal notranslate"><span class="pre">subprocess_env_manager</span></code> depends on <code class="docutils literal notranslate"><span class="pre">obs_space</span></code>. If you want to use <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code>, you must make sure use <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> is correctly specified.</p>
 </div>
-<p>3. <code class="docutils literal notranslate"><span class="pre">info()</span></code>:
-It is used to check the shape in environment quickly</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><code class="docutils literal notranslate"><span class="pre">info()</span></code> will change <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code> / <code class="docutils literal notranslate"><span class="pre">act_shape</span></code> / <code class="docutils literal notranslate"><span class="pre">rew_shape</span></code> according to the used wrappers. If you want to add new env wrapper, you need to override static method <code class="docutils literal notranslate"><span class="pre">new_shape(obs_shape,</span> <span class="pre">act_shape,</span> <span class="pre">rew_shape)</span></code> and return new shape.</p>
-</div>
-<p>4. <code class="docutils literal notranslate"><span class="pre">create_collector_env_cfg()</span></code>:
+<p>3. <code class="docutils literal notranslate"><span class="pre">create_collector_env_cfg()</span></code>:
 It is used to create config for collectors. It is independent of <code class="docutils literal notranslate"><span class="pre">create_evaluator_env_cfg</span></code>, which is convenient for users to set different environmental parameters for data collection and performance evaluation. According to the incoming initial configuration, a corresponding configuration file is generated for each specific environment. By default, The number of environments in the configuration file will be obtained, and then copy the corresponding number of copies of the default environment configuration to return.</p>
-<p>5. <code class="docutils literal notranslate"><span class="pre">create_evaluator_env_cfg():</span></code>
+<p>4. <code class="docutils literal notranslate"><span class="pre">create_evaluator_env_cfg():</span></code>
 It is to create a corresponding environment configuration file for performance evaluation. The function is the same as the above description.</p>
-<p>6. <code class="docutils literal notranslate"><span class="pre">enable_save_replay()</span></code>:
-The environment can save the running process as a video file, which is convenient for debugging and visualization. It is generally called before the actual running of the environment, and functionally replaces the render method in the common environment. (This method is optional to implement).</p>
+<p>5. <code class="docutils literal notranslate"><span class="pre">enable_save_replay()</span></code>:
+The environment can save the running process as a video file, which is convenient for debugging and visualization. It is generally called before the actual running of the environment, and it is often used for notifying the env should save replay and the save path. (This method is optional to implement).</p>
 <p>Besides, some changes have also been made to the details in <cite>ding.envs.BaseEnv</cite>, such as:</p>
 <ol class="arabic simple">
-<li><p>seed(): For the seed control of various processing functions and wrappers in the environment, the external setting is the seed of the seed</p></li>
-<li><p>Lazy init is used by default, which means, init only sets the parameters, and the environment sets seed at the first reset.</p></li>
-<li><p>At the end of the episode, return the final_eval_reward key-value pair in the info dict</p></li>
+<li><p>seed(): For the seed control of various processing functions and wrappers in the environment, the external setting is the seed of the seed. When the environment is used to collect data, it is also common to distinguish between <strong>static torrents and dynamic torrents</strong></p></li>
+<li><p><strong>Lazy init</strong> is used by default, which means, init only sets the parameters, and the environment is initialized and set seed at the first reset.</p></li>
+<li><p>At the end of the episode, return the <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code> key-value pair in the <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep.info</span></code> dict</p></li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <blockquote>
-<div><p>For the specific creation of an environment (such as opening other simulator clients), this behavior should not be implemented in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, because there are  scenarios that create model instances but do not run (such as obtaining information such as the dimensions of the environment observation) ). It is recommended to implement in the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method, which means to determine whether the operating environment has been created, if not, create and then reset, or directly reset the existing environment. If the user still wants to complete this function in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, please confirm by yourself that there will be no waste of resources or conflicts.</p>
+<div><p>For the specific creation of an environment (such as opening other simulator clients), this behavior should not be implemented in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, because there are scenarios that create model instances but do not run (such as obtaining information such as the dimensions of the environment observation). It is recommended to implement in the <code class="docutils literal notranslate"><span class="pre">reset</span></code> method, which means to determine whether the operating environment has been created, if not, create and then reset, or directly reset the existing environment. If the user still wants to complete this function in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, please confirm by yourself that there will be no waste of resources or conflicts.</p>
 </div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Regarding BaseEnvInfo and BaseEnvTimestep, if there is no special requirement, you can directly call the default definition provided by DI-engine, namely:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span><span class="p">,</span> <span class="n">BaseEnvInfo</span>
+<p>Regarding <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep</span></code>, if there is no special requirement, you can directly call the default definition provided by DI-engine, namely:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
 </pre></div>
 </div>
-<p>If you need to customize it, use <code class="docutils literal notranslate"><span class="pre">namedtuple(BaseEnvTimestep)</span></code> / <code class="docutils literal notranslate"><span class="pre">namedlist(BaseEnvInfo)</span></code> to achieve it in accordance with the above requirements.</p>
+<p>If you need to customize it, you can use <code class="docutils literal notranslate"><span class="pre">namedtuple(BaseEnvTimestep)</span></code>.</p>
 </div>
 </div>
 <div class="admonition tip">
@@ -246,7 +240,7 @@ The environment can save the running process as a video file, which is convenien
 </div></blockquote>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>DI-engine has some dependencies on the <code class="docutils literal notranslate"><span class="pre">info()</span></code> field returned by the environment. <code class="docutils literal notranslate"><span class="pre">info()</span></code> returns a dict, and some key-value pairs have related dependencies:</p>
+<p>DI-engine has some dependencies on the <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep.info</span></code> field returned by the environment. <code class="docutils literal notranslate"><span class="pre">BaseEnvTimestep.info</span></code> returns a dict, and some key-value pairs have related dependencies:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>: The key value must be included at the end of an episode of the environment (done=True), and the value is of type float, which means that the environment runs an episode performance measurement</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">abnormal</span></code>: Each time step of the environment can contain the key value, the key value is not required, it is an optional key value, and the value is of type bool, indicating whether an error occurred during the operation of the environment, and if it is true, the relevant modules of the will process the step (for example, the relevant data will be removed).</p></li>
@@ -259,73 +253,6 @@ The environment can save the running process as a video file, which is convenien
 </div></blockquote>
 </dd>
 </dl>
-</div>
-<div class="section" id="envelement">
-<h2>EnvElement<a class="headerlink" href="#envelement" title="Permalink to this headline">¶</a></h2>
-<p>(ding/envs/common/env_element.py)</p>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>EnvElement is the base class of environment elements. <code class="docutils literal notranslate"><span class="pre">Observation</span></code>, <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">reward</span></code>, etc. can be regarded as environmental elements. This class and its subclasses are responsible for the basic information and processing function definitions of a specific environmental element. This class and its subclasses are stateless and maintain static properties and methods.</p>
-</dd>
-<dt>Variables:</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">info_template</span></code>: Environment elements information template, generally including dimensions, value conditions, processing functions for data sent to the agent, and processing functions for data received from the agent.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_instance</span></code>: The class variable used to implement the singleton model, pointing to the only instance of the class.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_name</span></code>: The unique identification name of the class.</p></li>
-</ol>
-</dd>
-<dt>Class interface method:</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>: Initialization, note that after the initialization is completed, the <code class="docutils literal notranslate"><span class="pre">_check()</span></code> method will be called to check whether it is legal.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code>: return the basic information and processing function of the element class.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">__repr__</span></code>: Returns a string that provides an element description.</p></li>
-</ol>
-</dd>
-<dt>The override methods need to be inherited in subclasses:</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">_init</span></code>: The actual initialization method, which is implemented so that the subclass must also call the <code class="docutils literal notranslate"><span class="pre">_check</span></code> method when calling the method <code class="docutils literal notranslate"><span class="pre">__init__</span></code>, which is equivalent to <code class="docutils literal notranslate"><span class="pre">__init__</span></code> is just a layer of wrapper.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_check</span></code>: Check the legitimacy method, check whether an environment element class implements the required attributes, the subclass can extend the method, that is, override the method-call the method of the parent class and implement the part that needs to be checked by itself.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_details</span></code>: element class details.</p></li>
-</ol>
-</dd>
-</dl>
-</div>
-<div class="section" id="envelementrunner">
-<h2>EnvElementRunner<a class="headerlink" href="#envelementrunner" title="Permalink to this headline">¶</a></h2>
-<p>(ding/envs/common/env_element_runner.py)</p>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>The runtime base class of environment elements is implemented using decoration patterns, responsible for runtime-related state management (such as maintaining some state record variables) and providing possible polymorphic mechanisms (reprocessing the results returned by static processing functions).
-On the basis of the static environment element interface, the <code class="docutils literal notranslate"><span class="pre">get()</span></code> and <code class="docutils literal notranslate"><span class="pre">reset()</span></code> interfaces have been added. This class manages the corresponding static environment element instance as its own member variable <code class="docutils literal notranslate"><span class="pre">_core</span></code>.</p>
-</dd>
-<dt>Class variables:</dt><dd><p>None.</p>
-</dd>
-<dt>Class interface method:</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code>: derived from the parent class of the interface, call the corresponding method of the static element in actual use.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">__repr__</span></code>: derived from the parent class of the interface, call the corresponding method of the static element in actual use.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">get</span></code>: To get the element value at actual runtime, you need to pass in the specific env object. All access to env information is concentrated in the <code class="docutils literal notranslate"><span class="pre">get</span></code> method. It is recommended that the access information be implemented through the env property.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reset</span></code>: restart state, generally need to be called when env restarts.</p></li>
-</ol>
-</dd>
-<dt>The override method need to inherit in subclasses:</dt><dd><ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">_init</span></code>: The actual initialization method, which is implemented so that the subclass must also call the <code class="docutils literal notranslate"><span class="pre">_check</span></code> method when calling the method <code class="docutils literal notranslate"><span class="pre">__init__</span></code>, which is equivalent to <code class="docutils literal notranslate"><span class="pre">__init__</span></code> is just a layer of wrapper.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">_check</span></code>: Check the legitimacy method, check whether an environment element class implements the required attributes, the subclass can extend the method, that is, override the method-call the method of the parent class + implement the part that needs to be checked by itself</p></li>
-</ol>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ol class="arabic">
-<li><p>The two classes of <code class="docutils literal notranslate"><span class="pre">EnvElement</span></code> and <code class="docutils literal notranslate"><span class="pre">EnvElementRunner</span></code> constitute a complete environment element. The former represents static information (stateless), and the latter is responsible for information that changes at runtime (stateful). It is recommended to state related to specific environmental elements. Variables are always maintained here, and only general state variables are maintained in env.</p></li>
-<li><p>The simple logic diagram of the environment element part is as follows:</p>
-<blockquote>
-<div><img alt="../_images/env_element_class.png" src="../_images/env_element_class.png" />
-</div></blockquote>
-</li>
-</ol>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ol class="arabic simple">
-<li><p>All code implementations to the idea of ​​** questioning external input and being responsible for external output**, do necessary checks on input parameters, and clearly define the format of output (return value).</p></li>
-<li><p>If the key value of the environment element is empty, always use <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-</ol>
-</div>
 </div>
 </div>
 

@@ -53,7 +53,7 @@ Also, you can install DI-engine from the source codes in github(master branch re
 
 .. tip::
 
-   If you use ``--user`` option in installation, some executable command will be installed in user path(e.g. ``~/.local/bin``), and you should ensure this path has already been added into environment variable(e.g.
+   If you use ``--user`` option in installation, some executable command will be installed in the user path(e.g. ``~/.local/bin``), and you should ensure this path has already been added into the environment variable(e.g.
    $PATH in Linux).
 
 If you want to install the extra package required by some functions in DI-engine(such as concrete env, unittest and doc), you can execute
@@ -77,7 +77,7 @@ If you complete installation with the similar output in your terminal, the insta
 
 .. note::
 
-   The whole installation procedure often lasts about 30 seconds(depends on the download speed of packages), if there are some failed packages, you can also refer to ``setup.py`` and install the specific
+   The whole installation procedure often lasts about 30 seconds(depending on the download speed of packages), if there are some failed packages, you can also refer to ``setup.py`` and install the specific
    package manually.
 
 Development Version
@@ -111,4 +111,4 @@ Besides, DI-engine also prepare the CLI tool for users, you can type the followi
 
    ding -v
 
-If the terminal return the correct information, you can use this CLI tool for the common training and evaluation, you can type ``ding -h`` for further usage
+If the terminal returns the correct information, you can use this CLI tool for the common training and evaluation, and you can type ``ding -h`` for further usage

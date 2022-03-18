@@ -9,7 +9,7 @@ Quick Start
    images/cartpole_cmp.gif
    :align: center
 
-As kickoff, we will illustrate how to launch a RL experiment on a simple ``CartPole`` environment (as shown in above figure) using DI-engine.
+As a kickoff, we will illustrate how to launch an RL experiment on a simple ``CartPole`` environment (as shown in the above figure) using DI-engine.
 
 
 Concretely, we will define a training pipeline in a single python file that specifies the training hyper-parameters, sampling and evaluation environments, the neural networks for the RL agents, as well as the training workflow.
@@ -75,7 +75,7 @@ DI-engine provides default configs for all modules, and also a helper function `
 
 In this example, we only present the procedure to specify config in the entry file. In the following section, we construct the RL pipeline in the same entry file based on the specified config.
 
-Please note that DI-engine also supports running a RL experiment directly according to a given config file, e.g. 
+Please note that DI-engine also supports running an RL experiment directly according to a given config file, e.g. 
 
 .. code:: bash
 
@@ -89,7 +89,7 @@ Initialize the Environments
 
 The RL agents interact with the environment to collect training data or test its performance.
 DI-engine provides enhanced RL environment interfaces derived from the widely used `OpenAI Gym <https://github.com/openai/gym>`_. 
-You can simply wrap the gym environment into DI-engine environment by using the environment warpper :class:`DingEnvWrapper <ding.env.DingEnvWrapper>`.
+You can simply wrap the gym environment into the DI-engine environment by using the environment wrapper :class:`DingEnvWrapper <ding.env.DingEnvWrapper>`.
 You can also construct a more complex environment class following the guidelines in `Environment <../key_concept/index.html#env>`_ section.
 
 The :class:`Env Manager <ding.envs.BaseEnvManager>` is used to manage multiple vectorized environments, usually implemented by
@@ -121,10 +121,10 @@ Set up the Policy and NN models
 -------------------------------
 
 DI-engine supports most of the common policies used in RL training. Each is defined as a :class:`Policy <ding.policy.CommonPolicy>`
-class. The details of optimiaztion algorithm, data pre-processing and post-processing, usage of neural networks
-are encapsulated inside. Users only need to build a PyTorch network structure and pass into the policy. 
+class. The details of optimization algorithms, data pre-processing and post-processing, usage of neural networks
+are encapsulated inside. Users only need to build a PyTorch network structure and pass it into the policy. 
 
-DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, users can imitate the interfaces of these default models and customize own networks.
+DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, users can imitate the interfaces of these default models and customize their own networks.
 
 For example, a ``DQN`` policy for ``CartPole`` can be defined as follow.
 
@@ -141,11 +141,11 @@ DI-engine needs to build some execution components to manage an RL training proc
 A :class:`Collector <ding.worker.collector.SampleCollector>` is used to sample and provide data for training.
 A :class:`Learner <ding.worker.learner.BaseLearner>` is used to receive training data and conduct 
 the training (including updating networks, strategy and etc.).
-An :class:`Evaluator <ding.worker.collector.BaseSerialEvaluator>` is build to perform the evaluation when needed.
+An :class:`Evaluator <ding.worker.collector.BaseSerialEvaluator>` is built to perform the evaluation when needed.
 And other components like :class:`Replay Buffer <ding.worker.replay_buffer.AdvancedReplayBuffer>` may be required for the
-training process. All these module can be customized by config or rewritten by the user.
+training process. All these modules can be customized by config or rewritten by the user.
 
-An example of setting all the above is showed as follow.
+An example of setting all the above is shown as follows.
 
 .. code-block:: python
 
@@ -214,14 +214,14 @@ An easy way of deploying epsilon greedy exploration when sampling data is shown 
         eps = epsilon_greedy(learner.train_iter)
         ...
 
-Firstly, you should call ``get_epsilon_greedy_fn`` to acquire an eps-greedy function. Then, you should call ``epsilon_greedy`` function at each step. The epsilon decay strategy can be configured by you, for example, start value, end value, type of decay(linear, exponential). And you can control whether it decay by env step or train iteration.
+Firstly, you should call ``get_epsilon_greedy_fn`` to acquire an eps-greedy function. Then, you should call ``epsilon_greedy`` function at each step. The epsilon decay strategy can be configured by you, for example, start value, end value, type of decay(linear, exponential). And you can control whether it decays by env steps or train iteration.
 
 
 Visualization & Logging
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some environments have a rendering visualization. DI-engine doesn't use render interface, but supports saving replay videos instead.
-After training, users can add the code shown below to enable this function. If everything works well, you can find some videos with ``.mp4`` suffix in directory ``replay_path`` (some GUI interfaces are normal).
+After training, users can add the code shown below to enable this function. If everything works well, you can find some videos with the ``.mp4`` suffix in directory ``replay_path`` (some GUI interfaces are normal).
 
 
 .. code-block:: python
@@ -258,7 +258,7 @@ After training, users can add the code shown below to enable this function. If e
 
 
 Similar with other Deep Learning platforms, DI-engine uses tensorboard to record key parameters and results during
-training. In addition to the default logging parameters, users can add their own logging parameters as follow.
+training. In addition to the default logging parameters, users can add their own logging parameters as follows.
 
 .. code-block:: python
 
@@ -271,7 +271,7 @@ DQN experiment.
 Loading & Saving checkpoints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-It is usually needed to save and resume an experiment with model checkpoint. 
+It is usually needed to save and resume an experiment with model checkpoints. 
 DI-engine saves and loads checkpoints in the same way as PyTorch.
 
 .. code-block:: python

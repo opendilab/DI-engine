@@ -155,110 +155,61 @@ Advanced
       - ``ObsNormEnv``: Uses ``RunningMeanStd`` to normalize the sliding window of observation
       - ``RewardNormEnv``: Uses ``RunningMeanStd`` to normalize the sliding window of reward
       - ``RamWrapper``: Converts the observation shape of the Ram type environment to a similar image (128, 1, 1)
-      - ``EpisodicLifeEnv``: Used in environments with multiple lives (such as Qbert; Regards each life as an episode
+      - ``EpisodicLifeEnv``: Used in environments with multiple lives (such as Qbert); Regards each life as an episode
       - ``FireResetEnv``: Executes action 1 (fire) immediately after the environment is reset
+      - ``GymHybridDictActionWrapper``: Transform Gym-Hybrid's original ``gym.spaces.Tuple`` action space
+        to ``gym.spaces.Dict``.
 
    If the above wrapper does not meet your needs, you can also customize the wrapper yourself.
 
    It is worth mentioning that each wrapper also implements a static method ``new_shape``. The input parameters are the shape of observation, action, and reward before using the wrapper, and the output is the shape of the three after using the wrapper. This method will be used in the next section ``info``.
 
-   .. code:: python
+   It is worth mentioning that each wrapper must not only change of the corresponding observation/action/reward value, but also modify its corresponding space attribute accordingly (if and only when shpae, dtype, etc. are modified). And it will be discussed next section.
 
-      class RamWrapper(gym.Wrapper):
 
-         @staticmethod
-         def new_shape(obs_shape, act_shape, rew_shape):
-            """
-            Overview:
-               Get new shape of observation, acton, and reward; in this case only observation \
-               space wrapped to (128,1,1); others unchanged.
-            Arguments:
-               obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-            Returns:
-               obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
-            """
-            return (128, 1, 1), act_shape, rew_shape
+2. 3 Space Attributes: observation/action/reward space
 
-2. ``info()``
+   If you want to automatically create a neural network according to the dimensions of the environment, or use the ``shared_memory`` feature in ``EnvManager`` to speed up the transmission of environment's large tensor data, you need to provide property APIs: ``observation_space`` ``action_space`` ``reward_space``, in your env.
 
-   If you want to automatically create a neural network according to the dimensions of the environment, or use the ``shared_memory`` feature in ``EnvManager`` to speed up the transmission of environment's large tensor data, you need to specify  **shape** and **dtype** of ``obs``, ``action``, ``reward`` in ``info`` method.
-
-   For example, this is cartpole's ``info`` method:
+   For example, there are 3 properties that cartpole provides:
 
    .. code:: python
       
-      from ding.envs import BaseEnvInfo
-      from ding.envs.common.env_element import EnvElementInfo
-
       class CartpoleEnv(BaseEnv):
          
-         def info(self) -> BaseEnvInfo:
-            obs_space = self._env.observation_space
-            act_space = self._env.action_space
-            return BaseEnvInfo(
-               agent_num=1,
-               obs_space=EnvElementInfo(
-                  shape=obs_space.shape,
-                  value={
-                     'min': obs_space.low,
-                     'max': obs_space.high,
-                     'dtype': np.float32
-                  },
-               ),
-               act_space=EnvElementInfo(
-                  shape=(act_space.n, ),
-                  value={
-                     'min': 0,
-                     'max': act_space.n,
-                     'dtype': np.float32
-                  },
-               ),
-               rew_space=EnvElementInfo(
-                  shape=1,
-                  value={
-                     'min': -1,
-                     'max': 1,
-                     'dtype': np.float32
-                  },
-               ),
-               use_wrappers=None
+         def __init__(self, cfg: dict = {}) -> None:
+            self._observation_space = gym.spaces.Box(
+                  low=np.array([-4.8, float("-inf"), -0.42, float("-inf")]),
+                  high=np.array([4.8, float("inf"), 0.42, float("inf")]),
+                  shape=(4, ),
+                  dtype=np.float32
             )
-   
-   The definition of ``BaseEnvInfo`` is: ``BaseEnvInfo = namedlist('BaseEnvInfo', ['agent_num','obs_space','act_space','rew_space','use_wrappers'])``. It is used to specify data's several fields (agent number, observation, action, reward, wrapper, etc.). ``EnvElementInfo`` is defined as: ``EnvElementInfo = namedlist('EnvElementInfo', ['shape','value'])``. It is used to indicate the shape and dtype of observation, action, reward etc
+            self._action_space = gym.spaces.Discrete(2)
+            self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
+
+         @property
+         def observation_space(self) -> gym.spaces.Space:
+            return self._observation_space
+
+         @property
+         def action_space(self) -> gym.spaces.Space:
+            return self._action_space
+
+         @property
+         def reward_space(self) -> gym.spaces.Space:
+            return self._reward_space
 
    Since cartpole does not use any wrappers, ``BaseEnvInfo`` is easire to specify. However, if an environment like Atari is decorated with multiple wrappers, you need to know what changes each wrapper has made to ``BaseEnvInfo``. That is why we must implement ``new_shape`` method in each wrapper in the previous section. Its usage is as follows:
 
-   .. code:: python
-
-      class AtariEnv(BaseEnv):
-
-         def info(self) -> BaseEnvInfo:
-            if self._cfg.env_id in ATARIENV_INFO_DICT:
-               info = copy.deepcopy(ATARIENV_INFO_DICT[self._cfg.env_id])
-               info.use_wrappers = self._make_env(only_info=True)
-               obs_shape, act_shape, rew_shape = update_shape(
-                     info.obs_space.shape, info.act_space.shape, info.rew_space.shape, info.use_wrappers.split('\n')
-               )
-               info.obs_space.shape = obs_shape
-               info.act_space.shape = act_shape
-               info.rew_space.shape = rew_shape
-               return info
-            else:
-               raise NotImplementedError('{} not found in ATARIENV_INFO_DICT [{}]'\
-                  .format(self._cfg.env_id, ATARIENV_INFO_DICT.keys()))
-
-   The ``update_shape`` function is as follows:
+   Since cartpole does not use any wrappers, its three spaces are fixed. But if the environment is decorated with multiple wrappers like Atari, it is necessary to modify the corresponding space after each wrapper decorates the original environment. For example, Atari will use ``ScaledFloatFrameWrapper`` to normalize observations to the interval [0, 1], and then modify its ``observation_space`` accordingly:
 
    .. code:: python
 
-      def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
-         for wrapper_name in wrapper_names:
-            if wrapper_name:
-               try:
-                  obs_shape, act_shape, rew_shape = eval(wrapper_name).new_shape(obs_shape, act_shape, rew_shape)
-               except Exception:
-                  continue
-         return obs_shape, act_shape, rew_shape
+      class ScaledFloatFrameWrapper(gym.ObservationWrapper):
+         
+         def __init__(self, env):
+            # ...
+            self.observation_space = gym.spaces.Box(low=0., high=1., shape=env.observation_space.shape, dtype=np.float32)
 
 3. ``enable_save_replay()``
 
@@ -313,6 +264,30 @@ Advanced
       evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
 
    Setting the item ``cfg.is_train`` will use different decoration methods in the wrapper accordingly. For example, if ``cfg.is_train == True``, reward will be applied a sign function to map to ``{+1, 0, -1}`` for better training, if ``cfg.is_train == False`` The original reward value will be retained to facilitate the evaluation of the agent's performance during testing.
+
+5. ``random_action()``
+
+   Some off-policy algorithms require that before training starts, we can collect some data to insert into the buffer with a random strategy for initialization. Due to this requirement, DI-engine encourages to implement the ``random_action`` method.
+
+   Since the environment already supports ``action_space`` property, you can directly call the ``Space.sample()`` method provided by gym to randomly select an action. But it should be noted that, since DI-engine requires all returned actions to be in ``np.ndarray`` format, some necessary transformations may be required. E.g:
+
+   .. python::
+
+      def random_action(self) -> np.ndarray:
+         random_action = self.action_space.sample()
+         if isinstance(random_action, np.ndarray):
+               pass
+         elif isinstance(random_action, int):
+               random_action = to_ndarray([random_action], dtype=np.int64)
+         elif isinstance(random_action, dict):
+               random_action = to_ndarray(random_action)
+         else:
+               raise TypeError(
+                  '`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
+                     type(random_action), random_action
+                  )
+               )
+         return random_action
 
 DingEnvWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~

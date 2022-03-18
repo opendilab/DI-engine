@@ -185,7 +185,7 @@
 <div class="toctree-wrapper compound">
 </div>
 <img alt="../_images/cartpole_cmp.gif" class="align-center" src="../_images/cartpole_cmp.gif" />
-<p>As kickoff, we will illustrate how to launch a RL experiment on a simple <code class="docutils literal notranslate"><span class="pre">CartPole</span></code> environment (as shown in above figure) using DI-engine.</p>
+<p>As a kickoff, we will illustrate how to launch an RL experiment on a simple <code class="docutils literal notranslate"><span class="pre">CartPole</span></code> environment (as shown in the above figure) using DI-engine.</p>
 <p>Concretely, we will define a training pipeline in a single python file that specifies the training hyper-parameters, sampling and evaluation environments, the neural networks for the RL agents, as well as the training workflow.</p>
 <div class="section" id="instantiate-the-run-time-config">
 <h2>Instantiate the run-time config<a class="headerlink" href="#instantiate-the-run-time-config" title="Permalink to this headline">¶</a></h2>
@@ -243,7 +243,7 @@ DI-engine prefers a nested python dict object to represent all parameters and co
 </pre></div>
 </div>
 <p>In this example, we only present the procedure to specify config in the entry file. In the following section, we construct the RL pipeline in the same entry file based on the specified config.</p>
-<p>Please note that DI-engine also supports running a RL experiment directly according to a given config file, e.g.</p>
+<p>Please note that DI-engine also supports running an RL experiment directly according to a given config file, e.g.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -m serial -c cartpole_dqn_config.py -s <span class="m">0</span>
 </pre></div>
 </div>
@@ -253,7 +253,7 @@ DI-engine prefers a nested python dict object to represent all parameters and co
 <h2>Initialize the Environments<a class="headerlink" href="#initialize-the-environments" title="Permalink to this headline">¶</a></h2>
 <p>The RL agents interact with the environment to collect training data or test its performance.
 DI-engine provides enhanced RL environment interfaces derived from the widely used <a class="reference external" href="https://github.com/openai/gym">OpenAI Gym</a>.
-You can simply wrap the gym environment into DI-engine environment by using the environment warpper <code class="xref py py-class docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code>.
+You can simply wrap the gym environment into the DI-engine environment by using the environment wrapper <code class="xref py py-class docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code>.
 You can also construct a more complex environment class following the guidelines in <a class="reference external" href="../key_concept/index.html#env">Environment</a> section.</p>
 <p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Env</span> <span class="pre">Manager</span></code> is used to manage multiple vectorized environments, usually implemented by
 multi-processes parallelly. The interfaces of <cite>env manager</cite> are similar to those of a simple gym env. Here we show a case
@@ -280,9 +280,9 @@ of using <code class="xref py py-class docutils literal notranslate"><span class
 <div class="section" id="set-up-the-policy-and-nn-models">
 <h2>Set up the Policy and NN models<a class="headerlink" href="#set-up-the-policy-and-nn-models" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine supports most of the common policies used in RL training. Each is defined as a <code class="xref py py-class docutils literal notranslate"><span class="pre">Policy</span></code>
-class. The details of optimiaztion algorithm, data pre-processing and post-processing, usage of neural networks
-are encapsulated inside. Users only need to build a PyTorch network structure and pass into the policy.</p>
-<p>DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, users can imitate the interfaces of these default models and customize own networks.</p>
+class. The details of optimization algorithms, data pre-processing and post-processing, usage of neural networks
+are encapsulated inside. Users only need to build a PyTorch network structure and pass it into the policy.</p>
+<p>DI-engine also provides default networks to simply apply to the environment. For some complex RL methods, users can imitate the interfaces of these default models and customize their own networks.</p>
 <p>For example, a <code class="docutils literal notranslate"><span class="pre">DQN</span></code> policy for <code class="docutils literal notranslate"><span class="pre">CartPole</span></code> can be defined as follow.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="o">**</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 <span class="n">policy</span> <span class="o">=</span> <span class="n">DQNPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
@@ -295,10 +295,10 @@ are encapsulated inside. Users only need to build a PyTorch network structure an
 A <code class="xref py py-class docutils literal notranslate"><span class="pre">Collector</span></code> is used to sample and provide data for training.
 A <code class="xref py py-class docutils literal notranslate"><span class="pre">Learner</span></code> is used to receive training data and conduct
 the training (including updating networks, strategy and etc.).
-An <code class="xref py py-class docutils literal notranslate"><span class="pre">Evaluator</span></code> is build to perform the evaluation when needed.
+An <code class="xref py py-class docutils literal notranslate"><span class="pre">Evaluator</span></code> is built to perform the evaluation when needed.
 And other components like <code class="xref py py-class docutils literal notranslate"><span class="pre">Replay</span> <span class="pre">Buffer</span></code> may be required for the
-training process. All these module can be customized by config or rewritten by the user.</p>
-<p>An example of setting all the above is showed as follow.</p>
+training process. All these modules can be customized by config or rewritten by the user.</p>
+<p>An example of setting all the above is shown as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">tensorboardX</span> <span class="kn">import</span> <span class="n">SummaryWriter</span>
 
@@ -359,12 +359,12 @@ collecting data, updating policy, updating related modules and evaluation.</p>
     <span class="o">...</span>
 </pre></div>
 </div>
-<p>Firstly, you should call <code class="docutils literal notranslate"><span class="pre">get_epsilon_greedy_fn</span></code> to acquire an eps-greedy function. Then, you should call <code class="docutils literal notranslate"><span class="pre">epsilon_greedy</span></code> function at each step. The epsilon decay strategy can be configured by you, for example, start value, end value, type of decay(linear, exponential). And you can control whether it decay by env step or train iteration.</p>
+<p>Firstly, you should call <code class="docutils literal notranslate"><span class="pre">get_epsilon_greedy_fn</span></code> to acquire an eps-greedy function. Then, you should call <code class="docutils literal notranslate"><span class="pre">epsilon_greedy</span></code> function at each step. The epsilon decay strategy can be configured by you, for example, start value, end value, type of decay(linear, exponential). And you can control whether it decays by env steps or train iteration.</p>
 </div>
 <div class="section" id="visualization-logging">
 <h3>Visualization &amp; Logging<a class="headerlink" href="#visualization-logging" title="Permalink to this headline">¶</a></h3>
 <p>Some environments have a rendering visualization. DI-engine doesn’t use render interface, but supports saving replay videos instead.
-After training, users can add the code shown below to enable this function. If everything works well, you can find some videos with <code class="docutils literal notranslate"><span class="pre">.mp4</span></code> suffix in directory <code class="docutils literal notranslate"><span class="pre">replay_path</span></code> (some GUI interfaces are normal).</p>
+After training, users can add the code shown below to enable this function. If everything works well, you can find some videos with the <code class="docutils literal notranslate"><span class="pre">.mp4</span></code> suffix in directory <code class="docutils literal notranslate"><span class="pre">replay_path</span></code> (some GUI interfaces are normal).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_cartpole_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
 <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">replay_path</span> <span class="o">=</span> <span class="s1">&#39;./video&#39;</span>  <span class="c1"># indicate save replay directory path</span>
 <span class="n">evaluator_env</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dynamic_seed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -396,7 +396,7 @@ After training, users can add the code shown below to enable this function. If e
 <p>All new RL environments can define their own <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method to specify how to generate replay files. DI-engine utilizes <code class="docutils literal notranslate"><span class="pre">gym</span> <span class="pre">wrapper</span> <span class="pre">(coupled</span> <span class="pre">with</span> <span class="pre">ffmpeg)</span></code> to generate replays for some traditional environments. If users encounter some errors in recording videos by <code class="docutils literal notranslate"><span class="pre">gym</span> <span class="pre">wrapper</span></code>, you should install <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> first.</p>
 </div>
 <p>Similar with other Deep Learning platforms, DI-engine uses tensorboard to record key parameters and results during
-training. In addition to the default logging parameters, users can add their own logging parameters as follow.</p>
+training. In addition to the default logging parameters, users can add their own logging parameters as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;epsilon_greedy&#39;</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -406,7 +406,7 @@ DQN experiment.</p>
 </div>
 <div class="section" id="loading-saving-checkpoints">
 <h3>Loading &amp; Saving checkpoints<a class="headerlink" href="#loading-saving-checkpoints" title="Permalink to this headline">¶</a></h3>
-<p>It is usually needed to save and resume an experiment with model checkpoint.
+<p>It is usually needed to save and resume an experiment with model checkpoints.
 DI-engine saves and loads checkpoints in the same way as PyTorch.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ckpt_path</span> <span class="o">=</span> <span class="s1">&#39;path/to/your/ckpt&#39;</span>
 <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ckpt_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s1">&#39;cpu&#39;</span><span class="p">)</span>

@@ -328,99 +328,51 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">ObsNormEnv</span></code>: Uses <code class="docutils literal notranslate"><span class="pre">RunningMeanStd</span></code> to normalize the sliding window of observation</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RewardNormEnv</span></code>: Uses <code class="docutils literal notranslate"><span class="pre">RunningMeanStd</span></code> to normalize the sliding window of reward</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RamWrapper</span></code>: Converts the observation shape of the Ram type environment to a similar image (128, 1, 1)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">EpisodicLifeEnv</span></code>: Used in environments with multiple lives (such as Qbert; Regards each life as an episode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EpisodicLifeEnv</span></code>: Used in environments with multiple lives (such as Qbert); Regards each life as an episode</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">FireResetEnv</span></code>: Executes action 1 (fire) immediately after the environment is reset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GymHybridDictActionWrapper</span></code>: Transform Gym-Hybrid’s original <code class="docutils literal notranslate"><span class="pre">gym.spaces.Tuple</span></code> action space
+to <code class="docutils literal notranslate"><span class="pre">gym.spaces.Dict</span></code>.</p></li>
 </ul>
 </div></blockquote>
 <p>If the above wrapper does not meet your needs, you can also customize the wrapper yourself.</p>
 <p>It is worth mentioning that each wrapper also implements a static method <code class="docutils literal notranslate"><span class="pre">new_shape</span></code>. The input parameters are the shape of observation, action, and reward before using the wrapper, and the output is the shape of the three after using the wrapper. This method will be used in the next section <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RamWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
-
-   <span class="nd">@staticmethod</span>
-   <span class="k">def</span> <span class="nf">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">):</span>
-      <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">      Overview:</span>
-<span class="sd">         Get new shape of observation, acton, and reward; in this case only observation \</span>
-<span class="sd">         space wrapped to (128,1,1); others unchanged.</span>
-<span class="sd">      Arguments:</span>
-<span class="sd">         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">      Returns:</span>
-<span class="sd">         obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)</span>
-<span class="sd">      &quot;&quot;&quot;</span>
-      <span class="k">return</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span>
-</pre></div>
-</div>
+<p>It is worth mentioning that each wrapper must not only change of the corresponding observation/action/reward value, but also modify its corresponding space attribute accordingly (if and only when shpae, dtype, etc. are modified). And it will be discussed next section.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">info()</span></code></p>
-<p>If you want to automatically create a neural network according to the dimensions of the environment, or use the <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> feature in <code class="docutils literal notranslate"><span class="pre">EnvManager</span></code> to speed up the transmission of environment’s large tensor data, you need to specify  <strong>shape</strong> and <strong>dtype</strong> of <code class="docutils literal notranslate"><span class="pre">obs</span></code>, <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">reward</span></code> in <code class="docutils literal notranslate"><span class="pre">info</span></code> method.</p>
-<p>For example, this is cartpole’s <code class="docutils literal notranslate"><span class="pre">info</span></code> method:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">BaseEnvInfo</span>
-<span class="kn">from</span> <span class="nn">ding.envs.common.env_element</span> <span class="kn">import</span> <span class="n">EnvElementInfo</span>
+<li><p>3 Space Attributes: observation/action/reward space</p>
+<p>If you want to automatically create a neural network according to the dimensions of the environment, or use the <code class="docutils literal notranslate"><span class="pre">shared_memory</span></code> feature in <code class="docutils literal notranslate"><span class="pre">EnvManager</span></code> to speed up the transmission of environment’s large tensor data, you need to provide property APIs: <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> <code class="docutils literal notranslate"><span class="pre">action_space</span></code> <code class="docutils literal notranslate"><span class="pre">reward_space</span></code>, in your env.</p>
+<p>For example, there are 3 properties that cartpole provides:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">CartpoleEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
 
-<span class="k">class</span> <span class="nc">CartpoleEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
-
-   <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvInfo</span><span class="p">:</span>
-      <span class="n">obs_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">observation_space</span>
-      <span class="n">act_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">action_space</span>
-      <span class="k">return</span> <span class="n">BaseEnvInfo</span><span class="p">(</span>
-         <span class="n">agent_num</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-         <span class="n">obs_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
-            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
-               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">low</span><span class="p">,</span>
-               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">high</span><span class="p">,</span>
-               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-            <span class="p">},</span>
-         <span class="p">),</span>
-         <span class="n">act_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">act_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="p">),</span>
-            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
-               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">act_space</span><span class="o">.</span><span class="n">n</span><span class="p">,</span>
-               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-            <span class="p">},</span>
-         <span class="p">),</span>
-         <span class="n">rew_space</span><span class="o">=</span><span class="n">EnvElementInfo</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">value</span><span class="o">=</span><span class="p">{</span>
-               <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
-               <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-               <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-            <span class="p">},</span>
-         <span class="p">),</span>
-         <span class="n">use_wrappers</span><span class="o">=</span><span class="kc">None</span>
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+            <span class="n">low</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">4.8</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">),</span> <span class="o">-</span><span class="mf">0.42</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">)]),</span>
+            <span class="n">high</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">4.8</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span> <span class="mf">0.42</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)]),</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="p">),</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
       <span class="p">)</span>
-</pre></div>
-</div>
-<p>The definition of <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> is: <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span> <span class="pre">=</span> <span class="pre">namedlist('BaseEnvInfo',</span> <span class="pre">['agent_num','obs_space','act_space','rew_space','use_wrappers'])</span></code>. It is used to specify data’s several fields (agent number, observation, action, reward, wrapper, etc.). <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span></code> is defined as: <code class="docutils literal notranslate"><span class="pre">EnvElementInfo</span> <span class="pre">=</span> <span class="pre">namedlist('EnvElementInfo',</span> <span class="pre">['shape','value'])</span></code>. It is used to indicate the shape and dtype of observation, action, reward etc</p>
-<p>Since cartpole does not use any wrappers, <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> is easire to specify. However, if an environment like Atari is decorated with multiple wrappers, you need to know what changes each wrapper has made to <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code>. That is why we must implement <code class="docutils literal notranslate"><span class="pre">new_shape</span></code> method in each wrapper in the previous section. Its usage is as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AtariEnv</span><span class="p">(</span><span class="n">BaseEnv</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-   <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEnvInfo</span><span class="p">:</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span> <span class="ow">in</span> <span class="n">ATARIENV_INFO_DICT</span><span class="p">:</span>
-         <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">ATARIENV_INFO_DICT</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span><span class="p">])</span>
-         <span class="n">info</span><span class="o">.</span><span class="n">use_wrappers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_env</span><span class="p">(</span><span class="n">only_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-         <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span> <span class="o">=</span> <span class="n">update_shape</span><span class="p">(</span>
-               <span class="n">info</span><span class="o">.</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">act_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">rew_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">info</span><span class="o">.</span><span class="n">use_wrappers</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-         <span class="p">)</span>
-         <span class="n">info</span><span class="o">.</span><span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
-         <span class="n">info</span><span class="o">.</span><span class="n">act_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">act_shape</span>
-         <span class="n">info</span><span class="o">.</span><span class="n">rew_space</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">rew_shape</span>
-         <span class="k">return</span> <span class="n">info</span>
-      <span class="k">else</span><span class="p">:</span>
-         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> not found in ATARIENV_INFO_DICT [</span><span class="si">{}</span><span class="s1">]&#39;</span>\
-            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">env_id</span><span class="p">,</span> <span class="n">ATARIENV_INFO_DICT</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">observation_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span>
+
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">action_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_action_space</span>
+
+   <span class="nd">@property</span>
+   <span class="k">def</span> <span class="nf">reward_space</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Space</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reward_space</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">update_shape</span></code> function is as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">update_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">,</span> <span class="n">wrapper_names</span><span class="p">):</span>
-   <span class="k">for</span> <span class="n">wrapper_name</span> <span class="ow">in</span> <span class="n">wrapper_names</span><span class="p">:</span>
-      <span class="k">if</span> <span class="n">wrapper_name</span><span class="p">:</span>
-         <span class="k">try</span><span class="p">:</span>
-            <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">wrapper_name</span><span class="p">)</span><span class="o">.</span><span class="n">new_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">)</span>
-         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">continue</span>
-   <span class="k">return</span> <span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span>
+<p>Since cartpole does not use any wrappers, <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code> is easire to specify. However, if an environment like Atari is decorated with multiple wrappers, you need to know what changes each wrapper has made to <code class="docutils literal notranslate"><span class="pre">BaseEnvInfo</span></code>. That is why we must implement <code class="docutils literal notranslate"><span class="pre">new_shape</span></code> method in each wrapper in the previous section. Its usage is as follows:</p>
+<p>Since cartpole does not use any wrappers, its three spaces are fixed. But if the environment is decorated with multiple wrappers like Atari, it is necessary to modify the corresponding space after each wrapper decorates the original environment. For example, Atari will use <code class="docutils literal notranslate"><span class="pre">ScaledFloatFrameWrapper</span></code> to normalize observations to the interval [0, 1], and then modify its <code class="docutils literal notranslate"><span class="pre">observation_space</span></code> accordingly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ScaledFloatFrameWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">ObservationWrapper</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+      <span class="c1"># ...</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -468,6 +420,10 @@
 </pre></div>
 </div>
 <p>Setting the item <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span></code> will use different decoration methods in the wrapper accordingly. For example, if <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span> <span class="pre">==</span> <span class="pre">True</span></code>, reward will be applied a sign function to map to <code class="docutils literal notranslate"><span class="pre">{+1,</span> <span class="pre">0,</span> <span class="pre">-1}</span></code> for better training, if <code class="docutils literal notranslate"><span class="pre">cfg.is_train</span> <span class="pre">==</span> <span class="pre">False</span></code> The original reward value will be retained to facilitate the evaluation of the agent’s performance during testing.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">random_action()</span></code></p>
+<p>Some off-policy algorithms require that before training starts, we can collect some data to insert into the buffer with a random strategy for initialization. Due to this requirement, DI-engine encourages to implement the <code class="docutils literal notranslate"><span class="pre">random_action</span></code> method.</p>
+<p>Since the environment already supports <code class="docutils literal notranslate"><span class="pre">action_space</span></code> property, you can directly call the <code class="docutils literal notranslate"><span class="pre">Space.sample()</span></code> method provided by gym to randomly select an action. But it should be noted that, since DI-engine requires all returned actions to be in <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> format, some necessary transformations may be required. E.g:</p>
 </li>
 </ol>
 </div>

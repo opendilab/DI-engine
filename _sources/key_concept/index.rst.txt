@@ -68,7 +68,7 @@ For the subprocess-type env manager, DI-engine uses shared memory among differen
    If the environment is some kind of client, like SC2 and CARLA, maybe a new env manager based on python thread can be faster.
 
 .. note::
-   If there are some pre-defined neural networks in the environment using GPU, like the feature extractor VAE trained by self-supervised training before RL training, DI-engine recommends to utilize parallel executions in each subprocess rather than stack all the data in the main process and then forward this network. Moreover, it is not an elegant method, DI-engine will try to find some new flexible and general solution.
+   If there are some pre-defined neural networks in the environment using GPU, like the feature extractor VAE trained by self-supervised training before RL training, DI-engine recommends utilizing parallel executions in each subprocess rather than stack all the data in the main process and then forward this network. Moreover, it is not an elegant method, DI-engine will try to find some new flexible and general solution.
 
 Besides, for robustness in practical usage, like IPC error(broken pipe, EOF) and environment runtime error, DI-engine also provides a series of **Error Tolerance** tools, e.g.: watchdog and auto-retry.
 
@@ -89,7 +89,7 @@ prepares some simple interface methods, and combines them into 3 common modes—
    images/policy_mode.svg
 
 Learn_mode aims to policy updating, collect_mode does proper exploration and exploitation to collect training data, eval_mode evaluates policy performance clearly and fairly. And the users can customize their
-own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training result, select battle players in self-play training, and so on. For more details,
+own algorithm ideas by overriding these modes or design their customized modes, such as hyperparameters annealing according to training results, selecting battle players in self-play training, and so on. For more details,
 the users can refer to `Policy Overview <../feature/policy_overview.html>`_.
 
 .. note::
@@ -97,7 +97,7 @@ the users can refer to `Policy Overview <../feature/policy_overview.html>`_.
 
 Shared Model + Model Wrapper
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Neural network, often called model, is the one of most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(``__init__``) or out of policy and passed to the policy as arguments. Therefore, the model is shared among different modes for convenience. And DI-engine extends the model with more runtime function by ``Model Wrapper`` , which makes the shared model can exhibit different behaviors in different modes, such as sampling action by multinomial distribution in collect mode while :math:`argmax` in evaluating mode. Here are some concrete code examples:
+Neural network, often called model, is one of the most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(``__init__``) or out of policy and passed to the policy as arguments. Therefore, the model is shared among different modes for convenience. And DI-engine extends the model with more runtime function by ``Model Wrapper`` , which makes the shared model can exhibit different behaviors in different modes, such as sampling action by multinomial distribution in collect mode while :math:`argmax` in evaluating mode. Here are some concrete code examples:
 
 .. code:: python
 
@@ -115,11 +115,11 @@ If you want to know about the detailed information of the pre-defined model wrap
 
 Processing Function
 ^^^^^^^^^^^^^^^^^^^^^^
-In practical algorithm implementations, the users often need to many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
-algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, DI-engine has provided some common processing functions, which can be called as a pure function. And the users can utilize these functions both in collect mode and in learning mode.
+In practical algorithm implementations, the users often need too many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
+algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, DI-engine has provided some common processing functions, which can be called a pure function. And the users can utilize these functions both in collect mode and in learning mode.
 
 For example, where should we calculate advantages for some on-policy algorithms, such as A2C/PPO, learn mode or collect mode? The former can distribute computation to different collector nodes in distributed
-training for saving time, and the latter can usually gain better performance due to more accurate approximation, just a trade-off. For a framework, it is more wiser to offer some powerful and efficient tools rather
+training for saving time, and the latter can usually gain better performance due to more accurate approximation, just a trade-off. For a framework, it is much wiser to offer some powerful and efficient tools rather
 than restricting some fixed pipelines. The following table shows some existing processing functions and related information:
 
 
@@ -150,7 +150,7 @@ The overall design is as follows:
 .. image:: images/config.png
    :alt:
 
-As you can see from above diagram, the entire config is mainly from two parts. One is called Default Config,
+As you can see from the above diagram, the entire config is mainly from two parts. One is called Default Config,
 which is our recommended setting for policy and env, and may not change a lot. The other is called User Config,
 which users may want to specify case by case.
 
@@ -265,7 +265,7 @@ quantity and quality data for policy training (learner). And collector is only r
 these data can be used for training directly or pushed into replay buffer.
 
 There are 3 core parts for a collector——env manager, policy(collect_mode), collector controller, and these parts can be implemented in a
-single process or located in several machines. Usually, DI-engine use a multi-process env_manager and another main loop controller process with policy to construct a collector, which may be extended in the future.
+single process or located in several machines. Usually, DI-engine uses a multi-process env_manager and another main loop controller process with policy to construct a collector, which may be extended in the future.
 
 Due to different send/receive data logic, the collector now is divided into two patterns——serial and parallel, we will introduce them separately.
 
@@ -314,7 +314,7 @@ The core usage of collector is quite simple, the users just need to create a cor
 
 
 The structure and main loop of collector can be summarized as the next image, the interaction of policy and env consists of ``policy.forward``, ``env.step`` and the related support codes. Then ``policy.process_transition`` and
-``policy.get_train_sample`` contributes to process data into training samples and pack them to a list. For ``EpisodeCollector``, which is usually used in some cases that need to do special post-processing,
+``policy.get_train_sample`` contributes to processing data into training samples and packing them into a list. For ``EpisodeCollector``, which is usually used in some cases that need to do special post-processing,
 ``policy.get_train_sample`` is disabled and the users can do anything after receiving the collected data.
 
 .. image::
@@ -403,9 +403,9 @@ Based on ``NaiveReplayBuffer``, ``AdvancedReplayBuffer`` and ``EpisodeReplayBuff
 .. tip::
    By default, most policies in DI-engine adopt ``AdvancedReplayBuffer``, because we think monitor and logger are rather important in debugging and policy tuning. However, if you are sure that you do not need all the features above, you can feel free to switch to simpler and faster ``NaiveReplayBuffer``.
 
-``EpisodeReplayBuffer`` is designed for some special cases where they need a whole episode rather than separated samples. For example: In chess, go or card games, players get reward only when the game is over; In some algorithms like `Hindsight Experience Replay <https://arxiv.org/abs/1707.01495>`_, must sample out a whole episode and operate on it. Therefore, in ``EpisodeReplayBuffer``, each element is no longer a training sample, but an episode.
+``EpisodeReplayBuffer`` is designed for some special cases where they need a whole episode rather than separated samples. For example: In chess, go or card games, players get a reward only when the game is over; In some algorithms like `Hindsight Experience Replay <https://arxiv.org/abs/1707.01495>`_, must sample out a whole episode and operate on it. Therefore, in ``EpisodeReplayBuffer``, each element is no longer a training sample, but an episode.
 
-In DI-engine, we define **full data** and **meta data**. **Full data** is often a dict, with keys ``['obs', 'action', 'next_obs', 'reward', 'info']`` and some optional keys like ``['priority', 'use_count', 'collect_iter', ...]``. However, in some complex environments(Usually we run them in parallel mode), ``['obs', 'action', 'next_obs', 'reward', 'info']`` can be too big to store in memory. Therefore, we store them in file system, and only store **meta data** including ``'file_path'`` and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.
+In DI-engine, we define **full data** and **meta data**. **Full data** is often a dict, with keys ``['obs', 'action', 'next_obs', 'reward', 'info']`` and some optional keys like ``['priority', 'use_count', 'collect_iter', ...]``. However, in some complex environments(Usually we run them in parallel mode), ``['obs', 'action', 'next_obs', 'reward', 'info']`` can be too big to store in memory. Therefore, we store them in the file system, and only store **meta data** including ``'file_path'`` and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.
 
 If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to `Replay Buffer Overview <../feature/replay_buffer_overview.html>`_
 
@@ -416,11 +416,11 @@ Evaluator, another key execution component of DI-engine, is used to determine wh
 or not. Similar to collector, evaluator consists of three key components ——env manager, policy(eval_mode), evaluator
 controller.
 
-Env manager allow us to run multiple environments one by one(``base_env_manager`) or in parallel
+Env manager allows us to run multiple environments one by one(``base_env_manager`) or in parallel
 (``subprocess_env_manager``). For example, if we use subprocess env manager, we will run different environments
 in different subprocesses, which will greatly increase the efficiency of collecting episodes.
 
-Policy(eval_mode) is the rl model which we need to check.
+Policy(eval_mode) is the RL model which we need to check.
 
 Evaluator controller is a component to determine if we should stop evaluating or not. For example, in ``Serial
 Evaluator``, ``n_evaluator_episode`` is an argument to determine how many episodes we want to collect and evaluate. Once
@@ -484,7 +484,7 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 .. tip::
    **How to judge whether the model converges or not?**
 
-   We judge whether the model converges or not based on average reward. In DI-engine, there are three types of average
+   We judge whether the model converges or not based on the average reward. In DI-engine, there are three types of average
    reward: winning probability, total cumulative reward and average unit step reward.
 
    Winning probability: In games like ``SMAC``, we focus on the final result and don't care too much about the
@@ -503,14 +503,14 @@ Combined with the evaluation condition(i.e. ``should_eval`` method), We can add 
 
 .. tip::
 
-   **How to solve the problem that different environment in evaluator may collect different length episode?**
+   **How to solve the problem that different environments in evaluator may collect different length episode?**
 
    In some cases, this is really a big problem. For example, suppose we want to collect 12 episodes in evaluator
-   but only have 5 environments, if we didn't do any thing, it is likely that we will get more short episodes than long
+   but only have 5 environments, if we didn't do anything, it is likely that we will get more short episodes than long
    episodes. As a result, our average reward will have a bias and may not be accurate. This is obvious since short
    episodes need less time.
 
-   In order to solve such problem, we use ``VectorEvalMonitor``, a component to balance how many episodes to collect
+   In order to solve the problem, we use ``VectorEvalMonitor``, a component to balance how many episodes to collect
    per environment. Let's go back to the above example, we will collect three episodes for either of the first two
    environments but only two for each of the remaining environments.
 
@@ -522,7 +522,7 @@ Worker-Learner
 ~~~~~~~~~~~~~~~~~~
 Learner is one of the most important components among all the workers, who is responsible for optimizing the policy by training data. Unlike another important component ``Collector``, learner is not divided into serial and parallel modes, i.e. There is only one learner class, serial and parallel entry can call different methods for training.
 
-**Serial pipeline** would call learner's ``train`` method for training. ``train`` method receives a batch of data, and call learn_mode policy's ``_forward_learn`` to train for one iteraton.
+**Serial pipeline** would call learner's ``train`` method for training. ``train`` method receives a batch of data, and call learn_mode policy's ``_forward_learn`` to train for one iteration.
 
 **Parallel pipeline** would call learner's ``start`` method for a complete process of training. ``start`` method has a loop, which includes fetching data from source(Often file system), and calling ``train`` for one-iteration training. ``start`` will train for a specific number of iterations, which is set by use config.
 
