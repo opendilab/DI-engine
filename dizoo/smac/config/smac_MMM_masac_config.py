@@ -7,7 +7,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 MMM_masac_default_config = dict(
-    exp_name='debug_smac_MMM_masac',
+    exp_name='smac_MMM_masac_seed0',
     env=dict(
         map_name='MMM',
         difficulty=7,

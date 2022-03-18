@@ -8,6 +8,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
+    exp_name='smac_MMM_coma_seed0',
     env=dict(
         map_name='MMM',
         difficulty=7,

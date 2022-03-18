@@ -7,7 +7,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 smac_3s5z_masac_default_config = dict(
-    exp_name='debug_smac_3s5z_masac',
+    exp_name='smac_3s5z_masac_seed0',
     env=dict(
         map_name='3s5z',
         difficulty=7,

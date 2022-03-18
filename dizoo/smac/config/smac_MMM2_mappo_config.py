@@ -9,7 +9,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 main_config = dict(
-    exp_name='smac_MMM2_ppo',
+    exp_name='smac_MMM2_mappo_seed0',
     env=dict(
         map_name='MMM2',
         difficulty=7,

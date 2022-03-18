@@ -8,6 +8,7 @@ evaluator_env_num = 8
 
 main_config = dict(
     env=dict(
+        exp_name='smac_3s5z_collaq_seed0',
         map_name='3s5z',
         difficulty=7,
         reward_only_positive=True,

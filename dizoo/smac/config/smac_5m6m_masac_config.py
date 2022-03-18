@@ -7,7 +7,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 SMAC_5m6m_masac_default_config = dict(
-    exp_name='smac_5m6m_masac_alpha_learn_rate_4',
+    exp_name='smac_5m6m_masac_seed0',
     env=dict(
         map_name='5m_vs_6m',
         difficulty=7,

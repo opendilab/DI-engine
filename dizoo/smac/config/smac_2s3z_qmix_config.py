@@ -7,6 +7,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
+    exp_name='smac_2s3z_qmix_seed0',
     env=dict(
         map_name='2s3z',
         difficulty=7,

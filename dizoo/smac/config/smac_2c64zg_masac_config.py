@@ -8,7 +8,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 SMAC_2c64zg_masac_default_config = dict(
-    exp_name='debug_smac_2c64zg_masac',
+    exp_name='smac_2c64zg_masac_seed0',
     env=dict(
         map_name='2c_vs_64zg',
         difficulty=7,
@@ -21,7 +21,6 @@ SMAC_2c64zg_masac_default_config = dict(
         stop_value=0.99,
         death_mask=True,
         special_global_state=special_global_state,
-        # save_replay_episodes = 1,
         manager=dict(
             shared_memory=False,
             reset_timeout=6000,

@@ -9,7 +9,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 main_config = dict(
-    exp_name='smac_3s5z_vs_3s6z_ppo',
+    exp_name='smac_3s5z_vs_3s6z_mappo_seed0',
     env=dict(
         map_name='3s5z_vs_3s6z',
         difficulty=7,
