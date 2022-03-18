@@ -1,6 +1,3 @@
-import sys
-from copy import deepcopy
-from ding.entry import serial_pipeline_onpolicy
 from easydict import EasyDict
 
 agent_num = 2
@@ -89,3 +86,8 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
+
+if __name__ == '__main__':
+
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)

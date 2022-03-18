@@ -1,4 +1,3 @@
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 agent_num = 8
@@ -78,16 +77,7 @@ create_config = dict(
 create_config = EasyDict(create_config)
 
 
-def train(args):
-    config = [main_config, create_config]
-    serial_pipeline(config, seed=args.seed)
+if __name__ == '__main__':
 
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', '-s', type=int, default=0)
-    args = parser.parse_args()
-
-    train(args)
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

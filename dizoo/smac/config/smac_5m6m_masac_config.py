@@ -1,5 +1,4 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 agent_num = 5
 collector_env_num = 8
@@ -84,5 +83,8 @@ SMAC_5m6m_masac_default_create_config = dict(
 SMAC_5m6m_masac_default_create_config = EasyDict(SMAC_5m6m_masac_default_create_config)
 create_config = SMAC_5m6m_masac_default_create_config
 
-if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+
+if __name__ == '__main__':
+
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
