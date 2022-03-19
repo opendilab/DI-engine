@@ -174,7 +174,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             train_iter: int = -1,
             envstep: int = -1,
             n_episode: Optional[int] = None
-    ) -> Tuple[bool, float, list]:
+    ) -> Tuple[bool, List[dict]]:
         '''
         Overview:
             Evaluate policy and store the best policy based on whether it reaches the highest historical reward.
@@ -185,8 +185,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             - n_episode (:obj:`int`): Number of evaluation episodes.
         Returns:
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
-            - eval_reward (:obj:`float`): Current eval_reward.
-            - return_info (:obj:`list`): Environment information of each finished episode
+            - return_info (:obj:`list`): Environment information of each finished episode.
         '''
         if n_episode is None:
             n_episode = self._default_n_episode
@@ -273,7 +272,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                 "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
-        return stop_flag, eval_reward, return_info
+        return stop_flag, return_info
 
 
 class VectorEvalMonitor(object):
