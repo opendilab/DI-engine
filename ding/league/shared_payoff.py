@@ -209,12 +209,14 @@ class BattleSharedPayoff:
             else:
                 key, reverse = self.get_key(home_id, away_id)
                 # Update with decay
-                for j in job_info_result:
-                    for i in j:
+                # job_info_result is a two-layer list, including total NxM episodes of M envs,
+                # the first(outer) layer is episode dimension and the second(inner) layer is env dimension.
+                for one_episode_result in job_info_result:
+                    for one_episode_result_per_env in one_episode_result:
                         # All categories should decay
                         self._data[key] *= self._decay
                         self._data[key]['games'] += 1
-                        result = _win_loss_reverse(i, reverse)
+                        result = _win_loss_reverse(one_episode_result_per_env, reverse)
                         self._data[key][result] += 1
             return True
 

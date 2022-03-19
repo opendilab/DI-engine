@@ -98,7 +98,7 @@ class SlimeVolleyEnv(BaseEnv):
             return BaseEnvTimestep(obs1, reward, done, info)
 
     def get_episode_result(self, final_eval_reward: float):
-        if final_eval_reward >= 0:
+        if final_eval_reward > 0:  # due to using 5 games (lives) in this env, the final_eval_reward can't be zero.
             return "wins"
         else:
             return "losses"
