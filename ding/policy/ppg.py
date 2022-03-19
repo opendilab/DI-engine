@@ -93,7 +93,8 @@ class PPGPolicy(Policy):
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
-            epoch_per_collect=1,
+            actor_epoch_per_collect=1,
+            critic_epoch_per_collect=1,
             batch_size=64,
             learning_rate=0.001,
             # ==============================================================
@@ -227,21 +228,20 @@ class PPGPolicy(Policy):
         # ====================
         self._learn_model.train()
         return_infos = []
-        for epoch in range(self._cfg.learn.epoch_per_collect):
-            if self._value_norm:
-                unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
-                data['return'] = unnormalized_return / self._running_mean_std.std
-                self._running_mean_std.update(unnormalized_return.cpu().numpy())
-            else:
-                data['return'] = data['adv'] + data['value']
+        if self._value_norm:
+            unnormalized_return = data['adv'] + data['value'] * self._running_mean_std.std
+            data['return'] = unnormalized_return / self._running_mean_std.std
+            self._running_mean_std.update(unnormalized_return.cpu().numpy())
+        else:
+            data['return'] = data['adv'] + data['value']
+        
+        for epoch in range(self._cfg.learn.actor_epoch_per_collect):
             for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
-                policy_data, value_data = batch, copy.deepcopy(batch)
-                policy_adv, value_adv = policy_data['adv'], value_data['adv']
-                return_ = value_data['return']
+                policy_data = batch
+                policy_adv = policy_data['adv']
                 if self._adv_norm:
                     # Normalize advantage in a total train_batch
                     policy_adv = (policy_adv - policy_adv.mean()) / (policy_adv.std() + 1e-8)
-                    value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
                 # Policy Phase(Policy)
                 policy_output = self._learn_model.forward(policy_data['obs'], mode='compute_actor')
                 policy_error_data = ppo_policy_data(
@@ -253,6 +253,14 @@ class PPGPolicy(Policy):
                 policy_loss.backward()
                 self._optimizer_ac.step()
 
+        for epoch in range(self._cfg.learn.critic_epoch_per_collect):
+            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
+                value_data = batch
+                value_adv = value_data['adv']
+                return_ = value_data['return']
+                if self._adv_norm:
+                    # Normalize advantage in a total train_batch
+                    value_adv = (value_adv - value_adv.mean()) / (value_adv.std() + 1e-8)
                 # Policy Phase(Value)
                 value_output = self._learn_model.forward(value_data['obs'], mode='compute_critic')
                 value_error_data = ppo_value_data(value_output['value'], value_data['value'], return_, value_data['weight'])
@@ -260,20 +268,19 @@ class PPGPolicy(Policy):
                 self._optimizer_aux_critic.zero_grad()
                 value_loss.backward()
                 self._optimizer_aux_critic.step()
+        self._train_iteration += 1
 
-                self._train_iteration += 1
-
-                return_info = {
-                    'policy_cur_lr': self._optimizer_ac.defaults['lr'],
-                    'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
-                    'policy_loss': ppo_policy_loss.policy_loss.item(),
-                    'value_loss': value_loss.item(),
-                    'entropy_loss': ppo_policy_loss.entropy_loss.item(),
-                    'policy_adv_abs_max': policy_adv.abs().max().item(),
-                    'approx_kl': ppo_info.approx_kl,
-                    'clipfrac': ppo_info.clipfrac,
-                    }
-                return_infos.append(return_info)
+        return_info = {
+            'policy_cur_lr': self._optimizer_ac.defaults['lr'],
+            'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
+            'policy_loss': ppo_policy_loss.policy_loss.item(),
+            'value_loss': value_loss.item(),
+            'entropy_loss': ppo_policy_loss.entropy_loss.item(),
+            'policy_adv_abs_max': policy_adv.abs().max().item(),
+            'approx_kl': ppo_info.approx_kl,
+            'clipfrac': ppo_info.clipfrac,
+        }
+        return_infos.append(return_info)
 
         data['return_'] = data['return']
         self._aux_memories.append(copy.deepcopy(data))
