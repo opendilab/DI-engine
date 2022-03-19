@@ -7,14 +7,15 @@ import torch
 from ding.envs import BaseEnvManager
 from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY, dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
-from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
+from ding.worker.collector.base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, \
+    to_tensor_transitions
 
 
-@SERIAL_COLLECTOR_REGISTRY.register('episode_1v1')
-class BattleEpisodeSerialCollector(ISerialCollector):
+@SERIAL_COLLECTOR_REGISTRY.register('league_demo')
+class LeagueDemoCollector(ISerialCollector):
     """
     Overview:
-        Episode collector(n_episode) with two policy battle
+        League demo collector, derived from BattleEpisodeSerialCollector, add action probs viz.
     Interfaces:
         __init__, reset, reset_env, reset_policy, collect, close
     Property:
@@ -239,6 +240,9 @@ class BattleEpisodeSerialCollector(ISerialCollector):
                     for output in policy_output:
                         actions[env_id].append(output[env_id]['action'])
                 actions = to_ndarray(actions)
+                # temporally for viz
+                probs0 = torch.softmax(torch.stack([o['logit'] for o in policy_output[0].values()], 0), 1).mean(0)
+                probs1 = torch.softmax(torch.stack([o['logit'] for o in policy_output[1].values()], 0), 1).mean(0)
                 timesteps = self._env.step(actions)
 
             # TODO(nyz) this duration may be inaccurate in async env
@@ -278,6 +282,8 @@ class BattleEpisodeSerialCollector(ISerialCollector):
                         'reward1': timestep.info[1]['final_eval_reward'],
                         'time': self._env_info[env_id]['time'],
                         'step': self._env_info[env_id]['step'],
+                        'probs0': probs0,
+                        'probs1': probs1,
                     }
                     collected_episode += 1
                     self._episode_info.append(info)
@@ -308,6 +314,8 @@ class BattleEpisodeSerialCollector(ISerialCollector):
             duration = sum([d['time'] for d in self._episode_info])
             episode_reward0 = [d['reward0'] for d in self._episode_info]
             episode_reward1 = [d['reward1'] for d in self._episode_info]
+            probs0 = [d['probs0'] for d in self._episode_info]
+            probs1 = [d['probs1'] for d in self._episode_info]
             self._total_duration += duration
             info = {
                 'episode_count': episode_count,
@@ -328,6 +336,14 @@ class BattleEpisodeSerialCollector(ISerialCollector):
                 'total_episode_count': self._total_episode_count,
                 'total_duration': self._total_duration,
             }
+            info.update(
+                {
+                    'probs0_select_action0': sum([p[0] for p in probs0]) / len(probs0),
+                    'probs0_select_action1': sum([p[1] for p in probs0]) / len(probs0),
+                    'probs1_select_action0': sum([p[0] for p in probs1]) / len(probs1),
+                    'probs1_select_action1': sum([p[1] for p in probs1]) / len(probs1),
+                }
+            )
             self._episode_info.clear()
             self._logger.info("collect end:\n{}".format('\n'.join(['{}: {}'.format(k, v) for k, v in info.items()])))
             for k, v in info.items():

@@ -6,12 +6,13 @@ import torch
 from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, BattleEpisodeSerialCollector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed
 from dizoo.league_demo.game_env import GameEnv
+from dizoo.league_demo.league_demo_collector import LeagueDemoCollector
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 
 
@@ -45,7 +46,7 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
         BaseEnvManager,
         PPOPolicy,
         BaseLearner,
-        BattleEpisodeSerialCollector,
+        LeagueDemoCollector,
         BattleInteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
@@ -81,7 +82,7 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     learner2 = BaseLearner(
         cfg.policy.learn.learner, policy2.learn_mode, tb_logger, exp_name=cfg.exp_name, instance_name='learner2'
     )
-    collector = BattleEpisodeSerialCollector(
+    collector = LeagueDemoCollector(
         cfg.policy.collect.collector,
         collector_env, [policy1.collect_mode, policy2.collect_mode],
         tb_logger,

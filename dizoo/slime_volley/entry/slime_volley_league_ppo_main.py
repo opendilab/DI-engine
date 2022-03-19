@@ -179,7 +179,7 @@ def main(cfg, seed=0):
                 'result': [e['result'] for e in episode_info[0]],
             }
             league.finish_job(job_finish_info)
-        if count % 10 == 0:
+        if count % 50 == 0:
             payoff_string = repr(league.payoff)
             rank_string = league.player_rank(string=True)
             tb_logger.add_text('payoff_step', payoff_string, main_collector.envstep)
