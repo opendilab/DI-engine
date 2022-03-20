@@ -1,14 +1,12 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 minigrid_ppo_config = dict(
-    # exp_name="minigrid_empty8_offppo",
-    exp_name="minigrid_fourrooms_offppo",
+    exp_name="minigrid_empty8_offppo_seed0",
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        env_id='MiniGrid-FourRooms-v0',
+        # minigrid env id: 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'
+        env_id='MiniGrid-Empty-8x8-v0',
         n_evaluator_episode=5,
         stop_value=0.96,
     ),
@@ -43,11 +41,13 @@ minigrid_ppo_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
 minigrid_ppo_create_config = EasyDict(minigrid_ppo_create_config)
 create_config = minigrid_ppo_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c minigrid_offppo_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)
