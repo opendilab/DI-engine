@@ -44,9 +44,7 @@ class MujocoEnv(BaseEnv):
                 'dtype': np.float32
             },
         )
-        # self.observation_space = EnvElementInfoSubprocess(shape=self.observation_space.shape, value=self.observation_space.value,
-        #                dtype=EasyDict({'type': self.observation_space.value['dtype'] }))
-        self.observation_space = EnvElementInfoSubprocess(shape=self.observation_space.shape,
+        self.observation_space = EnvElementInfoSubprocess(shape={k:(v,)for k,v in self.observation_space.shape.items()},
                                                           value=self.observation_space.value,
                                                           dtype=self.observation_space.value['dtype'])
         self.action_space = EnvElementInfo(

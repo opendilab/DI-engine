@@ -343,8 +343,6 @@ class MiniGridEnv(BaseEnv):
         self._save_replay = False
         self._max_step = MINIGRID_INFO_DICT[self._env_id].max_step
         self.observation_space = MINIGRID_INFO_DICT[self._env_id].obs_space
-        # self.observation_space = EnvElementInfoSubprocess(shape=self.observation_space.shape, value=self.observation_space.value,
-        #                dtype=EasyDict({'type': self.observation_space.value['dtype'] }))
         self.observation_space = EnvElementInfoSubprocess(shape=self.observation_space.shape,
                                                           value=self.observation_space.value,
                                                           dtype=self.observation_space.value['dtype'])
