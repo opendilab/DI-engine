@@ -3,7 +3,7 @@ import copy
 import numpy as np
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs.common.env_element import EnvElement, EnvElementInfo, EnvElementInfoSubprocess
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from .mujoco_multi import MujocoMulti
@@ -27,10 +27,44 @@ class MujocoEnv(BaseEnv):
             self._env = MujocoMulti(env_args=self._cfg)
             self._init_flag = True
         obs = self._env.reset()
-        #print(obs)
-        #obs['agent_state'] = to_ndarray(obs['agent_state']).astype('float32')
-        #obs['global_state'] = to_ndarray(obs['global_state']).astype('float32')
+        # print(obs)
+        # obs['agent_state'] = to_ndarray(obs['agent_state']).astype('float32')
+        # obs['global_state'] = to_ndarray(obs['global_state']).astype('float32')
         self._final_eval_reward = 0.
+        self.env_info = self._env.get_env_info()
+
+        self.observation_space = EnvElementInfo(
+            shape={
+                'agent_state': self.env_info['obs_shape'],
+                'global_state': self.env_info['state_shape'],
+            },
+            value={
+                'min': np.float32("-inf"),
+                'max': np.float32("inf"),
+                'dtype': np.float32
+            },
+        )
+        # self.observation_space = EnvElementInfoSubprocess(shape=self.observation_space.shape, value=self.observation_space.value,
+        #                dtype=EasyDict({'type': self.observation_space.value['dtype'] }))
+        self.observation_space = EnvElementInfoSubprocess(shape=self.observation_space.shape,
+                                                          value=self.observation_space.value,
+                                                          dtype=self.observation_space.value['dtype'])
+        self.action_space = EnvElementInfo(
+            shape=self.env_info['action_spaces'],
+            value={
+                'min': np.float32("-inf"),
+                'max': np.float32("inf"),
+                'dtype': np.float32
+            },
+        )
+        self.reward_space = EnvElementInfo(
+            shape=1,
+            value={
+                'min': np.float64("-inf"),
+                'max': np.float64("inf")
+            },
+        )
+
         return obs
 
     def close(self) -> None:
@@ -47,7 +81,7 @@ class MujocoEnv(BaseEnv):
         action = to_ndarray(action)
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
-        #obs = to_ndarray(obs).astype('float32')
+        # obs = to_ndarray(obs).astype('float32')
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward

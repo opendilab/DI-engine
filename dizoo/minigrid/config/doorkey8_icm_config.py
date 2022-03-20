@@ -48,7 +48,7 @@ minigrid_ppo_icm_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
     reward_model=dict(type='icm'),
 )
