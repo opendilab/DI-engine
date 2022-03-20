@@ -95,7 +95,7 @@ def serial_pipeline_reward_model_ngu(
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
 
     estimate_cnt = 0
-    for iter in range(max_iterations):
+    for iter in range(max_train_iter):
         eps = {i: 0.4 ** (1 + 8 * i / (cfg.policy.collect.env_num - 1)) for i in range(cfg.policy.collect.env_num)}
         collect_kwargs = {'eps': eps}
 
@@ -118,7 +118,7 @@ def serial_pipeline_reward_model_ngu(
         rnd_reward_model.collect_data(new_data)
         episodic_reward_model.collect_data(new_data)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
-        
+
         # update reward_model
         rnd_reward_model.train()
         if (iter + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
@@ -138,7 +138,7 @@ def serial_pipeline_reward_model_ngu(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # TODO(pu): this is very important, otherwise the reward od the date in replay buffer will be modifyed
+            # TODO(pu): this is very important, otherwise the reward od the date in replay buffer will be modified
             train_data_modified = copy.deepcopy(train_data)
             # update train_data reward
             rnd_reward = rnd_reward_model.estimate(train_data_modified)  # TODO
@@ -157,7 +157,6 @@ def serial_pipeline_reward_model_ngu(
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
-        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

@@ -80,9 +80,8 @@ class InverseNetwork(nn.Module):
             self.embedding_net = ConvEncoder(obs_shape, hidden_size_list)
         else:
             raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
-            )
+                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".format(
+                    obs_shape))
         self.inverse_net = nn.Sequential(
             nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
         )
@@ -234,7 +233,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
             cur_obs_embedding = self.episodic_reward_model(inputs, inference=True)
             cur_obs_embedding = cur_obs_embedding.view(batch_size, seq_length, -1)
             episodic_reward = [[] for _ in range(batch_size)]
-            null_cnt = 0  # the number of null transitions in the whole minibatch
+            null_cnt = 0  # the number of null transitions in the whole mini-batch
             for i in range(batch_size):
                 for j in range(seq_length):
                     if j < 10:
@@ -263,14 +262,14 @@ class EpisodicNGURewardModel(BaseRewardModel):
             # stack episode dim
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
             # stack batch dim
-            episodic_reward = torch.stack(tmp, dim=0)  # TODO image
+            episodic_reward = torch.stack(tmp, dim=0)  # TODO(pu): image case
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
             episodic_reward_real_mean = sum(episodic_reward) / (
-                batch_size * seq_length - null_cnt
-            )  # TODO recompute mean
+                    batch_size * seq_length - null_cnt
+            )  # TODO(pu): recompute mean
             self.estimate_cnt_episodic += 1
-            self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())  # .cpu().numpy() # TODO
+            self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())
 
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_max', episodic_reward.max(), self.estimate_cnt_episodic
@@ -284,21 +283,33 @@ class EpisodicNGURewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_std_', episodic_reward.std(), self.estimate_cnt_episodic
             )
-            # transform to [0,1]: er01
+
+            """
+            transform to [0,1]: er01
+            """
             episodic_reward = (episodic_reward -
                                episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-11)
-            ''' 1. transform to batch mean1: erbm1'''
+
+            """
+            1. transform to batch mean1: erbm1
+            """
             # episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)
             # note that the null_padding transition have episodic reward=0,
             # episodic_reward = episodic_reward / (episodic_reward_real_mean + 1e-11)
-            '''2. transform to long-term mean1: erlm1'''
+            """
+            2. transform to long-term mean1: erlm1
+            """
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
-            '''3. transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should >0,
+            """
+            3. transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should >0,
             otherwise, e.g. when the  episodic_reward is -2, the rnd_reward larger,
-            the total intrinsic reward smaller, which is not correct.'''
+            the total intrinsic reward smaller, which is not correct.
+            """
             # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean)
             # / self._running_mean_std_episodic_reward.std
-            '''4. transform to std1, which is not very meaningful'''
+            """
+            4. transform to std1, which is not very meaningful
+            """
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std
 
         return episodic_reward
@@ -440,16 +451,14 @@ class RndNGURewardModel(BaseRewardModel):
 
 def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector_env_num, tb_logger, estimate_cnt):
     estimate_cnt += 1
+
     # index_to_eps = {i: 0.4 ** (1 + 8 * i / (self._env_num - 1)) for i in range(self._env_num)}
+    # index_to_gamma = {
+    # i: 1 - torch.exp( ((collector_env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(
+    # torch.tensor(1 - 0.99))) / (collector_env_num - 1) ) for i in range(collector_env_num) }
+
     index_to_beta = {
         i: 0.3 * torch.sigmoid(torch.tensor(10 * (2 * i - (collector_env_num - 2)) / (collector_env_num - 2)))
-        for i in range(collector_env_num)
-    }
-    index_to_gamma = {
-        i: 1 - torch.exp(
-            ((collector_env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) + i * torch.log(torch.tensor(1 - 0.99))) /
-            (collector_env_num - 1)
-        )
         for i in range(collector_env_num)
     }
     batch_size = len(data)
@@ -469,17 +478,17 @@ def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector
             if intrinsic_reward_type == 'add':
                 item['reward'] += rew * index_to_beta[data['beta']]
     else:
-        # rnn based rl algorithm
+        # rnn-based rl algorithm
         intrisic_reward = intrisic_reward.to(device)
 
         # tensor to tuple
         intrisic_reward = torch.chunk(intrisic_reward, int(intrisic_reward.shape[0]), dim=0)
 
         if len(data[0]['obs'][0].shape) == 3:
-            # atari, obs is image
+            # atari env: obs is image
             last_rew_weight = 1
         else:
-            # lularlander, minigrid
+            # lularlander/minigrid env: obs is vector
             last_rew_weight = seq_length
 
         # this is for the nstep rl algorithms
