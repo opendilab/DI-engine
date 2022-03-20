@@ -80,8 +80,9 @@ class InverseNetwork(nn.Module):
             self.embedding_net = ConvEncoder(obs_shape, hidden_size_list)
         else:
             raise KeyError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".format(
-                    obs_shape))
+                "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
+                format(obs_shape)
+            )
         self.inverse_net = nn.Sequential(
             nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
         )
@@ -266,7 +267,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
             episodic_reward_real_mean = sum(episodic_reward) / (
-                    batch_size * seq_length - null_cnt
+                batch_size * seq_length - null_cnt
             )  # TODO(pu): recompute mean
             self.estimate_cnt_episodic += 1
             self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())
@@ -283,13 +284,11 @@ class EpisodicNGURewardModel(BaseRewardModel):
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_std_', episodic_reward.std(), self.estimate_cnt_episodic
             )
-
             """
             transform to [0,1]: er01
             """
             episodic_reward = (episodic_reward -
                                episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-11)
-
             """
             1. transform to batch mean1: erbm1
             """
