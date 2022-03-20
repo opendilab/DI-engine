@@ -4,18 +4,18 @@ import gym
 import numpy as np
 import torch
 from tensorboardX import SummaryWriter
+from easydict import EasyDict
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, BattleEpisodeSerialCollector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
-from ding.utils import set_pkg_seed, Scheduler
+from ding.utils import set_pkg_seed, Scheduler, deep_merge_dicts
 from dizoo.league_demo.game_env import GameEnv
 from dizoo.league_demo.demo_league import DemoLeague
+from dizoo.league_demo.league_demo_collector import LeagueDemoCollector
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
-from easydict import EasyDict
-from ding.utils.default_helper import deep_merge_dicts
 
 
 class EvalPolicy1:
@@ -56,7 +56,7 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
         BaseEnvManager,
         PPOPolicy,
         BaseLearner,
-        BattleEpisodeSerialCollector,
+        LeagueDemoCollector,
         BattleInteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
@@ -103,12 +103,12 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
             exp_name=cfg.exp_name,
             instance_name=player_id + '_learner'
         )
-        collectors[player_id] = BattleEpisodeSerialCollector(
+        collectors[player_id] = LeagueDemoCollector(
             cfg.policy.collect.collector,
             collector_env,
             tb_logger=tb_logger,
             exp_name=cfg.exp_name,
-            instance_name=player_id + '_colllector',
+            instance_name=player_id + '_collector',
         )
 
     model = VAC(**cfg.policy.model)
@@ -171,7 +171,7 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     count = 0
     while True:
         if evaluator1.should_eval(main_learner.train_iter):
-            stop_flag1, reward, episode_info = evaluator1.eval(
+            stop_flag1, episode_info = evaluator1.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -179,10 +179,9 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
             main_player.rating = league.metric_env.rate_1vsC(
                 main_player.rating, league.metric_env.create_rating(mu=10, sigma=1e-8), win_loss_result
             )
-            tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
 
         if evaluator2.should_eval(main_learner.train_iter):
-            stop_flag2, reward, episode_info = evaluator2.eval(
+            stop_flag2, episode_info = evaluator2.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -190,9 +189,8 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
             main_player.rating = league.metric_env.rate_1vsC(
                 main_player.rating, league.metric_env.create_rating(mu=0, sigma=1e-8), win_loss_result
             )
-            tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
         if evaluator3.should_eval(main_learner.train_iter):
-            _, reward, episode_info = evaluator3.eval(
+            _, episode_info = evaluator3.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -200,7 +198,6 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
             main_player.rating, init_main_player_rating = league.metric_env.rate_1vs1(
                 main_player.rating, init_main_player_rating, win_loss_result
             )
-            tb_logger.add_scalar('init_evaluator_step/reward_mean', reward, main_collector.envstep)
             tb_logger.add_scalar(
                 'league/init_main_player_trueskill', init_main_player_rating.exposure, main_collector.envstep
             )

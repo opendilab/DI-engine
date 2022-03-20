@@ -1,6 +1,3 @@
-import sys
-from copy import deepcopy
-from ding.entry import serial_pipeline_onpolicy
 from easydict import EasyDict
 
 agent_num = 2
@@ -9,7 +6,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 main_config = dict(
-    exp_name='smac_2c64zg_ppo_seed3',
+    exp_name='smac_2c64zg_mappo_seed0',
     env=dict(
         map_name='2c_vs_64zg',
         difficulty=7,
@@ -89,3 +86,8 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
+
+if __name__ == '__main__':
+
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)

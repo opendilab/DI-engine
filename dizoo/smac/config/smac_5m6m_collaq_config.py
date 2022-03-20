@@ -1,5 +1,3 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 agent_num = 5
@@ -7,6 +5,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
+    exp_name='smac_5m6m_collaq_seed0',
     env=dict(
         map_name='5m_vs_6m',
         difficulty=7,
@@ -90,11 +89,7 @@ def train(args):
     serial_pipeline(config, seed=args.seed)
 
 
-if __name__ == "__main__":
-    import argparse
+if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', '-s', type=int, default=0)
-    args = parser.parse_args()
-
-    train(args)
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

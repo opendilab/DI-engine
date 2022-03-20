@@ -1,5 +1,4 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 agent_num = 10
 collector_env_num = 8
@@ -7,7 +6,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 smac_3s5z_masac_default_config = dict(
-    exp_name='debug_smac_3s5z_masac',
+    exp_name='smac_3s5z_masac_seed0',
     env=dict(
         map_name='3s5z',
         difficulty=7,
@@ -84,5 +83,8 @@ smac_3s5z_masac_default_create_config = dict(
 smac_3s5z_masac_default_create_config = EasyDict(smac_3s5z_masac_default_create_config)
 create_config = smac_3s5z_masac_default_create_config
 
-if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+
+if __name__ == '__main__':
+
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
