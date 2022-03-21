@@ -1,9 +1,9 @@
 from typing import Any, Union, List
 import copy
 import numpy as np
-
+import gym
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from ding.envs.common.env_element import EnvElement, EnvElementInfo, EnvElementInfoSubprocess
+from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from .mujoco_multi import MujocoMulti
@@ -32,35 +32,14 @@ class MujocoEnv(BaseEnv):
         # obs['global_state'] = to_ndarray(obs['global_state']).astype('float32')
         self._final_eval_reward = 0.
         self.env_info = self._env.get_env_info()
-
-        self.observation_space = EnvElementInfo(
-            shape={
-                'agent_state': self.env_info['obs_shape'],
-                'global_state': self.env_info['state_shape'],
-            },
-            value={
-                'min': np.float32("-inf"),
-                'max': np.float32("inf"),
-                'dtype': np.float32
-            },
+        self._observation_space = gym.spaces.Box(
+            low=np.float32("inf"), high=np.float32("-inf"), shape={'agent_state': (self.env_info['obs_shape'],),
+                                                                   'global_state': (self.env_info['state_shape'],), },
+            dtype=np.float32
         )
-        self.observation_space = EnvElementInfoSubprocess(shape={k:(v,)for k,v in self.observation_space.shape.items()},
-                                                          value=self.observation_space.value,
-                                                          dtype=self.observation_space.value['dtype'])
-        self.action_space = EnvElementInfo(
-            shape=self.env_info['action_spaces'],
-            value={
-                'min': np.float32("-inf"),
-                'max': np.float32("inf"),
-                'dtype': np.float32
-            },
-        )
-        self.reward_space = EnvElementInfo(
-            shape=1,
-            value={
-                'min': np.float64("-inf"),
-                'max': np.float64("inf")
-            },
+        self._action_space = self._env.action_space
+        self._reward_space = gym.spaces.Box(
+            low=np.float32("-inf"), high=np.float32("inf"), shape=(1,), dtype=np.float32
         )
 
         return obs
@@ -85,39 +64,70 @@ class MujocoEnv(BaseEnv):
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnvInfo:
-        env_info = self._env.get_env_info()
-        info = BaseEnvInfo(
-            agent_num=env_info['n_agents'],
-            obs_space=EnvElementInfo(
-                shape={
-                    'agent_state': env_info['obs_shape'],
-                    'global_state': env_info['state_shape'],
-                },
-                value={
-                    'min': np.float32("-inf"),
-                    'max': np.float32("inf"),
-                    'dtype': np.float32
-                },
-            ),
-            act_space=EnvElementInfo(
-                shape=env_info['action_spaces'],
-                value={
-                    'min': np.float32("-inf"),
-                    'max': np.float32("inf"),
-                    'dtype': np.float32
-                },
-            ),
-            rew_space=EnvElementInfo(
-                shape=1,
-                value={
-                    'min': np.float64("-inf"),
-                    'max': np.float64("inf")
-                },
-            ),
-            use_wrappers=None,
-        ),
-        return info
+    # def info(self) -> BaseEnvInfo:
+    #     env_info = self._env.get_env_info()
+    #     info = BaseEnvInfo(
+    #         agent_num=env_info['n_agents'],
+    #         obs_space=EnvElementInfo(
+    #             shape={
+    #                 'agent_state': env_info['obs_shape'],
+    #                 'global_state': env_info['state_shape'],
+    #             },
+    #             value={
+    #                 'min': np.float32("-inf"),
+    #                 'max': np.float32("inf"),
+    #                 'dtype': np.float32
+    #             },
+    #         ),
+    #         act_space=EnvElementInfo(
+    #             shape=env_info['action_spaces'],
+    #             value={
+    #                 'min': np.float32("-inf"),
+    #                 'max': np.float32("inf"),
+    #                 'dtype': np.float32
+    #             },
+    #         ),
+    #         rew_space=EnvElementInfo(
+    #             shape=1,
+    #             value={
+    #                 'min': np.float64("-inf"),
+    #                 'max': np.float64("inf")
+    #             },
+    #         ),
+    #         use_wrappers=None,
+    #     ),
+    #     return info
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
+
+    @staticmethod
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.pop('collector_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.is_train = True
+        return [cfg for _ in range(collector_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.is_train = False
+        return [cfg for _ in range(evaluator_env_num)]
 
     def __repr__(self) -> str:
         return "DI-engine Multi-agent Mujoco Env({})".format(self._cfg.env_id)

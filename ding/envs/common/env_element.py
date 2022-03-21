@@ -3,7 +3,6 @@ from namedlist import namedlist
 from typing import Any
 
 EnvElementInfo = namedlist('EnvElementInfo', ['shape', 'value'])
-EnvElementInfoSubprocess = namedlist('EnvElementInfoSubprocess', ['shape', 'value', 'dtype'])
 
 
 class IEnvElement(ABC):

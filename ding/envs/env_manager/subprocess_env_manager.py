@@ -56,9 +56,7 @@ class ShmBuffer():
             - dtype (:obj:`np.generic`): dtype of the data to limit the size of the buffer.
             - shape (:obj:`Tuple[int]`): shape of the data to limit the size of the buffer.
         """
-        # self.buffer = Array(_NTYPE_TO_CTYPE[dtype.type], int(np.prod(shape)))
-        self.buffer = Array(_NTYPE_TO_CTYPE[dtype], int(np.prod(shape)))  # TODO(pu)
-
+        self.buffer = Array(_NTYPE_TO_CTYPE[dtype.type], int(np.prod(shape)))
         self.dtype = dtype
         self.shape = shape
 
