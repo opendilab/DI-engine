@@ -1,5 +1,5 @@
 from types import MethodType
-from typing import Union, Any, List, Callable, Dict, Optional
+from typing import Tuple, Union, Any, List, Callable, Dict, Optional
 from functools import partial, wraps
 from easydict import EasyDict
 import copy
@@ -9,7 +9,7 @@ import numbers
 import logging
 import enum
 import time
-import traceback
+
 from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning
 from ding.envs.env.base_env import BaseEnvTimestep
 from ding.utils.time_helper import WatchDog
@@ -63,9 +63,10 @@ class BaseEnvManager(object):
     Overview:
         Create a BaseEnvManager to manage multiple environments.
     Interfaces:
-        reset, step, seed, close, enable_save_replay, launch, env_info, default_config
+        reset, step, seed, close, enable_save_replay, launch, default_config
     Properties:
-        env_num, ready_obs, done, method_name_list，active_env
+        env_num, ready_obs, done, method_name_list, active_env,
+        observation_space, action_space, reward_space
     """
 
     @classmethod
@@ -103,6 +104,11 @@ class BaseEnvManager(object):
         self._env_replay_path = None
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._env_fn[0]()
+        self._env_ref.reset()
+        self._observation_space = self._env_ref.observation_space
+        self._action_space = self._env_ref.action_space
+        self._reward_space = self._env_ref.reward_space
+        self._env_ref.close()
         self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
         self._env_seed = {i: None for i in range(self._env_num)}
 
@@ -118,6 +124,18 @@ class BaseEnvManager(object):
     @property
     def env_num(self) -> int:
         return self._env_num
+
+    @property
+    def observation_space(self) -> 'gym.spaces.Space':  # noqa
+        return self._observation_space
+
+    @property
+    def action_space(self) -> 'gym.spaces.Space':  # noqa
+        return self._action_space
+
+    @property
+    def reward_space(self) -> 'gym.spaces.Space':  # noqa
+        return self._reward_space
 
     @property
     def ready_obs(self) -> Dict[int, Any]:
@@ -185,6 +203,7 @@ class BaseEnvManager(object):
         self._envs = [e() for e in self._env_fn]
         # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
         self._env_ref = self._envs[0]
+        self._env_ref.reset()
         assert len(self._envs) == self._env_num
         self._reset_param = {i: {} for i in range(self.env_num)}
         self._env_states = {i: EnvState.INIT for i in range(self.env_num)}
@@ -368,15 +387,6 @@ class BaseEnvManager(object):
         for i in range(self._env_num):
             self._env_states[i] = EnvState.VOID
         self._closed = True
-
-    def env_info(self) -> namedtuple:
-        """
-        Overview:
-            Get one env's info, for example, action space, observation space, reward space, etc.
-        Returnns:
-            - info (:obj:`namedtuple`): Usually a namedtuple ``BaseEnvInfo``, each element is ``EnvElementInfo``.
-        """
-        return self._env_ref.info()
 
 
 def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:

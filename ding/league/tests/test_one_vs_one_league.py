@@ -2,6 +2,7 @@ import os
 import random
 
 import pytest
+import copy
 from easydict import EasyDict
 import torch
 
@@ -50,6 +51,16 @@ one_vs_one_league_default_config = dict(
     ),
 )
 one_vs_one_league_default_config = EasyDict(one_vs_one_league_default_config)
+
+
+def get_random_result():
+    ran = random.random()
+    if ran < 1. / 3:
+        return "wins"
+    elif ran < 1. / 2:
+        return "losses"
+    else:
+        return "draws"
 
 
 @pytest.mark.unittest
@@ -109,14 +120,6 @@ class TestOneVsOneLeague:
         assert eval_job_info['eval_opponent'] in league.active_players[0]._eval_opponent_difficulty
 
         # finish_job
-        def get_random_result():
-            ran = random.random()
-            if ran < 1. / 3:
-                return "wins"
-            elif ran < 2. / 3:
-                return "losses"
-            else:
-                return "draws"
 
         episode_num = 5
         env_num = 8
@@ -140,6 +143,40 @@ class TestOneVsOneLeague:
 
         os.popen("rm -rf {}".format(path_policy))
         print("Finish!")
+
+    def test_league_info(self):
+        cfg = copy.deepcopy(one_vs_one_league_default_config.league)
+        cfg.path_policy = 'test_league_info'
+        league = create_league(cfg)
+        active_player_id = [p.player_id for p in league.active_players][0]
+        active_player_ckpt = [p.checkpoint_path for p in league.active_players][0]
+        tmp = torch.tensor([1, 2, 3])
+        torch.save(tmp, active_player_ckpt)
+        assert (len(league.active_players) == 1)
+        assert (len(league.historical_players) == 0)
+        print('\n')
+        print(repr(league.payoff))
+        print(league.player_rank(string=True))
+        league.judge_snapshot(active_player_id, force=True)
+        for i in range(10):
+            job = league.get_job_info(active_player_id, eval_flag=False)
+            payoff_update_info = {
+                'launch_player': active_player_id,
+                'player_id': job['player_id'],
+                'episode_num': 2,
+                'env_num': 4,
+                'result': [[get_random_result() for __ in range(4)] for _ in range(2)]
+            }
+            league.finish_job(payoff_update_info)
+            # if not self-play
+            if job['player_id'][0] != job['player_id'][1]:
+                win_loss_result = sum(payoff_update_info['result'], [])
+                home = league.get_player_by_id(job['player_id'][0])
+                away = league.get_player_by_id(job['player_id'][1])
+                home.rating, away.rating = league.metric_env.rate_1vs1(home.rating, away.rating, win_loss_result)
+        print(repr(league.payoff))
+        print(league.player_rank(string=True))
+        os.popen("rm -rf {}".format(cfg.path_policy))
 
 
 if __name__ == '__main__':

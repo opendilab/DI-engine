@@ -7,7 +7,7 @@ def clone_object():
     """
     This middleware freezes the objects saved in memory buffer as a copy,
     try this middleware when you need to keep the object unchanged in buffer, and modify
-    the object after sampling it (usuallly in multiple threads)
+    the object after sampling it (usually in multiple threads)
     """
 
     def push(chain: Callable, data: Any, *args, **kwargs) -> BufferedData:

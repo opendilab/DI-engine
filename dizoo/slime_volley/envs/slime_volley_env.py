@@ -47,9 +47,9 @@ class SlimeVolleyEnv(BaseEnv):
             self._env.close()
         self._init_flag = False
 
-    def step(self, action: Union[np.ndarray, List[np.ndarray]]):
+    def step(self, action: Union[np.ndarray, List[np.ndarray]]) -> BaseEnvTimestep:
         if self._agent_vs_agent:
-            assert isinstance(action, list) and isinstance(action[0], np.ndarray)
+            assert isinstance(action, List) and all([isinstance(e, np.ndarray) for e in action])
             action1, action2 = action[0], action[1]
         else:
             assert isinstance(action, np.ndarray)
@@ -80,9 +80,12 @@ class SlimeVolleyEnv(BaseEnv):
             if done:
                 info[0]['final_eval_reward'] = self._final_eval_reward
                 info[1]['final_eval_reward'] = -self._final_eval_reward
+                info[0]['result'] = self.get_episode_result(self._final_eval_reward)
+                info[1]['result'] = self.get_episode_result(-self._final_eval_reward)
         else:
             if done:
                 info['final_eval_reward'] = self._final_eval_reward
+                info['result'] = self.get_episode_result(self._final_eval_reward)
         reward = to_ndarray([rew]).astype(np.float32)
         if self._agent_vs_agent:
             obs2 = info[1]['obs']
@@ -94,6 +97,12 @@ class SlimeVolleyEnv(BaseEnv):
         else:
             return BaseEnvTimestep(obs1, reward, done, info)
 
+    def get_episode_result(self, final_eval_reward: float):
+        if final_eval_reward > 0:  # due to using 5 games (lives) in this env, the final_eval_reward can't be zero.
+            return "wins"
+        else:
+            return "losses"
+
     def reset(self):
         if not self._init_flag:
             self._env = gym.make(self._cfg.env_id)
@@ -101,6 +110,14 @@ class SlimeVolleyEnv(BaseEnv):
                 self._env = GymSelfPlayMonitor(
                     self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
                 )
+            self._observation_space = gym.spaces.Box(
+                low=float("-inf"),
+                high=float("inf"),
+                shape=(len(self.agents), ) + self._env.observation_space.shape,
+                dtype=np.float32
+            )
+            self._action_space = gym.spaces.Discrete(6)
+            self._reward_space = gym.spaces.Box(low=-5, high=5, shape=(1, ), dtype=np.float32)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -116,38 +133,31 @@ class SlimeVolleyEnv(BaseEnv):
         else:
             return obs
 
-    def info(self):
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=2,
-            obs_space=T(
-                (2, 12) if self._agent_vs_agent else (12, ),
-                {
-                    'min': [float("-inf") for _ in range(12)],
-                    'max': [float("inf") for _ in range(12)],
-                    'dtype': np.float32,
-                },
-            ),
-            # [min, max)
-            # 6 valid actions:
-            act_space=T(
-                (1, ),
-                {
-                    'min': 0,
-                    'max': 6,
-                    'dtype': int,
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                {
-                    'min': -5.0,
-                    'max': 5.0,
-                    'dtype': np.float32,
-                },
-            ),
-            use_wrappers=None,
-        )
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
+
+    @property
+    def agents(self) -> List[str]:
+        if self._agent_vs_agent:
+            return ['home', 'away']
+        else:
+            return ['home']
+
+    def random_action(self) -> np.ndarray:
+        high = self.action_space.n
+        if self._agent_vs_agent:
+            return [np.random.randint(0, high, size=(1, )) for _ in range(2)]
+        else:
+            return np.random.randint(0, high, size=(1, ))
 
     def __repr__(self):
         return "DI-engine Slime Volley Env"

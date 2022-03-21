@@ -1,4 +1,6 @@
 import numpy as np
+import gym
+
 from ding.envs import BaseEnv, BaseEnvTimestep
 
 
@@ -11,6 +13,9 @@ class GameEnv(BaseEnv):
             self.optimal_policy = [0, 1]
         elif self.game_type == 'zero_sum':
             self.optimal_policy = [0.375, 0.625]
+        self._observation_space = None
+        self._action_space = None
+        self._reward_space = None
 
     def seed(self, seed, dynamic_seed=False):
         pass
@@ -70,3 +75,15 @@ class GameEnv(BaseEnv):
 
     def info(self):
         pass
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space

@@ -1,9 +1,11 @@
+from typing import Union, Dict
 import uuid
 import copy
 import os
+import os.path as osp
 from abc import abstractmethod
 from easydict import EasyDict
-import os.path as osp
+from tabulate import tabulate
 
 from ding.league.player import ActivePlayer, HistoricalPlayer, create_player
 from ding.league.shared_payoff import create_payoff
@@ -267,6 +269,21 @@ class BaseLeague:
         '''
         checkpoint = read_file(src_checkpoint)
         save_file(dst_checkpoint, checkpoint)
+
+    def player_rank(self, string: bool = False) -> Union[str, Dict[str, float]]:
+        rank = {}
+        for p in self.active_players + self.historical_players:
+            name = p.player_id
+            rank[name] = p.rating.exposure
+        if string:
+            headers = ["Player ID", "Rank (TrueSkill)"]
+            data = []
+            for k, v in rank.items():
+                data.append([k, "{:.2f}".format(v)])
+            s = "\n" + tabulate(data, headers=headers, tablefmt='pipe')
+            return s
+        else:
+            return rank
 
 
 def create_league(cfg: EasyDict, *args) -> BaseLeague:

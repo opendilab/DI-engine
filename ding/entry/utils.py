@@ -30,7 +30,7 @@ def random_collect(
     if policy_cfg.get('transition_with_policy_data', False):
         collector.reset_policy(policy.collect_mode)
     else:
-        action_space = collector_env.env_info().act_space
+        action_space = collector_env.action_space
         random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
         collector.reset_policy(random_policy)
     collect_kwargs = commander.step()

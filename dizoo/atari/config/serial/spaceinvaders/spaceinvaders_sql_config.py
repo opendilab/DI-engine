@@ -2,8 +2,8 @@ from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-space_invaders_sql_config = dict(
-    exp_name='space_invaders_sql_seed0',
+spaceinvaders_sql_config = dict(
+    exp_name='spaceinvaders_sql_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -11,7 +11,7 @@ space_invaders_sql_config = dict(
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -37,9 +37,9 @@ space_invaders_sql_config = dict(
         ),
     ),
 )
-space_invaders_sql_config = EasyDict(space_invaders_sql_config)
-main_config = space_invaders_sql_config
-space_invaders_sql_create_config = dict(
+spaceinvaders_sql_config = EasyDict(spaceinvaders_sql_config)
+main_config = spaceinvaders_sql_config
+spaceinvaders_sql_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -47,8 +47,8 @@ space_invaders_sql_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='sql'),
 )
-space_invaders_sql_create_config = EasyDict(space_invaders_sql_create_config)
-create_config = space_invaders_sql_create_config
+spaceinvaders_sql_create_config = EasyDict(spaceinvaders_sql_create_config)
+create_config = spaceinvaders_sql_create_config
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)

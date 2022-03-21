@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 from easydict import EasyDict
+
 from dizoo.gym_hybrid.envs import GymHybridEnv
 
 
@@ -15,7 +16,7 @@ class TestGymHybridEnv:
         obs = env.reset()
         assert obs.shape == (10, )
         for i in range(200):
-            random_action = env.get_random_action()
+            random_action = env.random_action()
             print('random_action', random_action)
             timestep = env.step(random_action)
             assert isinstance(timestep.obs, np.ndarray)
@@ -26,5 +27,5 @@ class TestGymHybridEnv:
             if timestep.done:
                 print('reset env')
                 env.reset()
-        print(env.info())
+        print(env.observation_space, env.action_space, env.reward_space)
         env.close()

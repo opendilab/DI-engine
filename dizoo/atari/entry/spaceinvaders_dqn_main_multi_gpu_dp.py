@@ -7,7 +7,7 @@ from ding.policy import DQNPolicy
 from ding.model import DQN
 from ding.utils import set_pkg_seed
 from ding.rl_utils import get_epsilon_greedy_fn
-from dizoo.atari.config.serial.spaceinvaders.spaceinvaders_dqn_config_multi_gpu_dp import space_invaders_dqn_config, create_config
+from dizoo.atari.config.serial.spaceinvaders.spaceinvaders_dqn_config_multi_gpu_dp import spaceinvaders_dqn_config, create_config
 from ding.torch_utils import DataParallel
 from functools import partial
 from ding.envs import get_vec_env_setting, create_env_manager
@@ -65,6 +65,7 @@ def main(cfg, create_cfg, seed=0):
             if train_data is None:
                 break
             learner.train(train_data, collector.envstep)
-            
+
+
 if __name__ == "__main__":
-    main(space_invaders_dqn_config,create_config)
+    main(spaceinvaders_dqn_config, create_config)

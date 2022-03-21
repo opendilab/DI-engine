@@ -27,7 +27,6 @@ montezuma_ppo_rnd_config = dict(
         only_use_last_five_frames_for_icm_rnd=False,
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
-
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
@@ -45,7 +44,6 @@ montezuma_ppo_rnd_config = dict(
 
         # update_per_collect=3,  # 32*5/64=3
         # only_use_last_five_frames_for_icm_rnd=True,
-
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='episodic',
@@ -107,9 +105,7 @@ montezuma_ppo_rnd_create_config = dict(
     # reward_model=dict(type='rnd'),
     rnd_reward_model=dict(type='rnd'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(
-        type='sample_ngu',
-    )
+    collector=dict(type='sample_ngu', )
 )
 montezuma_ppo_rnd_create_config = EasyDict(montezuma_ppo_rnd_create_config)
 create_config = montezuma_ppo_rnd_create_config

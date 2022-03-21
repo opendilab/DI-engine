@@ -2,7 +2,6 @@ from easydict import EasyDict
 from ding.entry import serial_pipeline_gail
 from hopper_sac_default_config import hopper_sac_default_config, hopper_sac_default_create_config
 
-
 obs_shape = 11
 act_shape = 3
 hopper_sac_gail_default_config = dict(
@@ -19,7 +18,7 @@ hopper_sac_gail_default_config = dict(
     ),
     reward_model=dict(
         type='gail',
-        input_size=obs_shape+act_shape,
+        input_size=obs_shape + act_shape,
         hidden_size=256,
         batch_size=64,
         learning_rate=1e-3,
@@ -82,8 +81,9 @@ hopper_sac_gail_default_create_config = EasyDict(hopper_sac_gail_default_create_
 create_config = hopper_sac_gail_default_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_gail([main_config, create_config],
-                         [hopper_sac_default_config,
-                          hopper_sac_default_create_config],
-                         max_iterations=1000000,
-                         seed=0, collect_data=True)
+    serial_pipeline_gail(
+        [main_config, create_config], [hopper_sac_default_config, hopper_sac_default_create_config],
+        max_iterations=1000000,
+        seed=0,
+        collect_data=True
+    )

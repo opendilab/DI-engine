@@ -80,6 +80,8 @@ class TestBattleSharedPayoff:
 
         for home in player_list:
             for away in player_list:
+                if home == away:
+                    continue  # ignore self-play case
                 for i in range(games_per_player):
                     episode_num = 2
                     env_num = 4

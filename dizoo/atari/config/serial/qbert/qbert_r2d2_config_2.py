@@ -82,17 +82,19 @@ create_config = qbert_r2d2_create_config
 # if __name__ == "__main__":
 #     serial_pipeline([main_config, create_config], seed=0)
 
+
 def train(args):
-    main_config.exp_name='qbert_r2d2_n5_bs20_ul80_rbs1e4_cfg2'+'_seed'+f'{args.seed}'
+    main_config.exp_name = 'qbert_r2d2_n5_bs20_ul80_rbs1e4_cfg2' + '_seed' + f'{args.seed}'
     import copy
     # 3125 iterations= 10M env steps / (100*32) env steps
     serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=4000)
 
+
 if __name__ == "__main__":
     import argparse
-    for seed in [0,1,2,3,4]:     
+    for seed in [0, 1, 2, 3, 4]:
         parser = argparse.ArgumentParser()
         parser.add_argument('--seed', '-s', type=int, default=seed)
         args = parser.parse_args()
-        
+
         train(args)

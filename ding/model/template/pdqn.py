@@ -176,7 +176,7 @@ class PDQN(nn.Module):
                 device=dis_x.device,
                 dtype=dis_x.dtype
             )
-            index = self.action_scatter_index.view(1, -1, 1).repeat(dis_x.shape[0], 1, 1)
+            index = self.action_scatter_index.view(1, -1, 1).repeat(dis_x.shape[0], 1, 1).to(dis_x.device)
 
             # index: (B, action_args_shape, 1)  src: (B, action_args_shape, 1)
             mp_action.scatter_(dim=-1, index=index, src=action_args.unsqueeze(-1))

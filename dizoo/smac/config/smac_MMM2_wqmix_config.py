@@ -1,5 +1,3 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 agent_num = 10
@@ -7,7 +5,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
-    exp_name='MMM2_wqmix_ow_ff3-256_hsl64',
+    exp_name='smac_MMM2_wqmix_seed0',
     env=dict(
         map_name='MMM2',
         difficulty=7,
@@ -18,6 +16,10 @@ main_config = dict(
         evaluator_env_num=evaluator_env_num,
         stop_value=0.999,
         n_evaluator_episode=32,
+        manager=dict(
+            shared_memory=False,
+            reset_timeout=6000,
+        ),
     ),
     policy=dict(
         model=dict(
@@ -80,16 +82,7 @@ create_config = dict(
 create_config = EasyDict(create_config)
 
 
-def train(args):
-    config = [main_config, create_config]
-    serial_pipeline(config, seed=args.seed)
+if __name__ == '__main__':
 
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', '-s', type=int, default=0)
-    args = parser.parse_args()
-
-    train(args)
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

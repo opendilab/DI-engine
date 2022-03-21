@@ -10,21 +10,6 @@ from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
 
-def disable_gym_view_window():
-    from gym.envs.classic_control import rendering
-    import pyglet
-
-    def get_window(width, height, display):
-        screen = display.get_screens()
-        config = screen[0].get_best_config()
-        context = config.create_context(None)
-        return pyglet.window.Window(
-            width=width, height=height, display=display, config=config, context=context, visible=False
-        )
-
-    rendering.get_window = get_window
-
-
 @ENV_REGISTRY.register('cartpole')
 class CartPoleEnv(BaseEnv):
 
@@ -32,6 +17,14 @@ class CartPoleEnv(BaseEnv):
         self._cfg = cfg
         self._init_flag = False
         self._replay_path = None
+        self._observation_space = gym.spaces.Box(
+            low=np.array([-4.8, float("-inf"), -0.42, float("-inf")]),
+            high=np.array([4.8, float("inf"), 0.42, float("inf")]),
+            shape=(4, ),
+            dtype=np.float32
+        )
+        self._action_space = gym.spaces.Discrete(2)
+        self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
@@ -73,41 +66,27 @@ class CartPoleEnv(BaseEnv):
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T(
-                (4, ),
-                {
-                    'min': [-4.8, float("-inf"), -0.42, float("-inf")],
-                    'max': [4.8, float("inf"), 0.42, float("inf")],
-                    'dtype': np.float32,
-                },
-            ),
-            # [min, max)
-            act_space=T(
-                (1, ),
-                {
-                    'min': 0,
-                    'max': 2,
-                    'dtype': int,
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                {
-                    'min': 0.0,
-                    'max': 1.0
-                },
-            ),
-            use_wrappers=None,
-        )
-
-    def __repr__(self) -> str:
-        return "DI-engine CartPole Env"
-
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
+
+    def __repr__(self) -> str:
+        return "DI-engine CartPole Env"

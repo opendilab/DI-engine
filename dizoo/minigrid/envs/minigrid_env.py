@@ -374,9 +374,7 @@ class MiniGridEnv(BaseEnv):
                     self._env, agent_view_size=5
                 )  # customize the agent field of view size, note this must be an odd number # This also related to the observation space, see gym_minigrid.wrappers for more details
             if self._env_id == 'MiniGrid-AKTDT-7x7-1-v0':
-                self._env = ViewSizeWrapper(
-                    self._env, agent_view_size=3
-                )
+                self._env = ViewSizeWrapper(self._env, agent_view_size=3)
             if self._flat_obs:
                 self._env = FlatObsWrapper(self._env)
                 # self._env = RGBImgPartialObsWrapper(self._env)

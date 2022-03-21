@@ -4,6 +4,7 @@ from ding.entry import serial_pipeline
 bipedalwalker_sac_config = dict(
     exp_name='bipedalwalker_sac',
     env=dict(
+        env_id='BipedalWalker-v3',
         collector_env_num=8,
         evaluator_env_num=5,
         # (bool) Scale output action into legal range.
@@ -51,7 +52,6 @@ bipedalwalker_sac_create_config = dict(
         type='bipedalwalker',
         import_names=['dizoo.box2d.bipedalwalker.envs.bipedalwalker_env'],
     ),
-
     env_manager=dict(type='base'),
     policy=dict(
         type='sac',

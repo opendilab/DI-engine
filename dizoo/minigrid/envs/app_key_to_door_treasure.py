@@ -206,9 +206,10 @@ class AppleKeyToDoorTreasure_13x13_1(AppleKeyToDoorTreasure):
 
 
 class AppleKeyToDoorTreasure_7x7_1(AppleKeyToDoorTreasure):
-    
+
     def __init__(self):
         super().__init__(agent_pos=(1, 5), goal_pos=(4, 1), grid_size=7, apple=1)
+
 
 class AppleKeyToDoorTreasure_19x19_3(AppleKeyToDoorTreasure):
 

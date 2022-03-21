@@ -5,7 +5,6 @@ from ding.envs.env_manager import BaseEnvManager
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.torch_utils import to_ndarray, to_tensor
 from ding.policy import Policy
-from rich import print
 import logging
 
 if TYPE_CHECKING:
@@ -43,7 +42,6 @@ def basic_evaluator(task: "Task", cfg: dict, policy: Policy, env: BaseEnvManager
         episode_reward = eval_monitor.get_episode_reward()
         eval_reward = np.mean(episode_reward)
         stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
-        print('Current Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
         logging.info('Current Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
         ctx.last_eval_iter = ctx.train_iter
         if stop_flag:
