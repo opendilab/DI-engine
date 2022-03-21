@@ -58,7 +58,9 @@ ant_sac_default_create_config = dict(
         type='mujoco_multi',
         import_names=['dizoo.multiagent_mujoco.envs.multi_mujoco_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
+    # env_manager=dict(type='subprocess'),  # TODO
+
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],

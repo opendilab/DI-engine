@@ -11,6 +11,7 @@ minigrid_ppo_ngu_config = dict(
         n_evaluator_episode=5,
         # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
         env_id='MiniGrid-DoorKey-16x16-v0',
+        max_step=300,
         stop_value=0.96,
     ),
     rnd_reward_model=dict(

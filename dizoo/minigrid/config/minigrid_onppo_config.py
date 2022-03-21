@@ -9,6 +9,7 @@ minigrid_ppo_config = dict(
         n_evaluator_episode=5,
         # minigrid env id: 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'
         env_id='MiniGrid-Empty-8x8-v0',
+        max_step=300,
         stop_value=0.96,
     ),
     policy=dict(
