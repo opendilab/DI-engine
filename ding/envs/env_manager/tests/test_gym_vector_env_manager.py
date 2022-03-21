@@ -6,6 +6,8 @@ import numpy as np
 
 from ..base_env_manager import BaseEnvManager, EnvState
 from ..gym_vector_env_manager import GymVectorEnvManager
+from gym.vector.async_vector_env import AsyncState
+
 
 @pytest.mark.unittest
 class TestGymVectorEnvManager:
@@ -14,10 +16,9 @@ class TestGymVectorEnvManager:
         env_manager = GymVectorEnvManager(env_fn, setup_gym_vector_manager_cfg)
         env_manager.seed([314 for _ in range(env_manager.env_num)])
         assert env_manager._closed
-
         # Test reset
         obs = env_manager.reset()
-        # assert all([env_manager.envmanager._env_states[env_id] == EnvState.RUN for env_id in range(env_manager.env_num)])
+        assert env_manager.env_manager._state == AsyncState.DEFAULT
         # Test arribute
         with pytest.raises(AttributeError):
             _ = env_manager.xxx
@@ -37,13 +38,11 @@ class TestGymVectorEnvManager:
             count += 1
         end_time = time.time()
         print('total step time: {}'.format(end_time - start_time))
-        assert all([env_manager._env_states[env_id] == EnvState.DONE for env_id in range(env_manager.env_num)])
-        assert all([c == setup_gym_vector_manager_cfg.episode_num for c in env_manager._env_episode_count.values()])
         # Test close
         env_manager.close()
         assert env_manager._closed
-        assert all([not env_manager._envs[env_id]._launched for env_id in range(env_manager.env_num)])
-        assert all([env_manager._env_states[env_id] == EnvState.VOID for env_id in range(env_manager.env_num)])
+        # assert all([not env_manager._envs[env_id]._launched for env_id in range(env_manager.env_num)])
+        # assert all([env_manager._env_states[env_id] == EnvState.VOID for env_id in range(env_manager.env_num)])
         with pytest.raises(AssertionError):
             env_manager.reset([])
         with pytest.raises(AssertionError):
