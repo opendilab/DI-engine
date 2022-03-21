@@ -104,3 +104,77 @@ def test_disconnected():
     # Make one process exit normally and the rest will still run, even if the network request
     # is not received by other processes.
     Parallel.runner(n_parallel_workers=2, topology="mesh")(disconnected_main)
+
+
+class AutoRecover:
+
+    @classmethod
+    def main_p0(cls):
+        # Wait for p1's message and recovered message from p1
+        greets = []
+        router = Parallel()
+        router.on("greeting_0", lambda msg: greets.append(msg))
+        for _ in range(10):
+            if greets and greets[-1] == "recovered_p1":
+                break
+            else:
+                time.sleep(0.1)
+        assert greets and greets[-1] == "recovered_p1"
+
+    @classmethod
+    def main_p1(cls):
+        # Send empty message to p0
+        # When recovered from exception, send recovered_p1 to p0
+        # Listen msgs from p2
+        greets = []
+        router = Parallel()
+        router.on("greeting_1", lambda msg: greets.append(msg))
+
+        # Test sending message to p0
+        if router._retries == 0:
+            router.emit("greeting_0", "")
+            time.sleep(0.1)
+            raise Exception("P1 Error")
+        elif router._retries == 1:
+            router.emit("greeting_0", "recovered_p1")
+            time.sleep(0.1)
+        else:
+            raise Exception("Errored too many times")
+
+        # Test recover and receving message from p2
+        for _ in range(10):
+            if greets:
+                break
+            time.sleep(0.1)
+        assert len(greets) > 0
+
+    @classmethod
+    def main_p2(cls):
+        # Simply send message to p1
+        router = Parallel()
+        for _ in range(10):
+            router.emit("greeting_1", "")
+            time.sleep(0.1)
+
+    @classmethod
+    def main(cls):
+        router = Parallel()
+        if router.node_id == 0:
+            cls.main_p0()
+        elif router.node_id == 1:
+            cls.main_p1()
+        elif router.node_id == 2:
+            cls.main_p2()
+        else:
+            raise Exception("Invalid node id")
+
+
+@pytest.mark.unittest
+def test_auto_recover():
+    # With max_retries=1
+    Parallel.runner(n_parallel_workers=3, topology="mesh", auto_recover=True, max_retries=1)(AutoRecover.main)
+    # With max_retries=0
+    with pytest.raises(Exception) as exc_info:
+        Parallel.runner(n_parallel_workers=3, topology="mesh", auto_recover=True, max_retries=0)(AutoRecover.main)
+    e = exc_info._excinfo[1]
+    assert "P1 Error" in str(e)
