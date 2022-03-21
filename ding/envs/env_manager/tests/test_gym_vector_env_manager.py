@@ -11,6 +11,7 @@ from gym.vector.async_vector_env import AsyncState
 
 @pytest.mark.unittest
 class TestGymVectorEnvManager:
+
     def test_naive(self, setup_gym_vector_manager_cfg):
         env_fn = setup_gym_vector_manager_cfg.pop('env_fn')
         env_manager = GymVectorEnvManager(env_fn, setup_gym_vector_manager_cfg)

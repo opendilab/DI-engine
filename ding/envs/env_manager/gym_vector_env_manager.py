@@ -11,6 +11,7 @@ from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANA
 from .base_env_manager import BaseEnvManager
 from .base_env_manager import EnvState
 
+
 @ENV_MANAGER_REGISTRY.register('gym_vector')
 class GymVectorEnvManager(BaseEnvManager):
     """
@@ -69,7 +70,7 @@ class GymVectorEnvManager(BaseEnvManager):
                 self._env_episode_count[i] += 1
                 if self._env_episode_count[i] >= self._episode_num:
                     self._env_states[i] = EnvState.DONE
-                
+
         return timestep_collate_result
 
     @property
@@ -91,4 +92,4 @@ class GymVectorEnvManager(BaseEnvManager):
             return
         self._closed = True
         self.env_manager.close()
-        self.env_manager.close_extras(terminate = True)
+        self.env_manager.close_extras(terminate=True)
