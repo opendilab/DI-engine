@@ -30,8 +30,14 @@ class GymVectorEnvManager(BaseEnvManager):
         self._cfg = cfg
         self._env_fn = env_fn
         self._env_num = len(self._env_fn)
-        self._closed = True
+        self._closed = False
         self._env_replay_path = None
+        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
+        self._env_ref = self._env_fn[0]()
+        self._env_states = {i: EnvState.VOID for i in range(self._env_num)}
+
+        self._episode_num = self._cfg.episode_num
+        self._env_episode_count = {i: 0 for i in range(self.env_num)}
 
         self.env_manager = AsyncVectorEnv(
             env_fns=self._env_fn,
@@ -43,10 +49,12 @@ class GymVectorEnvManager(BaseEnvManager):
 
     def reset(self, reset_param: Optional[Dict] = None) -> None:
         assert reset_param is None
+        self._closed = False
         self.reset_observations = self.env_manager.reset()
         self.final_eval_reward = [0. for _ in range(self._env_num)]
 
     def step(self, actions: Dict[int, Any]) -> Dict[int, namedtuple]:
+        assert isinstance(actions, Dict)
         elem = list(actions.values())[0]
         if isinstance(elem, np.ndarray) and elem.shape == (1, ):
             actions = [v.item() for k, v in actions.items()]
@@ -58,6 +66,10 @@ class GymVectorEnvManager(BaseEnvManager):
             if timestep_collate_result[i].done:
                 timestep_collate_result[i].info['final_eval_reward'] = self.final_eval_reward[i]
                 self.final_eval_reward[i] = 0
+                self._env_episode_count[i] += 1
+                if self._env_episode_count[i] >= self._episode_num:
+                    self._env_states[i] = EnvState.DONE
+                
         return timestep_collate_result
 
     @property
@@ -80,6 +92,3 @@ class GymVectorEnvManager(BaseEnvManager):
         self._closed = True
         self.env_manager.close()
         self.env_manager.close_extras(terminate = True)
-
-
-#TODO(lwq): check close method; add unittest and ask questions in WeCom group
