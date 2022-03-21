@@ -7,6 +7,11 @@ import torch
 import torch.nn as nn
 from ding.torch_utils.network.nn_module import fc_block, build_normalization, F
 
+try:
+    profile
+except NameError:
+    profile = lambda x: x
+
 
 class PositionalEmbedding(nn.Module):
     """
@@ -59,7 +64,7 @@ class GRUGatingUnit(torch.nn.Module):
             initializes the agent close to a Markovian policy (ignore attention at the beginning).
         """
         super(GRUGatingUnit, self).__init__()
-        self.Wr = torch.nn.Linear(input_dim, input_dim)
+        '''self.Wr = torch.nn.Linear(input_dim, input_dim)
         self.Ur = torch.nn.Linear(input_dim, input_dim)
         self.Wz = torch.nn.Linear(input_dim, input_dim)
         self.Uz = torch.nn.Linear(input_dim, input_dim)
@@ -67,7 +72,8 @@ class GRUGatingUnit(torch.nn.Module):
         self.Ug = torch.nn.Linear(input_dim, input_dim)
         self.bg = nn.Parameter(torch.full([input_dim], bg))  # bias
         self.sigmoid = torch.nn.Sigmoid()
-        self.tanh = torch.nn.Tanh()
+        self.tanh = torch.nn.Tanh()'''
+        self.rnn = nn.GRU(input_dim, input_dim, 1, bias=False)
 
     @profile
     def forward(self, x: torch.Tensor, y: torch.Tensor):
@@ -81,11 +87,15 @@ class GRUGatingUnit(torch.nn.Module):
         Returns:
             - g: (:obj:`torch.Tensor`): output of GRU. Same shape of x and y.
         """
-        r = self.sigmoid(self.Wr(y) + self.Ur(x))
+        #print(x.shape, y[-1].unsqueeze(0).shape)
+        res = self.rnn(x, y[-1].unsqueeze(0))
+        #print(res[0].shape)
+        return res[0]
+        '''r = self.sigmoid(self.Wr(y) + self.Ur(x))
         z = self.sigmoid(self.Wz(y) + self.Uz(x) - self.bg)
         h = self.tanh(self.Wg(y) + self.Ug(torch.mul(r, x)))  # element wise multiplication
         g = torch.mul(1 - z, x) + torch.mul(z, h)
-        return g  # x.shape == y.shape == g.shape
+        return g  # x.shape == y.shape == g.shape'''
 
 
 class Memory:
