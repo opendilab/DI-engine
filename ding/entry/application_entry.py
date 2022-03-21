@@ -1,5 +1,6 @@
 from typing import Union, Optional, List, Any, Tuple
 import pickle
+import numpy as np
 import torch
 from functools import partial
 import os
@@ -70,7 +71,9 @@ def eval(
     evaluator = InteractionSerialEvaluator(cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode)
 
     # Evaluate
-    _, eval_reward = evaluator.eval()
+    _, episode_info = evaluator.eval()
+    reward = [e['final_eval_reward'] for e in episode_info]
+    eval_reward = np.mean(reward)
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
     return eval_reward
 
