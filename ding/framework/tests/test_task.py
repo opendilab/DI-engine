@@ -158,16 +158,15 @@ def emit_remote_main():
         greets = []
         if task.router.node_id == 0:
             task.on("Greeting", lambda msg: greets.append(msg))
-            time.sleep(0.7)  # Wait for receiving messages
+            for _ in range(20):
+                if greets:
+                    break
+                time.sleep(0.1)
+            assert len(greets) > 0
         else:
-            time.sleep(0.3)  # Wait for subscribing on node 0
-            for _ in range(10):
+            for _ in range(20):
                 task.emit("Greeting", "Hi", only_remote=True)
-                time.sleep(0.01)
-        time.sleep(0.3)  # Wait for event handler
-        if task.router.node_id == 0:
-            assert len(greets) > 5
-        else:
+                time.sleep(0.1)
             assert len(greets) == 0
 
 
