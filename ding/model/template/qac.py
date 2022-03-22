@@ -31,6 +31,7 @@ class QAC(nn.Module):
             critic_head_layer_num: int = 1,
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None,
+            encoder_hidden_size_list: SequenceType = [64, 64, 128],
     ) -> None:
         """
         Overview:
@@ -56,12 +57,22 @@ class QAC(nn.Module):
         super(QAC, self).__init__()
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
-        self.action_shape = action_shape
+        self.obs_shape = obs_shape
         self.action_space = action_space
         assert self.action_space in ['regression', 'reparameterization', 'hybrid']
+
+        # Encoder Type
+        if isinstance(obs_shape, int) or len(obs_shape) == 1:
+            encoder_cls = FCEncoder
+        elif len(obs_shape) == 3:
+            encoder_cls = ConvEncoder
+        else:
+            raise RuntimeError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
+            )
         if self.action_space == 'regression':  # DDPG, TD3
             self.actor = nn.Sequential(
-                nn.Linear(obs_shape, actor_head_hidden_size), activation,
+                encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
                 RegressionHead(
                     actor_head_hidden_size,
                     action_shape,
@@ -112,16 +123,17 @@ class QAC(nn.Module):
             self.actor = nn.ModuleList([actor_action_type, actor_action_args])
 
         self.twin_critic = twin_critic
-        if self.action_space == 'hybrid':
-            critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
-        else:
-            critic_input_size = obs_shape + action_shape
+        if len(self.obs_shape) != 3:
+            if self.action_space == 'hybrid':
+                critic_input_size = obs_shape + action_shape.action_type_shape + action_shape.action_args_shape
+            else:
+                critic_input_size = obs_shape + action_shape
         if self.twin_critic:
             self.critic = nn.ModuleList()
             for _ in range(2):
                 self.critic.append(
                     nn.Sequential(
-                        nn.Linear(critic_input_size, critic_head_hidden_size), activation,
+                        encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
                         RegressionHead(
                             critic_head_hidden_size,
                             1,
@@ -134,7 +146,7 @@ class QAC(nn.Module):
                 )
         else:
             self.critic = nn.Sequential(
-                nn.Linear(critic_input_size, critic_head_hidden_size), activation,
+                encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type),
                 RegressionHead(
                     critic_head_hidden_size,
                     1,
@@ -257,22 +269,29 @@ class QAC(nn.Module):
         """
 
         obs, action = inputs['obs'], inputs['action']
-        assert len(obs.shape) == 2
-        if self.action_space == 'hybrid':
-            action_type_logit = inputs['logit']
-            action_type_logit = torch.softmax(action_type_logit, dim=-1)
-            action_args = action['action_args']
-            if len(action_args.shape) == 1:
-                action_args = action_args.unsqueeze(1)
-            x = torch.cat([obs, action_type_logit, action_args], dim=1)
+        # assert len(obs.shape) == 2
+        if len(self.obs_shape) == 3:
+            x = obs
+            if self.twin_critic:
+                x = [m(x)['pred'] for m in self.critic]
+            else:
+                x = self.critic(x)['pred']
         else:
-            if len(action.shape) == 1:  # (B, ) -> (B, 1)
-                action = action.unsqueeze(1)
-            x = torch.cat([obs, action], dim=1)
-        if self.twin_critic:
-            x = [m(x)['pred'] for m in self.critic]
-        else:
-            x = self.critic(x)['pred']
+            if self.action_space == 'hybrid':
+                action_type_logit = inputs['logit']
+                action_type_logit = torch.softmax(action_type_logit, dim=-1)
+                action_args = action['action_args']
+                if len(action_args.shape) == 1:
+                    action_args = action_args.unsqueeze(1)
+                x = torch.cat([obs, action_type_logit, action_args], dim=1)
+            else:
+                if len(action.shape) == 1:  # (B, ) -> (B, 1)
+                    action = action.unsqueeze(1)
+                x = torch.cat([obs, action], dim=1)
+            if self.twin_critic:
+                x = [m(x)['pred'] for m in self.critic]
+            else:
+                x = self.critic(x)['pred']
         return {'q_value': x}
 
 
