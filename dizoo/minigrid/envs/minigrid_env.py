@@ -110,9 +110,6 @@ class MiniGridEnv(BaseEnv):
         rew = to_ndarray([rew])  # wrapped to be transferred to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    # def info(self) -> MiniGridEnvInfo:
-    #     return MINIGRID_INFO_DICT[self._env_id]
-
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
         random_action = to_ndarray([random_action], dtype=np.int64)

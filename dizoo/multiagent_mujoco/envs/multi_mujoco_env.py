@@ -33,9 +33,9 @@ class MujocoEnv(BaseEnv):
         self._observation_space = [gym.spaces.Box(
             low=float("-inf"),
             high=float("inf"),
-            shape=self._env.observation_space[self._agents[0]].shape,
+            shape=self._env.observation_space[agent].shape,
             dtype=np.float32
-        ) for i in range(self._num_agents)]
+        ) for agent in self._agents]
         self._action_space = gym.spaces.Dict({agent: self._env.action_space[agent] for agent in self._agents})
         single_agent_obs_space = self._env.action_space[self._agents[0]]
         if isinstance(single_agent_obs_space, gym.spaces.Box):
