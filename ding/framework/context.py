@@ -55,6 +55,4 @@ class OnlineRLContext(Context):
         self.last_eval_iter = -1
         # other
         self.last_save_iter = -1
-        self._kept_keys = set(
-            ['env_step', 'env_episode', 'train_iter', 'max_eval_value', 'last_eval_iter', 'last_save_iter']
-        )
+        self.keep('env_step', 'env_episode', 'train_iter', 'max_eval_value', 'last_eval_iter', 'last_save_iter')

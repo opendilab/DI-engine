@@ -1,7 +1,6 @@
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING, Optional
 from easydict import EasyDict
 import os
-import numpy as np
 
 from ding.utils import save_file
 from ding.policy import Policy
