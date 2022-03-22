@@ -64,7 +64,7 @@ class GRUGatingUnit(torch.nn.Module):
             initializes the agent close to a Markovian policy (ignore attention at the beginning).
         """
         super(GRUGatingUnit, self).__init__()
-        '''self.Wr = torch.nn.Linear(input_dim, input_dim)
+        self.Wr = torch.nn.Linear(input_dim, input_dim)
         self.Ur = torch.nn.Linear(input_dim, input_dim)
         self.Wz = torch.nn.Linear(input_dim, input_dim)
         self.Uz = torch.nn.Linear(input_dim, input_dim)
@@ -72,8 +72,8 @@ class GRUGatingUnit(torch.nn.Module):
         self.Ug = torch.nn.Linear(input_dim, input_dim)
         self.bg = nn.Parameter(torch.full([input_dim], bg))  # bias
         self.sigmoid = torch.nn.Sigmoid()
-        self.tanh = torch.nn.Tanh()'''
-        self.rnn = nn.GRU(input_dim, input_dim, 1, bias=False)
+        self.tanh = torch.nn.Tanh()
+        # self.rnn = nn.GRU(input_dim, input_dim, 1, bias=False)
 
     @profile
     def forward(self, x: torch.Tensor, y: torch.Tensor):
@@ -87,15 +87,12 @@ class GRUGatingUnit(torch.nn.Module):
         Returns:
             - g: (:obj:`torch.Tensor`): output of GRU. Same shape of x and y.
         """
-        #print(x.shape, y[-1].unsqueeze(0).shape)
-        res = self.rnn(x, y[-1].unsqueeze(0))
-        #print(res[0].shape)
-        return res[0]
-        '''r = self.sigmoid(self.Wr(y) + self.Ur(x))
+        # return self.rnn(x, y[-1].unsqueeze(0))
+        r = self.sigmoid(self.Wr(y) + self.Ur(x))
         z = self.sigmoid(self.Wz(y) + self.Uz(x) - self.bg)
         h = self.tanh(self.Wg(y) + self.Ug(torch.mul(r, x)))  # element wise multiplication
         g = torch.mul(1 - z, x) + torch.mul(z, h)
-        return g  # x.shape == y.shape == g.shape'''
+        return g  # x.shape == y.shape == g.shape
 
 
 class Memory:
@@ -482,6 +479,7 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
         )
+        self.att_mask = {}  # create an attention mask for each different seq_len
 
     @profile
     def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
@@ -551,12 +549,16 @@ class GTrXL(nn.Module):
         full_seq = cur_seq + prev_seq
 
         # TODO: add padding to attention mask, https://huggingface.co/docs/transformers/preprocessing
-        dec_attn_mask = (
-            torch.triu(
-                torch.ones((cur_seq, full_seq)),
-                diagonal=1 + prev_seq,
-            ).bool().unsqueeze(-1).to(x.device)
-        )  # cur_seq x full_seq x 1
+        if cur_seq in self.att_mask.keys():
+            attn_mask = self.att_mask[cur_seq]
+        else:
+            attn_mask = (
+                torch.triu(
+                    torch.ones((cur_seq, full_seq)),
+                    diagonal=1 + prev_seq,  # fixed in train, eval, collect
+                ).bool().unsqueeze(-1).to(x.device)
+            )  # cur_seq x full_seq x 1
+            self.att_mask[cur_seq] = attn_mask
 
         pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
         pos_embedding = self.dropout(self.pos_embedding(pos_ips.to(x.device)))  # full_seq x 1 x embedding_dim
@@ -570,7 +572,7 @@ class GTrXL(nn.Module):
                 pos_embedding,
                 self.u,
                 self.v,
-                mask=dec_attn_mask,
+                mask=attn_mask,
                 memory=memory[i],  # (layer_num+1) x memory_len x batch_size x embedding_dim
             )  # cur_seq x bs x embedding_dim
             hidden_state.append(out.clone())
