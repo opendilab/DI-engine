@@ -79,7 +79,7 @@ setup(
         'pynng',
         'pettingzoo',
         'pyglet>=1.4.0',
-        'box2d-py'
+        'box2d-py',
         'DI-treetensor',
     ],
     extras_require={
