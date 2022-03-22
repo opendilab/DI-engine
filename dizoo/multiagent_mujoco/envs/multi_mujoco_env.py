@@ -43,6 +43,7 @@ class MujocoEnv(BaseEnv):
         self._num_agents = self.env_info['n_agents']
         self._agents = [i for i in range(self._num_agents)]
 
+        # wrong: the shape attribute of gym.spaces.Box cannot be dict
         # self._observation_space = [gym.spaces.Box(
         #     low=float("-inf"),
         #     high=float("inf"),
@@ -50,9 +51,28 @@ class MujocoEnv(BaseEnv):
         #     dtype=np.float32
         # ) for agent in self._agents]
 
-        self._observation_space = EnvElementInfoSubprocess(
-            shape={'agent_state': obs['agent_state'].shape, 'global_state': obs['global_state'].shape},
-            dtype=dtype('float32'))
+        # way 1
+        # self._observation_space = EnvElementInfoSubprocess(
+        #     shape={'agent_state': obs['agent_state'].shape, 'global_state': obs['global_state'].shape},
+        #     dtype=dtype('float32'))
+
+        # way 2
+        self._observation_space = [gym.spaces.Dict({
+            'agent_state':
+                gym.spaces.Box(
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=obs['agent_state'].shape[1:],
+                    dtype=np.float32
+                ), 
+            'global_state':
+                gym.spaces.Box(
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=obs['global_state'].shape[1:],
+                    dtype=np.float32
+                ),
+        }) for agent in self._agents]
 
         self._action_space = gym.spaces.Dict({agent: self._env.action_space[agent] for agent in self._agents})
         single_agent_obs_space = self._env.action_space[self._agents[0]]

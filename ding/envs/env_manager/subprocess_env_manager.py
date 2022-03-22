@@ -17,6 +17,7 @@ from types import MethodType
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
 from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
 from ding.envs.env.base_env import BaseEnvTimestep
+import gym
 
 _NTYPE_TO_CTYPE = {
     np.bool_: ctypes.c_bool,
@@ -224,8 +225,17 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             obs_space = self._env_ref.observation_space
             self._env_ref.close()
             if isinstance(obs_space, list):
-                shape = (len(obs_space), ) + obs_space[0].shape
-                dtype = obs_space[0].dtype
+                # for multi_agent case
+                if isinstance(obs_space[0], gym.spaces.Dict):
+                    # for multi_mujoco_env
+                    shape = {
+                        'agent_state': (len(obs_space), ) + obs_space[0]['agent_state'].shape,
+                        'global_state': (len(obs_space), ) + obs_space[0]['global_state'].shape,
+                    }
+                    dtype = obs_space[0]['agent_state'].dtype
+                else:
+                    shape = (len(obs_space), ) + obs_space[0].shape
+                    dtype = obs_space[0].dtype
             else:
                 shape = obs_space.shape
                 dtype = obs_space.dtype
