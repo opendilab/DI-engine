@@ -140,7 +140,7 @@ class AutoRecover:
             router.emit("greeting_0", "recovered_p1")
             time.sleep(0.1)
         else:
-            raise Exception("Errored too many times")
+            raise Exception("Failed too many times")
 
         # Test recover and receving message from p2
         for _ in range(20):
