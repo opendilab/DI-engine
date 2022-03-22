@@ -227,7 +227,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             if isinstance(obs_space, list):
                 # for multi_agent case
                 if isinstance(obs_space[0], gym.spaces.Dict):
-                    shape = {k: (len(obs_space), ) + v.shape for k,v in obs_space[0].items()}
+                    shape = {k: (len(obs_space), ) + v.shape for k, v in obs_space[0].items()}
                     dtype = list(obs_space[0].values())[0].dtype
                 else:
                     shape = (len(obs_space), ) + obs_space[0].shape
