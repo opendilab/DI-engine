@@ -227,12 +227,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             if isinstance(obs_space, list):
                 # for multi_agent case
                 if isinstance(obs_space[0], gym.spaces.Dict):
-                    # for multi_mujoco_env
-                    shape = {
-                        'agent_state': (len(obs_space), ) + obs_space[0]['agent_state'].shape,
-                        'global_state': (len(obs_space), ) + obs_space[0]['global_state'].shape,
-                    }
-                    dtype = obs_space[0]['agent_state'].dtype
+                    shape = {k: (len(obs_space), ) + v.shape for k,v in obs_space[0].items()}
+                    dtype = list(obs_space[0].values())[0].dtype
                 else:
                     shape = (len(obs_space), ) + obs_space[0].shape
                     dtype = obs_space[0].dtype

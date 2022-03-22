@@ -3,15 +3,12 @@ import copy
 import numpy as np
 import gym
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from ding.envs.common.env_element import EnvElement,  EnvElementInfo
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
 from .mujoco_multi import MujocoMulti
 from ding.utils import ENV_REGISTRY
 from namedlist import namedlist
 from numpy import dtype
-
-EnvElementInfoSubprocess = namedlist('EnvElementInfo', ['shape', 'dtype'])
 
 
 @ENV_REGISTRY.register('mujoco_multi')
@@ -33,7 +30,7 @@ class MujocoEnv(BaseEnv):
         obs = self._env.reset()
         self._final_eval_reward = 0.
 
-        # TODO(pu): 
+        # TODO: 
         # self.env_info for scenario='Ant-v2', agent_conf="2x4d", 
         # {'state_shape': 2, 'obs_shape': 54,...}
         # 'state_shape' is wrong, it should be 111
@@ -42,21 +39,6 @@ class MujocoEnv(BaseEnv):
 
         self._num_agents = self.env_info['n_agents']
         self._agents = [i for i in range(self._num_agents)]
-
-        # wrong: the shape attribute of gym.spaces.Box cannot be dict
-        # self._observation_space = [gym.spaces.Box(
-        #     low=float("-inf"),
-        #     high=float("inf"),
-        #     shape={'agent_state': obs['agent_state'].shape, 'global_state': obs['global_state'].shape},
-        #     dtype=np.float32
-        # ) for agent in self._agents]
-
-        # way 1
-        # self._observation_space = EnvElementInfoSubprocess(
-        #     shape={'agent_state': obs['agent_state'].shape, 'global_state': obs['global_state'].shape},
-        #     dtype=dtype('float32'))
-
-        # way 2
         self._observation_space = [gym.spaces.Dict({
             'agent_state':
                 gym.spaces.Box(
@@ -73,7 +55,6 @@ class MujocoEnv(BaseEnv):
                     dtype=np.float32
                 ),
         }) for agent in self._agents]
-
         self._action_space = gym.spaces.Dict({agent: self._env.action_space[agent] for agent in self._agents})
         single_agent_obs_space = self._env.action_space[self._agents[0]]
         if isinstance(single_agent_obs_space, gym.spaces.Box):
