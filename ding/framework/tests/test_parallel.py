@@ -114,11 +114,10 @@ class AutoRecover:
         greets = []
         router = Parallel()
         router.on("greeting_0", lambda msg: greets.append(msg))
-        for _ in range(20):
+        for _ in range(50):
             if greets and greets[-1] == "recovered_p1":
                 break
-            else:
-                time.sleep(0.1)
+            time.sleep(0.1)
         assert greets and greets[-1] == "recovered_p1"
 
     @classmethod
@@ -132,13 +131,14 @@ class AutoRecover:
 
         # Test sending message to p0
         if router._retries == 0:
-            for _ in range(3):
+            for _ in range(10):
                 router.emit("greeting_0", "")
                 time.sleep(0.1)
             raise Exception("P1 Error")
         elif router._retries == 1:
-            router.emit("greeting_0", "recovered_p1")
-            time.sleep(0.1)
+            for _ in range(10):
+                router.emit("greeting_0", "recovered_p1")
+                time.sleep(0.1)
         else:
             raise Exception("Failed too many times")
 
