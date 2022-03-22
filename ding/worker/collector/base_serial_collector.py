@@ -150,7 +150,7 @@ class CachePool(object):
             - item (:obj:`Any`): The item we get.
         """
         data = self._pool[idx]
-        if len(data) == 1:
+        if data is not None and len(data) == 1:
             data = data[0]
         return data
 

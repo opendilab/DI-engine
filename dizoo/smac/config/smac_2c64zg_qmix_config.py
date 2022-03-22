@@ -1,4 +1,3 @@
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 agent_num = 2
@@ -6,7 +5,7 @@ collector_env_num = 16
 evaluator_env_num = 8
 
 main_config = dict(
-    exp_name='smac_2c64zg_qmix',
+    exp_name='smac_2c64zg_qmix_seed0',
     env=dict(
         map_name='2c_vs_64zg',
         difficulty=7,
@@ -15,9 +14,12 @@ main_config = dict(
         agent_num=agent_num,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        shared_memory=False,
         stop_value=0.999,
         n_evaluator_episode=32,
+        manager=dict(
+            shared_memory=False,
+            reset_timeout=6000,
+        ),
     ),
     policy=dict(
         model=dict(
@@ -75,16 +77,7 @@ create_config = dict(
 create_config = EasyDict(create_config)
 
 
-def train(args):
-    config = [main_config, create_config]
-    serial_pipeline(config, seed=args.seed)
+if __name__ == '__main__':
 
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', '-s', type=int, default=0)
-    args = parser.parse_args()
-
-    train(args)
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

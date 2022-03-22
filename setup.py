@@ -155,7 +155,10 @@ setup(
         ],
         'k8s': [
             'kubernetes',
-        ]
+        ],
+        'envpool': [
+            'envpool',
+        ],
     },
     entry_points={'console_scripts': ['ding=ding.entry.cli:cli', 'ditask=ding.entry.cli_ditask:cli_ditask']},
     classifiers=[

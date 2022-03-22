@@ -8,6 +8,7 @@ import torch.nn as nn
 import logging
 
 from ding.torch_utils import get_lstm
+from ding.torch_utils.network.gtrxl import GTrXL
 from ding.model import model_wrap, register_wrapper, IModelWrapper, BaseModelWrapper
 
 
@@ -480,3 +481,70 @@ class TestModelWrappers:
         action = output['action']
         assert action.shape == (4, 6)
         assert action.eq(action.clamp(-0.05, 0.05)).all()
+
+    def test_transformer_input_wrapper(self):
+        seq_len, bs, obs_shape = 8, 8, 32
+        emb_dim = 64
+        model = GTrXL(input_dim=obs_shape, embedding_dim=emb_dim)
+        model = model_wrap(model, wrapper_name='transformer_input', seq_len=seq_len)
+        obs = []
+        for i in range(seq_len + 1):
+            obs.append(torch.randn((bs, obs_shape)))
+        out = model.forward(obs[0], only_last_logit=False)
+        assert out['logit'].shape == (seq_len, bs, emb_dim)
+        assert out['input_seq'].shape == (seq_len, bs, obs_shape)
+        assert sum(out['input_seq'][1:].flatten()) == 0
+        for i in range(1, seq_len - 1):
+            out = model.forward(obs[i])
+        assert out['logit'].shape == (bs, emb_dim)
+        assert out['input_seq'].shape == (seq_len, bs, obs_shape)
+        assert sum(out['input_seq'][seq_len - 1:].flatten()) == 0
+        assert sum(out['input_seq'][:seq_len - 1].flatten()) != 0
+        out = model.forward(obs[seq_len - 1])
+        prev_memory = torch.clone(out['input_seq'])
+        out = model.forward(obs[seq_len])
+        assert torch.all(torch.eq(out['input_seq'][seq_len - 2], prev_memory[seq_len - 1]))
+        # test update of single batches in the memory
+        model.reset(data_id=[0, 5])  # reset memory batch in position 0 and 5
+        assert sum(model.obs_memory[:, 0].flatten()) == 0 and sum(model.obs_memory[:, 5].flatten()) == 0
+        assert sum(model.obs_memory[:, 1].flatten()) != 0
+        assert model.memory_idx[0] == 0 and model.memory_idx[5] == 0 and model.memory_idx[1] == seq_len
+        # test reset
+        model.reset()
+        assert model.obs_memory is None
+
+    def test_transformer_memory_wrapper(self):
+        seq_len, bs, obs_shape = 12, 8, 32
+        layer_num, memory_len, emb_dim = 3, 4, 4
+        model = GTrXL(input_dim=obs_shape, embedding_dim=emb_dim, memory_len=memory_len, layer_num=layer_num)
+        model1 = model_wrap(model, wrapper_name='transformer_memory', batch_size=bs)
+        model2 = model_wrap(model, wrapper_name='transformer_memory', batch_size=bs)
+        inputs1 = torch.randn((seq_len, bs, obs_shape))
+        out = model1.forward(inputs1)
+        new_memory1 = model1.memory
+        inputs2 = torch.randn((seq_len, bs, obs_shape))
+        out = model2.forward(inputs2)
+        new_memory2 = model2.memory
+        assert not torch.all(torch.eq(new_memory1, new_memory2))
+        model1.reset(data_id=[0, 5])
+        assert sum(model1.memory[:, :, 0].flatten()) == 0 and sum(model1.memory[:, :, 5].flatten()) == 0
+        assert sum(model1.memory[:, :, 1].flatten()) != 0
+        model1.reset()
+        assert sum(model1.memory.flatten()) == 0
+
+        seq_len, bs, obs_shape = 8, 8, 32
+        layer_num, memory_len, emb_dim = 3, 20, 4
+        model = GTrXL(input_dim=obs_shape, embedding_dim=emb_dim, memory_len=memory_len, layer_num=layer_num)
+        model = model_wrap(model, wrapper_name='transformer_memory', batch_size=bs)
+        inputs1 = torch.randn((seq_len, bs, obs_shape))
+        out = model.forward(inputs1)
+        new_memory1 = model.memory
+        inputs2 = torch.randn((seq_len, bs, obs_shape))
+        out = model.forward(inputs2)
+        new_memory2 = model.memory
+        print(new_memory1.shape, inputs1.shape)
+        assert sum(new_memory1[:, -8:].flatten()) != 0
+        assert sum(new_memory1[:, :-8].flatten()) == 0
+        assert sum(new_memory2[:, -16:].flatten()) != 0
+        assert sum(new_memory2[:, :-16].flatten()) == 0
+        assert torch.all(torch.eq(new_memory1[:, -8:], new_memory2[:, -16:-8]))

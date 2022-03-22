@@ -176,7 +176,8 @@ class PPOPolicy(Policy):
                         value *= self._running_mean_std.std
                         next_value *= self._running_mean_std.std
 
-                    compute_adv_data = gae_data(value, next_value, data['reward'], data['done'], data['traj_flag'])
+                    traj_flag = data.get('traj_flag', None)  # traj_flag indicates termination of trajectory
+                    compute_adv_data = gae_data(value, next_value, data['reward'], data['done'], traj_flag)
                     data['adv'] = gae(compute_adv_data, self._gamma, self._gae_lambda)
 
                     unnormalized_returns = value + data['adv']

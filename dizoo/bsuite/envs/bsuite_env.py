@@ -12,93 +12,6 @@ import bsuite
 from bsuite.utils import gym_wrapper
 from bsuite import sweep
 
-BSUITE_INFO_DICT = {
-    'memory_len': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            (3, ),
-            {
-                'min': -1.,
-                'max': 1.,
-                'dtype': np.float32,
-            },
-        ),
-        act_space=EnvElementInfo(
-            (1, ),
-            {
-                'min': 0,
-                'max': 1,
-                'dtype': int,
-            },
-        ),
-        rew_space=EnvElementInfo(
-            (1, ),
-            {
-                'min': -1.,
-                'max': 1.,
-                'dtype': np.float64,
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'bandit_noise': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            (1, ),
-            {
-                'min': 1.,
-                'max': 1.,
-                'dtype': np.float32,
-            },
-        ),
-        act_space=EnvElementInfo(
-            (1, ),
-            {
-                'min': 0,
-                'max': 10,
-                'dtype': int,
-            },
-        ),
-        rew_space=EnvElementInfo(
-            (1, ),
-            {
-                'min': np.inf,
-                'max': -np.inf,
-                'dtype': np.float64,
-            },
-        ),
-        use_wrappers=None,
-    ),
-    'cartpole_swingup': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            (8, ),
-            {
-                'min': -1.,
-                'max': 1.,
-                'dtype': np.float32,
-            },
-        ),
-        act_space=EnvElementInfo(
-            (1, ),
-            {
-                'min': 0,
-                'max': 2,
-                'dtype': int,
-            },
-        ),
-        rew_space=EnvElementInfo(
-            (1, ),
-            {
-                'min': np.inf,
-                'max': -np.inf,
-                'dtype': np.float64,
-            },
-        ),
-        use_wrappers=None,
-    )
-}
-
 
 @ENV_REGISTRY.register('bsuite')
 class BSuiteEnv(BaseEnv):
@@ -113,6 +26,11 @@ class BSuiteEnv(BaseEnv):
         if not self._init_flag:
             raw_env = bsuite.load_from_id(bsuite_id=self.env_id)
             self._env = gym_wrapper.GymFromDMEnv(raw_env)
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float64
+            )
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -150,18 +68,27 @@ class BSuiteEnv(BaseEnv):
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnvInfo:
-        if self.env_name in BSUITE_INFO_DICT:
-            info = copy.deepcopy(BSUITE_INFO_DICT[self.env_name])
-            return info
-        else:
-            raise NotImplementedError('{} not found in BSUITE_INFO_DICT [{}]'\
-                .format(self.env_name, BSUITE_INFO_DICT.keys()))
-
     def config_info(self) -> dict:
         config_info = sweep.SETTINGS[self.env_id]  # additional info that are specific to each env configuration
         config_info['num_episodes'] = self._env.bsuite_num_episodes
         return config_info
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
     def __repr__(self) -> str:
         return "DI-engine BSuite Env({})".format(self.env_id)

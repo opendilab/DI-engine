@@ -1,8 +1,8 @@
 from copy import deepcopy
 from easydict import EasyDict
 
-space_invaders_impala_config = dict(
-    exp_name='space_invaders_impala_seed0',
+spaceinvaders_impala_config = dict(
+    exp_name='spaceinvaders_impala_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=4,
@@ -59,9 +59,9 @@ space_invaders_impala_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
     ),
 )
-main_config = EasyDict(space_invaders_impala_config)
+main_config = EasyDict(spaceinvaders_impala_config)
 
-space_invaders_impala_create_config = dict(
+spaceinvaders_impala_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -70,7 +70,7 @@ space_invaders_impala_create_config = dict(
     policy=dict(type='impala'),
     replay_buffer=dict(type='naive'),
 )
-create_config = EasyDict(space_invaders_impala_create_config)
+create_config = EasyDict(spaceinvaders_impala_create_config)
 
 if __name__ == '__main__':
     from ding.entry import serial_pipeline
