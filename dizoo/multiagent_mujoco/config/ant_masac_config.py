@@ -3,15 +3,19 @@ from easydict import EasyDict
 ant_sac_default_config = dict(
     exp_name='multi_mujoco_ant_2x4',
     env=dict(
+        manager=dict(
+            shared_memory=False,
+        ),
         scenario='Ant-v2',
         agent_conf="2x4d",
         agent_obsk=2,
         add_agent_id=False,
         episode_limit=1000,
-        collector_env_num=1,
+        collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=6000,
+
     ),
     policy=dict(
         cuda=True,
@@ -58,9 +62,7 @@ ant_sac_default_create_config = dict(
         type='mujoco_multi',
         import_names=['dizoo.multiagent_mujoco.envs.multi_mujoco_env'],
     ),
-    env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),  # TODO
-
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],

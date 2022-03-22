@@ -28,14 +28,27 @@ class MujocoEnv(BaseEnv):
         obs = self._env.reset()
         self._final_eval_reward = 0.
         self.env_info = self._env.get_env_info()
-        self._agent_num = self.env_info['n_agents']
-        self._observation_space = gym.spaces.Dict({
-            'agent_state': gym.spaces.Box(low=np.float32("inf"), high=np.float32("-inf"), shape=(self.env_info['obs_shape'],),dtype=np.float32),
-            'global_state': gym.spaces.Box(low=np.float32("inf"), high=np.float32("-inf"), shape=(self.env_info['obs_shape'],),dtype=np.float32)}
-        )
-        self._action_space = self._env.action_space
-        self._reward_space = gym.spaces.Box(
-            low=np.float32("-inf"), high=np.float32("inf"), shape=(1,), dtype=np.float32
+        self._num_agents = self.env_info['n_agents']
+        self._agents = [i for i in range(self._num_agents)]
+        self._observation_space = [gym.spaces.Box(
+            low=float("-inf"),
+            high=float("inf"),
+            shape=self._env.observation_space[self._agents[0]].shape,
+            dtype=np.float32
+        ) for i in range(self._num_agents)]
+        self._action_space = gym.spaces.Dict({agent: self._env.action_space[agent] for agent in self._agents})
+        single_agent_obs_space = self._env.action_space[self._agents[0]]
+        if isinstance(single_agent_obs_space, gym.spaces.Box):
+            self._action_dim = single_agent_obs_space.shape
+        elif isinstance(single_agent_obs_space, gym.spaces.Discrete):
+            self._action_dim = (single_agent_obs_space.n, )
+        else:
+            raise Exception('Only support `Box` or `Discrte` obs space for single agent.')
+        self._reward_space = gym.spaces.Dict(
+            {
+                agent: gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
+                for agent in self._agents
+            }
         )
 
         return obs
@@ -65,8 +78,8 @@ class MujocoEnv(BaseEnv):
         return random_action
 
     @property
-    def agent_num(self) -> Any:
-        return self._agent_num
+    def num_agents(self) -> Any:
+        return self._num_agents
 
     @property
     def observation_space(self) -> gym.spaces.Space:
