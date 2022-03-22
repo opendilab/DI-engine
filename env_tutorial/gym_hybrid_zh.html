@@ -128,7 +128,8 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id13">参考资料</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">基准算法性能</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">参考资料</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="gym_soccer_zh.html">Gym-Soccer (HFO)</a></li>
@@ -389,7 +390,40 @@
 </div>
 </div>
 <div class="section" id="id13">
-<h2>参考资料<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<h2>基准算法性能<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Moving-v0（10M env step后停止，平均奖励大于等于1.8视为较好的Agent）</p>
+<ul class="simple">
+<li><p>Moving-v0 + PDQN</p></li>
+</ul>
+<img alt="../_images/gym_hybrid_Moving-v0_pdqn.png" class="align-center" src="../_images/gym_hybrid_Moving-v0_pdqn.png" />
+<ul class="simple">
+<li><p>Moving-v0 + MPDQN</p></li>
+</ul>
+<img alt="../_images/gym_hybrid_Moving-v0_mpdqn.png" class="align-center" src="../_images/gym_hybrid_Moving-v0_mpdqn.png" />
+<ul class="simple">
+<li><p>Moving-v0 + PADDPG</p></li>
+</ul>
+<img alt="../_images/gym_hybrid_Moving-v0_paddpg.png" class="align-center" src="../_images/gym_hybrid_Moving-v0_paddpg.png" />
+</li>
+<li><p>Sliding-v0（10M env step后停止，平均奖励大于等于1.8视为较好的Agent）</p>
+<ul class="simple">
+<li><p>Sliding-v0 + PDQN</p></li>
+</ul>
+<img alt="../_images/gym_hybrid_Sliding-v0_pdqn.png" class="align-center" src="../_images/gym_hybrid_Sliding-v0_pdqn.png" />
+<ul class="simple">
+<li><p>Sliding-v0 + MPDQN</p></li>
+</ul>
+<img alt="../_images/gym_hybrid_Sliding-v0_mpdqn.png" class="align-center" src="../_images/gym_hybrid_Sliding-v0_mpdqn.png" />
+<ul class="simple">
+<li><p>Sliding-v0 + PADDPG</p></li>
+</ul>
+<img alt="../_images/gym_hybrid_Sliding-v0_paddpg.png" class="align-center" src="../_images/gym_hybrid_Sliding-v0_paddpg.png" />
+</li>
+</ul>
+</div>
+<div class="section" id="id14">
+<h2>参考资料<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Gym-hybrid <a class="reference external" href="https://github.com/thomashirtz/gym-hybrid">源码</a></p></li>
 </ul>

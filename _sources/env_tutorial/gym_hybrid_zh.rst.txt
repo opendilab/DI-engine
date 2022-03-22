@@ -195,6 +195,47 @@ DI-zoo 可运行代码示例
     if __name__ == "__main__":
         serial_pipeline([main_config, create_config], seed=0)
 
+
+基准算法性能
+============
+
+-  Moving-v0（10M env step后停止，平均奖励大于等于1.8视为较好的Agent）
+
+   - Moving-v0 + PDQN
+
+   .. image:: images/gym_hybrid_Moving-v0_pdqn.png
+     :align: center
+
+   - Moving-v0 + MPDQN
+
+   .. image:: images/gym_hybrid_Moving-v0_mpdqn.png
+     :align: center
+
+   - Moving-v0 + PADDPG
+
+   .. image:: images/gym_hybrid_Moving-v0_paddpg.png
+     :align: center
+
+
+-  Sliding-v0（10M env step后停止，平均奖励大于等于1.8视为较好的Agent）
+
+   - Sliding-v0 + PDQN
+
+   .. image:: images/gym_hybrid_Sliding-v0_pdqn.png
+     :align: center
+
+   - Sliding-v0 + MPDQN
+
+   .. image:: images/gym_hybrid_Sliding-v0_mpdqn.png
+     :align: center
+
+   - Sliding-v0 + PADDPG
+
+   .. image:: images/gym_hybrid_Sliding-v0_paddpg.png
+     :align: center
+
+
+
 参考资料
 =====================
 - Gym-hybrid `源码 <https://github.com/thomashirtz/gym-hybrid>`__
