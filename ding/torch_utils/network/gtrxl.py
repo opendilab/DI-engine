@@ -480,6 +480,7 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
         )
         self.att_mask = {}  # create an attention mask for each different seq_len
+        self.pos_embedding_dict = {}  # create a pos embedding for each different seq_len
 
     @profile
     def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
@@ -560,8 +561,13 @@ class GTrXL(nn.Module):
             )  # cur_seq x full_seq x 1
             self.att_mask[cur_seq] = attn_mask
 
-        pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
-        pos_embedding = self.dropout(self.pos_embedding(pos_ips.to(x.device)))  # full_seq x 1 x embedding_dim
+        if cur_seq in self.pos_embedding_dict.keys():
+            pos_embedding = self.pos_embedding_dict[cur_seq]
+        else:
+            pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
+            pos_embedding = self.pos_embedding(pos_ips.to(x.device))
+            self.pos_embedding_dict[cur_seq] = pos_embedding
+        pos_embedding = self.dropout(pos_embedding)  # full_seq x 1 x embedding_dim
 
         hidden_state = [x]
         out = x
