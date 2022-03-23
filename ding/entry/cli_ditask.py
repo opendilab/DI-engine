@@ -57,6 +57,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     help="Network topology, default: alone."
 )
 @click.option("--platform-spec", type=str, help="Platform specific configure.")
+@click.option("--platform", type=str, help="Platform type: slurm, k8s.")
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
 def cli_ditask(*args, **kwargs):
     return _cli_ditask(*args, **kwargs)
@@ -73,22 +74,25 @@ def _cli_ditask(
     labels: str,
     node_ids: str,
     topology: str,
+    platform: str = None,
     platform_spec: str = None
 ):
     # Parse entry point
     all_args = locals()
-    if platform_spec:
-        try:
-            platform_spec = json.loads(platform_spec)
-        except:
-            click.echo("platform_spec is not a valid json!")
+    if platform:
+        if platform_spec:
+            try:
+                platform_spec = json.loads(platform_spec)
+                all_args.pop("platform_spec")
+            except:
+                click.echo("platform_spec is not a valid json!")
+                exit(1)
+        if platform not in PLATFORM_PARSERS:
+            click.echo("platform type is invalid! type: {}".format(platform))
             exit(1)
-        if "type" not in platform_spec or platform_spec["type"] not in PLATFORM_PARSERS:
-            click.echo("platform type is invalid!")
-            exit(1)
-        all_args.pop("platform_spec")
+        all_args.pop("platform")
         try:
-            parsed_args = PLATFORM_PARSERS[platform_spec["type"]](platform_spec, **all_args)
+            parsed_args = PLATFORM_PARSERS[platform](platform_spec, **all_args)
         except Exception as e:
             click.echo("error when parse platform spec configure: {}".format(e))
         return _cli_ditask(**parsed_args)
