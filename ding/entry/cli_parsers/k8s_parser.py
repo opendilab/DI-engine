@@ -61,8 +61,8 @@ class K8SParser():
     def _get_attach_to(self, procid: int, attach_to: Optional[str] = None) -> str:
         """
         Overview:
-            Parse from pattern of attach_to.
-            If attach_to is specified in the platform_spec, it is formatted as a real address based on the specified address.
+            Parse from pattern of attach_to. If attach_to is specified in the platform_spec,
+            it is formatted as a real address based on the specified address.
             If not, the real addresses will be generated based on the globally specified typology.
         Arguments:
             - procid (:obj:`int`): Proc order.
