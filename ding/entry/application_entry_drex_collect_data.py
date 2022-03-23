@@ -174,11 +174,9 @@ def create_data_drex(bc_policy, cfg):
         policy_kwargs = {'eps': eps}
         # Let's collect some sub-optimal demonstrations
         exp_data = collector.collect(n_episode=cfg.reward_model.num_trajs_per_bin, policy_kwargs=policy_kwargs)
-        episodes = []
-        returns = []
-        for data in exp_data:
-            episodes.append(default_collate(data)['obs'].numpy())
-            returns.append(torch.sum(default_collate(data)['reward']).item())
+        episodes = [default_collate(data)['obs'].numpy() for data in exp_data]
+        returns = [torch.sum(default_collate(data)['reward']).item() for data in exp_data]
+
         created_data.append(episodes)
         created_data_returns.append(returns)
         print('noise: {}, returns: {}, avg: {}'.format(eps, returns, cal_mean(returns)))
@@ -227,24 +225,25 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
         cfg, create_cfg = deepcopy(args.cfg)
     cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
     pre_expert_data = drex_generating_data(cfg)
-    rewards = []
-    for k in pre_expert_data:
-        exp_data = pre_expert_data[k]
-        rewards.append(torch.sum(default_collate(exp_data)['reward']).item())
-    print('demonstrations rewards: ' + str(rewards))
+    returns = [torch.sum(default_collate(pre_expert_data[i])['reward']).item() for i in range(len(pre_expert_data))]
+    print('demonstrations rewards: ' + str(returns))
+
     if 'bc_path' in cfg.reward_model and os.path.exists(cfg.reward_model.bc_path):
         bc_policy = load_bc(cfg.reward_model.bc_path, cfg)
     else:
         bc_policy = train_bc(cfg=cfg, pre_expert_data=pre_expert_data, max_iterations=50000)
     created_data, created_data_returns = create_data_drex(bc_policy, cfg)
     offline_data_path = cfg.reward_model.offline_data_path
+
     offline_data_save_type(
-        created_data, offline_data_path + '/created_data.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
+        created_data,
+        offline_data_path + '/episodes_data.pkl',
+        data_type=cfg.policy.collect.get('data_type', 'naive')
     )
 
     offline_data_save_type(
         created_data_returns,
-        offline_data_path + '/created_data_returns.pkl',
+        offline_data_path + '/learning_returns.pkl',
         data_type=cfg.policy.collect.get('data_type', 'naive')
     )
 
