@@ -16,15 +16,15 @@ from ding.utils.data import default_collate
 
 
 def collect_episodic_demo_data_for_trex(
-        input_cfg: Union[str, dict],
-        seed: int,
-        collect_count: int,
-        rank: int,
-        save_cfg_path: str,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
-        state_dict_path: Optional[str] = None,
+    input_cfg: Union[str, dict],
+    seed: int,
+    collect_count: int,
+    rank: int,
+    save_cfg_path: str,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
+    state_dict_path: Optional[str] = None,
 ):
     r"""
     Overview:

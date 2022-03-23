@@ -20,7 +20,8 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-        max_iterations: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -97,7 +98,7 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl(
         new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=0)
         collector.reset_policy(policy.collect_mode)
-    for _ in range(max_iterations):
+    while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -130,6 +131,8 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl(
             learner.train(train_data, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

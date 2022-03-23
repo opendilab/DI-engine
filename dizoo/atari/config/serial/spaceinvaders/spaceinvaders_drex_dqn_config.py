@@ -1,7 +1,8 @@
+from copy import deepcopy
+from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 space_invaders_drex_dqn_config = dict(
-    exp_name='spaceinvaders_drex_dqn',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -19,10 +20,11 @@ space_invaders_drex_dqn_config = dict(
         max_snippet_length=100,
         learning_rate=1e-5,
         update_per_collect=1,
+        # path to expert models that generate demonstration data
         expert_model_path='abs model path',
         reward_model_path='abs data path + ./spaceinvaders.params',
         offline_data_path='abs data path',
-        # path to pretrained bc model. If ommitted, bc will be trained instead.
+        # path to pretrained bc model. If omitted, bc will be trained instead.
         bc_path='abs path to xxx.pth.tar',
         # list of noises
         eps_list=[0, 0.5, 1],

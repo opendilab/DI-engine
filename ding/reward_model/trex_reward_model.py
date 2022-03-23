@@ -22,6 +22,7 @@ from ding.utils.data import offline_data_save_type
 from ding.utils import build_logger
 from dizoo.atari.envs.atari_wrappers import wrap_deepmind
 from dizoo.mujoco.envs.mujoco_wrappers import wrap_mujoco
+from ding.utils.data import default_collate
 
 from .base_reward_model import BaseRewardModel
 from .rnd_reward_model import collect_states
@@ -383,13 +384,11 @@ class TrexRewardModel(BaseRewardModel):
                     num_correct += 1.
         return num_correct / len(training_inputs)
 
-
     def pred_data(self, data):
         obs = [default_collate(data[i])['obs'] for i in range(len(data))]
         res = [torch.sum(default_collate(data[i])['reward']).item() for i in range(len(data))]
         pred_returns = [self.predict_traj_return(self.reward_model, obs[i]) for i in range(len(obs))]
         return {'real': res, 'pred': pred_returns}
-
 
     def estimate(self, data: list) -> None:
         """
@@ -428,6 +427,7 @@ class TrexRewardModel(BaseRewardModel):
         """
         self.training_obs.clear()
         self.training_labels.clear()
+
 
 """
     def create_training_data(self):

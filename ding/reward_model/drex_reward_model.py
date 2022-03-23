@@ -7,7 +7,6 @@ import torch
 import torch.nn as nn
 
 from ding.utils import REWARD_MODEL_REGISTRY
-from ding.utils.data import default_collate
 
 from .trex_reward_model import TrexRewardModel
 

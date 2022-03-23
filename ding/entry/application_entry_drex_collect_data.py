@@ -236,9 +236,7 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
     offline_data_path = cfg.reward_model.offline_data_path
 
     offline_data_save_type(
-        created_data,
-        offline_data_path + '/episodes_data.pkl',
-        data_type=cfg.policy.collect.get('data_type', 'naive')
+        created_data, offline_data_path + '/episodes_data.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
 
     offline_data_save_type(
