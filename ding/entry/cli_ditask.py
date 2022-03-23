@@ -63,6 +63,30 @@ def cli_ditask(*args, **kwargs):
     return _cli_ditask(*args, **kwargs)
 
 
+def _parse_platform_args(platform: str, platform_spec: str, all_args: dict):
+    if platform_spec:
+        try:
+            if os.path.splitext(platform_spec) == "json":
+                with open(platform_spec) as f:
+                    platform_spec = json.load(f)
+            else:
+                platform_spec = json.loads(platform_spec)
+            all_args.pop("platform_spec")
+        except:
+            click.echo("platform_spec is not a valid json!")
+            exit(1)
+    if platform not in PLATFORM_PARSERS:
+        click.echo("platform type is invalid! type: {}".format(platform))
+        exit(1)
+    all_args.pop("platform")
+    try:
+        parsed_args = PLATFORM_PARSERS[platform](platform_spec, **all_args)
+    except Exception as e:
+        click.echo("error when parse platform spec configure: {}".format(e))
+
+    return parsed_args
+
+
 def _cli_ditask(
     package: str,
     main: str,
@@ -80,21 +104,7 @@ def _cli_ditask(
     # Parse entry point
     all_args = locals()
     if platform:
-        if platform_spec:
-            try:
-                platform_spec = json.loads(platform_spec)
-                all_args.pop("platform_spec")
-            except:
-                click.echo("platform_spec is not a valid json!")
-                exit(1)
-        if platform not in PLATFORM_PARSERS:
-            click.echo("platform type is invalid! type: {}".format(platform))
-            exit(1)
-        all_args.pop("platform")
-        try:
-            parsed_args = PLATFORM_PARSERS[platform](platform_spec, **all_args)
-        except Exception as e:
-            click.echo("error when parse platform spec configure: {}".format(e))
+        parsed_args = _parse_platform_args(platform, platform_spec, all_args)
         return _cli_ditask(**parsed_args)
 
     if not package:
