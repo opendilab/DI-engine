@@ -4,6 +4,7 @@
 
 ---
 
+[![Twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fopendilab)](https://twitter.com/opendilab)
 [![PyPI](https://img.shields.io/pypi/v/DI-engine)](https://pypi.org/project/DI-engine/)
 ![Conda](https://anaconda.org/opendilab/di-engine/badges/version.svg)
 ![Conda update](https://anaconda.org/opendilab/di-engine/badges/latest_release_date.svg)

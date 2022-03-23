@@ -2,6 +2,7 @@ import atexit
 import os
 import random
 import time
+import traceback
 from mpire.pool import WorkerPool
 import pynng
 import pickle
@@ -22,6 +23,7 @@ random = random.Random()
 class Parallel(metaclass=SingletonMetaclass):
 
     def __init__(self) -> None:
+        # Init will only be called once in a process
         self._listener = None
         self._sock: Socket = None
         self._bind_addr = None
@@ -31,17 +33,22 @@ class Parallel(metaclass=SingletonMetaclass):
         self.node_id = None
         self.labels = set()
         self._event_loop = EventLoop("parallel_{}".format(id(self)))
+        self._retries = 0  # Retries in auto recovery
 
     def run(
             self,
             node_id: int,
             listen_to: str,
             attach_to: Optional[List[str]] = None,
-            labels: Optional[Set[str]] = None
+            labels: Optional[Set[str]] = None,
+            auto_recover: bool = False,
+            max_retries: int = float("inf")
     ) -> None:
         self.node_id = node_id
         self.attach_to = attach_to = attach_to or []
         self.labels = labels or set()
+        self.auto_recover = auto_recover
+        self.max_retries = max_retries
         self._listener = Thread(
             target=self.listen,
             kwargs={
@@ -62,7 +69,9 @@ class Parallel(metaclass=SingletonMetaclass):
             ports: Optional[Union[List[int], int]] = None,
             topology: str = "mesh",
             labels: Optional[Set[str]] = None,
-            node_ids: Optional[Union[List[int], int]] = None
+            node_ids: Optional[Union[List[int], int]] = None,
+            auto_recover: bool = False,
+            max_retries: int = float("inf")
     ) -> Callable:
         """
         Overview:
@@ -79,6 +88,8 @@ class Parallel(metaclass=SingletonMetaclass):
                 `alone`: do not connect to any node, except the node attached to;
             - labels (:obj:`Optional[Set[str]]`): Labels.
             - node_ids (:obj:`Optional[List[int]]`): Candidate node ids.
+            - auto_recover (:obj:`bool`): Auto recover from uncaught exceptions from main.
+            - max_retries (:obj:`int`): Max retries for auto recover.
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
@@ -125,7 +136,9 @@ now there are {} workers and {} nodes"\
                     "node_id": candidate_node_ids[i],
                     "listen_to": nodes[i],
                     "attach_to": topology_network(i),
-                    "labels": labels
+                    "labels": labels,
+                    "auto_recover": auto_recover,
+                    "max_retries": max_retries
                 }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
                 params_group.append(params)
@@ -156,7 +169,38 @@ now there are {} workers and {} nodes"\
             router.is_active = True
             router.run(*runner_args, **runner_kwargs)
             time.sleep(0.3)  # Waiting for network pairing
-            main_process(*args, **kwargs)
+            router.supervised_runner(main_process, *args, **kwargs)
+
+    def supervised_runner(self, main: Callable, *args, **kwargs) -> None:
+        """
+        Overview:
+            Run in supervised mode.
+        Arguments:
+            - main (:obj:`Callable`): Main function.
+        """
+        if self.auto_recover:
+            while True:
+                try:
+                    main(*args, **kwargs)
+                    break
+                except Exception as e:
+                    if self._retries < self.max_retries:
+                        logging.warning(
+                            "Auto recover from exception: {}, node: {}, retries: {}".format(
+                                e, self.node_id, self._retries
+                            )
+                        )
+                        logging.warning(traceback.format_exc())
+                        self._retries += 1
+                    else:
+                        logging.warning(
+                            "Exceed the max retries, node: {}, retries: {}, max_retries: {}".format(
+                                self.node_id, self._retries, self.max_retries
+                            )
+                        )
+                        raise e
+        else:
+            main(*args, **kwargs)
 
     @staticmethod
     def get_node_addrs(

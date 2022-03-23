@@ -1,17 +1,21 @@
 from easydict import EasyDict
-from ding.entry.serial_entry import serial_pipeline
+
 ant_sac_default_config = dict(
     exp_name='multi_mujoco_ant_2x4',
     env=dict(
+        manager=dict(
+            shared_memory=True,
+        ),
         scenario='Ant-v2',
         agent_conf="2x4d",
         agent_obsk=2,
         add_agent_id=False,
         episode_limit=1000,
-        collector_env_num=1,
+        collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=6000,
+
     ),
     policy=dict(
         cuda=True,
@@ -58,7 +62,7 @@ ant_sac_default_create_config = dict(
         type='mujoco_multi',
         import_names=['dizoo.multiagent_mujoco.envs.multi_mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
@@ -69,4 +73,6 @@ ant_sac_default_create_config = EasyDict(ant_sac_default_create_config)
 create_config = ant_sac_default_create_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c ant_masac_config.py -s 0`
+    from ding.entry.serial_entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)
