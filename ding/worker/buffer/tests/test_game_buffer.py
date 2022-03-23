@@ -6,6 +6,8 @@ from ding.worker.buffer.game_buffer import GameBuffer
 from ding.worker.buffer.buffer import BufferedData
 from torch.utils.data import DataLoader
 import numpy as np
+from easydict import EasyDict
+
 
 class RateLimit:
     r"""
@@ -50,60 +52,114 @@ def add_10() -> Callable:
     return _subview
 
 
+config = EasyDict(dict(
+    batch_size=10,
+    transition_num=20,
+    priority_prob_alpha=0.5,
+    total_transitions=10000,
+))
+
+
 @pytest.mark.unittest
 def test_naive_push_sample():
-    from easydict import EasyDict
-
-    config = EasyDict(dict(
-        batch_size=10,
-        transition_num=20,
-        priority_prob_alpha=0.5,
-        total_transitions=10000,
-    ))
     buffer = GameBuffer(config)
-
     # fake data
-    data = [[2, 1, 0.5] for i in range(10)]  # (s,a,r)
+    data = [[i, i, i] for i in range(10)]  # (s,a,r)
     meta = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
 
     # push
     for i in range(20):
         buffer.push(data, meta)
     assert buffer.count() == 20
-    print(buffer.sample_game(10))
 
-    # push
-    for i in range(5):
-        buffer.push(data, meta)
-    assert buffer.count() == 25
+    # push games
+    buffer.push_games([data, data], [meta, meta])
+    assert buffer.count() == 22
 
     # Clear
     buffer.clear()
     assert buffer.count() == 0
 
+    # sample
+    for i in range(5):
+        buffer.push(data, meta)
+
+    assert buffer.sample(indices=[0, 1, 2, 3, 4]) == buffer.sample(5)
+
 
 @pytest.mark.unittest
-def test_prepare_batch_context():
-    from easydict import EasyDict
-
-    config = EasyDict(dict(
-        batch_size=10,
-        transition_num=20,
-        priority_prob_alpha=0.5,
-        total_transitions=10000,
-    ))
+def test_update():
     buffer = GameBuffer(config)
-
     # fake data
-    data = [[2, 1, 0.5] for i in range(10)]  # (s,a,r)
+    data = [[i, i, i] for i in range(10)]  # (s,a,r)
     meta = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
 
     # push
     for i in range(20):
         buffer.push(data, meta)
+    assert buffer.count() == 20
+
+    # update
+    meta_new = {'priorities': 0.999}
+    buffer.update(0, data, meta_new)
+    print(buffer.sample(indices=[0]))
+    assert buffer.priorities[0] == 0.999
+
+    assert buffer.update(200, data, meta_new) == False
+
+
+@pytest.mark.unittest
+def test_rate_limit_push_sample():
+    buffer = GameBuffer(config).use(RateLimit(max_rate=5))
+    # fake data
+    data = [[i, i, i] for i in range(10)]  # (s,a,r)
+    meta = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
+
+    # push
+    for i in range(20):
+        buffer.push(data, meta)
+    # print(buffer.sample(indices=[0,1,2,3,4]))
+    # print(buffer.sample(5))
+
+    assert buffer.count() == 20
+
+
+@pytest.mark.unittest
+def test_prepare_batch_context():
+    buffer = GameBuffer(config)
+
+    # fake data
+    data_1 = [[i, i, i] for i in range(10)]  # (s,a,r)
+    meta_1 = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
+
+    data_2 = [[i, i, i] for i in range(10, 20)]  # (s,a,r)
+    meta_2 = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
+
+    # push
+    buffer.push(data_1, meta_1)
+    buffer.push(data_2, meta_2)
 
     context = buffer.prepare_batch_context(batch_size=2, beta=0.2)
     # context = (game_lst, game_pos_lst, indices_lst, weights_lst, make_time)
-    print(context)
+    # print(context)
 
 
+@pytest.mark.unittest
+def test_buffer_view():
+    buf1 = GameBuffer(config)
+
+    # fake data
+    data = [[i, i, i] for i in range(10)]  # (s,a,r)
+    meta = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
+
+    # push
+    buf1.push(data, meta)
+    assert buf1.count() == 1
+
+    buf2 = buf1.view()
+
+    for i in range(10):
+        buf2.push(data, meta)
+    assert len(buf1.middleware) == 0
+    assert buf1.count() == 1
+    assert buf2.count() == 10

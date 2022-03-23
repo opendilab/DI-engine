@@ -2,43 +2,9 @@ from typing import Any, List, Optional, Union, Callable
 from dataclasses import dataclass
 from functools import wraps
 import time
-
 import numpy as np
 from typing import Any, Iterable, List, Optional, Tuple, Union
-
 from ding.worker.buffer import Buffer, apply_middleware, BufferedData
-
-
-def apply_middleware(func_name: str):
-
-    def wrap_func(base_func: Callable):
-
-        @wraps(base_func)
-        def handler(buffer, *args, **kwargs):
-            """
-            Overview:
-                The real processing starts here, we apply the middleware one by one,
-                each middleware will receive next `chained` function, which is an executor of next
-                middleware. You can change the input arguments to the next `chained` middleware, and you
-                also can get the return value from the next middleware, so you have the
-                maximum freedom to choose at what stage to implement your method.
-            """
-
-            def wrap_handler(middleware, *args, **kwargs):
-                if len(middleware) == 0:
-                    return base_func(buffer, *args, **kwargs)
-
-                def chain(*args, **kwargs):
-                    return wrap_handler(middleware[1:], *args, **kwargs)
-
-                func = middleware[0]
-                return func(func_name, chain, *args, **kwargs)
-
-            return wrap_handler(buffer.middleware, *args, **kwargs)
-
-        return handler
-
-    return wrap_func
 
 
 @dataclass
@@ -74,8 +40,9 @@ class GameBuffer(Buffer):
     def push_games(self, data: Any, meta):
         # in EfficientZero replay_buffer.py
         # def save_pools(self, pools, gap_step):
-        # save a list of game histories
-        for (data_game, meta_game) in (data, meta):
+        """save a list of game histories
+        """
+        for (data_game, meta_game) in zip(data, meta):
             # Only append end game
             # if end_tag:
             # self.push(game, True, gap_step, priorities)
@@ -85,33 +52,29 @@ class GameBuffer(Buffer):
         """
         Overview:
             Push data and it's meta information in buffer.
+            Save a game history block
         Arguments:
             - data (:obj:`Any`): The data which will be pushed into buffer.
+                                 a game history block
             - meta (:obj:`dict`): Meta information, e.g. priority, count, staleness.
+                - end_tag: bool
+                    True -> the game is finished. (always True)
+                - gap_steps: int
+                    if the game is not finished, we only save the transitions that can be computed
+                - priorities: list
+                    the priorities corresponding to the transitions in the game history
         Returns:
             - buffered_data (:obj:`BufferedData`): The pushed data.
         """
         # in EfficientZero replay_buffer.py
         # def save_game(self, game, end_tag, gap_steps, priorities=None):
-        #     """Save a game history block
-        #     Parameters
-        #     ----------
-        #     game: Any
-        #         a game history block
-        #     end_tag: bool
-        #         True -> the game is finished. (always True)
-        #     gap_steps: int
-        #         if the game is not finished, we only save the transitions that can be computed
-        #     priorities: list
-        #         the priorities corresponding to the transitions in the game history
-        #     """
 
         if self.get_total_len() >= self.config.total_transitions:
             return
 
         if meta['end_tag']:
             self._eps_collected += 1
-            valid_len = len( data)
+            valid_len = len(data)
         else:
             valid_len = len(data) - meta['gap_steps']
 
@@ -155,24 +118,33 @@ class GameBuffer(Buffer):
             - sample_data (:obj:`Union[List[BufferedData], List[List[BufferedData]]]`):
                 A list of data with length ``size``, may be nested if groupby or rolling_window is set.
         """
-        pass
-        # raise NotImplementedError
+        if size:
+            sampled_indices = np.random.randint(0, self.count(), size)
+            return [self.buffer[game_id] for game_id in sampled_indices]
+        elif indices:
+            return [self.buffer[game_id] for game_id in indices]
 
-    def sample_game(self, idx):
+    def get_game(self, idx):
         # def get_game() in EfficientZero replay_buffer.py
-
-        # return a game
+        # idx: transition index
+        # return a game including this transition
         game_id, game_pos = self.game_look_up[idx]
         game_id -= self.base_idx
         game = self.buffer[game_id]
         return game
+
+    def sample_one_transition(self, idx):
+        game_id, game_pos = self.game_look_up[idx]
+        game_id -= self.base_idx
+        transition = self.buffer[game_id][game_pos]
+        return transition
 
     def prepare_batch_context(self, batch_size, beta):
         """Prepare a batch context that contains:
         game_lst:               a list of game histories
         game_pos_lst:           transition index in game (relative index)
         indices_lst:            transition index in replay buffer
-        weights_lst:            the weight concering the priority
+        weights_lst:            the weight concerning the priority
         make_time:              the time the batch is made (for correctly updating replay buffer when data is deleted)
         Parameters
         ----------
@@ -226,9 +198,18 @@ class GameBuffer(Buffer):
         # def update_priorities(self, batch_indices, batch_priorities, make_time):
 
         # update the priorities for data still in replay buffer
-        if meta['make_time'] > self.clear_time:
-            idx, prio = index, meta['batch_priorities']
-            self.priorities = prio
+        success = False
+        # if meta['make_time'] > self.clear_time:
+        if index < self.get_total_len():
+            idx, prio = index, meta['priorities']
+            self.priorities[idx] = prio
+
+            game_id, game_pos = self.game_look_up[idx]
+            game_id -= self.base_idx
+            self.buffer[game_id][game_pos] = data
+            success = True
+
+        return success
 
     def batch_update(
             self,
@@ -248,7 +229,7 @@ class GameBuffer(Buffer):
         # def update_priorities(self, batch_indices, batch_priorities, make_time):
         # update the priorities for data still in replay buffer
         for i in range(len(indices)):
-            if metas[i]['make_time']> self.clear_time:
+            if metas[i]['make_time'] > self.clear_time:
                 idx, prio = indices[i], metas[i]['batch_priorities']
                 self.priorities[idx] = prio
 
@@ -287,9 +268,12 @@ class GameBuffer(Buffer):
         pass
 
     def count(self) -> int:
-        # def size(self):
-            # number of games
-            return len(self.buffer)
+        # number of games
+        return len(self.buffer)
+
+    def size(self):
+        # number of games
+        return len(self.buffer)
 
     def clear(self) -> None:
         del self.buffer[:]
@@ -324,3 +308,7 @@ class GameBuffer(Buffer):
         # number of transitions
         return len(self.priorities)
 
+    def __copy__(self) -> "GameBuffer":
+        buffer = type(self)(config=self.config)
+        buffer.storage = self.buffer
+        return buffer
