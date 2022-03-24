@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Middleware code specification &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Advantages" href="../architecture/loader/advantage.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Middleware code specification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#file-structure-and-naming">File structure and naming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#class-function-parameter">Class, Function, Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#construction-method">Construction method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#runtime-method">Runtime method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#event-naming-convention">Event naming convention</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Middleware code specification</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/specification/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="middleware-code-specification">
+<h1>Middleware code specification<a class="headerlink" href="#middleware-code-specification" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="file-structure-and-naming">
+<h2>File structure and naming<a class="headerlink" href="#file-structure-and-naming" title="Permalink to this headline">¶</a></h2>
+<p>The middleware in DI-engine can be divided into two categories, one we call <code class="docutils literal notranslate"><span class="pre">function</span></code>, which is an atomic operation method,
+focusing on doing one thing with a few lines of code, such as <code class="docutils literal notranslate"><span class="pre">train</span></code> middleware Execute the training of the model;
+The other, which we call <code class="docutils literal notranslate"><span class="pre">module</span></code>, may combine multiple <code class="docutils literal notranslate"><span class="pre">functions</span></code> to perform more complex logic.
+This classification refers to <a class="reference external" href="https://pytorch.org/docs/stable/nn.functional.html">pytorch’s nn and nn.functional</a>.</p>
+<p>Essentially they all belong to middleware, and the usage is exactly the same.</p>
+<p>In the directory structure, <code class="docutils literal notranslate"><span class="pre">module</span></code> is placed directly in the <code class="docutils literal notranslate"><span class="pre">middleware</span></code> directory, named after a noun;
+<code class="docutils literal notranslate"><span class="pre">function</span></code> is placed in the <code class="docutils literal notranslate"><span class="pre">middleware/functional</span></code> directory, named after a verb or noun.</p>
+<p>Multiple middleware of the same type can be written in one file.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ding</span><span class="o">/</span>
+  <span class="n">framework</span><span class="o">/</span>
+    <span class="n">middleware</span><span class="o">/</span>
+      <span class="n">functional</span><span class="o">/</span><span class="n">collect</span><span class="o">.</span><span class="n">py</span> <span class="c1"># Function</span>
+      <span class="n">collector</span><span class="o">.</span><span class="n">py</span> <span class="c1"># Module</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="class-function-parameter">
+<h2>Class, Function, Parameter<a class="headerlink" href="#class-function-parameter" title="Permalink to this headline">¶</a></h2>
+<p>When writing <code class="docutils literal notranslate"><span class="pre">function</span></code>, functional-style code is recommended due to the brevity of the code; when writing <code class="docutils literal notranslate"><span class="pre">module</span></code>, classes are recommended. E.g:</p>
+<p>Passing explicitly named arguments is recommended for all functions, passing dict as arguments is deprecated.</p>
+</div>
+<div class="section" id="construction-method">
+<h2>Construction method<a class="headerlink" href="#construction-method" title="Permalink to this headline">¶</a></h2>
+<p>Most middleware has two layers of methods, such as the outer function of <code class="docutils literal notranslate"><span class="pre">function</span></code> and the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> function of <code class="docutils literal notranslate"><span class="pre">module</span></code>,
+which are used to pass parameters and objects necessary for the middleware to run.</p>
+<p>The return function of <code class="docutils literal notranslate"><span class="pre">function</span></code> and the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method of <code class="docutils literal notranslate"><span class="pre">module</span></code> are the processes that are called cyclically at runtime,
+and only support <code class="docutils literal notranslate"><span class="pre">ctx</span></code> as one parameter.</p>
+<p>It is recommended to instantiate the object externally to pass to the middleware, rather than inside the middleware, to ensure stateless and procedural middleware:</p>
+</div>
+<div class="section" id="runtime-method">
+<h2>Runtime method<a class="headerlink" href="#runtime-method" title="Permalink to this headline">¶</a></h2>
+<p>When writing the return function of <code class="docutils literal notranslate"><span class="pre">function</span></code> or the <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method of <code class="docutils literal notranslate"><span class="pre">module</span></code>, there are a few things to keep in mind:</p>
+<ol class="arabic simple">
+<li><p>If there is an infinite loop in the method, make sure to check the <code class="docutils literal notranslate"><span class="pre">task.finish</span></code> condition to exit:</p></li>
+</ol>
+<ol class="arabic simple" start="2">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">task</span></code> supports two modes of sequential execution and asynchronous execution. The data passed by <code class="docutils literal notranslate"><span class="pre">ctx</span></code> may not be generated at the same time in the two modes.</dt><dd><p>It is necessary to pay attention to judgment in the middleware, and it is best to support both Two modes:</p>
+</dd>
+</dl>
+</li>
+</ol>
+<ol class="arabic simple" start="3">
+<li><p>It is not recommended to open multiple processes inside the middleware, so as to avoid unforeseen problems caused by too many instantiated objects in the front,
+or multi-level nesting of processes. If you need to use multi-process parallelism, you can split the logic into multiple middleware. ,
+using the parallel capabilities of DI-engine to execute:</p></li>
+</ol>
+</div>
+<div class="section" id="event-naming-convention">
+<h2>Event naming convention<a class="headerlink" href="#event-naming-convention" title="Permalink to this headline">¶</a></h2>
+<p>When using the event mechanism in DI-engine, we agree that events are named according to the following specifications:</p>
+<ol class="arabic simple">
+<li><p>Events for the purpose of passing data, named with <code class="docutils literal notranslate"><span class="pre">sending</span> <span class="pre">position_data</span> <span class="pre">name[_parameter</span> <span class="pre">name_parameter</span> <span class="pre">value]</span></code>,
+for example: league_job_actor_0 (sent from league to actor, passing job data)</p></li>
+<li><p>Events for remote invocation are named with <code class="docutils literal notranslate"><span class="pre">receive</span> <span class="pre">location_method</span> <span class="pre">name</span></code>, for example: league_get_job (sent by actor to league, get job)</p></li>
+</ol>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../architecture/loader/advantage.html" class="btn btn-neutral float-left" title="Advantages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
