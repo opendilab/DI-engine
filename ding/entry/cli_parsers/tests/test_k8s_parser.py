@@ -5,13 +5,13 @@ from ding.entry.cli_parsers.k8s_parser import k8s_parser
 
 @pytest.fixture
 def set_k8s_env():
-    os.environ["K8S_NODELIST"] = 'SH-0,SH-1,SH-2,SH-3,SH-4,SH-5'  # All the nodes
-    os.environ["K8S_PROCID"] = '3'  # Proc order, start from 0, can not be modified by config
+    os.environ["DI_NODES"] = 'SH-0,SH-1,SH-2,SH-3,SH-4,SH-5'  # All the nodes
+    os.environ["DI_RANK"] = '3'  # Proc order, start from 0, can not be modified by config
 
     yield
 
-    del os.environ["K8S_NODELIST"]
-    del os.environ["K8S_PROCID"]
+    del os.environ["DI_NODES"]
+    del os.environ["DI_RANK"]
 
 
 @pytest.mark.unittest

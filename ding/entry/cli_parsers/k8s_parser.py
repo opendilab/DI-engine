@@ -20,7 +20,7 @@ class K8SParser():
         self.tasks = {}
 
     def parse(self) -> dict:
-        procid = int(os.environ["K8S_PROCID"])
+        procid = int(os.environ["DI_RANK"])
         nodename = self.nodelist[procid]
         task = self._get_task(procid)
         # Validation
@@ -28,13 +28,13 @@ class K8SParser():
         return {**self.kwargs, **task}
 
     def _parse_node_list(self) -> List[str]:
-        return os.environ["K8S_NODELIST"].split(",")
+        return os.environ["DI_NODES"].split(",")
 
     def _get_task(self, procid: int) -> dict:
         """
         Overview:
             Complete node properties, use environment vars in list instead of on current node.
-            For example, if you want to set nodename in this function, please derive it from K8S_NODELIST.
+            For example, if you want to set nodename in this function, please derive it from DI_NODES.
         Arguments:
             - procid (:obj:`int`): Proc order, starting from 0, must be set automatically by dijob.
                 Note that it is different from node_id.
