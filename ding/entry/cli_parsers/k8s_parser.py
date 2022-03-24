@@ -54,6 +54,7 @@ class K8SParser():
             task["node_ids"] = procid
 
         task["attach_to"] = self._get_attach_to(procid, task.get("attach_to"))
+        task["topology"] = self.topology
 
         self.tasks[procid] = task
         return task

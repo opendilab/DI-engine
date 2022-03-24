@@ -71,7 +71,6 @@ def _parse_platform_args(platform: str, platform_spec: str, all_args: dict):
                     platform_spec = json.load(f)
             else:
                 platform_spec = json.loads(platform_spec)
-            all_args.pop("platform_spec")
         except:
             click.echo("platform_spec is not a valid json!")
             exit(1)
@@ -79,10 +78,12 @@ def _parse_platform_args(platform: str, platform_spec: str, all_args: dict):
         click.echo("platform type is invalid! type: {}".format(platform))
         exit(1)
     all_args.pop("platform")
+    all_args.pop("platform_spec")
     try:
         parsed_args = PLATFORM_PARSERS[platform](platform_spec, **all_args)
     except Exception as e:
         click.echo("error when parse platform spec configure: {}".format(e))
+        exit(1)
 
     return parsed_args
 
