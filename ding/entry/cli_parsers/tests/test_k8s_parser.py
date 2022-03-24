@@ -51,6 +51,7 @@ def test_k8s_parser():
     assert all_args["address"] == "SH-3"
     assert all_args["ports"] == 50000
     assert all_args["node_ids"] == 31
+    assert all_args["parallel_workers"] == 1
     assert all_args[
         "attach_to"
     ] == "tcp://SH-0:50515," +\
@@ -61,8 +62,20 @@ def test_k8s_parser():
     all_args = k8s_parser(None, topology="mesh")
     assert all_args["address"] == "SH-3"
     assert all_args["node_ids"] == 3
+    assert all_args["parallel_workers"] == 1
     assert all_args[
         "attach_to"
     ] == "tcp://SH-0:50515," +\
         "tcp://SH-1:50515," +\
         "tcp://SH-2:50515"
+
+    # With multiple parallel workers
+    all_args = k8s_parser(None, topology="mesh", parallel_workers=2)
+    assert all_args["address"] == "SH-3"
+    assert all_args["node_ids"] == 6
+    assert all_args["parallel_workers"] == 2
+    assert all_args[
+        "attach_to"
+    ] == "tcp://SH-0:50515,tcp://SH-0:50516," +\
+        "tcp://SH-1:50515,tcp://SH-1:50516," +\
+        "tcp://SH-2:50515,tcp://SH-2:50516"
