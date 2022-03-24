@@ -15,6 +15,8 @@ from threading import Thread
 from pynng.nng import Bus0, Socket
 from ding.framework.event_loop import EventLoop
 from ding.utils.design_helper import SingletonMetaclass
+from ding.framework.message_queue import *
+from ding.utils.registry_factory import MQ_REGISTRY
 
 # Avoid ipc address conflict, random should always use random seed
 random = random.Random()
