@@ -13,7 +13,7 @@ def enhance_from_trajectory_view(cfg: EasyDict, policy: Policy) -> Callable:
     policy = policy.collect_mode
 
     def _enhance(ctx: "Context"):
-        ctx.data = policy.get_train_sample(ctx.data)
+        ctx.train_data = policy.get_train_sample(ctx.train_data)
 
     return _enhance
 
@@ -22,7 +22,7 @@ def rnd(cfg: EasyDict, reward_policy: Policy) -> Callable:
     reward_policy = reward_policy.eval_mode
 
     def _enhance(ctx: "Context"):
-        ctx.data = reward_policy.forward(ctx.data)
+        ctx.train_data = reward_policy.forward(ctx.train_data)
 
     return _enhance
 

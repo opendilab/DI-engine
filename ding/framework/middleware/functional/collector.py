@@ -1,10 +1,9 @@
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, List
 from easydict import EasyDict
 import torch
 import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
-from ding.data import Buffer
 from ding.framework import task
 
 if TYPE_CHECKING:
@@ -47,18 +46,18 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     return _inference
 
 
-def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, buffer_: Buffer) -> Callable:
+def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: List[List[ttorch.Tensor]]) -> Callable:
 
     def _rollout(ctx):
         timesteps = env.step(ctx.action)
         ctx.env_step += len(timesteps)
-        timesteps = [t.tensor(dtype=torch.float32) for t in timesteps]
+        timesteps = [t.tensor() for t in timesteps]
         # TODO abnormal env step
         for i, timestep in enumerate(timesteps):
             transition = policy.process_transition(ctx.obs[i], ctx.inference_output[i], timestep)
             transition = ttorch.as_tensor(transition)  # TBD
             transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
-            buffer_.push(transition)
+            transitions[timestep.env_id].append(transition)
             if timestep.done:
                 policy.reset([timestep.env_id])
                 ctx.env_episode += 1
@@ -67,24 +66,9 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, buffer_: Buffe
     return _rollout
 
 
-def step_collector(cfg: EasyDict, policy: Policy, env: BaseEnvManager, buffer_: Buffer) -> Callable:
+def episode_collector(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     _inferencer = inferencer(cfg, policy, env)
-    _rolloutor = rolloutor(cfg, policy, env, buffer_)
-
-    def _collect(ctx: "Context"):
-        old = ctx.env_step
-        while True:
-            _inferencer(ctx)
-            _rolloutor(ctx)
-            if ctx.env_step - old > cfg.policy.collect.n_sample * cfg.policy.collect.unroll_len:
-                break
-
-    return _collect
-
-
-def episode_collector(cfg: EasyDict, policy: Policy, env: BaseEnvManager, buffer_: Buffer) -> Callable:
-    _inferencer = inferencer(cfg, policy, env)
-    _rolloutor = rolloutor(cfg, policy, env, buffer_)
+    _rolloutor = rolloutor(cfg, policy, env)
 
     def _collect(ctx: "Context"):
         old = ctx.env_episode

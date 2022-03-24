@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Callable
 from easydict import EasyDict
 import logging
+import torch
 from ding.data import Buffer, Dataset, DataLoader
 from ding.framework import task
 
@@ -10,9 +11,10 @@ if TYPE_CHECKING:
 
 def offpolicy_data_fetcher(cfg: EasyDict, buffer_: Buffer) -> Callable:
 
-    def _fetch(ctx: "Context"):
+    def _push_and_fetch(ctx: "Context"):
+        for t in ctx.trajectories:
+            buffer_.push(t)
         try:
-            # TODO trajectory sample strategy
             buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
             assert buffered_data is not None
         except (ValueError, AssertionError):
@@ -21,24 +23,24 @@ def offpolicy_data_fetcher(cfg: EasyDict, buffer_: Buffer) -> Callable:
                 "You can modify data collect config, e.g. increasing n_sample, n_episode."
             )
             # TODO
-            ctx.data = None
+            ctx.train_data = None
             return
-        ctx.data = [d.data for d in buffered_data]
+        ctx.train_data = [d.data for d in buffered_data]
         yield
         # TODO
         # buffer_.update(ctx.train_output)  # such as priority
 
-    return _fetch
+    return _push_and_fetch
 
 
 # TODO move ppo training for loop to new middleware
 def onpolicy_data_fetcher(cfg: EasyDict, buffer_: Buffer) -> Callable:
 
     def _fetch(ctx: "Context"):
-        buffered_data = buffer_.acquire_all()
-        ctx.data = [d.data for d in buffered_data]
+        ctx.train_data = ctx.trajectories
+        ctx.train_data.traj_flag = torch.zeros(len(ctx.train_data))
+        ctx.train_data.traj_flag[ctx.trajectory_end_idx] = 1
         yield
-        buffer_.update(ctx.train_output)  # such as priority
 
     return _fetch
 
@@ -48,7 +50,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
 
     def _fetch(ctx: "Context"):
         buffered_data = next(dataloader)
-        ctx.data = [d.data for d in buffered_data]
+        ctx.train_data = [d.data for d in buffered_data]
         # TODO apply update in offline setting when necessary
 
     return _fetch
@@ -72,6 +74,6 @@ def sqil_data_fetcher(cfg: EasyDict, agent_buffer: Buffer, expert_buffer: Buffer
             return
         agent_data = [d.data for d in agent_buffered_data]
         expert_data = [d.data for d in expert_buffered_data]
-        ctx.data = agent_data + expert_data
+        ctx.train_data = agent_data + expert_data
 
     return _fetch

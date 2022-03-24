@@ -64,7 +64,6 @@ class DingEnvWrapper(BaseEnv):
             )
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
-        self._action_type = self._cfg.get('action_type', 'scalar')
         return obs
 
     # override
@@ -89,7 +88,7 @@ class DingEnvWrapper(BaseEnv):
         if isinstance(action, int):
             return action
         if isinstance(action, np.ndarray):
-            if action.shape == (1, ) and self._action_type == 'scalar':
+            if action.shape == (1, ) and action.dtype == np.int64:
                 action = action.item()
             return action
         elif isinstance(action, dict):

@@ -9,10 +9,8 @@ import numbers
 import logging
 import enum
 import time
-from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning
-from ding.utils.time_helper import WatchDog
-import treetensor.numpy as tnp
 from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog
+import treetensor.numpy as tnp
 
 
 class EnvState(enum.IntEnum):

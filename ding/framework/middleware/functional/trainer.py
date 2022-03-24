@@ -12,9 +12,9 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
 
     def _train(ctx: "Context"):
 
-        if ctx.data is None:  # no enough data from data fetcher
+        if ctx.train_data is None:  # no enough data from data fetcher
             return
-        train_output = policy.forward(ctx.data)
+        train_output = policy.forward(ctx.train_data)
         if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
             logging.info(
                 'Current Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, train_output['total_loss'])
