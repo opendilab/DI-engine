@@ -17,6 +17,7 @@ class ChessDIEnv(BaseGameEnv):
     def __init__(self, cfg=None):
         self.cfg = cfg
         self.current_player_index = 0
+        self.next_player_index = 1
 
         self.board = chess.Board()
 
@@ -44,7 +45,7 @@ class ChessDIEnv(BaseGameEnv):
         return self.current_player_index
 
     def to_play(self):
-        return self.current_player_index
+        return self.next_player_index
 
     def reset(self):
         self.has_reset = True
@@ -94,19 +95,18 @@ class ChessDIEnv(BaseGameEnv):
 
         if self.dones[self.agent_selection]:
             return self._was_done_step(action)
+
         current_agent = self.agent_selection  # 'player_0'
         current_index = self.agents.index(current_agent)  # 0
         self.current_player_index = current_index
+
         next_board = chess_utils.get_observation(self.board, current_agent)
         self.board_history = np.dstack((next_board[:, :, 7:], self.board_history[:, :, :-13]))
-        self.agent_selection = self._agent_selector.next()
-
         chosen_move = chess_utils.action_to_move(self.board, action, current_index)
         assert chosen_move in self.board.legal_moves
         self.board.push(chosen_move)  # NOTE
 
         next_legal_moves = chess_utils.legal_moves(self.board)
-
         is_stale_or_checkmate = not any(next_legal_moves)
 
         # claim draw is set to be true to align with normal tournament rules
@@ -124,11 +124,12 @@ class ChessDIEnv(BaseGameEnv):
         for agent, reward in self.rewards.items():
             self._cumulative_rewards[agent] += reward
 
+        self.agent_selection = self._agent_selector.next()
         agent = self.agent_selection
-        current_index = self.agents.index(agent)
-        self.current_player_index = current_index
+        self.next_player_index = self.agents.index(agent)
 
         observation = self.observe(agent)
+
         return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], self.infos[agent])
 
     def legal_actions(self):
