@@ -5,13 +5,13 @@ from ding.entry.cli_parsers.k8s_parser import k8s_parser
 
 @pytest.fixture
 def set_k8s_env():
-    os.environ["K8S_NODELIST"] = 'SH-0,SH-1,SH-2,SH-3,SH-4,SH-5'  # All the nodes
-    os.environ["K8S_PROCID"] = '3'  # Proc order, start from 0, can not be modified by config
+    os.environ["DI_NODES"] = 'SH-0,SH-1,SH-2,SH-3,SH-4,SH-5'  # All the nodes
+    os.environ["DI_RANK"] = '3'  # Proc order, start from 0, can not be modified by config
 
     yield
 
-    del os.environ["K8S_NODELIST"]
-    del os.environ["K8S_PROCID"]
+    del os.environ["DI_NODES"]
+    del os.environ["DI_RANK"]
 
 
 @pytest.mark.unittest
@@ -51,6 +51,7 @@ def test_k8s_parser():
     assert all_args["address"] == "SH-3"
     assert all_args["ports"] == 50000
     assert all_args["node_ids"] == 31
+    assert all_args["parallel_workers"] == 1
     assert all_args[
         "attach_to"
     ] == "tcp://SH-0:50515," +\
@@ -61,8 +62,20 @@ def test_k8s_parser():
     all_args = k8s_parser(None, topology="mesh")
     assert all_args["address"] == "SH-3"
     assert all_args["node_ids"] == 3
+    assert all_args["parallel_workers"] == 1
     assert all_args[
         "attach_to"
     ] == "tcp://SH-0:50515," +\
         "tcp://SH-1:50515," +\
         "tcp://SH-2:50515"
+
+    # With multiple parallel workers
+    all_args = k8s_parser(None, topology="mesh", parallel_workers=2)
+    assert all_args["address"] == "SH-3"
+    assert all_args["node_ids"] == 6
+    assert all_args["parallel_workers"] == 2
+    assert all_args[
+        "attach_to"
+    ] == "tcp://SH-0:50515,tcp://SH-0:50516," +\
+        "tcp://SH-1:50515,tcp://SH-1:50516," +\
+        "tcp://SH-2:50515,tcp://SH-2:50516"
