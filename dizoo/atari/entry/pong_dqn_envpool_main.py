@@ -4,7 +4,7 @@ from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
-from ding.envs import PoolEnvManager
+from ding.envs.env_manager.envpool_env_manager import PoolEnvManager
 from ding.policy import DQNPolicy
 from ding.model import DQN
 from ding.utils import set_pkg_seed

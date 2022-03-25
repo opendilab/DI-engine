@@ -1,7 +1,6 @@
 import os
 import gym
 from tensorboardX import SummaryWriter
-from easydict import EasyDict
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, NaiveReplayBuffer
@@ -26,10 +25,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
     )
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
     collector_env = BaseEnvManager(
-        env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager
+        env_fn=[lambda: PendulumEnv(cfg=cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager
     )
     evaluator_env = BaseEnvManager(
-        env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+        env_fn=[lambda: PendulumEnv(cfg=cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
     )
 
     collector_env.seed(seed)
