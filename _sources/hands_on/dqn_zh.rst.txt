@@ -3,13 +3,7 @@ DQN
 
 综述
 ---------
-<<<<<<< Updated upstream
-DQN最初在论文 `Playing Atari with Deep Reinforcement Learning <https://arxiv.org/abs/1312.5602>`_ 中被提出。
-传统的 Q-learning 维护一张 \ ``M*N`` \的Q值表（其中 M 表示状态个数，N表示动作个数），通过贝尔曼方程（Bellman equation）来迭代更新 Q-value。这种算法在状态/动作空间变得很大的时候就会出现维度灾难的问题。而DQN与传统强化学习方法不同，它将 Q-learning 与深度神经网络相结合，使用深度神经网络来估计 Q 值，并通过计算时序差分（TD, Temporal-Difference） 损失，利用梯度下降算法进行更新，从而在高维空间的问题决策中（例如Atari游戏）达到了媲美甚至超过人类玩家的水平。
-=======
-DQN在论文 `Human-level control through deep reinforcement learning <https://www.nature.com/articles/nature14236>`_ 中被提出。
 传统的 Q-learning 维护一张 \ ``M*N`` \的Q值表（其中 M表示状态个数，N表示动作个数），通过贝尔曼方程（Bellman equation）来迭代更新 Q-value。这种算法在状态/动作空间变得很大的时候就会出现维度灾难的问题。而DQN与传统强化学习方法不同，它将 Q-learning 与深度神经网络相结合，使用深度神经网络来估计 Q 值，并通过计算时序差分（TD, Temporal-Difference） 损失，利用梯度下降算法进行更新，从而在高维空间的问题决策中（例如Atari游戏）达到了媲美甚至超过人类玩家的水平。
->>>>>>> Stashed changes
 
 快速了解
 -------------
@@ -71,7 +65,7 @@ DQN 可以和以下方法相结合：
 
         .. math::
 
-          r(s,a)+\gamma \max_{a^{'}}Q(s',a^')
+          r(s,a)+\gamma \max_{a^{'}}Q(s',a')
       
       在 Multi-step TD-loss 中，贝尔曼方程是:
 
@@ -178,4 +172,3 @@ DQNPolicy 的默认 config 如下所示：
 - Van Hasselt, H., Guez, A., & Silver, D. (2016, March). Deep reinforcement learning with double q-learning. In Proceedings of the AAAI conference on artificial intelligence (Vol. 30, No. 1).
 
 - Schaul, T., Quan, J., Antonoglou, I., & Silver, D. (2015). Prioritized experience replay. arXiv preprint arXiv:1511.05952.
-

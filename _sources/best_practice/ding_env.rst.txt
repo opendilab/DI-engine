@@ -1,16 +1,19 @@
 How to migrate your environment to DI-engine
 ==================================================
 
-Although a large number of commonly used Reinforcement Learning environments have been provided in ``DI-zoo`` (`DI-engine supported environments <https://github.com/opendilab/DI-engine#environment-versatility>`_ ), you may still need to migrate your environment to ``DI-engine``. Therefore, in this section, we will introduce how to perform the above migration step by step to meet the specifications of the ``DI-engine'' basic environment base class ``BaseEnv``, so that it can be easily applied in the training pipeline.
+Although a large number of commonly used Reinforcement Learning environments have been provided in ``DI-zoo`` (`DI-engine supported environments <https://github.com/opendilab/DI-engine#environment-versatility>`_ ), you may still need to migrate your environment to ``DI-engine``. Therefore, in this section, we will introduce how to perform the above migration step by step to meet the specifications of the ``DI-engine`` basic environment base class ``BaseEnv``, so that it can be easily applied in the training pipeline.
 
-The following introduction will be divided into two parts: **Basic** and **Advanced**. **Basic** indicates the functions that must be implemented and details that must be noticed if you want to run the pipeline correctly; **Advanced** indicates some expanded functions.
+The following introduction will be divided into two parts: **Basic** and **Advanced**. 
+
+  - **Basic** indicates the functions that must be implemented and details that must be noticed if you want to run the pipeline correctly;
+  - **Advanced** indicates some expanded functions.
 
 Basic
 ~~~~~~~~~~~~~~
 
 This section will introduce the specification constraints that users must obey and the functions that must be implemented when migrating the environment.
 
-If you want to use the environment in DI-engine, you need to implement a subclass environment derived from ``BaseEnv``, such as ``YourEnv``. The relationship between ``YourEnv`` and your own environment is a `combination <https://www.cnblogs.com/chinxi/p/7349768.html>`_ relationship, that is, a ``YourEnv`` instance will hold an instance of your own original environment.
+If you want to use the environment in DI-engine, you need to implement a subclass environment derived from ``BaseEnv``, such as ``YourEnv``. The relationship between ``YourEnv`` and your own environment is a `object composition <https://en.wikipedia.org/wiki/Object_composition>`_ relationship, that is, a ``YourEnv`` instance will hold an instance of your own original environment.
 
 The Reinforcement Learning environment has some major interfaces commonly implemented by most environments, such as ``reset()``, ``step()``, ``seed()``, etc. In DI-engine, ``BaseEnv`` will further encapsulate these interfaces. In following cases, Atari will be used as an example for description. Please refer to `Atari Env <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_env.py>`_ and `Atari Env Wrapper <https://github. com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_wrappers.py>`_ for code.
 
@@ -22,13 +25,13 @@ The Reinforcement Learning environment has some major interfaces commonly implem
    Take Atari as an example. ``__init__`` does not instantiate the environment, but only sets the configuration ``self._cfg``, and initialize member attribute ``self._init_flag`` which is used to record whether the ``reset`` method is called for the first time (i.e. Whether the environment has not been initialized).
 
 
-   .. code:: python
+    .. code:: python
       
-      class AtariEnv(BaseEnv):
+        class AtariEnv(BaseEnv):
 
-         def __init__(self, cfg: dict) -> None:
-            self._cfg = cfg
-            self._init_flag = False
+            def __init__(self, cfg: dict) -> None:
+                self._cfg = cfg
+                self._init_flag = False
 
 2. ``seed()``
 
@@ -42,10 +45,10 @@ The Reinforcement Learning environment has some major interfaces commonly implem
 
       class AtariEnv(BaseEnv):
          
-         def seed(self, seed: int, dynamic_seed: bool = True) -> None:
-            self._seed = seed
-            self._dynamic_seed = dynamic_seed
-            np.random.seed(self._seed)
+          def seed(self, seed: int, dynamic_seed: bool = True) -> None:
+              self._seed = seed
+              self._dynamic_seed = dynamic_seed
+              np.random.seed(self._seed)
 
    For the seeds in original environment, DI-engine defines **static seed** and **dynamic seed**.
    
@@ -63,23 +66,23 @@ The Reinforcement Learning environment has some major interfaces commonly implem
       
       class AtariEnv(BaseEnv):
 
-         def __init__(self, cfg: dict) -> None:
-            self._cfg = cfg
-            self._init_flag = False
+          def __init__(self, cfg: dict) -> None:
+              self._cfg = cfg
+              self._init_flag = False
 
-         def reset(self) -> np.ndarray:
-            if not self._init_flag:
-               self._env = self._make_env(only_info=False)
-               self._init_flag = True
-            if hasattr(self,'_seed') and hasattr(self,'_dynamic_seed') and self._dynamic_seed:
-               np_seed = 100 * np.random.randint(1, 1000)
-               self._env.seed(self._seed + np_seed)
-            elif hasattr(self,'_seed'):
-               self._env.seed(self._seed)
-            obs = self._env.reset()
-            obs = to_ndarray(obs)
-            self._final_eval_reward = 0.
-            return obs
+          def reset(self) -> np.ndarray:
+              if not self._init_flag:
+                  self._env = self._make_env(only_info=False)
+                  self._init_flag = True
+              if hasattr(self,'_seed') and hasattr(self,'_dynamic_seed') and self._dynamic_seed:
+                  np_seed = 100 * np.random.randint(1, 1000)
+                  self._env.seed(self._seed + np_seed)
+              elif hasattr(self,'_seed'):
+                  self._env.seed(self._seed)
+              obs = self._env.reset()
+              obs = to_ndarray(obs)
+              self._final_eval_reward = 0.
+              return obs
 
 4. ``step()``
 
@@ -95,16 +98,16 @@ The Reinforcement Learning environment has some major interfaces commonly implem
 
       class AtariEnv(BaseEnv):
          
-         def step(self, action: np.ndarray) -> BaseEnvTimestep:
-            assert isinstance(action, np.ndarray), type(action)
-            action = action.item()
-            obs, rew, done, info = self._env.step(action)
-            self._final_eval_reward += rew
-            obs = to_ndarray(obs)
-            rew = to_ndarray([rew]) # Transformed to an array with shape (1,)
-            if done:
-               info['final_eval_reward'] = self._final_eval_reward
-            return BaseEnvTimestep(obs, rew, done, info)
+          def step(self, action: np.ndarray) -> BaseEnvTimestep:
+              assert isinstance(action, np.ndarray), type(action)
+              action = action.item()
+              obs, rew, done, info = self._env.step(action)
+              self._final_eval_reward += rew
+              obs = to_ndarray(obs)
+              rew = to_ndarray([rew]) # Transformed to an array with shape (1,)
+              if done:
+                 info['final_eval_reward'] = self._final_eval_reward
+              return BaseEnvTimestep(obs, rew, done, info)
 
 5. ``self._final_eval_reward``
 
@@ -123,7 +126,7 @@ The Reinforcement Learning environment has some major interfaces commonly implem
       - ``obs`` returned in ``reset`` method
       - ``action`` received in ``step`` method
       - ``obs`` returned in ``step`` method
-      - ``reward`` returned in ``step`` method. Here also requires that ``reward`` must be **one-dimensional**, not zero-dimensional, such as the code in Atari ``rew = to_ndarray( [rew])``
+      - ``reward`` returned in ``step`` method. Here also requires that ``reward`` must be **one-dimensional**, not zero-dimensional, such as the code in Atari ``rew = to_ndarray([rew])``
       - ``done`` returned in ``step`` method. Must be ``bool`` type, rather than ``np.bool`` type.
 
 
@@ -167,7 +170,7 @@ Advanced
    It is worth mentioning that each wrapper must not only change of the corresponding observation/action/reward value, but also modify its corresponding space attribute accordingly (if and only when shpae, dtype, etc. are modified). And it will be discussed next section.
 
 
-2. 3 Space Attributes: observation/action/reward space
+2. 3 Space Attributes: ``observation/action/reward space``
 
    If you want to automatically create a neural network according to the dimensions of the environment, or use the ``shared_memory`` feature in ``EnvManager`` to speed up the transmission of environment's large tensor data, you need to provide property APIs: ``observation_space`` ``action_space`` ``reward_space``, in your env.
 
@@ -177,27 +180,27 @@ Advanced
       
       class CartpoleEnv(BaseEnv):
          
-         def __init__(self, cfg: dict = {}) -> None:
-            self._observation_space = gym.spaces.Box(
+          def __init__(self, cfg: dict = {}) -> None:
+              self._observation_space = gym.spaces.Box(
                   low=np.array([-4.8, float("-inf"), -0.42, float("-inf")]),
                   high=np.array([4.8, float("inf"), 0.42, float("inf")]),
                   shape=(4, ),
                   dtype=np.float32
-            )
-            self._action_space = gym.spaces.Discrete(2)
-            self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
+              )
+              self._action_space = gym.spaces.Discrete(2)
+              self._reward_space = gym.spaces.Box(low=0.0, high=1.0, shape=(1, ), dtype=np.float32)
 
-         @property
-         def observation_space(self) -> gym.spaces.Space:
-            return self._observation_space
+          @property
+          def observation_space(self) -> gym.spaces.Space:
+              return self._observation_space
 
-         @property
-         def action_space(self) -> gym.spaces.Space:
-            return self._action_space
+          @property
+          def action_space(self) -> gym.spaces.Space:
+              return self._action_space
 
-         @property
-         def reward_space(self) -> gym.spaces.Space:
-            return self._reward_space
+          @property
+          def reward_space(self) -> gym.spaces.Space:
+              return self._reward_space
 
    Since cartpole does not use any wrappers, ``BaseEnvInfo`` is easire to specify. However, if an environment like Atari is decorated with multiple wrappers, you need to know what changes each wrapper has made to ``BaseEnvInfo``. That is why we must implement ``new_shape`` method in each wrapper in the previous section. Its usage is as follows:
 
@@ -207,9 +210,9 @@ Advanced
 
       class ScaledFloatFrameWrapper(gym.ObservationWrapper):
          
-         def __init__(self, env):
-            # ...
-            self.observation_space = gym.spaces.Box(low=0., high=1., shape=env.observation_space.shape, dtype=np.float32)
+          def __init__(self, env):
+              # ...
+              self.observation_space = gym.spaces.Box(low=0., high=1., shape=env.observation_space.shape, dtype=np.float32)
 
 3. ``enable_save_replay()``
 
@@ -223,15 +226,15 @@ Advanced
 
       class AtariEnv(BaseEnv):
 
-         def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
-            if replay_path is None:
-               replay_path ='./video'
-            self._replay_path = replay_path
-            # this function can lead to the meaningless result
-            # disable_gym_view_window()
-            self._env = gym.wrappers.Monitor(
-               self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-            )
+          def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+              if replay_path is None:
+                  replay_path ='./video'
+              self._replay_path = replay_path
+              # this function can lead to the meaningless result
+              # disable_gym_view_window()
+              self._env = gym.wrappers.Monitor(
+                  self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+              )
 
 4. Use different configs for training environment and evaluation environment
 
@@ -241,19 +244,19 @@ Advanced
 
       class AtariEnv(BaseEnv):
 
-         @staticmethod
-         def create_collector_env_cfg(cfg: dict) -> List[dict]:
-            collector_env_num = cfg.pop('collector_env_num')
-            cfg = copy.deepcopy(cfg)
-            cfg.is_train = True
-            return [cfg for _ in range(collector_env_num)]
+          @staticmethod
+          def create_collector_env_cfg(cfg: dict) -> List[dict]:
+              collector_env_num = cfg.pop('collector_env_num')
+              cfg = copy.deepcopy(cfg)
+              cfg.is_train = True
+              return [cfg for _ in range(collector_env_num)]
 
-         @staticmethod
-         def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-            evaluator_env_num = cfg.pop('evaluator_env_num')
-            cfg = copy.deepcopy(cfg)
-            cfg.is_train = False
-            return [cfg for _ in range(evaluator_env_num)]
+          @staticmethod
+          def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+              evaluator_env_num = cfg.pop('evaluator_env_num')
+              cfg = copy.deepcopy(cfg)
+              cfg.is_train = False
+              return [cfg for _ in range(evaluator_env_num)]
 
    The original configuration item ``cfg`` can be converted:
 
@@ -274,29 +277,27 @@ Advanced
    .. python::
 
       def random_action(self) -> np.ndarray:
-         random_action = self.action_space.sample()
-         if isinstance(random_action, np.ndarray):
-               pass
-         elif isinstance(random_action, int):
-               random_action = to_ndarray([random_action], dtype=np.int64)
-         elif isinstance(random_action, dict):
-               random_action = to_ndarray(random_action)
-         else:
-               raise TypeError(
+          random_action = self.action_space.sample()
+          if isinstance(random_action, np.ndarray):
+              pass
+          elif isinstance(random_action, int):
+              random_action = to_ndarray([random_action], dtype=np.int64)
+          elif isinstance(random_action, dict):
+              random_action = to_ndarray(random_action)
+          else:
+              raise TypeError(
                   '`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
                      type(random_action), random_action
                   )
-               )
-         return random_action
+              )
+          return random_action
 
 DingEnvWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~
-(in ``ding/envs/env/ding_env_wrapper.py``)
 
 ``DingEnvWrapper`` can quickly convert simple environments such as cartpole, pendulum, etc. into environments that conform to ``BaseEnv``. However, more complex environments are not supported for the time being.
 
-TBD
-
+P.S. DingEnvWrapper is located in ``ding/envs/env/ding_env_wrapper.py``
 
 Q & A
 ~~~~~~~~~~~~~~

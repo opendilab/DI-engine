@@ -215,13 +215,7 @@
 <h1>DQN<a class="headerlink" href="#dqn" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
 <h2>综述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; Updated upstream
-DQN最初在论文 <a class="reference external" href="https://arxiv.org/abs/1312.5602">Playing Atari with Deep Reinforcement Learning</a> 中被提出。
-传统的 Q-learning 维护一张 <code class="docutils literal notranslate"><span class="pre">M*N</span></code> 的Q值表（其中 M 表示状态个数，N表示动作个数），通过贝尔曼方程（Bellman equation）来迭代更新 Q-value。这种算法在状态/动作空间变得很大的时候就会出现维度灾难的问题。而DQN与传统强化学习方法不同，它将 Q-learning 与深度神经网络相结合，使用深度神经网络来估计 Q 值，并通过计算时序差分（TD, Temporal-Difference） 损失，利用梯度下降算法进行更新，从而在高维空间的问题决策中（例如Atari游戏）达到了媲美甚至超过人类玩家的水平。
-=======
-DQN在论文 <a class="reference external" href="https://www.nature.com/articles/nature14236">Human-level control through deep reinforcement learning</a> 中被提出。
-传统的 Q-learning 维护一张 <code class="docutils literal notranslate"><span class="pre">M*N</span></code> 的Q值表（其中 M表示状态个数，N表示动作个数），通过贝尔曼方程（Bellman equation）来迭代更新 Q-value。这种算法在状态/动作空间变得很大的时候就会出现维度灾难的问题。而DQN与传统强化学习方法不同，它将 Q-learning 与深度神经网络相结合，使用深度神经网络来估计 Q 值，并通过计算时序差分（TD, Temporal-Difference） 损失，利用梯度下降算法进行更新，从而在高维空间的问题决策中（例如Atari游戏）达到了媲美甚至超过人类玩家的水平。
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; Stashed changes</p>
+<p>传统的 Q-learning 维护一张 <code class="docutils literal notranslate"><span class="pre">M*N</span></code> 的Q值表（其中 M表示状态个数，N表示动作个数），通过贝尔曼方程（Bellman equation）来迭代更新 Q-value。这种算法在状态/动作空间变得很大的时候就会出现维度灾难的问题。而DQN与传统强化学习方法不同，它将 Q-learning 与深度神经网络相结合，使用深度神经网络来估计 Q 值，并通过计算时序差分（TD, Temporal-Difference） 损失，利用梯度下降算法进行更新，从而在高维空间的问题决策中（例如Atari游戏）达到了媲美甚至超过人类玩家的水平。</p>
 </div>
 <div class="section" id="id2">
 <h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
@@ -267,7 +261,7 @@ DQN在论文 <a class="reference external" href="https://www.nature.com/articles
 <p>在 Single-step TD-loss 中，Q-learning 通过贝尔曼方程更新 <span class="math notranslate nohighlight">\(Q(s,a)\)</span>:</p>
 <blockquote>
 <div><div class="math notranslate nohighlight">
-\[r(s,a)+\gamma \max_{a^{'}}Q(s',a^')\]</div>
+\[r(s,a)+\gamma \max_{a^{'}}Q(s',a')\]</div>
 </div></blockquote>
 <p>在 Multi-step TD-loss 中，贝尔曼方程是:</p>
 <blockquote>

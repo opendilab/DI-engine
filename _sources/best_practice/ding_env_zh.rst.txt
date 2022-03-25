@@ -10,7 +10,7 @@
 
 本节将介绍迁移环境时，用户必须满足的规范约束、以及必须实现的功能。
 
-如果要在 DI-engine 中使用环境，需要实现一个继承自 ``BaseEnv`` 的子类环境，例如 ``YourEnv`` 。 ``YourEnv`` 和你自己的环境之间是 `组合 <https://www.cnblogs.com/chinxi/p/7349768.html>`_ 关系，即在一个 ``YourEnv`` 实例中，会持有一个你自己的环境的实例。
+如果要在 DI-engine 中使用环境，需要实现一个继承自 ``BaseEnv`` 的子类环境，例如 ``YourEnv`` 。 ``YourEnv`` 和你自己的环境之间是 `组合 <https://en.wikipedia.org/wiki/Object_composition>`_ 关系，即在一个 ``YourEnv`` 实例中，会持有一个你自己的环境的实例。
 
 强化学习的环境有一些普遍地、被大多数环境实现了的主要接口，如 ``reset()``, ``step()``, ``seed()`` 等。在 DI-engine 中， ``BaseEnv`` 将对这些接口进行进一步的封装，下面大部分情况下将以 Atari 为例进行说明。具体代码可以参考 `Atari Env <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_env.py>`_ 和 `Atari Env Wrapper <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/envs/atari_wrappers.py>`_
 
@@ -163,11 +163,11 @@
 
    值得一提的是，每个 wrapper 不仅要完成对相应的 observation/action/reward 值的变化，还要对应地修改其 space （当且仅当 shpae, dtype 等被修改时），这个方法将在下一节中详细介绍。
 
-2. 三个空间属性 observation/action/reward space
+2. 三个空间属性 ``observation/action/reward space``
 
-   如果希望可以根据环境的维度自动创建神经网络，或是在 ``EnvManager`` 中使用 ``shared_memory`` 技术加快环境返回的大型张量数据的传输速度，就需要让环境支持提供属性 ``observation_space`` ``action_space`` ``reward_space``。
+   如果希望可以根据环境的维度自动创建神经网络，或是在 ``EnvManager`` 中使用 ``shared_memory`` 技术加快环境返回的大型张量数据的传输速度，就需要让环境支持提供属性 ``observation_space`` ``action_space`` ``reward_space`` 。
    
-   这里的 space 都是 ``gym.spaces.Space`` 的子类的实例，最常用的 ``gym.spaces.Space`` 包括 ``Discrete`` ``Box`` ``Tuple`` ``Dict`` 等。space 中需要给出 **shape** 和 **dtype** 。在 gym 原始环境中，大多都会支持 ``observation_space`` ``action_space`` 和 ``reward_range``，在 DI-engine 中，将 ``reward_range`` 也扩充成了 ``reward_space``，使这三者保持一致。
+   这里的 space 都是 ``gym.spaces.Space`` 的子类的实例，最常用的 ``gym.spaces.Space`` 包括 ``Discrete`` ``Box`` ``Tuple`` ``Dict`` 等。space 中需要给出 **shape** 和 **dtype** 。在 gym 原始环境中，大多都会支持 ``observation_space`` ``action_space`` 和 ``reward_range``，在 DI-engine 中，将 ``reward_range`` 也扩充成了 ``reward_space`` ，使这三者保持一致。
 
    例如，这个是 cartpole 的三个属性：
 
@@ -288,11 +288,10 @@
 
 DingEnvWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~
-(in ``ding/envs/env/ding_env_wrapper.py``)
 
 ``DingEnvWrapper`` 可以快速将 ClassicControl, Box2d, Atari, Mujoco, GymHybrid 等简单环境转换为符合 ``BaseEnv`` 的环境。
 
-可以查看 `使用实例 <https://github.com/opendilab/DI-engine/blob/main/ding/envs/env/tests/test_ding_env_wrapper.py>`_ 获取更多信息。
+注：``DingEnvWrapper`` 的具体实现可以在 ``ding/envs/env/ding_env_wrapper.py`` 中找到，另外，可以查看 `使用实例 <https://github.com/opendilab/DI-engine/blob/main/ding/envs/env/tests/test_ding_env_wrapper.py>`_ 获取更多信息。
 
 
 
