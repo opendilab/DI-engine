@@ -1,5 +1,7 @@
 from typing import Dict, Any, Callable
 from collections import namedtuple
+from easydict import EasyDict
+import torch
 
 from ding.torch_utils import to_device
 
@@ -31,7 +33,7 @@ class PolicyFactory:
 
             actions = {}
             for env_id in data:
-                actions[env_id] = {'action': action_space.sample()}
+                actions[env_id] = {'action': torch.as_tensor(action_space.sample())}
             return actions
 
         def reset(*args, **kwargs) -> None:
@@ -45,3 +47,11 @@ class PolicyFactory:
             return random_collect_function(
                 forward, policy.process_transition, policy.get_train_sample, reset, policy.get_attribute
             )
+
+
+def get_random_policy(cfg: EasyDict, policy: 'Policy.collect_mode', env: 'BaseEnvManager'):  # noqa
+    if cfg.policy.get('transition_with_policy_data', False):
+        return policy
+    else:
+        action_space = env.action_space
+        return PolicyFactory.get_random_policy(policy, action_space=action_space)
