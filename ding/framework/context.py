@@ -53,9 +53,7 @@ class OnlineRLContext(Context):
         self.trajectories = None
         self.trajectory_end_idx = []
         # eval
-        self.max_eval_value = -np.inf
         self.eval_value = -np.inf
         self.last_eval_iter = -1
         # other
-        self.last_save_iter = -1
-        self.keep('env_step', 'env_episode', 'train_iter', 'max_eval_value', 'last_eval_iter', 'last_save_iter')
+        self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')

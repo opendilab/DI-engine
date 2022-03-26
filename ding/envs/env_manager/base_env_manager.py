@@ -113,6 +113,7 @@ class BaseEnvManager(object):
         self._episode_num = self._cfg.episode_num
         self._max_retry = max(self._cfg.max_retry, 1)
         self._auto_reset = self._cfg.auto_reset
+        # TODO auto_reset = False case
         assert self._auto_reset, "auto_reset should always be true in current BaseEnvManager"
         self._retry_type = self._cfg.retry_type
         assert self._retry_type in ['reset', 'renew'], self._retry_type

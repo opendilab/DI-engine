@@ -549,6 +549,15 @@ class RunningMeanStd(object):
 
 
 def make_key_as_identifier(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Overview:
+        Make the key of dict into legal python identifier string so that it is
+        compatible with some python magic method such as ``__getattr``.
+    Arguments:
+        - data (:obj:`Dict[str, Any]`): The original dict data.
+    Return:
+        - new_data (:obj:`Dict[str, Any]`): The new dict data with legal identifier keys.
+    """
 
     def legalization(s: str) -> str:
         if s[0].isdigit():
