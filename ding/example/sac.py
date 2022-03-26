@@ -7,8 +7,8 @@ from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import offpolicy_data_fetcher, trainer, StepCollector, interaction_evaluator, \
-    CkptSaver
+from ding.framework.middleware import data_pusher, StepCollector, interaction_evaluator, \
+    CkptSaver, OffPolicyLearner
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.pendulum.envs.pendulum_env import PendulumEnv
 from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
@@ -31,8 +31,8 @@ def main():
         task.use(
             StepCollector(cfg, policy.collect_mode, collector_env, random_collect_size=cfg.policy.random_collect_size)
         )
-        task.use(offpolicy_data_fetcher(cfg, buffer_))
-        task.use(trainer(cfg, policy.learn_mode))
+        task.use(data_pusher(cfg, buffer_))
+        task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
         task.use(CkptSaver(cfg, policy, train_freq=100))
         task.run(max_step=100000)
 

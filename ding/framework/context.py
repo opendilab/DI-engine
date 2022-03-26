@@ -47,8 +47,11 @@ class OnlineRLContext(Context):
         self.env_step = 0
         self.env_episode = 0
         self.train_iter = 0
+        self.train_data = None
         # collect
         self.collect_kwargs = {}
+        self.trajectories = None
+        self.trajectory_end_idx = []
         # eval
         self.max_eval_value = -np.inf
         self.eval_value = -np.inf

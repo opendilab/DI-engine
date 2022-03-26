@@ -9,28 +9,36 @@ if TYPE_CHECKING:
     from ding.framework import Context
 
 
-def offpolicy_data_fetcher(cfg: EasyDict, buffer_: Buffer) -> Callable:
+def data_pusher(cfg: EasyDict, buffer_: Buffer):
 
-    def _push_and_fetch(ctx: "Context"):
+    def _push(ctx: "Context"):
         for t in ctx.trajectories:
             buffer_.push(t)
+        ctx.trajectories = None
+
+    return _push
+
+
+def offpolicy_data_fetcher(cfg: EasyDict, buffer_: Buffer) -> Callable:
+
+    def _fetch(ctx: "Context"):
         try:
             buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
             assert buffered_data is not None
         except (ValueError, AssertionError):
+            # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
             logging.warning(
-                "Replay buffer's data is not enough to support training. " +
-                "You can modify data collect config, e.g. increasing n_sample, n_episode."
+                "Replay buffer's data is not enough to support training, so skip this trianing for waiting more data. "
             )
-            # TODO
             ctx.train_data = None
             return
         ctx.train_data = [d.data for d in buffered_data]
-        yield
+        return
+        # yield
         # TODO
         # buffer_.update(ctx.train_output)  # such as priority
 
-    return _push_and_fetch
+    return _fetch
 
 
 # TODO move ppo training for loop to new middleware
