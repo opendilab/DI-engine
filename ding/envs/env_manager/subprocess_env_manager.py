@@ -219,9 +219,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
         self._env_ref = self._env_fn[0]()
-        self._env_ref.reset()
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
+            self._env_ref.reset()
             obs_space = self._env_ref.observation_space
             self._env_ref.close()
             if isinstance(obs_space, list):
