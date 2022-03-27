@@ -49,17 +49,21 @@ class ShmBuffer():
         Shared memory buffer to store numpy array.
     """
 
-    def __init__(self, dtype: np.generic, shape: Tuple[int]) -> None:
+    def __init__(self, dtype: Union[type, np.dtype], shape: Tuple[int], copy_on_get: bool = True) -> None:
         """
         Overview:
             Initialize the buffer.
         Arguments:
-            - dtype (:obj:`np.generic`): dtype of the data to limit the size of the buffer.
-            - shape (:obj:`Tuple[int]`): shape of the data to limit the size of the buffer.
+            - dtype (:obj:`Union[type, np.dtype]`): The dtype of the data to limit the size of the buffer.
+            - shape (:obj:`Tuple[int]`): The shape of the data to limit the size of the buffer.
+            - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.
         """
-        self.buffer = Array(_NTYPE_TO_CTYPE[dtype.type], int(np.prod(shape)))
+        if isinstance(dtype, np.dtype):  # it is type of gym.spaces.dtype
+            dtype = dtype.type
+        self.buffer = Array(_NTYPE_TO_CTYPE[dtype], int(np.prod(shape)))
         self.dtype = dtype
         self.shape = shape
+        self.copy_on_get = copy_on_get
 
     def fill(self, src_arr: np.ndarray) -> None:
         """
@@ -69,18 +73,23 @@ class ShmBuffer():
             - src_arr (:obj:`np.ndarray`): array to fill the buffer.
         """
         assert isinstance(src_arr, np.ndarray), type(src_arr)
-        dst_arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype)
-        with self.buffer.get_lock():
-            np.copyto(dst_arr, src_arr.flatten())
+        # for np.array with shape (4, 84, 84) and float32 dtype, reshape is 15~20x faster than flatten
+        # for np.array with shape (4, 84, 84) and uint8 dtype, reshape is 5~7x faster than flatten
+        # so we reshape dst_arr rather than flatten src_arr
+        dst_arr = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
+        np.copyto(dst_arr, src_arr)
 
     def get(self) -> np.ndarray:
         """
         Overview:
             Get the array stored in the buffer.
         Return:
-            - copy_data (:obj:`np.ndarray`): A copy of the data stored in the buffer.
+            - data (:obj:`np.ndarray`): A copy of the data stored in the buffer.
         """
-        return np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
+        data = np.frombuffer(self.buffer.get_obj(), dtype=self.dtype).reshape(self.shape)
+        if self.copy_on_get:
+            data = data.copy()  # must use np.copy, torch.from_numpy and torch.as_tensor still use the same memory
+        return data
 
 
 class ShmBufferContainer(object):
@@ -89,19 +98,25 @@ class ShmBufferContainer(object):
         Support multiple shared memory buffers. Each key-value is name-buffer.
     """
 
-    def __init__(self, dtype: np.generic, shape: Union[Dict[Any, tuple], tuple]) -> None:
+    def __init__(
+            self,
+            dtype: Union[type, np.dtype],
+            shape: Union[Dict[Any, tuple], tuple],
+            copy_on_get: bool = True
+    ) -> None:
         """
         Overview:
             Initialize the buffer container.
         Arguments:
-            - dtype (:obj:`np.generic`): dtype of the data to limit the size of the buffer.
+            - dtype (:obj:`Union[type, np.dtype]`): The dtype of the data to limit the size of the buffer.
             - shape (:obj:`Union[Dict[Any, tuple], tuple]`): If `Dict[Any, tuple]`, use a dict to manage \
                 multiple buffers; If `tuple`, use single buffer.
+            - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.
         """
         if isinstance(shape, dict):
-            self._data = {k: ShmBufferContainer(dtype, v) for k, v in shape.items()}
+            self._data = {k: ShmBufferContainer(dtype, v, copy_on_get) for k, v in shape.items()}
         elif isinstance(shape, (tuple, list)):
-            self._data = ShmBuffer(dtype, shape)
+            self._data = ShmBuffer(dtype, shape, copy_on_get)
         else:
             raise RuntimeError("not support shape: {}".format(shape))
         self._shape = shape
@@ -171,6 +186,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         retry_waiting_time=0.1,
         # subprocess specified args
         shared_memory=True,
+        copy_on_get=True,
         context='spawn' if platform.system().lower() == 'windows' else 'fork',
         wait_num=2,
         step_wait_timeout=0.01,
@@ -197,6 +213,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         super().__init__(env_fn, cfg)
         self._shared_memory = self._cfg.shared_memory
+        self._copy_on_get = self._cfg.copy_on_get
         self._context = self._cfg.context
         self._wait_num = self._cfg.wait_num
         self._step_wait_timeout = self._cfg.step_wait_timeout
@@ -235,7 +252,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             else:
                 shape = obs_space.shape
                 dtype = obs_space.dtype
-            self._obs_buffers = {env_id: ShmBufferContainer(dtype, shape) for env_id in range(self.env_num)}
+            self._obs_buffers = {
+                env_id: ShmBufferContainer(dtype, shape, copy_on_get=self._copy_on_get)
+                for env_id in range(self.env_num)
+            }
         else:
             self._obs_buffers = {env_id: None for env_id in range(self.env_num)}
         self._pipe_parents, self._pipe_children = {}, {}
@@ -773,6 +793,7 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
         retry_waiting_time=0.1,
         # subprocess specified args
         shared_memory=True,
+        copy_on_get=True,
         context='spawn' if platform.system().lower() == 'windows' else 'fork',
         wait_num=float("inf"),  # inf mean all the environments
         step_wait_timeout=None,

@@ -61,8 +61,6 @@ class LunarLanderEnv(BaseEnv):
         if self._act_scale:
             action = affine_transform(action, min_val=-1, max_val=1)
         obs, rew, done, info = self._env.step(action)
-        # self._env.render()
-        rew = float(rew)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
