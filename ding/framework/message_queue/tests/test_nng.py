@@ -1,3 +1,4 @@
+from time import sleep
 import pytest
 
 from multiprocessing import Pool
@@ -12,6 +13,7 @@ def nng_main(i):
         mq.listen()
         for _ in range(10):
             mq.publish("t", b"data")
+            sleep(0.1)
     else:
         listen_to = "tcp://127.0.0.1:50516"
         attach_to = ["tcp://127.0.0.1:50515"]
