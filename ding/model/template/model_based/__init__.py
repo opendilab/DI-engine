@@ -1,2 +1,2 @@
 from .mbpo import EnsembleDynamicsModel
-from .efficientzero_tic_model import EfficientZeroNet
+from .efficientzero_tic_model_new import EfficientZeroNet
