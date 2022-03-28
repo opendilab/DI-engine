@@ -19,7 +19,7 @@ class TestGymVectorEnvManager:
         assert not env_manager._closed
         # Test reset
         obs = env_manager.reset()
-        assert env_manager.env_manager._state == AsyncState.DEFAULT
+        assert env_manager._env_manager._state == AsyncState.DEFAULT
         # Test arribute
         with pytest.raises(AttributeError):
             _ = env_manager.xxx
@@ -30,6 +30,7 @@ class TestGymVectorEnvManager:
         start_time = time.time()
         while not env_manager.done:
             env_id = env_manager.ready_obs.keys()
+            assert all(env_manager._env_episode_count[i] < env_manager._episode_num for i in env_id)
             action = {i: np.random.randn(4) for i in env_id}
             timestep = env_manager.step(action)
             assert len(timestep) == len(env_id)
@@ -39,6 +40,8 @@ class TestGymVectorEnvManager:
             count += 1
         end_time = time.time()
         print('total step time: {}'.format(end_time - start_time))
+        assert all(env_manager._env_episode_count[i] == env_manager._episode_num for i in env_id)
+        
         # Test close
         env_manager.close()
         assert env_manager._closed

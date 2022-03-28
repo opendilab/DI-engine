@@ -123,8 +123,25 @@ class FakeAsyncEnv(FakeEnv):
 
 
 class FakeGymEnv(FakeEnv):
-    metadata = "fake metadata"
-
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.metadata = "fake metadata"
+        self.action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(4, ), dtype=np.float32)
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        if isinstance(random_action, np.ndarray):
+            pass
+        elif isinstance(random_action, int):
+            random_action = to_ndarray([random_action], dtype=np.int64)
+        elif isinstance(random_action, dict):
+            random_action = to_ndarray(random_action)
+        else:
+            raise TypeError(
+                '`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
+                    type(random_action), random_action
+                )
+            )
+        return random_action
 
 class FakeModel(object):
 
