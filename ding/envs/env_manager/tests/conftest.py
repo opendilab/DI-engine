@@ -57,6 +57,7 @@ class FakeEnv(object):
         self._current_time = 0
         self._stat = stat
         self._state = EnvState.RUN
+        return to_ndarray(torch.randn(3))
 
     def step(self, action):
         assert self._launched
