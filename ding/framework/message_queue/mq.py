@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Tuple
 
 
 class MQ:
@@ -21,13 +21,13 @@ class MQ:
         """
         raise NotImplementedError
 
-    def publish(self, topic: str, data: Any) -> None:
+    def publish(self, topic: str, data: bytes) -> None:
         """
         Overview:
             Send data to mq.
         Arguments:
             - topic (:obj:`str`): Topic.
-            - data (:obj:`Any`): Payload data.
+            - data (:obj:`bytes`): Payload data.
         """
         raise NotImplementedError
 
@@ -49,7 +49,7 @@ class MQ:
         """
         raise NotImplementedError
 
-    def recv(self) -> Any:
+    def recv(self) -> Tuple[str, bytes]:
         """
         Overview:
             Wait for incoming message, this function will block the current thread.

@@ -33,7 +33,7 @@ class Parallel(metaclass=SingletonMetaclass):
         self._event_loop = EventLoop("parallel_{}".format(id(self)))
         self._retries = 0  # Retries in auto recovery
 
-    def run(
+    def _run(
             self,
             node_id: int,
             labels: Optional[Set[str]] = None,
@@ -62,7 +62,9 @@ class Parallel(metaclass=SingletonMetaclass):
             node_ids: Optional[Union[List[int], int]] = None,
             auto_recover: bool = False,
             max_retries: int = float("inf"),
-            mq_type: str = "nng"
+            mq_type: str = "nng",
+            redis_host: Optional[str] = None,
+            redis_port: Optional[int] = None
     ) -> Callable:
         """
         Overview:
@@ -82,6 +84,8 @@ class Parallel(metaclass=SingletonMetaclass):
             - auto_recover (:obj:`bool`): Auto recover from uncaught exceptions from main.
             - max_retries (:obj:`int`): Max retries for auto recover.
             - mq_type (:obj:`str`): Embedded message queue type, i.e. nng, redis.
+            - redis_host (:obj:`str`): Redis server host.
+            - redis_port (:obj:`int`): Redis server port.
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
@@ -132,6 +136,8 @@ now there are {} workers and {} nodes"\
                     "auto_recover": auto_recover,
                     "max_retries": max_retries,
                     "mq_type": mq_type,
+                    "redis_host": redis_host,
+                    "redis_port": redis_port,
                     **kwargs
                 }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
@@ -161,11 +167,11 @@ now there are {} workers and {} nodes"\
 
         with Parallel() as router:
             router.is_active = True
-            router.run(*runner_args, **runner_kwargs)
+            router._run(*runner_args, **runner_kwargs)
             time.sleep(0.3)  # Waiting for network pairing
-            router.supervised_runner(main_process, *args, **kwargs)
+            router._supervised_runner(main_process, *args, **kwargs)
 
-    def supervised_runner(self, main: Callable, *args, **kwargs) -> None:
+    def _supervised_runner(self, main: Callable, *args, **kwargs) -> None:
         """
         Overview:
             Run in supervised mode.
