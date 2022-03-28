@@ -13,6 +13,19 @@ from ding.utils import set_pkg_seed
 from ding.utils.data import NaiveRLDataset
 
 
+def eval_bc(validation_set, policy, use_cuda):
+    tot = 0
+    tot_acc = 0
+    device = 'cuda' if use_cuda else 'cpu'
+    for _, data in enumerate(validation_set):
+        x, y = {'obs': data['obs'].to(device).squeeze(0)}, data['action'].squeeze(-1)
+        y_pred = policy.forward(x, eps=-1)['obs']['action']
+        tot += y_pred.shape[0]
+        tot_acc += (y_pred == y).sum().item()
+    acc = tot_acc / tot
+    return acc
+
+
 def serial_pipeline_il(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int,
@@ -50,7 +63,11 @@ def serial_pipeline_il(
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     dataset = NaiveRLDataset(data_path)
+    validation_set = dataset[-len(dataset) // 10:]
+    dataset = dataset[:-len(dataset) // 10]
     dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+    val_dataloader = DataLoader(validation_set, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
@@ -61,8 +78,19 @@ def serial_pipeline_il(
     learner.call_hook('before_run')
     stop = False
 
+    best_acc = 0.
+    cnt = 0
     for epoch in range(cfg.policy.learn.train_epoch):
         # Evaluate policy performance
+        acc = eval_bc(validation_set, bc_policy.collect_mode, cfg.policy.cuda)
+        if acc < best_acc:
+            cnt += 1
+            if cnt > 3:
+                break
+        else:
+            cnt = 0
+            best_acc = acc
+
         for i, train_data in enumerate(dataloader):
             if evaluator.should_eval(learner.train_iter):
                 stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
