@@ -44,7 +44,7 @@ class Parallel(metaclass=SingletonMetaclass):
         self.labels = labels or set()
         self.auto_recover = auto_recover
         self.max_retries = max_retries
-        self._mq: MQ = MQ_REGISTRY.get(mq_type)(**kwargs)
+        self._mq = MQ_REGISTRY.get(mq_type)(**kwargs)
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
