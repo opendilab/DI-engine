@@ -123,10 +123,12 @@ class FakeAsyncEnv(FakeEnv):
 
 
 class FakeGymEnv(FakeEnv):
+
     def __init__(self, cfg):
         super().__init__(cfg)
         self.metadata = "fake metadata"
         self.action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(4, ), dtype=np.float32)
+
     def random_action(self) -> np.ndarray:
         random_action = self.action_space.sample()
         if isinstance(random_action, np.ndarray):
@@ -142,6 +144,7 @@ class FakeGymEnv(FakeEnv):
                 )
             )
         return random_action
+
 
 class FakeModel(object):
 

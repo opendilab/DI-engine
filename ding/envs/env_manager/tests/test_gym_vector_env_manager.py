@@ -41,7 +41,7 @@ class TestGymVectorEnvManager:
         end_time = time.time()
         print('total step time: {}'.format(end_time - start_time))
         assert all(env_manager._env_episode_count[i] == env_manager._episode_num for i in env_id)
-        
+
         # Test close
         env_manager.close()
         assert env_manager._closed

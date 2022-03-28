@@ -82,7 +82,9 @@ class GymVectorEnvManager(BaseEnvManager):
         timestep_collate_result = {}
         for i in range(self.env_num):
             if i in env_ids_given:
-                timestep_collate_result[i] = BaseEnvTimestep(timestep[0][i], timestep[1][i], timestep[2][i], timestep[3][i])
+                timestep_collate_result[i] = BaseEnvTimestep(
+                    timestep[0][i], timestep[1][i], timestep[2][i], timestep[3][i]
+                )
                 self._final_eval_reward[i] += timestep_collate_result[i].reward
                 if timestep_collate_result[i].done:
                     timestep_collate_result[i].info['final_eval_reward'] = self._final_eval_reward[i]
@@ -95,8 +97,10 @@ class GymVectorEnvManager(BaseEnvManager):
 
     @property
     def ready_obs(self) -> Dict[int, Any]:
-        return {i: self.reset_observations[i] for i in range(len(self.reset_observations)) 
-        if self._env_episode_count[i] < self._episode_num}
+        return {
+            i: self.reset_observations[i]
+            for i in range(len(self.reset_observations)) if self._env_episode_count[i] < self._episode_num
+        }
 
     def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
         # TODO dynamic_seed
