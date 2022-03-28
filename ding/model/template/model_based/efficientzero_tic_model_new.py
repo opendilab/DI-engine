@@ -29,6 +29,7 @@ def mlp(
         zero initialization for the last layer (including w and b).
         This can provide stable zero outputs in the beginning.
     """
+    print(input_size, layer_sizes, output_size)
     sizes = [input_size] + layer_sizes + [output_size]
     layers = []
     for i in range(len(sizes) - 1):
@@ -213,8 +214,8 @@ class DynamicsNetwork(nn.Module):
         self.fc = mlp(self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum)
 
     def forward(self, x, reward_hidden):
-        # state = x[:,:-1,:,:]  # todo: not know the atari state or tic-tac-toc state
-        state = x
+        state = x[:,:-1,:,:]  # todo: not know the atari state or tic-tac-toc state -> lose one dim
+        # state = x
 
         x = self.conv(x)
         x = self.bn(x)
@@ -230,7 +231,8 @@ class DynamicsNetwork(nn.Module):
         x = self.bn_reward(x)
         x = nn.functional.relu(x)
 
-        x = x.view(-1, self.block_output_size_reward).unsqueeze(0)
+        # RuntimeError: view size is not compatible with input tensor size and stride (at least one dimension spans across two contiguous subspaces)
+        x = x.contiguous().view(-1, self.block_output_size_reward).unsqueeze(0)
         value_prefix, reward_hidden = self.lstm(x, reward_hidden)
         value_prefix = value_prefix.squeeze(0)
         value_prefix = self.bn_value_prefix(value_prefix)
