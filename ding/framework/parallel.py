@@ -48,9 +48,11 @@ class Parallel(metaclass=SingletonMetaclass):
         self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
-    @staticmethod
+    @classmethod
     def runner(
+            cls,
             n_parallel_workers: int,
+            mq_type: str = "nng",
             attach_to: Optional[List[str]] = None,
             protocol: str = "ipc",
             address: Optional[str] = None,
@@ -60,7 +62,6 @@ class Parallel(metaclass=SingletonMetaclass):
             node_ids: Optional[Union[List[int], int]] = None,
             auto_recover: bool = False,
             max_retries: int = float("inf"),
-            mq_type: str = "nng",
             redis_host: Optional[str] = None,
             redis_port: Optional[int] = None
     ) -> Callable:
@@ -69,6 +70,7 @@ class Parallel(metaclass=SingletonMetaclass):
             This method allows you to configure parallel parameters, and now you are still in the parent process.
         Arguments:
             - n_parallel_workers (:obj:`int`): Workers to spawn.
+            - mq_type (:obj:`str`): Embedded message queue type, i.e. nng, redis.
             - attach_to (:obj:`Optional[List[str]]`): The node's addresses you want to attach to.
             - protocol (:obj:`str`): Network protocol.
             - address (:obj:`Optional[str]`): Bind address, ip or file path.
@@ -81,13 +83,15 @@ class Parallel(metaclass=SingletonMetaclass):
             - node_ids (:obj:`Optional[List[int]]`): Candidate node ids.
             - auto_recover (:obj:`bool`): Auto recover from uncaught exceptions from main.
             - max_retries (:obj:`int`): Max retries for auto recover.
-            - mq_type (:obj:`str`): Embedded message queue type, i.e. nng, redis.
             - redis_host (:obj:`str`): Redis server host.
             - redis_port (:obj:`int`): Redis server port.
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
-        attach_to = attach_to or []
+        all_args = locals()
+        del all_args["cls"]
+        args_parsers = {"nng": cls._nng_args_parser, "redis": cls._redis_args_parser}
+
         assert n_parallel_workers > 0, "Parallel worker number should bigger than 0"
 
         def _runner(main_process: Callable, *args, **kwargs) -> None:
@@ -97,62 +101,77 @@ class Parallel(metaclass=SingletonMetaclass):
             Arguments:
                 - main_process (:obj:`Callable`): The main function, your program start from here.
             """
-            nodes = Parallel.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
-            logging.warning("Bind subprocesses on these addresses: {}".format(nodes))
-
-            def cleanup_nodes():
-                for node in nodes:
-                    protocol, file_path = node.split("://")
-                    if protocol == "ipc" and path.exists(file_path):
-                        os.remove(file_path)
-
-            atexit.register(cleanup_nodes)
-
-            def topology_network(i: int) -> List[str]:
-                if topology == "mesh":
-                    return nodes[:i] + attach_to
-                elif topology == "star":
-                    return nodes[:min(1, i)] + attach_to
-                elif topology == "alone":
-                    return attach_to
-                else:
-                    raise ValueError("Unknown topology: {}".format(topology))
-
-            params_group = []
-            candidate_node_ids = Parallel.padding_param(node_ids, n_parallel_workers, 0)
-            assert len(candidate_node_ids) == n_parallel_workers, \
-                "The number of workers must be the same as the number of node_ids, \
-now there are {} workers and {} nodes"\
-                    .format(n_parallel_workers, len(candidate_node_ids))
-            for i in range(n_parallel_workers):
-                runner_args = []
-                runner_kwargs = {
-                    "node_id": candidate_node_ids[i],
-                    "listen_to": nodes[i],
-                    "attach_to": topology_network(i),
-                    "labels": labels,
-                    "auto_recover": auto_recover,
-                    "max_retries": max_retries,
-                    "mq_type": mq_type,
-                    "redis_host": redis_host,
-                    "redis_port": redis_port,
-                    **kwargs
-                }
-                params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
-                params_group.append(params)
+            runner_params = args_parsers[mq_type](**all_args)
+            params_group = [[runner_kwargs, (main_process, args, kwargs)] for runner_kwargs in runner_params]
 
             if n_parallel_workers == 1:
-                Parallel.subprocess_runner(*params_group[0])
+                cls._subprocess_runner(*params_group[0])
             else:
                 with WorkerPool(n_jobs=n_parallel_workers, start_method="spawn", daemon=False) as pool:
                     # Cleanup the pool just in case the program crashes.
                     atexit.register(pool.__exit__)
-                    pool.map(Parallel.subprocess_runner, params_group)
+                    pool.map(cls._subprocess_runner, params_group)
 
         return _runner
 
-    @staticmethod
-    def subprocess_runner(runner_params: Tuple[Union[List, Dict]], main_params: Tuple[Union[List, Dict]]) -> None:
+    @classmethod
+    def _nng_args_parser(
+            cls,
+            n_parallel_workers: int,
+            attach_to: Optional[List[str]] = None,
+            protocol: str = "ipc",
+            address: Optional[str] = None,
+            ports: Optional[Union[List[int], int]] = None,
+            topology: str = "mesh",
+            node_ids: Optional[Union[List[int], int]] = None,
+            **kwargs
+    ) -> Dict[str, dict]:
+        attach_to = attach_to or []
+        nodes = cls.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
+        logging.info("Bind subprocesses on these addresses: {}".format(nodes))
+
+        def cleanup_nodes():
+            for node in nodes:
+                protocol, file_path = node.split("://")
+                if protocol == "ipc" and path.exists(file_path):
+                    os.remove(file_path)
+
+        atexit.register(cleanup_nodes)
+
+        def topology_network(i: int) -> List[str]:
+            if topology == "mesh":
+                return nodes[:i] + attach_to
+            elif topology == "star":
+                return nodes[:min(1, i)] + attach_to
+            elif topology == "alone":
+                return attach_to
+            else:
+                raise ValueError("Unknown topology: {}".format(topology))
+
+        runner_params = []
+        candidate_node_ids = cls.padding_param(node_ids, n_parallel_workers, 0)
+        for i in range(n_parallel_workers):
+            runner_kwargs = {
+                **kwargs,
+                "node_id": candidate_node_ids[i],
+                "listen_to": nodes[i],
+                "attach_to": topology_network(i),
+            }
+            runner_params.append(runner_kwargs)
+
+        return runner_params
+
+    @classmethod
+    def _redis_args_parser(cls, n_parallel_workers: int, node_ids: Optional[Union[List[int], int]] = None, **kwargs):
+        runner_params = []
+        candidate_node_ids = cls.padding_param(node_ids, n_parallel_workers, 0)
+        for i in range(n_parallel_workers):
+            runner_kwargs = {**kwargs, "node_id": candidate_node_ids[i]}
+            runner_params.append(runner_kwargs)
+        return runner_params
+
+    @classmethod
+    def _subprocess_runner(cls, runner_kwargs: dict, main_params: Tuple[Union[List, Dict]]) -> None:
         """
         Overview:
             Really run in subprocess.
@@ -161,11 +180,10 @@ now there are {} workers and {} nodes"\
             - main_params (:obj:`Tuple[Union[List, Dict]]`): Args and kwargs for main function.
         """
         main_process, args, kwargs = main_params
-        runner_args, runner_kwargs = runner_params
 
         with Parallel() as router:
             router.is_active = True
-            router._run(*runner_args, **runner_kwargs)
+            router._run(**runner_kwargs)
             time.sleep(0.3)  # Waiting for network pairing
             router._supervised_runner(main_process, *args, **kwargs)
 
@@ -200,8 +218,9 @@ now there are {} workers and {} nodes"\
         else:
             main(*args, **kwargs)
 
-    @staticmethod
+    @classmethod
     def get_node_addrs(
+            cls,
             n_workers: int,
             protocol: str = "ipc",
             address: Optional[str] = None,
@@ -212,8 +231,8 @@ now there are {} workers and {} nodes"\
             tmp_dir = tempfile.gettempdir()
             nodes = ["ipc://{}/ditask_{}_{}.ipc".format(tmp_dir, node_name, i) for i in range(n_workers)]
         elif protocol == "tcp":
-            address = address or Parallel.get_ip()
-            ports = Parallel.padding_param(ports, n_workers, 50515)
+            address = address or cls.get_ip()
+            ports = cls.padding_param(ports, n_workers, 50515)
             assert len(ports) == n_workers, "The number of ports must be the same as the number of workers, \
 now there are {} ports and {} workers".format(len(ports), n_workers)
             nodes = ["tcp://{}:{}".format(address, port) for port in ports]
@@ -221,8 +240,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             raise Exception("Unknown protocol {}".format(protocol))
         return nodes
 
-    @staticmethod
-    def padding_param(int_or_list: Optional[Union[List[int], int]], n_max: int, start_value: int) -> List[int]:
+    @classmethod
+    def padding_param(cls, int_or_list: Optional[Union[List[int], int]], n_max: int, start_value: int) -> List[int]:
         """
         Overview:
             Padding int or list param to the length of n_max.
@@ -321,8 +340,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             return
         self._event_loop.emit(event, *payload["a"], **payload["k"])
 
-    @staticmethod
-    def get_ip():
+    @classmethod
+    def get_ip(cls):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             # doesn't even have to be reachable

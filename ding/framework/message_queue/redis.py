@@ -48,7 +48,7 @@ class RedisMQ(MQ):
                 topic = msg["channel"].decode()
                 data = msg["data"]
                 return topic, data
-            except Exception as e:
+            except (OSError, AttributeError, Exception) as e:
                 logging.error("Meet exception when listening for new messages", e)
 
     def stop(self) -> None:
