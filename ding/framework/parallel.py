@@ -27,11 +27,7 @@ class Parallel(metaclass=SingletonMetaclass):
     def __init__(self) -> None:
         # Init will only be called once in a process
         self._listener = None
-        self._sock: Socket = None
-        self._bind_addr = None
         self.is_active = False
-        self.attach_to = None
-        self.finished = False
         self.node_id = None
         self.labels = set()
         self._event_loop = EventLoop("parallel_{}".format(id(self)))
@@ -40,26 +36,18 @@ class Parallel(metaclass=SingletonMetaclass):
     def run(
             self,
             node_id: int,
-            listen_to: str,
-            attach_to: Optional[List[str]] = None,
             labels: Optional[Set[str]] = None,
             auto_recover: bool = False,
-            max_retries: int = float("inf")
+            max_retries: int = float("inf"),
+            mq_type: str = "nng",
+            **kwargs
     ) -> None:
         self.node_id = node_id
-        self.attach_to = attach_to = attach_to or []
         self.labels = labels or set()
         self.auto_recover = auto_recover
         self.max_retries = max_retries
-        self._listener = Thread(
-            target=self.listen,
-            kwargs={
-                "listen_to": listen_to,
-                "attach_to": attach_to
-            },
-            name="paralllel_listener",
-            daemon=True
-        )
+        self._mq: MQ = MQ_REGISTRY.get(mq_type)(**kwargs)
+        self._listener = Thread(target=self.listen, name="mq_listener", daemon=True)
         self._listener.start()
 
     @staticmethod
@@ -73,7 +61,8 @@ class Parallel(metaclass=SingletonMetaclass):
             labels: Optional[Set[str]] = None,
             node_ids: Optional[Union[List[int], int]] = None,
             auto_recover: bool = False,
-            max_retries: int = float("inf")
+            max_retries: int = float("inf"),
+            mq_type: str = "nng"
     ) -> Callable:
         """
         Overview:
@@ -92,6 +81,7 @@ class Parallel(metaclass=SingletonMetaclass):
             - node_ids (:obj:`Optional[List[int]]`): Candidate node ids.
             - auto_recover (:obj:`bool`): Auto recover from uncaught exceptions from main.
             - max_retries (:obj:`int`): Max retries for auto recover.
+            - mq_type (:obj:`str`): Embedded message queue type, i.e. nng, redis.
         Returns:
             - _runner (:obj:`Callable`): The wrapper function for main.
         """
@@ -140,7 +130,9 @@ now there are {} workers and {} nodes"\
                     "attach_to": topology_network(i),
                     "labels": labels,
                     "auto_recover": auto_recover,
-                    "max_retries": max_retries
+                    "max_retries": max_retries,
+                    "mq_type": mq_type,
+                    **kwargs
                 }
                 params = [(runner_args, runner_kwargs), (main_process, args, kwargs)]
                 params_group.append(params)
@@ -245,30 +237,16 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             param = param or range(start_value, start_value + n_max)
         return param
 
-    def listen(self, listen_to: str, attach_to: List[str] = None):
-        attach_to = attach_to or []
-        self._bind_addr = listen_to
-
-        with Bus0() as sock:
-            self._sock = sock
-            sock.listen(self._bind_addr)
-            time.sleep(0.1)  # Wait for peers to bind
-            for contact in attach_to:
-                sock.dial(contact)
-
-            while True:
-                try:
-                    msg = sock.recv()
-                    self._handle_message(msg)
-                except pynng.Timeout:
-                    logging.warning("Timeout on node {} when waiting for message from bus".format(self._bind_addr))
-                except pynng.Closed:
-                    if not self.finished:
-                        logging.error("The socket was not closed under normal circumstances!")
-                    break
-                except Exception as e:
-                    logging.error("Meet exception when listening for new messages", e)
-                    break
+    def listen(self):
+        self._mq.listen()
+        while True:
+            msg = self._mq.recv()
+            # msg is none means that the message queue is no longer being listened to,
+            # especially if the message queue is already closed
+            if not msg:
+                break
+            topic, msg = msg
+            self._handle_message(topic, msg)
 
     def on(self, event: str, fn: Callable) -> None:
         """
@@ -279,6 +257,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): Function body.
         """
+        self._mq.subscribe(event)
         self._event_loop.on(event, fn)
 
     def once(self, event: str, fn: Callable) -> None:
@@ -290,6 +269,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): Function body.
         """
+        self._mq.subscribe(event)
         self._event_loop.once(event, fn)
 
     def off(self, event: str) -> None:
@@ -299,6 +279,7 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         Arguments:
             - event (:obj:`str`): Event name.
         """
+        self._mq.unsubscribe(event)
         self._event_loop.off(event)
 
     def emit(self, event: str, *args, **kwargs) -> None:
@@ -309,34 +290,30 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - event (:obj:`str`): Event name.
         """
         if self.is_active:
-            topic = event + "::"
             payload = {"a": args, "k": kwargs}
             try:
                 data = pickle.dumps(payload, protocol=-1)
             except AttributeError as e:
                 logging.error("Arguments are not pickable! Event: {}, Args: {}".format(event, args))
                 raise e
-            data = topic.encode() + data
-            return self._sock and self._sock.send(data)
+            self._mq.publish(event, data)
 
-    def _handle_message(self, msg: bytes) -> None:
+    def _handle_message(self, topic: str, msg: bytes) -> None:
         """
         Overview:
             Recv and parse payload from other processes, and call local functions.
         Arguments:
+            - topic (:obj:`str`): Recevied topic.
             - msg (:obj:`bytes`): Recevied message.
         """
-        # Use topic at the beginning of the message, so we don't need to call pickle.loads
-        # when the current process is not subscribed to the topic.
-        topic, payload = msg.split(b"::", maxsplit=1)
-        event = topic.decode()
+        event = topic
         if not self._event_loop.listened(event):
             logging.debug("Event {} was not listened in parallel {}".format(event, self.node_id))
             return
         try:
-            payload = pickle.loads(payload)
+            payload = pickle.loads(msg)
         except Exception as e:
-            logging.error("Error when unpacking message on node {}, msg: {}".format(self._bind_addr, e))
+            logging.error("Error when unpacking message on node {}, msg: {}".format(self.node_id, e))
             return
         self._event_loop.emit(event, *payload["a"], **payload["k"])
 
@@ -360,12 +337,13 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         self.stop()
 
     def stop(self):
-        logging.info("Stopping parallel worker on address: {}".format(self._bind_addr))
-        self.finished = True
+        logging.info("Stopping parallel worker on node: {}".format(self.node_id))
         self.is_active = False
         time.sleep(0.03)
-        if self._sock:
-            self._sock.close()
+        if self._mq:
+            self._mq.stop()
+            self._mq = None
         if self._listener:
             self._listener.join(timeout=1)
+            self._listener = None
         self._event_loop.stop()

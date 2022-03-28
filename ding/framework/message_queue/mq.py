@@ -7,6 +7,13 @@ class MQ:
         Abstract basic mq class.
     """
 
+    def __init__(self, *args, **kwargs) -> None:
+        """
+        Overview:
+            The __init__ method of the inheritance must support the extra kwargs parameter.
+        """
+        pass
+
     def listen(self) -> None:
         """
         Overview:
@@ -33,6 +40,15 @@ class MQ:
         """
         raise NotImplementedError
 
+    def unsubscribe(self, topic: str) -> None:
+        """
+        Overview:
+            Unsubscribe from the topic.
+        Arguments:
+            - topic (:obj:`str`): Topic
+        """
+        raise NotImplementedError
+
     def recv(self) -> Any:
         """
         Overview:
@@ -41,3 +57,10 @@ class MQ:
             - data (:obj:`Any`): The sent payload.
         """
         raise NotImplementedError
+
+    def stop(self) -> None:
+        """
+        Overview:
+            Unsubscribe from all topics and stop the connection to the message queue server.
+        """
+        return
