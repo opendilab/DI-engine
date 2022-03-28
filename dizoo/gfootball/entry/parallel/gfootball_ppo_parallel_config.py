@@ -62,7 +62,7 @@ gfootball_ppo_create_config = dict(
         import_names=['dizoo.gfootball.envs.gfootballsp_env'],
         type='gfootball_sp',
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_lstm_command', import_names=['dizoo.gfootball.policy.ppo_lstm']),
     learner=dict(type='base', import_names=['ding.worker.learner.base_learner']),
     collector=dict(

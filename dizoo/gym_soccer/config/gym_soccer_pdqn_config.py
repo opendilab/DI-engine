@@ -9,7 +9,7 @@ gym_soccer_pdqn_config = dict(
         act_scale=True,
         env_id='Soccer-v0',  # ['Soccer-v0', 'SoccerEmptyGoal-v0', 'SoccerAgainstKeeper-v0']
         n_evaluator_episode=5,
-        stop_value=0.99,  # 1
+        stop_value=0.99,
     ),
     policy=dict(
         cuda=True,
@@ -79,5 +79,6 @@ gym_soccer_pdqn_create_config = EasyDict(gym_soccer_pdqn_create_config)
 create_config = gym_soccer_pdqn_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c gym_soccer_pdqn_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)
