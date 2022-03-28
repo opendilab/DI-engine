@@ -1,7 +1,6 @@
 from easydict import EasyDict
 from ding.config import parallel_transform
 from copy import deepcopy
-from ding.entry import parallel_pipeline
 
 gfootball_ppo_config = dict(
     env=dict(
@@ -98,5 +97,7 @@ gfootball_ppo_system_config = EasyDict(gfootball_ppo_system_config)
 system_config = gfootball_ppo_system_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c gfootball_ppo_parallel_config.py -s 0`
+    from ding.entry import parallel_pipeline
     config = tuple([deepcopy(main_config), deepcopy(create_config), deepcopy(system_config)])
     parallel_pipeline(config, seed=0)
