@@ -59,6 +59,10 @@ def test_step_timer():
         task.run(3)
 
     assert len(step_timer1.records) == 2
+    from rich import print
+    print("RECRODS", step_timer2.records)
+    for record in step_timer2.records:
+        print("R", record)
     assert len(step_timer2.records) == 2
     for records in step_timer1.records.values():
         assert len(records) == 3
