@@ -24,10 +24,16 @@ ant_trex_ppo_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./ant.params',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='abs_data_path + ./ant.params',
         continuous=True,
-        offline_data_path='asb data path',
+        # Path to the offline dataset
+        # See ding/entry/application_entry_trex_collect_data.py to collect the data
+        offline_data_path='abs_data_path',
     ),
     policy=dict(
         cuda=True,
@@ -71,6 +77,6 @@ ant_trex_ppo_create_config = EasyDict(ant_trex_ppo_create_config)
 create_config = ant_trex_ppo_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c ant_trex_onppo_config.py -s 0 --env-step 1e7`
+    # or you can enter `ding -m serial -c ant_trex_onppo_config.py -s 0`
     from ding.entry import serial_pipeline_reward_model_trex_onpolicy
     serial_pipeline_reward_model_trex_onpolicy((main_config, create_config), seed=0)
