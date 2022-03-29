@@ -43,8 +43,10 @@ class TestGymVectorEnvManager:
         assert all(env_manager._env_episode_count[i] == env_manager._episode_num for i in env_id)
 
         # Test close
+        assert not env_manager._closed
         env_manager.close()
         assert env_manager._closed
+        assert env_manager._env_ref._state == EnvState.INIT
         # assert all([not env_manager._envs[env_id]._launched for env_id in range(env_manager.env_num)])
         # assert all([env_manager._env_states[env_id] == EnvState.VOID for env_id in range(env_manager.env_num)])
         with pytest.raises(AssertionError):
