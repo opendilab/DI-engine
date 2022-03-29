@@ -55,7 +55,7 @@ class GymVectorEnvManager(BaseEnvManager):
         self._closed = False
         for env_id in range(self.env_num):
             self._env_states[env_id] = EnvState.RESET
-        self.reset_observations = self._env_manager.reset()
+        self._ready_obs = self._env_manager.reset()
         for env_id in range(self.env_num):
             self._env_states[env_id] = EnvState.RUN
         self._final_eval_reward = [0. for _ in range(self._env_num)]
@@ -71,13 +71,13 @@ class GymVectorEnvManager(BaseEnvManager):
         # actions should be sorted by keys
         actions = dict(sorted(actions.items()))
 
-        elem = list(actions.values())[0]
+        actions = list(actions.values())
+        elem = actions[0]
+        if not isinstance(elem, np.ndarray):
+            raise Exception('DI-engine only accept np.ndarray-type action!')
+        if elem.shape == (1, ):
+            actions = [v.item() for v in actions]
 
-        if isinstance(elem, np.ndarray):
-            if elem.shape == (1, ):
-                actions = [v.item() for k, v in actions.items()]
-            else:
-                actions = list(actions.values())
         timestep = self._env_manager.step(actions)
         timestep_collate_result = {}
         for i in range(self.env_num):
@@ -92,14 +92,20 @@ class GymVectorEnvManager(BaseEnvManager):
                     self._env_episode_count[i] += 1
                     if self._env_episode_count[i] >= self._episode_num:
                         self._env_states[i] = EnvState.DONE
+                    else:
+                        self._env_states[i] = EnvState.RESET
+                        if all([self._env_states[i] == EnvState.RESET for i in range(self.env_num)]):
+                            self.reset()
+                else:
+                    self._ready_obs[i]=timestep_collate_result[i].obs                
 
         return timestep_collate_result
 
     @property
     def ready_obs(self) -> Dict[int, Any]:
         return {
-            i: self.reset_observations[i]
-            for i in range(len(self.reset_observations)) if self._env_episode_count[i] < self._episode_num
+            i: self._ready_obs[i]
+            for i in range(len(self._ready_obs)) if self._env_episode_count[i] < self._episode_num
         }
 
     def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
@@ -116,5 +122,6 @@ class GymVectorEnvManager(BaseEnvManager):
         if self._closed:
             return
         self._closed = True
+        self._env_ref.close()
         self._env_manager.close()
         self._env_manager.close_extras(terminate=True)
