@@ -227,6 +227,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             }
         }
         self._reset_inplace = self._cfg.reset_inplace
+        if not self._auto_reset:
+            assert not self._reset_inplace, "reset_inplace is unavailable when auto_reset=False."
 
     def _create_state(self) -> None:
         r"""
@@ -235,12 +237,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
-        self._env_ref = self._env_fn[0]()
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
-            self._env_ref.reset()
-            obs_space = self._env_ref.observation_space
-            self._env_ref.close()
+            obs_space = self._observation_space
             if isinstance(obs_space, list):
                 # for multi_agent case
                 if isinstance(obs_space[0], gym.spaces.Dict):
@@ -743,7 +742,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if self._closed:
             return
         self._closed = True
-        self._env_ref.close()
         for _, p in self._pipe_parents.items():
             p.send(['close', None, None])
         for env_id, p in self._pipe_parents.items():

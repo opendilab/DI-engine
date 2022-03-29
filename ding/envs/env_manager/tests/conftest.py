@@ -19,7 +19,8 @@ from ding.utils import deep_merge_dicts
 class FakeEnv(object):
 
     def __init__(self, cfg):
-        self._target_time = random.randint(3, 6)
+        self._scale = cfg.scale
+        self._target_time = random.randint(3, 6) * self._scale
         self._current_time = 0
         self._name = cfg['name']
         self._id = time.time()
@@ -77,7 +78,7 @@ class FakeEnv(object):
         done = self._current_time >= self._target_time
         if done:
             self._state = EnvState.DONE
-        simulation_time = random.uniform(0.5, 1)
+        simulation_time = random.uniform(0.5, 1) * self._scale
         info = {'name': self._name, 'time': simulation_time, 'tgt': self._target_time, 'cur': self._current_time}
         time.sleep(simulation_time)
         self._current_time += simulation_time
@@ -118,7 +119,7 @@ class FakeAsyncEnv(FakeEnv):
 
     def reset(self, stat=None):
         super().reset(stat)
-        time.sleep(random.randint(1, 3))
+        time.sleep(random.randint(1, 3) * self._scale)
         return to_ndarray(torch.randn(3))
 
 
@@ -143,6 +144,7 @@ def get_base_manager_cfg(env_num=4):
     manager_cfg = {
         'env_cfg': [{
             'name': 'name{}'.format(i),
+            'scale': 1.0,
         } for i in range(env_num)],
         'episode_num': 2,
         'reset_timeout': 10,
@@ -156,6 +158,7 @@ def get_subprecess_manager_cfg(env_num=4):
     manager_cfg = {
         'env_cfg': [{
             'name': 'name{}'.format(i),
+            'scale': 1.0,
         } for i in range(env_num)],
         'episode_num': 2,
         #'step_timeout': 8,
@@ -171,6 +174,16 @@ def get_subprecess_manager_cfg(env_num=4):
 def setup_base_manager_cfg():
     manager_cfg = get_base_manager_cfg(4)
     env_cfg = manager_cfg.pop('env_cfg')
+    manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
+    return deep_merge_dicts(BaseEnvManager.default_config(), EasyDict(manager_cfg))
+
+
+@pytest.fixture(scope='function')
+def setup_fast_base_manager_cfg():
+    manager_cfg = get_base_manager_cfg(4)
+    env_cfg = manager_cfg.pop('env_cfg')
+    for e in env_cfg:
+        e['scale'] = 0.1
     manager_cfg['env_fn'] = [partial(FakeEnv, cfg=c) for c in env_cfg]
     return deep_merge_dicts(BaseEnvManager.default_config(), EasyDict(manager_cfg))
 

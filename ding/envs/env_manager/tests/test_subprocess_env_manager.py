@@ -216,3 +216,6 @@ class TestSubprocessEnvManager:
             if env_manager.done:
                 break
         assert all(env_manager._env_episode_count[i] == 1 for i in range(env_manager.env_num))
+        assert all(env_manager._env_states[i] == EnvState.DONE for i in range(env_manager.env_num))
+        env_manager.reset()
+        assert all(env_manager._env_states[i] == EnvState.RUN for i in range(env_manager.env_num))
