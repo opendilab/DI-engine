@@ -413,9 +413,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._check_data({env_id: obs}, close=False)
             if self._shared_memory:
                 obs = self._obs_buffers[env_id].get()
-            # Because each thread updates the corresponding env_id value, they won't lead to a thread-safe problem.
-            self._env_states[env_id] = EnvState.RUN
-            self._ready_obs[env_id] = obs
+            # it is necessary to add lock for the updates of env_state
+            with self._lock:
+                self._env_states[env_id] = EnvState.RUN
+                self._ready_obs[env_id] = obs
 
         exceptions = []
         for _ in range(self._max_retry):
