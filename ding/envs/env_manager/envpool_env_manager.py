@@ -59,12 +59,16 @@ class PoolEnvManager:
         self.reset()
 
     def reset(self) -> None:
+        self._ready_obs = {}
         self._envs.async_reset()
-        obs, _, _, info = self._envs.recv()
-        env_id = info['env_id']
-        print(env_id)
-        obs = obs.astype(np.float32)
-        self._ready_obs = {i: o for i, o in zip(env_id, obs)}
+        while True:
+            obs, _, _, info = self._envs.recv()
+            env_id = info['env_id']
+            print(info, env_id)
+            obs = obs.astype(np.float32)
+            self._ready_obs = deep_merge_dicts({i: o for i, o in zip(env_id, obs)}, self._ready_obs)
+            if len(self._ready_obs) == self._env_num:
+                break
 
     def step(self, action) -> Dict[int, namedtuple]:
         env_id = np.array(list(action.keys()))

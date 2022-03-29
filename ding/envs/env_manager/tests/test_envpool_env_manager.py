@@ -5,7 +5,7 @@ from easydict import EasyDict
 
 from ..envpool_env_manager import PoolEnvManager
 
-env_num_args = [[16, 8]]
+env_num_args = [[16, 8], [8, 8]]
 
 
 @pytest.mark.envpooltest
@@ -28,11 +28,9 @@ class TestPoolEnvManager:
             env_id = env_manager.ready_obs.keys()
             action = {i: np.random.randint(4) for i in env_id}
             timestep = env_manager.step(action)
-            if count > 10:
-                assert len(timestep) == env_manager_cfg.batch_size
+            assert len(timestep) == env_manager_cfg.batch_size
             print('Count {}'.format(count))
             print([v.info for v in timestep.values()])
-            print([v.done for v in timestep.values()])
         end_time = time.time()
         print('total step time: {}'.format(end_time - start_time))
         # Test close
