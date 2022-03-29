@@ -58,11 +58,8 @@ def test_step_timer():
         task.use(step2)
         task.run(3)
 
-    try:
-        assert len(step_timer1.records) == 2
-        assert len(step_timer2.records) == 2
-    except:
-        raise Exception("StepTimer error")
+    assert len(step_timer1.records) == 2
+    assert len(step_timer2.records) == 2
     for records in step_timer1.records.values():
         assert len(records) == 3
     for records in step_timer2.records.values():
