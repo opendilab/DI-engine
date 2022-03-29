@@ -64,7 +64,7 @@ class BaseEnvManager(object):
     Overview:
         Create a BaseEnvManager to manage multiple environments.
     Interfaces:
-        reset, step, seed, close, enable_save_replay, launch, default_config
+        reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done
     Properties:
         env_num, ready_obs, done, method_name_list
         observation_space, action_space, reward_space
@@ -116,8 +116,6 @@ class BaseEnvManager(object):
         self._episode_num = self._cfg.episode_num
         self._max_retry = max(self._cfg.max_retry, 1)
         self._auto_reset = self._cfg.auto_reset
-        if not self._auto_reset:
-            assert self._episode_num == 1, "when not use auto_reset mode, you can only the episode_num=1"
         self._retry_type = self._cfg.retry_type
         assert self._retry_type in ['reset', 'renew'], self._retry_type
         self._step_timeout = self._cfg.step_timeout
@@ -161,6 +159,9 @@ class BaseEnvManager(object):
     @property
     def method_name_list(self) -> list:
         return ['reset', 'step', 'seed', 'close', 'enable_save_replay']
+
+    def env_state_done(self, env_id: int) -> bool:
+        return self._env_states[env_id] == EnvState.DONE
 
     def __getattr__(self, key: str) -> Any:
         """
