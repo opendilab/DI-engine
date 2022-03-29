@@ -280,7 +280,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): Function body.
         """
-        self._mq.subscribe(event)
+        if self.is_active:
+            self._mq.subscribe(event)
         self._event_loop.on(event, fn)
 
     def once(self, event: str, fn: Callable) -> None:
@@ -292,7 +293,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): Function body.
         """
-        self._mq.subscribe(event)
+        if self.is_active:
+            self._mq.subscribe(event)
         self._event_loop.once(event, fn)
 
     def off(self, event: str) -> None:
@@ -302,7 +304,8 @@ now there are {} ports and {} workers".format(len(ports), n_workers)
         Arguments:
             - event (:obj:`str`): Event name.
         """
-        self._mq.unsubscribe(event)
+        if self.is_active:
+            self._mq.unsubscribe(event)
         self._event_loop.off(event)
 
     def emit(self, event: str, *args, **kwargs) -> None:
