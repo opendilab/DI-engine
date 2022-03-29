@@ -57,6 +57,7 @@ class BaseNet(nn.Module):
         returned.
         Parameters
         ----------
+        # discrete support: [-300, 300] support of value to represent the value scalars
         inverse_value_transform: Any
             A function that maps value supports into value scalars
         inverse_reward_transform: Any
