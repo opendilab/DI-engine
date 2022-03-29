@@ -40,7 +40,7 @@ memory_len_a2c_create_config = dict(
         type='bsuite',
         import_names=['dizoo.bsuite.envs.bsuite_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='a2c'),
 )
 memory_len_a2c_create_config = EasyDict(memory_len_a2c_create_config)

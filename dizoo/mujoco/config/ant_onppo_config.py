@@ -1,20 +1,17 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_onpolicy
 
-collector_env_num = 1
-evaluator_env_num = 1
 ant_ppo_default_config = dict(
-    exp_name="result_mujoco_para2/ant_onppo_noig_para2_seed0",
-    # exp_name="result_mujoco_para2/ant_onppo_ig_para2",
+    exp_name="ant_onppo_seed0",
     env=dict(
         env_id='Ant-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=collector_env_num,
-        evaluator_env_num=evaluator_env_num,
+        collector_env_num=10,
+        evaluator_env_num=10,
         use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=6000,
+        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -35,17 +32,12 @@ ant_ppo_default_config = dict(
             clip_ratio=0.2,
             adv_norm=True,
             value_norm=True,
-            # for onppo, when we recompute adv, we need the key done in data to split traj, so we must
-            # use ignore_done=False here,
-            # but when we add key traj_flag in data as the backup for key done, we could choose to use ignore_done=True
-            # for halfcheetah, the length=1000
-            # ignore_done=True,
-            ignore_done=False,
+            ignore_done=False,  # when we recompute advantage, we need the key done in data to split trajectories
             grad_clip_type='clip_norm',
             grad_clip_value=0.5,
         ),
         collect=dict(
-            collector_env_num=collector_env_num,
+            collector_env_num=10,
             n_sample=3200,
             unroll_len=1,
             discount_factor=0.99,
@@ -62,12 +54,13 @@ ant_ppo_create_default_config = dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    # env_manager=dict(type='subprocess'),
-    env_manager=dict(type='base'),
-    policy=dict(type='ppo', ),
+    env_manager=dict(type='subprocess'),
+    policy=dict(type='ppo'),
 )
 ant_ppo_create_default_config = EasyDict(ant_ppo_create_default_config)
 create_config = ant_ppo_create_default_config
 
 if __name__ == "__main__":
-    serial_pipeline_onpolicy([main_config, create_config], seed=0)
+    # or you can enter `ding -m serial_onpolicy -c ant_onppo_config.py -s 0 --env-step 1e7`
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)
