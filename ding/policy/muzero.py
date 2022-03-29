@@ -1,10 +1,12 @@
 from typing import List, Dict, Any, Tuple, Union
+import numpy as np
 import torch
 import treetensor.torch as ttorch
 
 from ding.torch_utils import SGD
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
+from ding.rl_utils import MCTS, Root
 from .base_policy import Policy
 
 
@@ -44,6 +46,13 @@ class MuZero(Policy):
         value_prefix_weight=2.0,
         image_unroll_len=5,
         lstm_horizon_len=5,
+        # collect
+        # collect_env_num=8,
+        # action_shape=6,
+        simulation_num=50,
+        root_dirichlet_alpha=0.3,
+        root_exploration_fraction=0.25,
+        value_delta_max=0.01,
     )
 
     def _init_learn(self) -> None:
@@ -94,7 +103,7 @@ class MuZero(Policy):
             # consistent loss
             if self._cfg.consistent_weight > 0:
                 with torch.no_grad():
-                    next_hidden_state = self._learn_model.forward(data.next_obs, mode='init')
+                    next_hidden_state = self._learn_model.forward(data.next_obs, mode='init').hidden_state
                     projected_next = self._learn_model.forward(next_hidden_state, mode='project')
                 projected_now = self._learn_model.forward(output.hidden_state, mode='project')
                 losses.consistent_loss += -(self._cos(projected_now, projected_next) * data.mask[i])
@@ -124,3 +133,73 @@ class MuZero(Policy):
             'priority': td_error_per_sample.abs().tolist(),
         }.update({k: v.mean().item()
                   for k, v in losses.items()})
+
+    def _init_collect(self) -> None:
+        self._collect_model = model_wrap(self._model, 'base')
+        self._mcts_handler = MCTS(
+            discount=self._cfg.discount_factor,
+            value_delta_max=self._cfg.value_delta_max,
+            horizons=self._cfg.lstm_horizon_len,
+            simulation_num=self._cfg.simulation_num
+        )
+
+        self._reset_collect()
+
+    @staticmethod
+    def _get_max_entropy(action_shape: int) -> None:
+        p = 1.0 / action_shape
+        return -action_shape * p * np.log2(p)
+
+    def _forward_collect(self, data: ttorch.Tensor, temperature: torch.Tensor):
+        """
+        Shapes:
+            obs: (B, S, C, H, W), where S is the stack num
+            temperature: (N1, ), where N1 is the number of collect_env.
+        """
+        assert len(data.obs.shape) == 5
+        env_id = data.env_id
+        self._collect_model.eval()
+        # TODO priority
+
+        with torch.no_grad():
+            obs = data.obs / 255.  # TODO move it into env
+            obs = obs.view(obs.shape[0], -1, *obs.shape[2:])
+            output = self._collect_model.forward(obs, mode='init')
+
+            root = Root(root_num=len(env_id), action_num=self._cfg.action_shape, tree_nodes=self._cfg.simulation_num)
+            noise = np.random.dirichlet(self._cfg.root_dirichlet_alpha, size=(len(env_id), self._cfg.action_shape))
+            root.prepare(
+                self._cfg.root_exploration_fraction, noise,
+                output.value_prefix.cpu().numpy(),
+                output.logit.cpu().numpy()
+            )
+            self._mcts_handler.search(
+                root, self._collect_model,
+                output.hidden_state.cpu().numpy(),
+                output.hidden_state_reward.cpu().numpy()
+            )
+
+            output.distribution = ttorch.as_tensor(root.get_distributions())  # TODO whether to device
+            output.value = ttorch.as_tensor(root.get_values())
+            distribution = output.distribution ** (1 / temperature)
+            action_prob = distribution / distribution.sum(dim=-1)
+            output.action = torch.multinomial(action_prob, dim=-1).squeeze(-1)
+        return output
+
+    def _process_transition(
+            self, obs: ttorch.Tensor, policy_output: ttorch.Tensor, timestep: ttorch.Tensor
+    ) -> ttorch.Tensor:
+        return ttorch.as_tensor(
+            {
+                'obs': obs,
+                'action': policy_output.action,
+                'distribution': policy_output.distribution,
+                'value': policy_output.value,
+                'next_obs': timestep.obs,
+                'reward': timestep.reward,
+                'done': timestep.done,
+            }
+        )
+
+    def _reset_collect(self, env_id: List[int] = None):
+        self._collect_model.reset(env_id=env_id)
