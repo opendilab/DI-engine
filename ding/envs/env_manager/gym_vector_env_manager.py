@@ -97,7 +97,7 @@ class GymVectorEnvManager(BaseEnvManager):
                         if all([self._env_states[i] == EnvState.RESET for i in range(self.env_num)]):
                             self.reset()
                 else:
-                    self._ready_obs[i]=timestep_collate_result[i].obs                
+                    self._ready_obs[i] = timestep_collate_result[i].obs
 
         return timestep_collate_result
 
