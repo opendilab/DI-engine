@@ -19,8 +19,9 @@ ant_ppo_config = dict(
         model=dict(
             obs_shape=111,
             action_shape=8,
+            action_space='continuous',
         ),
-        continuous=True,
+        action_space='continuous',
         learn=dict(
             epoch_per_collect=10,
             batch_size=64,
