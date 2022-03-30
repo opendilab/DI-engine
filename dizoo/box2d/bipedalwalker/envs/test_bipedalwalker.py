@@ -14,7 +14,7 @@ class TestBipedalWalkerEnv:
         obs = env.reset()
         assert obs.shape == (24, )
         for i in range(10):
-            random_action = env.action_space.sample()
+            random_action = env.random_action()
             timestep = env.step(random_action)
             print(timestep)
             assert isinstance(timestep.obs, np.ndarray)

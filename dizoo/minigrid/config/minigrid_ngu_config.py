@@ -1,21 +1,17 @@
-import torch
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_reward_model_ngu
-
-print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
 minigrid_ppo_ngu_config = dict(
-    exp_name='debug_minigrid_doorkey_ngu_ul298_er01_rbs3e4_n32',
+    exp_name='debug_minigrid_doorkey_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        # env_id='MiniGrid-FourRooms-v0',
+        # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
         env_id='MiniGrid-DoorKey-16x16-v0',
+        max_step=300,
         stop_value=0.96,
     ),
     rnd_reward_model=dict(
@@ -51,7 +47,7 @@ minigrid_ppo_ngu_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=298,  # TODO(pu): according to the episode length
+        unroll_len=298,  # set this key according to the episode length
         model=dict(
             obs_shape=2739,
             action_shape=7,
@@ -94,8 +90,7 @@ minigrid_ppo_ngu_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
@@ -105,4 +100,6 @@ minigrid_ppo_ngu_create_config = EasyDict(minigrid_ppo_ngu_create_config)
 create_config = minigrid_ppo_ngu_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c minigrid_ngu_config.py -s 0`
+    from ding.entry import serial_pipeline_reward_model_ngu
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)

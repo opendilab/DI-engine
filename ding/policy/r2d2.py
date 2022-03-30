@@ -20,7 +20,6 @@ class R2D2Policy(Policy):
         Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
         R2D2 proposes that several tricks should be used to improve upon DRQN,
         namely some recurrent experience replay tricks such as burn-in.
-
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
@@ -129,12 +128,9 @@ class R2D2Policy(Policy):
         r"""
         Overview:
             Init the learner model of R2D2Policy
-
         Arguments:
             .. note::
-
                 The _init_learn method takes the argument from the self._cfg.learn in the config file
-
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - nstep (:obj:`int`): The num of n step return
@@ -182,10 +178,8 @@ class R2D2Policy(Policy):
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
-
         Arguments:
             - data (:obj:`List[Dict[str, Any]]`): the data collected from collect function
-
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, including at least \
                 ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
@@ -253,11 +247,9 @@ class R2D2Policy(Policy):
         Overview:
             Forward and backward function of learn mode.
             Acquire the data, calculate the loss and optimize learner model.
-
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least \
                 ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
-
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including cur_lr and total_loss
                 - cur_lr (:obj:`float`): Current learning rate
@@ -441,10 +433,8 @@ class R2D2Policy(Policy):
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
-
         Arguments:
             - data (:obj:`list`): The trajectory's cache
-
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """

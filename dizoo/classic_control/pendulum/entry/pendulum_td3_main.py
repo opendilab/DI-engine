@@ -1,6 +1,7 @@
 import os
 import gym
 from tensorboardX import SummaryWriter
+from torch.optim.lr_scheduler import LambdaLR
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
@@ -41,6 +42,10 @@ def main(cfg, seed=0):
     # Set up RL Policy
     model = QAC(**cfg.policy.model)
     policy = DDPGPolicy(cfg.policy, model=model)
+    # lr_scheduler demo
+    lr_scheduler = LambdaLR(
+        policy.learn_mode.get_attribute('optimizer_actor'), lr_lambda=lambda iters: min(1.0, 0.5 + 0.5 * iters / 1000)
+    )
 
     # Set up collection, training and evaluation utilities
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
@@ -69,6 +74,8 @@ def main(cfg, seed=0):
             if train_data is None:
                 break
             learner.train(train_data, collector.envstep)
+            lr_scheduler.step()
+        tb_logger.add_scalar('other_iter/scheduled_lr', lr_scheduler.get_last_lr()[0], learner.train_iter)
 
 
 if __name__ == "__main__":

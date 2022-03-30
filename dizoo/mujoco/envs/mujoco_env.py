@@ -69,7 +69,7 @@ class MujocoEnv(BaseEnv):
     def step(self, action: Union[np.ndarray, list]) -> BaseEnvTimestep:
         action = to_ndarray(action)
         if self._use_act_scale:
-            action_range = self.info().act_space.value
+            action_range = {'min': self.action_space.low[0], 'max': self.action_space.high[0], 'dtype': np.float32}
             action = affine_transform(action, min_val=action_range['min'], max_val=action_range['max'])
         obs, rew, done, info = self._env.step(action)
         obs = to_ndarray(obs).astype(np.float32)
@@ -88,6 +88,9 @@ class MujocoEnv(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
+
+    def random_action(self) -> np.ndarray:
+        return self.action_space.sample()
 
     def __repr__(self) -> str:
         return "DI-engine Mujoco Env({})".format(self._cfg.env_id)

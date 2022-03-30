@@ -59,6 +59,8 @@ def serial_pipeline_sqil(
     expert_cfg = compile_config(
         expert_cfg, seed=seed, env=env_fn, auto=True, create_cfg=expert_create_cfg, save_cfg=True
     )
+    # expert config must have the same `n_sample`. The line below ensure we do not need to modify the expert configs
+    expert_cfg.policy.collect.n_sample = cfg.policy.collect.n_sample
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -75,9 +77,7 @@ def serial_pipeline_sqil(
     expert_policy = create_policy(expert_cfg.policy, model=expert_model, enable_field=['collect', 'command'])
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
-    expert_policy.collect_mode.load_state_dict(
-        torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu')
-    )
+    expert_policy.collect_mode.load_state_dict(torch.load(cfg.policy.collect.model_path, map_location='cpu'))
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)

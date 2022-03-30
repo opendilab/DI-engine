@@ -4,11 +4,10 @@ import copy
 import numpy as np
 from numpy.lib.arraysetops import isin
 
-from ding.envs.common.env_element import EnvElementInfo
+from ding.envs.common.common_function import affine_transform
 from ding.envs.env_wrappers import create_env_wrapper
 from ding.torch_utils import to_ndarray
-from ding.utils import ENV_WRAPPER_REGISTRY, import_module
-from .base_env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from .base_env import BaseEnv, BaseEnvTimestep
 from .default_wrapper import get_default_wrappers
 
 
@@ -80,6 +79,8 @@ class DingEnvWrapper(BaseEnv):
     # override
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         action = self._judge_action_type(action)
+        if self._cfg.get('act_scale', False):
+            action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
         obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)

@@ -58,6 +58,11 @@ class AtariEnv(BaseEnv):
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
 
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
+
     @property
     def observation_space(self) -> gym.spaces.Space:
         return self._observation_space

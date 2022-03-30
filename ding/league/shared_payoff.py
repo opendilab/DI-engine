@@ -91,7 +91,7 @@ class BattleSharedPayoff:
                 naive_win_rate = (v['wins'] + v['draws'] / 2) / (v['wins'] + v['losses'] + v['draws'] + 1e-8)
                 data.append([k1[0], k1[1], v['wins'], v['draws'], v['losses'], naive_win_rate])
         data = sorted(data, key=lambda x: x[0])
-        s = tabulate(data, headers=headers, tablefmt='grid')
+        s = tabulate(data, headers=headers, tablefmt='pipe')
         return s
 
     def __getitem__(self, players: tuple) -> np.ndarray:
@@ -202,15 +202,22 @@ class BattleSharedPayoff:
             except Exception as e:
                 print("[ERROR] invalid job_info: {}\n\tError reason is: {}".format(job_info, e))
                 return False
-            key, reverse = self.get_key(home_id, away_id)
-            # Update with decay
-            for j in job_info_result:
-                for i in j:
-                    # All categories should decay
-                    self._data[key] *= self._decay
-                    self._data[key]['games'] += 1
-                    result = _win_loss_reverse(i, reverse)
-                    self._data[key][result] += 1
+            if home_id == away_id:  # self-play
+                key, reverse = self.get_key(home_id, away_id)
+                self._data[key]['draws'] += 1  # self-play defaults to draws
+                self._data[key]['games'] += 1
+            else:
+                key, reverse = self.get_key(home_id, away_id)
+                # Update with decay
+                # job_info_result is a two-layer list, including total NxM episodes of M envs,
+                # the first(outer) layer is episode dimension and the second(inner) layer is env dimension.
+                for one_episode_result in job_info_result:
+                    for one_episode_result_per_env in one_episode_result:
+                        # All categories should decay
+                        self._data[key] *= self._decay
+                        self._data[key]['games'] += 1
+                        result = _win_loss_reverse(one_episode_result_per_env, reverse)
+                        self._data[key][result] += 1
             return True
 
     def get_key(self, home: str, away: str) -> Tuple[str, bool]:
