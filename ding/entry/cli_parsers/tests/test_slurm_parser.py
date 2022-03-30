@@ -36,7 +36,6 @@ def set_slurm_env():
 @pytest.mark.usefixtures('set_slurm_env')
 def test_slurm_parser():
     platform_spec = {
-        "type": "slurm",
         "tasks": [
             {
                 "labels": "league,collect",

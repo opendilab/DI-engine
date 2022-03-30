@@ -4,7 +4,7 @@ from tensorboardX import SummaryWriter
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
-from ding.envs import PoolEnvManager
+from ding.envs.env_manager.envpool_env_manager import PoolEnvManager
 from ding.policy import DQNPolicy
 from ding.model import DQN
 from ding.utils import set_pkg_seed
@@ -29,7 +29,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             'env_id': cfg.env.env_id,
             'env_num': cfg.env.collector_env_num,
             'batch_size': cfg.env.collector_batch_size,
-            'seed': seed,
         }
     )
     collector_env = PoolEnvManager(collector_env_cfg)
@@ -38,10 +37,11 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             'env_id': cfg.env.env_id,
             'env_num': cfg.env.evaluator_env_num,
             'batch_size': cfg.env.evaluator_batch_size,
-            'seed': seed,
         }
     )
     evaluator_env = PoolEnvManager(evaluator_env_cfg)
+    collector_env.seed(seed)
+    evaluator_env.seed(seed)
     set_pkg_seed(seed, use_cuda=cfg.policy.cuda)
 
     model = DQN(**cfg.policy.model)

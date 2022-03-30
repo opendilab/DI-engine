@@ -1,29 +1,37 @@
 from easydict import EasyDict
 
 ant_sac_default_config = dict(
+    exp_name='multi_mujoco_ant_2x4',
     env=dict(
-        env_id='AntMuJoCoEnv-v0',
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
-        collector_env_num=1,
+        manager=dict(
+            shared_memory=True,
+        ),
+        scenario='Ant-v2',
+        agent_conf="2x4d",
+        agent_obsk=2,
+        add_agent_id=False,
+        episode_limit=1000,
+        collector_env_num=8,
         evaluator_env_num=8,
-        use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
+
     ),
     policy=dict(
         cuda=True,
-        random_collect_size=10000,
+        random_collect_size=0,
+        multi_agent=True,
         model=dict(
-            obs_shape=111,
-            action_shape=8,
+            agent_obs_shape=54,
+            global_obs_shape=111,
+            action_shape=4,
             twin_critic=True,
             action_space='reparameterization',
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            update_per_collect=1,
+            update_per_collect=10,
             batch_size=256,
             learning_rate_q=1e-3,
             learning_rate_policy=1e-3,
@@ -33,15 +41,16 @@ ant_sac_default_config = dict(
             discount_factor=0.99,
             alpha=0.2,
             reparameterization=True,
-            auto_alpha=False,
+            auto_alpha=True,
+            log_space=True,
         ),
         collect=dict(
-            n_sample=1,
+            n_sample=400,
             unroll_len=1,
         ),
         command=dict(),
-        eval=dict(),
-        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
+        eval=dict(evaluator=dict(eval_freq=100, )),
+        other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),
     ),
 )
 
@@ -50,10 +59,10 @@ main_config = ant_sac_default_config
 
 ant_sac_default_create_config = dict(
     env=dict(
-        type='pybullet',
-        import_names=['dizoo.pybullet.envs.pybullet_env'],
+        type='mujoco_multi',
+        import_names=['dizoo.multiagent_mujoco.envs.multi_mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
@@ -62,3 +71,8 @@ ant_sac_default_create_config = dict(
 )
 ant_sac_default_create_config = EasyDict(ant_sac_default_create_config)
 create_config = ant_sac_default_create_config
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial -c ant_masac_config.py -s 0`
+    from ding.entry.serial_entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
