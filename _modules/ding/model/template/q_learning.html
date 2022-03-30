@@ -265,7 +265,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="C51DQN"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.C51DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;c51dqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="C51DQN"><a class="viewcode-back" href="../../../../hands_on/c51.html#ding.model.template.q_learning.C51DQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;c51dqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">C51DQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -338,7 +338,7 @@
                 <span class="n">v_max</span><span class="o">=</span><span class="n">v_max</span><span class="p">,</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="C51DQN.forward"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.C51DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="C51DQN.forward"><a class="viewcode-back" href="../../../../hands_on/c51.html#ding.model.template.q_learning.C51DQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict C51DQN&#39;s output.</span>
@@ -373,7 +373,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="QRDQN"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.QRDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qrdqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="QRDQN"><a class="viewcode-back" href="../../../../hands_on/qrdqn.html#ding.model.template.q_learning.QRDQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qrdqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">QRDQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -440,7 +440,7 @@
                 <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="QRDQN.forward"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.QRDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="QRDQN.forward"><a class="viewcode-back" href="../../../../hands_on/qrdqn.html#ding.model.template.q_learning.QRDQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use observation tensor to predict QRDQN&#39;s output.</span>
@@ -476,7 +476,7 @@
         <span class="k">return</span> <span class="n">x</span></div></div>
 
 
-<div class="viewcode-block" id="IQN"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.IQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;iqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="IQN"><a class="viewcode-back" href="../../../../hands_on/iqn.html#ding.model.template.q_learning.IQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;iqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">IQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -547,7 +547,7 @@
                 <span class="n">quantile_embedding_size</span><span class="o">=</span><span class="n">quantile_embedding_size</span><span class="p">,</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="IQN.forward"><a class="viewcode-back" href="../../../../hands_on/c51_qrdqn_iqn.html#ding.model.template.q_learning.IQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+<div class="viewcode-block" id="IQN.forward"><a class="viewcode-back" href="../../../../hands_on/iqn.html#ding.model.template.q_learning.IQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Use encoded embedding tensor to predict IQN&#39;s output.</span>
@@ -728,7 +728,7 @@
     <span class="k">return</span> <span class="n">wrapper</span>
 
 
-<span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;drqn&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="DRQN"><a class="viewcode-back" href="../../../../hands_on/r2d2.html#ding.model.template.q_learning.DRQN">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;drqn&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DRQN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -802,7 +802,7 @@
                 <span class="n">head_hidden_size</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
             <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
+<div class="viewcode-block" id="DRQN.forward"><a class="viewcode-back" href="../../../../hands_on/r2d2.html#ding.model.template.q_learning.DRQN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">inference</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saved_hidden_state_timesteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -893,7 +893,7 @@
             <span class="n">x</span><span class="p">[</span><span class="s1">&#39;hidden_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">hidden_state_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">3</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">saved_hidden_state_timesteps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">x</span><span class="p">[</span><span class="s1">&#39;saved_hidden_state&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">saved_hidden_state</span>  <span class="c1"># the selected saved hidden states, including h and c</span>
-            <span class="k">return</span> <span class="n">x</span>
+            <span class="k">return</span> <span class="n">x</span></div></div>
 
 
 <span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;gtrxl_discrete&#39;</span><span class="p">)</span>

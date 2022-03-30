@@ -283,20 +283,22 @@
 <span class="sd">           == ====================  ========   =============  ================================= =======================</span>
 <span class="sd">           ID Symbol                Type       Default Value  Description                       Other(Shape)</span>
 <span class="sd">           == ====================  ========   =============  ================================= =======================</span>
-<span class="sd">           1  ``type``              str        gail            | RL policy register name, refer  | this arg is optional,</span>
-<span class="sd">                                                               | to registry ``POLICY_REGISTRY`` | a placeholder</span>
-<span class="sd">           2  | ``expert_data_      str        expert_data.    | Path to the expert dataset      | Should be a &#39;.pkl&#39;</span>
-<span class="sd">              |   path``                       .pkl            |                                 | file</span>
-<span class="sd">           3  | ``update_per_       int        100             | Number of updates per collect   |</span>
-<span class="sd">              |    collect``                                   |                                 |</span>
-<span class="sd">           4  | ``batch_size``      int        64              | Training batch size             |</span>
-<span class="sd">           5  | ``input_size``      int                        | Size of the input:              |</span>
-<span class="sd">              |                                                | obs_dim + act_dim               |</span>
-<span class="sd">           6  | ``target_new_       int        64              | Collect steps per iteration     |</span>
-<span class="sd">              |    data_count``                                |                                 |</span>
-<span class="sd">           7  | ``hidden_size``     int        128             | Linear model hidden size        |</span>
-<span class="sd">           8  | ``collect_count``   int        100000          | Expert dataset size             | One entry is a (s,a)</span>
-<span class="sd">              |                                                |                                 | tuple</span>
+<span class="sd">           1  ``type``              str        gail           | RL policy register name, refer  | this arg is optional,</span>
+<span class="sd">                                                              | to registry ``POLICY_REGISTRY`` | a placeholder</span>
+<span class="sd">           2  | ``expert_data_``    str        expert_data.   | Path to the expert dataset      | Should be a &#39;.pkl&#39;</span>
+<span class="sd">              | ``path``                       .pkl           |                                 | file</span>
+<span class="sd">           3  | ``update_per_``     int        100            | Number of updates per collect   |</span>
+<span class="sd">              | ``collect``                                   |                                 |</span>
+<span class="sd">           4  | ``batch_size``      int        64             | Training batch size             |</span>
+<span class="sd">           5  | ``input_size``      int                       | Size of the input:              |</span>
+<span class="sd">              |                                               | obs_dim + act_dim               |</span>
+<span class="sd">           6  | ``target_new_``     int        64             | Collect steps per iteration     |</span>
+<span class="sd">              | ``data_count``                                |                                 |</span>
+<span class="sd">           7  | ``hidden_size``     int        128            | Linear model hidden size        |</span>
+<span class="sd">           8  | ``collect_count``   int        100000         | Expert dataset size             | One entry is a (s,a)</span>
+<span class="sd">              |                                               |                                 | tuple</span>
+<span class="sd">           == ====================  ========   =============  ================================= =======================</span>
+
 <span class="sd">       &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;gail&#39;</span><span class="p">,</span>

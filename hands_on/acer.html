@@ -180,7 +180,7 @@ challenging environments, including the discrete 57-game Atari domain and severa
 the sample efficiency and decreases the data correlation by using the following tricks:</p>
 <ul class="simple">
 <li><p><strong>Truncated importance sampling with bias correction</strong>, which controls the stability of the off-policy estimator</p></li>
-<li><p><strong>Retrace Q-value estimation</strong>, which is an off-policy, low variance, and return-based algorithm, and has been proven to converge</p></li>
+<li><p><strong>Retrace Q value estimation</strong>, which is an off-policy, low variance, and return-based algorithm, and has been proven to converge</p></li>
 <li><p><strong>Efficient TRPO (Trust Region Policy Optimization)</strong>, which scales well to large problems</p></li>
 <li><p><strong>Stochastic Dueling Networks (SDNs)</strong>, which is designed to estimate both <span class="math notranslate nohighlight">\(V^\pi\)</span> and <span class="math notranslate nohighlight">\(Q^\pi\)</span> off-policy while maintaining consistency between the two estimates</p></li>
 </ul>
@@ -237,12 +237,14 @@ By letting <span class="math notranslate nohighlight">\(k=\nabla_{\phi_{\theta}(
 to be samples from <span class="math notranslate nohighlight">\(\pi_\theta(·|x_t)\)</span>.</p>
 <a class="reference internal image-reference" href="../_images/ACER_SDN.png"><img alt="../_images/ACER_SDN.png" class="align-center" src="../_images/ACER_SDN.png" style="width: 692.1px; height: 423.90000000000003px;" /></a>
 </div>
-<div class="section" id="pseudocode">
-<h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="pseudo-code">
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <p>There are a few changes between ACER applied to discrete action spaces and that applied to continuous action space.</p>
 <a class="reference internal image-reference" href="../_images/ACER_algo1_1.png"><img alt="../_images/ACER_algo1_1.png" class="align-center" src="../_images/ACER_algo1_1.png" style="width: 750.0px; height: 203.0px;" /></a>
 <a class="reference internal image-reference" href="../_images/ACER_algo1_2.png"><img alt="../_images/ACER_algo1_2.png" class="align-center" src="../_images/ACER_algo1_2.png" style="width: 742.0px; height: 720.0px;" /></a>
-<p>In continuous action space, it is impossible to enumerate all actions q value. So ACER uses sampled actions to replace the expectation.</p>
+<p>In continuous action space, it is impossible to enumerate Q values for every action.
+So ACER uses the sampled actions to approximate the expected value.</p>
+<p>So ACER uses sampled actions to replace the expectation.</p>
 <a class="reference internal image-reference" href="../_images/ACER_algo2.png"><img alt="../_images/ACER_algo2.png" class="align-center" src="../_images/ACER_algo2.png" style="width: 737.0px; height: 716.0px;" /></a>
 </div>
 <div class="section" id="implementations">
@@ -398,113 +400,202 @@ The default config is defined as follows:</p>
 <p>Usually, we hope to compute everything as a batch to improve efficiency. This is done in <code class="docutils literal notranslate"><span class="pre">policy._get_train_sample</span></code>.
 Once we execute this function in collector, the length of samples will equal to unroll-len in config. For details, please
 refer to doc of <code class="docutils literal notranslate"><span class="pre">ding.rl_utils.adder</span></code>.</p>
-<p>You can find more information in <a class="reference internal" href="impala.html#ref2other"><span class="std std-ref">here</span></a></p>
 <p>The whole code of ACER you can find <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/acer.py">here</a>.
 Here we show some details of this algorithm.</p>
 <p>First, we use the following functions to compute the retrace Q value.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_q_retraces</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">v_pred</span><span class="p">,</span><span class="n">rewards</span><span class="p">,</span><span class="n">actions</span><span class="p">,</span><span class="n">weights</span><span class="p">,</span><span class="n">ratio</span><span class="p">,</span><span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">                Get Retrace Q value</span>
-<span class="sd">            Arguments:</span>
-<span class="sd">                - q_values (:obj:`torch.Tensor`): Q values</span>
-<span class="sd">                - v_pred (:obj:`torch.Tensor`): V values</span>
-<span class="sd">                - reward (:obj:`torch.Tensor`): reward values</span>
-<span class="sd">                - actions (:obj:`torch.Tensor`): The actions in replay buffer</span>
-<span class="sd">                - weights (:obj:`torch.Tensor`): setting padding postion</span>
-<span class="sd">                - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy</span>
-<span class="sd">            Returns:</span>
-<span class="sd">                - q_retraces (:obj:`torch.Tensor`):  retrace Q values</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">rewards</span> <span class="o">=</span> <span class="n">rewards</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">q_retraces</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">v_pred</span><span class="p">)</span>
-    <span class="n">n_len</span> <span class="o">=</span> <span class="n">q_retraces</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">tmp_retraces</span> <span class="o">=</span> <span class="n">v_pred</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
-    <span class="n">q_retraces</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_pred</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">compute_q_retraces</span><span class="p">(</span>
+        <span class="n">q_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">v_pred</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">actions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">weights</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">ratio</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.9</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="n">rewards</span> <span class="o">=</span> <span class="n">rewards</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># shape T,B,1</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># shape T,B,1</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># shape T,B,1</span>
+    <span class="n">q_retraces</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">v_pred</span><span class="p">)</span>  <span class="c1"># shape (T+1),B,1</span>
+    <span class="n">n_len</span> <span class="o">=</span> <span class="n">q_retraces</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># T+1</span>
+    <span class="n">tmp_retraces</span> <span class="o">=</span> <span class="n">v_pred</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>  <span class="c1"># shape B,1</span>
+    <span class="n">q_retraces</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_pred</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
     <span class="n">q_gather</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">v_pred</span><span class="p">)</span>
-    <span class="n">q_gather</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">q_values</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">)</span>
-    <span class="n">ratio_gather</span> <span class="o">=</span> <span class="n">ratio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_len</span><span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
-        <span class="n">q_retraces</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">+</span><span class="n">gamma</span><span class="o">*</span><span class="n">weights</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">*</span><span class="n">tmp_retraces</span>
-        <span class="n">tmp_retraces</span> <span class="o">=</span> <span class="n">ratio_gather</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">q_retraces</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">-</span><span class="n">q_gather</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">])</span><span class="o">+</span><span class="n">v_pred</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">q_retraces</span>
+    <span class="n">q_gather</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">q_values</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span>  <span class="c1"># shape (T+1),B,1</span>
+    <span class="n">ratio_gather</span> <span class="o">=</span> <span class="n">ratio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span>  <span class="c1"># shape T,B,1</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_len</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)):</span>
+        <span class="n">q_retraces</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">*</span> <span class="n">tmp_retraces</span>
+        <span class="n">tmp_retraces</span> <span class="o">=</span> <span class="n">ratio_gather</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">q_retraces</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">-</span> <span class="n">q_gather</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">+</span> <span class="n">v_pred</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">q_retraces</span>  <span class="c1"># shape (T+1),B,1</span>
 </pre></div>
 </div>
 <p>After that, we calculate the value of policy loss, it will calculate the actor loss with importance weights truncation and bias correction loss by the following function</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_policy_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">q_retraces</span><span class="p">,</span><span class="n">v_pred</span><span class="p">,</span><span class="n">target_pi</span><span class="p">,</span><span class="n">actions</span><span class="p">,</span><span class="n">ratio</span><span class="p">,</span><span class="n">c_clip_ratio</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_policy_error</span><span class="p">(</span>
+        <span class="n">q_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">q_retraces</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">v_pred</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">target_logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">actions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">ratio</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">c_clip_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get ACER policy loss</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - q_values (:obj:`torch.Tensor`): Q values</span>
-<span class="sd">            - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)</span>
-<span class="sd">            - v_pred (:obj:`torch.Tensor`): V values</span>
-<span class="sd">            - target_pi (:obj:`torch.Tensor`): The new policy&#39;s probability</span>
-<span class="sd">            - actions (:obj:`torch.Tensor`): The actions in replay buffer</span>
-<span class="sd">            - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy</span>
-<span class="sd">            - c_clip_ratio (:obj:`float`): clip value for ratio</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - actor_loss (:obj:`torch.Tensor`): policy loss from q_retrace</span>
-<span class="sd">            - bc_loss (:obj:`torch.Tensor`): bias correct policy loss</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Get ACER policy loss</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - q_values (:obj:`torch.Tensor`): Q values</span>
+<span class="sd">        - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)</span>
+<span class="sd">        - v_pred (:obj:`torch.Tensor`): V values</span>
+<span class="sd">        - target_pi (:obj:`torch.Tensor`): The new policy&#39;s probability</span>
+<span class="sd">        - actions (:obj:`torch.Tensor`): The actions in replay buffer</span>
+<span class="sd">        - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy</span>
+<span class="sd">        - c_clip_ratio (:obj:`float`): clip value for ratio</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - actor_loss (:obj:`torch.Tensor`): policy loss from q_retrace</span>
+<span class="sd">        - bc_loss (:obj:`torch.Tensor`): correct policy loss</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - q_values (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where B is batch size and N is action dim</span>
+<span class="sd">        - q_retraces (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`</span>
+<span class="sd">        - v_pred (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`</span>
+<span class="sd">        - target_pi (:obj:`torch.FloatTensor`): :math:`(T, B, N)`</span>
+<span class="sd">        - actions (:obj:`torch.LongTensor`): :math:`(T, B)`</span>
+<span class="sd">        - ratio (:obj:`torch.FloatTensor`): :math:`(T, B, N)`</span>
+<span class="sd">        - actor_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`</span>
+<span class="sd">        - bc_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">actions</span><span class="o">=</span><span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="n">advantage_retraces</span> <span class="o">=</span> <span class="n">q_retraces</span><span class="o">-</span><span class="n">v_pred</span>
-        <span class="n">advantage_native</span> <span class="o">=</span> <span class="n">q_values</span><span class="o">-</span><span class="n">v_pred</span>
-    <span class="n">actor_loss</span> <span class="o">=</span> <span class="n">ratio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="n">c_clip_ratio</span><span class="p">)</span><span class="o">*</span><span class="n">advantage_retraces</span><span class="o">*</span><span class="p">(</span><span class="n">target_pi</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">)</span><span class="o">+</span><span class="n">EPS</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
-    <span class="n">bc_loss</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">c_clip_ratio</span><span class="o">/</span><span class="p">(</span><span class="n">ratio</span><span class="o">+</span><span class="n">EPS</span><span class="p">))</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span><span class="o">*</span><span class="n">target_pi</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">*</span><span class="n">advantage_native</span><span class="o">*</span><span class="p">(</span><span class="n">target_pi</span><span class="o">+</span><span class="n">EPS</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">()</span>
-    <span class="n">bc_loss</span><span class="o">=</span><span class="n">bc_loss</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">actor_loss</span><span class="p">,</span><span class="n">bc_loss</span>
+        <span class="n">advantage_retraces</span> <span class="o">=</span> <span class="n">q_retraces</span> <span class="o">-</span> <span class="n">v_pred</span>  <span class="c1"># shape T,B,1</span>
+        <span class="n">advantage_native</span> <span class="o">=</span> <span class="n">q_values</span> <span class="o">-</span> <span class="n">v_pred</span>  <span class="c1"># shape T,B,env_action_shape</span>
+    <span class="n">actor_loss</span> <span class="o">=</span> <span class="n">ratio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="n">c_clip_ratio</span><span class="p">)</span> <span class="o">*</span> <span class="n">advantage_retraces</span> <span class="o">*</span> <span class="n">target_logit</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+        <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">actions</span>
+    <span class="p">)</span>  <span class="c1"># shape T,B,1</span>
+
+    <span class="c1"># bias correction term, the first target_pi will not calculate gradient flow</span>
+    <span class="n">bias_correction_loss</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">c_clip_ratio</span><span class="o">/</span><span class="p">(</span><span class="n">ratio</span><span class="o">+</span><span class="n">EPS</span><span class="p">))</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">target_logit</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span> <span class="o">*</span> \
+        <span class="n">advantage_native</span><span class="o">*</span><span class="n">target_logit</span>  <span class="c1"># shape T,B,env_action_shape</span>
+    <span class="n">bias_correction_loss</span> <span class="o">=</span> <span class="n">bias_correction_loss</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">actor_loss</span><span class="p">,</span> <span class="n">bias_correction_loss</span>
 </pre></div>
 </div>
 <p>Then, we execute backward operation towards target_pi. Moreover, we need to calculate the correction gradient in the trust region:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_trust_region_update</span><span class="p">(</span><span class="n">actor_gradients</span><span class="p">,</span><span class="n">target_pi</span><span class="p">,</span><span class="n">avg_pi</span><span class="p">,</span><span class="n">trust_region_value</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_trust_region_update</span><span class="p">(</span>
+        <span class="n">actor_gradients</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">target_logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">avg_logit</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">trust_region_value</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            calcuate gradient with trust region constrain</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - actor_gradients (:obj:`list(torch.Tensor)`): gradients value&#39;s for different part</span>
-<span class="sd">            - target_pi (:obj:`torch.Tensor`): The new policy&#39;s probability</span>
-<span class="sd">            - avg_pi (:obj:`torch.Tensor`): The average policy&#39;s probability</span>
-<span class="sd">            - trust_region_value (:obj:`float`): the range of trust region</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - update_gradients (:obj:`torch.Tensor`): gradients under trust region constraint</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        calcuate gradient with trust region constrain</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - actor_gradients (:obj:`list(torch.Tensor)`): gradients value&#39;s for different part</span>
+<span class="sd">        - target_pi (:obj:`torch.Tensor`): The new policy&#39;s probability</span>
+<span class="sd">        - avg_pi (:obj:`torch.Tensor`): The average policy&#39;s probability</span>
+<span class="sd">        - trust_region_value (:obj:`float`): the range of trust region</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - update_gradients (:obj:`list(torch.Tensor)`): gradients with trust region constraint</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - target_pi (:obj:`torch.FloatTensor`): :math:`(T, B, N)`</span>
+<span class="sd">        - avg_pi (:obj:`torch.FloatTensor`): :math:`(T, B, N)`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="n">KL_gradients</span> <span class="o">=</span> <span class="p">[(</span><span class="n">avg_pi</span><span class="o">/</span><span class="p">(</span><span class="n">target_pi</span><span class="o">+</span><span class="n">EPS</span><span class="p">))]</span>
+        <span class="n">KL_gradients</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">avg_logit</span><span class="p">)]</span>
     <span class="n">update_gradients</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">actor_gradient</span><span class="p">,</span><span class="n">KL_gradient</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">actor_gradients</span><span class="p">,</span><span class="n">KL_gradients</span><span class="p">):</span>
-        <span class="n">scale</span> <span class="o">=</span> <span class="n">actor_gradient</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">KL_gradient</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">trust_region_value</span>
-        <span class="n">scale</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span><span class="n">KL_gradient</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">KL_gradient</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
-        <span class="n">update_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">actor_gradient</span><span class="o">-</span><span class="n">scale</span><span class="o">*</span><span class="n">KL_gradient</span><span class="p">)</span>
+    <span class="c1"># TODO: here is only one elements in this list.Maybe will use to more elements in the future</span>
+    <span class="n">actor_gradient</span> <span class="o">=</span> <span class="n">actor_gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">KL_gradient</span> <span class="o">=</span> <span class="n">KL_gradients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">actor_gradient</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">KL_gradient</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-</span> <span class="n">trust_region_value</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="n">KL_gradient</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">KL_gradient</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">update_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">actor_gradient</span> <span class="o">-</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">KL_gradient</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">update_gradients</span>
 </pre></div>
 </div>
 <p>With the new gradients, we can continue to propagate backwardly and then update parameters accordingly.</p>
 <p>Finally, we should calculate the mean squared loss for Q values to update Q-Network</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_value_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span><span class="n">q_retraces</span><span class="p">,</span><span class="n">actions</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">acer_value_error</span><span class="p">(</span><span class="n">q_values</span><span class="p">,</span> <span class="n">q_retraces</span><span class="p">,</span> <span class="n">actions</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Overview:</span>
-<span class="sd">            Get ACER critic loss</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - q_values (:obj:`torch.Tensor`): Q values</span>
-<span class="sd">            - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)</span>
-<span class="sd">            - actions (:obj:`torch.Tensor`): The actions in replay buffer</span>
-<span class="sd">            - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            - critic_loss (:obj:`torch.Tensor`): critic loss</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-    <span class="n">actions</span><span class="o">=</span><span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">critic_loss</span><span class="o">=</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">q_retraces</span><span class="o">-</span><span class="n">q_values</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">actions</span><span class="p">))</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">critic_loss</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Get ACER critic loss</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - q_values (:obj:`torch.Tensor`): Q values</span>
+<span class="sd">        - q_retraces (:obj:`torch.Tensor`): Q values (be calculated by retrace method)</span>
+<span class="sd">        - actions (:obj:`torch.Tensor`): The actions in replay buffer</span>
+<span class="sd">        - ratio (:obj:`torch.Tensor`): ratio of new polcy with behavior policy</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - critic_loss (:obj:`torch.Tensor`): critic loss</span>
+<span class="sd">    Shapes:</span>
+<span class="sd">        - q_values (:obj:`torch.FloatTensor`): :math:`(T, B, N)`, where B is batch size and N is action dim</span>
+<span class="sd">        - q_retraces (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`</span>
+<span class="sd">        - actions (:obj:`torch.LongTensor`): :math:`(T, B)`</span>
+<span class="sd">        - critic_loss (:obj:`torch.FloatTensor`): :math:`(T, B, 1)`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="n">actions</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">critic_loss</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">q_retraces</span> <span class="o">-</span> <span class="n">q_values</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">actions</span><span class="p">))</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="reference">
-<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
-<p>Ziyu Wang, Victor Bapst, Nicolas Heess, Volodymyr Mnih, Remi Munos, Koray Kavukcuoglu, Nando de Freitas: “Sample Efficient Actor-Critic with Experience Replay”, 2016; [<a class="reference external" href="https://arxiv.org/abs/1611.01224">https://arxiv.org/abs/1611.01224</a> arxiv:1611.01224].</p>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p>
+<p>(PongNoFrameskip-v4)</p>
+</td>
+<td><p>20</p></td>
+<td><img alt="../_images/pong_acer.png" src="../_images/pong_acer.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/pong/pong_acer_config.py">config_link_p</a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p>
+<p>(QbertNoFrameskip-v4)</p>
+</td>
+<td><p>4000(todo)</p></td>
+<td><img alt="../_images/qbert_acer.png" src="../_images/qbert_acer.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/qbert/qbert_acer_config.py">config_link_q</a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>SpaceInvaders</p>
+<p>(SpaceInvadersNoFrame
+skip-v4)</p>
+</td>
+<td><p>1100</p></td>
+<td><img alt="../_images/spaceinvaders_acer.png" src="../_images/spaceinvaders_acer.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_acer_config.py">config_link_s</a></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Ziyu Wang, Victor Bapst, Nicolas Heess, Volodymyr Mnih, Remi Munos, Koray Kavukcuoglu, Nando de Freitas: “Sample Efficient Actor-Critic with Experience Replay”, 2016; [<a class="reference external" href="https://arxiv.org/abs/1611.01224">https://arxiv.org/abs/1611.01224</a> arxiv:1611.01224].</p></li>
+</ul>
+</div>
+<div class="section" id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/Kaixhin/ACER">ACER</a></p></li>
+<li><p><a class="reference external" href="https://github.com/chainer/chainerrl/blob/master/chainerrl/agents/acer.py">chainerrl</a></p></li>
+</ul>
 </div>
 </div>
 

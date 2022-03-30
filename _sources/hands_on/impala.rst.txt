@@ -4,39 +4,43 @@ IMPALA
 Overview
 ---------
 IMPALA, or the Importance Weighted Actor Learner Architecture, is an off-policy actor-critic framework that
-decouples acting from learning and learns from experience trajectories using V-trace. This method is first
+decouples data collecting from learning and optimizes policy from experience trajectories using off-policy correction V-trace. This method is firstly
 introduced in `IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures <https://arxiv.org/abs/1802.01561>`_.
 
 
 Quick Facts
 -------------
-1. Impala  is a **model-free** and **off-policy** RL algorithm.
+1. IMPALA is a **model-free** and **off-policy** RL algorithm.
 
-2. Impala can support both **discrete** action spaces and **continuous** action spaces.
+2. IMPALA can support both **discrete** action spaces and **continuous** action spaces.
 
-3. Impala is a actor-critic RL algorithm, which optimizes actor network and critic network, respectively.
+3. IMPALA is an actor-critic RL algorithm with value network, which optimizes actor network and critic (value) network, respectively.
 
-4. Impala decouples acting from learning. Collectors in impala will not compute value or advantage.
+4. IMPALA can take advantage of the old off-policy data with corresponding **off-policy correction**  to stabilize learning.
 
+5. IMPALA decouples data collecting from learning. Collectors in IMPALA will not compute value or advantage.
+
+6. IMPALA is a **distributed RL architecture** with classic actor-learner paradigm.
 
 Key Equations
 ---------------------------
-Loss used in Impala is similar to that in PPO, A2C and other actor-critic model. All of them comes from policy_loss,\
-value_loss and entropy_loss, with respect to some carefully chosen weights.
+Loss used in IMPALA is similar to that in PPO, A2C and other value function actor-critic models. All of them come from ``policy_loss``,\
+``value_loss`` and ``entropy_loss``, with respect to some carefully chosen weights, i.e.:
 
 .. math::
 
-    Loss_total = Loss_policy + w_value * Loss_value + w_entropy * Loss_entropy
+   loss_{total} = loss_{policy} + w_{value} * loss_{value} + w_{entropy} * loss_{entropy}
 
-where  w_value, w_entropy are loss weights for value and entropy.
 
-- NOTATION AND CONVENTIONS:
+.. tip::
 
-:math:`\pi_{\phi}`: current training policy parameterized by :math:`\phi`.
+  NOTATION AND CONVENTIONS:
 
-:math:`V_\theta`: value function parameterized by :math:`\theta`.
+  :math:`\pi_{\phi}`: current training policy parameterized by :math:`\phi`.
 
-:math:`\mu`: older policy which generates trajectories in replay buffer.
+  :math:`V_\theta`: value function parameterized by :math:`\theta`.
+
+  :math:`\mu`: older policy which generates trajectories in replay buffer.
 
 
 At the training time :math:`t`, given transition :math:`(x_t, a_t, x_{t+1}, r_t)`, the value function :math:`V_\theta`
@@ -47,10 +51,11 @@ at time s is defined as follows:
 
     v_s  \stackrel{def}{=} V(x_s) + \sum_{t=s}^{s+n-1} \gamma^{t-s} \big(\prod_{i=s}^{t-1} c_i\big)\delta_t V
 
-where :math:`\delta_t V \stackrel{def}{=}  \rho_t (r_t + \gamma V(x_{t+1}) - V(x_t))` is a temporal difference for :math:`V`.
+where :math:`\delta_t V \stackrel{def}{=}  \rho_t (r_t + \gamma V(x_{t+1}) - V(x_t))` is a temporal difference for :math:`V`,
+:math:`\rho_t \stackrel{def}{=} \min\big(\bar{\rho}, \frac{\pi(a_t \vert x_t)}{\mu(a_t \vert x_t)}\big)`,
+and :math:`c_i \stackrel{def}{=}\min\big(\bar{c}, \frac{\pi(a_i \vert s_i)}{\mu(a_i \vert s_i)}\big)`
 
-:math:`\rho_t \stackrel{def}{=} \min\big(\bar{\rho}, \frac{\pi(a_t \vert x_t)}{\mu(a_t \vert x_t)}\big)` and :math:`c_i \stackrel{def}{=}
-\min\big(\bar{c}, \frac{\pi(a_i \vert s_i)}{\mu(a_i \vert s_i)}\big)` are truncated importance sampling (IS) weights,
+:math:`\rho_t` and :math:`c_i` are ``truncated importance sampling (IS) weights``,
 where :math:`\bar{\rho}` and :math:`\bar{c}` are two truncation constants with :math:`\bar{\rho} \geq \bar{c}`.
 
 The product of :math:`c_s, \dots, c_{t-1}` measures how much a temporal difference :math:`\delta_t V` observed at time
@@ -58,34 +63,39 @@ The product of :math:`c_s, \dots, c_{t-1}` measures how much a temporal differen
 and :math:`c_i=1` (assuming :math:`\bar{c} \geq 1)` and therefore the V-trace target becomes on-policy n-step Bellman
 target.
 
+.. note::
 
-:math:`\bar{\rho}` impacts the fixed-point of the value function we converge to,and :math:`\bar{c}` impacts the speed
-of convergence. When :math:`\bar{\rho} =\infty` (untruncated), v-trace value function will converge to the value
-function of the target policy :math:`V_\pi`; when :math:`\bar{\rho}` is close to 0, we evaluate the value function
-of the behavior policy :math:`V_\mu`; when in-between, we evaluate a policy between :math:`\pi` and :math:`\mu`.
+  :math:`\bar{\rho}` impacts the fixed-point of the value function we converge to, and :math:`\bar{c}` impacts the speed
+  of convergence. 
+
+  When :math:`\bar{\rho} =\infty` (untruncated), v-trace value function will converge to the value
+  function of the target policy :math:`V_\pi`; 
+  
+  When :math:`\bar{\rho}` is close to 0, we evaluate the value function
+  of the behavior policy :math:`V_\mu`; when in-between, we evaluate a policy between :math:`\pi` and :math:`\mu`.
 
 Therefore, loss functions are
 
 .. math::
 
-    Loss_value &= (v_s - V_\theta(x_s))^2 \\
-    Loss_policy &= -\rho_s \log \pi_\phi(a_s \vert x_s)  \big(r_s + \gamma v_{s+1} - V_\theta(x_s)\big) \\
-    Loss_entropy &= -H(\pi_\phi) = \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)
+    loss_{value} &= (v_s - V_\theta(x_s))^2 \\
+    loss_{policy} &= -\rho_s \log \pi_\phi(a_s \vert x_s)  \big(r_s + \gamma v_{s+1} - V_\theta(x_s)\big) \\
+    loss_{entropy} &= -H(\pi_\phi) = \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)
 
-where :math:`H(\pi_{\phi})`, entropy of policy :math:`\phi`, is an bonus to encourage exploration.
+where :math:`H(\pi_{\phi})`, entropy of policy :math:`\phi`, is a bonus to encourage exploration.
 
 Value function parameter is updated in the direction of:
 
 .. math::
 
-    \Delta\theta = w_value (v_s - V_\theta(x_s))\nabla_\theta V_\theta(x_s)
+    \Delta\theta = w_{value} (v_s - V_\theta(x_s))\nabla_\theta V_\theta(x_s)
 
 Policy parameter :math:`\phi` is updated through policy gradient,
 
 .. math::
 
     \Delta \phi &= \rho_s \nabla_\phi \log \pi_\phi(a_s \vert x_s) \big(r_s + \gamma v_{s+1}- V_\theta(x_s)\big)\\
-                &- w_entropy \nabla_\phi \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)
+                &- w_{entropy} \nabla_\phi \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)
 
 where :math:`r_s + \gamma v_{s+1}` is the v-trace advantage, which is estimated Q value subtracted by a state-dependent baseline :math:`V_\theta(x_s)`.
 
@@ -93,7 +103,7 @@ where :math:`r_s + \gamma v_{s+1}` is the v-trace advantage, which is estimated 
 
 Key Graphs
 ---------------
-The following graph describes the process in IMPALA original paper. However, our implication is a little different from
+The following graph describes the distributed architecture in IMPALA original paper. However, our implication is a little different from
 that in original paper.
 
 .. image:: images/IMPALA.png
@@ -111,13 +121,28 @@ synchronize after each iteration.
 
 Implementations
 ----------------
+
+Config
+========
+
 The default config is defined as follows:
 
 .. autoclass:: ding.policy.impala.IMPALAPolicy
 
+
+The network interface IMPALA used is defined as follows:
+
+    .. autoclass:: ding.model.template.vac.VAC
+        :members: forward
+        :noindex:
+
+
+Data Processing
+================
+
 Usually, we hope to compute everything as a batch to improve efficiency. Especially, when computing vtrace, we
 need all training sample (sequences of training data) have the same length. This is done in ``policy._get_train_sample``.
-Once we execute this function in collector, the length of samples will equal to unroll-len in config. For details, please
+Once we execute this function in collector, the length of samples will equal to ``unroll_len`` in config. For details, please
 refer to doc of ``ding.rl_utils.adder``.
 
 .. _ref2other:
@@ -180,18 +205,20 @@ refer to doc of ``ding.rl_utils.adder``.
     In ``get_train_sample``, we introduce three ways to cut trajectory data into same-length pieces (length equal
     to ``unroll_len``).
 
-    The first one is ``drop``, this means after splitting trajectory data into small pieces, we simply throw away those
+    1. The first one is ``drop``, this means after splitting trajectory data into small pieces, we simply throw away those
     with length smaller than ``unroll_len``. This method is kind of naive and usually is not a good choice. Since in
     Reinforcement Learning, the last few data in an episode is usually very important, we can't just throw away them.
 
-    The second method is ``last``, which means if the total length trajectory is smaller than ``unrollen_len``,
+    2. The second method is ``last``, which means if the total length trajectory is smaller than ``unroll_len``,
     we will use zero padding. Else, we will use data from previous piece to pad residual piece. This method is set as
     default and recommended.
 
-    The last method ``null_padding`` is just zero padding, which is not vert efficient since many data will be ``null``.
+    3. The last method ``null_padding`` is just zero padding, which is not vert efficient since many data will be ``null``.
 
+Optimization
+==============
 
-Now, we introduce the computation of vtrace-value.
+Now, we introduce the computation of ``vtrace-value``.
 First, we use the following functions to compute importance_weights.
 
 .. code:: python
@@ -244,13 +271,13 @@ value function :math:`V(x_s)` in vtrace definition.
 
 
 .. note::
-    1. Bootstrap_values in this part need to have size (T+1,B),where T is timestep, B is batch size. The reason is that
-    we need a sequence of training data with same-length vtrace value (this length is just the unroll_len in config).
+    1. Bootstrap_values in this part need to have size (T+1,B), where T is timestep, B is batch size. The reason is that
+    we need a sequence of training data with same-length vtrace value (this length is just the ``unroll_len`` in config).
     And in order to compute the last vtrace value in the sequence, we need at least one more target value. This is
-    done using the next_obs of the last transition in training data sequence.
+    done using the next obs of the last transition in training data sequence.
 
     2. Here we introduce a parameter ``lambda_``, following the implementation in AlphaStar. The parameter, between 0
-    and 1,can give a subtle control on vtrace off-policy correction. Usually, we will choose this parameter close to 1.
+    and 1, can give a subtle control on vtrace off-policy correction. Usually, we will choose this parameter close to 1.
 
 Once we get vtrace value, or ``vtrace_nstep_return``, the computation of loss functions are straightforward. The whole
 process is as follows.
@@ -311,21 +338,49 @@ process is as follows.
     2. Here we introduce a parameter ``rho_pg_clip_ratio``, following the implementation in AlphaStar. This parameter, can give a subtle control on vtrace advantage. Usually, we will choose this parameter just same as rho_clip_ratio.
 
 
-The default config of IMPALAPolicy is defined as follows:
+Benchmark
+----------
 
-    .. autoclass:: ding.policy.impala.IMPALAPolicy
-        :noindex:
+.. list-table:: Benchmark and comparison of IMPALA algorithm
+   :widths: 25 15 30 15 15
+   :header-rows: 1
 
-The network interface IMPALA used is defined as follows:
+   * - environment
+     - best mean reward
+     - evaluation results
+     - config link
+     - comparison
+   * - | Pong
+       | (PongNoFrameskip-v4)
+     - 20
+     - .. image:: images/benchmark/IMPALA_pong.png
+     - `config_link_p <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_IMPALA_config.py>`_
+     - | IMPALA paper shallow 200M (20.4)
+   * - | Qbert
+       | (QbertNoFrameskip-v4)
+     - 13175
+     - .. image:: images/benchmark/IMPALA_qbert.png
+     - `config_link_q <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_IMPALA_config.py>`_
+     - | IMPALA paper shallow 200M (18901)
+   * - | SpaceInvaders
+       | (SpaceInvadersNoFrame skip-v4)
+     - 977
+     - .. image:: images/benchmark/IMPALA_spaceinvaders.png
+     - `config_link_s <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_IMPALA_config.py>`_
+     - | IMPALA paper shallow 200M (1726)
 
-    .. autoclass:: ding.model.template.vac.VAC
-        :members: forward
-        :noindex:
+P.S.：
 
-The Benchmark result of IMPALA implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
+1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)
+2. For the discrete action space algorithm like IMPALA, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M ``env_step``. For more details about Atari, please refer to `Atari Env Tutorial <../env_tutorial/atari.html>`_ .
 
 
 Reference
 ----------
 Lasse Espeholt, Hubert Soyer, Remi Munos, Karen Simonyan, Volodymir Mnih, Tom Ward, Yotam Doron, Vlad Firoiu, Tim Harley, Iain Dunning, Shane Legg, Koray Kavukcuoglu: “IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures”, 2018; arXiv:1802.01561.  https://arxiv.org/abs/1802.01561
 
+Other Public Implementations
+------------------------------
+
+- [Official](https://github.com/deepmind/scalable_agent)
+- [Facebook torchbeast](https://github.com/facebookresearch/torchbeast)

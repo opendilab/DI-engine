@@ -1,0 +1,456 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.model.template.qac_dist &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ding.model.template.qac_dist</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ding.model.template.qac_dist</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">squeeze</span><span class="p">,</span> <span class="n">MODEL_REGISTRY</span>
+<span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">RegressionHead</span><span class="p">,</span> <span class="n">ReparameterizationHead</span><span class="p">,</span> <span class="n">DistributionHead</span>
+
+
+<div class="viewcode-block" id="QACDIST"><a class="viewcode-back" href="../../../../hands_on/d4pg.html#ding.model.template.qac_dist.QACDIST">[docs]</a><span class="nd">@MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;qac_dist&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">QACDIST</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The QAC model with distributional Q-value.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        ``__init__``, ``forward``, ``compute_actor``, ``compute_critic``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">action_space</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;regression&quot;</span><span class="p">,</span>
+        <span class="n">critic_head_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;categorical&quot;</span><span class="p">,</span>
+        <span class="n">actor_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">actor_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">critic_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">critic_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">v_min</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">v_max</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">n_atom</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">51</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init the QAC Distributional Model according to arguments.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - obs_shape (:obj:`Union[int, SequenceType]`): Observation&#39;s space.</span>
+<span class="sd">            - action_shape (:obj:`Union[int, SequenceType]`): Action&#39;s space.</span>
+<span class="sd">            - action_space (:obj:`str`): Whether choose ``regression`` or ``reparameterization``.</span>
+<span class="sd">            - critic_head_type (:obj:`str`): Only ``categorical``.</span>
+<span class="sd">            - actor_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to actor-nn&#39;s ``Head``.</span>
+<span class="sd">            - actor_head_layer_num (:obj:`int`):</span>
+<span class="sd">                The num of layers used in the network to compute Q value output for actor&#39;s nn.</span>
+<span class="sd">            - critic_head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to critic-nn&#39;s ``Head``.</span>
+<span class="sd">            - critic_head_layer_num (:obj:`int`):</span>
+<span class="sd">                The num of layers used in the network to compute Q value output for critic&#39;s nn.</span>
+<span class="sd">            - activation (:obj:`Optional[nn.Module]`):</span>
+<span class="sd">                The type of activation function to use in ``MLP`` the after ``layer_fn``,</span>
+<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
+<span class="sd">            - norm_type (:obj:`Optional[str]`):</span>
+<span class="sd">                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.</span>
+<span class="sd">            - v_min (:obj:`int`): Value of the smallest atom</span>
+<span class="sd">            - v_max (:obj:`int`): Value of the largest atom</span>
+<span class="sd">            - n_atom (:obj:`int`): Number of atoms in the support</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">QACDIST</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+        <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">squeeze</span><span class="p">(</span><span class="n">action_shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">=</span> <span class="n">action_space</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;regression&#39;</span><span class="p">,</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">RegressionHead</span><span class="p">(</span>
+                    <span class="n">actor_head_hidden_size</span><span class="p">,</span>
+                    <span class="n">action_shape</span><span class="p">,</span>
+                    <span class="n">actor_head_layer_num</span><span class="p">,</span>
+                    <span class="n">final_tanh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">actor</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">ReparameterizationHead</span><span class="p">(</span>
+                    <span class="n">actor_head_hidden_size</span><span class="p">,</span>
+                    <span class="n">action_shape</span><span class="p">,</span>
+                    <span class="n">actor_head_layer_num</span><span class="p">,</span>
+                    <span class="n">sigma_type</span><span class="o">=</span><span class="s1">&#39;conditioned&#39;</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">critic_head_type</span> <span class="o">=</span> <span class="n">critic_head_type</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;categorical&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head_type</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic_head_type</span> <span class="o">==</span> <span class="s1">&#39;categorical&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">critic</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">obs_shape</span> <span class="o">+</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">critic_head_hidden_size</span><span class="p">),</span> <span class="n">activation</span><span class="p">,</span>
+                <span class="n">DistributionHead</span><span class="p">(</span>
+                    <span class="n">critic_head_hidden_size</span><span class="p">,</span>
+                    <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">critic_head_layer_num</span><span class="p">,</span>
+                    <span class="n">n_atom</span><span class="o">=</span><span class="n">n_atom</span><span class="p">,</span>
+                    <span class="n">v_min</span><span class="o">=</span><span class="n">v_min</span><span class="p">,</span>
+                    <span class="n">v_max</span><span class="o">=</span><span class="n">v_max</span><span class="p">,</span>
+                    <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="QACDIST.forward"><a class="viewcode-back" href="../../../../hands_on/d4pg.html#ding.model.template.qac_dist.QACDIST.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use observation and action tensor to predict output.</span>
+<span class="sd">            Parameter updates with QACDIST&#39;s MLPs forward setup.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            Forward with ``&#39;compute_actor&#39;``:</span>
+<span class="sd">                - inputs (:obj:`torch.Tensor`):</span>
+<span class="sd">                    The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
+<span class="sd">                    Whether ``actor_head_hidden_size`` or ``critic_head_hidden_size`` depend on ``mode``.</span>
+
+<span class="sd">            Forward with ``&#39;compute_critic&#39;``, inputs (`Dict`) Necessary Keys:</span>
+<span class="sd">                - ``obs``, ``action`` encoded tensors.</span>
+
+<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of network forward.</span>
+
+<span class="sd">                Forward with ``&#39;compute_actor&#39;``, Necessary Keys (either):</span>
+<span class="sd">                    - action (:obj:`torch.Tensor`): Action tensor with same size as input ``x``.</span>
+<span class="sd">                    - logit (:obj:`torch.Tensor`):</span>
+<span class="sd">                        Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.</span>
+
+<span class="sd">                Forward with ``&#39;compute_critic&#39;``, Necessary Keys:</span>
+<span class="sd">                    - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
+<span class="sd">                    - distribution (:obj:`torch.Tensor`): Q value distribution tensor.</span>
+<span class="sd">        Actor Shapes:</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
+<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, where B is batch size.</span>
+
+<span class="sd">        Critic Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``</span>
+<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
+<span class="sd">            - distribution (:obj:`torch.FloatTensor`): :math:`(B, 1, N3)`, where B is batch size and N3 is ``num_atom``</span>
+
+<span class="sd">        Actor Examples:</span>
+<span class="sd">            &gt;&gt;&gt; # Regression mode</span>
+<span class="sd">            &gt;&gt;&gt; model = QACDIST(64, 64, &#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
+<span class="sd">            &gt;&gt;&gt; model = QACDIST(64, 64, &#39;reparameterization&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
+<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape # sigma</span>
+<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+
+<span class="sd">        Critic Examples:</span>
+<span class="sd">            &gt;&gt;&gt; # Categorical mode</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4,N), &#39;action&#39;: torch.randn(4,1)}</span>
+<span class="sd">            &gt;&gt;&gt; model = QACDIST(obs_shape=(N, ),action_shape=1,action_space=&#39;regression&#39;, \</span>
+<span class="sd">            ...                 critic_head_type=&#39;categorical&#39;, n_atoms=51)</span>
+<span class="sd">            &gt;&gt;&gt; q_value = model(inputs, mode=&#39;compute_critic&#39;) # q value</span>
+<span class="sd">            &gt;&gt;&gt; assert q_value[&#39;q_value&#39;].shape == torch.Size([4, 1])</span>
+<span class="sd">            &gt;&gt;&gt; assert q_value[&#39;distribution&#39;].shape == torch.Size([4, 1, 51])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">mode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s2">&quot;not support forward mode: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">inputs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QACDIST.compute_actor"><a class="viewcode-back" href="../../../../hands_on/d4pg.html#ding.model.template.qac_dist.QACDIST.compute_actor">[docs]</a>    <span class="k">def</span> <span class="nf">compute_actor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">            Execute parameter updates with ``&#39;compute_actor&#39;`` mode</span>
+<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`):</span>
+<span class="sd">                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
+<span class="sd">                ``hidden_size = actor_head_hidden_size``</span>
+<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Outputs of forward pass encoder and head.</span>
+
+<span class="sd">        ReturnsKeys (either):</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): Continuous action tensor with same size as ``action_shape``.</span>
+<span class="sd">            - logit (:obj:`torch.Tensor`):</span>
+<span class="sd">                Logit tensor encoding ``mu`` and ``sigma``, both with same size as input ``x``.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - inputs (:obj:`torch.Tensor`): :math:`(B, N0)`, B is batch size and N0 corresponds to ``hidden_size``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N0)`</span>
+<span class="sd">            - logit (:obj:`list`): 2 elements, mu and sigma, each is the shape of :math:`(B, N0)`.</span>
+<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, )`, B is batch size.</span>
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; # Regression mode</span>
+<span class="sd">            &gt;&gt;&gt; model = QACDIST(64, 64, &#39;regression&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; assert actor_outputs[&#39;action&#39;].shape == torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; # Reparameterization Mode</span>
+<span class="sd">            &gt;&gt;&gt; model = QACDIST(64, 64, &#39;reparameterization&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs = model(inputs,&#39;compute_actor&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][0].shape # mu</span>
+<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+<span class="sd">            &gt;&gt;&gt; actor_outputs[&#39;logit&#39;][1].shape # sigma</span>
+<span class="sd">            &gt;&gt;&gt; torch.Size([4, 64])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">actor</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;regression&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span> <span class="o">==</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]]}</span></div>
+
+<div class="viewcode-block" id="QACDIST.compute_critic"><a class="viewcode-back" href="../../../../hands_on/d4pg.html#ding.model.template.qac_dist.QACDIST.compute_critic">[docs]</a>    <span class="k">def</span> <span class="nf">compute_critic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Execute parameter updates with ``&#39;compute_critic&#39;`` mode</span>
+<span class="sd">            Use encoded embedding tensor to predict output.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - ``obs``, ``action`` encoded tensors.</span>
+<span class="sd">            - mode (:obj:`str`): Name of the forward mode.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - outputs (:obj:`Dict`): Q-value output and distribution.</span>
+
+<span class="sd">        ReturnKeys:</span>
+<span class="sd">            - q_value (:obj:`torch.Tensor`): Q value tensor with same size as batch size.</span>
+<span class="sd">            - distribution (:obj:`torch.Tensor`): Q value distribution tensor.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): :math:`(B, N1)`, where B is batch size and N1 is ``obs_shape``</span>
+<span class="sd">            - action (:obj:`torch.Tensor`): :math:`(B, N2)`, where B is batch size and N2 is``action_shape``</span>
+<span class="sd">            - q_value (:obj:`torch.FloatTensor`): :math:`(B, N2)`, where B is batch size and N2 is ``action_shape``</span>
+<span class="sd">            - distribution (:obj:`torch.FloatTensor`): :math:`(B, 1, N3)`, where B is batch size and N3 is ``num_atom``</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; # Categorical mode</span>
+<span class="sd">            &gt;&gt;&gt; inputs = {&#39;obs&#39;: torch.randn(4,N), &#39;action&#39;: torch.randn(4,1)}</span>
+<span class="sd">            &gt;&gt;&gt; model = QACDIST(obs_shape=(N, ),action_shape=1,action_space=&#39;regression&#39;, \</span>
+<span class="sd">            ...                 critic_head_type=&#39;categorical&#39;, n_atoms=51)</span>
+<span class="sd">            &gt;&gt;&gt; q_value = model(inputs, mode=&#39;compute_critic&#39;) # q value</span>
+<span class="sd">            &gt;&gt;&gt; assert q_value[&#39;q_value&#39;].shape == torch.Size([4, 1])</span>
+<span class="sd">            &gt;&gt;&gt; assert q_value[&#39;distribution&#39;].shape == torch.Size([4, 1, 51])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># (B, ) -&gt; (B, 1)</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">obs</span><span class="p">,</span> <span class="n">action</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">critic</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span> <span class="s1">&#39;distribution&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;distribution&#39;</span><span class="p">]}</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

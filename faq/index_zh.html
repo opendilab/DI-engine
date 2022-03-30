@@ -100,6 +100,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#q2-di-engine-cli">Q2: 安装之后无法使用DI-engine命令行工具(CLI)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#q3">Q3: 安装时出现”没有权限”相关错误</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#q4-syncsubprocessenvmanager">Q4: 如何设置SyncSubprocessEnvManager的相关运行参数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#q5">Q5: 如何调整学习率</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../feature/index_zh.html">特性介绍</a></li>
@@ -225,6 +226,38 @@
 <span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="q5">
+<h2>Q5: 如何调整学习率<a class="headerlink" href="#q5" title="Permalink to this headline">¶</a></h2>
+<dl class="field-list simple">
+<dt class="field-odd">A5</dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<p>在相应算法的入口添加 <code class="docutils literal notranslate"><span class="pre">lr_scheduler</span></code> 代码，可以通过调用 <code class="docutils literal notranslate"><span class="pre">torch.optim.lr_scheduler</span></code> （参考： <a class="reference external" href="https://pytorch.org/docs/stable/optim.html">https://pytorch.org/docs/stable/optim.html</a>）模块来调整学习率，并且在模型优化更新之后使用 <code class="docutils literal notranslate"><span class="pre">scheduler.step()</span></code> 对学习率进行更新。
+下面代码提供一个简单的案例，具体可参考demo: <a class="reference external" href="https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f">https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f</a>。</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <span class="n">LambdaLR</span>
+
+<span class="o">...</span>
+
+<span class="c1"># Set up RL Policy</span>
+<span class="n">policy</span> <span class="o">=</span> <span class="n">DDPGPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
+<span class="c1"># Set up lr_scheduler, the optimizer attribute will be different in different policy.</span>
+<span class="c1"># For example, in DDPGPolicy the attribute is &#39;optimizer_actor&#39;, but in DQNPolicy the attribute is &#39;optimizer&#39;.</span>
+<span class="n">lr_scheduler</span> <span class="o">=</span> <span class="n">LambdaLR</span><span class="p">(</span>
+    <span class="n">policy</span><span class="o">.</span><span class="n">learn_mode</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s1">&#39;optimizer_actor&#39;</span><span class="p">),</span> <span class="n">lr_lambda</span><span class="o">=</span><span class="k">lambda</span> <span class="n">iters</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">iters</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="c1"># Train</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_per_collect</span><span class="p">):</span>
+        <span class="o">...</span>
+        <span class="n">learner</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
+        <span class="n">lr_scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>学习率变化曲线如图所示</p>
+<a class="reference internal image-reference" href="../_images/Q5_lr_scheduler.png"><img alt="../_images/Q5_lr_scheduler.png" class="align-center" src="../_images/Q5_lr_scheduler.png" style="height: 250px;" /></a>
 </div>
 </div>
 

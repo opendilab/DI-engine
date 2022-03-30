@@ -45,3 +45,40 @@ Q4: 如何设置SyncSubprocessEnvManager的相关运行参数
             manager=dict(shared_memory=False)
         )
     )
+
+
+Q5: 如何调整学习率
+**************************************************
+
+:A5:
+
+在相应算法的入口添加 ``lr_scheduler`` 代码，可以通过调用 ``torch.optim.lr_scheduler`` （参考： `<https://pytorch.org/docs/stable/optim.html>`_）模块来调整学习率，并且在模型优化更新之后使用 ``scheduler.step()`` 对学习率进行更新。
+下面代码提供一个简单的案例，具体可参考demo: `<https://github.com/opendilab/DI-engine/commit/9cad6575e5c00036aba6419f95cdce0e7342630f>`_。
+
+.. code::
+
+    from torch.optim.lr_scheduler import LambdaLR
+
+    ...
+
+    # Set up RL Policy
+    policy = DDPGPolicy(cfg.policy, model=model)
+    # Set up lr_scheduler, the optimizer attribute will be different in different policy.
+    # For example, in DDPGPolicy the attribute is 'optimizer_actor', but in DQNPolicy the attribute is 'optimizer'.
+    lr_scheduler = LambdaLR(
+        policy.learn_mode.get_attribute('optimizer_actor'), lr_lambda=lambda iters: min(1.0, 0.5 + 0.5 * iters / 1000)
+    )
+
+    ...
+
+    # Train
+        for i in range(cfg.policy.learn.update_per_collect):
+            ...
+            learner.train(train_data, collector.envstep)
+            lr_scheduler.step()
+
+学习率变化曲线如图所示
+
+.. image:: images/Q5_lr_scheduler.png
+   :align: center
+   :height: 250

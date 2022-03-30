@@ -1,0 +1,895 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>TD3BC &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SAC" href="sac.html" />
+    <link rel="prev" title="TD3" href="td3.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Algorithm Cheat Sheet</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dqn.html">DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51.html">C51</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qrdqn.html">QRDQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iqn.html">IQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html">Rainbow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqn.html">SQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sql.html">SQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqil.html">SQIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html">A2C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="acer.html">ACER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html">PPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html">PPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html">IMPALA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html">DDPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="d4pg.html">D4PG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html">TD3</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">TD3BC</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-facts">Quick Facts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#implementations">Implementations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#benchmark">Benchmark</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-public-implementations">Other Public Implementations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html">SAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="r2d2.html">R2D2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html">QMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html">COMA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html">ATOC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html">CollaQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnd.html">RND</a></li>
+<li class="toctree-l2"><a class="reference internal" href="her.html">HER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gail.html">GAIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trex.html">TREX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html">MCTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html">AlphaGo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html#alphagozero">AlphaGoZero</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cql.html">CQL</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">RL Algorithm Cheat Sheet</a> &raquo;</li>
+        
+      <li>TD3BC</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/td3_bc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="td3bc">
+<h1>TD3BC<a class="headerlink" href="#td3bc" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>TD3BC, proposed in the 2021 paper <a class="reference external" href="https://arxiv.org/abs/2106.06860">A Minimalist Approach to Offline Reinforcement Learning</a>,
+is a simple approach to offline RL where <strong>only two changes</strong> are made to TD3: a weighted behavior cloning loss is added to the policy update and the states are normalized.
+Unlike competing methods there are no changes to architecture or underlying hyperparameters.
+The resulting algorithm is a simple baseline that is easy to implement and tune, while more than halving the overall run time by removing the additional computational overhead of previous methods.</p>
+<div class="figure align-center" id="id1">
+<img alt="../_images/td3bc_paper_table1.png" src="../_images/td3bc_paper_table1.png" />
+<p class="caption"><span class="caption-text">Implementation changes offline RL algorithms make to the underlying base RL algorithm. † corresponds
+to details that add additional hyperparameter(s), and ‡ corresponds to ones that add a computational cost.
+<a class="reference external" href="https://arxiv.org/abs/2106.06860">Ref</a></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>TD3BC is an <strong>offline</strong> RL algorithm.</p></li>
+<li><p>TD3BC is based on <strong>TD3</strong> and <strong>behavior cloning</strong>.</p></li>
+</ol>
+</div>
+<div class="section" id="key-equations-or-key-graphs">
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<p>TD3BC simply consists to add a behavior cloning term to TD3 in order to regularize the policy:</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\pi = \arg\max_{\pi} \mathbb{E}_{(s, a) \sim D} [ \lambda Q(s, \pi(s)) - (\pi(s)-a)^2 ]
+\end{aligned}\]</div>
+<p><span class="math notranslate nohighlight">\((\pi(s)-a)^2\)</span> is the behavior cloning term acts as a regularizer and aims to push the policy towards favoring
+actions contained in the dataset. The hyperparameter <span class="math notranslate nohighlight">\(\lambda\)</span> is used to control the strength of the
+regularizer.</p>
+<p>Assuming an action range of [−1, 1], the BC term is at most 4, however the range of Q will be a function of the scale of
+the reward. Consequently, the scalar <span class="math notranslate nohighlight">\(\lambda\)</span> can be defined as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{aligned}
+\lambda = \frac{\alpha}{\frac{1}{N}\sum_{s_i, a_i}|Q(s_i, a_i)|}
+\end{aligned}\]</div>
+<p>which is simply a normalization term based on the average absolute value of Q over mini-batches. This formulation has
+also the benefit of normalizing the learning rate across tasks since it is dependent on the scale of Q. The default
+value for <span class="math notranslate nohighlight">\(\alpha\)</span> is 2.5.</p>
+<p>Additionally, all the states in each mini-batch are normalized, such that they have mean 0 and standard deviation 1.
+This normalization improves the stability of the learned policy.</p>
+</div>
+<div class="section" id="implementations">
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<p>The default config is defined as follows:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.policy.td3_bc.TD3BCPolicy">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.td3_bc.</span></span><span class="sig-name descname"><span class="pre">TD3BCPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/td3_bc.html#TD3BCPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.policy.td3_bc.TD3BCPolicy" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Policy class of TD3_BC algorithm.</p>
+<p>Since DDPG and TD3 share many common things, we can easily derive this TD3_BC
+class from DDPG class by changing <code class="docutils literal notranslate"><span class="pre">_actor_update_freq</span></code>, <code class="docutils literal notranslate"><span class="pre">_twin_critic</span></code> and noise in model wrapper.</p>
+<p><a class="reference external" href="https://arxiv.org/pdf/2106.06860.pdf">https://arxiv.org/pdf/2106.06860.pdf</a></p>
+</dd>
+<dt>Property:</dt><dd><p>learn_mode, collect_mode, eval_mode</p>
+</dd>
+</dl>
+<p>Config:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 19%" />
+<col style="width: 8%" />
+<col style="width: 17%" />
+<col style="width: 32%" />
+<col style="width: 22%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>td3_bc</p></td>
+<td><div class="line-block">
+<div class="line">RL policy register name, refer</div>
+<div class="line">to registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">this arg is optional,</div>
+<div class="line">a placeholder</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use cuda for network</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">random_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">collect_size</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>25000</p></td>
+<td><div class="line-block">
+<div class="line">Number of randomly collected</div>
+<div class="line">training samples in replay</div>
+<div class="line">buffer when training starts.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Default to 25000 for</div>
+<div class="line">DDPG/TD3, 10000 for</div>
+<div class="line">sac.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">model.twin_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">critic</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use two critic</div>
+<div class="line">networks or only one.</div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Default True for TD3,</div>
+<div class="line">Clipped Double</div>
+<div class="line">Q-learning method in</div>
+<div class="line">TD3 paper.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_rate_actor</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>1e-3</p></td>
+<td><div class="line-block">
+<div class="line">Learning rate for actor</div>
+<div class="line">network(aka. policy).</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_rate_critic</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>1e-3</p></td>
+<td><div class="line-block">
+<div class="line">Learning rates for critic</div>
+<div class="line">network (aka. Q-network).</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.actor_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">update_freq</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>2</p></td>
+<td><div class="line-block">
+<div class="line">When critic network updates</div>
+<div class="line">once, how many times will actor</div>
+<div class="line">network update.</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Default 2 for TD3, 1</div>
+<div class="line">for DDPG. Delayed</div>
+<div class="line">Policy Updates method</div>
+<div class="line">in TD3 paper.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.noise</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Whether to add noise on target</div>
+<div class="line">network’s action.</div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Default True for TD3,</div>
+<div class="line">False for DDPG.</div>
+<div class="line">Target Policy Smoo-</div>
+<div class="line">thing Regularization</div>
+<div class="line">in TD3 paper.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.noise_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">range</span></code></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>dict</p></td>
+<td><div class="line-block">
+<div class="line">dict(min=-0.5,</div>
+<div class="line-block">
+<div class="line">max=0.5,)</div>
+<div class="line"><br /></div>
+</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Limit for range of target</div>
+<div class="line">policy smoothing noise,</div>
+<div class="line">aka. noise_clip.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.-</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">ignore_done</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Determine whether to ignore</div>
+<div class="line">done flag.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Use ignore_done only</div>
+<div class="line">in halfcheetah env.</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>11</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.-</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">target_theta</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.005</p></td>
+<td><div class="line-block">
+<div class="line">Used for soft update of the</div>
+<div class="line">target network.</div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">aka. Interpolation</div>
+<div class="line">factor in polyak aver</div>
+<div class="line">aging for target</div>
+<div class="line">networks.</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>12</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">collect.-</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">noise_sigma</span></code></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.1</p></td>
+<td><div class="line-block">
+<div class="line">Used for add noise during co-</div>
+<div class="line">llection, through controlling</div>
+<div class="line">the sigma of distribution</div>
+<div class="line"><br /></div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Sample noise from dis</div>
+<div class="line">tribution, Ornstein-</div>
+<div class="line">Uhlenbeck process in</div>
+<div class="line">DDPG paper, Guassian</div>
+<div class="line">process in ours.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="section" id="model">
+<h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
+<p>Here we provide examples of <cite>td3_bc</cite> model as default model for <cite>TD3BC</cite>.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.qac.</span></span><span class="sig-name descname"><span class="pre">QAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">,</span> </span><span class="pre">easydict.EasyDict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_space</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twin_critic</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The QAC network, which is used in DDPG/TD3/SAC.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">forward</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code>, <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">compute_actor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC.compute_actor"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>The forward computation graph of compute_actor mode, uses observation tensor to produce actor output,
+such as <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">logit</span></code> and so on.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Observation tensor data, now supports a batch of 1-dim vector data,                 i.e. <code class="docutils literal notranslate"><span class="pre">(B,</span> <span class="pre">obs_shape)</span></code>.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Union[torch.Tensor,</span> <span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]]]</span></code>): Actor output varying                 from action_space: <code class="docutils literal notranslate"><span class="pre">regression</span></code>, <code class="docutils literal notranslate"><span class="pre">reparameterization</span></code>, <code class="docutils literal notranslate"><span class="pre">hybrid</span></code>.</p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys (either):</dt><dd><ul>
+<li><dl class="simple">
+<dt>regression action_space</dt><dd><ul class="simple">
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Continuous action with same size as <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>, usually in DDPG.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>reparameterization action_space</dt><dd><ul>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): Reparameterization logit, usually in SAC.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Mean of parameterization gaussion distribution.</p></li>
+<li><p>sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Standard variation of parameterization gaussion distribution.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>hybrid action_space</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Discrete action type logit.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Continuous action arguments.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N0)\)</span>, B is batch size and N0 corresponds to <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.mu (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size and N1 corresponds to <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit.sigma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, B is batch size.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Regression mode</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;regression&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Reparameterization Mode</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QAC</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;reparameterization&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span>  <span class="c1"># mu</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actor_outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">64</span><span class="p">])</span> <span class="c1"># sigma</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">compute_critic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC.compute_critic"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>The forward computation graph of compute_critic mode, uses observation and action tensor to produce critic
+output, such as <code class="docutils literal notranslate"><span class="pre">q_value</span></code>.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): Dict strcture of input data, including <code class="docutils literal notranslate"><span class="pre">obs</span></code> and <code class="docutils literal notranslate"><span class="pre">action</span></code>                 tensor, also contains <code class="docutils literal notranslate"><span class="pre">logit</span></code> tensor in hybrid action_space.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): Critic output, such as <code class="docutils literal notranslate"><span class="pre">q_value</span></code>.</p></li>
+</ul>
+</dd>
+<dt>ArgumentsKeys:</dt><dd><ul class="simple">
+<li><p>obs: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Observation tensor data, now supports a batch of 1-dim vector data.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">Dict]</span></code>): Continuous action with same size as <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Discrete action logit, only in hybrid action_space.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Continuous action arguments, only in hybrid action_space.</p></li>
+</ul>
+</dd>
+<dt>ReturnKeys:</dt><dd><ul class="simple">
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Q value tensor with same size as batch size.</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>obs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N1)\)</span>, where B is batch size and N1 is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code>.</p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N2)\)</span>, B is batch size and N2 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_type_shape</span></code>.</p></li>
+<li><p>action_args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N3)\)</span>, B is batch size and N3 corresponds to                 <code class="docutils literal notranslate"><span class="pre">action_shape.action_args_shape</span></code>.</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N4)\)</span>, where B is batch size and N4 is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code>.</p></li>
+<li><p>q_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span>, where B is batch size.</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">QAC</span><span class="p">(</span><span class="n">obs_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="p">),</span><span class="n">action_shape</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_critic&#39;</span><span class="p">)[</span><span class="s1">&#39;q_value&#39;</span><span class="p">]</span>  <span class="c1"># q value</span>
+<span class="gp">... </span><span class="n">tensor</span><span class="p">([</span><span class="mf">0.0773</span><span class="p">,</span> <span class="mf">0.1639</span><span class="p">,</span> <span class="mf">0.0917</span><span class="p">,</span> <span class="mf">0.0370</span><span class="p">],</span> <span class="n">grad_fn</span><span class="o">=&lt;</span><span class="n">SqueezeBackward1</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The unique execution (forward) method of QAC method, and one can indicate different modes to implement             different computation graph, including <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code> and <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code> in QAC.</p>
+</dd>
+<dt>Mode compute_actor:</dt><dd><dl class="simple">
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Observation data, defaults to tensor.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Output dict data, including differnet key-values among distinct action_space.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt>Mode compute_critic:</dt><dd><dl class="simple">
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Input dict data, including obs and action tensor.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Output dict data, including q_value tensor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For specific examples, one can refer to API doc of <code class="docutils literal notranslate"><span class="pre">compute_actor</span></code> and <code class="docutils literal notranslate"><span class="pre">compute_critic</span></code> respectively.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Halfcheetah</p>
+<p>(Medium Expert)</p>
+</td>
+<td><p>13037</p></td>
+<td><img alt="../_images/halfcheetah_td3bc.png" src="../_images/halfcheetah_td3bc.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/halfcheetah_td3bc_medium_expert_config.py">config_link_ha</a></p></td>
+<td><p>d3rlpy(12124)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Walker2d</p>
+<p>(Medium Expert)</p>
+</td>
+<td><p>5066</p></td>
+<td><img alt="../_images/walker2d_td3bc.png" src="../_images/walker2d_td3bc.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/walker2d_td3bc_medium_expert_config.py">config_link_w</a></p></td>
+<td><p>d3rlpy(5108)</p></td>
+</tr>
+<tr class="row-even"><td><p>Hopper</p>
+<p>(Medium Expert)</p>
+</td>
+<td><p>3653</p></td>
+<td><img alt="../_images/hopper_td3bc.png" src="../_images/hopper_td3bc.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_sac_td3bc_medium_expert_config.py">config_link_ho</a></p></td>
+<td><p>d3rlpy(3690)</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 19%" />
+<col style="width: 18%" />
+<col style="width: 17%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>random</p></th>
+<th class="head"><p>medium replay</p></th>
+<th class="head"><p>medium expert</p></th>
+<th class="head"><p>medium</p></th>
+<th class="head"><p>expert</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Halfcheetah</p></td>
+<td><p>1592</p></td>
+<td><p>5192</p></td>
+<td><p>13037</p></td>
+<td><p>5257</p></td>
+<td><p>13247</p></td>
+</tr>
+<tr class="row-odd"><td><p>Walker2d</p></td>
+<td><p>345</p></td>
+<td><p>1724</p></td>
+<td><p>3653</p></td>
+<td><p>3268</p></td>
+<td><p>3664</p></td>
+</tr>
+<tr class="row-even"><td><p>Hopper</p></td>
+<td><p>985</p></td>
+<td><p>2317</p></td>
+<td><p>5066</p></td>
+<td><p>3826</p></td>
+<td><p>5232</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note</strong>: the D4RL environment used in this benchmark can be found <a class="reference external" href="https://github.com/rail-berkeley/d4rl">here</a>.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Scott Fujimoto, Shixiang Shane Gu: “A Minimalist Approach to Offline Reinforcement Learning”, 2021; [<a class="reference external" href="https://arxiv.org/abs/2106.06860">https://arxiv.org/abs/2106.06860</a> arXiv:2106.06860].</p></li>
+<li><p>Scott Fujimoto, Herke van Hoof, David Meger: “Addressing Function Approximation Error in Actor-Critic Methods”, 2018; [<a class="reference external" href="http://arxiv.org/abs/1802.09477">http://arxiv.org/abs/1802.09477</a> arXiv:1802.09477].</p></li>
+</ul>
+</div>
+<div class="section" id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/sfujim/TD3_BC">Official implementation</a></p></li>
+<li><p><a class="reference external" href="https://github.com/takuseno/d3rlpy">d3rlpy</a></p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sac.html" class="btn btn-neutral float-right" title="SAC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="td3.html" class="btn btn-neutral float-left" title="TD3" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -6,7 +6,9 @@ RL Algorithm Cheat Sheet
     :maxdepth: 3
 
     dqn
-    c51_qrdqn_iqn
+    c51
+    qrdqn
+    iqn
     rainbow
     sqn
     sql
@@ -19,8 +21,12 @@ RL Algorithm Cheat Sheet
     impala
     
     ddpg
+    d4pg
     td3
+    td3_bc
     sac
+
+    r2d2
 
     qmix
     coma

@@ -39,7 +39,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="SQN" href="sqn.html" />
-    <link rel="prev" title="C51" href="c51_qrdqn_iqn.html" />
+    <link rel="prev" title="IQN" href="iqn.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -175,7 +175,7 @@
 <h1>Rainbow<a class="headerlink" href="#rainbow" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>Rainbow was proposed in <a class="reference external" href="https://arxiv.org/abs/1710.02298">Rainbow: Combining Improvements in Deep Reinforcement Learning</a>. It combines many independent improvements to DQN, including: target network(double DQN), priority, dueling head, multi-step TD-loss, C51 and noisy net.</p>
+<p>Rainbow was proposed in <a class="reference external" href="https://arxiv.org/abs/1710.02298">Rainbow: Combining Improvements in Deep Reinforcement Learning</a>. It combines many independent improvements to DQN, including: Double DQN, priority, dueling head, multi-step TD-loss, C51 (distributional RL) and noisy net.</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
@@ -188,49 +188,76 @@
 <li><p>The DI-engine implementation of Rainbow supports <strong>multi-discrete</strong> action space.</p></li>
 </ol>
 </div>
-<div class="section" id="double-q-learning">
-<h2>Double Q-learning<a class="headerlink" href="#double-q-learning" title="Permalink to this headline">¶</a></h2>
-<p>Double Q-learning maintains a target q network, which is periodically updated with the current q network. Double Q-learning decouples the over-estimation of q-value by selects action with the current q network but estimate the q-value with the target network, formally:</p>
+<div class="section" id="key-equations-or-key-graphs">
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="double-dqn">
+<h3>Double DQN<a class="headerlink" href="#double-dqn" title="Permalink to this headline">¶</a></h3>
+<p>Double DQN, proposed in <a class="reference external" href="https://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a>, is a common variant of DQN. Conventional DQN maintains a target q network, which is periodically updated with the current q network. Double DQN addresses the overestimation of q-value by decoupling. It selects action with the current q network but estimates the q-value with the target network, formally:</p>
 <div class="math notranslate nohighlight">
-\[\left(R_{t+1}+\gamma_{t+1} q_{\bar{\theta}}\left(S_{t+1}, \underset{a^{\prime}}{\operatorname{argmax}} q_{\theta}\left(S_{t+1}, a^{\prime}\right)\right)-q_{0}\left(S_{t}, A_{t}\right)\right)^{2}\]</div>
+\[\left(R_{t+1}+\gamma_{t+1} q_{\bar{\theta}}\left(S_{t+1}, \underset{a^{\prime}}{\operatorname{argmax}} q_{\theta}\left(S_{t+1}, a^{\prime}\right)\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}\]</div>
 </div>
 <div class="section" id="prioritized-experience-replay-per">
-<h2>Prioritized Experience Replay(PER)<a class="headerlink" href="#prioritized-experience-replay-per" title="Permalink to this headline">¶</a></h2>
+<h3>Prioritized Experience Replay(PER)<a class="headerlink" href="#prioritized-experience-replay-per" title="Permalink to this headline">¶</a></h3>
 <p>DQN samples uniformly from the replay buffer. Ideally, we want to sample more frequently those transitions from which there is much to learn. As a proxy for learning potential, prioritized experience replay samples transitions with probabilities relative to the last encountered absolute TD error, formally:</p>
 <div class="math notranslate nohighlight">
 \[p_{t} \propto\left|R_{t+1}+\gamma_{t+1} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+1}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right|^{\omega}\]</div>
 <p>In the original paper of PER, the authors show that PER achieve improvements on most of the 57 Atari games, especially on Gopher, Atlantis, James Bond 007, Space Invaders, etc.</p>
 </div>
 <div class="section" id="dueling-network">
-<h2>Dueling Network<a class="headerlink" href="#dueling-network" title="Permalink to this headline">¶</a></h2>
-<p>The dueling network is a neural network architecture designed for value based RL. It features two streams of computation, the value and advantage
-streams, sharing a convolutional encoder, and merged by a special aggregator. This corresponds to the following factorization of action values:</p>
+<h3>Dueling Network<a class="headerlink" href="#dueling-network" title="Permalink to this headline">¶</a></h3>
+<p>The dueling network is a neural network architecture designed for value based RL. It features two streams of computation streams,
+one for state value function <span class="math notranslate nohighlight">\(V\)</span> and one for the state-dependent action advantage function <span class="math notranslate nohighlight">\(A\)</span>.
+Both of them share a common convolutional encoder, and are merged by a special aggregator to produce an estimate of the state-action value function <span class="math notranslate nohighlight">\(Q\)</span> as shown in figure.</p>
+<a class="reference internal image-reference" href="../_images/DuelingDQN.png"><img alt="../_images/DuelingDQN.png" class="align-center" src="../_images/DuelingDQN.png" style="height: 300px;" /></a>
+<p>It is unidentifiable that given <span class="math notranslate nohighlight">\(Q\)</span> we cannot recover <span class="math notranslate nohighlight">\(V\)</span> and <span class="math notranslate nohighlight">\(A\)</span> uniquely. So we force the advantage function zero by the following factorization of action values:</p>
 <div class="math notranslate nohighlight">
 \[q_{\theta}(s, a)=v_{\eta}\left(f_{\xi}(s)\right)+a_{\psi}\left(f_{\xi}(s), a\right)-\frac{\sum_{a^{\prime}} a_{\psi}\left(f_{\xi}(s), a^{\prime}\right)}{N_{\text {actions }}}\]</div>
-<p>The network architecture of Rainbow is a dueling network architecture adapted for use with return distributions. The network has a shared representation, which is then fed into a value stream <span class="math notranslate nohighlight">\(v_\eta\)</span> with <span class="math notranslate nohighlight">\(N_{atoms}\)</span> outputs, and into an advantage stream <span class="math notranslate nohighlight">\(a_{\psi}\)</span> with <span class="math notranslate nohighlight">\(N_{atoms} \times N_{actions}\)</span> outputs, where <span class="math notranslate nohighlight">\(a_{\psi}^i(a)\)</span> will denote the output corresponding to atom i and action a. For each atom <span class="math notranslate nohighlight">\(z_i\)</span>, the value and advantage streams are aggregated, as in dueling DQN, and then passed through a softmax layer to obtain the normalized parametric distributions used to estimate the returns’ distributions:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\begin{array}{r}
-p_{\theta}^{i}(s, a)=\frac{\exp \left(v_{\eta}^{i}(\phi)+a_{\psi}^{i}(\phi, a)-\bar{a}_{\psi}^{i}(s)\right)}{\sum_{j} \exp \left(v_{\eta}^{j}(\phi)+a_{\psi}^{j}(\phi, a)-\bar{a}_{\psi}^{j}(s)\right)} \\
-\text { where } \phi=f_{\xi}(s) \text { and } \bar{a}_{\psi}^{i}(s)=\frac{1}{N_{\text {actions }}} \sum_{a^{\prime}} a_{\psi}^{i}\left(\phi, a^{\prime}\right)
-\end{array}\end{split}\]</div>
+<p>In this way, it can address the issue of identifiability and increase the stability of the optimization.The network architecture of Rainbow is a dueling network architecture adapted for use with return distributions.</p>
 </div>
 <div class="section" id="multi-step-learning">
-<h2>Multi-step Learning<a class="headerlink" href="#multi-step-learning" title="Permalink to this headline">¶</a></h2>
+<h3>Multi-step Learning<a class="headerlink" href="#multi-step-learning" title="Permalink to this headline">¶</a></h3>
 <p>A multi-step variant of DQN is then defined by minimizing the alternative loss:</p>
 <div class="math notranslate nohighlight">
 \[\left(R_{t}^{(n)}+\gamma_{t}^{(n)} \max _{a^{\prime}} q_{\bar{\theta}}\left(S_{t+n}, a^{\prime}\right)-q_{\theta}\left(S_{t}, A_{t}\right)\right)^{2}\]</div>
 <p>where the truncated n-step return is defined as:</p>
 <div class="math notranslate nohighlight">
-\[`R_{t}^{(n)} \equiv \sum^{n-1} \gamma_{t}^{(k)} R_{t+k+1}\]</div>
+\[R_{t}^{(n)} \equiv \sum_{k=0}^{n-1} \gamma_{t}^{(k)} R_{t+k+1}\]</div>
 <p>In the paper <a class="reference external" href="https://acsweb.ucsd.edu/~wfedus/pdf/replay.pdf">Revisiting Fundamentals of Experience Replay</a>, the authors analyze that a greater capacity of replay buffer substantially increases the performance when multi-step learning is used, and they think the reason is that multi-step learning brings larger variance, which is compensated by a larger replay buffer.</p>
 </div>
+<div class="section" id="distribution-rl">
+<h3>Distribution RL<a class="headerlink" href="#distribution-rl" title="Permalink to this headline">¶</a></h3>
+<p>Distributional RL was first proposed in <a class="reference external" href="https://arxiv.org/abs/1707.06887">A Distributional Perspective on Reinforcement Learning</a>. It learns to approximate the distribution of returns instead of the expected return using a discrete distribution, whose support is <span class="math notranslate nohighlight">\(\boldsymbol{z}\)</span>, a vector with <span class="math notranslate nohighlight">\(N_{\text {atoms }} \in \mathbb{N}^{+}atoms\)</span>, defined by <span class="math notranslate nohighlight">\(z^{i}=v_{\min }+(i-1) \frac{v_{\max }-v_{\min }}{N_{\text {atoms }}-1}\)</span> for <span class="math notranslate nohighlight">\(i \in\left\{1, \ldots, N_{\text {atoms }}\right\}\)</span>. The approximate distribution <span class="math notranslate nohighlight">\(d_{t}\)</span> at time t is defined on this support, with the probability <span class="math notranslate nohighlight">\(p_{\theta}^{i}\left(S_{t}, A_{t}\right)\)</span> on each atom <span class="math notranslate nohighlight">\(i\)</span>, such that <span class="math notranslate nohighlight">\(d_{t}=\left(z, p_{\theta}\left(S_{t}, A_{t}\right)\right)\)</span>. A distributinal variant of Q-learning is then derived by minimizing the Kullbeck-Leibler divergence between the distribution <span class="math notranslate nohighlight">\(d_{t}\)</span> and the target distribution <span class="math notranslate nohighlight">\(d_{t}^{\prime} \equiv\left(R_{t+1}+\gamma_{t+1} z, \quad p_{\bar{\theta}}\left(S_{t+1}, \bar{a}_{t+1}^{*}\right)\right)\)</span>, formally:</p>
+<div class="math notranslate nohighlight">
+\[D_{\mathrm{KL}}\left(\Phi_{\boldsymbol{z}} d_{t}^{\prime} \| d_{t}\right)\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\Phi_{\boldsymbol{z}}\)</span> is a L2-projection of the target distribution onto the fixed support <span class="math notranslate nohighlight">\(\boldsymbol{z}\)</span>.</p>
+</div>
 <div class="section" id="noisy-net">
-<h2>Noisy Net<a class="headerlink" href="#noisy-net" title="Permalink to this headline">¶</a></h2>
+<h3>Noisy Net<a class="headerlink" href="#noisy-net" title="Permalink to this headline">¶</a></h3>
 <p>Noisy Nets use a noisy linear layer that combines a deterministic and noisy stream:</p>
 <div class="math notranslate nohighlight">
 \[\boldsymbol{y}=(\boldsymbol{b}+\mathbf{W} \boldsymbol{x})+\left(\boldsymbol{b}_{\text {noisy }} \odot \epsilon^{b}+\left(\mathbf{W}_{\text {noisy }} \odot \epsilon^{w}\right) \boldsymbol{x}\right)\]</div>
-<p>Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements against epsilon-greedy when the action space is large, e.g. Montezuma’s Revenge, because epsilon-greedy tends to quickly converge to a one-hot distribution before the rewards of the large numbers of actions are collected enough.
-In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the noises are first sampled form N(0,1), then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. x -&gt; x.sign() * x.sqrt().</p>
+<p>Over time, the network can learn to ignore the noisy stream, but at different rates in different parts of the state space, allowing state-conditional exploration with a form of self-annealing. It usually achieves improvements against <span class="math notranslate nohighlight">\(\epsilon\)</span>-greedy when the action space is large, e.g. Montezuma’s Revenge, because <span class="math notranslate nohighlight">\(\epsilon\)</span>-greedy tends to quickly converge to a one-hot distribution before the rewards of the large numbers of actions are collected enough.
+In our implementation, the noises are resampled before each forward both during data collection and training. When double Q-learning is used, the target network also resamples the noises before each forward. During the noise sampling, the noises are first sampled from <span class="math notranslate nohighlight">\(N(0,1)\)</span>, then their magnitudes are modulated via a sqrt function with their signs preserved, i.e. <span class="math notranslate nohighlight">\(x \rightarrow x.sign() * x.sqrt()\)</span>.</p>
+</div>
+<div class="section" id="intergrated-method">
+<h3>Intergrated Method<a class="headerlink" href="#intergrated-method" title="Permalink to this headline">¶</a></h3>
+<p>First, We replace the 1-step distributional loss with multi-step loss:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{split}
+D_{\mathrm{KL}}\left(\Phi_{\boldsymbol{z}} d_{t}^{(n)} \| d_{t}\right) \\
+d_{t}^{(n)}=\left(R_{t}^{(n)}+\gamma_{t}^{(n)} z,\quad p_{\bar{\theta}}\left(S_{t+n}, a_{t+n}^{*}\right)\right)
+\end{split}\end{split}\]</div>
+<p>Then, we comine the multi-step distributinal loss with Double DQN by selecting the greedy action using the online network and evaluating such action using the target network.
+The KL loss is also used to prioritize the transitions:</p>
+<div class="math notranslate nohighlight">
+\[p_{t} \propto\left(D_{\mathrm{KL}}\left(\Phi_{z} d_{t}^{(n)} \| d_{t}\right)\right)^{\omega}\]</div>
+<p>The network has a shared representation, which is then fed into a value stream <span class="math notranslate nohighlight">\(v_\eta\)</span> with <span class="math notranslate nohighlight">\(N_{atoms}\)</span> outputs, and into an advantage stream <span class="math notranslate nohighlight">\(a_{\psi}\)</span> with <span class="math notranslate nohighlight">\(N_{atoms} \times N_{actions}\)</span> outputs, where <span class="math notranslate nohighlight">\(a_{\psi}^i(a)\)</span> will denote the output corresponding to atom i and action a. For each atom <span class="math notranslate nohighlight">\(z_i\)</span>, the value and advantage streams are aggregated, as in dueling DQN, and then passed through a softmax layer to obtain the normalized parametric distributions used to estimate the returns’ distributions:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{split}
+p_{\theta}^{i}(s, a)=\frac{\exp \left(v_{\eta}^{i}(\phi)+a_{\psi}^{i}(\phi, a)-\bar{a}_{\psi}^{i}(s)\right)}{\sum_{j} \exp \left(v_{\eta}^{j}(\phi)+a_{\psi}^{j}(\phi, a)-\bar{a}_{\psi}^{j}(s)\right)} \\
+\text { where } \phi=f_{\xi}(s) \text { and } \bar{a}_{\psi}^{i}(s)=\frac{1}{N_{\text {actions }}} \sum_{a^{\prime}} a_{\psi}^{i}\left(\phi, a^{\prime}\right)
+\end{split}\end{split}\]</div>
+</div>
 </div>
 <div class="section" id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
@@ -516,7 +543,63 @@ Parameter updates with Rainbow’s MLPs forward setup.</p>
 
 </dd></dl>
 
-<p>The Benchmark result of Rainbow implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview.html">Benchmark</a></p>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p>
+<p>(PongNoFrameskip-v4)</p>
+</td>
+<td><p>21</p></td>
+<td><img alt="../_images/pong_rainbow.png" src="../_images/pong_rainbow.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/pong/pong_rainbow_config.py">config_link_p</a></p></td>
+<td><p>Tianshou(21)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p>
+<p>(QbertNoFrameskip-v4)</p>
+</td>
+<td><p>20600</p></td>
+<td><img alt="../_images/qbert_rainbow.png" src="../_images/qbert_rainbow.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/qbert/qbert_rainbow_config.py">config_link_q</a></p></td>
+<td><p>Tianshou(16192.5)</p></td>
+</tr>
+<tr class="row-even"><td><p>SpaceInvaders</p>
+<p>(SpaceInvadersNoFrame
+skip-v4)</p>
+</td>
+<td><p>2168</p></td>
+<td><img alt="../_images/spaceinvaders_rainbow.png" src="../_images/spaceinvaders_rainbow.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_rainbow_config.py">config_link_s</a></p></td>
+<td><p>Tianshou(1794.5)</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="simple">
+<dt>P.S.：</dt><dd><ol class="arabic simple">
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4).</p></li>
+<li><p>For the discrete action space algorithm, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>. For more details about Atari, please refer to <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
+</ol>
+</dd>
+</dl>
 </div>
 <div class="section" id="experiments-on-rainbow-tricks">
 <h2>Experiments on Rainbow Tricks<a class="headerlink" href="#experiments-on-rainbow-tricks" title="Permalink to this headline">¶</a></h2>
@@ -588,8 +671,20 @@ type of policy as below.</p>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<p>Matteo Hessel, Joseph Modayil, Hado van Hasselt, Tom Schaul, Georg Ostrovski, Will Dabney, Dan Horgan, Bilal Piot, Mohammad Azar, David Silver: “Rainbow: Combining Improvements in Deep Reinforcement Learning”, 2017; [<a class="reference external" href="http://arxiv.org/abs/1710.02298">http://arxiv.org/abs/1710.02298</a> arXiv:1710.02298].</p>
+<p><strong>(DQN)</strong> Mnih, Volodymyr, et al. “Human-level control through deep reinforcement learning.” 2015; [<a class="reference external" href="https://deepmind-data.storage.googleapis.com/assets/papers/DeepMindNature14236Paper.pdf">https://deepmind-data.storage.googleapis.com/assets/papers/DeepMindNature14236Paper.pdf</a>]</p>
+<p><strong>(Rainbow)</strong> Matteo Hessel, Joseph Modayil, Hado van Hasselt, Tom Schaul, Georg Ostrovski, Will Dabney, Dan Horgan, Bilal Piot, Mohammad Azar, David Silver: “Rainbow: Combining Improvements in Deep Reinforcement Learning”, 2017; [<a class="reference external" href="http://arxiv.org/abs/1710.02298">http://arxiv.org/abs/1710.02298</a> arXiv:1710.02298].</p>
+<p><strong>(Double DQN)</strong> Van Hasselt, Hado, Arthur Guez, and David Silver: “Deep reinforcement learning with double q-learning.”, 2016; [<a class="reference external" href="https://arxiv.org/abs/1509.06461">https://arxiv.org/abs/1509.06461</a> arXiv:1509.06461]</p>
+<p><strong>(PER)</strong> Schaul, Tom, et al.: “Prioritized Experience Replay.”, 2016; [<a class="reference external" href="https://arxiv.org/abs/1511.05952">https://arxiv.org/abs/1511.05952</a> arXiv:1511.05952]</p>
 <p>William Fedus, Prajit Ramachandran, Rishabh Agarwal, Yoshua Bengio, Hugo Larochelle, Mark Rowland, Will Dabney: “Revisiting Fundamentals of Experience Replay”, 2020; [<a class="reference external" href="http://arxiv.org/abs/2007.06700">http://arxiv.org/abs/2007.06700</a> arXiv:2007.06700].</p>
+<p><strong>(Dueling network)</strong> Wang, Z., Schaul, T., Hessel, M., Hasselt, H., Lanctot, M., &amp; Freitas: “Dueling network architectures for deep reinforcement learning”, 2016; [<a class="reference external" href="https://arxiv.org/abs/1511.06581">https://arxiv.org/abs/1511.06581</a> arXiv:1511.06581]</p>
+<p><strong>(Multi-step)</strong> Sutton, R. S., and Barto, A. G.: “Reinforcement Learning: An Introduction”. The MIT press, Cambridge MA. 1998;</p>
+<p><strong>(Distibutional RL)</strong> Bellemare, Marc G., Will Dabney, and Rémi Munos.: “A distributional perspective on reinforcement learning.”, 2017; [<a class="reference external" href="https://arxiv.org/abs/1707.06887">https://arxiv.org/abs/1707.06887</a> arXiv:1707.06887]</p>
+<p><strong>(Noisy net)</strong> Fortunato, Meire, et al.: “Noisy networks for exploration.”, 2017; [<a class="reference external" href="https://arxiv.org/abs/1706.10295">https://arxiv.org/abs/1706.10295</a> arXiv:1706.10295]</p>
+<div class="section" id="other-public-implement">
+<h3>Other Public Implement<a class="headerlink" href="#other-public-implement" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/rainbow.py">Tianshou</a></p>
+<p><a class="reference external" href="https://github.com/ray-project/ray/blob/master/rllib/agents/dqn/dqn.py">RLlib</a></p>
+</div>
 </div>
 </div>
 
@@ -604,7 +699,7 @@ type of policy as below.</p>
         <a href="sqn.html" class="btn btn-neutral float-right" title="SQN" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="c51_qrdqn_iqn.html" class="btn btn-neutral float-left" title="C51" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="iqn.html" class="btn btn-neutral float-left" title="IQN" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

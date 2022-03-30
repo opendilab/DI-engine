@@ -6,7 +6,9 @@
     :maxdepth: 3
 
     dqn_zh
-    c51_qrdqn_iqn
+    c51
+    qrdqn
+    iqn
     rainbow
     sqn
     sqil

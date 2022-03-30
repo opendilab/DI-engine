@@ -991,10 +991,10 @@
         <li><a href="api_doc/interaction/exception/base.html#ding.interaction.exception.base.ResponseException.code">(ding.interaction.exception.base.ResponseException property)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_doc/model/template/qmix.html#ding.model.template.qmix.CollaQ">CollaQ (class in ding.model.template.qmix)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_doc/model/template/qmix.html#ding.model.template.qmix.CollaQMultiHeadAttention">CollaQMultiHeadAttention (class in ding.model.template.qmix)</a>
 </li>
       <li><a href="api_doc/policy/collaq.html#ding.policy.collaq.CollaQPolicy">CollaQPolicy (class in ding.policy.collaq)</a>
@@ -1048,6 +1048,8 @@
       <ul>
         <li><a href="hands_on/ddpg.html#ding.model.template.qac.QAC.compute_actor">(ding.model.template.qac.QAC method)</a>
 </li>
+        <li><a href="hands_on/d4pg.html#ding.model.template.qac_dist.QACDIST.compute_actor">(ding.model.template.qac_dist.QACDIST method)</a>
+</li>
         <li><a href="api_doc/model/template/VAC.html#ding.model.template.VAC.compute_actor">(ding.model.template.VAC method)</a>
 </li>
       </ul></li>
@@ -1057,6 +1059,8 @@
 
       <ul>
         <li><a href="hands_on/ddpg.html#ding.model.template.qac.QAC.compute_critic">(ding.model.template.qac.QAC method)</a>
+</li>
+        <li><a href="hands_on/d4pg.html#ding.model.template.qac_dist.QACDIST.compute_critic">(ding.model.template.qac_dist.QACDIST method)</a>
 </li>
         <li><a href="api_doc/model/template/VAC.html#ding.model.template.VAC.compute_critic">(ding.model.template.VAC method)</a>
 </li>
@@ -2236,6 +2240,8 @@
 </li>
         <li><a href="hands_on/ddpg.html#ding.model.template.qac.QAC.forward">(ding.model.template.qac.QAC method)</a>
 </li>
+        <li><a href="hands_on/d4pg.html#ding.model.template.qac_dist.QACDIST.forward">(ding.model.template.qac_dist.QACDIST method)</a>
+</li>
         <li><a href="api_doc/model/template/qmix.html#ding.model.template.qmix.CollaQ.forward">(ding.model.template.qmix.CollaQ method)</a>
 </li>
         <li><a href="api_doc/model/template/qmix.html#ding.model.template.qmix.CollaQMultiHeadAttention.forward">(ding.model.template.qmix.CollaQMultiHeadAttention method)</a>
@@ -2996,10 +3002,14 @@
 </li>
       <li><a href="api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy">PPGPolicy (class in ding.policy.ppg)</a>
 </li>
-      <li><a href="hands_on/ppo.html#ding.policy.ppo.PPOPolicy">PPOPolicy (class in ding.policy.ppo)</a>
+      <li><a href="hands_on/ppo.html#ding.rl_utils.ppo.ppo_policy_error">ppo_policy_error() (in module ding.rl_utils.ppo)</a>
+</li>
+      <li><a href="hands_on/ppo.html#ding.rl_utils.ppo.ppo_value_error">ppo_value_error() (in module ding.rl_utils.ppo)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="hands_on/ppo.html#ding.policy.ppo.PPOPolicy">PPOPolicy (class in ding.policy.ppo)</a>
+</li>
       <li><a href="api_doc/utils/system_helper.html#ding.utils.system_helper.PropagatingThread">PropagatingThread (class in ding.utils.system_helper)</a>
 </li>
       <li><a href="api_doc/worker/buffer/buffer.html#ding.worker.buffer.buffer.Buffer.push">push() (ding.worker.buffer.buffer.Buffer method)</a>
@@ -3034,12 +3044,14 @@
         <li><a href="hands_on/ddpg.html#ding.model.template.qac.QAC">(class in ding.model.template.qac)</a>
 </li>
       </ul></li>
-      <li><a href="api_doc/model/template/qmix.html#ding.model.template.qmix.QMix">QMix (class in ding.model.template.qmix)</a>
+      <li><a href="hands_on/d4pg.html#ding.model.template.qac_dist.QACDIST">QACDIST (class in ding.model.template.qac_dist)</a>
 </li>
-      <li><a href="api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy">QMIXPolicy (class in ding.policy.qmix)</a>
+      <li><a href="api_doc/model/template/qmix.html#ding.model.template.qmix.QMix">QMix (class in ding.model.template.qmix)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_doc/policy/qmix.html#ding.policy.qmix.QMIXPolicy">QMIXPolicy (class in ding.policy.qmix)</a>
+</li>
       <li><a href="api_doc/model/template/q_learning.html#ding.model.template.q_learning.QRDQN">QRDQN (class in ding.model.template.q_learning)</a>
 </li>
       <li><a href="api_doc/model/common/head.html#ding.model.common.head.QRDQNHead">QRDQNHead (class in ding.model.common.head)</a>
@@ -3510,12 +3522,14 @@
 </li>
       <li><a href="api_doc/worker/coordinator/coordinator.html#ding.worker.coordinator.coordinator.TaskState">TaskState (class in ding.worker.coordinator.coordinator)</a>
 </li>
-      <li><a href="hands_on/td3.html#ding.policy.td3.TD3Policy">TD3Policy (class in ding.policy.td3)</a>
+      <li><a href="hands_on/td3_bc.html#ding.policy.td3_bc.TD3BCPolicy">TD3BCPolicy (class in ding.policy.td3_bc)</a>
 </li>
-      <li><a href="api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapper">TimeWrapper (class in ding.utils.time_helper)</a>
+      <li><a href="hands_on/td3.html#ding.policy.td3.TD3Policy">TD3Policy (class in ding.policy.td3)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapper">TimeWrapper (class in ding.utils.time_helper)</a>
+</li>
       <li><a href="api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapperTime">TimeWrapperTime (class in ding.utils.time_helper)</a>
 </li>
       <li><a href="api_doc/reward_model/base_reward_estimate.html#ding.reward_model.base_reward_model.BaseRewardModel.train">train() (ding.reward_model.base_reward_model.BaseRewardModel method)</a>
