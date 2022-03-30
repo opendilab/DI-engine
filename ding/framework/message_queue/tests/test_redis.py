@@ -1,9 +1,8 @@
+from time import sleep
 import pytest
 
 from multiprocessing import Pool
 from unittest.mock import Mock, patch
-import redis
-from redis.client import PubSub
 
 from ding.framework.message_queue.redis import RedisMQ
 
@@ -30,7 +29,9 @@ def redis_main(i):
         mq = RedisMQ(redis_host=host, redis_port=port)
         mq.listen()
         if i == 0:
-            mq.publish("t", b"data")
+            for _ in range(5):
+                mq.publish("t", b"data")
+                sleep(0.3)
         else:
             mq.subscribe("t")
             topic, msg = mq.recv()
