@@ -68,7 +68,7 @@ class TestDingEnvWrapper:
         # assert isinstance(action, np.ndarray)
         print('random_action: {}, action_space: {}'.format(action.shape, ding_env.action_space))
 
-    # @pytest.mark.unittest
+    @pytest.mark.envtest
     def test_mujoco(self):
         env_cfg = EasyDict(
             env_id='Ant-v3',
@@ -92,7 +92,7 @@ class TestDingEnvWrapper:
         # assert isinstance(action, np.ndarray)
         assert action.shape == ding_env_mujoco.action_space.shape
 
-    # @pytest.mark.unittest
+    @pytest.mark.envtest
     @pytest.mark.parametrize('atari_env_id', ['PongNoFrameskip-v4', 'MontezumaRevengeDeterministic-v4'])
     def test_atari(self, atari_env_id):
         env_cfg = EasyDict(
