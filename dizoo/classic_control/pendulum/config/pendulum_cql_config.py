@@ -1,9 +1,8 @@
 from easydict import EasyDict
 
-pendulum_cql_default_config = dict(
-    seed=0,
+pendulum_cql_config = dict(
+    exp_name='pendulum_cql',
     env=dict(
-        collector_env_num=1,
         evaluator_env_num=5,
         act_scale=True,
         n_evaluator_episode=5,
@@ -34,20 +33,18 @@ pendulum_cql_default_config = dict(
             min_q_weight=5.0,
         ),
         collect=dict(
-            unroll_len=1,
             data_type='hdf5',
-            data_path='./sac/expert_demos.hdf5',
+            data_path='./pendulum_sac_data_generation/expert_demos.hdf5',
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=100, )),
-        other=dict(replay_buffer=dict(replay_buffer_size=100000, ), ),
     ),
 )
 
-pendulum_cql_default_config = EasyDict(pendulum_cql_default_config)
-main_config = pendulum_cql_default_config
+pendulum_cql_config = EasyDict(pendulum_cql_config)
+main_config = pendulum_cql_config
 
-pendulum_cql_default_create_config = dict(
+pendulum_cql_create_config = dict(
     env=dict(
         type='pendulum',
         import_names=['dizoo.classic_control.pendulum.envs.pendulum_env'],
@@ -58,5 +55,5 @@ pendulum_cql_default_create_config = dict(
         import_names=['ding.policy.cql'],
     ),
 )
-pendulum_cql_default_create_config = EasyDict(pendulum_cql_default_create_config)
-create_config = pendulum_cql_default_create_config
+pendulum_cql_create_config = EasyDict(pendulum_cql_create_config)
+create_config = pendulum_cql_create_config

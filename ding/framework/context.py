@@ -55,5 +55,22 @@ class OnlineRLContext(Context):
         # eval
         self.eval_value = -np.inf
         self.last_eval_iter = -1
-        # other
+
         self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')
+
+
+class OfflineRLContext(Context):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.__dict__ = self
+        # common
+        self.total_step = 0
+        self.train_epoch = 0
+        self.train_iter = 0
+        self.train_data = None
+        # eval
+        self.eval_value = -np.inf
+        self.last_eval_iter = -1
+
+        self.keep('train_iter', 'last_eval_iter')

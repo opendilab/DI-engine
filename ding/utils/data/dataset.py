@@ -66,7 +66,6 @@ class D4RLDataset(Dataset):
             trans_data['action'] = torch.from_numpy(dataset['actions'][i])
             trans_data['reward'] = torch.tensor(dataset['rewards'][i])
             trans_data['done'] = dataset['terminals'][i]
-            trans_data['collect_iter'] = 0
             self._data.append(trans_data)
 
 
@@ -122,7 +121,6 @@ def hdf5_save(exp_data, expert_data_path):
     dataset.create_dataset('action', data=np.array([d['action'].numpy() for d in exp_data]), compression='gzip')
     dataset.create_dataset('reward', data=np.array([d['reward'].numpy() for d in exp_data]), compression='gzip')
     dataset.create_dataset('done', data=np.array([d['done'] for d in exp_data]), compression='gzip')
-    dataset.create_dataset('collect_iter', data=np.array([d['collect_iter'] for d in exp_data]), compression='gzip')
     dataset.create_dataset('next_obs', data=np.array([d['next_obs'].numpy() for d in exp_data]), compression='gzip')
 
 

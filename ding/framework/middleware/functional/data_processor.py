@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Callable
 from easydict import EasyDict
 import logging
 import torch
-from ding.data import Buffer, Dataset, DataLoader
+from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.framework import task
 
 if TYPE_CHECKING:
@@ -54,14 +54,28 @@ def onpolicy_data_fetcher(cfg: EasyDict, buffer_: Buffer) -> Callable:
 
 
 def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
-    dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size)
+    # collate_fn is executed in policy now
+    dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
 
     def _fetch(ctx: "Context"):
-        buffered_data = next(dataloader)
-        ctx.train_data = [d.data for d in buffered_data]
-        # TODO apply update in offline setting when necessary
+        while True:
+            for i, data in enumerate(dataloader):
+                ctx.train_data = data
+                yield
+            ctx.train_epoch += 1
+        # TODO apply data update (e.g. priority) in offline setting when necessary
 
     return _fetch
+
+
+def offline_data_saver(cfg: EasyDict, data_path: str, data_type: str = 'hdf5') -> Callable:
+
+    def _save(ctx: "Context"):
+        data = ctx.trajectories
+        offline_data_save_type(data, data_path, data_type)
+        ctx.trajectories = None
+
+    return _save
 
 
 # ################ Algorithm-Specific ###########################
