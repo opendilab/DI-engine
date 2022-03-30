@@ -1,6 +1,8 @@
 from easydict import EasyDict
 
 pendulum_ddpg_config = dict(
+    exp_name='pendulum_ddpg_seed0',
+    seed=0,
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,

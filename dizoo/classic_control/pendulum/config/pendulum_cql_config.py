@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 pendulum_cql_default_config = dict(
+    exp_name='pendulum_cql_seed0',
     seed=0,
     env=dict(
         collector_env_num=1,
@@ -34,9 +35,11 @@ pendulum_cql_default_config = dict(
             min_q_weight=5.0,
         ),
         collect=dict(
+            n_sample=48,
             unroll_len=1,
             data_type='hdf5',
             data_path='./sac/expert_demos.hdf5',
+            collector_logit=False,
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=100, )),

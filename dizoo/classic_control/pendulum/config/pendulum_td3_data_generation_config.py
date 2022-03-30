@@ -1,7 +1,8 @@
 from easydict import EasyDict
 
 pendulum_td3_generation_config = dict(
-    exp_name='td3',
+    exp_name='pendulum_td3_generation_seed0',
+    seed=0,
     env=dict(
         collector_env_num=8,
         evaluator_env_num=10,
