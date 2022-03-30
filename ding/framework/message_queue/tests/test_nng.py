@@ -1,7 +1,7 @@
 from time import sleep
 import pytest
 
-from multiprocessing import Pool
+import multiprocessing as mp
 from ding.framework.message_queue.nng import NNGMQ
 
 
@@ -27,5 +27,6 @@ def nng_main(i):
 @pytest.mark.unittest
 @pytest.mark.execution_timeout(10)
 def test_nng():
-    with Pool(processes=2) as pool:
+    ctx = mp.get_context("spawn")
+    with ctx.Pool(processes=2) as pool:
         pool.map(nng_main, range(2))
