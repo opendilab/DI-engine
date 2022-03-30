@@ -273,9 +273,9 @@ William Fedus, Prajit Ramachandran, Rishabh Agarwal, Yoshua Bengio, Hugo Laroche
 Other Public Implement
 >>>>>>>>>>>>>>>>>>>>>>
 
-`Tianshou <https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/rainbow.py>`_
+- `Tianshou <https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/rainbow.py>`_
 
-`RLlib <https://github.com/ray-project/ray/blob/master/rllib/agents/dqn/dqn.py>`_
+- `RLlib <https://github.com/ray-project/ray/blob/master/rllib/agents/dqn/dqn.py>`_
 
 
 

@@ -65,11 +65,45 @@ The network interface IQN used is defined as follows:
 
 The bellman updates of IQN used is defined in the function ``iqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
-The Benchmark result of IQN implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
+Benchmark
+-----------
 
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+| environment         |best mean reward | evaluation results                                  | config link              | comparison           |
++=====================+=================+=====================================================+==========================+======================+
+|                     |                 |                                                     |`config_link_p <https://  |                      |
+|                     |                 |                                                     |github.com/opendilab/     |  Tianshou(20)        |
+|                     |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
+|Pong                 |  20             |.. image:: images/benchmark/IQN_pong.png             |atari/config/serial/      |                      |
+|                     |                 |                                                     |pong/pong_iqn_config      |                      |
+|(PongNoFrameskip-v4) |                 |                                                     |.py>`_                    |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_q <https://  |                      |
+|                     |                 |                                                     |github.com/opendilab/     |  Tianshou(15520)     |
+|Qbert                |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
+|                     |  16331          |.. image:: images/benchmark/IQN_qbert.png            |atari/config/serial/      |                      |
+|(QbertNoFrameskip-v4)|                 |                                                     |qbert/qbert_iqn_config    |                      |
+|                     |                 |                                                     |.py>`_                    |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_s <https://  |                      |
+|                     |                 |                                                     |github.com/opendilab/     |  Tianshou(1370)      |
+|SpaceInvaders        |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
+|                     |  1493           |.. image:: images/benchmark/IQN_spaceinvaders.png    |atari/config/serial/      |                      |
+|(SpaceInvadersNoFrame|                 |                                                     |spaceinvaders/space       |                      |
+|skip-v4)             |                 |                                                     |invaders_iqn_config.py>`_ |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+
+P.S.:
+  1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4).
 
 References
 ------------
 
 
 (IQN) Will Dabney, Georg Ostrovski, David Silver, Rémi Munos: “Implicit Quantile Networks for Distributional Reinforcement Learning”, 2018; arXiv:1806.06923. https://arxiv.org/pdf/1806.06923
+
+
+Other Public Implementations
+---------------------------------
+
+  - `Tianshou <https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/iqn.py>`_

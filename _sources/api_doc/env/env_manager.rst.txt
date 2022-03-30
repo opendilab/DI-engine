@@ -8,7 +8,7 @@ base_env_manager
 BaseEnvManager
 ~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.envs.env_manager.base_env_manager.BaseEnvManager
-    :members: reset, step, seed, close, enable_save_replay, launch, env_info, default_config, ready_obs
+    :members: reset, step, seed, close, enable_save_replay, launch, default_config, ready_obs
 
 create_env_manager
 ~~~~~~~~~~~~~~~~~~~~
@@ -34,10 +34,10 @@ ShmBufferContainer
 SyncSubprocessEnvManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager
-    :members: reset, step, seed, close, enable_save_replay, launch, env_info, default_config, ready_obs
+    :members: reset, step, seed, close, enable_save_replay, launch, default_config, ready_obs
 
 
 AsyncSubprocessEnvManager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager
-    :members: reset, step, seed, close, enable_save_replay, launch, env_info, default_config, ready_obs
+    :members: reset, step, seed, close, enable_save_replay, launch, default_config, ready_obs

@@ -50,11 +50,11 @@ Pseudo-code
 
 .. note::
 
-- In Phase I, the agent just uses the demonstration data, and does not do any exploration. The goal of the pre-training phase is to learn to imitate the demonstrator with a value function that satisﬁes the Bellman equation. During this pre-training phase, the agent samples mini-batches from the demonstration data and updates the network by applying the total loss J(Q).
+  - In Phase I, the agent just uses the demonstration data, and does not do any exploration. The goal of the pre-training phase is to learn to imitate the demonstrator with a value function that satisﬁes the Bellman equation. During this pre-training phase, the agent samples mini-batches from the demonstration data and updates the network by applying the total loss J(Q).
 
 .. _detail_explanation: 
 
-- In Phase II, the agent starts acting on the system, collecting self-generated data, and adding it to its replay buffer. Data is added to the replay buffer until it is full, and then the agent starts overwriting old data in that buffer. However, the agent never over-writes the demonstration data. All the losses are applied to the demonstration data in both phases, while the supervised loss is not applied to self-generated data.
+  - In Phase II, the agent starts acting on the system, collecting self-generated data, and adding it to its replay buffer. Data is added to the replay buffer until it is full, and then the agent starts overwriting old data in that buffer. However, the agent never over-writes the demonstration data. All the losses are applied to the demonstration data in both phases, while the supervised loss is not applied to self-generated data.
 
 
 Extensions

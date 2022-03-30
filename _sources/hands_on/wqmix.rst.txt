@@ -117,21 +117,21 @@ The Benchmark result of WQMIX in SMAC (Samvelyan et al. 2019), for StarCraft mic
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+--------------------------+
 | smac map            |best mean reward | evaluation results                                  | config link              | comparison               |
 +=====================+=================+=====================================================+==========================+==========================+
-|                     |                 |                                                     |`config_link <https://    |                          |
+|                     |                 |                                                     |`config_link_M <https://  |                          |
 |                     |                 |                                                     |github.com/opendilab/     |`wqmix(Tabish) <https://  |
 |                     |                 |                                                     |DI-engine/tree/main/dizoo/|github.com/oxwhirl/       |
 |MMM                  |  1.00           |.. image:: images/benchmark/WQMIX_MMM.png            |smac/config/              |wqmix>`_                  |
 |                     |                 |                                                     |smac_MMM_wqmix_config     |(1.0)                     |
 |                     |                 |                                                     |.py>`_                    |                          |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+--------------------------+
-|                     |                 |                                                     |`config_link <https://    |                          |
+|                     |                 |                                                     |`config_link_3 <https://  |                          |
 |                     |                 |                                                     |github.com/opendilab/     |`wqmix(Tabish) <https://  |
 |3s5z                 |                 |                                                     |DI-engine/tree/main/dizoo/|github.com/oxwhirl/       |
 |                     |  0.72           |.. image:: images/benchmark/WQMIX_3s5z.png           |smac/config/              |wqmix>`_                  |
 |                     |                 |                                                     |smac_3s5z_wqmix_config    |(0.94)                    |
 |                     |                 |                                                     |.py>`_                    |                          |
 +---------------------+-----------------+-----------------------------------------------------+--------------------------+--------------------------+
-|                     |                 |                                                     |`config_link <https://    |                          |
+|                     |                 |                                                     |`config_link_5 <https://  |                          |
 |                     |                 |                                                     |github.com/opendilab/     |`wqmix(Tabish) <https://  |
 |5m6m                 |                 |                                                     |DI-engine/tree/main/dizoo/|github.com/oxwhirl/       |
 |                     |  0.45           |.. image:: images/benchmark/WQMIX_5m6m.png           |smac/config/              |wqmix>`_                  |

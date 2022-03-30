@@ -38,6 +38,8 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SQIL" href="sqil.html" />
+    <link rel="prev" title="HER" href="her.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -148,6 +150,8 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
+          <li><a href="index.html">RL Algorithm Cheat Sheet</a> &raquo;</li>
+        
       <li>DQfD</li>
     
     
@@ -200,12 +204,17 @@ The ratio of both types of data in each mini-batch is automatically controlled b
 <div class="section" id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/DQfD.png"><img alt="../_images/DQfD.png" class="align-center" src="../_images/DQfD.png" style="width: 613.0px; height: 713.0px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
 <ul class="simple">
 <li><p>In Phase I, the agent just uses the demonstration data, and does not do any exploration. The goal of the pre-training phase is to learn to imitate the demonstrator with a value function that satisﬁes the Bellman equation. During this pre-training phase, the agent samples mini-batches from the demonstration data and updates the network by applying the total loss J(Q).</p></li>
 </ul>
-<ul class="simple" id="detail-explanation">
+</div>
+<blockquote id="detail-explanation">
+<div><ul class="simple">
 <li><p>In Phase II, the agent starts acting on the system, collecting self-generated data, and adding it to its replay buffer. Data is added to the replay buffer until it is full, and then the agent starts overwriting old data in that buffer. However, the agent never over-writes the demonstration data. All the losses are applied to the demonstration data in both phases, while the supervised loss is not applied to self-generated data.</p></li>
 </ul>
+</div></blockquote>
 </div>
 <div class="section" id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
@@ -678,6 +687,15 @@ skip-v4)</p></td>
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sqil.html" class="btn btn-neutral float-right" title="SQIL" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="her.html" class="btn btn-neutral float-left" title="HER" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

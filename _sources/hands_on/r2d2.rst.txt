@@ -35,6 +35,7 @@ Specifically, the n-step targets used in R2D2 is:
 .. image:: images/r2d2_q_targets.png
    :align: center
    :scale: 30%
+
 Here, :math:`\theta^{-}` denotes the target network parameters which are copied from the online network parameters :math:`\theta` every 2500 learner steps.
 
 R2D uses the mixture of max and mean absolute n-step TD-errors :math:`\delta_i`
@@ -140,7 +141,7 @@ Benchmark
      - |
    * - | SpaceInvaders (SpaceInvadersNoFrameskip-v4)
        |
-     -1400
+     - 1400
      - .. image:: images/benchmark/spaceinvaders_r2d2.png
      - `config_link_s <https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_r2d2_config.py>`_
      - |

@@ -43,7 +43,7 @@ The default config of mbpo model is defined as follows:
 
 The entry MBPO used is defined as follows:
 
-.. autoclass:: ding.entry.serial_entry_mbrl.serial_entry_mbrl
+.. autoclass:: ding.entry.serial_entry_mbrl.serial_pipeline_mbrl
    :noindex:
 
 

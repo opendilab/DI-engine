@@ -96,4 +96,4 @@ Benchmark
 
 Other Public Implementations
 -----------------------------
- - [Tianshou](https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/c51.py)
+ - `Tianshou <https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/c51.py>`_

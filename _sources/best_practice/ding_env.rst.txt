@@ -274,7 +274,7 @@ Advanced
 
    Since the environment already supports ``action_space`` property, you can directly call the ``Space.sample()`` method provided by gym to randomly select an action. But it should be noted that, since DI-engine requires all returned actions to be in ``np.ndarray`` format, some necessary transformations may be required. E.g:
 
-   .. python::
+   .. code:: python
 
       def random_action(self) -> np.ndarray:
           random_action = self.action_space.sample()

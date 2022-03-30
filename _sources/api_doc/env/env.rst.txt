@@ -11,7 +11,7 @@ BaseEnv
 ~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ding.envs.env.base_env.BaseEnv
-    :members: __init__, reset, step, close, enable_save_replay, info, create_collector_env_cfg, create_evaluator_env_cfg
+    :members: __init__, reset, step, close, enable_save_replay, random_action, create_collector_env_cfg, create_evaluator_env_cfg
 
 get_vec_env_setting
 ~~~~~~~~~~~~~~~~~~~~

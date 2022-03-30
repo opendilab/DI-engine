@@ -2,7 +2,7 @@ Middleware code specification
 =========================================
 
 File structure and naming
-------------
+--------------------------
 
 The middleware in DI-engine can be divided into two categories, one we call ``function``, which is an atomic operation method,
 focusing on doing one thing with a few lines of code, such as ``train`` middleware Execute the training of the model;
@@ -25,7 +25,7 @@ Multiple middleware of the same type can be written in one file.
         collector.py # Module
 
 Class, Function, Parameter
-------------
+----------------------------
 
 When writing ``function``, functional-style code is recommended due to the brevity of the code; when writing ``module``, classes are recommended. E.g:
 
@@ -48,7 +48,7 @@ When writing ``function``, functional-style code is recommended due to the brevi
 Passing explicitly named arguments is recommended for all functions, passing dict as arguments is deprecated.
 
 Construction method
-------------
+---------------------
 
 Most middleware has two layers of methods, such as the outer function of ``function`` and the ``__init__`` function of ``module``,
 which are used to pass parameters and objects necessary for the middleware to run.
@@ -79,7 +79,7 @@ It is recommended to instantiate the object externally to pass to the middleware
     train()
 
 Runtime method
-------------
+---------------
 
 When writing the return function of ``function`` or the ``__call__`` method of ``module``, there are a few things to keep in mind:
 
@@ -131,7 +131,7 @@ When writing the return function of ``function`` or the ``__call__`` method of `
         p2.join()
 
 Event naming convention
-------------
+------------------------
 
 When using the event mechanism in DI-engine, we agree that events are named according to the following specifications:
 

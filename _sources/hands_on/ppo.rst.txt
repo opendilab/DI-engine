@@ -43,6 +43,7 @@ According to this `note <https://drive.google.com/file/d/1PDzn9RPvaXjJFZkGeapMHb
 
 .. math::
     L_{\theta_{k}}^{C L I P}(\theta)={\mathrm{E}}_{s, a \sim \theta_{k}}\left[\min \left(\frac{\pi_{\theta}(a \mid s)}{\pi_{\theta_{k}}(a \mid s)} A^{\theta_{k}}(s, a), g\left(\epsilon, A^{\theta_{k}}(s, a)\right)\right)\right]
+
 where,
 
 .. math::
@@ -140,7 +141,7 @@ The interface of ``ppo_policy_error`` and ``ppo_value_error`` is defined as foll
 
 
 Implementation Tricks
------------------
+-----------------------
 
 .. list-table:: Some Implementation Tricks that Matter
    :widths: 25 15
@@ -177,7 +178,6 @@ Implementation Tricks
             value_loss = 0.5 * (torch.max(v1, v2) * weight).mean()
 
 ..
- The Benchmark result of PPO implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_.
 
 
 Benchmark

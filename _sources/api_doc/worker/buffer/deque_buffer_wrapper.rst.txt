@@ -2,7 +2,7 @@ worker.buffer
 ======================
 
 deque_buffer_wrapper
--------------------
+---------------------
 
 DequeBufferWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~

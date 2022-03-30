@@ -87,7 +87,7 @@ to be samples from :math:`\pi_\theta(·|x_t)`.
    :scale: 45%
 
 Pseudo-code
-----------
+-------------
 
 There are a few changes between ACER applied to discrete action spaces and that applied to continuous action space.
 
@@ -102,8 +102,6 @@ There are a few changes between ACER applied to discrete action spaces and that 
 In continuous action space, it is impossible to enumerate Q values for every action.
 So ACER uses the sampled actions to approximate the expected value.
 
-..
-So ACER uses sampled actions to replace the expectation.
 
 
 .. image:: images/ACER_algo2.png

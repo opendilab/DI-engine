@@ -2,7 +2,7 @@
 =====================================
 
 文件目录与命名
-------------
+--------------
 
 DI-engine 内的中间件可分为两类，一种我们称之为 ``function``，是原子化的操作方法，用几行代码专注做一件事，例如 ``train`` 中间件执行模型的训练；\
 另一种我们称之为 ``module``，可能组合了多种 ``function``，执行更复杂的逻辑。这种分类方式参考了 `pytorch 的 nn 和 nn.functional <https://pytorch.org/docs/stable/nn.functional.html>`_ 。
@@ -22,7 +22,7 @@ DI-engine 内的中间件可分为两类，一种我们称之为 ``function``，
         collector.py  # Module
 
 类，函数，参数
-------------
+--------------
 
 编写 ``function`` 时，由于代码简短，建议使用函数式风格代码；编写 ``module`` 时，建议使用类。例如：
 

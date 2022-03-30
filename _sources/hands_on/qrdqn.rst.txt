@@ -82,6 +82,9 @@ The network interface QRDQN used is defined as follows:
 
 The bellman updates of QRDQN is implemented in the function ``qrdqn_nstep_td_error`` of ``ding/rl_utils/td.py``.
 
+Benchmark
+------------
+
 .. list-table:: Benchmark and comparison of QRDQN algorithm
    :widths: 25 15 30 15 15
    :header-rows: 1
@@ -124,4 +127,4 @@ References
 Other Public Implementations
 -------------------------------
 
-- [Tianshou](https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/qrdqn.py)
+- `Tianshou <https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/qrdqn.py>`_

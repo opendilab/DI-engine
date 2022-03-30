@@ -268,11 +268,31 @@
       <ul>
         <li><a href="api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.__init__">(ding.envs.env.base_env.BaseEnv method)</a>
 </li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardWrapper.__init__">(ding.envs.env_wrappers.ClipRewardWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeWrapper.__init__">(ding.envs.env_wrappers.EpisodicLifeWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetWrapper.__init__">(ding.envs.env_wrappers.FireResetWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper.__init__">(ding.envs.env_wrappers.FrameStackWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipWrapper.__init__">(ding.envs.env_wrappers.MaxAndSkipWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetWrapper.__init__">(ding.envs.env_wrappers.NoopResetWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper.__init__">(ding.envs.env_wrappers.ObsNormWrapper method)</a>
+</li>
         <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper.__init__">(ding.envs.env_wrappers.ObsTransposeWrapper method)</a>
 </li>
         <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper.__init__">(ding.envs.env_wrappers.RamWrapper method)</a>
 </li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper.__init__">(ding.envs.env_wrappers.RewardNormWrapper method)</a>
+</li>
         <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.__init__">(ding.envs.env_wrappers.RunningMeanStd method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrameWrapper.__init__">(ding.envs.env_wrappers.ScaledFloatFrameWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrameWrapper.__init__">(ding.envs.env_wrappers.WarpFrameWrapper method)</a>
 </li>
         <li><a href="api_doc/framework/task.html#ding.framework.task.Task.__init__">(ding.framework.task.Task method)</a>
 </li>
@@ -613,6 +633,8 @@
 </li>
       <li><a href="api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder._get_flatten_size">_get_flatten_size() (ding.model.common.encoder.ConvEncoder method)</a>
 </li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper._get_ob">_get_ob() (ding.envs.env_wrappers.FrameStackWrapper method)</a>
+</li>
       <li><a href="api_doc/reward_model/pwil_irl_model.html#ding.reward_model.pwil_irl_model.PwilRewardModel._get_state_distance">_get_state_distance() (ding.reward_model.pwil_irl_model.PwilRewardModel method)</a>
 </li>
       <li><a href="api_doc/policy/a2c.html#ding.policy.a2c.A2CPolicy._get_train_sample">_get_train_sample() (ding.policy.a2c.A2CPolicy method)</a>
@@ -931,6 +953,8 @@
         <li><a href="api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.clear_data">(ding.reward_model.red_irl_model.RedRewardModel method)</a>
 </li>
       </ul></li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardWrapper">ClipRewardWrapper (class in ding.envs.env_wrappers)</a>
+</li>
       <li><a href="api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.close">close() (ding.envs.env.base_env.BaseEnv method)</a>
 
       <ul>
@@ -1183,13 +1207,6 @@
 </li>
       <li><a href="api_doc/worker/buffer/deque_buffer_wrapper.html#ding.worker.buffer.deque_buffer_wrapper.DequeBufferWrapper">DequeBufferWrapper (class in ding.worker.buffer.deque_buffer_wrapper)</a>
 </li>
-      <li>
-    ding.envs.env_wrappers.update_shape
-
-      <ul>
-        <li><a href="api_doc/env/env_wrappers.html#module-ding.envs.env_wrappers.update_shape">module</a>
-</li>
-      </ul></li>
       <li>
     ding.league.base_league.create_league
 
@@ -1589,8 +1606,6 @@
         <li><a href="api_doc/utils/compression_helper.html#module-ding.utils.compression_helper.lz4_data_compressor">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     ding.utils.compression_helper.lz4_data_decompressor
 
@@ -1598,6 +1613,8 @@
         <li><a href="api_doc/utils/compression_helper.html#module-ding.utils.compression_helper.lz4_data_decompressor">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     ding.utils.compression_helper.zlib_data_compressor
 
@@ -2135,6 +2152,8 @@
 </li>
       <li><a href="api_doc/worker/collector/episode_serial_collector.html#ding.worker.collector.episode_serial_collector.EpisodeSerialCollector">EpisodeSerialCollector (class in ding.worker.collector.episode_serial_collector)</a>
 </li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeWrapper">EpisodicLifeWrapper (class in ding.envs.env_wrappers)</a>
+</li>
       <li><a href="api_doc/worker/coordinator/coordinator.html#ding.worker.coordinator.coordinator.Coordinator.error">error() (ding.worker.coordinator.coordinator.Coordinator method)</a>
 </li>
       <li><a href="api_doc/reward_model/base_reward_estimate.html#ding.reward_model.base_reward_model.BaseRewardModel.estimate">estimate() (ding.reward_model.base_reward_model.BaseRewardModel method)</a>
@@ -2191,6 +2210,8 @@
         <li><a href="api_doc/worker/coordinator/commander.html#ding.worker.coordinator.solo_parallel_commander.SoloCommander.finish_learner_task">(ding.worker.coordinator.solo_parallel_commander.SoloCommander method)</a>
 </li>
       </ul></li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetWrapper">FireResetWrapper (class in ding.envs.env_wrappers)</a>
+</li>
       <li><a href="api_doc/worker/collector/comm.html#ding.worker.collector.comm.flask_fs_collector.FlaskFileSystemCollector">FlaskFileSystemCollector (class in ding.worker.collector.comm.flask_fs_collector)</a>
 </li>
       <li><a href="api_doc/worker/learner/comm_learner.html#ding.worker.learner.comm.flask_fs_learner.FlaskFileSystemLearner">FlaskFileSystemLearner (class in ding.worker.learner.comm.flask_fs_learner)</a>
@@ -2289,6 +2310,10 @@
         <li><a href="api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.transformer.TransformerLayer.forward">(ding.torch_utils.network.transformer.TransformerLayer method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper">FrameStackWrapper (class in ding.envs.env_wrappers)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -2599,6 +2624,8 @@
 </li>
       <li><a href="api_doc/interaction/exception/master.html#ding.interaction.exception.master.MasterTaskDataInvalid">MasterTaskDataInvalid (class in ding.interaction.exception.master)</a>
 </li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipWrapper">MaxAndSkipWrapper (class in ding.envs.env_wrappers)</a>
+</li>
       <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.mean">mean (ding.envs.env_wrappers.RunningMeanStd property)</a>
 </li>
       <li><a href="api_doc/interaction/exception/base.html#ding.interaction.exception.base._IResponseInformation.message">message (ding.interaction.exception.base._IResponseInformation property)</a>
@@ -2623,8 +2650,6 @@
     module
 
       <ul>
-        <li><a href="api_doc/env/env_wrappers.html#module-ding.envs.env_wrappers.update_shape">ding.envs.env_wrappers.update_shape</a>
-</li>
         <li><a href="api_doc/league/league.html#module-ding.league.base_league.create_league">ding.league.base_league.create_league</a>
 </li>
         <li><a href="api_doc/league/player.html#module-ding.league.player.create_player">ding.league.player.create_player</a>
@@ -2940,6 +2965,8 @@
       </ul></li>
       <li><a href="api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.nn_module.NoiseLinearLayer">NoiseLinearLayer (class in ding.torch_utils.network.nn_module)</a>
 </li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetWrapper">NoopResetWrapper (class in ding.envs.env_wrappers)</a>
+</li>
       <li><a href="api_doc/worker/coordinator/commander.html#ding.worker.coordinator.base_parallel_commander.NaiveCommander.notify_fail_collector_task">notify_fail_collector_task() (ding.worker.coordinator.base_parallel_commander.NaiveCommander method)</a>
 
       <ul>
@@ -2958,16 +2985,26 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper.observation">observation() (ding.envs.env_wrappers.ObsTransposeWrapper method)</a>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper.observation">observation() (ding.envs.env_wrappers.ObsNormWrapper method)</a>
+
+      <ul>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper.observation">(ding.envs.env_wrappers.ObsTransposeWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrameWrapper.observation">(ding.envs.env_wrappers.ScaledFloatFrameWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrameWrapper.observation">(ding.envs.env_wrappers.WarpFrameWrapper method)</a>
+</li>
+      </ul></li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper">ObsNormWrapper (class in ding.envs.env_wrappers)</a>
 </li>
       <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsTransposeWrapper">ObsTransposeWrapper (class in ding.envs.env_wrappers)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_doc/framework/task.html#ding.framework.task.Task.on">on() (ding.framework.task.Task method)</a>
 </li>
       <li><a href="api_doc/interaction/master/task.html#ding.interaction.master.task.Task.on_complete">on_complete() (ding.interaction.master.task.Task method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_doc/interaction/master/task.html#ding.interaction.master.task.Task.on_fail">on_fail() (ding.interaction.master.task.Task method)</a>
 </li>
       <li><a href="api_doc/framework/task.html#ding.framework.task.Task.once">once() (ding.framework.task.Task method)</a>
@@ -3125,7 +3162,19 @@
 </li>
         <li><a href="api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.reset">(ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager method)</a>
 </li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeWrapper.reset">(ding.envs.env_wrappers.EpisodicLifeWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FireResetWrapper.reset">(ding.envs.env_wrappers.FireResetWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper.reset">(ding.envs.env_wrappers.FrameStackWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.NoopResetWrapper.reset">(ding.envs.env_wrappers.NoopResetWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper.reset">(ding.envs.env_wrappers.ObsNormWrapper method)</a>
+</li>
         <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper.reset">(ding.envs.env_wrappers.RamWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper.reset">(ding.envs.env_wrappers.RewardNormWrapper method)</a>
 </li>
         <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RunningMeanStd.reset">(ding.envs.env_wrappers.RunningMeanStd method)</a>
 </li>
@@ -3172,6 +3221,14 @@
         <li><a href="api_doc/interaction/slave/action.html#ding.interaction.slave.action.TaskFail.result">(ding.interaction.slave.action.TaskFail property)</a>
 </li>
       </ul></li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ClipRewardWrapper.reward">reward() (ding.envs.env_wrappers.ClipRewardWrapper method)</a>
+
+      <ul>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper.reward">(ding.envs.env_wrappers.RewardNormWrapper method)</a>
+</li>
+      </ul></li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper">RewardNormWrapper (class in ding.envs.env_wrappers)</a>
+</li>
       <li><a href="api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.RMSprop">RMSprop (class in ding.torch_utils.optimizer_helper)</a>
 </li>
       <li><a href="api_doc/framework/task.html#ding.framework.task.Task.run">run() (ding.framework.task.Task method)</a>
@@ -3237,6 +3294,8 @@
       <li><a href="api_doc/config/config.html#ding.config.config.save_config_yaml">save_config_yaml() (in module ding.config.config)</a>
 </li>
       <li><a href="api_doc/worker/learner/learner.html#ding.worker.learner.learner_hook.SaveCkptHook">SaveCkptHook (class in ding.worker.learner.learner_hook)</a>
+</li>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ScaledFloatFrameWrapper">ScaledFloatFrameWrapper (class in ding.envs.env_wrappers)</a>
 </li>
       <li><a href="api_doc/torch_utils/torch_utils_network.html#ding.torch_utils.network.scatter_connection.ScatterConnection">ScatterConnection (class in ding.torch_utils.network.scatter_connection)</a>
 </li>
@@ -3344,12 +3403,12 @@
 </li>
       <li><a href="api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveSlaveDisconnectionRefused">SlaveSlaveDisconnectionRefused (class in ding.interaction.exception.slave)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveSlaveNotConnected">SlaveSlaveNotConnected (class in ding.interaction.exception.slave)</a>
 </li>
       <li><a href="api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveSuccess">SlaveSuccess (class in ding.interaction.exception.slave)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveSystemShuttingDown">SlaveSystemShuttingDown (class in ding.interaction.exception.slave)</a>
 </li>
       <li><a href="api_doc/interaction/exception/slave.html#ding.interaction.exception.slave.SlaveTaskAlreadyExist">SlaveTaskAlreadyExist (class in ding.interaction.exception.slave)</a>
@@ -3455,7 +3514,17 @@
 </li>
         <li><a href="api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.step">(ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager method)</a>
 </li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.EpisodicLifeWrapper.step">(ding.envs.env_wrappers.EpisodicLifeWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.FrameStackWrapper.step">(ding.envs.env_wrappers.FrameStackWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.MaxAndSkipWrapper.step">(ding.envs.env_wrappers.MaxAndSkipWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.ObsNormWrapper.step">(ding.envs.env_wrappers.ObsNormWrapper method)</a>
+</li>
         <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RamWrapper.step">(ding.envs.env_wrappers.RamWrapper method)</a>
+</li>
+        <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.RewardNormWrapper.step">(ding.envs.env_wrappers.RewardNormWrapper method)</a>
 </li>
         <li><a href="api_doc/torch_utils/optimizer_helper.html#ding.torch_utils.optimizer_helper.Adam.step">(ding.torch_utils.optimizer_helper.Adam method)</a>
 </li>
@@ -3646,6 +3715,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api_doc/env/env_wrappers.html#ding.envs.env_wrappers.WarpFrameWrapper">WarpFrameWrapper (class in ding.envs.env_wrappers)</a>
+</li>
       <li><a href="api_doc/utils/time_helper.html#ding.utils.time_helper.WatchDog">WatchDog (class in ding.utils.time_helper)</a>
 </li>
       <li><a href="api_doc/utils/time_helper.html#ding.utils.time_helper.TimeWrapper.wrapper">wrapper() (ding.utils.time_helper.TimeWrapper class method)</a>

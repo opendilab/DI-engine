@@ -21,6 +21,7 @@ Pseudo-code
 .. image:: images/TREX.png
    :align: center
    :scale: 110%
+
 In the pseudo code, theta denotes the parameters of reward function and ti means a trajectory sampled in demonstrations. The functon L is the loss for training reward function, which is explained below.
 
 Key Equations or Key Graphs

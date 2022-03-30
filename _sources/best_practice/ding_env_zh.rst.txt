@@ -268,7 +268,7 @@
 
    由于环境已经实现了 ``action_space``，所以可以直接调用 gym 中提供的 ``Space.sample()`` 方法来随机选取动作。但需要注意的是，由于 DI-engine 要求所有返回的 action 需要是 ``np.ndarray`` 格式的，所以可能需要做一些必要的格式转换。例如：
 
-   .. python::
+   .. code:: python
 
       def random_action(self) -> np.ndarray:
          random_action = self.action_space.sample()

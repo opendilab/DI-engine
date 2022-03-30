@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Rainbow" href="rainbow.html" />
+    <link rel="next" title="SQL" href="sql.html" />
     <link rel="prev" title="QRDQN" href="qrdqn.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
@@ -459,11 +459,74 @@ Parameter updates with IQN’s MLPs forward setup.</p>
 </dd></dl>
 
 <p>The bellman updates of IQN used is defined in the function <code class="docutils literal notranslate"><span class="pre">iqn_nstep_td_error</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/rl_utils/td.py</span></code>.</p>
-<p>The Benchmark result of IQN implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview.html">Benchmark</a></p>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p>
+<p>(PongNoFrameskip-v4)</p>
+</td>
+<td><p>20</p></td>
+<td><img alt="../_images/IQN_pong.png" src="../_images/IQN_pong.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/pong/pong_iqn_config.py">config_link_p</a></p></td>
+<td><p>Tianshou(20)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p>
+<p>(QbertNoFrameskip-v4)</p>
+</td>
+<td><p>16331</p></td>
+<td><img alt="../_images/IQN_qbert.png" src="../_images/IQN_qbert.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/qbert/qbert_iqn_config.py">config_link_q</a></p></td>
+<td><p>Tianshou(15520)</p></td>
+</tr>
+<tr class="row-even"><td><p>SpaceInvaders</p>
+<p>(SpaceInvadersNoFrame
+skip-v4)</p>
+</td>
+<td><p>1493</p></td>
+<td><img alt="../_images/IQN_spaceinvaders.png" src="../_images/IQN_spaceinvaders.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_iqn_config.py">config_link_s</a></p></td>
+<td><p>Tianshou(1370)</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="simple">
+<dt>P.S.:</dt><dd><ol class="arabic simple">
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4).</p></li>
+</ol>
+</dd>
+</dl>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>(IQN) Will Dabney, Georg Ostrovski, David Silver, Rémi Munos: “Implicit Quantile Networks for Distributional Reinforcement Learning”, 2018; arXiv:1806.06923. https://arxiv.org/pdf/1806.06923</p>
+</div>
+<div class="section" id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/iqn.py">Tianshou</a></p></li>
+</ul>
+</div></blockquote>
 </div>
 </div>
 
@@ -475,7 +538,7 @@ Parameter updates with IQN’s MLPs forward setup.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="rainbow.html" class="btn btn-neutral float-right" title="Rainbow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="sql.html" class="btn btn-neutral float-right" title="SQL" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="qrdqn.html" class="btn btn-neutral float-left" title="QRDQN" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

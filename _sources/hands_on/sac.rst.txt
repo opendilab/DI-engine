@@ -44,9 +44,10 @@ We implement reparameterization trick through configuring ``learn.reparameteriza
    Compared with the vanilla version modeling state value function and soft Q-function, our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
 
 .. note::
-`Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_ considers a parameterized state value function, soft Q-function, and a tractable policy.
-Our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
-We configure ``model.value_network``, ``model.twin_q``, and ``learn.learning_rate_value`` to switch implementation version.
+
+  `Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor <https://arxiv.org/abs/1801.01290>`_ considers a parameterized state value function, soft Q-function, and a tractable policy.
+  Our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
+  We configure ``model.value_network``, ``model.twin_q``, and ``learn.learning_rate_value`` to switch implementation version.
 
 
 Pseudocode

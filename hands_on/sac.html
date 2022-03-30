@@ -38,8 +38,8 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="R2D2" href="r2d2.html" />
-    <link rel="prev" title="TD3BC" href="td3_bc.html" />
+    <link rel="next" title="CQL" href="cql.html" />
+    <link rel="prev" title="TD3" href="td3.html" />
     <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -208,9 +208,12 @@ In particular, SAC applies the reparameterization trick instead of directly mini
 <p class="admonition-title">Note</p>
 <p>Compared with the vanilla version modeling state value function and soft Q-function, our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.</p>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
 <p><a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a> considers a parameterized state value function, soft Q-function, and a tractable policy.
 Our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
 We configure <code class="docutils literal notranslate"><span class="pre">model.value_network</span></code>, <code class="docutils literal notranslate"><span class="pre">model.twin_q</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.learning_rate_value</span></code> to switch implementation version.</p>
+</div>
 </div>
 <div class="section" id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
@@ -837,10 +840,10 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="r2d2.html" class="btn btn-neutral float-right" title="R2D2" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="cql.html" class="btn btn-neutral float-right" title="CQL" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="td3_bc.html" class="btn btn-neutral float-left" title="TD3BC" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="td3.html" class="btn btn-neutral float-left" title="TD3" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -423,6 +423,23 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">random_action()</span></code></p>
 <p>一些 off-policy 算法希望可以在训练开始之前，用随机策略收集一些数据填充 buffer，完成 buffer 的初始化。出于这样的需求，DI-engine 鼓励实现 <code class="docutils literal notranslate"><span class="pre">random_action</span></code> 方法。</p>
 <p>由于环境已经实现了 <code class="docutils literal notranslate"><span class="pre">action_space</span></code>，所以可以直接调用 gym 中提供的 <code class="docutils literal notranslate"><span class="pre">Space.sample()</span></code> 方法来随机选取动作。但需要注意的是，由于 DI-engine 要求所有返回的 action 需要是 <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> 格式的，所以可能需要做一些必要的格式转换。例如：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+   <span class="n">random_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+   <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">random_action</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+         <span class="k">pass</span>
+   <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">random_action</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+         <span class="n">random_action</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">([</span><span class="n">random_action</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">random_action</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+         <span class="n">random_action</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">(</span><span class="n">random_action</span><span class="p">)</span>
+   <span class="k">else</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+               <span class="nb">type</span><span class="p">(</span><span class="n">random_action</span><span class="p">),</span> <span class="n">random_action</span>
+            <span class="p">)</span>
+         <span class="p">)</span>
+   <span class="k">return</span> <span class="n">random_action</span>
+</pre></div>
+</div>
 </li>
 </ol>
 </div>

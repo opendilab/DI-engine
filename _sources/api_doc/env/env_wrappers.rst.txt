@@ -9,87 +9,82 @@ Please Reference ding/ding/envs/env_wrappers/env_wrappers.py for usage
 
 Some descriptions referred to  `openai atari wrappers <https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py>`_
 
-NoopResetEnv
+NoopResetWrapper
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: ding.envs.env_wrappers.NoopResetEnv
-    :members: __init__,reset,new_shape
+.. autoclass:: ding.envs.env_wrappers.NoopResetWrapper
+    :members: __init__,reset
 
 
 
-MaxAndSkipEnv
+MaxAndSkipWrapper
 ~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.MaxAndSkipEnv
-    :members: __init__, step,new_shape
+.. autoclass:: ding.envs.env_wrappers.MaxAndSkipWrapper
+    :members: __init__, step
 
 
-WarpFrame
+WarpFrameWrapper
 ~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.WarpFrame
-    :members: __init__, observation,new_shape
+.. autoclass:: ding.envs.env_wrappers.WarpFrameWrapper
+    :members: __init__, observation
 
 
-ScaledFloatFrame
+ScaledFloatFrameWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.ScaledFloatFrame
-    :members: __init__, observation,new_shape
+.. autoclass:: ding.envs.env_wrappers.ScaledFloatFrameWrapper
+    :members: __init__, observation
 
 
-ClipRewardEnv
+ClipRewardWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.ClipRewardEnv
-    :members: __init__, reward,new_shape
+.. autoclass:: ding.envs.env_wrappers.ClipRewardWrapper
+    :members: __init__, reward
 
 
 
-FrameStack
+FrameStackWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.FrameStack
-    :members: __init__, reset, step, _get_ob,new_shape
+.. autoclass:: ding.envs.env_wrappers.FrameStackWrapper
+    :members: __init__, reset, step, _get_ob
 
 
 ObsTransposeWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.envs.env_wrappers.ObsTransposeWrapper
-    :members: __init__, observation,new_shape
+    :members: __init__, observation
 
 RunningMeanStd
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.envs.env_wrappers.RunningMeanStd
-    :members: __init__, update, reset,mean, std,new_shape
+    :members: __init__, update, reset,mean, std
 
 
-ObsNormEnv
+ObsNormWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.ObsNormEnv
-    :members: __init__, step,observation, reset,new_shape
+.. autoclass:: ding.envs.env_wrappers.ObsNormWrapper
+    :members: __init__, step,observation, reset
 
 
 
-RewardNormEnv
+RewardNormWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.RewardNormEnv
-    :members: __init__, step,reward, reset,new_shape
+.. autoclass:: ding.envs.env_wrappers.RewardNormWrapper
+    :members: __init__, step,reward, reset
     
 
 RamWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. autoclass:: ding.envs.env_wrappers.RamWrapper
-    :members: __init__,  reset, step,new_shape
+    :members: __init__,  reset, step
     
 
-EpisodicLifeEnv
+EpisodicLifeWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.EpisodicLifeEnv
-    :members: __init__,step,reset,new_shape
+.. autoclass:: ding.envs.env_wrappers.EpisodicLifeWrapper
+    :members: __init__,step,reset
     
 
-FireResetEnv
+FireResetWrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: ding.envs.env_wrappers.FireResetEnv
-    :members: __init__,reset,new_shape
-
-
-update_shape
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. automodule:: ding.envs.env_wrappers.update_shape
+.. autoclass:: ding.envs.env_wrappers.FireResetWrapper
+    :members: __init__,reset

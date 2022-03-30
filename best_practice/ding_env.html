@@ -433,6 +433,23 @@ to <code class="docutils literal notranslate"><span class="pre">gym.spaces.Dict<
 <li><p><code class="docutils literal notranslate"><span class="pre">random_action()</span></code></p>
 <p>Some off-policy algorithms require that before training starts, we can collect some data to insert into the buffer with a random strategy for initialization. Due to this requirement, DI-engine encourages to implement the <code class="docutils literal notranslate"><span class="pre">random_action</span></code> method.</p>
 <p>Since the environment already supports <code class="docutils literal notranslate"><span class="pre">action_space</span></code> property, you can directly call the <code class="docutils literal notranslate"><span class="pre">Space.sample()</span></code> method provided by gym to randomly select an action. But it should be noted that, since DI-engine requires all returned actions to be in <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> format, some necessary transformations may be required. E.g:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">random_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">random_action</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">random_action</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">random_action</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">([</span><span class="n">random_action</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">random_action</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">random_action</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">(</span><span class="n">random_action</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s1">&#39;`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+               <span class="nb">type</span><span class="p">(</span><span class="n">random_action</span><span class="p">),</span> <span class="n">random_action</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">random_action</span>
+</pre></div>
+</div>
 </li>
 </ol>
 </div>

@@ -46,7 +46,7 @@ Benchmark
 -----------
 
 .. list-table:: Benchmark and comparison of c51 algorithm
-   :widths: 25 15 30 15 15
+   :widths: 25 15 30 15
    :header-rows: 1
 
    * - environment
