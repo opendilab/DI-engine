@@ -73,7 +73,6 @@ class GRUGatingUnit(torch.nn.Module):
         self.bg = nn.Parameter(torch.full([input_dim], bg))  # bias
         self.sigmoid = torch.nn.Sigmoid()
         self.tanh = torch.nn.Tanh()
-        # self.rnn = nn.GRU(input_dim, input_dim, 1, bias=False)
 
     @profile
     def forward(self, x: torch.Tensor, y: torch.Tensor):
@@ -87,7 +86,6 @@ class GRUGatingUnit(torch.nn.Module):
         Returns:
             - g: (:obj:`torch.Tensor`): output of GRU. Same shape of x and y.
         """
-        # return self.rnn(x, y[-1].unsqueeze(0))
         r = self.sigmoid(self.Wr(y) + self.Ur(x))
         z = self.sigmoid(self.Wz(y) + self.Uz(x) - self.bg)
         h = self.tanh(self.Wg(y) + self.Ug(torch.mul(r, x)))  # element wise multiplication
@@ -479,7 +477,8 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
         )
-        self.att_mask = {}  # create an attention mask for each different seq_len
+        self.att_mask = {}  # create an attention mask for each different seq_len, in this way we don't need to create a
+        # new one each time we call the forward method
         self.pos_embedding_dict = {}  # create a pos embedding for each different seq_len
 
     @profile
@@ -549,7 +548,6 @@ class GTrXL(nn.Module):
         prev_seq = self.memory_len
         full_seq = cur_seq + prev_seq
 
-        # TODO: add padding to attention mask, https://huggingface.co/docs/transformers/preprocessing
         if cur_seq in self.att_mask.keys():
             attn_mask = self.att_mask[cur_seq]
         else:
