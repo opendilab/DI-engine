@@ -30,34 +30,37 @@ class DQFDPolicy(DQNPolicy):
                                                                                                  | erent from modes
         3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy
                                                         | or off-policy
-        4  ``priority``         bool     True          | Whether use priority(PER)              | Priority sample,
+        4  ``priority``         bool     True           | Whether use priority(PER)              | Priority sample,
                                                                                                  | update priority
-        5  | ``priority_IS``    bool     True          | Whether use Importance Sampling Weight
+        5  | ``priority_IS``    bool     True           | Whether use Importance Sampling Weight
            | ``_weight``                                | to correct biased update. If True,
                                                         | priority must be True.
         6  | ``discount_``      float    0.97,          | Reward's future discount factor, aka.  | May be 1 when sparse
            | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
-        7  ``nstep``            int      10,             | N-step reward discount sum for target
+        7  ``nstep``            int      10,            | N-step reward discount sum for target
                                          [3, 5]         | q_value estimation
-        8  | ``lambda1``        float     1              | multiplicative factor for n-step return
-        9  | ``lambda2``        float     1              | multiplicative factor for the supervised margin loss
-        10 | ``lambda3``        float     1e-5           | L2 loss
-        11 | ``margin_function  float     0.8            | margin function in JE, here we implement this as a constant
-        12 | ``per_train_iter_k`` int     10             | number of pertraining iterations
-        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
+        8  | ``lambda1``        float    1              | multiplicative factor for n-step
+        9  | ``lambda2``        float    1              | multiplicative factor for the
+                                                        | supervised margin loss
+        10 | ``lambda3``        float    1e-5           | L2 loss
+        11 | ``margin_fn``      float    0.8            | margin function in JE, here we set
+                                                        | this as a constant
+        12 | ``per_train_``     int      10             | number of pertraining iterations
+           | ``iter_k``
+        13 | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
-        9  | ``learn.batch_``   int      64             | The number of samples of an iteration
+        14 | ``learn.batch_``   int      64             | The number of samples of an iteration
            | ``size``
-        10 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
+        15 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.
            | ``_rate``
-        11 | ``learn.target_``  int      100            | Frequency of target network update.    | Hard(assign) update
+        16 | ``learn.target_``  int      100            | Frequency of target network update.    | Hard(assign) update
            | ``update_freq``
-        12 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
+        17 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some
            | ``done``                                   | calculation.                           | fake termination env
-        13 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
+        18 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from
                                                         | call of collector.                     | different envs
-        14 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
+        19 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len>1
            | ``_len``
         == ==================== ======== ============== ======================================== =======================
     """

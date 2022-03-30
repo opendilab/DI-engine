@@ -64,7 +64,7 @@ class BaseEnvManager(object):
     Overview:
         Create a BaseEnvManager to manage multiple environments.
     Interfaces:
-        reset, step, seed, close, enable_save_replay, launch, default_config
+        reset, step, seed, close, enable_save_replay, launch, default_config, env_state_done
     Properties:
         env_num, ready_obs, done, method_name_list
         observation_space, action_space, reward_space
@@ -161,6 +161,9 @@ class BaseEnvManager(object):
     @property
     def method_name_list(self) -> list:
         return ['reset', 'step', 'seed', 'close', 'enable_save_replay']
+
+    def env_state_done(self, env_id: int) -> bool:
+        return self._env_states[env_id] == EnvState.DONE
 
     def __getattr__(self, key: str) -> Any:
         """
