@@ -171,6 +171,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">from</span> <span class="nn">mpire.pool</span> <span class="kn">import</span> <span class="n">WorkerPool</span>
+<span class="kn">import</span> <span class="nn">pynng</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
@@ -178,10 +179,9 @@
 <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span class="kn">from</span> <span class="nn">pynng.nng</span> <span class="kn">import</span> <span class="n">Bus0</span><span class="p">,</span> <span class="n">Socket</span>
 <span class="kn">from</span> <span class="nn">ding.framework.event_loop</span> <span class="kn">import</span> <span class="n">EventLoop</span>
 <span class="kn">from</span> <span class="nn">ding.utils.design_helper</span> <span class="kn">import</span> <span class="n">SingletonMetaclass</span>
-<span class="kn">from</span> <span class="nn">ding.framework.message_queue</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">ding.utils.registry_factory</span> <span class="kn">import</span> <span class="n">MQ_REGISTRY</span>
 
 <span class="c1"># Avoid ipc address conflict, random should always use random seed</span>
 <span class="n">random</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">Random</span><span class="p">()</span>
@@ -192,34 +192,44 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Init will only be called once in a process</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="p">:</span> <span class="n">Socket</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attach_to</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span> <span class="o">=</span> <span class="n">EventLoop</span><span class="p">(</span><span class="s2">&quot;parallel_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_retries</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Retries in auto recovery</span>
 
-    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">node_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">listen_to</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">attach_to</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">auto_recover</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
-            <span class="n">mq_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;nng&quot;</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span>
+            <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span> <span class="o">=</span> <span class="n">node_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attach_to</span> <span class="o">=</span> <span class="n">attach_to</span> <span class="o">=</span> <span class="n">attach_to</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span> <span class="ow">or</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">auto_recover</span> <span class="o">=</span> <span class="n">auto_recover</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_retries</span> <span class="o">=</span> <span class="n">max_retries</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span> <span class="o">=</span> <span class="n">MQ_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">mq_type</span><span class="p">)(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">listen</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;mq_listener&quot;</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span>
+            <span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">listen</span><span class="p">,</span>
+            <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;listen_to&quot;</span><span class="p">:</span> <span class="n">listen_to</span><span class="p">,</span>
+                <span class="s2">&quot;attach_to&quot;</span><span class="p">:</span> <span class="n">attach_to</span>
+            <span class="p">},</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;paralllel_listener&quot;</span><span class="p">,</span>
+            <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Parallel.runner"><a class="viewcode-back" href="../../../api_doc/framework/parallel.html#ding.framework.parallel.Parallel.runner">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Parallel.runner"><a class="viewcode-back" href="../../../api_doc/framework/parallel.html#ding.framework.parallel.Parallel.runner">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">runner</span><span class="p">(</span>
-            <span class="bp">cls</span><span class="p">,</span>
             <span class="n">n_parallel_workers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-            <span class="n">mq_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;nng&quot;</span><span class="p">,</span>
             <span class="n">attach_to</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ipc&quot;</span><span class="p">,</span>
             <span class="n">address</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -228,16 +238,13 @@
             <span class="n">labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">node_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">auto_recover</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
-            <span class="n">redis_host</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">redis_port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            This method allows you to configure parallel parameters, and now you are still in the parent process.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - n_parallel_workers (:obj:`int`): Workers to spawn.</span>
-<span class="sd">            - mq_type (:obj:`str`): Embedded message queue type, i.e. nng, redis.</span>
 <span class="sd">            - attach_to (:obj:`Optional[List[str]]`): The node&#39;s addresses you want to attach to.</span>
 <span class="sd">            - protocol (:obj:`str`): Network protocol.</span>
 <span class="sd">            - address (:obj:`Optional[str]`): Bind address, ip or file path.</span>
@@ -250,15 +257,10 @@
 <span class="sd">            - node_ids (:obj:`Optional[List[int]]`): Candidate node ids.</span>
 <span class="sd">            - auto_recover (:obj:`bool`): Auto recover from uncaught exceptions from main.</span>
 <span class="sd">            - max_retries (:obj:`int`): Max retries for auto recover.</span>
-<span class="sd">            - redis_host (:obj:`str`): Redis server host.</span>
-<span class="sd">            - redis_port (:obj:`int`): Redis server port.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - _runner (:obj:`Callable`): The wrapper function for main.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">all_args</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()</span>
-        <span class="k">del</span> <span class="n">all_args</span><span class="p">[</span><span class="s2">&quot;cls&quot;</span><span class="p">]</span>
-        <span class="n">args_parsers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;nng&quot;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_nng_args_parser</span><span class="p">,</span> <span class="s2">&quot;redis&quot;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_redis_args_parser</span><span class="p">}</span>
-
+        <span class="n">attach_to</span> <span class="o">=</span> <span class="n">attach_to</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="k">assert</span> <span class="n">n_parallel_workers</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Parallel worker number should bigger than 0&quot;</span>
 
         <span class="k">def</span> <span class="nf">_runner</span><span class="p">(</span><span class="n">main_process</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -268,77 +270,58 @@
 <span class="sd">            Arguments:</span>
 <span class="sd">                - main_process (:obj:`Callable`): The main function, your program start from here.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
-            <span class="n">runner_params</span> <span class="o">=</span> <span class="n">args_parsers</span><span class="p">[</span><span class="n">mq_type</span><span class="p">](</span><span class="o">**</span><span class="n">all_args</span><span class="p">)</span>
-            <span class="n">params_group</span> <span class="o">=</span> <span class="p">[[</span><span class="n">runner_kwargs</span><span class="p">,</span> <span class="p">(</span><span class="n">main_process</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)]</span> <span class="k">for</span> <span class="n">runner_kwargs</span> <span class="ow">in</span> <span class="n">runner_params</span><span class="p">]</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="n">Parallel</span><span class="o">.</span><span class="n">get_node_addrs</span><span class="p">(</span><span class="n">n_parallel_workers</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">protocol</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">ports</span><span class="o">=</span><span class="n">ports</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Bind subprocesses on these addresses: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span>
+
+            <span class="k">def</span> <span class="nf">cleanup_nodes</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                    <span class="n">protocol</span><span class="p">,</span> <span class="n">file_path</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;://&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s2">&quot;ipc&quot;</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+            <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">cleanup_nodes</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">topology_network</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">topology</span> <span class="o">==</span> <span class="s2">&quot;mesh&quot;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">nodes</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">attach_to</span>
+                <span class="k">elif</span> <span class="n">topology</span> <span class="o">==</span> <span class="s2">&quot;star&quot;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">nodes</span><span class="p">[:</span><span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">+</span> <span class="n">attach_to</span>
+                <span class="k">elif</span> <span class="n">topology</span> <span class="o">==</span> <span class="s2">&quot;alone&quot;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">attach_to</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown topology: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">topology</span><span class="p">))</span>
+
+            <span class="n">params_group</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">candidate_node_ids</span> <span class="o">=</span> <span class="n">Parallel</span><span class="o">.</span><span class="n">padding_param</span><span class="p">(</span><span class="n">node_ids</span><span class="p">,</span> <span class="n">n_parallel_workers</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_node_ids</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_parallel_workers</span><span class="p">,</span> \
+                <span class="s2">&quot;The number of workers must be the same as the number of node_ids, </span><span class="se">\</span>
+<span class="s2">now there are </span><span class="si">{}</span><span class="s2"> workers and </span><span class="si">{}</span><span class="s2"> nodes&quot;</span>\
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_parallel_workers</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidate_node_ids</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_parallel_workers</span><span class="p">):</span>
+                <span class="n">runner_args</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">runner_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;node_id&quot;</span><span class="p">:</span> <span class="n">candidate_node_ids</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="s2">&quot;listen_to&quot;</span><span class="p">:</span> <span class="n">nodes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="s2">&quot;attach_to&quot;</span><span class="p">:</span> <span class="n">topology_network</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                    <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
+                    <span class="s2">&quot;auto_recover&quot;</span><span class="p">:</span> <span class="n">auto_recover</span><span class="p">,</span>
+                    <span class="s2">&quot;max_retries&quot;</span><span class="p">:</span> <span class="n">max_retries</span>
+                <span class="p">}</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="p">[(</span><span class="n">runner_args</span><span class="p">,</span> <span class="n">runner_kwargs</span><span class="p">),</span> <span class="p">(</span><span class="n">main_process</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)]</span>
+                <span class="n">params_group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">n_parallel_workers</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="bp">cls</span><span class="o">.</span><span class="n">_subprocess_runner</span><span class="p">(</span><span class="o">*</span><span class="n">params_group</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">Parallel</span><span class="o">.</span><span class="n">subprocess_runner</span><span class="p">(</span><span class="o">*</span><span class="n">params_group</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">WorkerPool</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="n">n_parallel_workers</span><span class="p">,</span> <span class="n">start_method</span><span class="o">=</span><span class="s2">&quot;spawn&quot;</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
                     <span class="c1"># Cleanup the pool just in case the program crashes.</span>
                     <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="fm">__exit__</span><span class="p">)</span>
-                    <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_subprocess_runner</span><span class="p">,</span> <span class="n">params_group</span><span class="p">)</span>
+                    <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">Parallel</span><span class="o">.</span><span class="n">subprocess_runner</span><span class="p">,</span> <span class="n">params_group</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">_runner</span></div>
 
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_nng_args_parser</span><span class="p">(</span>
-            <span class="bp">cls</span><span class="p">,</span>
-            <span class="n">n_parallel_workers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-            <span class="n">attach_to</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ipc&quot;</span><span class="p">,</span>
-            <span class="n">address</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">ports</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">topology</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mesh&quot;</span><span class="p">,</span>
-            <span class="n">node_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-        <span class="n">attach_to</span> <span class="o">=</span> <span class="n">attach_to</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="n">nodes</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_node_addrs</span><span class="p">(</span><span class="n">n_parallel_workers</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">protocol</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="n">address</span><span class="p">,</span> <span class="n">ports</span><span class="o">=</span><span class="n">ports</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Bind subprocesses on these addresses: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span>
-
-        <span class="k">def</span> <span class="nf">cleanup_nodes</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
-                <span class="n">protocol</span><span class="p">,</span> <span class="n">file_path</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;://&quot;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s2">&quot;ipc&quot;</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
-                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
-
-        <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">cleanup_nodes</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">topology_network</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">topology</span> <span class="o">==</span> <span class="s2">&quot;mesh&quot;</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">nodes</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">attach_to</span>
-            <span class="k">elif</span> <span class="n">topology</span> <span class="o">==</span> <span class="s2">&quot;star&quot;</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">nodes</span><span class="p">[:</span><span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">)]</span> <span class="o">+</span> <span class="n">attach_to</span>
-            <span class="k">elif</span> <span class="n">topology</span> <span class="o">==</span> <span class="s2">&quot;alone&quot;</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">attach_to</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown topology: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">topology</span><span class="p">))</span>
-
-        <span class="n">runner_params</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">candidate_node_ids</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">padding_param</span><span class="p">(</span><span class="n">node_ids</span><span class="p">,</span> <span class="n">n_parallel_workers</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_parallel_workers</span><span class="p">):</span>
-            <span class="n">runner_kwargs</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-                <span class="s2">&quot;node_id&quot;</span><span class="p">:</span> <span class="n">candidate_node_ids</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-                <span class="s2">&quot;listen_to&quot;</span><span class="p">:</span> <span class="n">nodes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-                <span class="s2">&quot;attach_to&quot;</span><span class="p">:</span> <span class="n">topology_network</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
-            <span class="p">}</span>
-            <span class="n">runner_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">runner_kwargs</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">runner_params</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_redis_args_parser</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">n_parallel_workers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">node_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">runner_params</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">candidate_node_ids</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">padding_param</span><span class="p">(</span><span class="n">node_ids</span><span class="p">,</span> <span class="n">n_parallel_workers</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_parallel_workers</span><span class="p">):</span>
-            <span class="n">runner_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;node_id&quot;</span><span class="p">:</span> <span class="n">candidate_node_ids</span><span class="p">[</span><span class="n">i</span><span class="p">]}</span>
-            <span class="n">runner_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">runner_kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">runner_params</span>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_subprocess_runner</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">runner_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">main_params</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">subprocess_runner</span><span class="p">(</span><span class="n">runner_params</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]],</span> <span class="n">main_params</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Really run in subprocess.</span>
@@ -347,14 +330,15 @@
 <span class="sd">            - main_params (:obj:`Tuple[Union[List, Dict]]`): Args and kwargs for main function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">main_process</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">main_params</span>
+        <span class="n">runner_args</span><span class="p">,</span> <span class="n">runner_kwargs</span> <span class="o">=</span> <span class="n">runner_params</span>
 
         <span class="k">with</span> <span class="n">Parallel</span><span class="p">()</span> <span class="k">as</span> <span class="n">router</span><span class="p">:</span>
             <span class="n">router</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">router</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="o">**</span><span class="n">runner_kwargs</span><span class="p">)</span>
+            <span class="n">router</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">*</span><span class="n">runner_args</span><span class="p">,</span> <span class="o">**</span><span class="n">runner_kwargs</span><span class="p">)</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>  <span class="c1"># Waiting for network pairing</span>
-            <span class="n">router</span><span class="o">.</span><span class="n">_supervised_runner</span><span class="p">(</span><span class="n">main_process</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">router</span><span class="o">.</span><span class="n">supervised_runner</span><span class="p">(</span><span class="n">main_process</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_supervised_runner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">supervised_runner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Run in supervised mode.</span>
@@ -385,9 +369,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">main</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="nd">@classmethod</span>
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_node_addrs</span><span class="p">(</span>
-            <span class="bp">cls</span><span class="p">,</span>
             <span class="n">n_workers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ipc&quot;</span><span class="p">,</span>
             <span class="n">address</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -398,8 +381,8 @@
             <span class="n">tmp_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">()</span>
             <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ipc://</span><span class="si">{}</span><span class="s2">/ditask_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">.ipc&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_workers</span><span class="p">)]</span>
         <span class="k">elif</span> <span class="n">protocol</span> <span class="o">==</span> <span class="s2">&quot;tcp&quot;</span><span class="p">:</span>
-            <span class="n">address</span> <span class="o">=</span> <span class="n">address</span> <span class="ow">or</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_ip</span><span class="p">()</span>
-            <span class="n">ports</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">padding_param</span><span class="p">(</span><span class="n">ports</span><span class="p">,</span> <span class="n">n_workers</span><span class="p">,</span> <span class="mi">50515</span><span class="p">)</span>
+            <span class="n">address</span> <span class="o">=</span> <span class="n">address</span> <span class="ow">or</span> <span class="n">Parallel</span><span class="o">.</span><span class="n">get_ip</span><span class="p">()</span>
+            <span class="n">ports</span> <span class="o">=</span> <span class="n">Parallel</span><span class="o">.</span><span class="n">padding_param</span><span class="p">(</span><span class="n">ports</span><span class="p">,</span> <span class="n">n_workers</span><span class="p">,</span> <span class="mi">50515</span><span class="p">)</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ports</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_workers</span><span class="p">,</span> <span class="s2">&quot;The number of ports must be the same as the number of workers, </span><span class="se">\</span>
 <span class="s2">now there are </span><span class="si">{}</span><span class="s2"> ports and </span><span class="si">{}</span><span class="s2"> workers&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ports</span><span class="p">),</span> <span class="n">n_workers</span><span class="p">)</span>
             <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;tcp://</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span> <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">ports</span><span class="p">]</span>
@@ -407,8 +390,8 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown protocol </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">protocol</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">nodes</span>
 
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">padding_param</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">int_or_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]],</span> <span class="n">n_max</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">padding_param</span><span class="p">(</span><span class="n">int_or_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]],</span> <span class="n">n_max</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start_value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Padding int or list param to the length of n_max.</span>
@@ -427,16 +410,30 @@
             <span class="n">param</span> <span class="o">=</span> <span class="n">param</span> <span class="ow">or</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_value</span><span class="p">,</span> <span class="n">start_value</span> <span class="o">+</span> <span class="n">n_max</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">param</span>
 
-    <span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
-            <span class="c1"># msg is none means that the message queue is no longer being listened to,</span>
-            <span class="c1"># especially if the message queue is already closed</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">msg</span><span class="p">:</span>
-                <span class="k">break</span>
-            <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_message</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">listen</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listen_to</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">attach_to</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">attach_to</span> <span class="o">=</span> <span class="n">attach_to</span> <span class="ow">or</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span> <span class="o">=</span> <span class="n">listen_to</span>
+
+        <span class="k">with</span> <span class="n">Bus0</span><span class="p">()</span> <span class="k">as</span> <span class="n">sock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span> <span class="o">=</span> <span class="n">sock</span>
+            <span class="n">sock</span><span class="o">.</span><span class="n">listen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># Wait for peers to bind</span>
+            <span class="k">for</span> <span class="n">contact</span> <span class="ow">in</span> <span class="n">attach_to</span><span class="p">:</span>
+                <span class="n">sock</span><span class="o">.</span><span class="n">dial</span><span class="p">(</span><span class="n">contact</span><span class="p">)</span>
+
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_handle_message</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">pynng</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Timeout on node </span><span class="si">{}</span><span class="s2"> when waiting for message from bus&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span><span class="p">))</span>
+                <span class="k">except</span> <span class="n">pynng</span><span class="o">.</span><span class="n">Closed</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The socket was not closed under normal circumstances!&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Meet exception when listening for new messages&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                    <span class="k">break</span>
 
     <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -447,8 +444,6 @@
 <span class="sd">            - event (:obj:`str`): Event name.</span>
 <span class="sd">            - fn (:obj:`Callable`): Function body.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">once</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -460,8 +455,6 @@
 <span class="sd">            - event (:obj:`str`): Event name.</span>
 <span class="sd">            - fn (:obj:`Callable`): Function body.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">once</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">off</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -471,8 +464,6 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - event (:obj:`str`): Event name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">unsubscribe</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">off</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">emit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -483,35 +474,39 @@
 <span class="sd">            - event (:obj:`str`): Event name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
+            <span class="n">topic</span> <span class="o">=</span> <span class="n">event</span> <span class="o">+</span> <span class="s2">&quot;::&quot;</span>
             <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="n">args</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">}</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Arguments are not pickable! Event: </span><span class="si">{}</span><span class="s2">, Args: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
                 <span class="k">raise</span> <span class="n">e</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span> <span class="o">+</span> <span class="n">data</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Recv and parse payload from other processes, and call local functions.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - topic (:obj:`str`): Recevied topic.</span>
 <span class="sd">            - msg (:obj:`bytes`): Recevied message.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">event</span> <span class="o">=</span> <span class="n">topic</span>
+        <span class="c1"># Use topic at the beginning of the message, so we don&#39;t need to call pickle.loads</span>
+        <span class="c1"># when the current process is not subscribed to the topic.</span>
+        <span class="n">topic</span><span class="p">,</span> <span class="n">payload</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;::&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">listened</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Event </span><span class="si">{}</span><span class="s2"> was not listened in parallel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">))</span>
             <span class="k">return</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">payload</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error when unpacking message on node </span><span class="si">{}</span><span class="s2">, msg: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error when unpacking message on node </span><span class="si">{}</span><span class="s2">, msg: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
             <span class="k">return</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="o">*</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">])</span>
 
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_ip</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_ip</span><span class="p">():</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_DGRAM</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># doesn&#39;t even have to be reachable</span>
@@ -530,15 +525,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping parallel worker on node: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping parallel worker on address: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bind_addr</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.03</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_listener</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
 </pre></div>
 

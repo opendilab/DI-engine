@@ -182,9 +182,9 @@ DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver1
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>DDPG is only used for environments with <strong>continuous action spaces</strong>.(i.e. MuJoCo)</p></li>
+<li><p>DDPG is only used for environments with <strong>continuous action spaces</strong> (e.g. MuJoCo).</p></li>
 <li><p>DDPG is an <strong>off-policy</strong> algorithm.</p></li>
-<li><p>DDPG is a <strong>model-free</strong> and <strong>actor-critic</strong> RL algorithm, which optimizes actor network and critic network, respectively.</p></li>
+<li><p>DDPG is a <strong>model-free</strong> and <strong>actor-critic</strong> RL algorithm, which optimizes the actor network and the critic network, respectively.</p></li>
 <li><p>Usually, DDPG use <strong>Ornstein-Uhlenbeck process</strong> or <strong>Gaussian process</strong> (default in our implementation) for exploration.</p></li>
 </ol>
 </div>
@@ -197,11 +197,11 @@ DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver1
 &amp;=\mathbb{E}_{s_{t} \sim \rho^{\beta}}\left[\left.\left.\nabla_{a} Q\left(s, a \mid \theta^{Q}\right)\right|_{s=s_{t}, a=\mu\left(s_{t}\right)} \nabla_{\theta_{\mu}} \mu\left(s \mid \theta^{\mu}\right)\right|_{s=s_{t}}\right]
 \end{aligned}\end{split}\]</div>
 <p>DDPG uses a <strong>replay buffer</strong> to guarantee that the samples are independently and identically distributed.</p>
-<p>To keep neural networks stable in many environments, DDPG uses <strong>“soft” target updates</strong> for <strong>actor-critic</strong> and using. Specifically, DDPG creates a copy of the actor and critic networks, <span class="math notranslate nohighlight">\(Q(s, a|\theta^{Q'})\)</span> and <span class="math notranslate nohighlight">\(\mu' \left(s \mid \theta^{\mu'}\right)\)</span> respectively, that are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:</p>
+<p>To keep neural networks stable in many environments, DDPG uses <strong>“soft” target updates</strong> to update target networks rather than directly copying the weights. Specifically, DDPG creates a copy of the actor and critic networks, <span class="math notranslate nohighlight">\(Q'(s, a|\theta^{Q'})\)</span> and <span class="math notranslate nohighlight">\(\mu' \left(s \mid \theta^{\mu'}\right)\)</span> respectively, that are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:</p>
 <div class="math notranslate nohighlight">
 \[\theta' \leftarrow \tau \theta + (1 - \tau)\theta',\]</div>
 <p>where <span class="math notranslate nohighlight">\(\tau&lt;&lt;1\)</span>. This means that the target values are constrained to change slowly, greatly improving the stability of learning.</p>
-<p>A major challenge of learning in continuous action spaces is exploration. The exploration policy is independent from the learning algorithm trough adding noise sampled from a noise process N to actor policy:</p>
+<p>A major challenge of learning in continuous action spaces is exploration. However, it is an advantage for off-policies algorithms such as DDPG that the problem of exploration could be treated independently from the learning algorithm. Specifically, we constructed an exploration policy by adding noise sampled from a noise process N to actor policy:</p>
 <div class="math notranslate nohighlight">
 \[\mu^{\prime}\left(s_{t}\right)=\mu\left(s_{t} \mid \theta_{t}^{\mu}\right)+\mathcal{N}\]</div>
 </div>
@@ -259,7 +259,7 @@ Since we implement soft update Target Network for actor-critic through <code cla
 </li>
 <li><p>Replay Buffers</p>
 <blockquote>
-<div><p>DDPG/TD3 random-collect-size is set to 25000 by default, while it is 25000 for SAC.
+<div><p>DDPG/TD3 random-collect-size is set to 25000 by default, while it is 10000 for SAC.
 We only simply follow SpinningUp default setting and use random policy to collect initialization data.
 We configure <code class="docutils literal notranslate"><span class="pre">random_collect_size</span></code> for data collection.</p>
 </div></blockquote>
@@ -801,7 +801,7 @@ Setting up two separate optimizers can guarantee that we <strong>only update</st
 <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="3">
+<ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">actor</span> <span class="pre">loss</span></code></p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">actor_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
@@ -813,7 +813,7 @@ Setting up two separate optimizers can guarantee that we <strong>only update</st
 <span class="n">loss_dict</span><span class="p">[</span><span class="s1">&#39;actor_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">actor_loss</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="4">
+<ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">actor</span> <span class="pre">network</span> <span class="pre">update</span></code></p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># actor update</span>
@@ -839,23 +839,79 @@ We configure <code class="docutils literal notranslate"><span class="pre">learn.
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>The Benchmark result of DDPG implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview.html">Benchmark</a></p>
 </div>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HalfCheetah</p>
+<p>(HalfCheetah-v3)</p>
+</td>
+<td><p>11334</p></td>
+<td><img alt="../_images/halfcheetah_ddpg.png" src="../_images/halfcheetah_ddpg.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/mujoco/config/halfcheetah_ddpg_default_config.py">config_link_p</a></p></td>
+<td><p>Tianshou(11719)
+Spinning-up(11000)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hopper</p>
+<p>(Hopper-v2)</p>
+</td>
+<td><p>3516</p></td>
+<td><img alt="../_images/hopper_ddpg.png" src="../_images/hopper_ddpg.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/mujoco/config/hopper_ddpg_default_config.py">config_link_q</a></p></td>
+<td><p>Tianshou(2197)
+Spinning-up(1800)</p></td>
+</tr>
+<tr class="row-even"><td><p>Walker2d</p>
+<p>(Walker2d-v2)</p>
+</td>
+<td><p>3443</p></td>
+<td><img alt="../_images/walker2d_ddpg.png" src="../_images/walker2d_ddpg.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/mujoco/config/walker2d_ddpg_default_config.py">config_link_s</a></p></td>
+<td><p>Tianshou(1401)
+Spinning-up(1950)</p></td>
+</tr>
+</tbody>
+</table>
+<p>P.S.：</p>
+<ol class="arabic simple">
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
+</ol>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>Timothy P. Lillicrap, Jonathan J. Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, Daan Wierstra: “Continuous control with deep reinforcement learning”, 2015; [<a class="reference external" href="http://arxiv.org/abs/1509.02971">http://arxiv.org/abs/1509.02971</a> arXiv:1509.02971].</p>
 </div>
 <div class="section" id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/openai/baselines/tree/master/baselines/ddpg">Baselines</a></p></li>
+<li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ddpg">sb3</a></p></li>
 <li><p><a class="reference external" href="https://github.com/rll/rllab/blob/master/rllab/algos/ddpg.py">rllab</a></p></li>
-<li><p><a class="reference external" href="https://github.com/ray-project/ray/tree/master/python/ray/rllib/agents/ddpg">rllib (Ray)</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ray-project/ray/tree/master/rllib/agents/ddpg">rllib (Ray)</a></p></li>
 <li><p><a class="reference external" href="https://github.com/sfujim/TD3">TD3 release repo</a></p></li>
 <li><p><a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg">Spinningup</a></p></li>
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/ddpg.py">tianshou</a></p></li>
 </ul>
-</div>
-<div class="section" id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<p>Timothy P. Lillicrap, Jonathan J. Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, Daan Wierstra: “Continuous control with deep reinforcement learning”, 2015; [<a class="reference external" href="http://arxiv.org/abs/1509.02971">http://arxiv.org/abs/1509.02971</a> arXiv:1509.02971].</p>
 </div>
 </div>
 

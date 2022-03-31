@@ -10,7 +10,7 @@ Besides, the quantities of data that can be gathered
 online are substantially lower than the offline datasets. Such a paradigm promises to resolve a key challenge to bringing reinforcement learning algorithms out of constrained lab settings to the real world.
 
 However, directly utilizing existing value-based off-policy RL algorithms in an offline setting generally results
-in poor performance, due to issues with bootstrapping from out-of-distribution actions and overfitting. Thus, many constrain techniques are added to basic online RL algorithm. 
+in poor performance, due to issues with bootstrapping from out-of-distribution actions and overfitting. Thus, many constrain techniques are added to basic online RL algorithms. 
 Conservative Q-learning (CQL), first proposed in `Conservative Q-Learning for Offline Reinforcement Learning <https://arxiv.org/abs/2006.04779>`_, is one of them which learns conservative Q functions of which the expected value is lower-bounded
 via a simple modification to standard value-based RL algorithms.
 

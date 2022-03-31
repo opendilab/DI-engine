@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>QTRAN &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>QTRAN</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/qtran.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="qtran">
+<h1>QTRAN<a class="headerlink" href="#qtran" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>QTRAN is proposed by Kyunghwan et al.(2019). QTRAN is a factorization method for MARL, which is free from such structural constraints and takes on a new approach to transform the original joint action-value function into an easily factorizable one, with the same optimal actions.</p>
+<p>Compared to VDN(Sunehag et al. 2017), QMIX(Rashid et al. 2018), QTRAN guarantees more general factorization than VDN or QMIX, thus covering a much wider class of MARL tasks than does previous methods, and it performs better than QMIX in 5m_vs_6m and MMM2 maps.</p>
+</div>
+<div class="section" id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>QTRAN uses the paradigm of <strong>centralized training with decentralized execution</strong>.</p></li>
+<li><p>QTRAN is a <strong>model-free</strong> and <strong>value-based</strong> method.</p></li>
+<li><p>QTRAN only support <strong>discrete</strong> action spaces.</p></li>
+<li><p>QTRAN is an <strong>off-policy multi-agent</strong> RL algorithm.</p></li>
+<li><p>QTRAN considers a <strong>partially observable</strong> scenario in which each agent only obtains individual observations.</p></li>
+<li><p>QTRAN accepts <strong>DRQN</strong> as individual value network.</p></li>
+<li><p>QTRAN learns the <strong>joint value function</strong> through <strong>Individual action-value network</strong>, <strong>Joint action-value network</strong> and <strong>State-value network</strong>.</p></li>
+</ol>
+</div>
+<div class="section" id="key-equations-or-key-graphs">
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<p>The overall QTRAN architecture including individual agent networks and the mixing network structure:</p>
+<a class="reference internal image-reference" href="../_images/Qtran_net.png"><img alt="../_images/Qtran_net.png" class="align-center" src="../_images/Qtran_net.png" style="width: 600px;" /></a>
+<p>QTRAN trains the mixing network via minimizing the following loss:</p>
+<div class="math notranslate nohighlight">
+\[L_{\mathrm{td}}(; \boldsymbol{\theta}) =\left(Q_{\mathrm{jt}}(\boldsymbol{\tau}, \boldsymbol{u})-y^{\mathrm{dqn}}\left(r, \boldsymbol{\tau}^{\prime} ; \boldsymbol{\theta}^{-}\right)\right)^{2}\]</div>
+<div class="math notranslate nohighlight">
+\[L_{\mathrm{opt}}(; \boldsymbol{\theta}) =\left(Q_{\mathrm{jt}}^{\prime}(\boldsymbol{\tau}, \overline{\boldsymbol{u}})-\hat{Q}_{\mathrm{jt}}(\boldsymbol{\tau}, \overline{\boldsymbol{u}})+V_{\mathrm{jt}}(\boldsymbol{\tau})\right)^{2}\]</div>
+<div class="math notranslate nohighlight">
+\[L_{\mathrm{nopt}}(; \boldsymbol{\theta}) =\left(\min \left[Q_{\mathrm{jt}}^{\prime}(\boldsymbol{\tau}, \boldsymbol{u})-\hat{Q}_{\mathrm{jt}}(\boldsymbol{\tau}, \boldsymbol{u})+V_{\mathrm{jt}}(\boldsymbol{\tau}), 0\right]\right)^{2}\]</div>
+<div class="math notranslate nohighlight">
+\[L\left(\boldsymbol{\tau}, \boldsymbol{u}, r, \boldsymbol{\tau}^{\prime} ; \boldsymbol{\theta}\right)=L_{\mathrm{td}}+\lambda_{\mathrm{opt}} L_{\mathrm{opt}}+\lambda_{\mathrm{nopt}} L_{\mathrm{nopt}},\]</div>
+</div>
+<div class="section" id="pseudo-code">
+<h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
+<p>The following flow charts show how QTRAN trains.</p>
+<a class="reference internal image-reference" href="../_images/QTRAN.png"><img alt="../_images/QTRAN.png" class="align-center" src="../_images/QTRAN.png" style="width: 600px;" /></a>
+</div>
+<div class="section" id="extensions">
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>QTRAN++ (Son et al. 2019), as an extension of QTRAN, successfully bridges the gap between empirical performance and theoretical guarantee, and newly achieves state-of-the-art performance in the SMAC environment.</p></li>
+</ul>
+</div>
+<div class="section" id="implementations">
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<p>The default config is defined as follows:</p>
+<dl>
+<dt>The network interface QTRAN used is defined as follows:</dt><dd><dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">ding.model.template.</span></span><span class="sig-name descname"><span class="pre">qtran</span></span></dt>
+<dd><p>alias of &lt;module ‘ding.model.template.qtran’ from ‘/home/runner/work/DI-engine/DI-engine/ding/model/template/qtran.py’&gt;</p>
+</dd></dl>
+
+</dd>
+</dl>
+<p>The Benchmark result of QTRAN in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>smac map</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>1.00</p></td>
+<td><img alt="../_images/QTran_MMM.png" src="../_images/QTran_MMM.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_MMM_qtran_config.py">config_link</a></p></td>
+<td><p>Pymarl(1.0)</p></td>
+</tr>
+<tr class="row-odd"><td><p>3s5z</p></td>
+<td><p>0.95</p></td>
+<td><img alt="../_images/QTran_3s5z.png" src="../_images/QTran_3s5z.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_3s5z_qtran_config.py">config_link</a></p></td>
+<td><p>Pymarl(0.1)</p></td>
+</tr>
+<tr class="row-even"><td><p>5m6m</p></td>
+<td><p>0.55</p></td>
+<td><img alt="../_images/QTran_5m6m.png" src="../_images/QTran_5m6m.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_3s5z_qtran_config.py">config_link</a></p></td>
+<td><p>Pymarl(0.7)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. ICML, 2019.</p>
+</div>
+<div class="section" id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/oxwhirl/pymarl">Pymarl</a>.</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

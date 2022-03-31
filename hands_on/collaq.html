@@ -455,10 +455,61 @@
 </div></blockquote>
 <p>The Benchmark result of CollaQ in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.</p>
 </div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Environment</p></th>
+<th class="head"><p>Best mean reward</p></th>
+<th class="head"><p>Evaluation results</p></th>
+<th class="head"><p>Config link</p></th>
+<th class="head"><p>Comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>5m6m</p></td>
+<td><p>1</p></td>
+<td><img alt="../_images/smac_5m6m_collaq.png" src="../_images/smac_5m6m_collaq.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/smac/config/smac_5m6m_collaq_config.py">config_link_p</a></p></td>
+<td><p>Pymarl(0.8)</p></td>
+</tr>
+<tr class="row-odd"><td><p>MMM</p></td>
+<td><p>0.7</p></td>
+<td><img alt="../_images/smac_MMM_collaq.png" src="../_images/smac_MMM_collaq.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/smac/config/smac_MMM_collaq_config.py">config_link_q</a></p></td>
+<td><p>Pymarl(1)</p></td>
+</tr>
+<tr class="row-even"><td><p>3s5z</p></td>
+<td><p>1</p></td>
+<td><img alt="../_images/smac_3s5z_collaq.png" src="../_images/smac_3s5z_collaq.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/smac/config/smac_3s5z_collaq_config.py">config_link_s</a></p></td>
+<td><p>Pymarl(1)</p></td>
+</tr>
+</tbody>
+</table>
+<p>P.S.：</p>
+<p>The above results are obtained by running the same configuration on three different random seeds (0, 1, 2).</p>
+</div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Tianjun Zhang, Huazhe Xu, Xiaolong Wang, Yi Wu, Kurt Keutzer, Joseph E. Gonzalez, Yuandong Tian. Multi-Agent Collaboration via Reward Attribution Decomposition. arXiv preprint arXiv:2010.08531, 2020.</p>
 <p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
+</div>
+<div class="section" id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/oxwhirl/pymarl">Pymarl</a>.</p></li>
+</ul>
 </div>
 </div>
 

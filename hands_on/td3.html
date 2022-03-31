@@ -176,33 +176,38 @@
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Twin Delayed DDPG (TD3), proposed in the 2018 paper <a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a>, is an algorithm which considers the interplay between function approximation error in both policy and value updates.
-TD3 is an actor-critic, model-free algorithm based on the deep deterministic policy gradient(DDPG) that can address overestimation bias and the accumulation of error in temporal difference methods in continuous action spaces.</p>
+TD3 is an actor-critic, model-free algorithm based on the <a class="reference external" href="https://arxiv.org/abs/1509.02971">deep deterministic policy gradient (DDPG)</a> that can address overestimation bias, the accumulation of error in temporal difference methods and high sensitivity to hyper-parameters in continuous action spaces. Specifically, TD3 addresses the issue by introducing the following three critical tricks:</p>
+<ol class="arabic simple">
+<li><p>Clipped Double-Q Learning: When calculating the targets in the Bellman error loss functions, TD3 learns two Q-functions instead of one, and uses the smaller Q-value.</p></li>
+<li><p>Delayed Policy Updates:  TD3 updates the policy (and target networks) less frequently than the Q-function. In the paper, the author recommends one policy update for two Q-function updates. In our implementation, TD3 only updates the policy and target networks after a ﬁxed number of updates <span class="math notranslate nohighlight">\(d\)</span> to the critic. We implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.actor_update_freq</span></code>.</p></li>
+<li><p>Target Policy Smoothing:  By smoothing out Q along changes in action, TD3 provides noise to the target action, making it more difficult for the policy to exploit Q-function faults.</p></li>
+</ol>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li><p>TD3 is only used for environments with <strong>continuous action spaces</strong>.(i.e. MuJoCo)</p></li>
+<li><p>TD3 is only used for environments with <strong>continuous action spaces</strong> (e.g., MuJoCo).</p></li>
 <li><p>TD3 is an <strong>off-policy</strong> algorithm.</p></li>
-<li><p>TD3 is a <strong>model-free</strong> and <strong>actor-critic</strong> RL algorithm, which optimizes actor network and critic network, respectively.</p></li>
+<li><p>TD3 is a <strong>model-free</strong> and <strong>actor-critic</strong> RL algorithm, which optimizes actor network and critic network respectively.</p></li>
 </ol>
 </div>
 <div class="section" id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>TD3 proposes a clipped Double Q-learning variant which leverages the notion that a value estimate suffering from overestimation bias can be used as an approximate upper-bound to the true value estimate.</p>
-<p>First, TD3 shows that target networks, a common approach in deep Q-learning methods, are critical for variance reduction by reducing the accumulation of errors.</p>
-<p>Second, to address the coupling of value and policy, TD3 proposes delaying policy updates until the value estimate has converged.</p>
-<p>Finally, TD3 introduces a novel regularization strategy(Target Policy Smoothing Regularization), where a SARSA-style update bootstraps similar action estimates to further reduce variance.</p>
-<p>The target update of Clipped Double Q-learning algorithm:</p>
+<p>TD3 proposes a clipped Double Q-learning variant which leverages the notion that a value estimate suffering from overestimation bias can be used as an approximate upper-bound to the true value estimate. TD3 shows that target networks, a common approach in deep Q-learning methods, are critical for variance reduction by reducing the accumulation of errors.</p>
+<p>Firstly, to address the coupling of value and policy, TD3 proposes delaying policy updates until the value estimate is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates <span class="math notranslate nohighlight">\(d\)</span> to the critic.
+We implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.actor_update_freq</span></code>.</p>
+<p>Secondly, the target update of Clipped Double Q-learning algorithm is as follows:</p>
 <div class="math notranslate nohighlight">
 \[y_{1}=r+\gamma \min _{i=1,2} Q_{\theta_{i}^{\prime}}\left(s^{\prime}, \pi_{\phi_{1}}\left(s^{\prime}\right)\right)\]</div>
 <p>In implementation, computational costs can be reduced by using a single actor optimized with respect to <span class="math notranslate nohighlight">\(Q_{\theta_1}\)</span> . We then use the same target <span class="math notranslate nohighlight">\(y_2= y_1for Q_{\theta_2}\)</span>.</p>
-<p>A concern with deterministic policies is they can overﬁt to narrow peaks in the value estimate. When updating the critic, a learning target using a deterministic policy is highly susceptible to inaccuracies induced by function approximation error, increasing the variance of the target.
+<p>Finally, a concern with deterministic policies is they can overﬁt to narrow peaks in the value estimate. When updating the critic, a learning target using a deterministic policy is highly susceptible to inaccuracies induced by function approximation error, increasing the variance of the target.
 TD3 introduces a regularization strategy for deep value learning, target policy smoothing, which mimics the learning update from SARSA. Specifically, TD3 approximates this expectation over actions by adding a small amount of random noise to the target policy and averaging over mini-batches following:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{l}
 y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\prime}\right)+\epsilon\right) \\
 \epsilon \sim \operatorname{clip}(\mathcal{N}(0, \sigma),-c, c)
 \end{array}\end{split}\]</div>
+<p>we implement Target Policy Smoothing through configuring <code class="docutils literal notranslate"><span class="pre">learn.noise</span></code>, <code class="docutils literal notranslate"><span class="pre">learn.noise_sigma</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.noise_range</span></code>.</p>
 </div>
 <div class="section" id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
@@ -250,46 +255,22 @@ y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\pri
     \UNTIL{convergence}
 \end{algorithmic}
 \end{algorithm}\end{split}\end{aligned}\end{align} \]</div>
-<a class="reference internal image-reference" href="hands_on/images/td3.jpg"><img alt="hands_on/images/td3.jpg" class="align-center" src="hands_on/images/td3.jpg" /></a>
+<a class="reference internal image-reference" href="../_images/TD3.png"><img alt="../_images/TD3.png" class="align-center" src="../_images/TD3.png" style="width: 526.4px; height: 603.2px;" /></a>
 </div>
 <div class="section" id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
-<dl>
-<dt>TD3 can be combined with:</dt><dd><ul>
-<li><p>Target Network.</p>
+<p>TD3 is combined with:</p>
 <blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a> uses soft update Target Network to ensure the TD-error remains small.
-Since we implement soft update Target Network for actor-critic through <code class="docutils literal notranslate"><span class="pre">TargetNetworkWrapper</span></code> in <code class="docutils literal notranslate"><span class="pre">model_wrap</span></code> and configuring <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code>.</p>
-</div></blockquote>
-</li>
-<li><p>Policy Updates Delay</p>
-<blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a> proposes delaying policy updates until the value error is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates <span class="math notranslate nohighlight">\(d\)</span> to the critic.
-Since we implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code>.</p>
-</div></blockquote>
-</li>
-<li><p>Target Policy Smoothing</p>
-<blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a> proposes Target Policy Smoothing Regularization to reduce variance from deterministic policies.
-Since we implement Target Policy Smoothing through configuring <code class="docutils literal notranslate"><span class="pre">learn.noise</span></code>, <code class="docutils literal notranslate"><span class="pre">learn.noise_sigma</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.noise_range</span></code>.</p>
-</div></blockquote>
-</li>
-<li><p>Clipped Double-Q Learning</p>
-<blockquote>
-<div><p><a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a> proposes Clipped Double Q-learning, which greatly reduces overestimation by the critic.
-Since we implement Clipped Double-Q Learning through configuring <code class="docutils literal notranslate"><span class="pre">learn.actor_update_freq</span></code>.</p>
-</div></blockquote>
-</li>
+<div><ul>
 <li><p>Replay Buffers</p>
 <blockquote>
-<div><p>DDPG/TD3 random-collect-size is set to 25000 by default, while it is 25000 for SAC.
+<div><p>DDPG/TD3 <code class="docutils literal notranslate"><span class="pre">random_collect_size</span></code> is set to 25000 by default, while it is 10000 for SAC.
 We only simply follow SpinningUp default setting and use random policy to collect initialization data.
 We configure <code class="docutils literal notranslate"><span class="pre">random_collect_size</span></code> for data collection.</p>
 </div></blockquote>
 </li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </div>
 <div class="section" id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
@@ -604,10 +585,11 @@ class from DDPG class by changing <code class="docutils literal notranslate"><sp
 </table>
 </dd></dl>
 
-<div class="section" id="model">
-<h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
-<p>Here we provide examples of <cite>td3</cite> model as default model for <cite>TD3</cite>.</p>
-<dl class="py class">
+<ol class="arabic">
+<li><p>Model
+Here we provide examples of <cite>td3</cite> model as default model for <cite>TD3</cite>.</p>
+<blockquote>
+<div><dl class="py class">
 <dt class="sig sig-object py">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.qac.</span></span><span class="sig-name descname"><span class="pre">QAC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">,</span> </span><span class="pre">easydict.EasyDict</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_space</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">twin_critic</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">critic_head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qac.html#QAC"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
@@ -770,11 +752,12 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
 
 </dd></dl>
 
-</div>
-<div class="section" id="train-actor-critic-model">
-<h3>Train actor-critic model<a class="headerlink" href="#train-actor-critic-model" title="Permalink to this headline">¶</a></h3>
-<p>First, we initialize actor and critic optimizer in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>, respectively.
-Setting up two separate optimizers can guarantee that we <strong>only update</strong> actor network parameters and not critic network when we compute actor loss, vice versa.</p>
+</div></blockquote>
+</li>
+<li><p>Train actor-critic model</p>
+<blockquote>
+<div><p>Firstly, we initialize actor and critic optimizer in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>, respectively.
+Setting up two separate optimizers can guarantee that we <strong>only update</strong> actor network parameters instead of the critic network when we compute actor loss, vice versa.</p>
 <blockquote>
 <div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># actor and critic optimizer</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_actor</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span>
@@ -836,19 +819,20 @@ Setting up two separate optimizers can guarantee that we <strong>only update</st
 </div>
 </div></blockquote>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">critic</span> <span class="pre">network</span> <span class="pre">update</span></code></p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+<li><p><code class="docutils literal notranslate"><span class="pre">critic</span> <span class="pre">network</span> <span class="pre">update</span></code></p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">loss_dict</span><span class="p">:</span>
     <span class="k">if</span> <span class="s1">&#39;critic&#39;</span> <span class="ow">in</span> <span class="n">k</span><span class="p">:</span>
         <span class="n">loss_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_critic</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="3">
-<li><p><code class="docutils literal notranslate"><span class="pre">actor</span> <span class="pre">loss</span></code> and  <code class="docutils literal notranslate"><span class="pre">actor</span> <span class="pre">network</span> <span class="pre">update</span></code> depending on the level of <strong>delaying the policy updates</strong>.</p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn_cnt</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actor_update_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">actor</span> <span class="pre">loss</span> <span class="pre">computation</span></code> and  <code class="docutils literal notranslate"><span class="pre">actor</span> <span class="pre">network</span> <span class="pre">update</span></code> depending on the level of <strong>delaying the policy updates</strong>.</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_forward_learn_cnt</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_actor_update_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
     <span class="n">actor_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">)</span>
     <span class="n">actor_data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_twin_critic</span><span class="p">:</span>
@@ -863,12 +847,16 @@ Setting up two separate optimizers can guarantee that we <strong>only update</st
     <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_actor</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 </pre></div>
 </div>
+</div></blockquote>
+</li>
+</ol>
 </dd>
 </dl>
-</div>
-<div class="section" id="target-network">
-<h3>Target Network<a class="headerlink" href="#target-network" title="Permalink to this headline">¶</a></h3>
-<p>We implement Target Network trough target model initialization in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>.
+</div></blockquote>
+</li>
+<li><p>Target Network</p>
+<blockquote>
+<div><p>We implement Target Network trough target model initialization in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>.
 We configure <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code> to control the interpolation factor in averaging.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># main and target models</span>
 <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
@@ -880,10 +868,11 @@ We configure <code class="docutils literal notranslate"><span class="pre">learn.
 <span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="target-policy-smoothing-regularization">
-<h3>Target Policy Smoothing Regularization<a class="headerlink" href="#target-policy-smoothing-regularization" title="Permalink to this headline">¶</a></h3>
-<p>We implement Target Policy Smoothing Regularization trough target model initialization in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>.
+</div></blockquote>
+</li>
+<li><p>Target Policy Smoothing Regularization</p>
+<blockquote>
+<div><p>We implement Target Policy Smoothing Regularization trough target model initialization in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>.
 We configure <code class="docutils literal notranslate"><span class="pre">learn.noise</span></code>, <code class="docutils literal notranslate"><span class="pre">learn.noise_sigma</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.noise_range</span></code> to control the added noise, which is clipped to keep the target close to the original action.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">noise</span><span class="p">:</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
@@ -898,24 +887,83 @@ We configure <code class="docutils literal notranslate"><span class="pre">learn.
     <span class="p">)</span>
 </pre></div>
 </div>
-<p>The Benchmark result of TD3 implemented in DI-engine is shown in <a class="reference external" href="../feature/algorithm_overview.html">Benchmark</a></p>
+</div></blockquote>
+</li>
+</ol>
 </div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HalfCheetah</p>
+<p>(HalfCheetah-v3)</p>
+</td>
+<td><p>11148</p></td>
+<td><img alt="../_images/halfcheetah_td3.png" src="../_images/halfcheetah_td3.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/mujoco/config/halfcheetah_td3_default_config.py">config_link_p</a></p></td>
+<td><p>Tianshou(10201)
+Spinning-up(9750)
+Sb3(9656)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hopper</p>
+<p>(Hopper-v2)</p>
+</td>
+<td><p>3720</p></td>
+<td><img alt="../_images/hopper_td3.png" src="../_images/hopper_td3.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/mujoco/config/hopper_td3_default_config.py">config_link_q</a></p></td>
+<td><p>Tianshou(3472)
+Spinning-up(3982)
+sb3(3606 for
+Hopper-v3)</p></td>
+</tr>
+<tr class="row-even"><td><p>Walker2d</p>
+<p>(Walker2d-v2)</p>
+</td>
+<td><p>4386</p></td>
+<td><img alt="../_images/walker2d_td3.png" src="../_images/walker2d_td3.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/walker2d_td3_default_configpy">config_link_s</a></p></td>
+<td><p>Tianshou(3982)
+Spinning-up(3472)
+sb3(4718 for
+Walker2d-v2)</p></td>
+</tr>
+</tbody>
+</table>
+<p>P.S.：</p>
+<ol class="arabic simple">
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
+</ol>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>Scott Fujimoto, Herke van Hoof, David Meger: “Addressing Function Approximation Error in Actor-Critic Methods”, 2018; [<a class="reference external" href="http://arxiv.org/abs/1802.09477">http://arxiv.org/abs/1802.09477</a> arXiv:1802.09477].</p>
 </div>
 <div class="section" id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p><a class="reference external" href="https://github.com/openai/baselines/tree/master/baselines/ddpg">Baselines</a></p></li>
-<li><p><a class="reference external" href="https://github.com/rll/rllab/blob/master/rllab/algos/ddpg.py">rllab</a></p></li>
-<li><p><a class="reference external" href="https://github.com/ray-project/ray/tree/master/python/ray/rllib/agents/ddpg">rllib (Ray)</a></p></li>
+<li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/tree/master/stable_baselines3/td3">sb3</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ray-project/ray/blob/master/rllib/agents/ddpg/td3.py">rllib (Ray)</a></p></li>
 <li><p><a class="reference external" href="https://github.com/sfujim/TD3">TD3 release repo</a></p></li>
-<li><p><a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg">Spinningup</a></p></li>
-<li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/ddpg.py">tianshou</a></p></li>
-</ul>
-</div>
-<div class="section" id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>Scott Fujimoto, Herke van Hoof, David Meger: “Addressing Function Approximation Error in Actor-Critic Methods”, 2018; [<a class="reference external" href="http://arxiv.org/abs/1802.09477">http://arxiv.org/abs/1802.09477</a> arXiv:1802.09477].</p></li>
+<li><p><a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/td3">Spinningup</a></p></li>
+<li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/td3.py">tianshou</a></p></li>
 </ul>
 </div>
 </div>

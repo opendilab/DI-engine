@@ -175,57 +175,47 @@
 <h1>QMIX<a class="headerlink" href="#qmix" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>QMIX is proposed by Rashid et al.(2018) for learning joint action values conditioned on extra state information in multi-agent centralized learning, which trains decentralized policies in a centralized end-to-end framework. QMIX employs a centralized neural network to estimate joint action values as a complex non-linear combination of per-agent action values based on local observations. QMIX provides a novel presentation of centralized action-value functions and guarantees consistency between the centralized and decentralized policies.</p>
-<p>QMIX is a non-linear extension of VDN (Sunehag et al. 2017). Compared to VDN, QMIX can represent more extra state information during training and a much richer class of action-value functions.</p>
+<p>QMIX is proposed by <a class="reference external" href="https://arxiv.org/abs/1803.11485">Rashid et al.(2018)</a> for learning joint action value function conditioned on global state information in multi-agent centralized training,
+and extracting decentralized policies from the centralized end-to-end framework.
+QMIX employs a centralized neural network to estimate joint action values as a complex non-linear combination of per-agent action values based on local observations,
+which provides a novel representation of centralized action-value functions and guarantees consistency between the centralized and decentralized policies.</p>
+<p>QMIX is a non-linear extension of <a class="reference external" href="https://arxiv.org/abs/1706.05296">VDN (Sunehag et al. 2017)</a>.
+Compared to VDN, QMIX can represent more extra state information during training and a much richer class of action-value functions.</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>QMIX uses the paradigm of <strong>centralized training with decentralized execution</strong>.</p></li>
-<li><p>QMIX is a <strong>model-free</strong> and <strong>value-based</strong> method.</p></li>
+<li><p>QMIX is a  <strong>model-free</strong>, <strong>value-based</strong>, <strong>off-policy</strong>, <strong>multi-agent</strong> RL method.</p></li>
 <li><p>QMIX only support <strong>discrete</strong> action spaces.</p></li>
-<li><p>QMIX is an <strong>off-policy multi-agent</strong> RL algorithm.</p></li>
 <li><p>QMIX considers a <strong>partially observable</strong> scenario in which each agent only obtains individual observations.</p></li>
-<li><p>QMIX accepts <strong>DRQN</strong> as individual value network.</p></li>
-<li><p>QMIX represents the joint value function using an architecture consisting of agent networks, a <strong>mixing network</strong>. The mixing network is a feed-forward neural network that takes the agent network outputs as input and mixes them monotonically, producing joint action values.</p></li>
+<li><p>QMIX accepts <strong>DRQN</strong> as individual value network to tackle the <strong>partially observable</strong> issue.</p></li>
+<li><p>QMIX represents the joint value function using an architecture consisting of <strong>agent networks, a mixing network, a hyper-network</strong>.
+The mixing network is a feed-forward neural network that takes the agent network outputs as input and mixes them monotonically, producing joint action values.
+The weights of the mixing network are produced by a separate hypernetwork.</p></li>
 </ol>
 </div>
 <div class="section" id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>The overall QMIX architecture including individual agent networks and the mixing network structure:</p>
+<p>VDN and QMIX are representative methods that use the idea of factorization of the joint action-value function <span class="math notranslate nohighlight">\(Q_{tot}\)</span> into individual ones <span class="math notranslate nohighlight">\(Q_a\)</span> for decentralized execution.</p>
+<p>In order to achieve centralized training with decentralized execution (CTDE), we need to ensure that a global <span class="math notranslate nohighlight">\(argmax\)</span> performed on <span class="math notranslate nohighlight">\(Q_{tot}\)</span> yields the same result as a set of individual <span class="math notranslate nohighlight">\(argmax\)</span> operations performed on each <span class="math notranslate nohighlight">\(Q_a\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}$\arg \max _{\boldsymbol{u}} Q_{\mathrm{tot}}(\boldsymbol{\tau}, \boldsymbol{u})=\left(\begin{array}{c}\arg \max _{u_{1}} Q_{1}\left(\tau_{1}, u_{1}\right) \\ \vdots \\ \arg \max _{u_{N}} Q_{N}\left(\tau_{n}, u_{N}\right)\end{array}\right)$\end{split}\]</div>
+<p>VDN factorizes the joint action-value function into a sum of individual action-value functions.  <span class="math notranslate nohighlight">\($Q_{\mathrm{tot}}(\boldsymbol{\tau}, \boldsymbol{u})=\sum_{i=1}^{N} Q_{i}\left(\tau_{i}, u_{i}\right)$\)</span></p>
+<p>QMIX extends this additive value factorization to represent the joint action-value function as a monotonic function. QMIX is based on monotonicity, a constraint on the relationship between joint action values <span class="math notranslate nohighlight">\(Q_{tot}\)</span> and individual action values <span class="math notranslate nohighlight">\(Q_a\)</span>.</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial Q_{tot}}{\partial Q_{a}} \geq 0， \forall a \in A\]</div>
+<p>The overall QMIX architecture including individual agent networks, the mixing network, the hyper-network:</p>
 <img alt="../_images/qmix.png" src="../_images/qmix.png" />
 <p>QMIX trains the mixing network via minimizing the following loss:</p>
 <div class="math notranslate nohighlight">
 \[y^{tot} = r + \gamma \max_{\textbf{u}^{’}}Q_{tot}(\tau^{'}, \textbf{u}^{'}, s^{'}; \theta^{-})\]</div>
 <div class="math notranslate nohighlight">
 \[\mathcal{L}(\theta) = \sum_{i=1}^{b} [(y_{i}^{tot} - Q_{tot}(\tau, \textbf{u}, s; \theta)^{2}]\]</div>
-<ul class="simple">
-<li><p>Each weight of the mixing network is produced by a independent hyper-network, which takes the global state as input and outputs the weight of one layer of the mixing network. More implemented details can be found in the origin paper.</p></li>
-</ul>
-</div>
-<div class="section" id="extensions">
-<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p>VDN and QMIX are representative methods that use the idea of factorization of the joint action-value function <span class="math notranslate nohighlight">\(Q_{tot}\)</span> into individual ones <span class="math notranslate nohighlight">\(Q_a\)</span> for decentralized execution. These value factorization techniques suffer structural constraints, such as additive decomposability in VDN and monotonicity in QMIX.</p></li>
-<li><p>VDN factorizes the joint action-value function into a sum of individual action-value functions. For consistency it need to ensure that a global <span class="math notranslate nohighlight">\(argmax\)</span> performed on <span class="math notranslate nohighlight">\(Q_{tot}\)</span> yields the same result as a set of individual <span class="math notranslate nohighlight">\(argmax\)</span> operations performed on each <span class="math notranslate nohighlight">\(Q_a\)</span>:</p></li>
-</ul>
-<div class="math notranslate nohighlight" id="equation-narray">
-<span class="eqno">(1)<a class="headerlink" href="#equation-narray" title="Permalink to this equation">¶</a></span>\[\begin{split}\mathop{\arg\max}_{\textbf{u}}Q_{tot}
-(\tau,
-\textbf{u}) = \begin{pmatrix}
-\mathop{\arg\max}_{u^{1}}Q_{1}(\tau^{1},u^{1})
-\\
-\vdots\\
-\mathop{\arg\max}_{u^{n}}Q_{1}(\tau^{n},u^{n})
-\end{pmatrix}\end{split}\]</div>
-<ul class="simple">
-<li><p>QMIX extends this additive value factorization to represent the joint action-value function as a monotonic function. QMIX is based on monotonicity, a constraint on the relationship between joint action values <span class="math notranslate nohighlight">\(Q_{tot}\)</span> and individual action values <span class="math notranslate nohighlight">\(Q_a\)</span>.</p></li>
-</ul>
-<div class="math notranslate nohighlight">
-\[\frac{\partial Q_{tot}}{\partial Q_{a}} \geq 0， \forall a \in A\]</div>
-<ul class="simple">
-<li><p>QTRAN (Son et al. 2019), as an extension of QMIX, proposes a factorization method, which is free from such structural constraints via transforming the original joint action-value function into an easily factorizable one. QTRAN guarantees more general factorization than VDN or QMIX.</p></li>
-</ul>
+<p>Each weight of the mixing network is produced by a independent hyper-network, which takes the global state as input and outputs the weight of one layer of the mixing network. More details can be found in the original paper <a class="reference external" href="https://arxiv.org/abs/1803.11485">Rashid et al.(2018)</a>.</p>
+<p>VDN and QMIX are methods that attempt to factorize  <span class="math notranslate nohighlight">\(Q_tot\)</span> assuming additivity and monotonicity, respectively. Thus, joint action value functions satisfying those conditions would be well factorized by VDN and QMIX. However, there exist tasks
+whose joint action-value functions do not meet the said conditions. <a class="reference external" href="https://arxiv.org/abs/1905.05408">QTRAN (Son et al. 2019)</a>, proposes a factorization method, which is free from such structural constraints via transforming the original joint action-value function into an easily factorizable one.
+QTRAN guarantees more general factorization than VDN or QMIX.</p>
 </div>
 <div class="section" id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
@@ -398,8 +388,9 @@
 </dd></dl>
 
 </div></blockquote>
-<dl>
-<dt>The network interface QMIX used is defined as follows:</dt><dd><dl class="py class">
+<p>The network interface QMIX used is defined as follows:</p>
+<blockquote>
+<div><dl class="py class">
 <dt class="sig sig-object py">
 <em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.</span></span><span class="sig-name descname"><span class="pre">QMix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agent_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mixer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'gru'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dueling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/qmix.html#QMix"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><dl class="simple">
@@ -450,9 +441,107 @@
 
 </dd></dl>
 
-</dd>
-</dl>
-<p>The Benchmark result of QMIX in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.</p>
+</div></blockquote>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="colwidths-given docutils align-default" id="id2">
+<caption><span class="caption-text">Benchmark and comparison of qmix algorithm</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 15%" />
+<col style="width: 30%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">MMM</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>1</p></td>
+<td><img alt="../_images/QMIX_MMM.png" src="../_images/QMIX_MMM.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_MMM_qmix_config.py">config_link_MMM</a></p></td>
+<td><div class="line-block">
+<div class="line">Pymarl(1)</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">3s5z</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>1</p></td>
+<td><img alt="../_images/QMIX_3s5z.png" src="../_images/QMIX_3s5z.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_3s5z_qmix_config.py">config_link_3s5z</a></p></td>
+<td><div class="line-block">
+<div class="line">Pymarl(1)</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">MMM2</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>0.8</p></td>
+<td><img alt="../_images/QMIX_MMM2.png" src="../_images/QMIX_MMM2.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_MMM2_qmix_config.py">config_link_MMM2</a></p></td>
+<td><div class="line-block">
+<div class="line">Pymarl(0.7)</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><div class="line-block">
+<div class="line">5m6m</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>0.6</p></td>
+<td><img alt="../_images/QMIX_5m6m.png" src="../_images/QMIX_5m6m.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_5m6m_qmix_config.py">config_link_5m6m</a></p></td>
+<td><div class="line-block">
+<div class="line">Pymarl(0.76)</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><div class="line-block">
+<div class="line">2c_vs_64zg</div>
+<div class="line"><br /></div>
+</div>
+</td>
+<td><p>1</p></td>
+<td><img alt="../_images/QMIX_2c_vs_64zg.png" src="../_images/QMIX_2c_vs_64zg.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_2c64zg_qmix_config.py">config_link_2c_vs_64zg</a></p></td>
+<td><div class="line-block">
+<div class="line">Pymarl(1)</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>P.S.：</p>
+<ol class="arabic simple">
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2).</p></li>
+<li><p>For the multi-agent discrete action space algorithm like QMIX, the SMAC environment set is generally used for testing,
+and is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>.
+For more details about SMAC, please refer to <a class="reference external" href="../env_tutorial/smac_zh.html">SMAC Env Tutorial</a> .</p></li>
+</ol>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
@@ -460,6 +549,12 @@
 <p>Peter Sunehag, Guy Lever, Audrunas Gruslys, Wojciech Marian Czarnecki, Vinicius Zambaldi, Max Jaderberg, Marc Lanctot, Nicolas Sonnerat, Joel Z. Leibo, Karl Tuyls, Thore Graepel. Value-decomposition networks for cooperative multi-agent learning. arXiv preprint arXiv:1706.05296, 2017.</p>
 <p>Kyunghwan Son, Daewoo Kim, Wan Ju Kang, David Earl Hostallero, Yung Yi. QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. International Conference on Machine Learning. PMLR, 2019.</p>
 <p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
+</div>
+<div class="section" id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/oxwhirl/pymarl/blob/master/src/config/algs/qmix.yaml">pymarl</a></p></li>
+</ul>
 </div>
 </div>
 

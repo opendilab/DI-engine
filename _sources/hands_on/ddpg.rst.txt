@@ -10,11 +10,11 @@ DPG `Deterministic policy gradient algorithms <http://proceedings.mlr.press/v32/
 
 Quick Facts
 -----------
-1. DDPG is only used for environments with **continuous action spaces**.(i.e. MuJoCo)
+1. DDPG is only used for environments with **continuous action spaces** (e.g. MuJoCo).
 
 2. DDPG is an **off-policy** algorithm.
 
-3. DDPG is a **model-free** and **actor-critic** RL algorithm, which optimizes actor network and critic network, respectively.
+3. DDPG is a **model-free** and **actor-critic** RL algorithm, which optimizes the actor network and the critic network, respectively.
 
 4. Usually, DDPG use **Ornstein-Uhlenbeck process** or **Gaussian process** (default in our implementation) for exploration.
 
@@ -30,14 +30,14 @@ The DDPG algorithm maintains a parameterized actor function :math:`\mu\left(s \m
 
 DDPG uses a **replay buffer** to guarantee that the samples are independently and identically distributed.
 
-To keep neural networks stable in many environments, DDPG uses **“soft” target updates** for **actor-critic** and using. Specifically, DDPG creates a copy of the actor and critic networks, :math:`Q(s, a|\theta^{Q'})` and :math:`\mu' \left(s \mid \theta^{\mu'}\right)` respectively, that are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:
+To keep neural networks stable in many environments, DDPG uses **“soft” target updates** to update target networks rather than directly copying the weights. Specifically, DDPG creates a copy of the actor and critic networks, :math:`Q'(s, a|\theta^{Q'})` and :math:`\mu' \left(s \mid \theta^{\mu'}\right)` respectively, that are used for calculating the target values. The weights of these target networks are then updated by having them slowly track the learned networks:
 
 .. math::
     \theta' \leftarrow \tau \theta + (1 - \tau)\theta',
 
 where :math:`\tau<<1`. This means that the target values are constrained to change slowly, greatly improving the stability of learning.
 
-A major challenge of learning in continuous action spaces is exploration. The exploration policy is independent from the learning algorithm trough adding noise sampled from a noise process N to actor policy:
+A major challenge of learning in continuous action spaces is exploration. However, it is an advantage for off-policies algorithms such as DDPG that the problem of exploration could be treated independently from the learning algorithm. Specifically, we constructed an exploration policy by adding noise sampled from a noise process N to actor policy:
 
 .. math::
     \mu^{\prime}\left(s_{t}\right)=\mu\left(s_{t} \mid \theta_{t}^{\mu}\right)+\mathcal{N}
@@ -104,7 +104,7 @@ DDPG can be combined with:
 
     - Replay Buffers
 
-        DDPG/TD3 random-collect-size is set to 25000 by default, while it is 25000 for SAC.
+        DDPG/TD3 random-collect-size is set to 25000 by default, while it is 10000 for SAC.
         We only simply follow SpinningUp default setting and use random policy to collect initialization data.
         We configure ``random_collect_size`` for data collection.
 
@@ -204,7 +204,7 @@ In ``_forward_learn`` we update actor-critic policy through computing critic los
                 loss_dict[k].backward()
         self._optimizer_critic.step()
 
-    3. ``actor loss``
+    1. ``actor loss``
 
     .. code-block:: python
 
@@ -216,7 +216,7 @@ In ``_forward_learn`` we update actor-critic policy through computing critic los
             actor_loss = -self._learn_model.forward(actor_data, mode='compute_critic')['q_value'].mean()
         loss_dict['actor_loss'] = actor_loss
 
-    4. ``actor network update``
+    1. ``actor network update``
 
     .. code-block:: python
 
@@ -242,12 +242,50 @@ We configure ``learn.target_theta`` to control the interpolation factor in avera
         update_kwargs={'theta': self._cfg.learn.target_theta}
     )
 
-The Benchmark result of DDPG implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html>`_
+Benchmark
+-----------
+
+
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+| environment         |best mean reward | evaluation results                                  | config link              | comparison           |
++=====================+=================+=====================================================+==========================+======================+
+|                     |                 |                                                     |`config_link_p <https://  |                      |
+|                     |                 |                                                     |github.com/opendilab/     |    Tianshou(11719)   |
+|                     |                 |                                                     |DI-engine/tree/main/dizoo/|    Spinning-up(11000)|
+|HalfCheetah          |  11334          |.. image:: images/benchmark/halfcheetah_ddpg.png     |mujoco/config/halfcheetah_|                      |
+|                     |                 |                                                     |ddpg_default_config.py>`_ |                      |
+|(HalfCheetah-v3)     |                 |                                                     |                          |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_q <https://  |                      |
+|                     |                 |                                                     |github.com/opendilab/     |   Tianshou(2197)     |
+|Hopper               |                 |                                                     |DI-engine/tree/main/dizoo/|   Spinning-up(1800)  |
+|                     |  3516           |.. image:: images/benchmark/hopper_ddpg.png          |mujoco/config/hopper_ddpg_|                      |
+|(Hopper-v2)          |                 |                                                     |default_config.py>`_      |                      |
+|                     |                 |                                                     |                          |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link_s <https://  |                      |
+|                     |                 |                                                     |github.com/opendilab/     |   Tianshou(1401)     |
+|Walker2d             |                 |                                                     |DI-engine/tree/main/dizoo/|   Spinning-up(1950)  |
+|                     |  3443           |.. image:: images/benchmark/walker2d_ddpg.png        |mujoco/config/walker2d_   |                      |
+|(Walker2d-v2)        |                 |                                                     |ddpg_default_config.py>`_ |                      |
+|                     |                 |                                                     |                          |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+
+
+P.S.：
+
+1. The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)
+
+
+References
+-----------
+Timothy P. Lillicrap, Jonathan J. Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, Daan Wierstra: “Continuous control with deep reinforcement learning”, 2015; [http://arxiv.org/abs/1509.02971 arXiv:1509.02971].
 
 Other Public Implementations
 ----------------------------
 
 - Baselines_
+- `sb3`_
 - rllab_
 - `rllib (Ray)`_
 - `TD3 release repo`_
@@ -255,13 +293,9 @@ Other Public Implementations
 - tianshou_
 
 .. _Baselines: https://github.com/openai/baselines/tree/master/baselines/ddpg
+.. _sb3: https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ddpg
 .. _rllab: https://github.com/rll/rllab/blob/master/rllab/algos/ddpg.py
-.. _`rllib (Ray)`: https://github.com/ray-project/ray/tree/master/python/ray/rllib/agents/ddpg
+.. _`rllib (Ray)`: https://github.com/ray-project/ray/tree/master/rllib/agents/ddpg
 .. _`TD3 release repo`: https://github.com/sfujim/TD3
 .. _Spinningup: https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg
 .. _tianshou: https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/ddpg.py
-
-
-References
------------
-Timothy P. Lillicrap, Jonathan J. Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, Daan Wierstra: “Continuous control with deep reinforcement learning”, 2015; [http://arxiv.org/abs/1509.02971 arXiv:1509.02971].
