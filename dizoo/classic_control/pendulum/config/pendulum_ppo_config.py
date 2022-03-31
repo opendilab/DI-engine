@@ -2,7 +2,6 @@ from easydict import EasyDict
 
 pendulum_ppo_config = dict(
     exp_name='pendulum_ppo_seed0',
-    seed=0,
     env=dict(
         collector_env_num=10,
         evaluator_env_num=5,
@@ -25,7 +24,6 @@ pendulum_ppo_config = dict(
             bound_type='tanh',
         ),
         learn=dict(
-            update_per_collect=1,
             epoch_per_collect=10,
             batch_size=32,
             learning_rate=3e-5,
@@ -57,3 +55,8 @@ pendulum_ppo_create_config = dict(
 )
 pendulum_ppo_create_config = EasyDict(pendulum_ppo_create_config)
 create_config = pendulum_ppo_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial_onpolicy -c pendulum_ppo_config.py -s 0`
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy([main_config, create_config], seed=0)
