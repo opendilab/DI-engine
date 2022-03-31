@@ -1,7 +1,7 @@
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_dqn_config = dict(
+    exp_name='pomdp_dqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -59,4 +59,6 @@ pong_dqn_create_config = EasyDict(pong_dqn_create_config)
 create_config = pong_dqn_create_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pomdp_dqn_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

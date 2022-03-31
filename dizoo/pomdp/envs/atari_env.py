@@ -149,7 +149,7 @@ class PomdpAtariEnv(BaseEnv):
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
-    
+
     @property
     def observation_space(self) -> gym.spaces.Space:
         return self._observation_space

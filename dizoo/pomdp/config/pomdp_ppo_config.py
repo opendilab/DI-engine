@@ -1,10 +1,10 @@
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_ppo_config = dict(
+    exp_name='pomdp_ppo_seed0',
     env=dict(
         collector_env_num=16,
-        evaluator_env_num=4,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='Pong-ramNoFrameskip-v4',
@@ -16,7 +16,6 @@ pong_ppo_config = dict(
     ),
     policy=dict(
         cuda=True,
-        # (bool) whether use on-policy training pipeline(behaviour policy and training policy are the same)
         model=dict(
             obs_shape=[
                 512,
@@ -31,20 +30,14 @@ pong_ppo_config = dict(
         learn=dict(
             update_per_collect=16,
             batch_size=128,
-            # (bool) Whether to normalize advantage. Default to False.
-            normalize_advantage=False,
+            adv_norm=False,
             learning_rate=0.0001,
-            weight_decay=0,
-            # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
-            # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.03,
             clip_ratio=0.1,
         ),
         collect=dict(
-            # (int) collect n_sample data, train model n_iteration times
             n_sample=1024,
-            # (float) the trade-off factor lambda to balance 1step td and mc
             gae_lambda=0.97,
             discount_factor=0.99,
         ),
@@ -69,4 +62,6 @@ pong_ppo_create_config = dict(
 create_config = EasyDict(pong_ppo_create_config)
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pomdp_ppo_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)
