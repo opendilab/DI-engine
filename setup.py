@@ -75,10 +75,11 @@ setup(
         'trueskill',
         'h5py',
         'rich',
-        'mpire',
+        'mpire>=2.3.4',
         'pynng',
         'pettingzoo==1.12.0',
         'pyglet>=1.4.0',
+        'redis'
     ],
     extras_require={
         'test': [

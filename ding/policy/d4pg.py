@@ -50,15 +50,15 @@ class D4PGPolicy(DDPGPolicy):
         11 | ``collect.-``       float       0.1            | Used for add noise during co-     | Sample noise from dis
            | ``noise_sigma``                                | llection, through controlling     | tribution, Gaussian
            |                                                | the sigma of distribution         | process.
-        12 | ``model.v_min``      float    -10              | Value of the smallest atom        |
+        12 | ``model.v_min``      float      -10            | Value of the smallest atom        |
            |                                                | in the support set.               |
-        13 | ``model.v_max``      float    10               | Value of the largest atom         |
+        13 | ``model.v_max``      float      10             | Value of the largest atom         |
            |                                                | in the support set.               |
-        14 | ``model.n_atom``     int      51               | Number of atoms in the support    |
+        14 | ``model.n_atom``     int        51             | Number of atoms in the support    |
            |                                                | set of the value distribution.    |
-        15 | ``nstep``            int      3,               | N-step reward discount sum for    |
-           |                              [1, 5]            | target q_value estimation         |
-        16 | ``priority``         bool     True             | Whether use priority(PER)         | priority sample,
+        15 | ``nstep``            int        3, [1, 5]      | N-step reward discount sum for    |
+           |                                                | target q_value estimation         |
+        16 | ``priority``         bool       True           | Whether use priority(PER)         | priority sample,
                                                                                                 | update priority
         == ====================  ========    =============  =================================   =======================
     """

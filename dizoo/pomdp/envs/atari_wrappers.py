@@ -71,9 +71,6 @@ class FrameStackWrapperRam(gym.Wrapper):
         obs = self.env.reset()
         for _ in range(self.n_frames):
             self.frames.append(obs)
-            _img = self.env.unwrapped._get_image()
-            _img = _img.mean(axis=-1, keepdims=True).astype(np.uint8)
-            self._images.append(_img)
         return self._get_ob()
 
     def step(self, action):
