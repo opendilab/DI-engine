@@ -278,4 +278,6 @@ class DequeBuffer(Buffer):
     def __copy__(self) -> "DequeBuffer":
         buffer = type(self)(size=self.storage.maxlen)
         buffer.storage = self.storage
+        buffer.meta_index = self.meta_index
+        buffer.indices = self.indices
         return buffer
