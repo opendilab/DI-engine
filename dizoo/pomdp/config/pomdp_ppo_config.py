@@ -42,6 +42,11 @@ pong_ppo_config = dict(
             discount_factor=0.99,
         ),
         eval=dict(evaluator=dict(eval_freq=200, )),
+        other=dict(replay_buffer=dict(
+            replay_buffer_size=100000,
+            max_use=3,
+            min_sample_ratio=1,
+        ), ),
     ),
 )
 main_config = EasyDict(pong_ppo_config)
@@ -52,11 +57,11 @@ pong_ppo_create_config = dict(
         import_names=['dizoo.pomdp.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo'),
+    policy=dict(type='ppo_offpolicy'),
 )
 create_config = EasyDict(pong_ppo_create_config)
 
 if __name__ == '__main__':
-    # or you can enter `ding -m serial_onpolicy -c pomdp_ppo_config.py -s 0`
-    from ding.entry import serial_pipeline_onpolicy
-    serial_pipeline_onpolicy((main_config, create_config), seed=0)
+    # or you can enter `ding -m serial -c pomdp_ppo_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
