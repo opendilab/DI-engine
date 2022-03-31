@@ -50,6 +50,8 @@ def default_collate(batch: Sequence,
     """
     elem = batch[0]
     elem_type = type(elem)
+    if isinstance(batch, ttorch.Tensor):
+        return batch.json()
     if isinstance(elem, torch.Tensor):
         out = None
         if torch_gt_131() and torch.utils.data.get_worker_info() is not None:

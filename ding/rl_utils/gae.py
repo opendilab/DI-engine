@@ -3,7 +3,6 @@ import torch
 from ding.hpc_rl import hpc_wrapper
 
 gae_data = namedtuple('gae_data', ['value', 'next_value', 'reward', 'done', 'traj_flag'])
-# gae_data_traj_flag = namedtuple('gae_data', ['value', 'next_value', 'reward', 'done', 'traj_flag'])
 
 
 def shape_fn_gae(args, kwargs):
@@ -28,21 +27,18 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
     Overview:
         Implementation of Generalized Advantage Estimator (arXiv:1506.02438)
     Arguments:
-        - data (:obj:`namedtuple`): gae input data with fields ['value', 'reward'], which contains some episodes or\
-        trajectories data
+        - data (:obj:`namedtuple`): gae input data with fields ['value', 'reward'], which contains some episodes or \
+            trajectories data.
         - gamma (:obj:`float`): the future discount factor, should be in [0, 1], defaults to 0.99.
-        - lambda (:obj:`float`): the gae parameter lambda, should be in [0, 1], defaults to 0.97, when lambda -> 0,\
-        it induces bias, but when lambda -> 1, it has high variance due to the sum of terms.
+        - lambda (:obj:`float`): the gae parameter lambda, should be in [0, 1], defaults to 0.97, when lambda -> 0, \
+            it induces bias, but when lambda -> 1, it has high variance due to the sum of terms.
     Returns:
         - adv (:obj:`torch.FloatTensor`): the calculated advantage
     Shapes:
-        - value (:obj:`torch.FloatTensor`): :math:`(T+1, B)`, where T is trajectory length and B is batch size
+        - value (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is trajectory length and B is batch size
+        - next_value (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`
         - adv (:obj:`torch.FloatTensor`): :math:`(T, B)`
-
-    .. note::
-        value_{T+1} should be 0 if this trajectory reached a terminal state(done=True), otherwise we use value
-        function, this operation is implemented in collector for packing trajectory.
     """
     value, next_value, reward, done, traj_flag = data
     if done is None:
