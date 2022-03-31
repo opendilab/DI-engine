@@ -50,7 +50,7 @@ main_config = pong_dqn_config
 pong_dqn_create_config = dict(
     env=dict(
         type='pomdp',
-        import_names=['app_zoo.pomdp.envs.atari_env'],
+        import_names=['dizoo.pomdp.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
