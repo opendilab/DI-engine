@@ -102,6 +102,7 @@ class PomdpAtariEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
+        action = action.item()
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
