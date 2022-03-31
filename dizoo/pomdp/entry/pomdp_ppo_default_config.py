@@ -61,10 +61,10 @@ main_config = EasyDict(pong_ppo_config)
 pong_ppo_create_config = dict(
     env=dict(
         type='pomdp',
-        import_names=['app_zoo.pomdp.envs.atari_env'],
+        import_names=['dizoo.pomdp.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo'),
+    policy=dict(type='ppo_offpolicy'),
 )
 create_config = EasyDict(pong_ppo_create_config)
 
