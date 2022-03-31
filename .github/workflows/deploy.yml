@@ -285,7 +285,7 @@ jobs:
           docker push opendilab/ding:nightly-smac
 
   docker_grf:
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
     needs: docker_base
     if: "contains(github.event.head_commit.message, 'grf docker')"
     strategy:
