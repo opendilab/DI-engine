@@ -67,8 +67,8 @@ class GymVectorEnvManager(BaseEnvManager):
         for env_id in range(self.env_num):
             if env_id not in actions.keys():
                 actions[env_id] = self._env_ref.random_action()
-
-        # actions should be sorted by keys
+        """actions should be sorted by keys, since the original implementation
+        of the step method in gym accepts list-type actions"""
         actions = dict(sorted(actions.items()))
 
         actions = list(actions.values())
