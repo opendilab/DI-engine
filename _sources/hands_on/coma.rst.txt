@@ -3,7 +3,7 @@ COMA
 
 Overview
 ---------
-COMA (Foerster et al. 2018), counterfactual multi-agent policy gradients, is a multi-agent actor critic based approach to learn a fully centralized state action function and use it to guide the optimization of decentralized policies. COMA uses a centralized critic to train decentralized actors for individual agents, estimating a counterfactual advantage function for each agent in order to address multi-agent credit assignment. A counterfactual baseline is used in COMA to marginalizes out a single agent’s action, while keeping the other agents’ actions fixed, and the centralized critic representation allows the counterfactual baseline to be computed efficiently.
+COMA (Foerster et al. 2018), `counterfactual multi-agent policy gradients <https://arxiv.org/abs/1705.08926>`_, is a multi-agent actor critic based approach to learn a fully centralized state action function and use it to guide the optimization of decentralized policies. COMA uses a centralized critic to train decentralized actors for individual agents, estimating a counterfactual advantage function for each agent in order to address multi-agent credit assignment. A counterfactual baseline is used in COMA to marginalizes out a single agent’s action, while keeping the other agents’ actions fixed, and the centralized critic representation allows the counterfactual baseline to be computed efficiently.
 
 Quick Facts
 -------------
@@ -38,11 +38,15 @@ COMA computes an advantage function that compares the Q-value for the current ac
 
 The advantage :math:`A^{a}(s, u)` computes a separate baseline that uses the centralized critic to find counterfactuals when only :math:`a`'s action changes, learned directly from agents' experiences.
 
+The first term in the equation is the global Q-value of the currently selected action, which indicates the estimated Q-value in centrailed critical. The second term in the equation represents the expectation of global Q-value that can be obtained under all possible selection actions of agent a. The difference between two reflects the advantage of the action selected by the current agent over the average result.
+
 Comparing to the origin single-agent actor-critic algorithm, COMA policy gradient for all agent policies using the above counterfactual advantage:
 
 .. math::
    g_{k} = \mathbb{E}_{\pi}[\sum_{a}\nabla_{\theta_{k}} \log \pi^{a}(u^{a}|\tau^{a})A^{a}(s, \textbf{u})]
 
+.. note::
+   COMA uses a counterfactual baseline. Each agent learns from a shaped reward that compares the global reward to the reward received when that agent's action is replaced with a default action.
 
 Extensions
 -----------
@@ -71,6 +75,28 @@ The network interface COMA used is defined as follows:
 
 The Benchmark result of COMA in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.
 
+
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+| smac map            |best mean reward | evaluation results                                  | config link              | comparison           |
++=====================+=================+=====================================================+==========================+======================+
+|                     |                 |                                                     |`config_link <https://    |                      |
+|                     |                 |                                                     |github.com/opendilab/     |  Pymarl(0.1)         |
+|                     |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
+|MMM                  |  1.00           |.. image:: images/benchmark/COMA_MMM.png             |smac/config/              |                      |
+|                     |                 |                                                     |smac_MMM_coma_config      |                      |
+|                     |                 |                                                     |.py>`_                    |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+|                     |                 |                                                     |`config_link <https://    |                      |
+|                     |                 |                                                     |github.com/opendilab/     |  Pymarl(0.0)         |
+|3s5z                 |                 |                                                     |DI-engine/tree/main/dizoo/|                      |
+|                     |  1.00           |.. image:: images/benchmark/COMA_3s5z.png            |smac/config/              |                      |
+|                     |                 |                                                     |smac_3s5z_coma_config     |                      |
+|                     |                 |                                                     |.py>`_                    |                      |
++---------------------+-----------------+-----------------------------------------------------+--------------------------+----------------------+
+
+
+We did not show the performance curve of COMA at 5m_vs_6m map because COMA can't converge under this map, and the original author's COMA algorithm also can't converge under this map.
+
 References
 ----------
 
@@ -83,3 +109,8 @@ Ryan Lowe, Yi Wu, Aviv Tamar, Jean Harb, Pieter Abbeel, Igor Mordatch. Multi-age
 Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.
 
 Bozhidar Vasilev, Tarun Gupta, Bei Peng, Shimon Whiteson. Semi-On-Policy Training for Sample Efficient Multi-Agent Policy Gradients. arXiv preprint arXiv:2104.13446, 2021.
+
+
+Other Public Implementations
+-----------------------------
+- `Pymarl <https://github.com/oxwhirl/pymarl>`_.

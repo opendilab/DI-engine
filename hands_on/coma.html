@@ -175,7 +175,7 @@
 <h1>COMA<a class="headerlink" href="#coma" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>COMA (Foerster et al. 2018), counterfactual multi-agent policy gradients, is a multi-agent actor critic based approach to learn a fully centralized state action function and use it to guide the optimization of decentralized policies. COMA uses a centralized critic to train decentralized actors for individual agents, estimating a counterfactual advantage function for each agent in order to address multi-agent credit assignment. A counterfactual baseline is used in COMA to marginalizes out a single agent’s action, while keeping the other agents’ actions fixed, and the centralized critic representation allows the counterfactual baseline to be computed efficiently.</p>
+<p>COMA (Foerster et al. 2018), <a class="reference external" href="https://arxiv.org/abs/1705.08926">counterfactual multi-agent policy gradients</a>, is a multi-agent actor critic based approach to learn a fully centralized state action function and use it to guide the optimization of decentralized policies. COMA uses a centralized critic to train decentralized actors for individual agents, estimating a counterfactual advantage function for each agent in order to address multi-agent credit assignment. A counterfactual baseline is used in COMA to marginalizes out a single agent’s action, while keeping the other agents’ actions fixed, and the centralized critic representation allows the counterfactual baseline to be computed efficiently.</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
@@ -200,9 +200,14 @@
 \sum_{u^{'a}}\pi^{a}(u^{'a}|\tau^{a})Q(s,
 (\textbf{u}^{-a}, u^{'a}))\]</div>
 <p>The advantage <span class="math notranslate nohighlight">\(A^{a}(s, u)\)</span> computes a separate baseline that uses the centralized critic to find counterfactuals when only <span class="math notranslate nohighlight">\(a\)</span>’s action changes, learned directly from agents’ experiences.</p>
+<p>The first term in the equation is the global Q-value of the currently selected action, which indicates the estimated Q-value in centrailed critical. The second term in the equation represents the expectation of global Q-value that can be obtained under all possible selection actions of agent a. The difference between two reflects the advantage of the action selected by the current agent over the average result.</p>
 <p>Comparing to the origin single-agent actor-critic algorithm, COMA policy gradient for all agent policies using the above counterfactual advantage:</p>
 <div class="math notranslate nohighlight">
 \[g_{k} = \mathbb{E}_{\pi}[\sum_{a}\nabla_{\theta_{k}} \log \pi^{a}(u^{a}|\tau^{a})A^{a}(s, \textbf{u})]\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>COMA uses a counterfactual baseline. Each agent learns from a shaped reward that compares the global reward to the reward received when that agent’s action is replaced with a default action.</p>
+</div>
 </div>
 <div class="section" id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
@@ -475,6 +480,40 @@
 
 </div></blockquote>
 <p>The Benchmark result of COMA in SMAC (Samvelyan et al. 2019), for StarCraft micromanagement problems, implemented in DI-engine is shown.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>smac map</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MMM</p></td>
+<td><p>1.00</p></td>
+<td><img alt="../_images/COMA_MMM.png" src="../_images/COMA_MMM.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_MMM_coma_config.py">config_link</a></p></td>
+<td><p>Pymarl(0.1)</p></td>
+</tr>
+<tr class="row-odd"><td><p>3s5z</p></td>
+<td><p>1.00</p></td>
+<td><img alt="../_images/COMA_3s5z.png" src="../_images/COMA_3s5z.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config/smac_3s5z_coma_config.py">config_link</a></p></td>
+<td><p>Pymarl(0.0)</p></td>
+</tr>
+</tbody>
+</table>
+<p>We did not show the performance curve of COMA at 5m_vs_6m map because COMA can’t converge under this map, and the original author’s COMA algorithm also can’t converge under this map.</p>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
@@ -483,6 +522,12 @@
 <p>Ryan Lowe, Yi Wu, Aviv Tamar, Jean Harb, Pieter Abbeel, Igor Mordatch. Multi-agent actor-critic for mixed cooperative-competitive environments. arXiv preprint arXiv:1706.02275, 2017.</p>
 <p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
 <p>Bozhidar Vasilev, Tarun Gupta, Bei Peng, Shimon Whiteson. Semi-On-Policy Training for Sample Efficient Multi-Agent Policy Gradients. arXiv preprint arXiv:2104.13446, 2021.</p>
+</div>
+<div class="section" id="other-public-implementations">
+<h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/oxwhirl/pymarl">Pymarl</a>.</p></li>
+</ul>
 </div>
 </div>
 
