@@ -9,8 +9,14 @@ from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_wi
     get_train_sample
 from ding.torch_utils import Adam, to_device
 from ding.utils import POLICY_REGISTRY
-from ding.utils.data import timestep_collate, default_collate, default_decollate
+from ding.utils.data import timestep_collate, default_collate, default_decollate, stream_timestep_collate
 from .base_policy import Policy
+
+import line_profiler
+import atexit
+
+profile = line_profiler.LineProfiler()
+atexit.register(profile.print_stats)
 
 
 @POLICY_REGISTRY.register('r2d2')
@@ -20,6 +26,7 @@ class R2D2Policy(Policy):
         Policy class of R2D2, from paper `Recurrent Experience Replay in Distributed Reinforcement Learning` .
         R2D2 proposes that several tricks should be used to improve upon DRQN,
         namely some recurrent experience replay tricks such as burn-in.
+
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
@@ -128,9 +135,12 @@ class R2D2Policy(Policy):
         r"""
         Overview:
             Init the learner model of R2D2Policy
+
         Arguments:
             .. note::
+
                 The _init_learn method takes the argument from the self._cfg.learn in the config file
+
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - nstep (:obj:`int`): The num of n step return
@@ -174,21 +184,27 @@ class R2D2Policy(Policy):
         self._learn_model.reset()
         self._target_model.reset()
 
+    @profile
     def _data_preprocess_learn(self, data: List[Dict[str, Any]]) -> dict:
         r"""
         Overview:
             Preprocess the data to fit the required data format for learning
+
         Arguments:
             - data (:obj:`List[Dict[str, Any]]`): the data collected from collect function
+
         Returns:
             - data (:obj:`Dict[str, Any]`): the processed data, including at least \
                 ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
             - data_info (:obj:`dict`): the data info, such as replay_buffer_idx, replay_unique_id
         """
-        # data preprocess
-        data = timestep_collate(data)
+
+        '''data = timestep_collate(data)
         if self._cuda:
-            data = to_device(data, self._device)
+            data = to_device(data, self._device)'''
+
+        if self._cuda:
+            data = stream_timestep_collate(data, chunk_size=10, device=self._device)
 
         if self._priority_IS_weight:
             assert self._priority, "Use IS Weight correction, but Priority is not used."
@@ -241,15 +257,16 @@ class R2D2Policy(Policy):
 
         return data
 
-    @profile
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
         r"""
         Overview:
             Forward and backward function of learn mode.
             Acquire the data, calculate the loss and optimize learner model.
+
         Arguments:
             - data (:obj:`dict`): Dict type data, including at least \
                 ['main_obs', 'target_obs', 'burnin_obs', 'action', 'reward', 'done', 'weight']
+
         Returns:
             - info_dict (:obj:`Dict[str, Any]`): Including cur_lr and total_loss
                 - cur_lr (:obj:`float`): Current learning rate
@@ -329,7 +346,7 @@ class R2D2Policy(Policy):
         # the information for debug
         batch_range = torch.arange(action[0].shape[0])
         with torch.no_grad():
-            q_s_a_t0 = q_value[0][batch_range, target_q_action[0]]
+            q_s_a_t0 = q_value[0][batch_range, action[0]]
             target_q_s_a_t0 = target_q_value[0][batch_range, target_q_action[0]]
 
         return {
@@ -376,7 +393,6 @@ class R2D2Policy(Policy):
         self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
-    @profile
     def _forward_collect(self, data: dict, eps: float) -> dict:
         r"""
         Overview:
@@ -433,8 +449,10 @@ class R2D2Policy(Policy):
         r"""
         Overview:
             Get the trajectory and the n step return data, then sample from the n_step return data
+
         Arguments:
             - data (:obj:`list`): The trajectory's cache
+
         Returns:
             - samples (:obj:`dict`): The training samples generated
         """

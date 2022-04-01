@@ -6,6 +6,7 @@ import re
 from torch._six import string_classes
 import collections.abc as container_abcs
 from ding.compatibility import torch_gt_131
+from ding.torch_utils.data_helper import to_device
 
 int_classes = int
 np_str_obj_array_pattern = re.compile(r'[SaUO]')
@@ -130,6 +131,49 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
     for i in range(len(batch)):
         batch[i]['prev_state'] = prev_state[i]
     return batch_data
+
+
+def stream_timestep_collate(batch: List[Dict[str, Any]],
+                            chunk_size: int = 10,
+                            device: str = 'cuda',
+                            ) -> Dict[str, Union[torch.Tensor, list]]:
+    assert device != 'cpu', 'Streams only supported on CUDA device: no CUDA detected!'
+    # from now on assume cuda is available
+    assert 0 < chunk_size <= len(batch)
+
+    # remove 'prev_state' as in timestep_collate
+    prev_state = [b.pop('prev_state') for b in batch]
+    temp_prev_state = list(zip(*prev_state))
+    for i in range(len(batch)):
+        batch[i]['prev_state'] = prev_state[i]
+
+    def func(listbatch, n):
+        ans = []
+        for j in range(0, len(listbatch), n):
+            ans.append(listbatch[j:j + n])
+        return ans
+
+    stream = torch.cuda.Stream(device=device)
+    mini_batches = func(batch, chunk_size)
+
+    for i in range(len(mini_batches)):
+        mini_batches[i] = timestep_collate(mini_batches[i])  # list of list dict of tensors -> dict of tensors
+        with torch.cuda.stream(stream):
+            mini_batches[i] = to_device(mini_batches[i], device)
+
+    data = {}
+    # concatenate back the minibatches along the correct axis
+    for key in mini_batches[0].keys():
+        if key in ['prev_state']:
+            with torch.cuda.stream(stream):
+                data['prev_state'] = to_device(temp_prev_state, device)
+        elif isinstance(mini_batches[0][key], torch.Tensor):
+            if len(mini_batches[0][key].shape) > 1:
+                data[key] = torch.cat([mini_batches[i][key] for i in range(len(mini_batches))], 1)
+            else:
+                data[key] = torch.cat([mini_batches[i][key] for i in range(len(mini_batches))], 0)
+
+    return data  # 'data' is already on cuda
 
 
 def diff_shape_collate(batch: Sequence) -> Union[torch.Tensor, Mapping, Sequence]:
