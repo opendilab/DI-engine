@@ -8,8 +8,6 @@ from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHea
     QuantileHead, QRDQNHead, DistributionHead
 from ding.torch_utils.network.gtrxl import GTrXL
 
-import timeit
-
 
 @MODEL_REGISTRY.register('dqn')
 class DQN(nn.Module):
@@ -104,17 +102,17 @@ class DQN(nn.Module):
 class C51DQN(nn.Module):
 
     def __init__(
-        self,
-        obs_shape: Union[int, SequenceType],
-        action_shape: Union[int, SequenceType],
-        encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        head_hidden_size: int = None,
-        head_layer_num: int = 1,
-        activation: Optional[nn.Module] = nn.ReLU(),
-        norm_type: Optional[str] = None,
-        v_min: Optional[float] = -10,
-        v_max: Optional[float] = 10,
-        n_atom: Optional[int] = 51,
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType],
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            head_hidden_size: int = None,
+            head_layer_num: int = 1,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None,
+            v_min: Optional[float] = -10,
+            v_max: Optional[float] = 10,
+            n_atom: Optional[int] = 51,
     ) -> None:
         r"""
         Overview:
@@ -184,7 +182,6 @@ class C51DQN(nn.Module):
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head. Return the result prediction dictionary.
-
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
             - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
@@ -192,7 +189,6 @@ class C51DQN(nn.Module):
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.
             - distribution(:obj:`torch.FloatTensor`): :math:`(B, M, P)`, where P is n_atom.
-
         Examples:
             >>> model = C51DQN(128, 64)  # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 128)
@@ -286,7 +282,6 @@ class QRDQN(nn.Module):
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head. Return the result prediction dictionary.
-
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
             - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(B, N, num_quantiles)``
@@ -295,7 +290,6 @@ class QRDQN(nn.Module):
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.
             - tau (:obj:`torch.Tensor`):  :math:`(B, M, 1)`
-
         Examples:
             >>> model = QRDQN(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -393,7 +387,6 @@ class IQN(nn.Module):
         Returns:
             - outputs (:obj:`Dict`):
                 Run with encoder and head. Return the result prediction dictionary.
-
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
             - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, N, B)``
@@ -423,23 +416,22 @@ class RainbowDQN(nn.Module):
     """
     Overview:
         RainbowDQN network (C51 + Dueling + Noisy Block)
-
     .. note::
         RainbowDQN contains dueling architecture by default
     """
 
     def __init__(
-        self,
-        obs_shape: Union[int, SequenceType],
-        action_shape: Union[int, SequenceType],
-        encoder_hidden_size_list: SequenceType = [128, 128, 64],
-        head_hidden_size: Optional[int] = None,
-        head_layer_num: int = 1,
-        activation: Optional[nn.Module] = nn.ReLU(),
-        norm_type: Optional[str] = None,
-        v_min: Optional[float] = -10,
-        v_max: Optional[float] = 10,
-        n_atom: Optional[int] = 51,
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType],
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            head_hidden_size: Optional[int] = None,
+            head_layer_num: int = 1,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None,
+            v_min: Optional[float] = -10,
+            v_max: Optional[float] = 10,
+            n_atom: Optional[int] = 51,
     ) -> None:
         """
         Overview:
@@ -470,7 +462,7 @@ class RainbowDQN(nn.Module):
         else:
             raise RuntimeError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RainbowDQN".
-                format(obs_shape)
+                    format(obs_shape)
             )
         # Head Type
         multi_head = not isinstance(action_shape, int)
@@ -509,7 +501,6 @@ class RainbowDQN(nn.Module):
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``RainbowHead`` setups and return the result prediction dictionary.
-
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
             - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
@@ -517,7 +508,6 @@ class RainbowDQN(nn.Module):
             - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
             - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape.
             - distribution(:obj:`torch.FloatTensor`): :math:`(B, M, P)`, where P is n_atom.
-
         Examples:
             >>> model = RainbowDQN(64, 64) # arguments: 'obs_shape' and 'action_shape'
             >>> inputs = torch.randn(4, 64)
@@ -637,7 +627,6 @@ class DRQN(nn.Module):
                 head_hidden_size, action_shape, head_layer_num, activation=activation, norm_type=norm_type
             )
 
-    @profile
     def forward(
             self, inputs: Dict, inference: bool = False, saved_hidden_state_timesteps: Optional[list] = None
     ) -> Dict:
@@ -652,15 +641,12 @@ class DRQN(nn.Module):
             - saved_hidden_state_timesteps: (:obj:'Optional[list]'): when inference is False,
                 we unroll the sequence transitions, then we would save rnn hidden states at timesteps
                 that are listed in list saved_hidden_state_timesteps.
-
        ArgumentsKeys:
             - obs (:obj:`torch.Tensor`): Encoded observation
             - prev_state (:obj:`list`): Previous state's tensor of size ``(B, N)``
-
         Returns:
             - outputs (:obj:`Dict`):
                 Run ``MLP`` with ``DRQN`` setups and return the result prediction dictionary.
-
         ReturnsKeys:
             - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``obs``.
             - next_state (:obj:`list`): Next state's tensor of size ``(B, N)``
@@ -669,7 +655,6 @@ class DRQN(nn.Module):
             - prev_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`
             - logit (:obj:`torch.FloatTensor`): :math:`(B, N)`
             - next_state(:obj:`torch.FloatTensor list`): :math:`[(B, N)]`
-
         Examples:
             >>> # Init input's Keys:
             >>> prev_state = [[torch.randn(1, 1, 64) for __ in range(2)] for _ in range(4)] # B=4
@@ -688,21 +673,16 @@ class DRQN(nn.Module):
         # for both inference and other cases, the network structure is encoder -> rnn network -> head
         # the difference is inference take the data with seq_len=1 (or T = 1)
         if inference:
-            x = self.encoder(x)  # OPTIMIZE 8.6
+            x = self.encoder(x)
             if self.res_link:
                 a = x
             x = x.unsqueeze(0)  # for rnn input, put the seq_len of x as 1 instead of none.
             # prev_state: DataType: List[Tuple[torch.Tensor]]; Initially, it is a list of None
-            #start = timeit.default_timer()
-            #for i in range(1000):
-            x, next_state = self.rnn(x, prev_state)   # OPTIMIZE 7.2
-            #end = timeit.default_timer()
-            #print(end-start)
-            #input()
+            x, next_state = self.rnn(x, prev_state)
             x = x.squeeze(0)  # to delete the seq_len dim to match head network input
             if self.res_link:
                 x = x + a
-            x = self.head(x)  # OPTIMIZE 5.4
+            x = self.head(x)
             x['next_state'] = next_state
             return x
         else:
@@ -716,15 +696,13 @@ class DRQN(nn.Module):
             if saved_hidden_state_timesteps is not None:
                 saved_hidden_state = []
             for t in range(x.shape[0]):  # T timesteps
-                output, prev_state = self.rnn(x[t:t + 1], prev_state)  # OPTIMIZE 67.8 (76611178) output: (1,B, head_hidden_size)
+                output, prev_state = self.rnn(x[t:t + 1], prev_state)  # output: (1,B, head_hidden_size)
                 if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
                     saved_hidden_state.append(prev_state)
                 lstm_embedding.append(output)
-                #start = timeit.default_timer()
-                hidden_state = prev_state[0]  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
+                hidden_state = list(zip(*prev_state))  # {list: 2{tuple: B{Tensor:(1, 1, head_hidden_size}}}
                 # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
-                hidden_state_list.append(torch.cat(hidden_state, dim=1))  # OPTIMIZE 6.4 (optimized to ???)
-                #end = timeit.default_timer()
+                hidden_state_list.append(torch.cat(hidden_state[0], dim=1))
             x = torch.cat(lstm_embedding, 0)  # (T, B, head_hidden_size)
             if self.res_link:
                 x = x + a
@@ -747,24 +725,24 @@ class GTrXLDiscreteHead(nn.Module):
     """
 
     def __init__(
-        self,
-        obs_shape: Union[int, SequenceType],
-        action_shape: Union[int, SequenceType],
-        head_layer_num: int = 1,
-        att_head_dim: int = 16,
-        hidden_size: int = 16,
-        att_head_num: int = 2,
-        att_mlp_num: int = 2,
-        att_layer_num: int = 3,
-        memory_len: int = 64,
-        activation: Optional[nn.Module] = nn.ReLU(),
-        head_norm_type: Optional[str] = None,
-        dropout: float = 0.,
-        gru_gating: bool = True,
-        gru_bias: float = 2.,
-        dueling: bool = True,
-        encoder_hidden_size_list: SequenceType = [128, 128, 256],
-        encoder_norm_type: Optional[str] = None,
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType],
+            head_layer_num: int = 1,
+            att_head_dim: int = 16,
+            hidden_size: int = 16,
+            att_head_num: int = 2,
+            att_mlp_num: int = 2,
+            att_layer_num: int = 3,
+            memory_len: int = 64,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            head_norm_type: Optional[str] = None,
+            dropout: float = 0.,
+            gru_gating: bool = True,
+            gru_bias: float = 2.,
+            dueling: bool = True,
+            encoder_hidden_size_list: SequenceType = [128, 128, 256],
+            encoder_norm_type: Optional[str] = None,
     ) -> None:
         r"""
         Overview:
