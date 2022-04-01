@@ -1,8 +1,8 @@
-from .ant_ddpg_default_config import ant_ddpg_default_config
-from .ant_sac_default_config import ant_sac_default_config
-from .ant_td3_default_config import ant_td3_default_config
-from .ant_trex_onppo_default_config import ant_trex_ppo_default_config, ant_trex_ppo_create_default_config
-from .ant_trex_sac_default_config import ant_trex_sac_default_config, ant_trex_sac_default_create_config
+from .ant_ddpg_config import ant_ddpg_config
+from .ant_sac_config import ant_sac_config
+from .ant_td3_config import ant_td3_config
+from .ant_trex_onppo_config import ant_trex_ppo_config, ant_trex_ppo_create_config
+from .ant_trex_sac_config import ant_trex_sac_config, ant_trex_sac_create_config
 from .halfcheetah_ddpg_default_config import halfcheetah_ddpg_default_config
 from .halfcheetah_sac_default_config import halfcheetah_sac_default_config
 from .halfcheetah_td3_default_config import halfcheetah_td3_default_config

@@ -116,20 +116,22 @@ class GailRewardModel(BaseRewardModel):
            == ====================  ========   =============  ================================= =======================
            ID Symbol                Type       Default Value  Description                       Other(Shape)
            == ====================  ========   =============  ================================= =======================
-           1  ``type``              str        gail            | RL policy register name, refer  | this arg is optional,
-                                                               | to registry ``POLICY_REGISTRY`` | a placeholder
-           2  | ``expert_data_      str        expert_data.    | Path to the expert dataset      | Should be a '.pkl'
-              |   path``                       .pkl            |                                 | file
-           3  | ``update_per_       int        100             | Number of updates per collect   |
-              |    collect``                                   |                                 |
-           4  | ``batch_size``      int        64              | Training batch size             |
-           5  | ``input_size``      int                        | Size of the input:              |
-              |                                                | obs_dim + act_dim               |
-           6  | ``target_new_       int        64              | Collect steps per iteration     |
-              |    data_count``                                |                                 |
-           7  | ``hidden_size``     int        128             | Linear model hidden size        |
-           8  | ``collect_count``   int        100000          | Expert dataset size             | One entry is a (s,a)
-              |                                                |                                 | tuple
+           1  ``type``              str        gail           | RL policy register name, refer  | this arg is optional,
+                                                              | to registry ``POLICY_REGISTRY`` | a placeholder
+           2  | ``expert_data_``    str        expert_data.   | Path to the expert dataset      | Should be a '.pkl'
+              | ``path``                       .pkl           |                                 | file
+           3  | ``update_per_``     int        100            | Number of updates per collect   |
+              | ``collect``                                   |                                 |
+           4  | ``batch_size``      int        64             | Training batch size             |
+           5  | ``input_size``      int                       | Size of the input:              |
+              |                                               | obs_dim + act_dim               |
+           6  | ``target_new_``     int        64             | Collect steps per iteration     |
+              | ``data_count``                                |                                 |
+           7  | ``hidden_size``     int        128            | Linear model hidden size        |
+           8  | ``collect_count``   int        100000         | Expert dataset size             | One entry is a (s,a)
+              |                                               |                                 | tuple
+           == ====================  ========   =============  ================================= =======================
+
        """
     config = dict(
         type='gail',

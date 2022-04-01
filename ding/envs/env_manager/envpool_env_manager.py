@@ -38,22 +38,25 @@ class PoolEnvManager:
         # Async mode: batch_size <  env_num
         env_num=8,
         batch_size=8,
-        # Unlike other env managers, envpool's seed should be specified in config.
-        seed=0,
     )
 
     def __init__(self, cfg: EasyDict) -> None:
         self._cfg = cfg
         self._env_num = cfg.env_num
         self._batch_size = cfg.batch_size
-        self._seed = cfg.seed
         self._ready_obs = {}
         self._closed = True
+        self._seed = None
 
     def launch(self) -> None:
         assert self._closed, "Please first close the env manager"
+        if self._seed is None:
+            seed = 0
+        else:
+            seed = self._seed
+
         self._envs = envpool.make(
-            self._cfg.env_id, env_type="gym", num_envs=self._env_num, batch_size=self._batch_size, seed=self._seed
+            self._cfg.env_id, env_type="gym", num_envs=self._env_num, batch_size=self._batch_size, seed=seed
         )
         self._closed = False
         self.reset()
@@ -64,13 +67,12 @@ class PoolEnvManager:
         while True:
             obs, _, _, info = self._envs.recv()
             env_id = info['env_id']
-            print(info, env_id)
             obs = obs.astype(np.float32)
             self._ready_obs = deep_merge_dicts({i: o for i, o in zip(env_id, obs)}, self._ready_obs)
             if len(self._ready_obs) == self._env_num:
                 break
 
-    def step(self, action) -> Dict[int, namedtuple]:
+    def step(self, action: dict) -> Dict[int, namedtuple]:
         env_id = np.array(list(action.keys()))
         action = np.array(list(action.values()))
         if len(action.shape) == 2:
@@ -96,8 +98,9 @@ class PoolEnvManager:
         # Envpool has no `close` API
         self._closed = True
 
-    def seed(self, seed, dynamic_seed=False) -> None:
-        # Envpool's seed is set in `envpool.make`. This method is preserved for compatibility.
+    def seed(self, seed: int, dynamic_seed=False) -> None:
+        # The i-th environment seed in Envpool will be set with i+seed, so we don't do extra transformation here
+        self._seed = seed
         logging.warning("envpool doesn't support dynamic_seed in different episode")
 
     @property

@@ -17,6 +17,7 @@ ENV_MANAGER_REGISTRY = Registry()
 REWARD_MODEL_REGISTRY = Registry()
 DATASET_REGISTRY = Registry()
 SERIAL_EVALUATOR_REGISTRY = Registry()
+MQ_REGISTRY = Registry()
 
 registries = {
     'policy': POLICY_REGISTRY,
@@ -36,4 +37,5 @@ registries = {
     'buffer': BUFFER_REGISTRY,
     'dataset': DATASET_REGISTRY,
     'serial_evaluator': SERIAL_EVALUATOR_REGISTRY,
+    'message_queue': MQ_REGISTRY,
 }

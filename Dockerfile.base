@@ -19,8 +19,7 @@ ADD ding ding
 
 RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install --ignore-installed 'PyYAML<6.0' \
-    && python3 -m pip install --no-cache-dir .[fast] \
-    && python3 -m pip uninstall dataclasses -y
+    && python3 -m pip install --no-cache-dir .[fast]
 
 FROM ubuntu:20.04 as doc
 
@@ -49,8 +48,7 @@ ADD ding ding
 
 RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install --ignore-installed 'PyYAML<6.0' \
-    && python3 -m pip install --no-cache-dir .[fast] \
-    && python3 -m pip uninstall dataclasses -y
+    && python3 -m pip install --no-cache-dir .[fast]
 
 WORKDIR /ding_doc
 
