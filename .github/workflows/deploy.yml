@@ -304,5 +304,5 @@ jobs:
       - name: Build and push
         id: docker_build
         run:  |
-          docker buildx build -f ./Dockerfile.env . -t opendilab/ding:nightly-smac --target=grf
+          docker buildx build -f ./Dockerfile.env . -t opendilab/ding:nightly-grf --target=grf
           docker push opendilab/ding:nightly-grf
