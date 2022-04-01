@@ -83,8 +83,8 @@ class Buffer:
             replace: bool = False,
             sample_range: Optional[slice] = None,
             ignore_insufficient: bool = False,
-            groupby: str = None,
-            rolling_window: int = None
+            groupby: Optional[str] = None,
+            unroll_len: Optional[int] = None
     ) -> Union[List[BufferedData], List[List[BufferedData]]]:
         """
         Overview:
@@ -96,11 +96,11 @@ class Buffer:
             - sample_range (:obj:`slice`): Sample range slice.
             - ignore_insufficient (:obj:`bool`): If ignore_insufficient is true, sampling more than buffer size
                 with no repetition will not cause an exception.
-            - groupby (:obj:`str`): Groupby key in meta.
-            - rolling_window (:obj:`int`): Return batches of window size.
+            - groupby (:obj:`Optional[str]`): Groupby key in meta, i.e. groupby="episode"
+            - unroll_len (:obj:`Optional[int]`): Number of consecutive frames within a group.
         Returns:
             - sample_data (:obj:`Union[List[BufferedData], List[List[BufferedData]]]`):
-                A list of data with length ``size``, may be nested if groupby or rolling_window is set.
+                A list of data with length ``size``, may be nested if groupby is set.
         """
         raise NotImplementedError
 
