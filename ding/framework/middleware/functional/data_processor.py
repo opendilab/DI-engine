@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, List, Union, Tuple
 from easydict import EasyDict
 import logging
 import torch
@@ -19,11 +19,20 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer):
     return _push
 
 
-def offpolicy_data_fetcher(cfg: EasyDict, buffer_: Buffer) -> Callable:
+def offpolicy_data_fetcher(cfg: EasyDict, buffer_: Union[Buffer, List[Tuple[Buffer, float]]]) -> Callable:
 
     def _fetch(ctx: "Context"):
         try:
-            buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
+            if isinstance(buffer_, Buffer):
+                buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
+            else:
+                buffered_data = []
+                for buffer_elem, p in buffer_:
+                    data_elem = buffer_elem.sample(int(cfg.policy.learn.batch_size * p))
+                    assert data_elem is not None
+                    buffered_data.append(data_elem)
+                buffered_data = sum(buffered_data, [])
+
             assert buffered_data is not None
         except (ValueError, AssertionError):
             # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
@@ -76,26 +85,3 @@ def offline_data_saver(cfg: EasyDict, data_path: str, data_type: str = 'hdf5') -
         ctx.trajectories = None
 
     return _save
-
-
-# ################ Algorithm-Specific ###########################
-
-
-def sqil_data_fetcher(cfg: EasyDict, agent_buffer: Buffer, expert_buffer: Buffer) -> Callable:
-
-    def _fetch(ctx: "Context"):
-        try:
-            agent_buffered_data = agent_buffer.sample(cfg.policy.learn.batch_size // 2)
-            expert_buffered_data = expert_buffer.sample(cfg.policy.learn.batch_size // 2)
-        except ValueError:
-            logging.warning(
-                "Replay buffer's data is not enough to support training." +
-                "You can modify data collect config, e.g. increasing n_sample, n_episode."
-            )
-            # TODO
-            return
-        agent_data = [d.data for d in agent_buffered_data]
-        expert_data = [d.data for d in expert_buffered_data]
-        ctx.train_data = agent_data + expert_data
-
-    return _fetch
