@@ -2,7 +2,7 @@ from time import sleep
 import pytest
 import pathlib
 import os
-from ding.entry.cli_ditask import cli_ditask, _cli_ditask
+from ding.entry.cli_ditask import _cli_ditask
 
 
 def cli_ditask_main():
@@ -22,7 +22,10 @@ def test_cli_ditask():
         "attach_to": "",
         "address": "127.0.0.1",
         "labels": "",
-        "node_ids": 0
+        "node_ids": 0,
+        "mq_type": "nng",
+        "redis_host": "",
+        "redis_port": ""
     }
     os.environ["DI_NODES"] = '127.0.0.1'
     os.environ["DI_RANK"] = '0'
