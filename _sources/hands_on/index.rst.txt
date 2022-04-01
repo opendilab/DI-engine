@@ -43,6 +43,8 @@ RL Algorithm Cheat Sheet
     icm_zh
     guided_cost_zh
     r2d3_zh
+    
+    gtrxl
 
     mbpo
     vpn

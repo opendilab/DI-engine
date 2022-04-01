@@ -13,13 +13,13 @@ Quick Facts
 
 3. PPG supports **off-policy** mode and **on-policy** mode.
 
-4. There is two value networks in PPG.
+4. There are two value networks in PPG.
 
-5. In the implementation of DI-engine, we use two buffer to  off-policy PPG
+5. In the implementation of DI-engine, we use two buffers for off-policy PPG, which are only different from maximum data usage limit (data ``max_use`` ).
 
 Key Graphs
 ----------
-PPG uses disjoint policy and value networks to reduce interference between objectives. The policy network includes an auxiliary value head which is used to distill the knowledge of value into the policy network.
+PPG utilizes disjoint policy and value networks to reduce interference between objectives. The policy network includes an auxiliary value head which is used to distill the knowledge of value into the policy network, the concrete network architecture is shown as follows:
 
 .. image:: images/ppg_net.png
    :align: center
@@ -33,7 +33,7 @@ The optimization of PPG alternates between two phases, a policy phase and an aux
 
     L^{j o i n t}=L^{a u x}+\beta_{c l o n e} \cdot \hat{\mathbb{E}}_{t}\left[K L\left[\pi_{\theta_{o l d}}\left(\cdot \mid s_{t}\right), \pi_{\theta}\left(\cdot \mid s_{t}\right)\right]\right]
 
-The joint loss optimizes the auxiliary objective while preserves the original policy with the KL-divergence restriction. The auxiliary loss is defined as:
+The joint loss optimizes the auxiliary objective (distillation) while preserves the original policy with the KL-divergence restriction (i.e. the second item). And the auxiliary loss is defined as:
 
 .. math::
 
@@ -42,35 +42,90 @@ The joint loss optimizes the auxiliary objective while preserves the original po
 
 Pseudo-code
 -----------
-The following flow charts show how PPG alternates between the policy phase and the auxiliary phase.
+
+on-policy training procedure
+==============================
+
+
+The following flow charts show how PPG alternates between the policy phase and the auxiliary phase
 
 .. image:: images/PPG.png
    :align: center
    :width: 600
 
 .. note::
+
    During the auxiliary phase, PPG also takes the opportunity to perform additional training on the value network.
+
+off-policy training procedure
+==============================
+DI-engine also implements off-policy PPG with two buffers with different data use constraint (``max_use``), which policy buffer offers data for policy phase while value buffer provides auxiliary phase's data. The whole training procedure is similar to off-policy PPO but execute additional auxiliary phase with a fixed frequency.
 
 Extensions
 -----------
 - PPG can be combined with:
-    * Multi-step learning
-    * GAE
-    * Multi-buffer, different max reuse
+
+    * GAE or other advantage estimation method
+    * Multi-buffer, different ``max_use``
+
+- PPO (or PPG) + UCB-DrAC + PLR is one of the most powerful methods in procgen environment.
+
+    * `PLR github repo <https://github.com/facebookresearch/level-replay>`_
+    * `UCB-DrAC repo <https://github.com/rraileanu/auto-drac>`_
 
 Implementation
 ---------------
-  The default config is defined as follows:
+The default config is defined as follows:
 
-  .. autoclass:: ding.policy.ppg.PPGPolicy
+.. autoclass:: ding.policy.ppg.PPGPolicy
     :noindex:
 
-  The network interface PPG used is defined as follows:
+The network interface PPG used is defined as follows:
 
-The Benchmark result of PPG implemented in DI-engine is shown in `Benchmark <../feature/algorithm_overview.html_en>`_.
+.. autoclass:: ding.model.template.ppg.PPG
+   :members: compute_actor_critic, compute_actor, compute_critic
+   :noindex:
 
+
+
+Benchmark
+--------------
+
+.. list-table:: Benchmark and comparison of PPG algorithm
+   :widths: 25 15 30 15 15
+   :header-rows: 1
+
+   * - environment
+     - best mean reward
+     - evaluation results
+     - config link
+     - comparison
+   * - | Pong
+       | (PongNoFrameskip-v4)
+     - 20
+     - .. image:: images/benchmark/ppg_pong.png
+     - `config_link_p <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/pong/pong_ppg_config.py>`_
+     - | DI-engine PPO off-policy(20)
+   * - | Qbert
+       | (QbertNoFrameskip-v4)
+     - 17775
+     - .. image:: images/benchmark/ppg_qbert.png
+     - `config_link_q <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/qbert/qbert_ppg_config.py>`_
+     - | DI-engine PPO off-policy(16400)
+   * - | SpaceInvaders
+       | (SpaceInvadersNoFrame skip-v4)
+     - 1213
+     - .. image:: images/benchmark/ppg_spaceinvaders.png
+     - `config_link_s <https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_ppg_config.py>`_
+     - | DI-engine PPO off-policy(1200)
 
 References
 -----------
 
-Karl Cobbe, Jacob Hilton, Oleg Klimov, John Schulman: “Phasic Policy Gradient”, 2020; [http://arxiv.org/abs/2009.04416 arXiv:2009.04416].
+Karl Cobbe, Jacob Hilton, Oleg Klimov, John Schulman: “Phasic Policy Gradient”, 2020; arXiv:2009.04416.
+
+
+Other Public Implementations
+------------------------------
+
+- [openai](https://github.com/openai/phasic-policy-gradient)

@@ -1,0 +1,555 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>GTrXL &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="MBPO" href="mbpo.html" />
+    <link rel="prev" title="R2D3" href="r2d3_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Algorithm Cheat Sheet</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dqn.html">DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rainbow.html">Rainbow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="c51.html">C51</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qrdqn.html">QRDQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="iqn.html">IQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sql.html">SQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqn.html">SQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="r2d2.html">R2D2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="a2c.html">A2C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppo.html">PPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="acer.html">ACER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="impala.html">IMPALA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ppg.html">PPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ddpg.html">DDPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="d4pg.html">D4PG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3.html">TD3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sac.html">SAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cql.html">CQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="td3_bc.html">TD3BC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qmix.html">QMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coma.html">COMA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wqmix.html">WQMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collaq.html">CollaQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atoc.html">ATOC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rnd.html">RND</a></li>
+<li class="toctree-l2"><a class="reference internal" href="her.html">HER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqfd.html">DQfD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqil.html">SQIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gail.html">GAIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="trex.html">TREX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="icm_zh.html">ICM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guided_cost_zh.html">Guided Cost Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="r2d3_zh.html">R2D3</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">GTrXL</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-facts">Quick Facts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#key-equations-or-key-graphs">Key Equations or Key Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extensions">Extensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#implementations">Implementations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#benchmark">Benchmark</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mbpo.html">MBPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcts.html">MCTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html">AlphaGo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="alphago.html#alphagozero">AlphaGoZero</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">RL Algorithm Cheat Sheet</a> &raquo;</li>
+        
+      <li>GTrXL</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/hands_on/gtrxl.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="gtrxl">
+<h1>GTrXL<a class="headerlink" href="#gtrxl" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Gated Transformer-XL, or GTrXL, first proposed in <a class="reference external" href="https://arxiv.org/pdf/1910.06764.pdf">Stabilizing Transformers for Reinforcement Learning</a>,
+is a novel framework for reinforcement learning adapted from the Transformer-XL architecture.
+It mainly introduces two architectural modifications that improve the stability and learning speed of Transformer including:
+placing the layer normalization on only the input stream of the submodules, and replacing residual connections with gating layers.
+The proposed architecture, surpasses LSTMs on challenging memory environments and achieves state-of-the-art
+results on the several memory benchmarks, exceeding the performance of an external memory architecture.</p>
+</div>
+<div class="section" id="quick-facts">
+<h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>GTrXL can serve as a <strong>backbone</strong> for many RL algorithms.</p></li>
+<li><p>GTrXL only supports <strong>sequential</strong> observations.</p></li>
+<li><p>GTrXL is based on <strong>Transformer-XL</strong> with <strong>Gating connections</strong>.</p></li>
+<li><p>The DI-engine implementation of GTrXL is based on the R2D2 algorithm. In the original paper, it is based on the algorithm <a class="reference external" href="https://arxiv.org/abs/1909.12238">V-MPO</a>.</p></li>
+</ol>
+</div>
+<div class="section" id="key-equations-or-key-graphs">
+<h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
+<p><strong>Transformer-XL</strong>: to address the context fragmentation problem, Transformer-XL introduces the notion of recurrence to the deep self-attention network.
+Instead of computing the hidden states from scratch for each new segment, Transformer-XL reuses the hidden states obtained in previous segments.
+The reused hidden states serve as memory for the current segment, which builds up a recurrent connection between the segments.
+As a result, modeling very long-term dependency becomes possible because information can be propagated through the recurrent connections.
+In order to enable state reuse without causing temporal confusion, Transformer-XL proposes a new relative positional encoding formulation that generalizes to attention lengths longer than the one observed during training.</p>
+<img alt="../_images/transformerXL_train_eval.png" class="align-center" src="../_images/transformerXL_train_eval.png" />
+<p><strong>Identity Map Reordering</strong>: move the layer normalization to the input stream of the submodules.
+A key benefit to this reordering is that it now enables an identity map from the input of the transformer at the first layer to the output of the transformer after the last layer.
+This is in contrast to the canonical transformer, where there are a series of layer normalization operations that non-linearly transform the state encoding.
+One hypothesis as to why the Identity Map Reordering improves results is as follows: assuming that the submodules at initialization produce values that are in expectation near
+zero, the state encoding is passed un-transformed to the policy and value heads, enabling the agent to learn a Markovian policy at the start of training
+(i.e., the network is initialized such that <span class="math notranslate nohighlight">\(\pi(·|st,...,s1) ≈ \pi(·|st)\)</span> and <span class="math notranslate nohighlight">\(V^\pi(s_t|s_{t-1},...,s_1) ≈ V^\pi(s_t|s_{t-1})\)</span>),
+thus ignoring the contribution of past observations coming from the memory of the attention-XL.
+In many environments, reactive behaviours need to be learned before memory-based ones can be effectively utilized.
+For example, an agent needs to learn how to walk before it can learn how to remember where it has walked.
+With identity map reordering the forward pass of the model can be computed as:</p>
+<img alt="../_images/identity_map_reordering.png" class="align-center" src="../_images/identity_map_reordering.png" />
+<a class="reference internal image-reference" href="../_images/gtrxl.png"><img alt="../_images/gtrxl.png" class="align-center" src="../_images/gtrxl.png" style="height: 300px;" /></a>
+<p><strong>Gating layers</strong>: replace the residual connections with gating layers. Among several studied gating functions, Gated Recurrent Unit (GRU) is the one that performs the best.
+Its adapted powerful gating mechanism can be expressed as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{aligned}
+r &amp;= \sigma(W_r^{(l)} y + U_r^{(l)} x) \\
+z &amp;= \sigma(W_z^{(l)} y + U_z^{(l)} x - b_g^{(l)}) \\
+\hat{h} &amp;= \tanh(W_g^{(l)} y + U_g^{(l)} (r \odot x)) \\
+g^{(l)}(x, y) &amp;= (1-z)\odot x + z\odot \hat{h}
+\end{aligned}\end{split}\]</div>
+<p><strong>Gated Identity Initialization</strong>: the authors claimed that the Identity Map Reordering aids policy optimization because it initializes the agent close to a Markovian policy or value function.
+If this is indeed the cause of improved stability, we can explicitly initialize the various gating mechanisms to be close to the identity map.
+This is the purpose of the bias <span class="math notranslate nohighlight">\(b_g^{(l)}\)</span> in the applicable gating layers. The authors demonstrate in an ablation that initially setting <span class="math notranslate nohighlight">\(b_g^{(l)}&gt;0\)</span> produces the best results.</p>
+</div>
+<div class="section" id="extensions">
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<p>GTrXL can be combined with:</p>
+<blockquote>
+<div><ul>
+<li><p>CoBERL (<a class="reference external" href="https://arxiv.org/pdf/2107.05431.pdf">CoBERL: Contrastive BERT for Reinforcement Learning</a>):</p>
+<blockquote>
+<div><p>Contrastive BERT (CoBERL) is a reinforcement learning agent that combines a new contrastive loss and a hybrid LSTM-transformer
+architecture to tackle the challenge of improving data efficiency for RL. It uses bidirectional masked prediction in combination
+with a generalization of recent contrastive methods to learn better representations for transformers in RL, without the need of hand engineered data augmentations.</p>
+</div></blockquote>
+</li>
+<li><p>R2D2 (<a class="reference external" href="https://openreview.net/pdf?id=r1lyTjAqYX">Recurrent Experience Replay in Distributed Reinforcement Learning</a>):</p>
+<p>Recurrent Replay Distributed DQN (R2D2) demonstrates how replay and the RL learning objective can be adapted to work well for agents with recurrent
+architectures. The LSTM can be replaced or combined with gated transformer so that we can leverage the benefits of distributed experience collection, storing
+the recurrent agent state in the replay buffer, and “burning in” a portion of the unrolled network with replayed sequences during training.</p>
+</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="implementations">
+<h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<p>The network interface GTrXL used is defined as follows:</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.gtrxl.</span></span><span class="sig-name descname"><span class="pre">GTrXL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_len</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gru_gating</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gru_bias</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_embedding_layer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/gtrxl.html#GTrXL"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>GTrXL Transformer</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For details refer to Stabilizing Transformer for Reinforcement Learning: <a class="reference external" href="https://arxiv.org/abs/1910.06764">https://arxiv.org/abs/1910.06764</a></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_first</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_mem</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/torch_utils/network/gtrxl.html#GTrXL.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>GTrXL forward pass.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input tensor. Shape (seq_len, bs, input_size).</p></li>
+<li><p>batch_first (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): if the input data has shape (bs, seq_len, input_size), set this param to ‘True’</p></li>
+</ul>
+<p>in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size). This
+param doesn’t affects the output memory
+- return_mem (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): if this param is False, return only the output tensor without dict.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]</span></code>): dict containing transformer output of shape</p></li>
+</ul>
+<blockquote>
+<div><p>(seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size)</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_memory</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/gtrxl.html#GTrXL.get_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Returns memory of GTrXL.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>memory: (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): output memory or None if memory has not been initialized.</p></li>
+</ul>
+<p>Shape is (layer_num, memory_len, bs, embedding_dim).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">reset_memory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/torch_utils/network/gtrxl.html#GTrXL.reset_memory"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><blockquote>
+<div><p>Clear or set the memory of GTrXL.</p>
+</div></blockquote>
+<dl>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>batch_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): batch size</p></li>
+<li><p>state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): input memory.</p></li>
+</ul>
+<p>Shape is (layer_num, memory_len, bs, embedding_dim).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<p>The default implementation of our R2D2-based GTrXL is defined as follows:</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.r2d2_gtrxl.</span></span><span class="sig-name descname"><span class="pre">R2D2GTrXLPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/r2d2_gtrxl.html#R2D2GTrXLPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Policy class of R2D2 adopting the Transformer architecture GTrXL as backbone.</p>
+</dd>
+<dt>Config:</dt><dd></dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">_data_preprocess_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/ding/policy/r2d2_gtrxl.html#R2D2GTrXLPolicy._data_preprocess_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Preprocess the data to fit the required data format for learning</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Dict[str,</span> <span class="pre">Any]]</span></code>): the data collected from collect function</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>): the processed data, including at least </dt><dd><p>[‘main_obs’, ‘target_obs’, ‘burnin_obs’, ‘action’, ‘reward’, ‘done’, ‘weight’]</p>
+</dd>
+</dl>
+</li>
+<li><p>data_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): the data info, such as replay_buffer_idx, replay_unique_id</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">_forward_learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/policy/r2d2_gtrxl.html#R2D2GTrXLPolicy._forward_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Forward and backward function of learn mode.
+Acquire the data, calculate the loss and optimize learner model.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Dict type data, including at least </dt><dd><p>[‘main_obs’, ‘target_obs’, ‘burnin_obs’, ‘action’, ‘reward’, ‘done’, ‘weight’]</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>info_dict (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>): Including cur_lr and total_loss</dt><dd><ul>
+<li><p>cur_lr (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): Current learning rate</p></li>
+<li><p>total_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The calculated loss</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">_init_learn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/policy/r2d2_gtrxl.html#R2D2GTrXLPolicy._init_learn"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Init the learner model of GTrXLR2D2Policy.
+Target model has 2 wrappers: ‘target’ for weights update and ‘transformer_segment’ to split trajectories</p>
+<blockquote>
+<div><p>in segments.</p>
+</div></blockquote>
+<p>Learn model has 2 wrappers: ‘argmax’ to select the best action and ‘transformer_segment’.</p>
+</dd>
+<dt>Arguments:</dt><dd><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The _init_learn method takes the argument from the self._cfg.learn in the config file</p>
+</div>
+<ul class="simple">
+<li><p>learning_rate (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The learning rate fo the optimizer</p></li>
+<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The discount factor</p></li>
+<li><p>nstep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of n step return</p></li>
+<li><p>value_rescale (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to use value rescaled loss in algorithm</p></li>
+<li><p>burnin_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): The num of step of burnin</p></li>
+<li><p>seq_len (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Training sequence length</p></li>
+<li><p>init_memory (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): ‘zero’ or ‘old’, how to initialize the memory before each training iteration.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p>
+<p>(PongNoFrameskip-v4)</p>
+</td>
+<td><p>20</p></td>
+<td><img alt="hands_on/images/benchmark/pong_gtrxl_r2d2.png" src="hands_on/images/benchmark/pong_gtrxl_r2d2.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/pong/pong_dqn_config.py">config_link_p</a></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>P.S.：</p>
+<ol class="arabic simple">
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
+<li><p>For the discrete action space algorithm like DQN, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>. For more details about Atari, please refer to <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
+</ol>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Parisotto, Emilio, et al. “Stabilizing Transformers for Reinforcement Learning.”, 2019; [<a class="reference external" href="http://arxiv.org/abs/1910.06764">http://arxiv.org/abs/1910.06764</a> arXiv:1910.06764]</p></li>
+<li><p>Dai, Zihang , et al. “Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context.”, 2019; [<a class="reference external" href="http://arxiv.org/abs/1901.02860">http://arxiv.org/abs/1901.02860</a> arXiv:1901.02860]</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mbpo.html" class="btn btn-neutral float-right" title="MBPO" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="r2d3_zh.html" class="btn btn-neutral float-left" title="R2D3" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
