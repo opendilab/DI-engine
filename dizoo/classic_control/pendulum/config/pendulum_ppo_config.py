@@ -1,8 +1,9 @@
 from easydict import EasyDict
 
 pendulum_ppo_config = dict(
+    exp_name='pendulum_ppo_seed0',
     env=dict(
-        collector_env_num=1,
+        collector_env_num=10,
         evaluator_env_num=5,
         act_scale=True,
         n_evaluator_episode=5,
@@ -49,8 +50,13 @@ pendulum_ppo_create_config = dict(
         type='pendulum',
         import_names=['dizoo.classic_control.pendulum.envs.pendulum_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ppo'),
 )
 pendulum_ppo_create_config = EasyDict(pendulum_ppo_create_config)
 create_config = pendulum_ppo_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial_onpolicy -c pendulum_ppo_config.py -s 0`
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy([main_config, create_config], seed=0)

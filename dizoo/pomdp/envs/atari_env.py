@@ -75,6 +75,11 @@ class PomdpAtariEnv(BaseEnv):
         if not self._init_flag:
             self._env = self._make_env(only_info=False)
             self._init_flag = True
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            )
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
@@ -97,6 +102,7 @@ class PomdpAtariEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
+        action = action.item()
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
@@ -143,3 +149,15 @@ class PomdpAtariEnv(BaseEnv):
         cfg = copy.deepcopy(cfg)
         cfg.is_train = False
         return [cfg for _ in range(evaluator_env_num)]
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
