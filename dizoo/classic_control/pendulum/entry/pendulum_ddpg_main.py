@@ -26,12 +26,23 @@ def main(cfg, seed=0):
 
     # Set up envs for collection and evaluation
     collector_env_num, evaluator_env_num = cfg.env.collector_env_num, cfg.env.evaluator_env_num
+    # You can either use `PendulumEnv` or `DingEnvWrapper` to make a pendulum env and therefore an env manager.
+    # == Use `DingEnvWrapper`
     collector_env = BaseEnvManager(
-        env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager
+        env_fn=[lambda: DingEnvWrapper(env=gym.make('Pendulum-v0'), cfg=cfg.env) for _ in range(collector_env_num)],
+        cfg=cfg.env.manager
     )
     evaluator_env = BaseEnvManager(
-        env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+        env_fn=[lambda: DingEnvWrapper(env=gym.make('Pendulum-v0'), cfg=cfg.env) for _ in range(evaluator_env_num)],
+        cfg=cfg.env.manager
     )
+    # == Use `PendulumEnv`
+    # collector_env = BaseEnvManager(
+    #     env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(collector_env_num)], cfg=cfg.env.manager
+    # )
+    # evaluator_env = BaseEnvManager(
+    #     env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(evaluator_env_num)], cfg=cfg.env.manager
+    # )
 
     # Set random seed for all package and instance
     collector_env.seed(seed)

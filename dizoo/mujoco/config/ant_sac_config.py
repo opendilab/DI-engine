@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-ant_sac_default_config = dict(
-    exp_name='ant_sac',
+ant_sac_config = dict(
+    exp_name='ant_sac_seed0',
     env=dict(
         env_id='Ant-v3',
         norm_obs=dict(use_norm=False, ),
@@ -11,6 +11,7 @@ ant_sac_default_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
+        manager=dict(shared_memory=False, reset_inplace=True),
     ),
     policy=dict(
         cuda=True,
@@ -46,10 +47,10 @@ ant_sac_default_config = dict(
     ),
 )
 
-ant_sac_default_config = EasyDict(ant_sac_default_config)
-main_config = ant_sac_default_config
+ant_sac_config = EasyDict(ant_sac_config)
+main_config = ant_sac_config
 
-ant_sac_default_create_config = dict(
+ant_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -61,5 +62,10 @@ ant_sac_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-ant_sac_default_create_config = EasyDict(ant_sac_default_create_config)
-create_config = ant_sac_default_create_config
+ant_sac_create_config = EasyDict(ant_sac_create_config)
+create_config = ant_sac_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c ant_sac_config.py -s 0 --env-step 1e7`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

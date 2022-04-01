@@ -1,6 +1,7 @@
 from typing import Any, Union, List
 import copy
 import numpy as np
+import logging
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -286,8 +287,14 @@ Pybullet_INFO_DICT = {
 
 @ENV_REGISTRY.register('pybullet')
 class PybulletEnv(BaseEnv):
+    """
+    Note:
+        Due to the open source of mujoco env, DI-engine will deprecate PyBullet env. If anyone needs it, \
+        please add a new issue and we will continue to maintain it.
+    """
 
     def __init__(self, cfg: dict) -> None:
+        logging.warning('PybulletEnv is deprecated, if anyone needs it, please add a new issue.')
         self._cfg = cfg
         self._use_act_scale = cfg.use_act_scale
         self._init_flag = False
@@ -341,8 +348,8 @@ class PybulletEnv(BaseEnv):
             info.rew_space.shape = rew_shape
             return info
         else:
-            raise NotImplementedError('{} not found in Pybullet_INFO_DICT [{}]'\
-                .format(self._cfg.env_id, Pybullet_INFO_DICT.keys()))
+            keys = Pybullet_INFO_DICT.keys()
+            raise NotImplementedError('{} not found in Pybullet_INFO_DICT [{}]'.format(self._cfg.env_id, keys))
 
     def _make_env(self, only_info=False):
         return wrap_pybullet(

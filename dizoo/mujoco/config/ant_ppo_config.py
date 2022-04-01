@@ -1,25 +1,27 @@
 from easydict import EasyDict
 
-hopper_ppo_default_config = dict(
+ant_ppo_config = dict(
+    exp_name='ant_ppo_seed0',
     env=dict(
-        env_id='HopperMuJoCoEnv-v0',
+        manager=dict(shared_memory=False, reset_inplace=True),
+        env_id='Ant-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=8,
         evaluator_env_num=10,
         use_act_scale=True,
         n_evaluator_episode=10,
-        stop_value=3000,
+        stop_value=6000,
     ),
     policy=dict(
         cuda=True,
         recompute_adv=True,
-        action_space='continuous',
         model=dict(
-            obs_shape=11,
-            action_shape=3,
+            obs_shape=111,
+            action_shape=8,
             action_space='continuous',
         ),
+        action_space='continuous',
         learn=dict(
             epoch_per_collect=10,
             batch_size=64,
@@ -39,16 +41,21 @@ hopper_ppo_default_config = dict(
         eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-hopper_ppo_default_config = EasyDict(hopper_ppo_default_config)
-main_config = hopper_ppo_default_config
+ant_ppo_config = EasyDict(ant_ppo_config)
+main_config = ant_ppo_config
 
-hopper_ppo_create_default_config = dict(
+ant_ppo_create_config = dict(
     env=dict(
-        type='pybullet',
-        import_names=['dizoo.pybullet.envs.pybullet_env'],
+        type='mujoco',
+        import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo', ),
 )
-hopper_ppo_create_default_config = EasyDict(hopper_ppo_create_default_config)
-create_config = hopper_ppo_create_default_config
+ant_ppo_create_config = EasyDict(ant_ppo_create_config)
+create_config = ant_ppo_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial_onpolicy -c ant_ppo_config.py -s 0 --env-step 1e7`
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)
