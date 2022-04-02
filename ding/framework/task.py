@@ -237,18 +237,16 @@ class Task:
             except StopIteration:
                 continue
 
-    def sequence(self, *fns: List[Callable]) -> Callable:
+    def serial(self, *fns: List[Callable]) -> Callable:
         """
         Overview:
-            Wrap functions and keep them run in sequence, Usually in order to avoid the confusion
+            Wrap functions and keep them run in serial, Usually in order to avoid the confusion
             of dependencies in async mode.
         Arguments:
-            - fn (:obj:`Callable`): Chain a sequence of middleware, wrap them into one middleware function.
+            - fn (:obj:`Callable`): Chain a serial of middleware, wrap them into one middleware function.
         """
 
-        assert self.async_mode, "There is no need to use sequence when async_mode is False"
-
-        def _sequence(ctx):
+        def _serial(ctx):
             backward_keys = []
             for fn in fns:
                 g = self.forward(fn, ctx, async_mode=False)
@@ -261,8 +259,8 @@ class Task:
             self.backward(backward_stack=backward_stack, async_mode=False)
 
         name = ",".join([fn.__name__ for fn in fns])
-        _sequence.__name__ = "sequence<{}>".format(name)
-        return _sequence
+        _serial.__name__ = "serial<{}>".format(name)
+        return _serial
 
     def parallel(self, *fns: List[Callable]) -> Callable:
         """
@@ -271,7 +269,6 @@ class Task:
         Arguments:
             - fn (:obj:`Callable`): Parallelized middleware, wrap them into one middleware function.
         """
-        assert not self.async_mode, "There is no need to use sequence when async_mode is True"
         self._activate_async()
 
         def _parallel(ctx):

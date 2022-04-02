@@ -28,7 +28,7 @@ def test_step_timer():
         task.use_step_wrapper(step_timer)
         task.use(step1)
         task.use(step2)
-        task.use(task.sequence(step3, step4))
+        task.use(task.serial(step3, step4))
         task.run(3)
 
     assert len(step_timer.records) == 5

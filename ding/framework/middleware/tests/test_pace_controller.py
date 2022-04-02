@@ -45,10 +45,10 @@ def parallel_main(theme: str = "", timeout: float = math.inf, identity_num: int 
                 identity = "0"
 
         if task.router.node_id > 0:
-            task.use(task.sequence(delay_fn(), pace_controller(theme=theme, identity=identity, timeout=timeout)))
+            task.use(task.serial(delay_fn(), pace_controller(theme=theme, identity=identity, timeout=timeout)))
             task.use(fn())
         else:
-            task.use(task.sequence(delay_fn(), pace_controller(theme=theme, identity=identity, timeout=timeout)))
+            task.use(task.serial(delay_fn(), pace_controller(theme=theme, identity=identity, timeout=timeout)))
             task.use(fn(delay=0.02))
         task.run(max_step=max_step)
 

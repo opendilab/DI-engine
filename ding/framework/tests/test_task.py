@@ -259,7 +259,7 @@ def test_parallel_in_sequencial():
 
 
 @pytest.mark.unittest
-def test_sequence_in_parallel():
+def test_serial_in_parallel():
     result = []
 
     def fast(_):
@@ -271,7 +271,7 @@ def test_sequence_in_parallel():
 
     with task.start(async_mode=True):
         task.use(lambda _: result.append("begin"))
-        task.use(task.sequence(slow, fast))
+        task.use(task.serial(slow, fast))
         task.run(max_step=1)
 
         assert result == ["begin", "slow", "fast"]
