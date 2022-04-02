@@ -13,8 +13,8 @@ class OffPolicyLearner:
 
     def __init__(self, cfg: EasyDict, policy, buffer_: Union[Buffer, List[Tuple[Buffer, float]]]) -> None:
         self.cfg = cfg
-        self._fetcher = offpolicy_data_fetcher(cfg, buffer_)
-        self._trainer = trainer(cfg, policy)
+        self._fetcher = task.wrap(offpolicy_data_fetcher(cfg, buffer_))
+        self._trainer = task.wrap(trainer(cfg, policy))
 
     def __call__(self, ctx: "Context") -> None:
         for _ in range(self.cfg.policy.learn.update_per_collect):

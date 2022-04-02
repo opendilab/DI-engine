@@ -1,8 +1,7 @@
 import pytest
 from time import sleep
 import random
-from ding.framework import task
-from ding.framework.parallel import Parallel
+from ding.framework import task, Context, Parallel
 
 
 @pytest.mark.unittest
@@ -245,19 +244,68 @@ def test_early_stop():
 def test_parallel_in_sequencial():
     result = []
 
-    def fast(ctx):
+    def fast(_):
         result.append("fast")
 
-    def slow(ctx):
+    def slow(_):
         sleep(0.1)
         result.append("slow")
 
     with task.start():
-        task.use(lambda ctx: result.append("begin"))
-        task.use(task.parallel(
-            slow,
-            fast  # Slow first, then fast
-        ))
+        task.use(lambda _: result.append("begin"))
+        task.use(task.parallel(slow, fast))
+        task.run(max_step=1)
+        assert result == ["begin", "fast", "slow"]
+
+
+@pytest.mark.unittest
+def test_sequence_in_parallel():
+    result = []
+
+    def fast(_):
+        result.append("fast")
+
+    def slow(_):
+        sleep(0.1)
+        result.append("slow")
+
+    with task.start(async_mode=True):
+        task.use(lambda _: result.append("begin"))
+        task.use(task.sequence(slow, fast))
         task.run(max_step=1)
 
-        assert result == ["begin", "fast", "slow"]
+        assert result == ["begin", "slow", "fast"]
+
+
+@pytest.mark.unittest
+def test_nested_middleware():
+    """
+    When there is a yield in the middleware,
+    calling this middleware in another will lead to an unexpected result.
+    Use task.forward or task.wrap can fix this problem.
+    """
+    result = []
+
+    def child():
+
+        def _child(ctx: Context):
+            result.append(3 * ctx.total_step)
+            yield
+            result.append(2 + 3 * ctx.total_step)
+
+        return _child
+
+    def mother():
+        _child = task.wrap(child())
+
+        def _mother(ctx: Context):
+            child_back = _child(ctx)
+            result.append(1 + 3 * ctx.total_step)
+            child_back()
+
+        return _mother
+
+    with task.start():
+        task.use(mother())
+        task.run(2)
+        assert result == [0, 1, 2, 3, 4, 5]

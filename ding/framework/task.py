@@ -1,5 +1,6 @@
 from asyncio import InvalidStateError
 from asyncio.tasks import FIRST_EXCEPTION
+from collections import OrderedDict
 import time
 import asyncio
 import concurrent.futures
@@ -68,7 +69,7 @@ class Task:
         self.middleware = []
         self.step_wrappers = []
         self.ctx = ctx or Context()
-        self._backward_stack = []
+        self._backward_stack = OrderedDict()
         # Bind event loop functions
         self._event_loop = EventLoop("task_{}".format(id(self)))
 
@@ -165,18 +166,45 @@ class Task:
                 break
             self.renew()
 
+    def wrap(self, fn: Callable) -> Callable:
+        """
+        Overview:
+            Wrap the middleware, make it can be called directly in other middleware.
+        Arguments:
+            - fn (:obj:`Callable`): The middleware.
+        Returns:
+            - fn_back (:obj:`Callable`): It will return a backward function, which will call the rest part of
+                the middleware after yield. If this backward function was not called, the rest part of the middleware
+                will be called in the global backward step.
+        """
+
+        @wraps(fn)
+        def forward(ctx: Context):
+            g = self.forward(fn, ctx, async_mode=False)
+
+            def backward():
+                backward_stack = OrderedDict()
+                key = id(g)
+                backward_stack[key] = self._backward_stack.pop(key)
+                self.backward(backward_stack, async_mode=False)
+
+            return backward
+
+        return forward
+
     @enable_async
-    def forward(self, fn: Callable, ctx: Context = None, backward_stack: List[Generator] = None) -> 'Task':
+    def forward(self, fn: Callable, ctx: Optional[Context] = None) -> Optional[Generator]:
         """
         Overview:
             This function will execute the middleware until the first yield statment,
             or the end of the middleware.
         Arguments:
             - fn (:obj:`Callable`): Function with contain the ctx argument in middleware.
+            - ctx (:obj:`Optional[Context]`): Replace global ctx with a customized ctx.
+        Returns:
+            - g (:obj:`Optional[Generator]`): The generator if the return value of fn is a generator.
         """
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
-        if not backward_stack:
-            backward_stack = self._backward_stack
         if not ctx:
             ctx = self.ctx
         for wrapper in self.step_wrappers:
@@ -185,28 +213,29 @@ class Task:
         if isinstance(g, GeneratorType):
             try:
                 next(g)
-                backward_stack.append(g)
+                self._backward_stack[id(g)] = g
+                return g
             except StopIteration:
                 pass
-        return self
 
     @enable_async
-    def backward(self, backward_stack: List[Generator] = None) -> 'Task':
+    def backward(self, backward_stack: Optional[OrderedDict[str, Generator]] = None) -> None:
         """
         Overview:
             Execute the rest part of middleware, by the reversed order of registry.
+        Arguments:
+            - backward_stack (:obj:`Optional[OrderedDict[str, Generator]]`): Replace global backward_stack with a customized stack.
         """
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if not backward_stack:
             backward_stack = self._backward_stack
         while backward_stack:
             # FILO
-            g = backward_stack.pop()
+            _, g = backward_stack.popitem()
             try:
                 next(g)
             except StopIteration:
                 continue
-        return self
 
     def sequence(self, *fns: List[Callable]) -> Callable:
         """
@@ -220,10 +249,15 @@ class Task:
         assert self.async_mode, "There is no need to use sequence when async_mode is False"
 
         def _sequence(ctx):
-            backward_stack = []
+            backward_keys = []
             for fn in fns:
-                self.forward(fn, ctx=ctx, backward_stack=backward_stack, async_mode=False)
+                g = self.forward(fn, ctx, async_mode=False)
+                if isinstance(g, GeneratorType):
+                    backward_keys.append(id(g))
             yield
+            backward_stack = OrderedDict()
+            for k in backward_keys:
+                backward_stack[k] = self._backward_stack.pop(k)
             self.backward(backward_stack=backward_stack, async_mode=False)
 
         name = ",".join([fn.__name__ for fn in fns])
@@ -241,11 +275,16 @@ class Task:
         self._activate_async()
 
         def _parallel(ctx):
-            backward_stack = []
+            backward_keys = []
             for fn in fns:
-                self.forward(fn, ctx, backward_stack, async_mode=True)
+                g = self.forward(fn, ctx, async_mode=True)
+                if isinstance(g, GeneratorType):
+                    backward_keys.append(id(g))
             self.sync()
             yield
+            backward_stack = OrderedDict()
+            for k in backward_keys:
+                backward_stack[k] = self._backward_stack.pop(k)
             self.backward(backward_stack, async_mode=True)
             self.sync()
 
