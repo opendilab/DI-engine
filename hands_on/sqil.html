@@ -175,43 +175,59 @@
 <h1>SQIL<a class="headerlink" href="#sqil" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>Soft Q imitation learning (SQIL) is an off-policy maximum entropy Q learning algorithm together with imitation learning. SQIL was first proposed in <a class="reference external" href="https://arxiv.org/abs/1905.11108">SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards</a>, which combines soft Q-learning with imitation learning. In the domain of discrete action spaces, soft Q learning proposed in &lt;<a class="reference external" href="https://arxiv.org/abs/1702.08165">https://arxiv.org/abs/1702.08165</a>&gt;` learns stochastic (maximum entropy) policies instead of determistic policies comparing to the deep Q learning algorithm.
-SQIL and SQL can be easily generalised to continuous action spaces</p>
+<p>Soft Q imitation learning (SQIL) is an off-policy maximum entropy Q learning algorithm together with imitation learning. SQIL was first proposed in <a class="reference external" href="https://arxiv.org/abs/1905.11108">SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards</a>, which combines soft Q-learning with imitation learning. In the domain of discrete action spaces, soft Q learning proposed in <a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a> learns stochastic (maximum entropy) policies instead of determistic policies comparing to the deep Q learning algorithm.</p>
 </div>
 <div class="section" id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SQIL is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
-<li><p>SQIL is SQL incorporated with Imitation learning</p></li>
-<li><p>SQIL supports both <strong>discrete</strong> and <strong>continuous</strong> action spaces.</p></li>
+<li><p>SQIL is SQL incorporated with Imitation learning.</p></li>
+<li><p>SQIL supports both <strong>discrete</strong> and <strong>continuous</strong> action spaces, which is the same as SQL.</p></li>
 <li><p>SQIL is an <strong>off-policy</strong> algorithm.</p></li>
 <li><p>In DI-engine, SQIL uses <strong>eps-greedy</strong> for exploration.</p></li>
 <li><p>The DI-engine implementation of SQIL only supports <strong>discrete</strong> action spaces for now.</p></li>
-<li><p>The advantages for SQIL include more robustness in the face of uncertain dynamics and Naturally incorporation with exploration.</p></li>
+<li><p>The advantages of SQIL include: i. More robustness in the face of uncertain dynamics; ii. A natural incorporation with exploration.</p></li>
+<li><p>SQIL can be regarded as <strong>regularized behavior cloning</strong>, which gains advantage over general behavior cloning.</p></li>
 </ol>
 </div>
 <div class="section" id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<p>SQL considers a more general maximum entropy policy, such that the optimal policy aims to maximize its entropy at each visited state:</p>
-<img alt="../_images/policy_sqil_2.png" src="../_images/policy_sqil_2.png" />
-<p>where <span class="math notranslate nohighlight">\({\alpha}\)</span>   is an optional but convenient parameter that can be used to determine the relative importance of entropy and reward. In practice, <span class="math notranslate nohighlight">\({\alpha}\)</span>  is a hyperparameter that has to be tuned (This is not a parameter to learn).</p>
-<p>With respect to discrete action spaces, one can write down the Bellman’s equation for action-value function:</p>
-<img alt="../_images/Q_sqil.png" src="../_images/Q_sqil.png" />
-<p>Therefore, the value function is given by:</p>
-<img alt="../_images/V_sqil.png" src="../_images/V_sqil.png" />
-<p>By defining policy to be proportional to a exponential function of some energy function (In this context, the energy function is Q), one can write down the (normalised) optimal policy in the form of Boltzmann distribution over actions,:</p>
-<img alt="../_images/pi_sqil.png" src="../_images/pi_sqil.png" />
-<p>Therefore, the Q values with the best action is of the following form:</p>
-<a class="reference internal image-reference" href="../_images/ul_V_sqil_2.png"><img alt="../_images/ul_V_sqil_2.png" src="../_images/ul_V_sqil_2.png" style="width: 142.5px; height: 30.5px;" /></a>
-<p>SQIL performs SQL with three small but important, modifications:</p>
+<p>SQIL is a behavior cloning variant of SQL, so you may refer to <a class="reference external" href="./sql.html">SQL doc</a> first.</p>
+<p>SQIL performs three small but important modifications on SQL:</p>
 <ol class="arabic simple">
 <li><p>It initially fills the agent’s experience replay buffer with demonstrations, where the rewards are set
 to a constant r = +1.</p></li>
-<li><p>As the agent interacts with the environment and accumulates new experiences, it adds them to the replay buffer, and sets the rewards for these new experiences to a constant r = 0</p></li>
-<li><p>It balances the number of demonstration experiences and new experiences (50% each) in each sample from the replay buffer</p></li>
+<li><p>As the agent interacts with the environment and accumulates new experiences, it adds them to the replay buffer, and sets the rewards for these new experiences to a constant r = 0.</p></li>
+<li><p>It balances the number of demonstration experiences and new experiences (50% each) in each sample from the replay buffer.</p></li>
 </ol>
 <p>BC is a simple approach that seeks to imitate the expert’s actions using supervised learning – in particular, greedily maximizing the conditional likelihood of the demonstrated actions given the demonstrated states, without reasoning about the consequences of actions.
 Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a regularization term that incorporates information about the state transition dynamics into the imitation policy, and thus enables long-horizon imitation.</p>
+<p>Specifically, recalling from <a class="reference external" href="./sql.html">SQL</a>, the soft Q values are a function of the rewards and dynamics, given
+by the the soft Bellman equation:</p>
+<img alt="../_images/sqil_soft_q.png" src="../_images/sqil_soft_q.png" />
+<p>The policy <span class="math notranslate nohighlight">\(\pi\)</span> forms a Boltzmann distribution over actions:</p>
+<img alt="../_images/sqil_pi.png" src="../_images/sqil_pi.png" />
+<p>Rearrange the above function, we obtain the formula for the reward:</p>
+<img alt="../_images/sqil_implied_reward.png" src="../_images/sqil_implied_reward.png" />
+<p>Therefore, the regular BC can be derived as follows:</p>
+<img alt="../_images/sqil_bc1.png" src="../_images/sqil_bc1.png" />
+<img alt="../_images/sqil_bc2.png" src="../_images/sqil_bc2.png" />
+<p>The regularized BC is formulated through the prior work <a class="reference external" href="http://www.ifaamas.org/Proceedings/aamas2014/aamas/p1249.pdf">Boosted and reward regularized classification for apprenticeship learning</a> where Q is regularized with a sparsity prior on the above rewards.
+By adding BC with this regularization, our final regularized BC target incorporates information about the state transition dynamics
+into the imitation learning objective, since <span class="math notranslate nohighlight">\(R_{q}(s,a)\)</span> is a function of an expectation over next state <span class="math notranslate nohighlight">\(s'\)</span>. Formally, its formula is given as follows:</p>
+<img alt="../_images/sqil_rbc.png" src="../_images/sqil_rbc.png" />
+<p>where where <span class="math notranslate nohighlight">\(\lambda \in \mathbb{R}_{&gt;0}\)</span>  is a constant hyperparameter, and  <span class="math notranslate nohighlight">\(\delta\)</span> denotes the squared soft Bellman error defined
+in the equation in the Pseudo-code part below. The BC loss encourages <span class="math notranslate nohighlight">\(Q\)</span>  to output high values for demonstrated actions at
+demonstrated states, and the penalty term propagates those high values to nearby states. In other
+words, <span class="math notranslate nohighlight">\(Q\)</span>  outputs high values for actions that lead to states from which the demonstrated states are
+reachable. Hence, when the agent finds itself far from the demonstrated states, it takes actions that
+lead it back to the demonstrated states.</p>
+<p>Surprisingly, it can be proved that the gradient of the regularized BC loss in the above equation is proportional to the gradient of the SQIL
+loss in line 4 of Algorithm 1 below, plus an additional term that penalizes the soft value of the initial state <span class="math notranslate nohighlight">\(s_{0}\)</span></p>
+<img alt="../_images/sqil_equa.png" src="../_images/sqil_equa.png" />
+<p>For the full derivation, please refer to Section A.1 of the appendix in the original paper.</p>
+<p>In summary, SQIL solves a similar optimization problem to regularized BC proposed in <a class="reference external" href="http://www.ifaamas.org/Proceedings/aamas2014/aamas/p1249.pdf">Boosted and reward regularized classification for apprenticeship learning</a>. However, SQIL can be motivated as a more practical and trivial way to implement the ideas for the regularized BC.
+Furthermore, the ablation study from the experiments in the paper suggests that SQIL actually performs better than the regularized BC.</p>
 </div>
 <div class="section" id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
@@ -234,9 +250,8 @@ Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a r
 </dl>
 </dd></dl>
 
-<p>The bellman updates of SQIL/SQL and the Q-value function updates are defined in the function <code class="docutils literal notranslate"><span class="pre">q_nstep_sql_td_error</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/rl_utils/td.py</span></code>:</p>
-<blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">q_nstep_sql_td_error</span><span class="p">(</span>
+<p>The Bellman update of SQIL/SQL and the Q-value function update are defined in the function <code class="docutils literal notranslate"><span class="pre">q_nstep_sql_td_error</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/rl_utils/td.py</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">q_nstep_sql_td_error</span><span class="p">(</span>
       <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
       <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -245,10 +260,10 @@ Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a r
       <span class="n">value_gamma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
       <span class="n">criterion</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-   <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">   Overview:</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Overview:</span>
 <span class="sd">      Multistep (1 step or n step) td_error for q-learning based algorithm</span>
-<span class="sd">   Arguments:</span>
+<span class="sd">Arguments:</span>
 <span class="sd">      - data (:obj:`q_nstep_td_data`): the input data, q_nstep_sql_td_data to calculate loss</span>
 <span class="sd">      - gamma (:obj:`float`): discount factor</span>
 <span class="sd">      - alpha (:obj:｀float`): A parameter to weight entropy term in a policy equation</span>
@@ -256,10 +271,10 @@ Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a r
 <span class="sd">      - value_gamma (:obj:`torch.Tensor`): gamma discount value for target soft_q_value</span>
 <span class="sd">      - criterion (:obj:`torch.nn.modules`): loss function criterion</span>
 <span class="sd">      - nstep (:obj:`int`): nstep num, default set to 1</span>
-<span class="sd">   Returns:</span>
+<span class="sd">Returns:</span>
 <span class="sd">      - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor</span>
 <span class="sd">      - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor</span>
-<span class="sd">   Shapes:</span>
+<span class="sd">Shapes:</span>
 <span class="sd">      - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\</span>
 <span class="sd">            [&#39;q&#39;, &#39;next_n_q&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;done&#39;]</span>
 <span class="sd">      - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]</span>
@@ -269,33 +284,32 @@ Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a r
 <span class="sd">      - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)</span>
 <span class="sd">      - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep</span>
 <span class="sd">      - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`</span>
-<span class="sd">   &quot;&quot;&quot;</span>
-   <span class="n">q</span><span class="p">,</span> <span class="n">next_n_q</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_n_action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
-   <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">shape</span>
-   <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">q</span><span class="p">,</span> <span class="n">next_n_q</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_n_action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">shape</span>
+<span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
 
-   <span class="n">batch_range</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-   <span class="n">q_s_a</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">batch_range</span><span class="p">,</span> <span class="n">action</span><span class="p">]</span>
-   <span class="n">target_v</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">next_n_q</span> <span class="o">/</span> <span class="n">alpha</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
-   <span class="n">target_v</span><span class="p">[</span><span class="n">target_v</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;Inf&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">20</span>
-   <span class="n">target_v</span><span class="p">[</span><span class="n">target_v</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-Inf&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">20</span>
-   <span class="c1"># For an appropriate hyper-parameter alpha, these hardcodes can be removed.</span>
-   <span class="c1"># However, algorithms may face the danger of explosion for other alphas.</span>
-   <span class="c1"># The hardcodes above are to prevent this situation from happening</span>
-   <span class="n">record_target_v</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">target_v</span><span class="p">)</span> <span class="c1">#add the value function into tensorboard</span>
-   <span class="k">if</span> <span class="n">cum_reward</span><span class="p">:</span>
+<span class="n">batch_range</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">q_s_a</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">batch_range</span><span class="p">,</span> <span class="n">action</span><span class="p">]</span>
+<span class="n">target_v</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">next_n_q</span> <span class="o">/</span> <span class="n">alpha</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">target_v</span><span class="p">[</span><span class="n">target_v</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;Inf&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">target_v</span><span class="p">[</span><span class="n">target_v</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-Inf&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">20</span>
+<span class="c1"># For an appropriate hyper-parameter alpha, these hardcodes can be removed.</span>
+<span class="c1"># However, algorithms may face the danger of explosion for other alphas.</span>
+<span class="c1"># The hardcodes above are to prevent this situation from happening</span>
+<span class="n">record_target_v</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">target_v</span><span class="p">)</span> <span class="c1">#add the value function into tensorboard</span>
+<span class="k">if</span> <span class="n">cum_reward</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">value_gamma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">target_v</span> <span class="o">=</span> <span class="n">reward</span> <span class="o">+</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">**</span> <span class="n">nstep</span><span class="p">)</span> <span class="o">*</span> <span class="n">target_v</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
             <span class="n">target_v</span> <span class="o">=</span> <span class="n">reward</span> <span class="o">+</span> <span class="n">value_gamma</span> <span class="o">*</span> <span class="n">target_v</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
-   <span class="k">else</span><span class="p">:</span>
+<span class="k">else</span><span class="p">:</span>
       <span class="n">target_v</span> <span class="o">=</span> <span class="n">nstep_return</span><span class="p">(</span><span class="n">nstep_return_data</span><span class="p">(</span><span class="n">reward</span><span class="p">,</span> <span class="n">target_v</span><span class="p">,</span> <span class="n">done</span><span class="p">),</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">value_gamma</span><span class="p">)</span>
-   <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">q_s_a</span><span class="p">,</span> <span class="n">target_v</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
-   <span class="k">return</span> <span class="p">(</span><span class="n">td_error_per_sample</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_per_sample</span><span class="p">,</span> <span class="n">record_target_v</span>
+<span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">q_s_a</span><span class="p">,</span> <span class="n">target_v</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
+<span class="k">return</span> <span class="p">(</span><span class="n">td_error_per_sample</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_per_sample</span><span class="p">,</span> <span class="n">record_target_v</span>
 </pre></div>
 </div>
-</div></blockquote>
 <p>We use an epsilon-greedy strategy when implementing the SQIL/SQL policy.  How we pick actions is implemented in  <code class="docutils literal notranslate"><span class="pre">EpsGreedySampleWrapper_sql</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/model/wrappers/model_wrappers.py</span></code></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">EpsGreedySampleWrapperSql</span><span class="p">(</span><span class="n">IModelWrapper</span><span class="p">):</span>
 
@@ -335,7 +349,7 @@ Theoretically, It can be shown that SQIL is equivalent to augmenting BC with a r
       <span class="k">return</span> <span class="n">output</span>
 </pre></div>
 </div>
-<p>We have two buffers: one buffer is for new data by interacting with the environment and the other one is for demonstration data. We obtain the demonstration data online. That is,
+<p>We have two buffers: one buffer is for new data which is collected through interacting with the environment and the other one is for demonstration data. We obtain the demonstration data online. That is,
 we use a well-trained model to generate data in the collecting stage and push them into the demonstration buffer. In learning process, we sample from these two buffers separately shown as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># During the learning stage</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">update_per_collect</span><span class="p">):</span>
@@ -354,64 +368,73 @@ we use a well-trained model to generate data in the collecting stage and push th
 </pre></div>
 </div>
 <p>We also need to modify rewards for new data and demonstration data. Taking the CartPole environment as an example:</p>
-<blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">new_data</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">collect_data</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">policy_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;eps&#39;</span><span class="p">:</span> <span class="n">eps</span><span class="p">})</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">new_data</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">collect_data</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">train_iter</span><span class="p">,</span> <span class="n">policy_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;eps&#39;</span><span class="p">:</span> <span class="n">eps</span><span class="p">})</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_data</span><span class="p">)):</span>
     <span class="n">device</span> <span class="o">=</span> <span class="n">new_data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
     <span class="n">new_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mf">0.</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 </pre></div>
 </div>
-</div></blockquote>
-<p>Regrading the demonstration data, we can leave these rewards as they were. For a general reward modification, please refer to <code class="docutils literal notranslate"><span class="pre">ding//entry/serial_entry_sqil.py</span></code>.</p>
-<p>Regrading its performance, we drew a table below to compare with DQN, SQL in lunarlander and pong environments</p>
+<p>Regarding the demonstration data, we can leave these rewards unchanged. For a general reward modification, please refer to <code class="docutils literal notranslate"><span class="pre">ding//entry/serial_entry_sqil.py</span></code>.</p>
+</div>
+<div class="section" id="benchmark">
+<h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 10%" />
-<col style="width: 26%" />
-<col style="width: 28%" />
-<col style="width: 29%" />
-<col style="width: 6%" />
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>env / method</p></th>
-<th class="head"><p>DQN</p></th>
-<th class="head"><p>SQL</p></th>
-<th class="head"><p>SQIL</p></th>
-<th class="head"><p>alpha</p></th>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>LunarLander</p></td>
-<td><p>153392 / 277 / 23900 (both off)
-83016  / 155 / 12950 (both on)</p></td>
-<td><p>693664 / 1017 / 32436 (both off)
-1149592 / 1388/ 53805 (both on)</p></td>
-<td><p>35856   / 238  / 1683   (both off)
-31376   / 197  / 1479   (both on)</p></td>
-<td><p>0.08</p></td>
+<tr class="row-even"><td><p>Pong</p>
+<p>(PongNoFrameskip-v4)</p>
+</td>
+<td><p>20</p></td>
+<td><img alt="../_images/pong_sqil.png" src="../_images/pong_sqil.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/pong/pong_sqil_config.py">config_link_p</a></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><p>Pong</p></td>
-<td><p>765848 / 482 / 80000 (both on)</p></td>
-<td><p>2682144 / 1750 / 278250 (both on)</p></td>
-<td><p>2390608 / 1665 / 247700 (both on)</p></td>
-<td><p>0.12</p></td>
+<tr class="row-odd"><td><p>Qbert</p>
+<p>(QbertNoFrameskip-v4)</p>
+</td>
+<td><p>14941</p></td>
+<td><img alt="../_images/qbert_sqil.png" src="../_images/qbert_sqil.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/qbert/qbert_sqil_config.py">config_link_q</a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>SpaceInvaders</p>
+<p>(SpaceInvadersNoFrame
+skip-v4)</p>
+</td>
+<td><p>1002</p></td>
+<td><img alt="../_images/spaceinvaders_sqil.png" src="../_images/spaceinvaders_sqil.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_sqil_config.py">config_link_s</a></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<ul class="simple">
-<li><p>The stopping values for Lunarlander and Pong are 200 and 20 respectively.</p></li>
-<li><p>both on：cuda = True； base env manger = subprocess</p></li>
-<li><p>both off：cuda = False； base env manager = base</p></li>
-</ul>
-</div>
-<img alt="../_images/pong.png" src="../_images/pong.png" />
-<p>The  above tensorboard diagram corresponds to the convergence of SQIL in the pong environment when alpha = 0.12, as shown in the above table.</p>
+<p>P.S.：</p>
+<ol class="arabic simple">
+<li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
+</ol>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Siddharth Reddy, Anca D. Dragan, Sergey Levine: “SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards”, 2019; [<a class="reference external" href="https://arxiv.org/abs/1905.11108">https://arxiv.org/abs/1905.11108</a> arXiv:1905.11108].</p>
+<p>Haarnoja, Tuomas, et al. “Reinforcement learning with deep energy-based policies.” International Conference on Machine Learning. PMLR, 2017.</p>
+<p>Piot, Bilal, Matthieu Geist, and Olivier Pietquin. “Boosted and reward-regularized classification for apprenticeship learning.” Proceedings of the 2014 international conference on Autonomous agents and multi-agent systems. 2014.</p>
 </div>
 </div>
 
