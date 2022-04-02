@@ -92,7 +92,7 @@ create_config = bipedalwalker_sac_gail_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial_gail -c bipedalwalker_sac_gail_config.py -s 0`
     # then input the config you used to generate your expert model in the path mentioned above
-    # e.g. bipedalwalker_sac_config
+    # e.g. bipedalwalker_sac_config.py
     from ding.entry import serial_pipeline_gail
     from dizoo.box2d.bipedalwalker.config import bipedalwalker_sac_config, bipedalwalker_sac_create_config
     expert_main_config = bipedalwalker_sac_config
