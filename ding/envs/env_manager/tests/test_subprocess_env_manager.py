@@ -201,6 +201,10 @@ class TestSubprocessEnvManager:
     def test_reset(self, setup_async_manager_cfg, setup_model_type):
         env_fn = setup_async_manager_cfg.pop('env_fn')
         setup_async_manager_cfg['auto_reset'] = False
+        with pytest.raises(AssertionError):  # default episode_num = float("inf")
+            env_manager = AsyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
+
+        setup_async_manager_cfg['episode_num'] = 1
         env_manager = AsyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
         model = setup_model_type()
         reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
