@@ -1,10 +1,9 @@
 from easydict import EasyDict
 
-walker2d_trex_sac_default_config = dict(
-    exp_name='walker2d_trex_sac',
+hopper_sac_config = dict(
+    exp_name='hopper_sac_seed0',
     env=dict(
-        manager=dict(shared_memory=True, reset_inplace=True),
-        env_id='Walker2d-v3',
+        env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
@@ -13,28 +12,12 @@ walker2d_trex_sac_default_config = dict(
         n_evaluator_episode=8,
         stop_value=6000,
     ),
-    reward_model=dict(
-        type='trex',
-        algo_for_model='sac',
-        env_id='Walker2d-v3',
-        min_snippet_length=30,
-        max_snippet_length=100,
-        checkpoint_min=100,
-        checkpoint_max=900,
-        checkpoint_step=100,
-        learning_rate=1e-5,
-        update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./walker2d.params',
-        continuous=True,
-        offline_data_path='asb data path',
-    ),
     policy=dict(
         cuda=True,
         random_collect_size=10000,
         model=dict(
-            obs_shape=17,
-            action_shape=6,
+            obs_shape=11,
+            action_shape=3,
             twin_critic=True,
             action_space='reparameterization',
             actor_head_hidden_size=256,
@@ -63,10 +46,10 @@ walker2d_trex_sac_default_config = dict(
     ),
 )
 
-walker2d_trex_sac_default_config = EasyDict(walker2d_trex_sac_default_config)
-main_config = walker2d_trex_sac_default_config
+hopper_sac_config = EasyDict(hopper_sac_config)
+main_config = hopper_sac_config
 
-walker2d_trex_sac_default_create_config = dict(
+hopper_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -78,5 +61,11 @@ walker2d_trex_sac_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-walker2d_trex_sac_default_create_config = EasyDict(walker2d_trex_sac_default_create_config)
-create_config = walker2d_trex_sac_default_create_config
+hopper_sac_create_config = EasyDict(hopper_sac_create_config)
+create_config = hopper_sac_create_config
+
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c hopper_sac_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)

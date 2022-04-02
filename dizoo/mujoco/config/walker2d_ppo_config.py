@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-walker_ppo_default_config = dict(
-    exp_name='walker2d_onppo',
+walker2d_ppo_config = dict(
+    exp_name='walker2d_ppo_seed0',
     env=dict(
         manager=dict(shared_memory=True, reset_inplace=True),
         env_id='Walker2d-v3',
@@ -41,10 +41,10 @@ walker_ppo_default_config = dict(
         eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-walker_ppo_default_config = EasyDict(walker_ppo_default_config)
-main_config = walker_ppo_default_config
+walker2d_ppo_config = EasyDict(walker2d_ppo_config)
+main_config = walker2d_ppo_config
 
-walker_ppo_create_default_config = dict(
+walker2d_ppo_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -52,5 +52,11 @@ walker_ppo_create_default_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo', ),
 )
-walker_ppo_create_default_config = EasyDict(walker_ppo_create_default_config)
-create_config = walker_ppo_create_default_config
+walker2d_ppo_create_config = EasyDict(walker2d_ppo_create_config)
+create_config = walker2d_ppo_create_config
+
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial_onpolicy -c walker2d_ppo_config.py -s 0`
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy([main_config, create_config], seed=0)

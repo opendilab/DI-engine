@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
-hopper_td3_bc_default_config = dict(
+hopper_td3_bc_config = dict(
+    exp_name='hopper_td3_bc_seed0',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -43,7 +44,10 @@ hopper_td3_bc_default_config = dict(
             unroll_len=1,
             noise_sigma=0.1,
             data_type='hdf5',
-            data_path='./td3/expert.pkl',
+            # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+            # Absolute path is recommended.
+            # In DI-engine, it is usually located in ``exp_name`` directory
+            data_path='data_path_placeholder',
             normalize_states=True,
         ),
         command=dict(),
@@ -52,20 +56,26 @@ hopper_td3_bc_default_config = dict(
     ),
 )
 
-hopper_td3_bc_default_config = EasyDict(hopper_td3_bc_default_config)
-main_config = hopper_td3_bc_default_config
+hopper_td3_bc_config = EasyDict(hopper_td3_bc_config)
+main_config = hopper_td3_bc_config
 
-hopper_td3_bc_default_create_config = dict(
+hopper_td3_bc_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='td3_bc',
         import_names=['ding.policy.td3_bc'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_td3_bc_default_create_config = EasyDict(hopper_td3_bc_default_create_config)
-create_config = hopper_td3_bc_default_create_config
+hopper_td3_bc_create_config = EasyDict(hopper_td3_bc_create_config)
+create_config = hopper_td3_bc_create_config
+
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c hopper_td3_bc_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)
