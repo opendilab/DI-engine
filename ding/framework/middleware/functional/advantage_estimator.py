@@ -7,7 +7,7 @@ from ding.rl_utils import gae, gae_data
 from ding.framework import task
 
 if TYPE_CHECKING:
-    from ding.framework import Context
+    from ding.framework import OnlineRLContext
 
 
 def collate(x):  # TODO ttorch.collate
@@ -20,7 +20,7 @@ def collate(x):  # TODO ttorch.collate
 
 def gae_estimator(cfg: EasyDict, policy: Policy) -> Callable:
 
-    def _gae(ctx: "Context"):
+    def _gae(ctx: "OnlineRLContext"):
 
         data = ctx.trajectories  # list
         data = collate(data)

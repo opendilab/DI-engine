@@ -8,7 +8,7 @@ from ding.framework import task
 from .functional import inferencer, rolloutor
 
 if TYPE_CHECKING:
-    from ding.framework import Context
+    from ding.framework import OnlineRLContext
 
 
 class StepCollector:
@@ -26,7 +26,7 @@ class StepCollector:
         for item in self._transitions:
             item.clear()
 
-    def __call__(self, ctx: "Context") -> None:
+    def __call__(self, ctx: "OnlineRLContext") -> None:
         old = ctx.env_step
         if self.random_collect_size > 0 and old < self.random_collect_size:
             target_size = self.random_collect_size - old

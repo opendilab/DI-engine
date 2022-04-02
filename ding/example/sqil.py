@@ -23,7 +23,7 @@ def eps_greedy_masker():
     return _masker
 
 
-def sqil_data_pusher(ctx, buffer_, expert):
+def sqil_data_pusher(cfg, buffer_, expert):
     def _pusher(ctx):
         for t in ctx.trajectories:
             if expert:
