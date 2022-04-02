@@ -1,13 +1,14 @@
 from asyncio import InvalidStateError
 from asyncio.tasks import FIRST_EXCEPTION
 from collections import OrderedDict
+from threading import Lock
 import time
 import asyncio
 import concurrent.futures
 import fnmatch
 import math
 from types import GeneratorType
-from typing import Any, Awaitable, Callable, Generator, Iterable, List, Optional, Set, Union
+from typing import Any, Awaitable, Callable, Dict, Generator, Iterable, List, Optional, Set, Union
 from ding.framework.context import Context
 from ding.framework.parallel import Parallel
 from ding.framework.event_loop import EventLoop
@@ -80,6 +81,7 @@ class Task:
         self._async_loop = None
         self._thread_pool = None
         self._exception = None
+        self._thread_lock = Lock()
         self.labels = labels or set()
 
         # Parallel segment
@@ -108,15 +110,17 @@ class Task:
         else:
             self.labels.add("standalone")
 
-    def use(self, fn: Callable, filter_labels: Optional[Iterable[str]] = None) -> 'Task':
+    def use(self, fn: Callable, lock: Union[bool, Lock] = False) -> 'Task':
         """
         Overview:
             Register middleware to task. The middleware will be executed by it's registry order.
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
+            - lock (:obj:`Union[bool, Lock]`): There can only be one middleware execution under this lock at any one time.
+        Returns:
+            - task (:obj:`Task`): The task.
         """
-        if not filter_labels or self.match_labels(filter_labels):
-            self.middleware.append(fn)
+        self.middleware.append(self.wrap(fn, lock=lock))
         return self
 
     def use_step_wrapper(self, fn: Callable) -> 'Task':
@@ -166,27 +170,38 @@ class Task:
                 break
             self.renew()
 
-    def wrap(self, fn: Callable) -> Callable:
+    def wrap(self, fn: Callable, lock: Union[bool, Lock] = False) -> Callable:
         """
         Overview:
             Wrap the middleware, make it can be called directly in other middleware.
         Arguments:
             - fn (:obj:`Callable`): The middleware.
+            - lock (:obj:`Union[bool, Lock]`): There can only be one middleware execution under this lock at any one time.
         Returns:
             - fn_back (:obj:`Callable`): It will return a backward function, which will call the rest part of
                 the middleware after yield. If this backward function was not called, the rest part of the middleware
                 will be called in the global backward step.
         """
+        if lock is True:
+            lock = self._thread_lock
 
         @wraps(fn)
         def forward(ctx: Context):
-            g = self.forward(fn, ctx, async_mode=False)
+            if lock:
+                with lock:
+                    g = self.forward(fn, ctx, async_mode=False)
+            else:
+                g = self.forward(fn, ctx, async_mode=False)
 
             def backward():
                 backward_stack = OrderedDict()
                 key = id(g)
                 backward_stack[key] = self._backward_stack.pop(key)
-                self.backward(backward_stack, async_mode=False)
+                if lock:
+                    with lock:
+                        self.backward(backward_stack, async_mode=False)
+                else:
+                    self.backward(backward_stack, async_mode=False)
 
             return backward
 
@@ -219,12 +234,12 @@ class Task:
                 pass
 
     @enable_async
-    def backward(self, backward_stack: Optional[OrderedDict[str, Generator]] = None) -> None:
+    def backward(self, backward_stack: Optional[Dict[str, Generator]] = None) -> None:
         """
         Overview:
             Execute the rest part of middleware, by the reversed order of registry.
         Arguments:
-            - backward_stack (:obj:`Optional[OrderedDict[str, Generator]]`): Replace global backward_stack with a customized stack.
+            - backward_stack (:obj:`Optional[Dict[str, Generator]]`): Replace global backward_stack with a customized stack.
         """
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if not backward_stack:

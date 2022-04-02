@@ -1,4 +1,5 @@
 import pytest
+from threading import Lock
 from time import sleep
 import random
 from ding.framework import task, Context, Parallel
@@ -123,18 +124,6 @@ def parallel_main():
 @pytest.mark.unittest
 def test_parallel_pipeline():
     Parallel.runner(n_parallel_workers=2)(parallel_main)
-
-
-@pytest.mark.unittest
-def test_label():
-    with task.start():
-        result = {}
-        task.use(lambda _: result.setdefault("not_me", True), filter_labels=["async"])
-        task.use(lambda _: result.setdefault("has_me", True))
-        task.run(max_step=1)
-
-        assert "not_me" not in result
-        assert "has_me" in result
 
 
 @pytest.mark.unittest
@@ -309,3 +298,36 @@ def test_nested_middleware():
         task.use(mother())
         task.run(2)
         assert result == [0, 1, 2, 3, 4, 5]
+
+
+@pytest.mark.unittest
+def test_use_lock():
+
+    def slow(ctx):
+        sleep(0.1)
+        ctx.result = "slow"
+
+    def fast(ctx):
+        ctx.result = "fast"
+
+    with task.start(async_mode=True):
+        # The lock will turn async middleware into serial
+        task.use(slow, lock=True)
+        task.use(fast, lock=True)
+        task.run(1)
+        assert task.ctx.result == "fast"
+
+    # With custom lock, it will not affect the inner lock of task
+    lock = Lock()
+
+    def slowest(ctx):
+        sleep(0.3)
+        ctx.result = "slowest"
+
+    with task.start(async_mode=True):
+        task.use(slow, lock=lock)
+        # If it receives other locks, it will not be the last one to finish execution
+        task.use(slowest, lock=True)
+        task.use(fast, lock=lock)
+        task.run(1)
+        assert task.ctx.result == "slowest"
