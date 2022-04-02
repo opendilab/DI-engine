@@ -1,8 +1,7 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_onpolicy
 
 gym_hybrid_hppo_config = dict(
-    exp_name='gym_hybrid_hppo_actsacle_fsv0.3_ew0.03_seed0',
+    exp_name='gym_hybrid_hppo_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -26,7 +25,7 @@ gym_hybrid_hppo_config = dict(
             action_space='hybrid',
             encoder_hidden_size_list=[256, 128, 64, 64],
             sigma_type='fixed',
-            fixed_sigma_value=0.3,  # TODO(pu)
+            fixed_sigma_value=0.3,
             bound_type='tanh',
         ),
         learn=dict(
@@ -34,7 +33,7 @@ gym_hybrid_hppo_config = dict(
             batch_size=320,
             learning_rate=3e-4,
             value_weight=0.5,
-            entropy_weight=0.03,  # TODO(pu)
+            entropy_weight=0.03,
             clip_ratio=0.2,
             adv_norm=True,
             value_norm=True,
@@ -56,11 +55,13 @@ gym_hybrid_hppo_create_config = dict(
         type='gym_hybrid',
         import_names=['dizoo.gym_hybrid.envs.gym_hybrid_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
 )
 gym_hybrid_hppo_create_config = EasyDict(gym_hybrid_hppo_create_config)
 create_config = gym_hybrid_hppo_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c gym_hybrid_hppo_config.py -s 0`
+    from ding.entry import serial_pipeline_onpolicy
     serial_pipeline_onpolicy([main_config, create_config], seed=0)

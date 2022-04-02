@@ -238,7 +238,7 @@ class EpisodeSerialCollector(ISerialCollector):
                         self._env.reset({env_id: None})
                         self._policy.reset([env_id])
                         self._reset_stat(env_id)
-                        self._logger.info('env_id {}, abnormal step {}', env_id, timestep.info)
+                        self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
