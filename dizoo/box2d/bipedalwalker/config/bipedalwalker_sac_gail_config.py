@@ -22,26 +22,23 @@ bipedalwalker_sac_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        # Users should add their expert load path here. Expert load path should lead to a model.
-        # It is the path where the expert data is stored
-        # Absolute path is recommended.
-        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-        # expert_load_path='expert_load_path_placeholder',
-        expert_data_path='bipedalwalker_sac_seed0/expert_data.pkl',
         # Users should add their own expert data path here.
         # Expert data path should lead to a file to store data or load the stored data.
-        # It is the path where the expert state_dict is stored
+        # It is the path where the expert data is stored
         # Absolute path is recommended.
         # In DI-engine, it is usually located in ``exp_name`` directory
-        # expert_data_path='expert_data_path_placeholder',
-        expert_load_path='bipedalwalker_sac_seed0/ckpt/ckpt_best.pth.tar',
+        expert_data_path='expert_data_path_placeholder',
+        # Users should add their expert load path here. Expert load path should lead to a model.
+        # It is the path where the expert state_dict is stored
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_load_path='expert_load_path_placeholder',
         collect_count=100000,
         # Users should add their own load path here. Load path should lead to a model.
         # It is the path where the state_dict of reward model is stored
         # Absolute path is recommended.
-        # In DI-engine, it is usually located in ``exp_name/reward_model/ckpt/ckpt_best.pth.tar`` directory
-        # load_path='load_path_placeholder',
-        load_path='bipedalwalker_sac_gail_seed0/reward_model/ckpt/ckpt_last.pth.tar',
+        # In DI-engine, it is ``exp_name/reward_model/ckpt/ckpt_best.pth.tar``
+        load_path='load_path_placeholder',
     ),
     policy=dict(
         cuda=False,
