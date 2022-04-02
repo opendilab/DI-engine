@@ -11,6 +11,7 @@ hopper_gcl_config = dict(
         use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=3000,
+        manager=dict(shared_memory=False, ),
     ),
     reward_model=dict(
         learning_rate=0.001,

@@ -29,7 +29,7 @@ hopper_trex_onppo_config = dict(
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         expert_model_path='model_path_placeholder',
         # Path where to store the reward model
-        reward_model_path='abs_data_path + ./ant.params',
+        reward_model_path='abs_data_path + ./hopper.params',
         continuous=True,
         # Path to the offline dataset
         # See ding/entry/application_entry_trex_collect_data.py to collect the data
@@ -41,9 +41,9 @@ hopper_trex_onppo_config = dict(
         model=dict(
             obs_shape=11,
             action_shape=3,
-            continuous=True,
+            action_space='continuous',
         ),
-        continuous=True,
+        action_space='continuous',
         learn=dict(
             epoch_per_collect=10,
             batch_size=64,

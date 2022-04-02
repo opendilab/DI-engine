@@ -11,6 +11,7 @@ hopper_cql_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
@@ -68,9 +69,3 @@ hopper_cql_create_config = dict(
 )
 hopper_cql_create_config = EasyDict(hopper_cql_create_config)
 create_config = hopper_cql_create_config
-
-
-if __name__ == "___main___":
-    # or you can enter `ding -m serial -c hopper_cql_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)

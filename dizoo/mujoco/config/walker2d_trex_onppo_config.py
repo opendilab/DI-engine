@@ -24,13 +24,12 @@ walker2d_trex_onppo_config = dict(
         checkpoint_step=1000,
         learning_rate=1e-5,
         update_per_collect=1,
-        update_per_collect=1,
         # Users should add their own model path here. Model path should lead to a model.
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
         expert_model_path='model_path_placeholder',
         # Path where to store the reward model
-        reward_model_path='abs_data_path + ./ant.params',
+        reward_model_path='abs_data_path + ./walker2d.params',
         continuous=True,
         # Path to the offline dataset
         # See ding/entry/application_entry_trex_collect_data.py to collect the data
@@ -42,9 +41,9 @@ walker2d_trex_onppo_config = dict(
         model=dict(
             obs_shape=17,
             action_shape=6,
-            continuous=True,
+            action_space='continuous',
         ),
-        continuous=True,
+        action_space='continuous',
         learn=dict(
             epoch_per_collect=10,
             batch_size=64,

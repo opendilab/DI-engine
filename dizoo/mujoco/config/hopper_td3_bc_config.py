@@ -11,6 +11,7 @@ hopper_td3_bc_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
@@ -75,7 +76,7 @@ hopper_td3_bc_create_config = EasyDict(hopper_td3_bc_create_config)
 create_config = hopper_td3_bc_create_config
 
 
-if __name__ == "__main__":
-    # or you can enter `ding -m serial -c hopper_td3_bc_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+# if __name__ == "__main__":
+#     # or you can enter `ding -m serial -c hopper_td3_bc_config.py -s 0`
+#     from ding.entry import serial_pipeline
+#     serial_pipeline([main_config, create_config], seed=0)

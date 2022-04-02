@@ -35,6 +35,7 @@ main_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=100000,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=cuda,

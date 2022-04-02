@@ -19,9 +19,9 @@ walker2d_ppo_config = dict(
         model=dict(
             obs_shape=17,
             action_shape=6,
-            continuous=True,
+            action_space='continuous',
         ),
-        continuous=True,
+        action_space='continuous',
         learn=dict(
             epoch_per_collect=10,
             batch_size=64,
