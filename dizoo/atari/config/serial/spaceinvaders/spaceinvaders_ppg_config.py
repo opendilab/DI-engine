@@ -1,8 +1,8 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 spaceinvaders_ppg_config = dict(
+    exp_name='spaceinvaders_ppg_seed0',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=8,
@@ -60,8 +60,8 @@ spaceinvaders_ppg_config = dict(
         ),
     ),
 )
-main_config = EasyDict(spaceinvaders_ppg_config)
-
+spaceinvaders_ppg_config = EasyDict(spaceinvaders_ppg_config)
+main_config = spaceinvaders_ppg_config
 spaceinvaders_ppg_create_config = dict(
     env=dict(
         type='atari',
@@ -70,4 +70,9 @@ spaceinvaders_ppg_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppg'),
 )
+spaceinvaders_ppg_create_config = EasyDict(spaceinvaders_ppg_create_config)
 create_config = EasyDict(spaceinvaders_ppg_create_config)
+
+if __name__ == '__main__':
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

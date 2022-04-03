@@ -1,5 +1,4 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 spaceinvaders_qrdqn_config = dict(
@@ -57,4 +56,5 @@ spaceinvaders_qrdqn_create_config = EasyDict(spaceinvaders_qrdqn_create_config)
 create_config = spaceinvaders_qrdqn_create_config
 
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

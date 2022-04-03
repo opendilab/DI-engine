@@ -2,7 +2,7 @@ from copy import deepcopy
 from easydict import EasyDict
 
 spaceinvaders_trex_ppo_config = dict(
-    exp_name='spaceinvaders_trex_offppo',
+    exp_name='spaceinvaders_trex_offppo_seed0',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=8,
@@ -23,9 +23,22 @@ spaceinvaders_trex_ppo_config = dict(
         checkpoint_step=100,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./spaceinvaders.params',
-        offline_data_path='abs data path',
+        # path to expert models that generate demonstration data
+        # Users should add their own model path here. Model path should lead to an exp_name.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name``.
+        # For example, if you want to use dqn to generate demos, you can use ``spaceinvaders_dqn``
+        expert_model_path='expert_model_path_placeholder',
+        # path to save reward model
+        # Users should add their own model path here.
+        # Absolute path is recommended.
+        # For example, if you use ``spaceinvaders_drex``, then the reward model will be saved in this directory.
+        reward_model_path='reward_model_path_placeholder + ./spaceinvaders.params',
+        # path to save generated observations.
+        # Users should add their own model path here.
+        # Absolute path is recommended.
+        # For example, if you use ``spaceinvaders_drex``, then all the generated data will be saved in this directory.
+        offline_data_path='offline_data_path_placeholder',
     ),
     policy=dict(
         cuda=True,
@@ -63,14 +76,23 @@ spaceinvaders_trex_ppo_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(spaceinvaders_trex_ppo_config)
+spaceinvaders_trex_ppo_config = EasyDict(spaceinvaders_trex_ppo_config)
+main_config = spaceinvaders_trex_ppo_config
 
 spaceinvaders_trex_ppo_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
-create_config = EasyDict(spaceinvaders_trex_ppo_create_config)
+spaceinvaders_trex_ppo_create_config = EasyDict(spaceinvaders_trex_ppo_create_config)
+create_config = spaceinvaders_trex_ppo_create_config
+
+if __name__ == '__main__':
+    from ding.entry import trex_collecting_data, serial_pipeline_reward_model_trex
+
+    args = EasyDict(dict(cfg=[main_config, create_config], seed=0, device='cuda'))
+    trex_collecting_data(args)
+    serial_pipeline_reward_model_trex([main_config, create_config], seed=0)

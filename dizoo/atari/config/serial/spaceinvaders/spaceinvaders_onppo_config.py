@@ -1,8 +1,8 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline_onpolicy
 from easydict import EasyDict
 
 spaceinvaders_ppo_config = dict(
+    exp_name='spaceinvaders_onppo_seed0',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=8,
@@ -58,30 +58,11 @@ spaceinvaders_ppo_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
 )
 create_config = EasyDict(spaceinvaders_ppo_create_config)
 
-# if __name__ == "__main__":
-#     serial_pipeline_onpolicy([main_config, create_config], seed=0)
-
-
-def train(args):
-    main_config.exp_name = 'spaceinvaders_onppo_noig' + '_seed' + f'{args.seed}'
-    import copy
-    # 3125 iterations= 10M env steps / 3200
-    serial_pipeline_onpolicy(
-        [copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=3125
-    )
-
-
 if __name__ == "__main__":
-    import argparse
-    for seed in [0, 1, 2, 3, 4]:
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--seed', '-s', type=int, default=seed)
-        args = parser.parse_args()
-
-        train(args)
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy([main_config, create_config], seed=0)

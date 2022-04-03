@@ -1,5 +1,4 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 spaceinvaders_ppo_config = dict(
@@ -49,7 +48,8 @@ spaceinvaders_ppo_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(spaceinvaders_ppo_config)
+spaceinvaders_ppo_config = EasyDict(spaceinvaders_ppo_config)
+main_config = spaceinvaders_ppo_config
 
 spaceinvaders_ppo_create_config = dict(
     env=dict(
@@ -59,7 +59,9 @@ spaceinvaders_ppo_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
-create_config = EasyDict(spaceinvaders_ppo_create_config)
+spaceinvaders_ppo_create_config = EasyDict(spaceinvaders_ppo_create_config)
+create_config = spaceinvaders_ppo_create_config
 
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

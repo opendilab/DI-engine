@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 spaceinvaders_dqfd_config = dict(
-    exp_name='spaceinvaders_dqfd',
+    exp_name='spaceinvaders_dqfd_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -58,3 +58,10 @@ spaceinvaders_dqfd_create_config = dict(
 )
 spaceinvaders_dqfd_create_config = EasyDict(spaceinvaders_dqfd_create_config)
 create_config = spaceinvaders_dqfd_create_config
+
+if __name__ == '__main__':
+    from ding.entry.serial_entry_dqfd import serial_pipeline_dqfd
+    config = [deepcopy(main_config), deepcopy(create_config)]
+    config[0].policy.collect.demonstration_info_path = 'demonstration_info_path_placeholder'
+    config[0].policy.learn.update_per_collect = 1
+    serial_pipeline_dqfd(config, [main_config, create_config], seed=0)
