@@ -3,9 +3,10 @@ from easydict import EasyDict
 n_agent = 4
 n_landmark = n_agent  # In simple_spread_v2, n_landmark must = n_agent
 collector_env_num = 4
-evaluator_env_num = 2
+evaluator_env_num = 5
 communication = True
 ptz_simple_spread_atoc_config = dict(
+    exp_name='ptz_simple_spread_atoc_seed0',
     env=dict(
         env_family='mpe',
         env_id='simple_spread_v2',
@@ -17,7 +18,7 @@ ptz_simple_spread_atoc_config = dict(
         act_scale=True,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=10,
+        n_evaluator_episode=evaluator_env_num,
         stop_value=0,
     ),
     policy=dict(
@@ -50,7 +51,6 @@ ptz_simple_spread_atoc_config = dict(
         ),
         collect=dict(
             n_sample=500,
-            unroll_len=1,
             noise_sigma=0.4,
         ),
         other=dict(replay_buffer=dict(replay_buffer_size=100000, ), )
@@ -68,3 +68,8 @@ ptz_simple_spread_atoc_create_config = dict(
 )
 ptz_simple_spread_atoc_create_config = EasyDict(ptz_simple_spread_atoc_create_config)
 create_config = ptz_simple_spread_atoc_create_config
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial -c ptz_simple_spread_atoc_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
