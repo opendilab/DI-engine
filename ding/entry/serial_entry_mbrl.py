@@ -104,6 +104,7 @@ def serial_pipeline_mbrl(
     # Create policy
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
+    policy._env_model = env_model
 
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
