@@ -199,6 +199,11 @@ class SMACEnv(SC2Env, BaseEnv):
             reward_only_positive=self.reward_only_positive
         )
 
+        self._observation_space = self.get_obs_space()
+        self._action_space = self.action_helper.info(),
+        self._reward_space = self.reward_helper.info(),
+
+
     def seed(self, seed, dynamic_seed=False):
         self._seed = seed
 
@@ -1593,7 +1598,7 @@ class SMACEnv(SC2Env, BaseEnv):
         ava_action = np.array(ava_action).astype(np.float32)
         return ava_action
 
-    def info(self, is_opponent=False):
+    def get_obs_space(self, is_opponent=False):
         T = EnvElementInfo
         agent_num = self.n_enemies if is_opponent else self.n_agents
         if self.obs_alone:
@@ -1626,13 +1631,20 @@ class SMACEnv(SC2Env, BaseEnv):
                     },
                     None,
                 )
-        return self.SMACEnvInfo(
-            agent_num=agent_num,
-            obs_space=obs_space,
-            act_space=self.action_helper.info(),
-            rew_space=self.reward_helper.info(),
-            episode_limit=self.episode_limit,
-        )
+        return obs_space
+
+
+    @property
+    def observation_space(self):
+        return self._observation_space
+
+    @property
+    def action_space(self):
+        return self._action_space
+
+    @property
+    def reward_space(self):
+        return self._reward_space
 
     def __repr__(self):
         return "DI-engine SMAC Env"

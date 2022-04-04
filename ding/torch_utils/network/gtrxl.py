@@ -463,6 +463,9 @@ class GTrXL(nn.Module):
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
             torch.nn.Parameter(torch.zeros(self.head_num, self.head_dim)),
         )
+        self.att_mask = {}  # create an attention mask for each different seq_len, in this way we don't need to create a
+        # new one each time we call the forward method
+        self.pos_embedding_dict = {}  # create a pos embedding for each different seq_len
 
     def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
         r"""
@@ -528,16 +531,24 @@ class GTrXL(nn.Module):
         prev_seq = self.memory_len
         full_seq = cur_seq + prev_seq
 
-        # TODO: add padding to attention mask, https://huggingface.co/docs/transformers/preprocessing
-        dec_attn_mask = (
-            torch.triu(
-                torch.ones((cur_seq, full_seq)),
-                diagonal=1 + prev_seq,
-            ).bool().unsqueeze(-1).to(x.device)
-        )  # cur_seq x full_seq x 1
+        if cur_seq in self.att_mask.keys():
+            attn_mask = self.att_mask[cur_seq]
+        else:
+            attn_mask = (
+                torch.triu(
+                    torch.ones((cur_seq, full_seq)),
+                    diagonal=1 + prev_seq,  # fixed in train, eval, collect
+                ).bool().unsqueeze(-1).to(x.device)
+            )  # cur_seq x full_seq x 1
+            self.att_mask[cur_seq] = attn_mask
 
-        pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
-        pos_embedding = self.dropout(self.pos_embedding(pos_ips.to(x.device)))  # full_seq x 1 x embedding_dim
+        if cur_seq in self.pos_embedding_dict.keys():
+            pos_embedding = self.pos_embedding_dict[cur_seq]
+        else:
+            pos_ips = torch.arange(full_seq - 1, -1, -1.0, dtype=torch.float)  # full_seq
+            pos_embedding = self.pos_embedding(pos_ips.to(x.device))
+            self.pos_embedding_dict[cur_seq] = pos_embedding
+        pos_embedding = self.dropout(pos_embedding)  # full_seq x 1 x embedding_dim
 
         hidden_state = [x]
         out = x
@@ -548,7 +559,7 @@ class GTrXL(nn.Module):
                 pos_embedding,
                 self.u,
                 self.v,
-                mask=dec_attn_mask,
+                mask=attn_mask,
                 memory=memory[i],  # (layer_num+1) x memory_len x batch_size x embedding_dim
             )  # cur_seq x bs x embedding_dim
             hidden_state.append(out.clone())
