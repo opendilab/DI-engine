@@ -4,6 +4,7 @@ import copy
 import numpy as np
 import torch
 from torch import nn
+from scipy.spatial import KDTree
 
 from .mbpo import EnsembleModel, StandardScaler
 from ding.utils import MODEL_REGISTRY
@@ -26,7 +27,7 @@ class EnsembleGradientModel(EnsembleModel):
 
 
 
-@MODEL_REGISTRY.register('DDPPO')
+@MODEL_REGISTRY.register('ddppo')
 class EnsembleDoubleModel(nn.Module):
     """rollout model + gradient model"""
 
@@ -48,7 +49,8 @@ class EnsembleDoubleModel(nn.Module):
         tb_logger=None,
 
         # parameters for DDPPO
-        n_near=3,
+        use_gradient_model=True,
+        k=3,
         reg=1,
     ):
         super(EnsembleDoubleModel, self).__init__()
@@ -64,7 +66,7 @@ class EnsembleDoubleModel(nn.Module):
         self.rollout_model = EnsembleModel(
             state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
         )
-        self.gradient_model = EnsembleModel(
+        self.gradient_model = EnsembleGradientModel(
             state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
         )
 
@@ -84,7 +86,9 @@ class EnsembleDoubleModel(nn.Module):
         self.holdout_ratio = holdout_ratio
         self.elite_model_idxes = []
 
-        self._n_near = n_near
+        # parameters for DDPPO
+        self._use_gradient_model = use_gradient_model
+        self._k = k
         self._reg = reg
 
 
@@ -171,19 +175,24 @@ class EnsembleDoubleModel(nn.Module):
                 labels = labels.cuda()
             return inputs, labels
 
+
+        logvar = dict()
+
         data = buffer.sample(buffer.count(), train_iter)
         inputs, labels = train_sample(data)
-
-        # Sample from the end of the buffer to get clustered data points for gradient loss regulation.
-        # https://github.com/paperddppo/ddppo/blob/main/ddppo/model_regular_on_jacobian.py#L513
-        data_reg = None # TODO (jrn)
-        inputs_reg, labels_reg = train_sample(data_reg)
-
-        # train
-        logvar = dict()
         logvar.update(self._train_rollout_model(inputs, labels))
-        logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
+
+        if self._use_gradient_model:
+            # Sample from the end of the buffer to get clustered data points for gradient loss regulation.
+            # https://github.com/paperddppo/ddppo/blob/main/ddppo/model_regular_on_jacobian.py#L513
+            n = min(buffer.count(), 10000)
+            data_reg = buffer.sample(n, slice(-n, None))
+            inputs_reg, labels_reg = train_sample(data_reg)
+            logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
+
+
         self.last_train_step = envstep
+
         # log
         if self.tb_logger is not None:
             for k, v in logvar.items():
@@ -244,13 +253,39 @@ class EnsembleDoubleModel(nn.Module):
             self.bottom_holdout_mse_loss = sorted_loss[-1]
             self.best_holdout_mse_loss = holdout_mse_loss.mean().item()
         return {
-            'mse_loss': self.mse_loss,
-            'curr_holdout_mse_loss': self.curr_holdout_mse_loss,
-            'best_holdout_mse_loss': self.best_holdout_mse_loss,
-            'top_holdout_mse_loss': self.top_holdout_mse_loss,
-            'middle_holdout_mse_loss': self.middle_holdout_mse_loss,
-            'bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
+            'rollout_model/mse_loss': self.mse_loss,
+            'rollout_model/curr_holdout_mse_loss': self.curr_holdout_mse_loss,
+            'rollout_model/best_holdout_mse_loss': self.best_holdout_mse_loss,
+            'rollout_model/top_holdout_mse_loss': self.top_holdout_mse_loss,
+            'rollout_model/middle_holdout_mse_loss': self.middle_holdout_mse_loss,
+            'rollout_model/bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
         }
+
+    
+    def _get_jacobian(self, model, train_input_reg):
+        """
+            train_input_reg: [network_size, B, state_size+action_size]
+
+            ret: [network_size, B, state_size+reward_size, state_size+action_size]
+        """
+        def func(x):
+            x = x.view(self.network_size, -1, self.state_size+self.action_size)
+            state = x[:, :, :self.state_size]
+            x = self.scaler.transform(x)
+            y, _ = model(x)
+            # y[:, :, self.reward_size:] += state, inplace operation leads to error
+            null = torch.zeros_like(y)
+            null[:, :, self.reward_size:] += state
+            y = y + null
+
+            return y.view(-1, self.state_size+self.reward_size, self.state_size+self.reward_size)
+
+        # reshape input
+        train_input_reg = train_input_reg.view(-1, self.state_size+self.action_size)
+        jacobian = get_batch_jacobian(func, train_input_reg, self.state_size+self.reward_size)
+
+        # reshape jacobian
+        return jacobian.view(self.network_size, -1, self.state_size+self.reward_size, self.state_size+self.action_size)
 
     
     def _train_gradient_model(self, inputs, labels, inputs_reg, labels_reg):
@@ -264,14 +299,18 @@ class EnsembleDoubleModel(nn.Module):
         train_inputs = self.scaler.transform(train_inputs)
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
-        #no split and normalization on regulation data 
-        train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
-
-        # TODO (jrn): KDTree 
-
         #repeat for ensemble
         holdout_inputs = holdout_inputs[None, :, :].repeat(self.network_size, 1, 1)
         holdout_labels = holdout_labels[None, :, :].repeat(self.network_size, 1, 1)
+
+        #no split and normalization on regulation data 
+        train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
+
+        knn_index  = get_knn_index(train_inputs_reg, self._k)
+        knn_inputs = train_inputs_reg[knn_index]  # [N, k, state_size+action_size]
+        knn_labels = train_labels_reg[knn_index]  # [N, k, state_size+reward_size]
+        knn_inputs_distance = (knn_inputs - train_inputs_reg.unsqueeze(1))  # [N, k, state_size+action_size]
+        knn_labels_distance = (knn_labels - train_labels_reg.unsqueeze(1))  # [N, k, state_size+reward_size]
 
         self._epochs_since_update = 0
         self._snapshots = {i: (-1, 1e10) for i in range(self.network_size)}
@@ -285,6 +324,7 @@ class EnsembleDoubleModel(nn.Module):
                                      for _ in range(self.network_size)]).to(train_inputs_reg.device)
             
             self.mse_loss = []
+            self.grad_loss = []
             for start_pos in range(0, train_inputs.shape[0], self.batch_size):
                 idx = train_idx[:, start_pos:start_pos + self.batch_size]
                 train_input = train_inputs[idx]
@@ -292,12 +332,28 @@ class EnsembleDoubleModel(nn.Module):
                 mean, logvar = self.gradient_model(train_input, ret_log_var=True)
                 loss, mse_loss = self.gradient_model.loss(mean, logvar, train_label)
 
-                # TODO (jrn): regulation loss 
-                loss_reg = None
+                # regulation loss
+                if start_pos % train_inputs_reg.shape[0] < (start_pos + self.batch_size) % train_inputs_reg.shape[0]:
+                    idx_reg = train_idx_reg[:, start_pos % train_inputs_reg.shape[0]: (start_pos + self.batch_size) % train_inputs_reg.shape[0]]
+                else:
+                    idx_reg = train_idx_reg[:, 0: (start_pos + self.batch_size) % train_inputs_reg.shape[0]]
+
+                train_input_reg = train_inputs_reg[idx_reg]
+                knn_input_distance = knn_inputs_distance[idx_reg]  # [network_size, B, k, state_size+action_size]
+                knn_label_distance = knn_labels_distance[idx_reg]  # [network_size, B, k, state_size+reward_size]
+
+                jacobian = self._get_jacobian(self.gradient_model, train_input_reg).unsqueeze(2).repeat_interleave(self._k, dim=2)  # [network_size, B, k(repeat), state_size+reward_size, state_size+action_size]
+
+                directional_derivative = (jacobian @ knn_input_distance.unsqueeze(-1)).squeeze(-1)  # [network_size, B, k, state_size+reward_size]
+
+                loss_reg = torch.pow((knn_label_distance - directional_derivative), 2).sum(0).mean()  # sumed over network
 
                 self.gradient_model.train(loss, loss_reg, self._reg)
                 self.mse_loss.append(mse_loss.mean().item())
+                self.grad_loss.append(loss_reg.item())
+
             self.mse_loss = sum(self.mse_loss) / len(self.mse_loss)
+            self.grad_loss = sum(self.grad_loss) / len(self.grad_loss)
 
             with torch.no_grad():
                 holdout_mean, holdout_logvar = self.gradient_model(holdout_inputs, ret_log_var=True)
@@ -320,13 +376,13 @@ class EnsembleDoubleModel(nn.Module):
             self.bottom_holdout_mse_loss = sorted_loss[-1]
             self.best_holdout_mse_loss = holdout_mse_loss.mean().item()
         return {
-            'mse_loss': self.mse_loss,
-            # TODO (jrn): log regulation loss
-            'curr_holdout_mse_loss': self.curr_holdout_mse_loss,
-            'best_holdout_mse_loss': self.best_holdout_mse_loss,
-            'top_holdout_mse_loss': self.top_holdout_mse_loss,
-            'middle_holdout_mse_loss': self.middle_holdout_mse_loss,
-            'bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
+            'gradient_model/mse_loss': self.mse_loss,
+            'gradient_model/grad_loss': self.grad_loss,
+            'gradient_model/curr_holdout_mse_loss': self.curr_holdout_mse_loss,
+            'gradient_model/best_holdout_mse_loss': self.best_holdout_mse_loss,
+            'gradient_model/top_holdout_mse_loss': self.top_holdout_mse_loss,
+            'gradient_model/middle_holdout_mse_loss': self.middle_holdout_mse_loss,
+            'gradient_model/bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
         }
 
 
@@ -387,7 +443,10 @@ class EnsembleDoubleModel(nn.Module):
             action = action.unsqueeze(1)
         inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
         # predict
-        outputs = Predict.apply(inputs)
+        if self._use_gradient_model:
+            outputs = Predict.apply(inputs)
+        else: 
+            outputs, _ = self.rollout_model(inputs, ret_log_var=False)
         outputs = outputs.mean(0)
         return outputs[:, 0], outputs[:, 1:] + obs
 
@@ -425,3 +484,34 @@ class EnsembleDoubleModel(nn.Module):
         rewards, next_obs = sample[:, :1], sample[:, 1:]
 
         return rewards.detach().cpu(), next_obs.detach().cpu()
+
+
+#======================= Helper functions =======================
+def get_knn_index(data, k):
+    """
+        data: [B, N]
+        k: int
+
+        ret: [B, k]
+    """
+    data = data.cpu().numpy()
+    tree = KDTree(data)
+    tree_query = lambda datapoint: tree.query(datapoint, k=k+1)[1][1:]
+    # TODO: multiprocessing
+    nn_index = torch.from_numpy(
+        np.array(list(map(tree_query, data)), dtype=np.int32)
+    ).to(torch.long)
+    return nn_index
+
+
+def get_batch_jacobian(net, x, noutputs): # x: b, in dim, noutpouts: out dim
+    x = x.unsqueeze(1) # b, 1 ,in_dim
+    n = x.size()[0]
+    x = x.repeat(1, noutputs, 1) # b, out_dim, in_dim
+    x.requires_grad_(True)
+    y = net(x)
+    upstream_gradient = torch.eye(noutputs
+        ).reshape(1, noutputs, noutputs).repeat(n, 1, 1).to(x.device)
+    re = torch.autograd.grad(y, x, upstream_gradient, create_graph=True)[0]
+
+    return re
