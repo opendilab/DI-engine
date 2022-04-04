@@ -186,7 +186,7 @@ class EnsembleDoubleModel(nn.Module):
             # Sample from the end of the buffer to get clustered data points for gradient loss regulation.
             # https://github.com/paperddppo/ddppo/blob/main/ddppo/model_regular_on_jacobian.py#L513
             n = min(buffer.count(), 10000)
-            data_reg = buffer.sample(n, slice(-n, None))
+            data_reg = buffer.sample(n, train_iter, sample_range=slice(-n, None))
             inputs_reg, labels_reg = train_sample(data_reg)
             logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
 
