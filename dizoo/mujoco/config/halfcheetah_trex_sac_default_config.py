@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 halfcheetah_trex_sac_default_config = dict(
-    exp_name='halfcheetah_trex_sac',
+    exp_name='halfcheetah_trex_sac_seed0',
     env=dict(
         manager=dict(shared_memory=True, reset_inplace=True),
         env_id='HalfCheetah-v3',
@@ -14,9 +14,6 @@ halfcheetah_trex_sac_default_config = dict(
         stop_value=12000,
     ),
     reward_model=dict(
-        type='trex',
-        algo_for_model='sac',
-        env_id='HalfCheetah-v3',
         learning_rate=1e-5,
         min_snippet_length=30,
         max_snippet_length=100,
@@ -24,10 +21,18 @@ halfcheetah_trex_sac_default_config = dict(
         checkpoint_max=9000,
         checkpoint_step=1000,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + /HalfCheetah.params',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='data_path_placeholder + /HalfCheetah.params',
         continuous=True,
-        offline_data_path='asb data path',
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # See ding/entry/application_entry_trex_collect_data.py to collect the data
+        offline_data_path='data_path_placeholder',
     ),
     policy=dict(
         cuda=True,
@@ -80,3 +85,21 @@ halfcheetah_trex_sac_default_create_config = dict(
 )
 halfcheetah_trex_sac_default_create_config = EasyDict(halfcheetah_trex_sac_default_create_config)
 create_config = halfcheetah_trex_sac_default_create_config
+
+if __name__=='__main__':
+    import argparse
+    import torch
+    from ding.entry import trex_collecting_data
+    from ding.entry import serial_pipeline_reward_model_trex
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--cfg',
+        type=str,
+        default='please enter abs path for this file'
+    )
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    args = parser.parse_args()
+
+    trex_collecting_data(args)
+    serial_pipeline_reward_model_trex([main_config, create_config])

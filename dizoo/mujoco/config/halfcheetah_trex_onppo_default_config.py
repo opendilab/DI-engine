@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 halfCheetah_trex_ppo_default_config = dict(
-    exp_name='HalfCheetah_trex_onppo',
+    exp_name='halfcheetah_trex_onppo_seed0',
     env=dict(
         manager=dict(shared_memory=True, reset_inplace=True),
         env_id='HalfCheetah-v3',
@@ -14,21 +14,26 @@ halfCheetah_trex_ppo_default_config = dict(
         stop_value=3000,
     ),
     reward_model=dict(
-        type='trex',
-        algo_for_model='ppo',
-        env_id='HalfCheetah-v3',
         min_snippet_length=30,
         max_snippet_length=100,
-        checkpoint_min=10000,
-        checkpoint_max=90000,
-        checkpoint_step=10000,
+        checkpoint_min=100,
+        checkpoint_max=900,
+        checkpoint_step=100,
         num_snippets=60000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + /HalfCheetah.params',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='data_path_placeholder + /HalfCheetah.params',
         continuous=True,
-        offline_data_path='asb data path',
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # See ding/entry/application_entry_trex_collect_data.py to collect the data
+        offline_data_path='data_path_placeholder',
     ),
     policy=dict(
         cuda=True,
@@ -36,9 +41,9 @@ halfCheetah_trex_ppo_default_config = dict(
         model=dict(
             obs_shape=17,
             action_shape=6,
-            continuous=True,
+            action_space='continuous',
         ),
-        continuous=True,
+        action_space='continuous',
         learn=dict(
             epoch_per_collect=10,
             batch_size=64,
@@ -71,3 +76,17 @@ halfCheetah_trex_ppo_create_default_config = dict(
 )
 halfCheetah_trex_ppo_create_default_config = EasyDict(halfCheetah_trex_ppo_create_default_config)
 create_config = halfCheetah_trex_ppo_create_default_config
+
+if __name__ == '__main__':
+    import argparse
+    import torch
+    from ding.entry import trex_collecting_data
+    from ding.entry import serial_pipeline_reward_model_trex_onpolicy
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    args = parser.parse_args()
+
+    trex_collecting_data(args)
+    serial_pipeline_reward_model_trex_onpolicy([main_config, create_config])

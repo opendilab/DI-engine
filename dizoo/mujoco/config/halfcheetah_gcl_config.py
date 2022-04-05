@@ -1,8 +1,8 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_guided_cost
 
 halfcheetah_gcl_default_config = dict(
     env=dict(
+        exp_name='halfcheetah_gcl_sac_seed0',
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
@@ -46,7 +46,14 @@ halfcheetah_gcl_default_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            demonstration_info_path='path',
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path=
+            '/Users/nieyunpeng/Documents/files_to_be_delete/lunarlander_doc/halfcheetah_sac_seed0/ckpt/ckpt_best.pth.tar',
+            # If you need the data collected by the collector to contain logit key which reflect the probability of
+            # the action, you can change the key to be True.
+            # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
             collector_logit=True,
             n_sample=256,
             unroll_len=1,
@@ -65,7 +72,7 @@ halfcheetah_gcl_default_create_config = dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
@@ -77,4 +84,5 @@ halfcheetah_gcl_default_create_config = EasyDict(halfcheetah_gcl_default_create_
 create_config = halfcheetah_gcl_default_create_config
 
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline_guided_cost
     serial_pipeline_guided_cost((main_config, create_config), seed=0)

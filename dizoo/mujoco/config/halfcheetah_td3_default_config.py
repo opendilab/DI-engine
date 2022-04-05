@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 halfcheetah_td3_default_config = dict(
     env=dict(
-        env_id='HalfCheetah-v3',
+        env_id='halfcheetah_td3_seed0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
@@ -55,7 +55,7 @@ halfcheetah_td3_default_create_config = dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='td3',
         import_names=['ding.policy.td3'],
@@ -64,3 +64,8 @@ halfcheetah_td3_default_create_config = dict(
 )
 halfcheetah_td3_default_create_config = EasyDict(halfcheetah_td3_default_create_config)
 create_config = halfcheetah_td3_default_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c halfcheetah_td3_config.py -s 0 --env-step 1e7`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
