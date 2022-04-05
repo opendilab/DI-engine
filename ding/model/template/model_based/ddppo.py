@@ -1,5 +1,6 @@
 import itertools
 import copy
+import multiprocessing
 
 import numpy as np
 import torch
@@ -496,11 +497,16 @@ def get_knn_index(data, k):
     """
     data = data.cpu().numpy()
     tree = KDTree(data)
-    tree_query = lambda datapoint: tree.query(datapoint, k=k+1)[1][1:]
+    global tree_query
+    # tree_query = lambda datapoint: tree.query(datapoint, k=k+1)[1][1:]
+    def tree_query(datapoint):
+        return tree.query(datapoint, k=k+1)[1][1:]
     # TODO: multiprocessing
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     nn_index = torch.from_numpy(
-        np.array(list(map(tree_query, data)), dtype=np.int32)
+        np.array(list(pool.map(tree_query, data)), dtype=np.int32)
     ).to(torch.long)
+    pool.close()
     return nn_index
 
 
