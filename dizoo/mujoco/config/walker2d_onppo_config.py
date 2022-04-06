@@ -1,9 +1,9 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_onpolicy
 
 collector_env_num = 1
 evaluator_env_num = 1
-walker2d_ppo_default_config = dict(
+walker2d_onppo_config = dict(
+    exp_name='walker2d_onppo_seed0',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -13,6 +13,7 @@ walker2d_ppo_default_config = dict(
         use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=6000,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
@@ -52,10 +53,10 @@ walker2d_ppo_default_config = dict(
         eval=dict(evaluator=dict(eval_freq=500, )),
     ),
 )
-walker2d_ppo_default_config = EasyDict(walker2d_ppo_default_config)
-main_config = walker2d_ppo_default_config
+walker2d_onppo_config = EasyDict(walker2d_onppo_config)
+main_config = walker2d_onppo_config
 
-walker2d_ppo_create_default_config = dict(
+walker2d_onppo_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -64,27 +65,11 @@ walker2d_ppo_create_default_config = dict(
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ppo', ),
 )
-walker2d_ppo_create_default_config = EasyDict(walker2d_ppo_create_default_config)
-create_config = walker2d_ppo_create_default_config
-
-# if __name__ == "__main__":
-#     serial_pipeline_onpolicy([main_config, create_config], seed=0)
-
-
-def train(args):
-    main_config.exp_name = 'wlker2d_onppo_noig' + '_seed' + f'{args.seed}'
-    import copy
-    # 937.4 iterations= 3M env steps / 3200
-    serial_pipeline_onpolicy(
-        [copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=938
-    )
+walker2d_onppo_create_config = EasyDict(walker2d_onppo_create_config)
+create_config = walker2d_onppo_create_config
 
 
 if __name__ == "__main__":
-    import argparse
-    for seed in [0, 1, 2, 3, 4]:
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--seed', '-s', type=int, default=seed)
-        args = parser.parse_args()
-
-        train(args)
+    # or you can enter `ding -m serial_onpolicy -c walker2d_onppo_config.py -s 0`
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy([main_config, create_config], seed=0)

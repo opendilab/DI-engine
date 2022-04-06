@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-walker2d_ddpg_gail_default_config = dict(
-    exp_name='walker2d_ddpg_gail',
+walker2d_ddpg_gail_config = dict(
+    exp_name='walker2d_ddpg_gail_seed0',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -11,6 +11,7 @@ walker2d_ddpg_gail_default_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
+        manager=dict(shared_memory=False, ),
     ),
     reward_model=dict(
         type='gail',
@@ -19,13 +20,23 @@ walker2d_ddpg_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='walker2d_ddpg/expert_data.pkl',
-        load_path='walker2d_ddpg_gail/reward_model/ckpt/ckpt_best.pth.tar',  # state_dict of the reward model
-        expert_load_path='walker2d_ddpg/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
+        # Users should add their own data path here. 
+        # Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        expert_data_path='data_path_placeholder',
+        # state_dict of the reward model. Model path should lead to a model.
+        # Absolute path is recommended.
+        load_path='model_path_placeholder',
+        # path to the expert state_dict.
+        expert_load_path='model_path_placeholder',
         collect_count=100000,
     ),
     policy=dict(
-        load_path='walker2d_ddpg_gail/ckpt/ckpt_best.pth.tar',  # state_dict of the policy
+        # state_dict of the policy.
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        load_path='walker2d_ddpg_gail/ckpt/ckpt_best.pth.tar',
         cuda=True,
         on_policy=False,
         random_collect_size=25000,
@@ -56,20 +67,32 @@ walker2d_ddpg_gail_default_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
-walker2d_ddpg_gail_default_config = EasyDict(walker2d_ddpg_gail_default_config)
-main_config = walker2d_ddpg_gail_default_config
+walker2d_ddpg_gail_config = EasyDict(walker2d_ddpg_gail_config)
+main_config = walker2d_ddpg_gail_config
 
-walker2d_ddpg_gail_default_create_config = dict(
+walker2d_ddpg_gail_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='ddpg',
         import_names=['ding.policy.ddpg'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-walker2d_ddpg_gail_default_create_config = EasyDict(walker2d_ddpg_gail_default_create_config)
-create_config = walker2d_ddpg_gail_default_create_config
+walker2d_ddpg_gail_create_config = EasyDict(walker2d_ddpg_gail_create_config)
+create_config = walker2d_ddpg_gail_create_config
+
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial_gail -c walker2d_ddpg_gail_config.py -s 0`
+    from ding.entry import serial_pipeline_gail
+    from hopper_sac_config import hopper_sac_config, hopper_sac_create_config
+    serial_pipeline_gail(
+        [main_config, create_config], [hopper_sac_config, hopper_sac_create_config],
+        max_iterations=1000000,
+        seed=0,
+        collect_data=True
+    )

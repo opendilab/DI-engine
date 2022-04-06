@@ -12,7 +12,7 @@ from ding.utils import set_pkg_seed
 from dizoo.classic_control.pendulum.envs import PendulumEnv
 from dizoo.mujoco.envs.mujoco_env import MujocoEnv
 from dizoo.classic_control.pendulum.config.pendulum_ppo_config import pendulum_ppo_config
-from dizoo.mujoco.config.hopper_d4pg_default_config import hopper_d4pg_default_config
+from dizoo.mujoco.config.hopper_d4pg_config import hopper_d4pg_config
 
 
 def main(cfg, seed=0, max_iterations=int(1e10)):
@@ -64,4 +64,4 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
 
 if __name__ == "__main__":
-    main(hopper_d4pg_default_config)
+    main(hopper_d4pg_config)

@@ -1,11 +1,9 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_gail
-from hopper_sac_default_config import hopper_sac_default_config, hopper_sac_default_create_config
 
 obs_shape = 11
 act_shape = 3
-hopper_sac_gail_default_config = dict(
-    exp_name='hopper_sac_gail',
+hopper_sac_gail_config = dict(
+    exp_name='hopper_sac_gail_seed0',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -15,6 +13,7 @@ hopper_sac_gail_default_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
+        manager=dict(shared_memory=False, ),
     ),
     reward_model=dict(
         type='gail',
@@ -23,9 +22,15 @@ hopper_sac_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='hopper_sac/expert_data.pkl',
-        load_path='hopper_sac/reward_model/ckpt/ckpt_best.pth.tar',  # state_dict of the reward model
-        expert_load_path='hopper_sac/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
+        # Users should add their own data path here. 
+        # Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        expert_data_path='data_path_placeholder',
+        # state_dict of the reward model. Model path should lead to a model.
+        # Absolute path is recommended.
+        load_path='model_path_placeholder',
+        # path to the expert state_dict.
+        expert_load_path='model_path_placeholder',
         collect_count=100000,
     ),
     policy=dict(
@@ -62,27 +67,31 @@ hopper_sac_gail_default_config = dict(
     ),
 )
 
-hopper_sac_gail_default_config = EasyDict(hopper_sac_gail_default_config)
-main_config = hopper_sac_gail_default_config
+hopper_sac_gail_config = EasyDict(hopper_sac_gail_config)
+main_config = hopper_sac_gail_config
 
-hopper_sac_gail_default_create_config = dict(
+hopper_sac_gail_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_sac_gail_default_create_config = EasyDict(hopper_sac_gail_default_create_config)
-create_config = hopper_sac_gail_default_create_config
+hopper_sac_gail_create_config = EasyDict(hopper_sac_gail_create_config)
+create_config = hopper_sac_gail_create_config
+
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial_gail -c hopper_sac_gail_config.py -s 0`
+    from ding.entry import serial_pipeline_gail
+    from hopper_sac_config import hopper_sac_config, hopper_sac_create_config
     serial_pipeline_gail(
-        [main_config, create_config], [hopper_sac_default_config, hopper_sac_default_create_config],
+        [main_config, create_config], [hopper_sac_config, hopper_sac_create_config],
         max_iterations=1000000,
         seed=0,
         collect_data=True

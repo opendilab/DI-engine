@@ -1,5 +1,4 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_mbrl
 
 # environment hypo
 env_id = 'Hopper-v2'
@@ -36,6 +35,7 @@ main_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=100000,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=cuda,
@@ -122,5 +122,7 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
+
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline_mbrl
     serial_pipeline_mbrl((main_config, create_config), seed=0)

@@ -1,15 +1,17 @@
 from easydict import EasyDict
 
-hopper_sac_data_genearation_default_config = dict(
+hopper_sac_config = dict(
+    exp_name='hopper_sac_seed0',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=10,
+        collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
@@ -34,18 +36,10 @@ hopper_sac_data_genearation_default_config = dict(
             alpha=0.2,
             reparameterization=True,
             auto_alpha=False,
-            learner=dict(
-                load_path='./default_experiment/ckpt/ckpt_best.pth.tar',
-                hook=dict(
-                    load_ckpt_before_run='./default_experiment/ckpt/ckpt_best.pth.tar',
-                    save_ckpt_after_run=False,
-                )
-            ),
         ),
         collect=dict(
             n_sample=1,
             unroll_len=1,
-            save_path='./default_experiment/expert_iteration_200000.pkl',
         ),
         command=dict(),
         eval=dict(),
@@ -53,20 +47,26 @@ hopper_sac_data_genearation_default_config = dict(
     ),
 )
 
-hopper_sac_data_genearation_default_config = EasyDict(hopper_sac_data_genearation_default_config)
-main_config = hopper_sac_data_genearation_default_config
+hopper_sac_config = EasyDict(hopper_sac_config)
+main_config = hopper_sac_config
 
-hopper_sac_data_genearation_default_create_config = dict(
+hopper_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_sac_data_genearation_default_create_config = EasyDict(hopper_sac_data_genearation_default_create_config)
-create_config = hopper_sac_data_genearation_default_create_config
+hopper_sac_create_config = EasyDict(hopper_sac_create_config)
+create_config = hopper_sac_create_config
+
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c hopper_sac_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)

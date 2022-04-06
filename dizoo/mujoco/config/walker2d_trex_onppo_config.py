@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-walker_trex_ppo_default_config = dict(
-    exp_name='walker2d_trex_onppo',
+walker2d_trex_onppo_config = dict(
+    exp_name='walker2d_trex_onppo_seed0',
     env=dict(
         manager=dict(shared_memory=True, reset_inplace=True),
         env_id='Walker2d-v3',
@@ -24,10 +24,16 @@ walker_trex_ppo_default_config = dict(
         checkpoint_step=1000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path+ ./walker2d.params',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='abs_data_path + ./walker2d.params',
         continuous=True,
-        offline_data_path='asb data path',
+        # Path to the offline dataset
+        # See ding/entry/application_entry_trex_collect_data.py to collect the data
+        offline_data_path='abs_data_path',
     ),
     policy=dict(
         cuda=True,
@@ -57,10 +63,10 @@ walker_trex_ppo_default_config = dict(
         eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-walker_trex_ppo_default_config = EasyDict(walker_trex_ppo_default_config)
-main_config = walker_trex_ppo_default_config
+walker2d_trex_onppo_config = EasyDict(walker2d_trex_onppo_config)
+main_config = walker2d_trex_onppo_config
 
-walker_trex_ppo_create_default_config = dict(
+walker2d_trex_onppo_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -68,5 +74,10 @@ walker_trex_ppo_create_default_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo', ),
 )
-walker_trex_ppo_create_default_config = EasyDict(walker_trex_ppo_create_default_config)
-create_config = walker_trex_ppo_create_default_config
+walker2d_trex_onppo_create_config = EasyDict(walker2d_trex_onppo_create_config)
+create_config = walker2d_trex_onppo_create_config
+
+
+if __name__ == "__main__":
+    from ding.entry import serial_pipeline_reward_model_trex_onpolicy
+    serial_pipeline_reward_model_trex_onpolicy([main_config, create_config])

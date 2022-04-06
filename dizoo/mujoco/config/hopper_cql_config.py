@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
-hopper_cql_default_config = dict(
+hopper_cql_config = dict(
+    exp_name='hopper_cql_seed0',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -10,6 +11,7 @@ hopper_cql_default_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=6000,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
@@ -39,7 +41,10 @@ hopper_cql_default_config = dict(
         collect=dict(
             unroll_len=1,
             data_type='naive',
-            data_path='./default_experiment/expert_iteration_200000.pkl',
+            # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+            # Absolute path is recommended.
+            # In DI-engine, it is usually located in ``exp_name`` directory
+            data_path='data_path_placeholder',
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=500, )),
@@ -47,20 +52,20 @@ hopper_cql_default_config = dict(
     ),
 )
 
-hopper_cql_default_config = EasyDict(hopper_cql_default_config)
-main_config = hopper_cql_default_config
+hopper_cql_config = EasyDict(hopper_cql_config)
+main_config = hopper_cql_config
 
-hopper_cql_default_create_config = dict(
+hopper_cql_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='cql',
         import_names=['ding.policy.cql'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_cql_default_create_config = EasyDict(hopper_cql_default_create_config)
-create_config = hopper_cql_default_create_config
+hopper_cql_create_config = EasyDict(hopper_cql_create_config)
+create_config = hopper_cql_create_config
