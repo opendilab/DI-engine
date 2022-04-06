@@ -156,7 +156,7 @@ class EnsembleDoubleModel(nn.Module):
 
     def train(self, buffer, train_iter, envstep):
 
-        def train_sample(data) -> tuple['inputs', 'labels']:
+        def train_sample(data) -> tuple:
             data = default_collate(data)
             data['done'] = data['done'].float()
             data['weight'] = data.get('weight', None)

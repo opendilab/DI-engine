@@ -238,7 +238,7 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('sac_nstep_command')
-class SACCommandModePolicy(SACNstepPolicy, DummyCommandModePolicy):
+class SACNstepCommandModePolicy(SACNstepPolicy, DummyCommandModePolicy):
     pass
 
 
