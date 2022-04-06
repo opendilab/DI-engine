@@ -86,17 +86,13 @@ halfcheetah_trex_sac_default_create_config = dict(
 halfcheetah_trex_sac_default_create_config = EasyDict(halfcheetah_trex_sac_default_create_config)
 create_config = halfcheetah_trex_sac_default_create_config
 
-if __name__=='__main__':
+if __name__ == '__main__':
     import argparse
     import torch
     from ding.entry import trex_collecting_data
     from ding.entry import serial_pipeline_reward_model_trex
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--cfg',
-        type=str,
-        default='please enter abs path for this file'
-    )
+    parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
     args = parser.parse_args()
