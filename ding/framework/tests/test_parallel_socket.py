@@ -4,7 +4,7 @@ import argparse
 from ding.framework import Parallel
 
 
-class AutoRecover:
+class AutoRecoverV2:
 
     @classmethod
     def main_p0(cls, epoch, interval):
@@ -94,10 +94,10 @@ class AutoRecover:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--file', '-f', type=str, default="tmp_123")
-    parser.add_argument('--epoch', '-t', type=int, default=1000)
-    parser.add_argument('--interval', '-i', type=float, default=1.0)
+    parser.add_argument('--epoch', '-t', type=int, default=1200)
+    parser.add_argument('--interval', '-i', type=float, default=0.1)
     args = parser.parse_args()
     Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh", auto_recover=True, max_retries=1)(
-        AutoRecover.main, args.file, args.epoch, args.interval)
+        AutoRecoverV2.main, args.file, args.epoch, args.interval)
 
 
