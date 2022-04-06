@@ -29,7 +29,7 @@ class AutoRecover:
 
     @classmethod
     def main_p1(cls, file, epoch, interval):
-        s = "rfvbhukm" * 1024 * 128 * 16
+        s = "rfvbhukm" * 1024 * 128
         print("msg length:", len(s.encode()))
 
         router = Parallel()
@@ -63,7 +63,7 @@ class AutoRecover:
 
     @classmethod
     def main_p2(cls, epoch, interval):
-        s = "cnhudofs" * 1024 * 128 * 16
+        s = "cnhudofs" * 1024 * 128
         print("msg length:", len(s.encode()))
 
         router = Parallel()
