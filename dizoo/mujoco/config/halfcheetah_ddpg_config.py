@@ -61,6 +61,6 @@ halfcheetah_ddpg_default_create_config = EasyDict(halfcheetah_ddpg_default_creat
 create_config = halfcheetah_ddpg_default_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c halfcheetah_ddpg_default_config.py -s 0`
+    # or you can enter `ding -m serial -c halfcheetah_ddpg_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

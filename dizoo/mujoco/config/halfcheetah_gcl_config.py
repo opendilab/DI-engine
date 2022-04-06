@@ -49,8 +49,7 @@ halfcheetah_gcl_default_config = dict(
             # Users should add their own model path here. Model path should lead to a model.
             # Absolute path is recommended.
             # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-            model_path=
-            '/Users/nieyunpeng/Documents/files_to_be_delete/lunarlander_doc/halfcheetah_sac_seed0/ckpt/ckpt_best.pth.tar',
+            model_path='model_path_placeholder',
             # If you need the data collected by the collector to contain logit key which reflect the probability of
             # the action, you can change the key to be True.
             # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
