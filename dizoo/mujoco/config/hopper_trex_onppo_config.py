@@ -79,5 +79,6 @@ create_config = hopper_trex_onppo_create_config
 
 
 if __name__ == "__main__":
+    # or you can enter ding -m serial_trex_onpolicy -c hopper_trex_onppo_config.py -s 0
     from ding.entry import serial_pipeline_reward_model_trex_onpolicy
     serial_pipeline_reward_model_trex_onpolicy([main_config, create_config])

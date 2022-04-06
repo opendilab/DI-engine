@@ -89,5 +89,6 @@ create_config = walker2d_trex_sac_create_config
 
 
 if __name__ == "__main__":
+    # or you can enter ding -m serial_trex -c walker2d_trex_sac_config.py -s 0
     from ding.entry import serial_pipeline_reward_model_trex
     serial_pipeline_reward_model_trex([main_config, create_config])
