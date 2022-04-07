@@ -1,6 +1,7 @@
 from typing import Callable, Any, List, Dict, Optional, Union
 import copy
 import numpy as np
+import torch
 from ding.utils import SumSegmentTree, MinSegmentTree
 from ding.data.buffer.buffer import BufferedData
 
@@ -10,7 +11,6 @@ class PriorityExperienceReplay:
     def __init__(
             self,
             buffer: 'Buffer',  # noqa
-            buffer_size: int,
             IS_weight: bool = True,
             priority_power_factor: float = 0.6,
             IS_weight_power_factor: float = 0.4,
@@ -18,7 +18,7 @@ class PriorityExperienceReplay:
     ) -> None:
         self.buffer = buffer
         self.buffer_idx = {}
-        self.buffer_size = buffer_size
+        self.buffer_size = buffer.size
         self.IS_weight = IS_weight
         self.priority_power_factor = priority_power_factor
         self.IS_weight_power_factor = IS_weight_power_factor
@@ -72,6 +72,7 @@ class PriorityExperienceReplay:
                 p_sample = self.sum_tree[priority_idx] / sum_tree_root
                 weight = (buffer_count * p_sample) ** (-self.IS_weight_power_factor)
                 meta['priority_IS'] = weight / max_weight
+                data[i].data['priority_IS'] = torch.as_tensor([meta['priority_IS']]).float()  # for compability
             self.IS_weight_power_factor = min(1.0, self.IS_weight_power_factor + self.delta_anneal)
         return data
 

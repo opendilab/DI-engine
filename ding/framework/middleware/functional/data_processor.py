@@ -50,8 +50,23 @@ def offpolicy_data_fetcher(
             )
             ctx.train_data = None
             return
+
         yield
-        # buffer_.update(ctx.train_output)  # such as priority
+
+        if len(buffer_.middleware) > 0:  # TODO more reasonable trigger condition
+            if isinstance(buffer_, Buffer):
+                index = [d.index for d in buffered_data]
+                meta = [d.meta for d in buffered_data]
+                # such as priority
+                if hasattr(ctx, 'train_output_queue'):
+                    priority = ctx.train_output_queue.pop()['priority']
+                else:
+                    priority = ctx.train_output['priority']
+                for idx, m, p in zip(index, meta, priority):
+                    m['priority'] = p
+                    buffer_.update(index=idx, data=None, meta=m)
+            else:
+                raise TypeError("not support update operation for buffer with type: {}".format(type(buffer_)))
 
     return _fetch
 

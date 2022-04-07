@@ -55,7 +55,7 @@ def gae(data: namedtuple, gamma: float = 0.99, lambda_: float = 0.97) -> torch.F
     next_value *= (1 - done)
     delta = reward + gamma * next_value - value
     factor = gamma * lambda_ * (1 - traj_flag)
-    adv = torch.zeros_like(value, device=value.device)
+    adv = torch.zeros_like(value)
     gae_item = torch.zeros_like(value[0])
 
     for t in reversed(range(reward.shape[0])):

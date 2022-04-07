@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Callable, List, Tuple, Union, Dict
 from easydict import EasyDict
+from collections import deque
 
 from ding.framework import task
 from ding.data import Buffer
@@ -19,8 +20,10 @@ class OffPolicyLearner:
         self._trainer = task.wrap(trainer(cfg, policy))
 
     def __call__(self, ctx: "Context") -> None:
+        ctx.train_output_queue = deque()
         for _ in range(self.cfg.policy.learn.update_per_collect):
             self._fetcher(ctx)
             if ctx.train_data is None:
                 break
             self._trainer(ctx)
+            ctx.train_output_queue.append(ctx.train_output)

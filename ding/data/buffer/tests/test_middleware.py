@@ -86,7 +86,7 @@ def test_staleness_check():
 def test_priority():
     N = 5
     buffer = DequeBuffer(size=10)
-    buffer.use(PriorityExperienceReplay(buffer, buffer_size=10, IS_weight=True))
+    buffer.use(PriorityExperienceReplay(buffer, IS_weight=True))
     for _ in range(N):
         buffer.push(get_data(), meta={'priority': 2.0})
     assert buffer.count() == N
