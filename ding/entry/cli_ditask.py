@@ -58,6 +58,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 )
 @click.option("--platform-spec", type=str, help="Platform specific configure.")
 @click.option("--platform", type=str, help="Platform type: slurm, k8s.")
+@click.option("--mq-type", type=str, default="nng", help="Class type of message queue, i.e. nng, redis.")
+@click.option("--redis-host", type=str, help="Redis host.")
+@click.option("--redis-port", type=int, help="Redis port.")
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
 def cli_ditask(*args, **kwargs):
     return _cli_ditask(*args, **kwargs)
@@ -99,8 +102,11 @@ def _cli_ditask(
     labels: str,
     node_ids: str,
     topology: str,
+    mq_type: str,
+    redis_host: str,
+    redis_port: int,
     platform: str = None,
-    platform_spec: str = None
+    platform_spec: str = None,
 ):
     # Parse entry point
     all_args = locals()
@@ -143,5 +149,8 @@ def _cli_ditask(
         attach_to=attach_to,
         address=address,
         labels=labels,
-        node_ids=node_ids
+        node_ids=node_ids,
+        mq_type=mq_type,
+        redis_host=redis_host,
+        redis_port=redis_port
     )(main_func)

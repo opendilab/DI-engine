@@ -1,11 +1,9 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_gail
-from bipedalwalker_sac_config import bipedalwalker_sac_config, bipedalwalker_sac_create_config
 
 obs_shape = 24
 act_shape = 4
 bipedalwalker_sac_gail_default_config = dict(
-    exp_name='bipedalwalker_sac_gail',
+    exp_name='bipedalwalker_sac_gail_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -14,6 +12,7 @@ bipedalwalker_sac_gail_default_config = dict(
         n_evaluator_episode=5,
         stop_value=300,
         rew_clip=True,
+        # The path to save the game replay
         replay_path=None,
     ),
     reward_model=dict(
@@ -23,10 +22,23 @@ bipedalwalker_sac_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='bipedalwalker_sac/expert_data.pkl',  # path where the expert data is stored
-        expert_load_path='bipedalwalker_sac/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
+        # Users should add their own expert data path here.
+        # Expert data path should lead to a file to store data or load the stored data.
+        # It is the path where the expert data is stored
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        expert_data_path='expert_data_path_placeholder',
+        # Users should add their expert load path here. Expert load path should lead to a model.
+        # It is the path where the expert state_dict is stored
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_load_path='expert_load_path_placeholder',
         collect_count=100000,
-        load_path='bipedalwalker_sac_gail/reward_model/ckpt/ckpt_last.pth.tar',
+        # Users should add their own load path here. Load path should lead to a model.
+        # It is the path where the state_dict of reward model is stored
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/reward_model/ckpt/ckpt_best.pth.tar``
+        load_path='load_path_placeholder',
     ),
     policy=dict(
         cuda=False,
@@ -78,8 +90,15 @@ bipedalwalker_sac_gail_create_config = EasyDict(bipedalwalker_sac_gail_create_co
 create_config = bipedalwalker_sac_gail_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial_gail -c bipedalwalker_sac_gail_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. bipedalwalker_sac_config.py
+    from ding.entry import serial_pipeline_gail
+    from dizoo.box2d.bipedalwalker.config import bipedalwalker_sac_config, bipedalwalker_sac_create_config
+    expert_main_config = bipedalwalker_sac_config
+    expert_create_config = bipedalwalker_sac_create_config
     serial_pipeline_gail(
-        [main_config, create_config], [bipedalwalker_sac_config, bipedalwalker_sac_create_config],
+        [main_config, create_config], [expert_main_config, expert_create_config],
         seed=0,
         collect_data=True
     )

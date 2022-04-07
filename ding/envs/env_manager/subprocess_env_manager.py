@@ -227,6 +227,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             }
         }
         self._reset_inplace = self._cfg.reset_inplace
+        if not self._auto_reset:
+            assert not self._reset_inplace, "reset_inplace is unavailable when auto_reset=False."
 
     def _create_state(self) -> None:
         r"""
@@ -235,12 +237,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         """
         self._env_episode_count = {env_id: 0 for env_id in range(self.env_num)}
         self._ready_obs = {env_id: None for env_id in range(self.env_num)}
-        self._env_ref = self._env_fn[0]()
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
-            self._env_ref.reset()
-            obs_space = self._env_ref.observation_space
-            self._env_ref.close()
+            obs_space = self._observation_space
             if isinstance(obs_space, list):
                 # for multi_agent case
                 if isinstance(obs_space[0], gym.spaces.Dict):
@@ -295,7 +294,8 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
 
     @property
     def ready_env(self) -> List[int]:
-        return [i for i in self.active_env if i not in self._waiting_env['step']]
+        active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
+        return [i for i in active_env if i not in self._waiting_env['step']]
 
     @property
     def ready_obs(self) -> Dict[int, Any]:
@@ -370,7 +370,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         # reset env
         reset_thread_list = []
         for i, env_id in enumerate(reset_env_list):
-            self._env_states[env_id] = EnvState.RESET
             # set seed
             if self._env_seed[env_id] is not None:
                 try:
@@ -383,6 +382,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                     self._env_seed[env_id] = None  # seed only use once
                 except BaseException as e:
                     logging.warning("subprocess reset set seed failed, ignore and continue...")
+            self._env_states[env_id] = EnvState.RESET
             reset_thread = PropagatingThread(target=self._reset, args=(env_id, ))
             reset_thread.daemon = True
             reset_thread_list.append(reset_thread)
@@ -412,9 +412,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             self._check_data({env_id: obs}, close=False)
             if self._shared_memory:
                 obs = self._obs_buffers[env_id].get()
-            # Because each thread updates the corresponding env_id value, they won't lead to a thread-safe problem.
-            self._env_states[env_id] = EnvState.RUN
-            self._ready_obs[env_id] = obs
+            # it is necessary to add lock for the updates of env_state
+            with self._lock:
+                self._env_states[env_id] = EnvState.RUN
+                self._ready_obs[env_id] = obs
 
         exceptions = []
         for _ in range(self._max_retry):
@@ -521,15 +522,20 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 continue
             if timestep.done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
-                    if self._reset_inplace:  # reset in subprocess at once
-                        self._env_states[env_id] = EnvState.RUN
-                        self._ready_obs[env_id] = timestep.obs
+                if self._env_episode_count[env_id] < self._episode_num:
+                    if self._auto_reset:
+                        if self._reset_inplace:  # reset in subprocess at once
+                            self._env_states[env_id] = EnvState.RUN
+                            self._ready_obs[env_id] = timestep.obs
+                        else:
+                            # in this case, ready_obs is updated in ``self._reset``
+                            self._env_states[env_id] = EnvState.RESET
+                            reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
+                            reset_thread.daemon = True
+                            reset_thread.start()
                     else:
-                        self._env_states[env_id] = EnvState.RESET
-                        reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
-                        reset_thread.daemon = True
-                        reset_thread.start()
+                        # in the case that auto_reset=False, caller should call ``env_manager.reset`` manually
+                        self._env_states[env_id] = EnvState.NEED_RESET
                 else:
                     self._env_states[env_id] = EnvState.DONE
             else:
@@ -640,7 +646,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                 ret = timestep
             return ret
 
-        # self._reset method has add retry_wrapper decorator
         @timeout_wrapper(timeout=reset_timeout)
         def reset_fn(*args, **kwargs):
             try:
@@ -737,7 +742,6 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         if self._closed:
             return
         self._closed = True
-        self._env_ref.close()
         for _, p in self._pipe_parents.items():
             p.send(['close', None, None])
         for env_id, p in self._pipe_parents.items():
@@ -861,15 +865,20 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
                 continue
             if timestep.done:
                 self._env_episode_count[env_id] += 1
-                if self._env_episode_count[env_id] < self._episode_num and self._auto_reset:
-                    if self._reset_inplace:  # reset in subprocess at once
-                        self._env_states[env_id] = EnvState.RUN
-                        self._ready_obs[env_id] = timestep.obs
+                if self._env_episode_count[env_id] < self._episode_num:
+                    if self._auto_reset:
+                        if self._reset_inplace:  # reset in subprocess at once
+                            self._env_states[env_id] = EnvState.RUN
+                            self._ready_obs[env_id] = timestep.obs
+                        else:
+                            # in this case, ready_obs is updated in ``self._reset``
+                            self._env_states[env_id] = EnvState.RESET
+                            reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
+                            reset_thread.daemon = True
+                            reset_thread.start()
                     else:
-                        self._env_states[env_id] = EnvState.RESET
-                        reset_thread = PropagatingThread(target=self._reset, args=(env_id, ), name='regular_reset')
-                        reset_thread.daemon = True
-                        reset_thread.start()
+                        # in the case that auto_reset=False, caller should call ``env_manager.reset`` manually
+                        self._env_states[env_id] = EnvState.NEED_RESET
                 else:
                     self._env_states[env_id] = EnvState.DONE
             else:

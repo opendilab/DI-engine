@@ -46,7 +46,7 @@ def test_k8s_parser():
             }
         ]
     }
-    all_args = k8s_parser(platform_spec)
+    all_args = k8s_parser(platform_spec, mq_type="nng")
     assert all_args["labels"] == "learn"
     assert all_args["address"] == "SH-3"
     assert all_args["ports"] == 50000
@@ -59,7 +59,7 @@ def test_k8s_parser():
         "tcp://SH-2:50515"
 
     # Without platform_spec, parse by global config
-    all_args = k8s_parser(None, topology="mesh")
+    all_args = k8s_parser(None, topology="mesh", mq_type="nng")
     assert all_args["address"] == "SH-3"
     assert all_args["node_ids"] == 3
     assert all_args["parallel_workers"] == 1

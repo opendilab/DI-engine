@@ -140,3 +140,56 @@ class TestBaseEnvManager:
         assert len(timestep) == env_manager.env_num
 
         env_manager.close()
+
+    def test_reset(self, setup_fast_base_manager_cfg, setup_model_type):
+        assert setup_fast_base_manager_cfg['episode_num'] > 1
+        env_fn = setup_fast_base_manager_cfg.pop('env_fn')
+        model = setup_model_type()
+        # auto_reset = True
+        env_manager = BaseEnvManager(env_fn, setup_fast_base_manager_cfg)
+        env_manager.launch()
+        while True:
+            obs = env_manager.ready_obs
+            action = model.forward(obs)
+            timestep = env_manager.step(action)
+            if env_manager.done:
+                break
+        assert all(
+            env_manager._env_episode_count[i] == setup_fast_base_manager_cfg['episode_num']
+            for i in range(env_manager.env_num)
+        )
+        assert all(env_manager._env_states[i] == EnvState.DONE for i in range(env_manager.env_num))
+
+        # auto_reset = False
+        setup_fast_base_manager_cfg['auto_reset'] = False
+        env_manager = BaseEnvManager(env_fn, setup_fast_base_manager_cfg)
+        env_manager.launch()
+
+        while True:
+            obs = env_manager.ready_obs
+            action = model.forward(obs)
+            timestep = env_manager.step(action)
+            if env_manager.done:
+                break
+            if all(env_manager._env_states[i] == EnvState.NEED_RESET for i in range(env_manager.env_num)):
+                env_manager.reset()
+        assert all(env_manager._env_episode_count[i] == 2 for i in range(env_manager.env_num))
+        assert all(env_manager._env_states[i] == EnvState.DONE for i in range(env_manager.env_num))
+        # auto_reset = False and reset each env independently
+        env_manager = BaseEnvManager(env_fn, setup_fast_base_manager_cfg)
+        env_manager.launch()
+
+        while True:
+            obs = env_manager.ready_obs
+            action = model.forward(obs)
+            timestep = env_manager.step(action)
+            if env_manager.done:
+                break
+            for env_id, t in timestep.items():
+                if t.done and not env_manager.env_state_done(env_id):
+                    env_manager.reset({env_id: {}})
+        assert all(
+            env_manager._env_episode_count[i] == setup_fast_base_manager_cfg['episode_num']
+            for i in range(env_manager.env_num)
+        )
+        assert all(env_manager._env_states[i] == EnvState.DONE for i in range(env_manager.env_num))
