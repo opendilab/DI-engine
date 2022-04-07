@@ -13,7 +13,6 @@ walker2d_onppo_config = dict(
         use_act_scale=True,
         n_evaluator_episode=10,
         stop_value=6000,
-        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,
