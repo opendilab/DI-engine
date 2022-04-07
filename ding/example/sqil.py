@@ -17,13 +17,16 @@ from dizoo.classic_control.cartpole.config.cartpole_sqil_config import main_conf
 
 
 def eps_greedy_masker():
+
     def _masker(ctx):
         # for collect expert data without randomness
         ctx.collect_kwargs['eps'] = -1
+
     return _masker
 
 
 def sqil_data_pusher(cfg, buffer_, expert):
+
     def _pusher(ctx):
         for t in ctx.trajectories:
             if expert:
@@ -32,6 +35,7 @@ def sqil_data_pusher(cfg, buffer_, expert):
                 t.reward = torch.zeros_like(t.reward)
             buffer_.push(t)
         ctx.trajectories = None
+
     return _pusher
 
 

@@ -1,7 +1,7 @@
 import pytest
 import torch
 from ding.data.buffer import DequeBuffer
-from ding.data.buffer.middleware import clone_object, use_time_check, staleness_check
+from ding.data.buffer.middleware import clone_object, use_time_check, staleness_check, sample_range_view
 from ding.data.buffer.middleware import PriorityExperienceReplay, group_sample
 from ding.data.buffer.middleware.padding import padding
 
@@ -153,3 +153,26 @@ def test_group_sample():
             check_group1(grouped_data)
         else:
             check_group0(grouped_data)
+
+
+@pytest.mark.unittest
+def test_sample_range_view():
+    buffer_ = DequeBuffer(size=10)
+    for i in range(5):
+        buffer_.push({'data': 'x'})
+    for i in range(5, 5 + 3):
+        buffer_.push({'data': 'y'})
+    for i in range(8, 8 + 2):
+        buffer_.push({'data': 'z'})
+
+    buffer1 = buffer_.view()
+    buffer1.use(sample_range_view(buffer1, start=-5, end=-2))
+    for _ in range(10):
+        sampled_data = buffer1.sample(1)
+        assert sampled_data[0].data['data'] == 'y'
+
+    buffer2 = buffer_.view()
+    buffer2.use(sample_range_view(buffer1, start=-2))
+    for _ in range(10):
+        sampled_data = buffer2.sample(1)
+        assert sampled_data[0].data['data'] == 'z'

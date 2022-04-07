@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, List, Tuple, Union
+from typing import TYPE_CHECKING, Callable, List, Tuple, Union, Dict
 from easydict import EasyDict
 
 from ding.framework import task
@@ -11,7 +11,9 @@ if TYPE_CHECKING:
 
 class OffPolicyLearner:
 
-    def __init__(self, cfg: EasyDict, policy, buffer_: Union[Buffer, List[Tuple[Buffer, float]]]) -> None:
+    def __init__(
+            self, cfg: EasyDict, policy, buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]
+    ) -> None:
         self.cfg = cfg
         self._fetcher = task.wrap(offpolicy_data_fetcher(cfg, buffer_))
         self._trainer = task.wrap(trainer(cfg, policy))

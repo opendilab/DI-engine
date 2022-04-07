@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, List, Union, Tuple
+from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict
 from easydict import EasyDict
 import logging
 import torch
@@ -19,32 +19,38 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer):
     return _push
 
 
-def offpolicy_data_fetcher(cfg: EasyDict, buffer_: Union[Buffer, List[Tuple[Buffer, float]]]) -> Callable:
+def offpolicy_data_fetcher(
+        cfg: EasyDict, buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]
+) -> Callable:
 
     def _fetch(ctx: "Context"):
         try:
             if isinstance(buffer_, Buffer):
                 buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
-            else:
+                ctx.train_data = [d.data for d in buffered_data]
+            elif isinstance(buffer_, List):  # like sqil, r2d3
                 buffered_data = []
                 for buffer_elem, p in buffer_:
                     data_elem = buffer_elem.sample(int(cfg.policy.learn.batch_size * p))
                     assert data_elem is not None
                     buffered_data.append(data_elem)
                 buffered_data = sum(buffered_data, [])
+                ctx.train_data = [d.data for d in buffered_data]
+            elif isinstance(buffer_, Dict):  # like ppg_offpolicy
+                buffered_data = {k: v.sample(cfg.policy.learn.batch_size) for k, v in buffer_.items()}
+                ctx.train_data = {k: [d.data for d in v] for k, v in buffered_data.items()}
+            else:
+                raise TypeError("not support buffer argument type: {}".format(type(buffer_)))
 
             assert buffered_data is not None
         except (ValueError, AssertionError):
             # You can modify data collect config to avoid this warning, e.g. increasing n_sample, n_episode.
             logging.warning(
-                "Replay buffer's data is not enough to support training, so skip this trianing for waiting more data. "
+                "Replay buffer's data is not enough to support training, so skip this training for waiting more data."
             )
             ctx.train_data = None
             return
-        ctx.train_data = [d.data for d in buffered_data]
-        return
-        # yield
-        # TODO
+        yield
         # buffer_.update(ctx.train_output)  # such as priority
 
     return _fetch

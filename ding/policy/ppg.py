@@ -270,8 +270,10 @@ class PPGPolicy(Policy):
         self._aux_memories.append(copy.deepcopy(data))
 
         self._train_iteration += 1
+        total_loss = policy_loss + value_loss
         if self._train_iteration % self._cfg.learn.aux_freq == 0:
             aux_loss, bc_loss, aux_value_loss = self.learn_aux()
+            total_loss += aux_loss + bc_loss + aux_value_loss
             return {
                 'policy_cur_lr': self._optimizer_ac.defaults['lr'],
                 'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
@@ -284,6 +286,7 @@ class PPGPolicy(Policy):
                 'aux_value_loss': aux_value_loss,
                 'auxiliary_loss': aux_loss,
                 'behavioral_cloning_loss': bc_loss,
+                'total_loss': total_loss.item(),
             }
         else:
             return {
@@ -295,6 +298,7 @@ class PPGPolicy(Policy):
                 'policy_adv_abs_max': policy_adv.abs().max().item(),
                 'approx_kl': ppo_info.approx_kl,
                 'clipfrac': ppo_info.clipfrac,
+                'total_loss': total_loss.item(),
             }
 
     def _state_dict_learn(self) -> Dict[str, Any]:

@@ -48,6 +48,7 @@ class DequeBuffer(Buffer):
 
     def __init__(self, size: int) -> None:
         super().__init__()
+        self.size = size
         self.storage = deque(maxlen=size)
         # Meta index is a dict which use deque as values
         self.indices = BufferIndex(maxlen=size)
