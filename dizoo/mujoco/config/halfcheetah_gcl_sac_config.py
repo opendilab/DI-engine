@@ -1,8 +1,8 @@
 from easydict import EasyDict
 
 halfcheetah_gcl_sac_config = dict(
+    exp_name='halfcheetah_gcl_sac_seed0',
     env=dict(
-        exp_name='halfcheetah_gcl_sac_seed0',
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),

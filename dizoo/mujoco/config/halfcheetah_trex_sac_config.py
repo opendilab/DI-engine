@@ -3,7 +3,6 @@ from easydict import EasyDict
 halfcheetah_trex_sac_config = dict(
     exp_name='halfcheetah_trex_sac_seed0',
     env=dict(
-        manager=dict(shared_memory=True, reset_inplace=True),
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
