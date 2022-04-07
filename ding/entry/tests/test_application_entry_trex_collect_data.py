@@ -56,9 +56,9 @@ def test_trex_collecting_data():
             'device': 'cpu'
         }
     )
-    args.cfg[0].reward_model.offline_data_path = './cartpole_trex_offppo'
-    args.cfg[0].reward_model.offline_data_path = os.path.abspath(args.cfg[0].reward_model.offline_data_path)
-    args.cfg[0].reward_model.reward_model_path = args.cfg[0].reward_model.offline_data_path + '/cartpole.params'
+    args.cfg[0].reward_model.data_path = './cartpole_trex_offppo'
+    args.cfg[0].reward_model.data_path = os.path.abspath(args.cfg[0].reward_model.data_path)
+    args.cfg[0].reward_model.reward_model_path = args.cfg[0].reward_model.data_path + '/cartpole.params'
     args.cfg[0].reward_model.expert_model_path = './cartpole_ppo_offpolicy'
     args.cfg[0].reward_model.expert_model_path = os.path.abspath(args.cfg[0].reward_model.expert_model_path)
     args.cfg[0].reward_model.checkpoint_max = 100
@@ -66,4 +66,4 @@ def test_trex_collecting_data():
     args.cfg[0].reward_model.num_snippets = 100
     trex_collecting_data(args=args)
     os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
-    os.popen('rm -rf {}'.format(args.cfg[0].reward_model.offline_data_path))
+    os.popen('rm -rf {}'.format(args.cfg[0].reward_model.data_path))

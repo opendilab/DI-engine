@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 collector_env_num = 1
 evaluator_env_num = 1
-halfcheetah_ppo_default_config = dict(
+halfcheetah_ppo_config = dict(
     exp_name='halfcheetah_onppo_seed0',
     env=dict(
         env_id='HalfCheetah-v3',
@@ -51,10 +51,10 @@ halfcheetah_ppo_default_config = dict(
         eval=dict(evaluator=dict(eval_freq=500, )),
     ),
 )
-halfcheetah_ppo_default_config = EasyDict(halfcheetah_ppo_default_config)
-main_config = halfcheetah_ppo_default_config
+halfcheetah_ppo_config = EasyDict(halfcheetah_ppo_config)
+main_config = halfcheetah_ppo_config
 
-halfcheetah_ppo_create_default_config = dict(
+halfcheetah_ppo_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -63,8 +63,8 @@ halfcheetah_ppo_create_default_config = dict(
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ppo', ),
 )
-halfcheetah_ppo_create_default_config = EasyDict(halfcheetah_ppo_create_default_config)
-create_config = halfcheetah_ppo_create_default_config
+halfcheetah_ppo_create_config = EasyDict(halfcheetah_ppo_create_config)
+create_config = halfcheetah_ppo_create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial_onpolicy -c halfcheetah_onppo_config.py -s 0`

@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-halfcheetah_d4pg_default_config = dict(
+halfcheetah_d4pg_config = dict(
     exp_name='halfcheetah_d4pg_seed0',
     env=dict(
         env_id='HalfCheetah-v3',
@@ -47,10 +47,10 @@ halfcheetah_d4pg_default_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
-halfcheetah_d4pg_default_config = EasyDict(halfcheetah_d4pg_default_config)
-main_config = halfcheetah_d4pg_default_config
+halfcheetah_d4pg_config = EasyDict(halfcheetah_d4pg_config)
+main_config = halfcheetah_d4pg_config
 
-halfcheetah_d4pg_default_create_config = dict(
+halfcheetah_d4pg_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -61,8 +61,8 @@ halfcheetah_d4pg_default_create_config = dict(
         import_names=['ding.policy.d4pg'],
     ),
 )
-halfcheetah_d4pg_default_create_config = EasyDict(halfcheetah_d4pg_default_create_config)
-create_config = halfcheetah_d4pg_default_create_config
+halfcheetah_d4pg_create_config = EasyDict(halfcheetah_d4pg_create_config)
+create_config = halfcheetah_d4pg_create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c halfcheetah_d4pg_config.py -s 0`

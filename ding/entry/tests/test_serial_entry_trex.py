@@ -28,9 +28,9 @@ def test_serial_pipeline_reward_model_trex():
     expert_policy = serial_pipeline(config, seed=0)
 
     config = [deepcopy(cartpole_trex_ppo_offpolicy_config), deepcopy(cartpole_trex_ppo_offpolicy_create_config)]
-    config[0].reward_model.offline_data_path = './cartpole_trex_offppo'
-    config[0].reward_model.offline_data_path = os.path.abspath(config[0].reward_model.offline_data_path)
-    config[0].reward_model.reward_model_path = config[0].reward_model.offline_data_path + '/cartpole.params'
+    config[0].reward_model.data_path = './cartpole_trex_offppo'
+    config[0].reward_model.data_path = os.path.abspath(config[0].reward_model.data_path)
+    config[0].reward_model.reward_model_path = config[0].reward_model.data_path + '/cartpole.params'
     config[0].reward_model.expert_model_path = './cartpole_ppo_offpolicy'
     config[0].reward_model.expert_model_path = os.path.abspath(config[0].reward_model.expert_model_path)
     config[0].reward_model.checkpoint_max = 100
@@ -40,7 +40,7 @@ def test_serial_pipeline_reward_model_trex():
     trex_collecting_data(args=args)
     try:
         serial_pipeline_reward_model_trex(config, seed=0, max_train_iter=1)
-        os.popen('rm -rf {}'.format(config[0].reward_model.offline_data_path))
+        os.popen('rm -rf {}'.format(config[0].reward_model.data_path))
     except Exception:
         assert False, "pipeline fail"
 

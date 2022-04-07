@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-halfcheetah_td3_default_config = dict(
+halfcheetah_td3_config = dict(
     env=dict(
         env_id='halfcheetah_td3_seed0',
         norm_obs=dict(use_norm=False, ),
@@ -47,10 +47,10 @@ halfcheetah_td3_default_config = dict(
     )
 )
 
-halfcheetah_td3_default_config = EasyDict(halfcheetah_td3_default_config)
-main_config = halfcheetah_td3_default_config
+halfcheetah_td3_config = EasyDict(halfcheetah_td3_config)
+main_config = halfcheetah_td3_config
 
-halfcheetah_td3_default_create_config = dict(
+halfcheetah_td3_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -62,8 +62,8 @@ halfcheetah_td3_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-halfcheetah_td3_default_create_config = EasyDict(halfcheetah_td3_default_create_config)
-create_config = halfcheetah_td3_default_create_config
+halfcheetah_td3_create_config = EasyDict(halfcheetah_td3_create_config)
+create_config = halfcheetah_td3_create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c halfcheetah_td3_config.py -s 0 --env-step 1e7`

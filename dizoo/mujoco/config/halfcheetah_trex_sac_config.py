@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-halfcheetah_trex_sac_default_config = dict(
+halfcheetah_trex_sac_config = dict(
     exp_name='halfcheetah_trex_sac_seed0',
     env=dict(
         manager=dict(shared_memory=True, reset_inplace=True),
@@ -24,15 +24,15 @@ halfcheetah_trex_sac_default_config = dict(
         # Users should add their own model path here. Model path should lead to a model.
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
         expert_model_path='model_path_placeholder',
         # Path where to store the reward model
         reward_model_path='data_path_placeholder + /HalfCheetah.params',
-        continuous=True,
         # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
         # Absolute path is recommended.
         # In DI-engine, it is usually located in ``exp_name`` directory
         # See ding/entry/application_entry_trex_collect_data.py to collect the data
-        offline_data_path='data_path_placeholder',
+        data_path='data_path_placeholder',
     ),
     policy=dict(
         cuda=True,
@@ -68,10 +68,10 @@ halfcheetah_trex_sac_default_config = dict(
     ),
 )
 
-halfcheetah_trex_sac_default_config = EasyDict(halfcheetah_trex_sac_default_config)
-main_config = halfcheetah_trex_sac_default_config
+halfcheetah_trex_sac_config = EasyDict(halfcheetah_trex_sac_config)
+main_config = halfcheetah_trex_sac_config
 
-halfcheetah_trex_sac_default_create_config = dict(
+halfcheetah_trex_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -82,11 +82,15 @@ halfcheetah_trex_sac_default_create_config = dict(
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
+    reward_model=dict(type='trex'),
 )
-halfcheetah_trex_sac_default_create_config = EasyDict(halfcheetah_trex_sac_default_create_config)
-create_config = halfcheetah_trex_sac_default_create_config
+halfcheetah_trex_sac_create_config = EasyDict(halfcheetah_trex_sac_create_config)
+create_config = halfcheetah_trex_sac_create_config
 
 if __name__ == '__main__':
+    # Users should first run ``halfcheetah_sac_config.py`` to save models (or checkpoints).
+    # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
+    # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
     import argparse
     import torch
     from ding.entry import trex_collecting_data
@@ -96,6 +100,6 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
     args = parser.parse_args()
-
+    # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
     serial_pipeline_reward_model_trex([main_config, create_config])
