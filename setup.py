@@ -100,6 +100,7 @@ setup(
         ],
         'common_env': [
             'ale-py==0.7.0',  # atari
+            'autorom'
             'box2d-py',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
