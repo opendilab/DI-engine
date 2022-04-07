@@ -140,23 +140,17 @@ def trex_collecting_data(args=None):
         learning_returns.append(sum_reward)
         episodes_data.append(obs)
     offline_data_save_type(
-        data_for_save,
-        data_path + '/suboptimal_data.pkl',
-        data_type=cfg.policy.collect.get('data_type', 'naive')
+        data_for_save, data_path + '/suboptimal_data.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     # if not compiled_cfg.reward_model.auto: more feature
     offline_data_save_type(
         episodes_data, data_path + '/episodes_data.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     offline_data_save_type(
-        learning_returns,
-        data_path + '/learning_returns.pkl',
-        data_type=cfg.policy.collect.get('data_type', 'naive')
+        learning_returns, data_path + '/learning_returns.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     offline_data_save_type(
-        learning_rewards,
-        data_path + '/learning_rewards.pkl',
-        data_type=cfg.policy.collect.get('data_type', 'naive')
+        learning_rewards, data_path + '/learning_rewards.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     offline_data_save_type(
         checkpoints, data_path + '/checkpoints.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
