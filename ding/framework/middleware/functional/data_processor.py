@@ -1,8 +1,10 @@
 from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict
 from easydict import EasyDict
+from collections import deque
 import logging
 import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
+from ding.data.buffer.middleware import PriorityExperienceReplay
 from ding.framework import task
 
 if TYPE_CHECKING:
@@ -53,20 +55,18 @@ def offpolicy_data_fetcher(
 
         yield
 
-        if len(buffer_.middleware) > 0:  # TODO more reasonable trigger condition
-            if isinstance(buffer_, Buffer):
+        if isinstance(buffer_, Buffer):
+            if any([isinstance(m, PriorityExperienceReplay) for m in buffer_.middleware]):
                 index = [d.index for d in buffered_data]
                 meta = [d.meta for d in buffered_data]
                 # such as priority
-                if hasattr(ctx, 'train_output_queue'):
-                    priority = ctx.train_output_queue.pop()['priority']
+                if isinstance(ctx.train_output, deque):
+                    priority = ctx.train_output.pop()['priority']
                 else:
                     priority = ctx.train_output['priority']
                 for idx, m, p in zip(index, meta, priority):
                     m['priority'] = p
                     buffer_.update(index=idx, data=None, meta=m)
-            else:
-                raise TypeError("not support update operation for buffer with type: {}".format(type(buffer_)))
 
     return _fetch
 

@@ -384,6 +384,7 @@ class PPGPolicy(Policy):
         """
         transition = {
             'obs': obs,
+            'next_obs': timestep.obs,
             'logit': model_output['logit'],
             'action': model_output['action'],
             'value': model_output['value'],
