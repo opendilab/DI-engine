@@ -72,4 +72,8 @@ spaceinvaders_ppg_create_config = dict(
 )
 spaceinvaders_ppg_create_config = EasyDict(spaceinvaders_ppg_create_config)
 create_config = EasyDict(spaceinvaders_ppg_create_config)
-# PPG needs to use specific entry, you can run `dizoo/atari/entry/atari_ppg_main.py`
+
+if __name__ == '__main__':
+    from dizoo.atari.entry.atari_ppg_main import main
+    # PPG needs to use specific entry, you can run `dizoo/atari/entry/atari_ppg_main.py`
+    main(main_config)
