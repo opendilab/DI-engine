@@ -1,10 +1,12 @@
 from easydict import EasyDict
 
+collector_env_num=8
+evaluator_env_num=5
 spaceinvaders_r2d2_config = dict(
     exp_name='spaceinvaders_r2d2_seed0',
     env=dict(
-        collector_env_num=8,
-        evaluator_env_num=5,
+        collector_env_num=collector_env_num,
+        evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
         stop_value=int(1e6),
         env_id='SpaceInvadersNoFrameskip-v4',
@@ -76,6 +78,6 @@ spaceinvaders_r2d2_create_config = EasyDict(spaceinvaders_r2d2_create_config)
 create_config = spaceinvaders_r2d2_create_config
 
 if __name__ == "__main__":
-    '# or you can enter ding -m serial -c spaceinvaders_r2d2_config.py -s 0
+    # or you can enter ding -m serial -c spaceinvaders_r2d2_config.py -s 0
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

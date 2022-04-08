@@ -1,10 +1,12 @@
 from easydict import EasyDict
 
+collector_env_num=8
+evaluator_env_num=5
 spaceinvaders_r2d2_residual_config = dict(
     exp_name='spaceinvaders_r2d2_residual_link_seed0',
     env=dict(
-        collector_env_num=8,
-        evaluator_env_num=5,
+        collector_env_num=collector_env_num,
+        evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
