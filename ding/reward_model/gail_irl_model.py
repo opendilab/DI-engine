@@ -136,7 +136,6 @@ class GailRewardModel(BaseRewardModel):
     config = dict(
         type='gail',
         learning_rate=1e-3,
-        data_path='expert_data.pkl',
         update_per_collect=100,
         batch_size=64,
         input_size=4,
