@@ -2,7 +2,7 @@
 from easydict import EasyDict
 
 cartpole_a2c_config = dict(
-    exp_name='cartpole_a2c',
+    exp_name='cartpole_a2c_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
