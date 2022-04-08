@@ -64,11 +64,14 @@ class RndRewardModel(BaseRewardModel):
         extrinsic_reward_weight=1,
     )
 
-    def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
+    def __init__(self, config: EasyDict, device: str = 'cpu', tb_logger: 'SummaryWriter' = None) -> None:  # noqa
         super(RndRewardModel, self).__init__()
         self.cfg = config
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
+        if tb_logger is None:  # TODO
+            from tensorboardX import SummaryWriter
+            tb_logger = SummaryWriter('rnd_reward_model')
         self.tb_logger = tb_logger
         self.reward_model = RndNetwork(config.obs_shape, config.hidden_size_list)
         self.reward_model.to(self.device)

@@ -7,3 +7,4 @@ from .pace_controller import pace_controller
 # algorithm
 from .explorer import eps_greedy_handler
 from .advantage_estimator import gae_estimator
+from .enhancer import reward_estimator
