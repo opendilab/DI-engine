@@ -11,6 +11,8 @@ from ding.utils import ENV_REGISTRY
 from .action.gfootball_action_runner import GfootballRawActionRunner
 from .obs.gfootball_obs_runner import GfootballObsRunner
 from .reward.gfootball_reward_runner import GfootballRewardRunner
+import gym
+from ding.torch_utils import to_ndarray, to_list
 
 
 @ENV_REGISTRY.register('gfootball')
@@ -72,6 +74,31 @@ class GfootballEnv(BaseEnv):
         self._reward_helper.reset()
         self._obs_helper.reset()
         self._action_helper.reset()
+        self._observation_space = gym.spaces.Dict({
+            'match':
+                gym.spaces.Dict({
+                    k: gym.spaces.Discrete(v['max'])
+                    if v['dinfo'] == 'one-hot'
+                    else gym.spaces.Box(
+                        low=np.array(v['min']),
+                        high=np.array(v['max']),
+                        dtype=np.float32
+                    )
+                    for k, v in self._obs_helper.info['match'].value.items()}),
+            'player':
+                gym.spaces.Dict({
+                    k: gym.spaces.Discrete(v['max'])
+                    if v['dinfo'] == 'one-hot'
+                    else gym.spaces.Box(
+                        low=np.array(v['min']),
+                        high=np.array(v['max']),
+                        dtype=np.float32
+                    )
+                    for k, v in self._obs_helper.info['player'].value['players'].items()})
+        })
+        self._action_space = gym.spaces.Discrete(self._action_helper.info.shape[0])
+        self._reward_space = gym.spaces.Box(low=self._reward_helper.info.value['min'], high=self._reward_helper.info.value['max'], shape=self._reward_helper.info.shape, dtype=np.float32)
+
         self.obs = self._obs_helper.get(self)
         return {'processed_obs': self.obs, 'raw_obs': self._football_obs}
 
@@ -108,6 +135,23 @@ class GfootballEnv(BaseEnv):
         cfg = copy.deepcopy(cfg)
         cfg.save_replay = True
         return [cfg for _ in range(evaluator_env_num)]
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
 
 GfootballTimestep = GfootballEnv.timestep

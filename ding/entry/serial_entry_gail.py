@@ -124,8 +124,10 @@ def serial_pipeline_gail(
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            if reward >= best_reward:
-                save_reward_model(cfg.exp_name, reward_model)
+            reward_mean = np.array([r['final_eval_reward'] for r in reward]).mean()
+            if reward_mean >= best_reward:
+                save_reward_model(cfg.exp_name, reward_model, 'best')
+                best_reward = reward_mean
             if stop:
                 break
         new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
