@@ -204,11 +204,10 @@ class C51Policy(DQNPolicy):
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
-        r"""
+        """
         Overview:
-            Collect mode init method. Called by ``self.__init__``.
-            Init traj and unroll length, collect model.
-            Enable the eps_greedy_sample
+            Collect mode init method. Called by ``self.__init__``. Initialize necessary arguments for nstep return \
+            calculation and collect_model for exploration (eps_greedy_sample).
         """
         self._unroll_len = self._cfg.collect.unroll_len
         self._gamma = self._cfg.discount_factor  # necessary for parallel
@@ -245,13 +244,13 @@ class C51Policy(DQNPolicy):
         return {i: d for i, d in zip(data_id, output)}
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
-        r"""
+        """
         Overview:
-            Get the trajectory and the n step return data, then sample from the n_step return data
+            Calculate nstep return data and transform a trajectory into many train samples.
         Arguments:
-            - data (:obj:`list`): The trajectory's cache
+            - data (:obj:`list`): The collected data of a trajectory, which is a list that contains dict elements.
         Returns:
-            - samples (:obj:`dict`): The training samples generated
+            - samples (:obj:`dict`): The training samples generated.
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
         return get_train_sample(data, self._unroll_len)

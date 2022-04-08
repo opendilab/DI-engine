@@ -1,12 +1,11 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 n_agent = 5
 n_landmark = n_agent
 collector_env_num = 4
-evaluator_env_num = 2
+evaluator_env_num = 5
 main_config = dict(
+    exp_name='ptz_simple_spread_qtran_seed0',
     env=dict(
         env_family='mpe',
         env_id='simple_spread_v2',
@@ -18,7 +17,7 @@ main_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         manager=dict(shared_memory=False, ),
-        n_evaluator_episode=5,
+        n_evaluator_episode=evaluator_env_num,
         stop_value=0,
     ),
     policy=dict(
@@ -79,17 +78,7 @@ create_config = EasyDict(create_config)
 ptz_simple_spread_qtran_config = main_config
 ptz_simple_spread_qtran_create_config = create_config
 
-
-def train(args):
-    config = [main_config, create_config]
-    serial_pipeline(config, seed=args.seed)
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', '-s', type=int, default=0)
-    args = parser.parse_args()
-
-    train(args)
+if __name__ == '__main__':
+    # or you can enter `ding -m serial -c ptz_simple_spread_qtran_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

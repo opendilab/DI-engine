@@ -57,9 +57,38 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     help="Network topology, default: alone."
 )
 @click.option("--platform-spec", type=str, help="Platform specific configure.")
+@click.option("--platform", type=str, help="Platform type: slurm, k8s.")
+@click.option("--mq-type", type=str, default="nng", help="Class type of message queue, i.e. nng, redis.")
+@click.option("--redis-host", type=str, help="Redis host.")
+@click.option("--redis-port", type=int, help="Redis port.")
 @click.option("-m", "--main", type=str, help="Main function of entry module.")
 def cli_ditask(*args, **kwargs):
     return _cli_ditask(*args, **kwargs)
+
+
+def _parse_platform_args(platform: str, platform_spec: str, all_args: dict):
+    if platform_spec:
+        try:
+            if os.path.splitext(platform_spec) == "json":
+                with open(platform_spec) as f:
+                    platform_spec = json.load(f)
+            else:
+                platform_spec = json.loads(platform_spec)
+        except:
+            click.echo("platform_spec is not a valid json!")
+            exit(1)
+    if platform not in PLATFORM_PARSERS:
+        click.echo("platform type is invalid! type: {}".format(platform))
+        exit(1)
+    all_args.pop("platform")
+    all_args.pop("platform_spec")
+    try:
+        parsed_args = PLATFORM_PARSERS[platform](platform_spec, **all_args)
+    except Exception as e:
+        click.echo("error when parse platform spec configure: {}".format(e))
+        exit(1)
+
+    return parsed_args
 
 
 def _cli_ditask(
@@ -73,24 +102,16 @@ def _cli_ditask(
     labels: str,
     node_ids: str,
     topology: str,
-    platform_spec: str = None
+    mq_type: str,
+    redis_host: str,
+    redis_port: int,
+    platform: str = None,
+    platform_spec: str = None,
 ):
     # Parse entry point
     all_args = locals()
-    if platform_spec:
-        try:
-            platform_spec = json.loads(platform_spec)
-        except:
-            click.echo("platform_spec is not a valid json!")
-            exit(1)
-        if "type" not in platform_spec or platform_spec["type"] not in PLATFORM_PARSERS:
-            click.echo("platform type is invalid!")
-            exit(1)
-        all_args.pop("platform_spec")
-        try:
-            parsed_args = PLATFORM_PARSERS[platform_spec["type"]](platform_spec, **all_args)
-        except Exception as e:
-            click.echo("error when parse platform spec configure: {}".format(e))
+    if platform:
+        parsed_args = _parse_platform_args(platform, platform_spec, all_args)
         return _cli_ditask(**parsed_args)
 
     if not package:
@@ -128,5 +149,8 @@ def _cli_ditask(
         attach_to=attach_to,
         address=address,
         labels=labels,
-        node_ids=node_ids
+        node_ids=node_ids,
+        mq_type=mq_type,
+        redis_host=redis_host,
+        redis_port=redis_port
     )(main_func)

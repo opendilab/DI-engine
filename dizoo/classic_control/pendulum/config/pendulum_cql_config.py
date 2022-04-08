@@ -35,6 +35,7 @@ pendulum_cql_config = dict(
         collect=dict(
             data_type='hdf5',
             data_path='./pendulum_sac_data_generation/expert_demos.hdf5',
+            collector_logit=False,
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=100, )),
@@ -57,3 +58,8 @@ pendulum_cql_create_config = dict(
 )
 pendulum_cql_create_config = EasyDict(pendulum_cql_create_config)
 create_config = pendulum_cql_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial_offline -c pendulum_cql_config.py -s 0`
+    from ding.entry import serial_pipeline_offline
+    serial_pipeline_offline([main_config, create_config], seed=0)

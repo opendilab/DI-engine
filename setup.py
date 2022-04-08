@@ -46,7 +46,7 @@ setup(
     },
     python_requires=">=3.6",
     install_requires=[
-        'numpy>=1.10',
+        'numpy>=1.18.0',
         'requests>=2.25.1',
         'six',
         'gym==0.20.0',  # pypy incompatible
@@ -75,12 +75,12 @@ setup(
         'trueskill',
         'h5py',
         'rich',
-        'mpire',
+        'mpire>=2.3.4',
         'pynng',
-        'pettingzoo',
+        'pettingzoo==1.12.0',
         'pyglet>=1.4.0',
-        'box2d-py',
         'DI-treetensor',
+        'redis'
     ],
     extras_require={
         'test': [
@@ -101,13 +101,10 @@ setup(
         ],
         'common_env': [
             'ale-py==0.7.0',  # atari
+            'autorom',
             'box2d-py',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
-        ],
-        'sumo_env': [
-            'sumolib',
-            'traci',
         ],
         'gfootball_env': [
             'gfootball',
@@ -138,19 +135,6 @@ setup(
         # 'gym_soccer_env': [
         #     'gym-soccer @ git+https://github.com/LikeJulia/gym-soccer@dev-install-packages#egg=gym-soccer',
         # ],
-        'sc2_env': [
-            'absl-py>=0.1.0',
-            'future',
-            'futures; python_version == "2.7"',
-            'mpyq',
-            'mock',
-            'portpicker>=1.2.0',
-            'websocket-client',
-            'protobuf>=2.6',
-            'sk-video',  # pypy incompatible
-            'whichcraft',
-            'joblib',
-        ],
         'slimevolleygym_env': [
             'slimevolleygym',
         ],

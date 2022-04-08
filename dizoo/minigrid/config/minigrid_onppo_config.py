@@ -1,16 +1,15 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_onpolicy
+
 collector_env_num = 8
 minigrid_ppo_config = dict(
-    exp_name="minigrid_fourrooms_onppo",
+    exp_name="minigrid_empty8_onppo_seed0",
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        env_id='MiniGrid-FourRooms-v0',
-        # env_id='MiniGrid-DoorKey-8x8-v0',
-        # env_id='MiniGrid-DoorKey-16x16-v0',
         n_evaluator_episode=5,
+        # minigrid env id: 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'
+        env_id='MiniGrid-Empty-8x8-v0',
+        max_step=300,
         stop_value=0.96,
     ),
     policy=dict(
@@ -37,12 +36,6 @@ minigrid_ppo_config = dict(
         collect=dict(
             collector_env_num=collector_env_num,
             n_sample=int(3200),
-            # here self.traj_length = 3200//8 = 400, because in minigrid env the max_length is 300.
-            # in ding/worker/collector/sample_serial_collector.py
-            #    self._traj_len = max(
-            #     self._unroll_len,
-            #     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
-            # )
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,
@@ -56,11 +49,13 @@ minigrid_ppo_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
 )
 minigrid_ppo_create_config = EasyDict(minigrid_ppo_create_config)
 create_config = minigrid_ppo_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c minigrid_onppo_config.py -s 0`
+    from ding.entry import serial_pipeline_onpolicy
     serial_pipeline_onpolicy([main_config, create_config], seed=0)
