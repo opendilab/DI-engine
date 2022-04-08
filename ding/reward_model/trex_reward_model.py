@@ -198,7 +198,7 @@ class TrexRewardModel(BaseRewardModel):
     def load_expert_data(self) -> None:
         """
         Overview:
-            Getting the expert data from ``config.expert_data_path`` attribute in self
+            Getting the expert data from ``config.data_path`` attribute in self
         Effects:
             This is a side effect function which updates the expert data attribute \
                 (i.e. ``self.expert_data``) with ``fn:concat_state_action_pairs``

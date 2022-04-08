@@ -136,7 +136,7 @@ class GailRewardModel(BaseRewardModel):
     config = dict(
         type='gail',
         learning_rate=1e-3,
-        expert_data_path='expert_data.pkl',
+        data_path='expert_data.pkl',
         update_per_collect=100,
         batch_size=64,
         input_size=4,
@@ -179,12 +179,12 @@ class GailRewardModel(BaseRewardModel):
     def load_expert_data(self) -> None:
         """
         Overview:
-            Getting the expert data from ``config.expert_data_path`` attribute in self
+            Getting the expert data from ``config.data_path`` attribute in self
         Effects:
             This is a side effect function which updates the expert data attribute \
                 (i.e. ``self.expert_data``) with ``fn:concat_state_action_pairs``
         """
-        with open(self.cfg.expert_data_path, 'rb') as f:
+        with open(self.cfg.data_path + '/expert_data.pkl', 'rb') as f:
             self.expert_data_loader: list = pickle.load(f)
         self.expert_data = self.concat_state_action_pairs(self.expert_data_loader)
 
