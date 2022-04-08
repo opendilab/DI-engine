@@ -28,17 +28,17 @@ spaceinvaders_trex_ppo_config = dict(
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name``.
         # For example, if you want to use dqn to generate demos, you can use ``spaceinvaders_dqn``
-        expert_model_path='expert_model_path_placeholder',
+        expert_model_path='model_path_placeholder',
         # path to save reward model
         # Users should add their own model path here.
         # Absolute path is recommended.
         # For example, if you use ``spaceinvaders_drex``, then the reward model will be saved in this directory.
-        reward_model_path='reward_model_path_placeholder + ./spaceinvaders.params',
+        reward_model_path='model_path_placeholder + ./spaceinvaders.params',
         # path to save generated observations.
         # Users should add their own model path here.
         # Absolute path is recommended.
         # For example, if you use ``spaceinvaders_drex``, then all the generated data will be saved in this directory.
-        offline_data_path='offline_data_path_placeholder',
+        offline_data_path='data_path_placeholder',
     ),
     policy=dict(
         cuda=True,
@@ -91,8 +91,18 @@ spaceinvaders_trex_ppo_create_config = EasyDict(spaceinvaders_trex_ppo_create_co
 create_config = spaceinvaders_trex_ppo_create_config
 
 if __name__ == '__main__':
-    from ding.entry import trex_collecting_data, serial_pipeline_reward_model_trex
-
-    args = EasyDict(dict(cfg=[main_config, create_config], seed=0, device='cuda'))
+    # Users should first run ``spaceinvaders_offppo_config.py`` to save models (or checkpoints).
+    # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
+    # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
+    import argparse
+    import torch
+    from ding.entry import trex_collecting_data
+    from ding.entry import serial_pipeline_reward_model_trex
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    args = parser.parse_args()
+    # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_reward_model_trex([main_config, create_config], seed=0)
+    serial_pipeline_reward_model_trex([main_config, create_config])

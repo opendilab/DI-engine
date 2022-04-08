@@ -76,5 +76,6 @@ spaceinvaders_r2d2_gtrxl_create_config = EasyDict(spaceinvaders_r2d2_gtrxl_creat
 create_config = spaceinvaders_r2d2_gtrxl_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c spaceinvaders_r2d2_gtrxl_config.py -s 0
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

@@ -75,5 +75,6 @@ spaceinvaders_impala_create_config = EasyDict(spaceinvaders_impala_create_config
 create_config = spaceinvaders_impala_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c spaceinvaders_impala_config.py -s 0
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

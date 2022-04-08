@@ -35,7 +35,7 @@ spaceinvaders_r2d2_config = dict(
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
             update_per_collect=8,
-            batch_size=64,  # TODO(pu)
+            batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
         ),
@@ -53,7 +53,7 @@ spaceinvaders_r2d2_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=10000,  # TODO(pu)
+                replay_buffer_size=10000, 
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -76,5 +76,6 @@ spaceinvaders_r2d2_create_config = EasyDict(spaceinvaders_r2d2_create_config)
 create_config = spaceinvaders_r2d2_create_config
 
 if __name__ == "__main__":
+    '# or you can enter ding -m serial -c spaceinvaders_r2d2_config.py -s 0
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

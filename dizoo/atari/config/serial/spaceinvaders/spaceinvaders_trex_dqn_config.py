@@ -29,17 +29,17 @@ spaceinvaders_trex_dqn_config = dict(
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name``.
         # For example, if you want to use dqn to generate demos, you can use ``spaceinvaders_dqn``
-        expert_model_path='expert_model_path_placeholder',
+        expert_model_path='model_path_placeholder',
         # path to save reward model
         # Users should add their own model path here.
         # Absolute path is recommended.
         # For example, if you use ``spaceinvaders_drex``, then the reward model will be saved in this directory.
-        reward_model_path='reward_model_path_placeholder + ./spaceinvaders.params',
+        reward_model_path='model_path_placeholder + ./spaceinvaders.params',
         # path to save generated observations.
         # Users should add their own model path here.
         # Absolute path is recommended.
         # For example, if you use ``spaceinvaders_drex``, then all the generated data will be saved in this directory.
-        offline_data_path='offline_data_path_placeholder',
+        offline_data_path='data_path_placeholder',
     ),
     policy=dict(
         cuda=True,
