@@ -9,7 +9,7 @@ spaceinvaders_r2d2_gtrxl_config = dict(
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -69,7 +69,7 @@ spaceinvaders_r2d2_gtrxl_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d2_gtrxl'),
 )
 spaceinvaders_r2d2_gtrxl_create_config = EasyDict(spaceinvaders_r2d2_gtrxl_create_config)
