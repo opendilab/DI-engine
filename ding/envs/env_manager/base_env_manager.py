@@ -4,13 +4,13 @@ from functools import partial, wraps
 from easydict import EasyDict
 import copy
 import platform
-from collections import namedtuple
 import numbers
 import logging
 import enum
 import time
-from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog
 import treetensor.numpy as tnp
+from ding.utils import ENV_MANAGER_REGISTRY, import_module, one_time_warning, make_key_as_identifier, WatchDog
+from ding.envs.env import BaseEnvTimestep
 
 
 class EnvState(enum.IntEnum):
@@ -137,24 +137,26 @@ class BaseEnvManager(object):
         return self._reward_space
 
     @property
-    def ready_obs(self) -> tnp.array:
+    def ready_obs(self) -> Dict[int, Any]:
         """
         Overview:
-            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both aysnc/sync scenarios.
+            Get the ready (next) observation, which is uniform for both aysnc/sync scenarios.
         Return:
-            - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.
+            - ready_obs (:obj:`Dict[int, Any]:`): Dict with env_id keys and observation values.
         Example:
             >>> obs = env_manager.ready_obs
+            >>> stacked_obs = np.concatenate(list(obs.values()))
             >>> action = model(obs)  # model input np obs and output np action
+            >>> action = {env_id: a for env_id, a in zip(obs.keys(), action)}
             >>> timesteps = env_manager.step(action)
         """
-        # In BaseEnvManager, if env_episode_count equals episode_num, this env is done.
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
         obs = [self._ready_obs[i] for i in active_env]
         return tnp.stack(obs)
 
     @property
     def ready_obs_id(self) -> List[int]:
+        # In BaseEnvManager, if env_episode_count equals episode_num, this env is done.
         return [i for i, s in self._env_states.items() if s == EnvState.RUN]
 
     @property
@@ -285,34 +287,26 @@ class BaseEnvManager(object):
         runtime_error.__traceback__ = exceptions[-1].__traceback__
         raise runtime_error
 
-    def step(self, actions: tnp.ndarray) -> List[tnp.ndarray]:
+    def step(self, actions: Dict[int, Any]) -> List[Dict[int, BaseEnvTimestep]]:
         """
         Overview:
-            Execute env step according to input actions and self.ready_obs_id. And reset an env if done.
+            Execute env step according to input actions. And reset an env if done.
         Arguments:
-            - actions (:obj:`tnp.ndarray`): actions came from outer caller like policy
+            - actions (:obj:`Dict[int, Any]`): actions came from outer caller like policy
         Returns:
-            - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
-                info, env_id.
+            - timesteps (:obj:`List[Dict[int, BaseEnvTimestep]]`): Each timestep is a BaseEnvTimestep object, \
+                usually including observation, reward, done, info.
         Example:
             >>> timesteps = env_manager.step(action)
             >>> for i, timestep in enumerate(timesteps):
             >>>     if timestep.done:
             >>>         print('Env {} is done'.format(timestep.env_id))
-
-        .. note:
-
-            Please pay more attention to whether to enable auto_reret mechanism, defaults to True
         """
         self._check_closed()
-        timesteps = []
-        for env_id, act in zip(self.ready_obs_id, actions):
-            obs, reward, done, info = self._step(env_id, act)
-            # make the type and content of key as similar as identifier,
-            # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
-            info = make_key_as_identifier(info)
-            timesteps.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
-            if done:
+        timesteps = {}
+        for env_id, act in actions.items():
+            timesteps[env_id] = self._step(env_id, act)
+            if timesteps[env_id].done:
                 self._env_episode_count[env_id] += 1
                 if self._env_episode_count[env_id] < self._episode_num:
                     if self._auto_reset:
@@ -322,10 +316,10 @@ class BaseEnvManager(object):
                 else:
                     self._env_states[env_id] = EnvState.DONE
             else:
-                self._ready_obs[env_id] = obs
+                self._ready_obs[env_id] = timesteps[env_id].obs
         return timesteps
 
-    def _step(self, env_id: int, act: Any) -> namedtuple:
+    def _step(self, env_id: int, act: Any) -> BaseEnvTimestep:
 
         @timeout_wrapper(timeout=self._step_timeout)
         def step_fn():
@@ -395,18 +389,53 @@ class BaseEnvManager(object):
             self._env_states[i] = EnvState.VOID
         self._closed = True
 
-    def env_info(self) -> namedtuple:
-        """
-        Overview:
-            Get one env's info, for example, action space, observation space, reward space, etc.
-        Returnns:
-            - info (:obj:`namedtuple`): Usually a namedtuple ``BaseEnvInfo``, each element is ``EnvElementInfo``.
-        """
-        return self._env_ref.info()
-
     @property
     def closed(self) -> bool:
         return self._closed
+
+
+@ENV_MANAGER_REGISTRY.register('base_v2')
+class BaseEnvManagerV2(BaseEnvManager):
+    """
+    Overview:
+        BaseEnvManager for new task pipeline and interfaces coupled with treetensor.
+    """
+    @property
+    def ready_obs(self) -> tnp.array:
+        """
+        Overview:
+            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both aysnc/sync scenarios.
+        Return:
+            - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.
+        Example:
+            >>> obs = env_manager.ready_obs
+            >>> action = model(obs)  # model input np obs and output np action
+            >>> timesteps = env_manager.step(action)
+        """
+        active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
+        obs = [self._ready_obs[i] for i in active_env]
+        return tnp.stack(obs)
+
+    def step(self, actions: tnp.ndarray) -> List[tnp.ndarray]:
+        """
+        Overview:
+            Execute env step according to input actions. And reset an env if done.
+        Arguments:
+            - actions (:obj:`tnp.ndarray`): actions came from outer caller like policy
+        Returns:
+            - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
+                info, env_id.
+        """
+        actions = {env_id: a for env_id, a in zip(self.ready_obs_id, actions)}
+        timesteps = super().step(actions)
+        new_data = []
+        for env_id, timestep in timesteps.items():
+            obs, reward, done, info = timestep
+            # make the type and content of key as similar as identifier,
+            # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
+            info = make_key_as_identifier(info)
+            new_data.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
+        return new_data
 
 
 def create_env_manager(manager_cfg: dict, env_fn: List[Callable]) -> BaseEnvManager:

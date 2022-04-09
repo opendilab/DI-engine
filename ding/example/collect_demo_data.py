@@ -3,7 +3,7 @@ import logging
 import torch
 from ding.model import QAC
 from ding.policy import SACPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManager
+from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import offline_data_save_type
 from ding.config import compile_config
 from ding.framework import task
@@ -18,7 +18,7 @@ def main():
     logging.getLogger().setLevel(logging.INFO)
     cfg = compile_config(main_config, create_cfg=create_config, auto=True, evaluator=None)
     with task.start(async_mode=False, ctx=OnlineRLContext()):
-        collector_env = BaseEnvManager(env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(10)], cfg=cfg.env.manager)
+        collector_env = BaseEnvManagerV2(env_fn=[lambda: PendulumEnv(cfg.env) for _ in range(10)], cfg=cfg.env.manager)
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 

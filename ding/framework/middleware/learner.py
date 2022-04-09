@@ -24,6 +24,8 @@ class OffPolicyLearner:
         self._trainer = task.wrap(trainer(cfg, policy))
         if reward_model is not None:
             self._reward_estimator = task.wrap(reward_estimator(cfg, reward_model))
+        else:
+            self._reward_estimator = None
 
     def __call__(self, ctx: "Context") -> None:
         train_output_queue = deque()
@@ -31,7 +33,8 @@ class OffPolicyLearner:
             self._fetcher(ctx)
             if ctx.train_data is None:
                 break
-            self._reward_estimator(ctx)
+            if self._reward_estimator:
+                self._reward_estimator(ctx)
             self._trainer(ctx)
             train_output_queue.append(ctx.train_output)
         ctx.train_output = train_output_queue

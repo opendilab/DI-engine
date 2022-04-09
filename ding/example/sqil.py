@@ -3,7 +3,7 @@ import logging
 import torch
 from ding.model import DQN
 from ding.policy import SQLPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManager
+from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
@@ -46,14 +46,17 @@ def main():
     # expert config must have the same `n_sample`. The line below ensure we do not need to modify the expert configs
     expert_cfg.policy.collect.n_sample = cfg.policy.collect.n_sample
     with task.start(async_mode=False, ctx=OnlineRLContext()):
-        collector_env = BaseEnvManager(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(8)], cfg=cfg.env.manager
+        collector_env = BaseEnvManagerV2(
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
+            cfg=cfg.env.manager
         )
-        expert_collector_env = BaseEnvManager(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(8)], cfg=cfg.env.manager
+        expert_collector_env = BaseEnvManagerV2(
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
+            cfg=cfg.env.manager
         )
-        evaluator_env = BaseEnvManager(
-            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(5)], cfg=cfg.env.manager
+        evaluator_env = BaseEnvManagerV2(
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.evaluator_env_num)],
+            cfg=cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
