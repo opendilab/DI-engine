@@ -32,8 +32,8 @@ from dizoo.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
-from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
-from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_config import pendulum_sac_data_genearation_config, pendulum_sac_data_genearation_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_config, pendulum_cql_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
@@ -332,10 +332,7 @@ def test_cql():
 
     # collect expert data
     import torch
-    config = [
-        deepcopy(pendulum_sac_data_genearation_default_config),
-        deepcopy(pendulum_sac_data_genearation_default_create_config)
-    ]
+    config = [deepcopy(pendulum_sac_data_genearation_config), deepcopy(pendulum_sac_data_genearation_create_config)]
     collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
     expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
@@ -347,7 +344,7 @@ def test_cql():
         assert False, "pipeline fail"
 
     # train cql
-    config = [deepcopy(pendulum_cql_default_config), deepcopy(pendulum_cql_default_create_config)]
+    config = [deepcopy(pendulum_cql_config), deepcopy(pendulum_cql_create_config)]
     try:
         serial_pipeline_offline(config, seed=0)
     except Exception:

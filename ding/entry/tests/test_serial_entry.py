@@ -412,10 +412,7 @@ def test_cql():
 
     # collect expert data
     import torch
-    config = [
-        deepcopy(pendulum_sac_data_genearation_config),
-        deepcopy(pendulum_sac_data_genearation_create_config)
-    ]
+    config = [deepcopy(pendulum_sac_data_genearation_config), deepcopy(pendulum_sac_data_genearation_create_config)]
     collect_count = 1000
     expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load('./sac_unittest/ckpt/iteration_0.pth.tar', map_location='cpu')
