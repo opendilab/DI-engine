@@ -413,9 +413,9 @@ def compile_config(
     cfg.seed = seed
     # check important key in config
     if evaluator in [InteractionSerialEvaluator, BattleInteractionSerialEvaluator]:  # env interaction evaluation
-        assert all([k in cfg.env for k in ['n_evaluator_episode', 'stop_value']]), cfg.env
-        cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
-        cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+        if 'stop_value' in cfg.env:  # data generation task doesn't need these fields
+            cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+            cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
     if save_cfg:

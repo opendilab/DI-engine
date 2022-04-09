@@ -106,7 +106,7 @@ class BaseEnv(ABC, gym.Env):
         raise NotImplementedError
 
 
-def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
+def get_vec_env_setting(cfg: dict, collect: bool = True, eval_: bool = True) -> Tuple[type, List[dict], List[dict]]:
     """
     Overview:
        Get vectorized env setting(env_fn, collector_env_cfg, evaluator_env_cfg)
@@ -123,8 +123,8 @@ def get_vec_env_setting(cfg: dict) -> Tuple[type, List[dict], List[dict]]:
     """
     import_module(cfg.get('import_names', []))
     env_fn = ENV_REGISTRY.get(cfg.type)
-    collector_env_cfg = env_fn.create_collector_env_cfg(cfg)
-    evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg)
+    collector_env_cfg = env_fn.create_collector_env_cfg(cfg) if collect else None
+    evaluator_env_cfg = env_fn.create_evaluator_env_cfg(cfg) if eval_ else None
     return env_fn, collector_env_cfg, evaluator_env_cfg
 
 

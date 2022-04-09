@@ -151,8 +151,7 @@ class BaseEnvManager(object):
             >>> timesteps = env_manager.step(action)
         """
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
-        obs = [self._ready_obs[i] for i in active_env]
-        return tnp.stack(obs)
+        return {i: self._ready_obs[i] for i in active_env}
 
     @property
     def ready_obs_id(self) -> List[int]:
