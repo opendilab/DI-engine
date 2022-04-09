@@ -400,6 +400,7 @@ class BaseEnvManagerV2(BaseEnvManager):
     Overview:
         BaseEnvManager for new task pipeline and interfaces coupled with treetensor.
     """
+
     @property
     def ready_obs(self) -> tnp.array:
         """

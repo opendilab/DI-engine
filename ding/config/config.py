@@ -264,9 +264,7 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer_cls: 
             policy_buffer_cfg = policy_cfg.other.replay_buffer[buffer_name]
             user_buffer_cfg = user_cfg.policy.get('other', {}).get('replay_buffer', {}).get('buffer_name', {})
             if buffer_cls is None:
-                return_cfg[buffer_name] = _compile_buffer_config(
-                    policy_buffer_cfg, user_buffer_cfg, None
-                )
+                return_cfg[buffer_name] = _compile_buffer_config(policy_buffer_cfg, user_buffer_cfg, None)
             else:
                 return_cfg[buffer_name] = _compile_buffer_config(
                     policy_buffer_cfg, user_buffer_cfg, buffer_cls[buffer_name]

@@ -116,7 +116,7 @@ class Task:
             Register middleware to task. The middleware will be executed by it's registry order.
         Arguments:
             - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.
-            - lock (:obj:`Union[bool, Lock]`): There can only be one middleware execution under this lock at any one time.
+            - lock (:obj:`Union[bool, Lock]`): There can only be one middleware execution under lock at any one time.
         Returns:
             - task (:obj:`Task`): The task.
         """
@@ -176,7 +176,7 @@ class Task:
             Wrap the middleware, make it can be called directly in other middleware.
         Arguments:
             - fn (:obj:`Callable`): The middleware.
-            - lock (:obj:`Union[bool, Lock]`): There can only be one middleware execution under this lock at any one time.
+            - lock (:obj:`Union[bool, Lock]`): There can only be one middleware execution under lock at any one time.
         Returns:
             - fn_back (:obj:`Callable`): It will return a backward function, which will call the rest part of
                 the middleware after yield. If this backward function was not called, the rest part of the middleware
@@ -239,7 +239,8 @@ class Task:
         Overview:
             Execute the rest part of middleware, by the reversed order of registry.
         Arguments:
-            - backward_stack (:obj:`Optional[Dict[str, Generator]]`): Replace global backward_stack with a customized stack.
+            - backward_stack (:obj:`Optional[Dict[str, Generator]]`): Replace global backward_stack with a customized \
+                stack.
         """
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if not backward_stack:
