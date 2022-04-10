@@ -52,8 +52,8 @@ class AtariEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         # self._env.render()
         self._final_eval_reward += rew
-        obs = to_ndarray(obs)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        obs = to_ndarray(obs).astype(np.float32)
+        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
