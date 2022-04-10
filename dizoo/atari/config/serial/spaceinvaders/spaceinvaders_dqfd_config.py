@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 spaceinvaders_dqfd_config = dict(
-    exp_name='spaceinvaders_dqfd',
+    exp_name='spaceinvaders_dqfd_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -9,7 +9,6 @@ spaceinvaders_dqfd_config = dict(
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=True, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -26,14 +25,19 @@ spaceinvaders_dqfd_config = dict(
             batch_size=32,
             learning_rate=0.0001,
             target_update_freq=500,
-            lambda1=1.0,
-            lambda2=1.0,
-            lambda3=1e-5,
+            lambda1=1.0,  # n-step return
+            lambda2=1.0,  # supervised loss
+            lambda3=1e-5,  # L2 regularization
             per_train_iter_k=10,
             expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
         ),
-        collect=dict(n_sample=100, demonstration_info_path='path'
-                     ),  #Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(
+            n_sample=100,
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
+        ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -58,3 +62,14 @@ spaceinvaders_dqfd_create_config = dict(
 )
 spaceinvaders_dqfd_create_config = EasyDict(spaceinvaders_dqfd_create_config)
 create_config = spaceinvaders_dqfd_create_config
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial_dqfd -c spaceinvaders_dqfd_config.py -s 0`
+    # then input ``spaceinvaders_dqfd_config.py`` upon the instructions.
+    # The reason we need to input the dqfd config is we have to borrow its ``_get_train_sample`` function
+    # in the collector part even though the expert model may be generated from other Q learning algos.
+    from ding.entry.serial_entry_dqfd import serial_pipeline_dqfd
+    from dizoo.atari.config.serial.spaceinvaders import spaceinvaders_dqfd_config, spaceinvaders_dqfd_create_config
+    expert_main_config = spaceinvaders_dqfd_config
+    expert_create_config = spaceinvaders_dqfd_create_config
+    serial_pipeline_dqfd([main_config, create_config], [expert_main_config, expert_create_config], seed=0)

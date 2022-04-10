@@ -9,7 +9,6 @@ qbert_sqil_config = dict(
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -28,12 +27,13 @@ qbert_sqil_config = dict(
             target_update_freq=500,
             alpha=0.1  # alpha: 0.08-0.12
         ),
-        collect=dict(n_sample=100,
-                     # Users should add their own model path here. Model path should lead to a model.
-                     # Absolute path is recommended.
-                     # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-                     demonstration_info_path='model_path'
-                     ),
+        collect=dict(
+            n_sample=100,
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
+        ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(

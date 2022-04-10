@@ -1,5 +1,4 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_mbrl
 
 # environment hypo
 env_id = 'HalfCheetah-v3'
@@ -26,7 +25,7 @@ set_rollout_length = lambda x: int(min(max(w * (x - x0) + b, y0), y1))
 set_buffer_size = lambda x: set_rollout_length(x) * rollout_batch_size * rollout_retain
 
 main_config = dict(
-    exp_name='halfcheetach_sac_mbpo_seed0',
+    exp_name='halfcheetach_mbpo_sac_seed0',
     env=dict(
         env_id=env_id,
         norm_obs=dict(use_norm=False, ),
@@ -36,6 +35,7 @@ main_config = dict(
         use_act_scale=True,
         n_evaluator_episode=8,
         stop_value=100000,
+        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=cuda,
@@ -123,4 +123,5 @@ create_config = dict(
 create_config = EasyDict(create_config)
 
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline_mbrl
     serial_pipeline_mbrl((main_config, create_config), seed=0)
