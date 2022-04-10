@@ -1,7 +1,7 @@
 import pytest
 from itertools import product
 import torch
-from ding.model.template import DQN, RainbowDQN, QRDQN, IQN, DRQN, C51DQN
+from ding.model.template import DQN, RainbowDQN, QRDQN, IQN, FQF, DRQN, C51DQN
 from ding.torch_utils import is_differentiable
 
 T, B = 3, 4
@@ -107,6 +107,33 @@ class TestQLearning:
                 assert outputs['q'][i].shape == (num_quantiles, B, s)
                 assert outputs['quantiles'][i].shape == (B * num_quantiles, 1)
         self.output_check(model, outputs['logit'])
+
+    @pytest.mark.parametrize('obs_shape, act_shape', args)
+    def test_fqf(self, obs_shape, act_shape):
+        if isinstance(obs_shape, int):
+            inputs = torch.randn(B, obs_shape)
+        else:
+            inputs = torch.randn(B, *obs_shape)
+        num_quantiles = 48
+        model = FQF(obs_shape, act_shape, num_quantiles=num_quantiles, quantile_embedding_size=64)
+        outputs = model(inputs)
+        print(model)
+        assert isinstance(outputs, dict)
+        if isinstance(act_shape, int):
+            assert outputs['logit'].shape == (B, act_shape)
+            assert outputs['q'].shape == (B, num_quantiles, act_shape)
+            assert outputs['quantiles'].shape == (B, num_quantiles+1)
+        elif len(act_shape) == 1:
+            assert outputs['logit'].shape == (B, *act_shape)
+            assert outputs['q'].shape == (B, num_quantiles, *act_shape)
+            assert outputs['quantiles'].shape == (B, num_quantiles+1)
+        else:
+            for i, s in enumerate(act_shape):
+                assert outputs['logit'][i].shape == (B, s)
+                assert outputs['q'][i].shape == (B, num_quantiles, s)
+                assert outputs['quantiles'][i].shape == (B, num_quantiles+1)
+                assert outputs['q_tau_i'][i].shape == (B, num_quantiles-1, s)
+        self.output_check(model, outputs['q_tau_i'])
 
     @pytest.mark.parametrize('obs_shape, act_shape', args)
     def test_qrdqn(self, obs_shape, act_shape):

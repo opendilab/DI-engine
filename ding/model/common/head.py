@@ -443,13 +443,160 @@ class QuantileHead(nn.Module):
         logit_quantile_net = self.quantile_net(logit_quantiles)
 
         x = x.repeat(num_quantiles, 1)
-        q_x = x * q_quantile_net
+        q_x = x * q_quantile_net  #4*32,64
         logit_x = x * logit_quantile_net
 
         q = self.Q(q_x).reshape(num_quantiles, batch_size, -1)
         logit = self.Q(logit_x).reshape(num_quantiles, batch_size, -1).mean(0)
 
         return {'logit': logit, 'q': q, 'quantiles': q_quantiles}
+
+
+class FQFHead(nn.Module):
+
+    def __init__(
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        num_quantiles: int = 32,
+        quantile_embedding_size: int = 128,
+        #beta_function_type: Optional[str] = 'uniform',
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
+    ) -> None:
+        r"""
+        Overview:
+            Init the Head according to arguments.
+        Arguments:
+            - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``
+            - output_size (:obj:`int`): The num of output
+            - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
+            - activation (:obj:`nn.Module`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`str`):
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details
+            - noise (:obj:`bool`): Whether use noisy ``fc_block``
+        """
+        super(FQFHead, self).__init__()
+        layer = NoiseLinearLayer if noise else nn.Linear
+        block = noise_block if noise else fc_block
+        self.Q = nn.Sequential(
+            MLP(
+                hidden_size,
+                hidden_size,
+                hidden_size,
+                layer_num,
+                layer_fn=layer,
+                activation=activation,
+                norm_type=norm_type
+            ), block(hidden_size, output_size)
+        )
+        self.num_quantiles = num_quantiles
+        self.quantile_embedding_size = quantile_embedding_size
+        self.output_size = output_size
+        self.iqn_fc = nn.Linear(self.quantile_embedding_size, hidden_size)
+        #self.beta_function = beta_function_map[beta_function_type]
+        self.quantiles_proposal = nn.Sequential(
+            MLP(
+                hidden_size,
+                hidden_size,
+                num_quantiles,
+                layer_num = 1,
+                layer_fn=nn.Linear,
+                activation=nn.Softmax(),
+                norm_type=norm_type
+            )
+        )
+    # def quantiles_proposal(self, x: torch.Tensor, num_quantiles: Optional[int] = None) -> torch.Tensor:
+    #   return
+
+    def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
+        r"""
+        Overview:
+           Deterministic parametric function trained to reparameterize samples from a base distribution.
+           By repeated Bellman update iterations of Q-learning, the optimal action-value function is estimated.
+        Arguments:
+            - x (:obj:`torch.Tensor`): The encoded embedding tensor of parametric sample
+        Returns:
+            - (:obj:`torch.Tensor`):
+                QN output tensor after reparameterization of shape ``(quantile_embedding_size, output_size)``
+        Examples:
+            >>> head = QuantileHead(64, 64)
+            >>> quantiles = torch.randn(4,32)
+            >>> qn_output = head.quantile_net(quantiles)
+            >>> assert isinstance(qn_output, torch.Tensor)
+            >>> # default quantile_embedding_size: int = 128,
+            >>> assert qn_output.shape == torch.Size([128, 64])
+        """
+        batch_size = quantiles.shape[0]
+        num_quantiles = quantiles.shape[1]
+        quantile_net = torch.cos(
+            torch.arange(1, self.quantile_embedding_size + 1, 1).view(1, 1, self.quantile_embedding_size).to(quantiles) * math.pi * quantiles.view(batch_size, num_quantiles, 1)
+        ).view(batch_size * num_quantiles, self.quantile_embedding_size)
+        quantile_net = self.iqn_fc(quantile_net)
+        quantile_net = F.relu(quantile_net).view(batch_size, num_quantiles, -1)   #(batch,num_quantiles,hidden_size)
+        return quantile_net
+
+    def forward(self, x: torch.Tensor, num_quantiles: Optional[int] = None) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict Quantile output.
+            Parameter updates with QuantileHead's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run ``MLP`` with ``QuantileHead`` setups and return the result prediction dictionary.
+
+                Necessary Keys:
+                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+                    - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, B, N)``
+                    - quantiles (:obj:`torch.Tensor`): quantiles tensor of size ``(B*num_quantiles, 1)``
+        Examples:
+            >>> head = QuantileHead(64, 64)
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = head(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+            >>> # default num_quantiles is 32
+            >>> assert outputs['q'].shape == torch.Size([32, 4, 64])
+            >>> assert outputs['quantiles'].shape == torch.Size([128, 1])
+        """
+
+        if num_quantiles is None:
+            num_quantiles = self.num_quantiles
+        batch_size = x.shape[0]
+
+        q_quantiles = self.quantiles_proposal(x.detach())  #(batch,num_quantiles)
+        # accumalative softmax
+        """ accumalative = 1
+        for i in range(1,num_quantiles):
+            q_quantiles[:,num_quantiles-1-i] = accumalative - q_quantiles[:,num_quantiles-i]
+            accumalative = q_quantiles[:,num_quantiles-1-i]
+        q_quantiles[:,-1] = 1 """
+        q_quantiles = torch.cumsum(q_quantiles, dim=1)
+        # quantile_hats: find the optimal condition for τ to minimize W1(Z, τ)  
+        tau_0 = torch.zeros((batch_size, 1)).to(x)
+        q_quantiles_hats = (q_quantiles + torch.cat((tau_0, q_quantiles[:,:-1]), dim=1)).detach() / 2.   #(batch, num_quantiles)
+        
+        q_quantiles = torch.cat((tau_0, q_quantiles), dim=1)     #[batch, num_quantiles+1]
+        
+        q_quantile_net = self.quantile_net(q_quantiles_hats)     #[batch, num_quantiles, hidden_size(64)]
+        #x = x.view(batch_size, 1, -1)                                      #[batch_size, 1, hidden_size(64)]
+        q_x = (x.view(batch_size, 1, -1) * q_quantile_net).view(batch_size * num_quantiles, -1)    #[batch_size*num_quantiles, hidden_size(64)]
+        q = self.Q(q_x).reshape(batch_size, num_quantiles, -1)             #[batch_size, num_quantiles, action_size(64)]
+        logit = q.mean(1)
+        with torch.no_grad():
+            q_tau_i_net = self.quantile_net(q_quantiles[:, 1:-1].detach())     #[batch, num_quantiles-1, hidden_size(64)]
+            q_tau_i_x = (x.view(batch_size, 1, -1) * q_tau_i_net).view(batch_size * (num_quantiles-1), -1)    #[batch_size*(num_quantiles-1), hidden_size(64)]
+
+            q_tau_i = self.Q(q_tau_i_x).reshape(batch_size, num_quantiles-1, -1)             #[batch_size, num_quantiles-1, action_size(64)]
+
+        return {'logit': logit, 'q': q, 'quantiles': q_quantiles, 'quantiles_hats': q_quantiles_hats, 'q_tau_i': q_tau_i}
 
 
 class DuelingHead(nn.Module):

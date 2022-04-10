@@ -5,7 +5,7 @@ import torch.nn as nn
 from ding.torch_utils import get_lstm
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ..common import FCEncoder, ConvEncoder, DiscreteHead, DuelingHead, MultiHead, RainbowHead, \
-    QuantileHead, QRDQNHead, DistributionHead
+    QuantileHead, FQFHead, QRDQNHead, DistributionHead
 from ding.torch_utils.network.gtrxl import GTrXL
 
 
@@ -410,6 +410,114 @@ class IQN(nn.Module):
             >>> assert outputs['q'].shape == torch.Size([32, 4, 64]
             >>> # default quantile_embedding_size: int = 128
             >>> assert outputs['quantiles'].shape == torch.Size([128, 1])
+        """
+        x = self.encoder(x)
+        x = self.head(x)
+        return x
+
+
+@MODEL_REGISTRY.register('fqf')
+class FQF(nn.Module):
+
+    def __init__(
+            self,
+            obs_shape: Union[int, SequenceType],
+            action_shape: Union[int, SequenceType],
+            encoder_hidden_size_list: SequenceType = [128, 128, 64],
+            head_hidden_size: Optional[int] = None,
+            head_layer_num: int = 1,
+            num_quantiles: int = 32,
+            quantile_embedding_size: int = 128,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None
+    ) -> None:
+        r"""
+        Overview:
+            Init the FQF Model according to input arguments.
+        Arguments:
+            - obs_shape (:obj:`Union[int, SequenceType]`): Observation space shape.
+            - action_shape (:obj:`Union[int, SequenceType]`): Action space shape.
+            - encoder_hidden_size_list (:obj:`SequenceType`): Collection of ``hidden_size`` to pass to ``Encoder``
+            - head_hidden_size (:obj:`Optional[int]`): The ``hidden_size`` to pass to ``Head``.
+            - head_layer_num (:obj:`int`): The num of layers used in the network to compute Q value output
+            - num_quantiles (:obj:`int`): Number of quantiles in the prediction distribution.
+            - activation (:obj:`Optional[nn.Module]`):
+                The type of activation function to use in ``MLP`` the after ``layer_fn``,
+                if ``None`` then default set to ``nn.ReLU()``
+            - norm_type (:obj:`Optional[str]`):
+                The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details.
+        """
+        super(FQF, self).__init__()
+        # For compatibility: 1, (1, ), [4, 32, 32]
+        obs_shape, action_shape = squeeze(obs_shape), squeeze(action_shape)
+        if head_hidden_size is None:
+            head_hidden_size = encoder_hidden_size_list[-1]
+        # FC Encoder
+        if isinstance(obs_shape, int) or len(obs_shape) == 1:
+            self.encoder = FCEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        # Conv Encoder
+        elif len(obs_shape) == 3:
+            self.encoder = ConvEncoder(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
+        else:
+            raise RuntimeError(
+                "not support obs_shape for pre-defined encoder: {}, please customize your own FQF".format(obs_shape)
+            )
+        # Head Type
+        head_cls = FQFHead
+        multi_head = not isinstance(action_shape, int)
+        if multi_head:
+            self.head = MultiHead(
+                head_cls,
+                head_hidden_size,
+                action_shape,
+                layer_num=head_layer_num,
+                num_quantiles=num_quantiles,
+                quantile_embedding_size=quantile_embedding_size,
+                activation=activation,
+                norm_type=norm_type
+            )
+        else:
+            self.head = head_cls(
+                head_hidden_size,
+                action_shape,
+                head_layer_num,
+                activation=activation,
+                norm_type=norm_type,
+                num_quantiles=num_quantiles,
+                quantile_embedding_size=quantile_embedding_size,
+            )
+
+    def forward(self, x: torch.Tensor) -> Dict:
+        r"""
+        Overview:
+            Use encoded embedding tensor to predict FQF's output.
+            Parameter updates with FQF's MLPs forward setup.
+        Arguments:
+            - x (:obj:`torch.Tensor`):
+                The encoded embedding tensor with ``(B, N=hidden_size)``.
+        Returns:
+            - outputs (:obj:`Dict`):
+                Run with encoder and head. Return the result prediction dictionary.
+
+        ReturnsKeys:
+            - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+            - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(num_quantiles, N, B)``
+            - quantiles (:obj:`torch.Tensor`): quantiles tensor of size ``(quantile_embedding_size, 1)``
+        Shapes:
+            - x (:obj:`torch.Tensor`): :math:`(B, N)`, where B is batch size and N is head_hidden_size.
+            - logit (:obj:`torch.FloatTensor`): :math:`(B, M)`, where M is action_shape
+            - quantiles (:obj:`torch.Tensor`):  :math:`(B*num_quantiles, 1)`.
+        Examples:
+            >>> model = FQF(64, 64) # arguments: 'obs_shape' and 'action_shape'
+            >>> inputs = torch.randn(4, 64)
+            >>> outputs = model(inputs)
+            >>> assert isinstance(outputs, dict)
+            >>> assert outputs['logit'].shape == torch.Size([4, 64])
+            >>> # default num_quantiles: int = 32
+            >>> assert outputs['q'].shape == torch.Size([4, 32, 64]
+            >>> # default quantile_embedding_size: int = 128
+            >>> assert outputs['quantiles'].shape == torch.Size([4, 33])
+            >>> assert outputs['quantiles_heads'].shape == torch.Size([4, 32])
         """
         x = self.encoder(x)
         x = self.head(x)
