@@ -1,12 +1,12 @@
 from tabnanny import check
-from typing import Any, List, Tuple
+from typing import Any, Callable, List, Tuple
 import numpy as np
 from collections import Sequence
 from easydict import EasyDict
 
 from ding.envs.env import BaseEnv, BaseEnvTimestep
-from dizoo.classic_control.cartpole.envs import CartPoleEnv
-from dizoo.atari.envs import AtariEnv
+from ding.envs.env.tests import DemoEnv
+# from dizoo.atari.envs import AtariEnv
 
 
 def check_array_space(ndarray, space, name) -> bool:
@@ -122,9 +122,42 @@ def check_obs_deepcopy(env: BaseEnv) -> None:
             break
 
 
+def demonstrate_correct_procudure(env_fn: Callable) -> None:
+    print('== 4. Demonstrate the correct procudures')
+    done_times = 0
+    # Init the env.
+    env = env_fn({})
+    # Lazy init. The real env is not initialized until `reset` method is called
+    assert not hasattr(env, "_env")
+    # Must set seed before `reset` method is called.
+    env.seed(4)
+    assert env._seed == 4
+    # Reset the env. The real env is initialized here.
+    obs = env.reset()
+    while True:
+        # Using the policy to get the action from obs. But here we use `random_action` instead.
+        action = env.random_action()
+        obs, rew, done, info = env.step(action)
+        if done:
+            assert 'final_eval_reward' in info
+            done_times += 1
+            obs = env.reset()
+            # Seed will not change unless `seed` method is called again.
+            assert env._seed == 4
+        if done_times == 3:
+            break
+
+
 if __name__ == "__main__":
-    # cartpole_env = CartPoleEnv({})
-    cartpole_env = AtariEnv(EasyDict(env_id='PongNoFrameskip-v4', frame_stack=4, is_train=False))
-    check_reset(cartpole_env)
-    check_step(cartpole_env)
-    check_obs_deepcopy(cartpole_env)
+    '''
+    # Moethods `check_*` are for user to check whether their implemented env obeys DI-engine's rules.
+    # You can replace `AtariEnv` with your own env.
+    atari_env = AtariEnv(EasyDict(env_id='PongNoFrameskip-v4', frame_stack=4, is_train=False))
+    check_reset(atari_env)
+    check_step(atari_env)
+    check_obs_deepcopy(atari_env)
+    '''
+    # Method `demonstrate_correct_procudure` is to demonstrate the correct procedure to
+    # use an env to generate trajectories.
+    # You can check whether your env's design is similar to `DemoEnv`
+    demonstrate_correct_procudure(DemoEnv)
