@@ -1,7 +1,8 @@
 from easydict import EasyDict
 
-halfcheetah_td3_default_config = dict(
+halfcheetah_ddpg_config = dict(
     env=dict(
+        exp_name='halfcheetah_ddpg_seed0',
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
@@ -17,7 +18,7 @@ halfcheetah_td3_default_config = dict(
         model=dict(
             obs_shape=17,
             action_shape=6,
-            twin_critic=True,
+            twin_critic=False,
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
             action_space='regression',
@@ -30,13 +31,8 @@ halfcheetah_td3_default_config = dict(
             ignore_done=True,
             target_theta=0.005,
             discount_factor=0.99,
-            actor_update_freq=2,
-            noise=True,
-            noise_sigma=0.2,
-            noise_range=dict(
-                min=-0.5,
-                max=0.5,
-            ),
+            actor_update_freq=1,
+            noise=False,
         ),
         collect=dict(
             n_sample=1,
@@ -46,21 +42,25 @@ halfcheetah_td3_default_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
+halfcheetah_ddpg_config = EasyDict(halfcheetah_ddpg_config)
+main_config = halfcheetah_ddpg_config
 
-halfcheetah_td3_default_config = EasyDict(halfcheetah_td3_default_config)
-main_config = halfcheetah_td3_default_config
-
-halfcheetah_td3_default_create_config = dict(
+halfcheetah_ddpg_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
-        type='td3',
-        import_names=['ding.policy.td3'],
+        type='ddpg',
+        import_names=['ding.policy.ddpg'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-halfcheetah_td3_default_create_config = EasyDict(halfcheetah_td3_default_create_config)
-create_config = halfcheetah_td3_default_create_config
+halfcheetah_ddpg_create_config = EasyDict(halfcheetah_ddpg_create_config)
+create_config = halfcheetah_ddpg_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c halfcheetah_ddpg_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
