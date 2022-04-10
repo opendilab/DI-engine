@@ -19,7 +19,8 @@ pendulum_sac_data_genearation_config = dict(
         collect=dict(
             n_sample=1000,
             save_path='./pendulum_sac_data_generation/expert.pkl',
-            state_dict_path='./pendulum_sac/ckpt/final.pth.tar',
+            data_type='hdf5',
+            state_dict_path='./pendulum_sac_seed0/ckpt/final.pth.tar',
         ),
     ),
 )

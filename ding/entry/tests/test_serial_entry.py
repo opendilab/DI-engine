@@ -52,12 +52,13 @@ from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_con
 def test_dqn():
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'cartpole_dqn_unittest'
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
-        os.popen('rm -rf log ckpt*')
+        os.popen('rm -rf cartpole_dqn_unittest')
 
 
 @pytest.mark.unittest
