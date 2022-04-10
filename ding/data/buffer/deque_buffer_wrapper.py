@@ -109,3 +109,6 @@ class DequeBufferWrapper(object):
             self.buffer.update(idx, data=None, meta=m)
         self.last_sample_index = None
         self.last_sample_meta = None
+
+    def count(self) -> int:
+        return self.buffer.count()
