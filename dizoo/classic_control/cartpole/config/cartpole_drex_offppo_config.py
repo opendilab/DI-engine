@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-cartpole_trex_ppo_offpolicy_config = dict(
-    exp_name='cartpole_trex_offppo',
+cartpole_drex_ppo_offpolicy_config = dict(
+    exp_name='cartpole_drex_offppo_seed0',
     env=dict(
         manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
@@ -10,7 +10,7 @@ cartpole_trex_ppo_offpolicy_config = dict(
         stop_value=195,
     ),
     reward_model=dict(
-        type='trex',
+        type='drex',
         algo_for_model='ppo',
         env_id='CartPole-v0',
         min_snippet_length=5,
@@ -20,9 +20,26 @@ cartpole_trex_ppo_offpolicy_config = dict(
         checkpoint_step=1000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./cartpole.params',
-        offline_data_path='abs data path',
+        # path to expert models that generate demonstration data
+        # Users should add their own model path here. Model path should lead to an exp_name.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name``.
+        # For example, if you want to use dqn to generate demos, you can use ``spaceinvaders_dqn``
+        expert_model_path='expert_model_path_placeholder',
+        # path to save reward model
+        # Users should add their own model path here.
+        # Absolute path is recommended.
+        # For example, if you use ``spaceinvaders_drex``, then the reward model will be saved in this directory.
+        reward_model_path='reward_model_path_placeholder + ./spaceinvaders.params',
+        # path to save generated observations.
+        # Users should add their own model path here.
+        # Absolute path is recommended.
+        # For example, if you use ``spaceinvaders_drex``, then all the generated data will be saved in this directory.
+        offline_data_path='offline_data_path_placeholder',
+        # path to pretrained bc model. If omitted, bc will be trained instead.
+        # Users should add their own model path here. Model path should lead to a model ckpt.
+        # Absolute path is recommended.
+        bc_path='bc_path_placeholder',
     ),
     policy=dict(
         cuda=False,
@@ -51,15 +68,15 @@ cartpole_trex_ppo_offpolicy_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )
-cartpole_trex_ppo_offpolicy_config = EasyDict(cartpole_trex_ppo_offpolicy_config)
-main_config = cartpole_trex_ppo_offpolicy_config
-cartpole_trex_ppo_offpolicy_create_config = dict(
+cartpole_drex_ppo_offpolicy_config = EasyDict(cartpole_drex_ppo_offpolicy_config)
+main_config = cartpole_drex_ppo_offpolicy_config
+cartpole_drex_ppo_offpolicy_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
-cartpole_trex_ppo_offpolicy_create_config = EasyDict(cartpole_trex_ppo_offpolicy_create_config)
-create_config = cartpole_trex_ppo_offpolicy_create_config
+cartpole_drex_ppo_offpolicy_create_config = EasyDict(cartpole_drex_ppo_offpolicy_create_config)
+create_config = cartpole_drex_ppo_offpolicy_create_config

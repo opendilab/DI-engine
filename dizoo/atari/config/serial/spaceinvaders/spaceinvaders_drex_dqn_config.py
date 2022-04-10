@@ -3,7 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 space_invaders_drex_dqn_config = dict(
-    exp_name='spaceinvaders_drex_seed0',
+    exp_name='spaceinvaders_drex_dqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,

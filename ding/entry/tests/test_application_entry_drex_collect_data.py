@@ -6,27 +6,27 @@ from itertools import product
 
 import torch
 
-from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_ppo_offpolicy_config,\
-     cartpole_trex_ppo_offpolicy_create_config
+from dizoo.classic_control.cartpole.config.cartpole_drex_offppo_config import cartpole_drex_ppo_offpolicy_config,\
+     cartpole_drex_ppo_offpolicy_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config,\
      cartpole_ppo_offpolicy_create_config
-from ding.entry.application_entry_trex_collect_data import collect_episodic_demo_data_for_trex, trex_collecting_data
+from ding.entry.application_entry_drex_collect_data import collect_episodic_demo_data_for_drex, drex_collecting_data
 from ding.entry import serial_pipeline
 
 
 @pytest.mark.unittest
-def test_collect_episodic_demo_data_for_trex():
+def test_collect_episodic_demo_data_for_drex():
     expert_policy_state_dict_path = './expert_policy.pth'
     expert_policy_state_dict_path = os.path.abspath('./expert_policy.pth')
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     expert_policy = serial_pipeline(config, seed=0)
     torch.save(expert_policy.collect_mode.state_dict(), expert_policy_state_dict_path)
 
-    config = deepcopy(cartpole_trex_ppo_offpolicy_config), deepcopy(cartpole_trex_ppo_offpolicy_create_config)
+    config = deepcopy(cartpole_drex_ppo_offpolicy_config), deepcopy(cartpole_drex_ppo_offpolicy_create_config)
     collect_count = 1
-    save_cfg_path = './cartpole_trex_offppo'
+    save_cfg_path = './cartpole_drex_offppo'
     save_cfg_path = os.path.abspath(save_cfg_path)
-    exp_data = collect_episodic_demo_data_for_trex(
+    exp_data = collect_episodic_demo_data_for_drex(
         config,
         seed=0,
         state_dict_path=expert_policy_state_dict_path,
@@ -41,7 +41,7 @@ def test_collect_episodic_demo_data_for_trex():
 
 
 @pytest.mark.unittest
-def test_trex_collecting_data():
+def test_drex_collecting_data():
     expert_policy_state_dict_path = './cartpole_ppo_offpolicy'
     expert_policy_state_dict_path = os.path.abspath(expert_policy_state_dict_path)
     config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
@@ -50,13 +50,13 @@ def test_trex_collecting_data():
 
     args = EasyDict(
         {
-            'cfg': [deepcopy(cartpole_trex_ppo_offpolicy_config),
-                    deepcopy(cartpole_trex_ppo_offpolicy_create_config)],
+            'cfg': [deepcopy(cartpole_drex_ppo_offpolicy_config),
+                    deepcopy(cartpole_drex_ppo_offpolicy_create_config)],
             'seed': 0,
             'device': 'cpu'
         }
     )
-    args.cfg[0].reward_model.offline_data_path = './cartpole_trex_offppo'
+    args.cfg[0].reward_model.offline_data_path = './cartpole_drex_offppo'
     args.cfg[0].reward_model.offline_data_path = os.path.abspath(args.cfg[0].reward_model.offline_data_path)
     args.cfg[0].reward_model.reward_model_path = args.cfg[0].reward_model.offline_data_path + '/cartpole.params'
     args.cfg[0].reward_model.expert_model_path = './cartpole_ppo_offpolicy'
@@ -64,6 +64,6 @@ def test_trex_collecting_data():
     args.cfg[0].reward_model.checkpoint_max = 100
     args.cfg[0].reward_model.checkpoint_step = 100
     args.cfg[0].reward_model.num_snippets = 100
-    trex_collecting_data(args=args)
+    drex_collecting_data(args=args)
     os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
     os.popen('rm -rf {}'.format(args.cfg[0].reward_model.offline_data_path))
