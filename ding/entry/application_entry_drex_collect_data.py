@@ -8,15 +8,17 @@ from typing import Optional, List, Any
 from functools import partial
 import os
 from copy import deepcopy
+from torch.utils.data import DataLoader
 
 from ding.config import compile_config, read_config
-from ding.worker import EpisodeSerialCollector, create_buffer, BaseLearner
+from ding.worker import EpisodeSerialCollector, create_buffer, BaseLearner, InteractionSerialEvaluator
 from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy, bc
 from ding.torch_utils import to_device
 from ding.utils import set_pkg_seed
 from ding.utils.data import default_collate, offline_data_save_type
 from functools import reduce
+from .utils import AccMetric
 
 
 def collect_episodic_demo_data_for_drex(
@@ -109,7 +111,6 @@ def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
             pre_expert_data = pickle.load(f)
 
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
-    replay_buffer = create_buffer(cfg.policy.other.replay_buffer)
     push_data = []
     for i in range(len(pre_expert_data)):
         push_data += pre_expert_data[i]
@@ -117,27 +118,42 @@ def train_bc(cfg, pre_expert_data=None, max_iterations=6000):
     random.shuffle(push_data)
     validation_set = push_data[-len(push_data) // 10:]
     push_data = push_data[:-len(push_data) // 10]
-    replay_buffer.push(push_data, cur_collector_envstep=0)
-    learner = BaseLearner(cfg.policy.learn.learner, bc_policy.learn_mode)
 
+    dataloader = DataLoader(push_data, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+    val_dataloader = DataLoader(validation_set, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+
+    learner = BaseLearner(cfg.policy.learn.learner, bc_policy.learn_mode)
+    evaluator_val = MetricSerialEvaluator(
+        cfg.policy.eval.evaluator, [val_dataloader, AccMetric()], policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
+    # ==========
+    # Main loop
+    # ==========
+    learner.call_hook('before_run')
     best_acc = 0
     cnt = 0
-    for i in range(max_iterations):
-        train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-        if i % 100 == 0:
-            acc = eval_bc(validation_set, bc_policy.collect_mode, cfg.policy.cuda)
-            if acc < best_acc:
-                cnt += 1
-                if cnt > 100:
-                    break
-            else:
-                cnt = 0
-                best_acc = acc
-                torch.save(bc_policy.collect_mode.state_dict(), cfg.reward_model.offline_data_path + '/bc_best.pth.tar')
-        if train_data is None:
-            replay_buffer.push(push_data, cur_collector_envstep=0)
-            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-        learner.train(train_data)
+    iter_cnt = 0
+    while True:
+        for i, train_data in enumerate(dataloader):
+            iter_cnt += 1
+            if i % 100 == 0:
+                _, acc = evaluator_val.eval()
+                if acc < best_acc:
+                    cnt += 1
+                    if cnt > 100:
+                        break
+                else:
+                    cnt = 0
+                    best_acc = acc
+                    torch.save(
+                        bc_policy.collect_mode.state_dict(), cfg.reward_model.offline_data_path + '/bc_best.pth.tar'
+                    )
+            learner.train(train_data)
+            if iter_cnt >= max_iterations:
+                break
+        else:
+            continue
+        break
 
     ckpt = torch.load(cfg.reward_model.offline_data_path + '/bc_best.pth.tar')
     bc_policy.collect_mode.load_state_dict(ckpt)

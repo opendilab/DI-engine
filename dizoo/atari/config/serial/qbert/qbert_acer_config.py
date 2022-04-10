@@ -51,9 +51,7 @@ qbert_acer_config = dict(
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=1000, )),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=3000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=3000, ), ),
     ),
 )
 main_config = EasyDict(qbert_acer_config)
@@ -71,18 +69,18 @@ create_config = EasyDict(qbert_acer_create_config)
 
 
 def train(args):
-    main_config.exp_name='qbert_acer'+'_ns64_ul64_bs64_rbs3e3_10m_seed'+f'{args.seed}'
+    main_config.exp_name = 'qbert_acer' + '_ns64_ul64_bs64_rbs3e3_10m_seed' + f'{args.seed}'
     import copy
-    # in theory: 2441.4 iterations = 10M env steps / (64*64) 
+    # in theory: 2441.4 iterations = 10M env steps / (64*64)
     # in practice: 2500 iterations ~= 5M env steps
     serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=5500)
 
 
 if __name__ == "__main__":
     import argparse
-    for seed in [0,1,2,3,4]:     
+    for seed in [0, 1, 2, 3, 4]:
         parser = argparse.ArgumentParser()
         parser.add_argument('--seed', '-s', type=int, default=seed)
         args = parser.parse_args()
-        
+
         train(args)

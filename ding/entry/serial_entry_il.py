@@ -11,19 +11,7 @@ from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.utils.data import NaiveRLDataset
-
-
-def eval_bc(validation_set, policy, use_cuda):
-    tot = 0
-    tot_acc = 0
-    device = 'cuda' if use_cuda else 'cpu'
-    for _, data in enumerate(validation_set):
-        x, y = {'obs': data['obs'].to(device).squeeze(0)}, data['action'].squeeze(-1)
-        y_pred = policy.forward(x, eps=-1)['obs']['action']
-        tot += y_pred.shape[0]
-        tot_acc += (y_pred == y).sum().item()
-    acc = tot_acc / tot
-    return acc
+from .utils import AccMetric
 
 
 def serial_pipeline_il(
@@ -72,6 +60,9 @@ def serial_pipeline_il(
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
+    evaluator_val = MetricSerialEvaluator(
+        cfg.policy.eval.evaluator, [val_dataloader, AccMetric()], policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+    )
     # ==========
     # Main loop
     # ==========
@@ -82,7 +73,7 @@ def serial_pipeline_il(
     cnt = 0
     for epoch in range(cfg.policy.learn.train_epoch):
         # Evaluate policy performance
-        acc = eval_bc(validation_set, bc_policy.collect_mode, cfg.policy.cuda)
+        _, acc = evaluator_val.eval()
         if acc < best_acc:
             cnt += 1
             if cnt > 3:

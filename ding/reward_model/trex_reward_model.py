@@ -332,18 +332,18 @@ class TrexRewardModel(BaseRewardModel):
     def train(self):
         self._train()
         # print out predicted cumulative returns and actual returns
-        sorted_returns = sorted(self.learning_returns)
+        sorted_returns = sorted(self.learning_returns, key=lambda s: s[0])
         demonstrations = [
-            x for _, x in sorted(zip(self.learning_returns, self.pre_expert_data), key=lambda pair: pair[0])
+            x for _, x in sorted(zip(self.learning_returns, self.pre_expert_data), key=lambda pair: pair[0][0])
         ]
         with torch.no_grad():
-            pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in demonstrations]
+            pred_returns = [self.predict_traj_return(self.reward_model, traj[0]) for traj in demonstrations]
         for i, p in enumerate(pred_returns):
-            self._logger.info("{} {} {}".format(i, p, sorted_returns[i]))
+            self._logger.info("{} {} {}".format(i, p, sorted_returns[i][0]))
         info = {
-            "demo_length": [len(d) for d in self.pre_expert_data],
+            "demo_length": [len(d[0]) for d in self.pre_expert_data],
             "min_snippet_length": self.min_snippet_length,
-            "max_snippet_length": min(np.min([len(d) for d in self.pre_expert_data]), self.max_snippet_length),
+            "max_snippet_length": min(np.min([len(d[0]) for d in self.pre_expert_data]), self.max_snippet_length),
             "len_num_training_obs": len(self.training_obs),
             "lem_num_labels": len(self.training_labels),
             "accuracy": self.calc_accuracy(self.reward_model, self.training_obs, self.training_labels),

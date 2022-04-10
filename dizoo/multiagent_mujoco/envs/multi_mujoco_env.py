@@ -30,8 +30,8 @@ class MujocoEnv(BaseEnv):
         obs = self._env.reset()
         self._final_eval_reward = 0.
 
-        # TODO: 
-        # self.env_info for scenario='Ant-v2', agent_conf="2x4d", 
+        # TODO:
+        # self.env_info for scenario='Ant-v2', agent_conf="2x4d",
         # {'state_shape': 2, 'obs_shape': 54,...}
         # 'state_shape' is wrong, it should be 111
         self.env_info = self._env.get_env_info()
@@ -39,22 +39,18 @@ class MujocoEnv(BaseEnv):
 
         self._num_agents = self.env_info['n_agents']
         self._agents = [i for i in range(self._num_agents)]
-        self._observation_space = [gym.spaces.Dict({
-            'agent_state':
-                gym.spaces.Box(
-                    low=float("-inf"),
-                    high=float("inf"),
-                    shape=obs['agent_state'].shape[1:],
-                    dtype=np.float32
-                ), 
-            'global_state':
-                gym.spaces.Box(
-                    low=float("-inf"),
-                    high=float("inf"),
-                    shape=obs['global_state'].shape[1:],
-                    dtype=np.float32
-                ),
-        }) for agent in self._agents]
+        self._observation_space = [
+            gym.spaces.Dict(
+                {
+                    'agent_state': gym.spaces.Box(
+                        low=float("-inf"), high=float("inf"), shape=obs['agent_state'].shape[1:], dtype=np.float32
+                    ),
+                    'global_state': gym.spaces.Box(
+                        low=float("-inf"), high=float("inf"), shape=obs['global_state'].shape[1:], dtype=np.float32
+                    ),
+                }
+            ) for agent in self._agents
+        ]
         self._action_space = gym.spaces.Dict({agent: self._env.action_space[agent] for agent in self._agents})
         single_agent_obs_space = self._env.action_space[self._agents[0]]
         if isinstance(single_agent_obs_space, gym.spaces.Box):

@@ -6,7 +6,7 @@ from easydict import EasyDict
 import torch
 
 from ding.entry import serial_pipeline_onpolicy
-from ding.entry.serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
+from ding.entry import serial_pipeline_reward_model_preference_based_irl_onpolicy
 from dizoo.classic_control.cartpole.config import cartpole_ppo_config, cartpole_ppo_create_config
 from dizoo.classic_control.cartpole.config import cartpole_trex_ppo_onpolicy_config, \
     cartpole_trex_ppo_onpolicy_create_config
@@ -30,7 +30,7 @@ def test_serial_pipeline_reward_model_trex():
     args = EasyDict({'cfg': deepcopy(config), 'seed': 0, 'device': 'cpu'})
     trex_collecting_data(args=args)
     try:
-        serial_pipeline_reward_model_trex_onpolicy(config, seed=0, max_train_iter=1)
+        serial_pipeline_reward_model_preference_based_irl_onpolicy(config, seed=0, max_train_iter=1)
         os.popen('rm -rf {}'.format(config[0].reward_model.offline_data_path))
         os.popen('rm -rf {}'.format(config[0].reward_model.expert_model_path))
     except Exception:

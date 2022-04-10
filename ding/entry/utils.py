@@ -1,6 +1,21 @@
 from typing import Optional, Callable, List
 
 from ding.policy import PolicyFactory
+from ding.worker import IMetric, MetricSerialEvaluator
+
+
+class AccMetric(IMetric):
+
+    def eval(self, inputs: Any, label: Any) -> dict:
+        return {'Acc': (inputs == label).sum().item() / label.shape[0]}
+
+    def reduce_mean(self, inputs: List[Any]) -> Any:
+        return sum(inputs) / len(inputs)
+
+    def gt(self, metric1: Any, metric2: Any) -> bool:
+        if metric2 is None:
+            return True
+        return metric1 > metric2
 
 
 def mark_not_expert(ori_data: List[dict]) -> List[dict]:

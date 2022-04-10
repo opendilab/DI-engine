@@ -21,16 +21,15 @@ pong_sqil_config = dict(
         ),
         nstep=3,
         discount_factor=0.97,  # discount_factor: 0.97-0.99
-        learn=dict(update_per_collect=10,
-                   batch_size=32,
-                   learning_rate=0.0001,
-                   target_update_freq=500, alpha=0.1),  # alpha: 0.08-0.12
-        collect=dict(n_sample=96,
-                     # Users should add their own model path here. Model path should lead to a model.
-                     # Absolute path is recommended.
-                     # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-                     model_path='model_path_placeholder',
-                     ),
+        learn=dict(update_per_collect=10, batch_size=32, learning_rate=0.0001, target_update_freq=500,
+                   alpha=0.1),  # alpha: 0.08-0.12
+        collect=dict(
+            n_sample=96,
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
+        ),
         other=dict(
             eps=dict(
                 type='exp',

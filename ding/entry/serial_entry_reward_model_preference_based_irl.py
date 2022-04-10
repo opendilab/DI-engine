@@ -1,3 +1,4 @@
+import copy
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
@@ -14,7 +15,7 @@ from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 
 
-def serial_pipeline_reward_model_reward_model_preference_based_irl_onpolicy(
+def serial_pipeline_reward_model_reward_based_irl(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -24,7 +25,7 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl_onpolicy(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry for preference based irl of on-policy algorithm(such as PPO).
+        serial_pipeline_reward_model_reward_model_preference_based_irl.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -33,8 +34,8 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl_onpolicy(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
-        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
+        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
+            when reaching this iteration.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -46,6 +47,7 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl_onpolicy(
     create_cfg.reward_model = dict(type=cfg.reward_model.type)
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+    cfg_bak = copy.deepcopy(cfg)
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -71,10 +73,12 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl_onpolicy(
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
+    replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
     commander = BaseSerialCommander(
-        cfg.policy.other.commander, learner, collector, evaluator, None, policy.command_mode
+        cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-    reward_model = create_reward_model(cfg, policy.collect_mode.get_attribute('device'), tb_logger)
+
+    reward_model = create_reward_model(cfg_bak, policy.collect_mode.get_attribute('device'), tb_logger)
     reward_model.train()
     # ==========
     # Main loop
@@ -82,6 +86,18 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl_onpolicy(
     # Learner's before_run hook.
     learner.call_hook('before_run')
 
+    # Accumulate plenty of data at the beginning of training.
+    if cfg.policy.get('random_collect_size', 0) > 0:
+        if cfg.policy.get('transition_with_policy_data', False):
+            collector.reset_policy(policy.collect_mode)
+        else:
+            action_space = collector_env.env_info().act_space
+            random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
+            collector.reset_policy(random_policy)
+        collect_kwargs = commander.step()
+        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
+        replay_buffer.push(new_data, cur_collector_envstep=0)
+        collector.reset_policy(policy.collect_mode)
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
@@ -90,12 +106,31 @@ def serial_pipeline_reward_model_reward_model_preference_based_irl_onpolicy(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        new_data = collector.collect(train_iter=learner.train_iter)
-        # Learn policy from collected data with modified rewards
-        reward_model.estimate(new_data)
-
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
+            new_data = collector.collect(
+                n_sample=cfg.policy.collect.each_iter_n_sample,
+                train_iter=learner.train_iter,
+                policy_kwargs=collect_kwargs
+            )
+        else:
+            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # Learn policy from collected data
-        learner.train(new_data, collector.envstep)
+        for i in range(cfg.policy.learn.update_per_collect):
+            # Learner will train ``update_per_collect`` times in one iteration.
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
+            if train_data is None:
+                # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
+                logging.warning(
+                    "Replay buffer's data can only train for {} steps. ".format(i) +
+                    "You can modify data collect config, e.g. increasing n_sample, n_episode."
+                )
+                break
+            # update train_data reward
+            reward_model.estimate(train_data)
+            learner.train(train_data, collector.envstep)
+            if learner.policy.get_attribute('priority'):
+                replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
 

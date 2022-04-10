@@ -3,9 +3,7 @@ from easydict import EasyDict
 ant_sac_default_config = dict(
     exp_name='multi_mujoco_ant_2x4',
     env=dict(
-        manager=dict(
-            shared_memory=True,
-        ),
+        manager=dict(shared_memory=True, ),
         scenario='Ant-v2',
         agent_conf="2x4d",
         agent_obsk=2,
@@ -15,7 +13,6 @@ ant_sac_default_config = dict(
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=6000,
-
     ),
     policy=dict(
         cuda=True,
