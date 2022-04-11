@@ -59,8 +59,9 @@ class Buffer:
     For example, memory queue, sum-tree, redis, or di-store.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, size: int) -> None:
         self._middleware = []
+        self.size = size
 
     @abstractmethod
     def push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:

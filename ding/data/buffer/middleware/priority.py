@@ -1,16 +1,18 @@
-from typing import Callable, Any, List, Dict, Optional, Union
+from typing import Callable, Any, List, Dict, Optional, Union, TYPE_CHECKING
 import copy
 import numpy as np
 import torch
 from ding.utils import SumSegmentTree, MinSegmentTree
 from ding.data.buffer.buffer import BufferedData
+if TYPE_CHECKING:
+    from ding.data.buffer.buffer import Buffer
 
 
 class PriorityExperienceReplay:
 
     def __init__(
             self,
-            buffer: 'Buffer',  # noqa
+            buffer: 'Buffer',
             IS_weight: bool = True,
             priority_power_factor: float = 0.6,
             IS_weight_power_factor: float = 0.4,
