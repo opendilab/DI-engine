@@ -73,12 +73,12 @@ def serial_pipeline_gail(
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:
             expert_cfg.policy.other.eps.collect = -1
         if expert_cfg.policy.get('load_path', None) is None:
-            expert_cfg.policy.load_path = cfg.reward_model.expert_load_path
+            expert_cfg.policy.load_path = cfg.reward_model.expert_model_path
         collect_demo_data(
             (expert_cfg, expert_create_cfg),
             seed,
             state_dict_path=expert_cfg.policy.load_path,
-            expert_data_path=cfg.reward_model.expert_data_path,
+            expert_data_path=cfg.reward_model.data_path + '/expert_data.pkl',
             collect_count=cfg.reward_model.collect_count
         )
     # Create main components: env, policy
@@ -124,8 +124,10 @@ def serial_pipeline_gail(
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
-            if reward >= best_reward:
-                save_reward_model(cfg.exp_name, reward_model)
+            reward_mean = np.array([r['final_eval_reward'] for r in reward]).mean()
+            if reward_mean >= best_reward:
+                save_reward_model(cfg.exp_name, reward_model, 'best')
+                best_reward = reward_mean
             if stop:
                 break
         new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)

@@ -1,7 +1,7 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_guided_cost
 
-halfcheetah_gcl_default_config = dict(
+halfcheetah_sac_config = dict(
+    exp_name='halfcheetah_sac_seed0',
     env=dict(
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
@@ -12,18 +12,9 @@ halfcheetah_gcl_default_config = dict(
         n_evaluator_episode=8,
         stop_value=12000,
     ),
-    reward_model=dict(
-        learning_rate=0.001,
-        input_size=23,
-        batch_size=32,
-        action_shape=6,
-        continuous=True,
-        update_per_collect=20,
-    ),
     policy=dict(
-        cuda=False,
-        on_policy=False,
-        random_collect_size=0,
+        cuda=True,
+        random_collect_size=10000,
         model=dict(
             obs_shape=17,
             action_shape=6,
@@ -46,9 +37,7 @@ halfcheetah_gcl_default_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            demonstration_info_path='path',
-            collector_logit=True,
-            n_sample=256,
+            n_sample=1,
             unroll_len=1,
         ),
         command=dict(),
@@ -57,24 +46,25 @@ halfcheetah_gcl_default_config = dict(
     ),
 )
 
-halfcheetah_gcl_default_config = EasyDict(halfcheetah_gcl_default_config)
-main_config = halfcheetah_gcl_default_config
+halfcheetah_sac_config = EasyDict(halfcheetah_sac_config)
+main_config = halfcheetah_sac_config
 
-halfcheetah_gcl_default_create_config = dict(
+halfcheetah_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
-    reward_model=dict(type='guided_cost'),
 )
-halfcheetah_gcl_default_create_config = EasyDict(halfcheetah_gcl_default_create_config)
-create_config = halfcheetah_gcl_default_create_config
+halfcheetah_sac_create_config = EasyDict(halfcheetah_sac_create_config)
+create_config = halfcheetah_sac_create_config
 
-if __name__ == '__main__':
-    serial_pipeline_guided_cost((main_config, create_config), seed=0)
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c halfcheetah_sac_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
