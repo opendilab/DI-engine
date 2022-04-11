@@ -18,7 +18,7 @@ from .hopper_trex_sac_config import hopper_trex_sac_config, hopper_trex_sac_crea
 from .walker2d_ddpg_config import walker2d_ddpg_config, walker2d_ddpg_create_config
 from .walker2d_sac_config import walker2d_sac_config
 from .walker2d_td3_config import walker2d_td3_config
-from .walker2d_ddpg_gail_config import walker2d_ddpg_gail_config, walker2d_ddpg_gail_create_config
+from .walker2d_gail_ddpg_config import walker2d_gail_ddpg_config, walker2d_gail_ddpg_create_config
 from .walker2d_trex_onppo_config import walker2d_trex_onppo_config, walker2d_trex_onppo_create_config
 from .walker2d_trex_sac_config import walker2d_trex_sac_config, walker2d_trex_sac_create_config
 

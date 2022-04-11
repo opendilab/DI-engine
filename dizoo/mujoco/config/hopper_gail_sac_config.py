@@ -2,12 +2,8 @@ from easydict import EasyDict
 
 obs_shape = 11
 act_shape = 3
-hopper_sac_gail_config = dict(
-<<<<<<< HEAD:dizoo/mujoco/config/hopper_sac_gail_config.py
-    exp_name='hopper_sac_gail_seed0',
-=======
+hopper_gail_sac_config = dict(
     exp_name='hopper_gail_sac_seed0',
->>>>>>> c7975302095288cc19f58bde0f9964e7fbd206a3:dizoo/mujoco/config/hopper_gail_sac_config.py
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -24,17 +20,6 @@ hopper_sac_gail_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-<<<<<<< HEAD:dizoo/mujoco/config/hopper_sac_gail_config.py
-        # Users should add their own data path here. 
-        # Data path should lead to a file to store data or load the stored data.
-        # Absolute path is recommended.
-        expert_data_path='data_path_placeholder',
-        # state_dict of the reward model. Model path should lead to a model.
-        # Absolute path is recommended.
-        load_path='model_path_placeholder',
-        # path to the expert state_dict.
-        expert_load_path='model_path_placeholder',
-=======
         # Users should add their own model path here. Model path should lead to a model.
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
@@ -45,7 +30,6 @@ hopper_sac_gail_config = dict(
         # Absolute path is recommended.
         # In DI-engine, it is usually located in ``exp_name`` directory
         data_path='data_path_placeholder',
->>>>>>> c7975302095288cc19f58bde0f9964e7fbd206a3:dizoo/mujoco/config/hopper_gail_sac_config.py
         collect_count=100000,
     ),
     policy=dict(
@@ -82,10 +66,10 @@ hopper_sac_gail_config = dict(
     ),
 )
 
-hopper_sac_gail_config = EasyDict(hopper_sac_gail_config)
-main_config = hopper_sac_gail_config
+hopper_gail_sac_config = EasyDict(hopper_gail_sac_config)
+main_config = hopper_gail_sac_config
 
-hopper_sac_gail_create_config = dict(
+hopper_gail_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -98,19 +82,9 @@ hopper_sac_gail_create_config = dict(
     replay_buffer=dict(type='naive', ),
     reward_model=dict(type='gail'),
 )
-hopper_sac_gail_create_config = EasyDict(hopper_sac_gail_create_config)
-create_config = hopper_sac_gail_create_config
-<<<<<<< HEAD:dizoo/mujoco/config/hopper_sac_gail_config.py
+hopper_gail_sac_create_config = EasyDict(hopper_gail_sac_create_config)
+create_config = hopper_gail_sac_create_config
 
-
-if __name__ == "__main__":
-    # or you can enter `ding -m serial_gail -c hopper_sac_gail_config.py -s 0`
-    from ding.entry import serial_pipeline_gail
-    from hopper_sac_config import hopper_sac_config, hopper_sac_create_config
-    serial_pipeline_gail(
-        [main_config, create_config], [hopper_sac_config, hopper_sac_create_config],
-        max_iterations=1000000,
-=======
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial_gail -c hopper_gail_sac_config.py -s 0`
@@ -123,7 +97,6 @@ if __name__ == "__main__":
     serial_pipeline_gail(
         [main_config, create_config], [expert_main_config, expert_create_config],
         max_env_step=1000000,
->>>>>>> c7975302095288cc19f58bde0f9964e7fbd206a3:dizoo/mujoco/config/hopper_gail_sac_config.py
         seed=0,
         collect_data=True
     )
