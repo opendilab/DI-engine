@@ -56,7 +56,7 @@ def offpolicy_data_fetcher(
         yield
 
         if isinstance(buffer_, Buffer):
-            if any([isinstance(m, PriorityExperienceReplay) for m in buffer_.middleware]):
+            if any([isinstance(m, PriorityExperienceReplay) for m in buffer_._middleware]):
                 index = [d.index for d in buffered_data]
                 meta = [d.meta for d in buffered_data]
                 # such as priority
