@@ -359,14 +359,16 @@
 <div class="viewcode-block" id="SampleSerialCollector.collect"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector.collect">[docs]</a>    <span class="k">def</span> <span class="nf">collect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                 <span class="n">n_sample</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="n">drop_extra</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations</span>
+<span class="sd">            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - n_sample (:obj:`int`): the number of collecting data sample</span>
-<span class="sd">            - train_iter (:obj:`int`): the number of training iteration</span>
-<span class="sd">            - policy_kwargs (:obj:`dict`): the keyword args for policy forward</span>
+<span class="sd">            - n_sample (:obj:`int`): The number of collecting data sample.</span>
+<span class="sd">            - train_iter (:obj:`int`): The number of training iteration when calling collect method.</span>
+<span class="sd">            - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.</span>
+<span class="sd">            - policy_kwargs (:obj:`dict`): The keyword args for policy forward.</span>
 <span class="sd">        Returns:</span>
 <span class="sd">            - return_data (:obj:`List`): A list containing training samples.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -377,8 +379,8 @@
                 <span class="n">n_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_n_sample</span>
         <span class="k">if</span> <span class="n">n_sample</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">one_time_warning</span><span class="p">(</span>
-                <span class="s2">&quot;Please make sure env_num is divisible by n_sample: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">, which may cause convergence </span><span class="se">\</span>
-<span class="s2">                problems in a few algorithms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)</span>
+                <span class="s2">&quot;Please make sure env_num is divisible by n_sample: </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">, &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_sample</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)</span> <span class="o">+</span>
+                <span class="s2">&quot;which may cause convergence problems in a few algorithms&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">policy_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">policy_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
@@ -464,7 +466,10 @@
             <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_reset_stat</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">return_data</span><span class="p">[:</span><span class="n">n_sample</span><span class="p">]</span></div>
+        <span class="k">if</span> <span class="n">drop_extra</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">return_data</span><span class="p">[:</span><span class="n">n_sample</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">return_data</span></div>
 
 <div class="viewcode-block" id="SampleSerialCollector._output_log"><a class="viewcode-back" href="../../../../api_doc/worker/collector/sample_serial_collector.html#ding.worker.collector.sample_serial_collector.SampleSerialCollector._output_log">[docs]</a>    <span class="k">def</span> <span class="nf">_output_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_iter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
