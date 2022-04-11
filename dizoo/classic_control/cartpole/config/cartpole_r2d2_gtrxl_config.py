@@ -9,6 +9,7 @@ cartpole_r2d2_gtrxl_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         stop_value=195,
+        manager=dict(shared_memory=True, reset_inplace=False)
     ),
     policy=dict(
         cuda=False,
@@ -60,7 +61,7 @@ cartpole_r2d2_gtrxl_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d2_gtrxl'),
 )
 cartpole_r2d2_gtrxl_create_config = EasyDict(cartpole_r2d2_gtrxl_create_config)
