@@ -28,6 +28,7 @@ def test_step_timer():
         task.use(step1)
         task.use(step2)
         task.use(task.serial(step3, step4))
+        assert len(task._middleware) == 3
         task.run(3)
 
     assert len(step_timer.records) == 3
@@ -42,6 +43,7 @@ def test_step_timer():
         task.use_wrapper(step_timer2)
         task.use(step1)
         task.use(step2)
+        assert len(task._middleware) == 2
         task.run(3)
 
     for records in step_timer1.records.values():

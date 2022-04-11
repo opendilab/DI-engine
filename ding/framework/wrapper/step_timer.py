@@ -1,4 +1,5 @@
 from collections import deque, defaultdict
+from functools import wraps
 import logging
 from types import GeneratorType
 from typing import Callable
@@ -16,6 +17,7 @@ class StepTimer:
         step_name = getattr(fn, "__name__", type(fn).__name__)
         step_id = id(fn)
 
+        @wraps(fn)
         def executor(ctx):
             start_time = time.time()
             time_cost = 0
@@ -42,7 +44,5 @@ class StepTimer:
                         step_name, time_cost * 1000, np.mean(self.records[step_id])
                     )
                 )
-
-        executor.__name__ = "StepTimer<{}>".format(step_name)
 
         return executor
