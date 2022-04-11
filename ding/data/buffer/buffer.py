@@ -31,7 +31,7 @@ def apply_middleware(func_name: str):
                 func = middleware[0]
                 return func(func_name, chain, *args, **kwargs)
 
-            return wrap_handler(buffer.middleware, *args, **kwargs)
+            return wrap_handler(buffer._middleware, *args, **kwargs)
 
         return handler
 
