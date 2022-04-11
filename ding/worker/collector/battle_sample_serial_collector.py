@@ -203,14 +203,16 @@ class BattleSampleSerialCollector(ISerialCollector):
     def collect(self,
                 n_sample: Optional[int] = None,
                 train_iter: int = 0,
+                drop_extra: bool = True,
                 policy_kwargs: Optional[dict] = None) -> Tuple[List[Any], List[Any]]:
         """
         Overview:
-            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations
+            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations.
         Arguments:
-            - n_sample (:obj:`int`): the number of collecting data sample
-            - train_iter (:obj:`int`): the number of training iteration
-            - policy_kwargs (:obj:`dict`): the keyword args for policy forward
+            - n_sample (:obj:`int`): The number of collecting data sample.
+            - train_iter (:obj:`int`): The number of training iteration when calling collect method.
+            - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.
+            - policy_kwargs (:obj:`dict`): The keyword args for policy forward.
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """
@@ -221,8 +223,8 @@ class BattleSampleSerialCollector(ISerialCollector):
                 n_sample = self._default_n_sample
         if n_sample % self._env_num != 0:
             one_time_warning(
-                "Please make sure env_num is divisible by n_sample: {}/{}, which may cause convergence \
-                problems in a few algorithms".format(n_sample, self._env_num)
+                "Please make sure env_num is divisible by n_sample: {}/{}, ".format(n_sample, self._env_num) +
+                "which may cause convergence problems in a few algorithms"
             )
         if policy_kwargs is None:
             policy_kwargs = {}
@@ -301,6 +303,8 @@ class BattleSampleSerialCollector(ISerialCollector):
         # log
         self._output_log(train_iter)
         return_data = [r[:n_sample] for r in return_data]
+        if drop_extra:
+            return_data = return_data[:n_sample]
         return return_data, return_info
 
     def _output_log(self, train_iter: int) -> None:
