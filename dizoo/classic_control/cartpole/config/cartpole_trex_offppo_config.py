@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_trex_ppo_offpolicy_config = dict(
-    exp_name='cartpole_trex_offppo',
+    exp_name='cartpole_trex_offppo_seed0',
     env=dict(
         manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
@@ -60,6 +60,7 @@ cartpole_trex_ppo_offpolicy_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ppo_offpolicy'),
+    reward_model=dict(type='trex'),
 )
 cartpole_trex_ppo_offpolicy_create_config = EasyDict(cartpole_trex_ppo_offpolicy_create_config)
 create_config = cartpole_trex_ppo_offpolicy_create_config

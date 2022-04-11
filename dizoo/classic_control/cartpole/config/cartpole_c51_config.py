@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_c51_config = dict(
-    exp_name='cartpole_c51',
+    exp_name='cartpole_c51_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,

@@ -57,7 +57,10 @@ def test_irl(reward_model_config):
     cp_cartpole_dqn_config = deepcopy(cartpole_dqn_config)
     cp_cartpole_dqn_create_config = deepcopy(cartpole_dqn_create_config)
     cp_cartpole_dqn_create_config.reward_model = dict(type=reward_model_config.type)
-    reward_model_config['expert_data_path'] = expert_data_path
+    if reward_model_config.type == 'gail':
+        reward_model_config['data_path'] = '.'
+    else:
+        reward_model_config['expert_data_path'] = expert_data_path
     cp_cartpole_dqn_config.reward_model = reward_model_config
     cp_cartpole_dqn_config.policy.collect.n_sample = 128
     serial_pipeline_reward_model((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0, max_train_iter=2)

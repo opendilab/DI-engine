@@ -1,10 +1,8 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 n_bits = 4
 bitflip_pure_dqn_config = dict(
-    exp_name='bitflip_pure_dqn',
+    exp_name='bitflip_{}bit_puredqn_seed0'.format(n_bits),
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -22,15 +20,12 @@ bitflip_pure_dqn_config = dict(
         ),
         discount_factor=0.9,
         learn=dict(
-            update_per_collect=4,
-            batch_size=12,
-            learning_rate=0.0001,
+            update_per_collect=10,
+            batch_size=128,
+            learning_rate=0.0005,
             target_update_freq=500,
         ),
-        collect=dict(
-            n_episode=8,
-            unroll_len=1,
-        ),
+        collect=dict(n_episode=8, unroll_len=1, collector=dict(get_train_sample=True, )),
         other=dict(
             eps=dict(
                 type='exp',
@@ -38,10 +33,7 @@ bitflip_pure_dqn_config = dict(
                 end=0.1,
                 decay=10000,
             ),
-            replay_buffer=dict(
-                type='episode',
-                replay_buffer_size=50,
-            ),
+            replay_buffer=dict(replay_buffer_size=4000, ),
         ),
     ),
 )
@@ -56,9 +48,12 @@ bitflip_pure_dqn_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
     replay_buffer=dict(type='episode'),
+    collector=dict(type='episode'),
 )
 bitflip_pure_dqn_create_config = EasyDict(bitflip_pure_dqn_create_config)
 create_config = bitflip_pure_dqn_create_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c bitflip_pure_dqn_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)
