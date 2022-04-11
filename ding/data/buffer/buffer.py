@@ -60,7 +60,7 @@ class Buffer:
     """
 
     def __init__(self) -> None:
-        self.middleware = []
+        self._middleware = []
 
     @abstractmethod
     def push(self, data: Any, meta: Optional[dict] = None) -> BufferedData:
@@ -185,7 +185,7 @@ class Buffer:
         Returns:
             - buffer (:obj:`Buffer`): The instance self
         """
-        self.middleware.append(func)
+        self._middleware.append(func)
         return self
 
     def view(self) -> "Buffer":

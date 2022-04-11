@@ -67,8 +67,8 @@ class Task:
         self._finish = False
         # This flag can only be modified inside the class, it will be set to False in the end of stop
         self._running = True
-        self.middleware = []
-        self.step_wrappers = []
+        self._middleware = []
+        self._wrappers = []
         self.ctx = ctx or Context()
         self._backward_stack = OrderedDict()
         # Bind event loop functions
@@ -120,18 +120,25 @@ class Task:
         Returns:
             - task (:obj:`Task`): The task.
         """
-        self.middleware.append(self.wrap(fn, lock=lock))
+        for wrapper in self._wrappers:
+            fn = wrapper(fn)
+        self._middleware.append(self.wrap(fn, lock=lock))
         return self
 
-    def use_step_wrapper(self, fn: Callable) -> 'Task':
+    def use_wrapper(self, fn: Callable) -> 'Task':
         """
         Overview:
             Register wrappers to task. A wrapper works like a decorator, but task will apply this \
             decorator on top of each middleware.
         Arguments:
             - fn (:obj:`Callable`): A wrapper is a decorator, so the first argument is a callable function.
+        Returns:
+            - task (:obj:`Task`): The task.
         """
-        self.step_wrappers.append(fn)
+        # Wrap exist middlewares
+        for i, middleware in enumerate(self._middleware):
+            self._middleware[i] = fn(middleware)
+        self._wrappers.append(fn)
         return self
 
     def match_labels(self, patterns: Union[Iterable[str], str]) -> bool:
@@ -154,10 +161,10 @@ class Task:
             - max_step (:obj:`int`): Max step of iterations.
         """
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
-        if len(self.middleware) == 0:
+        if len(self._middleware) == 0:
             return
         for i in range(max_step):
-            for fn in self.middleware:
+            for fn in self._middleware:
                 self.forward(fn)
             # Sync should be called before backward, otherwise it is possible
             # that some generators have not been pushed to backward_stack.
@@ -222,8 +229,6 @@ class Task:
         assert self._running, "Please make sure the task is running before calling the this method, see the task.start"
         if not ctx:
             ctx = self.ctx
-        for wrapper in self.step_wrappers:
-            fn = wrapper(fn)
         g = fn(ctx)
         if isinstance(g, GeneratorType):
             try:
@@ -334,8 +339,8 @@ class Task:
             self._async_loop.close()
         # The middleware and listeners may contain some methods that reference to task,
         # If we do not clear them after the task exits, we may find that gc will not clean up the task object.
-        self.middleware.clear()
-        self.step_wrappers.clear()
+        self._middleware.clear()
+        self._wrappers.clear()
         self._backward_stack.clear()
         self._async_stack.clear()
         self._running = False
