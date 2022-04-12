@@ -12,7 +12,6 @@ pong_r2d2_gtrxl_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=True, reset_inplace=False)
     ),
     policy=dict(
         cuda=True,
@@ -73,7 +72,7 @@ pong_r2d2_gtrxl_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='r2d2_gtrxl'),
 )
 pong_r2d2_gtrxl_create_config = EasyDict(pong_r2d2_gtrxl_create_config)
