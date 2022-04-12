@@ -181,7 +181,9 @@ class TransformerInputWrapper(IModelWrapper):
         Arguments:
             - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: (bs, *obs_shape)
             - only_last_logit (:obj:`bool`): if True 'logit' only contains the output corresponding to the current
-              observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)
+                observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)
+            - data_id (:obj:`List`): id of the envs that are currently running. Memory update and logits return has only
+                effect for those environments. If `None` it is considered that all envs are running.
         Returns:
             - Dictionary containing the input_sequence 'input_seq' stored in memory and the transformer output 'logit'.
         """
