@@ -192,7 +192,6 @@ class TransformerInputWrapper(IModelWrapper):
         assert self.obs_memory.shape[0] == self.seq_len
         # implements a fifo queue, self.memory_idx is index where to put the last element
         for i, b in enumerate(data_id):
-            #print(self.obs_memory.shape, self.memory_idx, len(self.memory_idx), b, self.seq_len, input_obs.shape, data_id)
             if self.memory_idx[b] == self.seq_len:
                 # roll back of 1 position along dim 1 (sequence dim)
                 self.obs_memory[:, b] = torch.roll(self.obs_memory[:, b], -1, 0)
