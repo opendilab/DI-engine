@@ -1,13 +1,13 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_sqil
 
 lunarlander_sqil_config = dict(
-    exp_name='lunarlander_sqil',
+    exp_name='lunarlander_sqil_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
+        # To confirm
         manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
-        evaluator_env_num=5,
+        evaluator_env_num=8,
         env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
@@ -49,11 +49,18 @@ lunarlander_sqil_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='sql'),
 )
 lunarlander_sqil_create_config = EasyDict(lunarlander_sqil_create_config)
 create_config = lunarlander_sqil_create_config
 
-if __name__ == "__main__":
-    serial_pipeline_sqil([main_config, create_config], seed=0)
+if __name__ == '__main__':
+    # or you can enter `ding -m serial_sqil -c lunarlander_sqil_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. spaceinvaders_dqn_config.py
+    from ding.entry import serial_pipeline_sqil
+    from dizoo.box2d.lunarlander.config import lunarlander_dqn_config, lunarlander_dqn_create_config
+    expert_main_config = lunarlander_dqn_config
+    expert_create_config = lunarlander_dqn_create_config
+    serial_pipeline_sqil([main_config, create_config], [expert_main_config, expert_create_config], seed=0)

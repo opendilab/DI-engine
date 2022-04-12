@@ -1,14 +1,14 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 nstep = 3
-lunarlander_acer_default_config = dict(
+lunarlander_acer_config = dict(
+    exp_name='lunarlander_acer_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, ),
+        # To_delete manager=dict(shared_memory=True, ),
         # Env number respectively for collector and evaluator.
         collector_env_num=8,
-        evaluator_env_num=5,
+        evaluator_env_num=8,
         env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
@@ -62,8 +62,8 @@ lunarlander_acer_default_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=50000, ), ),
     ),
 )
-lunarlander_acer_default_config = EasyDict(lunarlander_acer_default_config)
-main_config = lunarlander_acer_default_config
+lunarlander_acer_config = EasyDict(lunarlander_acer_config)
+main_config = lunarlander_acer_config
 
 lunarlander_acer_create_config = dict(
     env=dict(
@@ -78,4 +78,6 @@ lunarlander_acer_create_config = EasyDict(lunarlander_acer_create_config)
 create_config = lunarlander_acer_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c lunarlander_acer_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

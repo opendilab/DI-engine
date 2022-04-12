@@ -1,12 +1,11 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 lunarlander_ddpg_config = dict(
-    exp_name='lunarlander_cont_ddpg',
+    exp_name='lunarlander_cont_ddpgs_seed0',
     env=dict(
         env_id='LunarLanderContinuous-v2',
         collector_env_num=8,
-        evaluator_env_num=5,
+        evaluator_env_num=8,
         # (bool) Scale output action into legal range.
         act_scale=True,
         n_evaluator_episode=5,
@@ -59,11 +58,13 @@ lunarlander_ddpg_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ddpg'),
 )
 lunarlander_ddpg_create_config = EasyDict(lunarlander_ddpg_create_config)
 create_config = lunarlander_ddpg_create_config
 
 if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+    # or you can enter `ding -m serial -c lunarlander_cont_ddpg_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)

@@ -1,18 +1,17 @@
 import os
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_r2d3
-
 module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
-evaluator_env_num = 5
+evaluator_env_num = 8
 expert_replay_buffer_size = int(5e3)
 """agent config"""
 lunarlander_r2d3_config = dict(
-    exp_name='debug_lunarlander_r2d3_ppoexpert_k100_pho1-4_rbs1e5_ds5e3',
+    exp_name='lunarlander_r2d3_ppoexpert_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
+        # To confirm
         manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -89,7 +88,7 @@ lunarlander_r2d3_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d3'),
 )
 lunarlander_r2d3_create_config = EasyDict(lunarlander_r2d3_create_config)
@@ -97,7 +96,7 @@ create_config = lunarlander_r2d3_create_config
 """export config"""
 
 expert_lunarlander_r2d3_config = dict(
-    exp_name='expert_lunarlander_r2d3_ppoexpert_k0_pho1-4_rbs1e5_ds5e3',
+    exp_name='expert_lunarlander_r2d3_ppoexpert_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, reset_inplace=True),
@@ -147,11 +146,12 @@ expert_lunarlander_r2d3_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy_collect_traj'),  # this policy is designed to collect off-ppo expert traj for r2d3
 )
 expert_lunarlander_r2d3_create_config = EasyDict(expert_lunarlander_r2d3_create_config)
 expert_create_config = expert_lunarlander_r2d3_create_config
 
 if __name__ == "__main__":
+    from ding.entry import serial_pipeline_r2d3
     serial_pipeline_r2d3([main_config, create_config], [expert_main_config, expert_create_config], seed=0)

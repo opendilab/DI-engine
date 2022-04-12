@@ -1,14 +1,14 @@
 import torch
+# To confirm
+print(torch.cuda.is_available(), torch.__version__)
+
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_reward_model_ngu
-
-print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 32
-evaluator_env_num = 5
+evaluator_env_num = 32
 nstep = 5
 lunarlander_ngu_config = dict(
-    exp_name='debug_lunarlander_ngu_ul98_er01_rlbs1e5_n32',
+    exp_name='lunarlander_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -90,7 +90,7 @@ lunarlander_ngu_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd'),
@@ -101,4 +101,5 @@ lunarlander_ngu_create_config = EasyDict(lunarlander_ngu_create_config)
 create_config = lunarlander_ngu_create_config
 
 if __name__ == "__main__":
+    from ding.entry import serial_pipeline_reward_model_ngu
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)

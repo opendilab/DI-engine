@@ -1,10 +1,10 @@
 from easydict import EasyDict
 
 lunarlander_sql_config = dict(
-    exp_name='lunarlander_sql',
+    exp_name='lunarlander_sql_seed0',
     env=dict(
         collector_env_num=8,
-        evaluator_env_num=5,
+        evaluator_env_num=8,
         env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
@@ -40,8 +40,13 @@ lunarlander_sql_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='sql'),
 )
 lunarlander_sql_create_config = EasyDict(lunarlander_sql_create_config)
 create_config = lunarlander_sql_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c lunarlander_sql_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)
