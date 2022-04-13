@@ -1,4 +1,3 @@
-from namedlist import namedlist
 import numpy as np
 import gym
 from typing import Any, Union, List, Optional

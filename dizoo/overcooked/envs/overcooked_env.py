@@ -1,19 +1,20 @@
-from namedlist import namedlist
+from typing import Any, Union, List
+from collections import namedtuple
 import numpy as np
 import gym
-from typing import Any, Union, List
 import copy
 
 from overcooked_ai_py.mdp.actions import Action, Direction
-from overcooked_ai_py.mdp.overcooked_mdp import PlayerState, OvercookedGridworld, OvercookedState, ObjectState, SoupState, Recipe
+from overcooked_ai_py.mdp.overcooked_mdp import PlayerState, OvercookedGridworld, OvercookedState, ObjectState, \
+    SoupState, Recipe
 from overcooked_ai_py.mdp.overcooked_env import OvercookedEnv, DEFAULT_ENV_PARAMS
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
 
-OvercookEnvTimestep = namedlist('OvercookEnvTimestep', ['obs', 'reward', 'done', 'info'])
-OvercookEnvInfo = namedlist('OvercookEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+OvercookEnvTimestep = namedtuple('OvercookEnvTimestep', ['obs', 'reward', 'done', 'info'])
+OvercookEnvInfo = namedtuple('OvercookEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
 
 # n, s = Direction.NORTH, Direction.SOUTH
 # e, w = Direction.EAST, Direction.WEST
