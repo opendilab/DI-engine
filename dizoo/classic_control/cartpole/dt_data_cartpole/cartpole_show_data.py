@@ -1,4 +1,4 @@
-from dizoo.classic_control.cartpole.data_cartpole.formatted_collect_demo_data_config import main_config, create_config
+from dizoo.classic_control.cartpole.dt_data_cartpole.collect_demo_data_config import main_config, create_config
 
 from ding.entry import serial_pipeline_offline
 import os
@@ -32,6 +32,7 @@ def train(args):
     # stacked action of the first collected episode
     episode_action = torch.stack([dataset.__getitem__(0)[i]['action'] for i in range(dataset.__getitem__(0).__len__())], axis=0)
 
+    torch.stack()
     # dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
     # for i, train_data in enumerate(dataloader):
     #     print(i, train_data)
