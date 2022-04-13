@@ -9,25 +9,46 @@ from ding.envs.env.tests import DemoEnv
 # from dizoo.atari.envs import AtariEnv
 
 
+def check_space_dtype(env: BaseEnv) -> None:
+    print("== 0. Test obs/act/rew space's dtype")
+    env.reset()
+    for name, space in zip(['obs', 'act', 'rew'], [env.observation_space, env.action_space, env.reward_space]):
+        if 'float' in repr(space.dtype):
+            assert space.dtype == np.float32, "If float, then must be np.float32, but get {} for {} space".format(
+                space.dtype, name
+            )
+        if 'int' in repr(space.dtype):
+            assert space.dtype == np.int64, "If int, then must be np.int64, but get {} for {} space".format(
+                space.dtype, name
+            )
+
+
+# Util function
 def check_array_space(ndarray, space, name) -> bool:
     if isinstance(ndarray, np.ndarray):
         # print("{}'s type should be np.ndarray".format(name))
-        if ndarray.dtype != space.dtype:
-            print("{}'s dtype is {}, but requires {}".format(name, ndarray.dtype, space.dtype))
-        if ndarray.shape != space.shape:
-            print("{}'s shape is {}, but requires {}".format(name, ndarray.shape, space.shape))
-        if not (space.low <= ndarray).all() or not (ndarray <= space.high).all():
-            print("{}'s value is {}, but requires in range ({},{})".format(name, ndarray, space.low, space.high))
+        assert ndarray.dtype == space.dtype, "{}'s dtype is {}, but requires {}".format(
+            name, ndarray.dtype, space.dtype
+        )
+        assert ndarray.shape == space.shape, "{}'s shape is {}, but requires {}".format(
+            name, ndarray.shape, space.shape
+        )
+        assert (space.low <= ndarray).all() and (ndarray <= space.high).all(
+        ), "{}'s value is {}, but requires in range ({},{})".format(name, ndarray, space.low, space.high)
     elif isinstance(ndarray, Sequence):
         for i in range(len(ndarray)):
-            check_array_space(ndarray[i], space[i], name)
-            # if not check_array_space(ndarray[i], space[i], name):
-            #     print("Aformentioned error happens at {}-th index".format(i))
+            try:
+                check_array_space(ndarray[i], space[i], name)
+            except AssertionError as e:
+                print("The following  error happens at {}-th index".format(i))
+                raise e
     elif isinstance(ndarray, dict):
         for k in ndarray.keys():
-            check_array_space(ndarray[k], space[k], name)
-            # if not check_array_space(ndarray[k], space[k], name):
-            #     print("Aformentioned error happens at {} key".format(k))
+            try:
+                check_array_space(ndarray[k], space[k], name)
+            except AssertionError as e:
+                print("The following  error happens at key {}".format(k))
+                raise e
     else:
         raise TypeError(
             "Input array should be np.ndarray or sequence/dict of np.ndarray, but found {}".format(type(ndarray))
@@ -52,59 +73,55 @@ def check_step(env: BaseEnv) -> None:
         obs, rew, done, info = env.step(random_action)
         for ndarray, space, name in zip([obs, rew], [env.observation_space, env.reward_space], ['obs', 'rew']):
             check_array_space(ndarray, space, name)
-        if done and 'final_eval_reward' not in info:
-            print("info dict should have 'final_eval_reward' key.")
         if done:
+            assert 'final_eval_reward' in info, "info dict should have 'final_eval_reward' key."
             done_times += 1
             _ = env.reset()
         if done_times == 3:
             break
 
 
-def check_obs_deepcopy(env: BaseEnv) -> None:
+# Util function
+def check_different_memory(array1, array2, step_times) -> None:
+    assert type(array1) == type(
+        array2
+    ), "In step times {}, obs_last_frame({}) and obs_this_frame({}) are not of the same type".format(
+        step_times, type(array1), type(array2)
+    )
+    if isinstance(array1, np.ndarray):
+        assert id(array1) != id(
+            array2
+        ), "In step times {}, obs_last_frame and obs_this_frame are the same np.ndarray".format(step_times)
+    elif isinstance(array1, Sequence):
+        assert len(array1) == len(
+            array2
+        ), "In step times {}, obs_last_frame({}) and obs_this_frame({}) have different sequence lengths".format(
+            step_times, len(array1), len(array2)
+        )
+        for i in range(len(array1)):
+            try:
+                check_different_memory(array1[i], array2[i], step_times)
+            except AssertionError as e:
+                print("The following error happens at {}-th index".format(i))
+                raise e
+    elif isinstance(array1, dict):
+        assert array1.keys() == array2.keys(), "In step times {}, obs_last_frame({}) and obs_this_frame({}) have \
+                different dict keys".format(step_times, array1.keys(), array2.keys())
+        for k in array1.keys():
+            try:
+                check_different_memory(array1[k], array2[k], step_times)
+            except AssertionError as e:
+                print("The following  error happens at key {}".format(k))
+                raise e
+    else:
+        raise TypeError(
+            "Input array should be np.ndarray or list/dict of np.ndarray, but found {} and {}".format(
+                type(array1), type(array2)
+            )
+        )
 
-    def check_different_memory(array1, array2, step_times) -> bool:
-        if type(array1) != type(array2):
-            print(
-                "In step times {}, obs_last_frame({}) and obs_this_frame({}) are not of the same type".format(
-                    step_times, type(array1), type(array2)
-                )
-            )
-            return False
-        if isinstance(array1, np.ndarray):
-            if id(array1) == id(array2):
-                print("In step times {}, obs_last_frame and obs_this_frame are the same np.ndarray".format(step_times))
-                return False
-        elif isinstance(array1, Sequence):
-            if len(array1) != len(array2):
-                print(
-                    "In step times {}, obs_last_frame({}) and obs_this_frame({}) have different sequence lengths".
-                    format(step_times, len(array1), len(array2))
-                )
-                return False
-            for i in range(len(array1)):
-                if not check_different_memory(array1[i], array2[i]):
-                    print("Aformentioned error happens at {}-th index".format(i))
-                    return False
-        elif isinstance(array1, dict):
-            if array1.keys != array2.keys():
-                print(
-                    "In step times {}, obs_last_frame({}) and obs_this_frame({}) have different dict keys".format(
-                        step_times, array1.keys(), array2.keys()
-                    )
-                )
-                return False
-            for k in array1.keys():
-                if not check_different_memory(array1[k], array2[k]):
-                    print("Aformentioned error happens at {} key".format(k))
-                    return False
-        else:
-            raise TypeError(
-                "Input array should be np.ndarray or list/dict of np.ndarray, but found {} and {}".format(
-                    type(array1), type(array2)
-                )
-            )
-        return True
+
+def check_obs_deepcopy(env: BaseEnv) -> None:
 
     step_times = 0
     print('== 3. Test observation deepcopy')
@@ -122,7 +139,14 @@ def check_obs_deepcopy(env: BaseEnv) -> None:
             break
 
 
-def demonstrate_correct_procudure(env_fn: Callable) -> None:
+def check_all(env: BaseEnv) -> None:
+    check_space_dtype(env)
+    check_reset(env)
+    check_step(env)
+    check_obs_deepcopy(env)
+
+
+def demonstrate_correct_procedure(env_fn: Callable) -> None:
     print('== 4. Demonstrate the correct procudures')
     done_times = 0
     # Init the env.
@@ -160,4 +184,4 @@ if __name__ == "__main__":
     # Method `demonstrate_correct_procudure` is to demonstrate the correct procedure to
     # use an env to generate trajectories.
     # You can check whether your env's design is similar to `DemoEnv`
-    demonstrate_correct_procudure(DemoEnv)
+    demonstrate_correct_procedure(DemoEnv)

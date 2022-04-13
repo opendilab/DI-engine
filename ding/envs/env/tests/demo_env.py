@@ -8,7 +8,7 @@ from ding.envs.env import BaseEnv, BaseEnvTimestep
 class DemoEnv(BaseEnv):
 
     def __init__(self, cfg: dict) -> None:
-        self._is_closed = False
+        self._closed = True
         # It is highly recommended to implement these three spaces
         self._observation_space = gym.spaces.Dict(
             {
@@ -42,10 +42,11 @@ class DemoEnv(BaseEnv):
         """
         self._step_count = 0
         self._env = "A real environment"
+        self._closed = False
         return self.observation_space.sample()
 
     def close(self) -> None:
-        self._is_closed = True
+        self._closed = True
 
     def step(self, action: Any) -> 'BaseEnv.timestep':
         self._step_count += 1
