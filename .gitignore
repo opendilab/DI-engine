@@ -1422,3 +1422,5 @@ collect_demo_data_config.py
 default*
 !ding/**/*.py
 events.*
+
+annotated_deep_learning_paper_implementations-master/

@@ -19,10 +19,10 @@ cartpole_r2d2_gtrxl_config = dict(
             action_shape=2,
             memory_len=5,  # length of transformer memory (can be 0)
             hidden_size=256,
-            gru_bias=1.,
+            gru_bias=2.,
             att_layer_num=3,
             dropout=0.,
-            att_head_num=2,
+            att_head_num=8,
         ),
         discount_factor=0.99,
         nstep=3,
@@ -68,4 +68,11 @@ create_config = cartpole_r2d2_gtrxl_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline
+    import time
+    start_time = time.time()
     serial_pipeline([main_config, create_config], seed=0)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    # CPU
+    # --- 91.72819066047668 seconds --- ding implementation
+    # --- 241.31228852272034 seconds --- labmlai implementation
+    # --- 217.76270294189453 seconds --- labmlai 8 heads
