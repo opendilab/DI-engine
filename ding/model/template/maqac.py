@@ -24,6 +24,7 @@ class MAQAC(nn.Module):
             agent_obs_shape: Union[int, SequenceType],
             global_obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
+            agent_num: int,
             twin_critic: bool = False,
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 1,
