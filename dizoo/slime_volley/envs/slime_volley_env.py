@@ -110,10 +110,11 @@ class SlimeVolleyEnv(BaseEnv):
                 self._env = GymSelfPlayMonitor(
                     self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
                 )
+            ori_shape = self._env.observation_space.shape
             self._observation_space = gym.spaces.Box(
                 low=float("-inf"),
                 high=float("inf"),
-                shape=(len(self.agents), ) + self._env.observation_space.shape,
+                shape=(len(self.agents), ) + ori_shape if len(self.agents) > 2 else ori_shape,
                 dtype=np.float32
             )
             self._action_space = gym.spaces.Discrete(6)
