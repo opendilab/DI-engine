@@ -50,12 +50,7 @@ class PettingZooEnv(BaseEnv):
             # Because agents cannot be accessed before reset
             self._agents = self._env.agents
             self._num_agents = len(self._env.agents)
-            self._observation_space = gym.spaces.Box(
-                low=float("-inf"),
-                high=float("inf"),
-                shape=(self._num_agents, ) + self._env.observation_space(self._agents[0]).shape,
-                dtype=np.float32
-            )
+
             self._action_space = gym.spaces.Dict({agent: self._env.action_space(agent) for agent in self._agents})
             single_agent_obs_space = self._env.action_space(self._agents[0])
             if isinstance(single_agent_obs_space, gym.spaces.Box):
@@ -64,6 +59,47 @@ class PettingZooEnv(BaseEnv):
                 self._action_dim = (single_agent_obs_space.n, )
             else:
                 raise Exception('Only support `Box` or `Discrte` obs space for single agent.')
+            
+             # only for env 'simple_spread_v2' n_agent = 5
+            self._observation_space = [gym.spaces.Dict({
+                'agent_state':
+                gym.spaces.Box(
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=self._env.observation_space(self._agents[i]).shape,  # (30,)
+                    dtype=np.float32
+                ) ,
+                'global_state':
+                gym.spaces.Box(
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=(70,),  # TODO(pu)
+                    dtype=np.float32
+                ),
+                'agent_alone_state':
+                gym.spaces.Box(
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=(22,),
+                    dtype=np.float32
+                ),
+                'agent_alone_padding_state':
+                gym.spaces.Box(
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=self._env.observation_space(self._agents[i]).shape, # (30,)
+                    dtype=np.float32
+                ),
+                'action_mask':
+                    gym.spaces.Box(
+                    low=float("-inf"),
+                    high=float("inf"),
+                    shape=self._action_dim,# (5,)
+                    dtype=np.float32
+                ),
+            })
+                for i in range(self._num_agents)]
+
             self._reward_space = gym.spaces.Dict(
                 {
                     agent: gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)

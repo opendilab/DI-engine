@@ -240,11 +240,15 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._observation_space
+            # for env multiagent_mujoco and petting_zoo
             if isinstance(obs_space, list):
-                # for multi_agent case
                 if isinstance(obs_space[0], gym.spaces.Dict):
-                    shape = {k: (len(obs_space), ) + v.shape for k, v in obs_space[0].items()}
-                    dtype = list(obs_space[0].values())[0].dtype
+                    # here, if k=='global_state', is for petting_zoo case, e.g. 'global_state' shape should be (70,), not (agent_num,70)
+                    shape = {
+                        k: v.shape if k == 'global_state' else (len(obs_space), ) + v.shape
+                        for k, v in obs_space[0].spaces.items()
+                    }
+                    dtype = list(obs_space[0].spaces.values())[0].dtype
                 else:
                     shape = (len(obs_space), ) + obs_space[0].shape
                     dtype = obs_space[0].dtype
