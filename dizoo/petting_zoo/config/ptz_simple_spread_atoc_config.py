@@ -8,14 +8,13 @@ communication = True
 ptz_simple_spread_atoc_config = dict(
     exp_name='ptz_simple_spread_atoc_seed0',
     env=dict(
-        manager=dict(shared_memory=False, ),  # NOTE
         env_family='mpe',
         env_id='simple_spread_v2',
         n_agent=n_agent,
         n_landmark=n_landmark,
         max_cycles=100,
         agent_obs_only=True,
-        continuous_actions=True,  # NOTE
+        continuous_actions=True,
         act_scale=True,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
