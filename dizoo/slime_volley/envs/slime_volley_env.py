@@ -4,8 +4,7 @@ from typing import Any, Union, List, Optional
 import copy
 import slimevolleygym
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
 

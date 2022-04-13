@@ -1,13 +1,13 @@
 from typing import Any, Union, List
 import copy
 import numpy as np
+from numpy import dtype
 import gym
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
-from .mujoco_multi import MujocoMulti
 from ding.utils import ENV_REGISTRY
-from numpy import dtype
+from .mujoco_multi import MujocoMulti
 
 
 @ENV_REGISTRY.register('mujoco_multi')

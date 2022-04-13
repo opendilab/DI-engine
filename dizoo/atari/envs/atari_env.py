@@ -3,8 +3,7 @@ import copy
 import numpy as np
 import gym
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep, update_shape
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
