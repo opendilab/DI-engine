@@ -175,8 +175,11 @@ class TransformerInputWrapper(IModelWrapper):
         self.bs = None
         self.memory_idx = []  # len bs, index of where to put the next element in the sequence for each batch
 
-    def forward(self, input_obs: torch.Tensor, only_last_logit: bool = True,
-                data_id: List = None, **kwargs) -> Dict[str, torch.Tensor]:
+    def forward(self,
+                input_obs: torch.Tensor,
+                only_last_logit: bool = True,
+                data_id: List = None,
+                **kwargs) -> Dict[str, torch.Tensor]:
         """
         Arguments:
             - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: (bs, *obs_shape)

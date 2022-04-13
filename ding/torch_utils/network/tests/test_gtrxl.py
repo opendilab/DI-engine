@@ -39,7 +39,11 @@ class TestGTrXL:
             else:
                 model.reset_memory(state=m)
             output = model(input, batch_first=bf)
-            loss = output['logit'].mean()
+            target = torch.randn(output['logit'].shape)
+            mse_loss = torch.nn.MSELoss()
+            target = torch.randn(output['logit'].shape)
+            loss = mse_loss(output['logit'], target)
+            assert input.grad is None
             loss.backward()
             assert isinstance(input.grad, torch.Tensor)
             if bf is False:
