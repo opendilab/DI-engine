@@ -59,12 +59,12 @@ class GRUGatingUnit(torch.nn.Module):
             initializes the agent close to a Markovian policy (ignore attention at the beginning).
         """
         super(GRUGatingUnit, self).__init__()
-        self.Wr = torch.nn.Linear(input_dim, input_dim)
-        self.Ur = torch.nn.Linear(input_dim, input_dim)
-        self.Wz = torch.nn.Linear(input_dim, input_dim)
-        self.Uz = torch.nn.Linear(input_dim, input_dim)
-        self.Wg = torch.nn.Linear(input_dim, input_dim)
-        self.Ug = torch.nn.Linear(input_dim, input_dim)
+        self.Wr = torch.nn.Linear(input_dim, input_dim, bias=False)
+        self.Ur = torch.nn.Linear(input_dim, input_dim, bias=False)
+        self.Wz = torch.nn.Linear(input_dim, input_dim, bias=False)
+        self.Uz = torch.nn.Linear(input_dim, input_dim, bias=False)
+        self.Wg = torch.nn.Linear(input_dim, input_dim, bias=False)
+        self.Ug = torch.nn.Linear(input_dim, input_dim, bias=False)
         self.bg = nn.Parameter(torch.full([input_dim], bg))  # bias
         self.sigmoid = torch.nn.Sigmoid()
         self.tanh = torch.nn.Tanh()
