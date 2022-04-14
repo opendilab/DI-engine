@@ -6,15 +6,12 @@ from copy import deepcopy
 
 from ding.envs.env import check_array_space, check_different_memory, check_all, demonstrate_correct_procedure
 from ding.envs.env.tests import DemoEnv
-from dizoo.atari.envs import AtariEnv
 
 
 @pytest.mark.unittest
 def test_an_implemented_env():
     demo_env = DemoEnv({})
-    atari_env = AtariEnv(EasyDict(env_id='PongNoFrameskip-v4', frame_stack=4, is_train=False))
     check_all(demo_env)
-    check_all(atari_env)
     demonstrate_correct_procedure(DemoEnv)
 
 
