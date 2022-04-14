@@ -22,7 +22,6 @@ class MAVAC(nn.Module):
             agent_obs_shape: Union[int, SequenceType],
             global_obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
-            agent_num: int,
             encoder_hidden_size_list: SequenceType = [128, 128, 64],
             actor_head_hidden_size: int = 64,
             actor_head_layer_num: int = 2,

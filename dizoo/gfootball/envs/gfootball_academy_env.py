@@ -1,4 +1,8 @@
-"""The code below is adapted from https://github.com/lich14/CDS/tree/main/CDS_GRF/envs/grf"""
+"""
+The code below is adapted from https://github.com/lich14/CDS/tree/main/CDS_GRF/envs/grf,
+which is from the codebase accompanies the CDS paper "Celebrating Diversity in Shared Multi-Agent Reinforcement Learning"
+"""
+
 import gfootball.env as football_env
 from gfootball.env import observation_preprocessing
 import gym
@@ -7,9 +11,11 @@ from ding.utils import ENV_REGISTRY
 from typing import Any, List, Union, Optional
 import copy
 import torch
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
-
+import os
+from matplotlib import animation
+import matplotlib.pyplot as plt
 
 @ENV_REGISTRY.register('gfootball-academy')
 class GfootballAcademyEnv(BaseEnv):
@@ -31,6 +37,14 @@ class GfootballAcademyEnv(BaseEnv):
         write_video=True,
         number_of_right_players_agent_controls=0,
     ):
+        """
+        'academy_3_vs_1_with_keeper'
+        n_agents=3,
+        obs_dim=26,
+        'academy_counterattack_hard'
+        n_agents=4,
+        obs_dim=34,
+        """
         self._cfg = cfg
         self.dense_reward = dense_reward
         self.write_full_episode_dumps = write_full_episode_dumps
@@ -40,12 +54,7 @@ class GfootballAcademyEnv(BaseEnv):
         self.env_name = self._cfg.env_name  # TODO
         self.n_agents = self._cfg.agent_num
         self.obs_dim = self._cfg.obs_dim
-        # 'academy_3_vs_1_with_keeper'
-        # n_agents=3,
-        # obs_dim=26,
-        # 'academy_counterattack_hard'
-        # n_agents=4,
-        # obs_dim=34,
+ 
         self.episode_limit = time_limit
         self.time_step = time_step
         self.stacked = stacked
@@ -74,12 +83,12 @@ class GfootballAcademyEnv(BaseEnv):
         obs_space_low = self._env.observation_space.low[0][:self.obs_dim]
         obs_space_high = self._env.observation_space.high[0][:self.obs_dim]
 
-        self._action_space = [gym.spaces.Discrete(self._env.action_space.nvec[1]) for _ in range(self.n_agents)]
-        self._observation_space = [
+        self._action_space =  gym.spaces.Dict({agent_i: gym.spaces.Discrete(self._env.action_space.nvec[1]) for agent_i in range(self.n_agents)})
+        self._observation_space = gym.spaces.Dict({agent_i: 
             gym.spaces.Box(low=obs_space_low, high=obs_space_high, dtype=self._env.observation_space.dtype)
-            for _ in range(self.n_agents)
-        ]
-        self._reward_space = gym.spaces.Box(low=0, high=100, shape=(1, ), dtype=np.float32)  # TODO
+            for agent_i in range(self.n_agents)
+        })
+        self._reward_space = gym.spaces.Box(low=0, high=100, shape=(1, ), dtype=np.float32)  # TODO(pu)
 
         self.n_actions = self.action_space[0].n
 
@@ -173,12 +182,19 @@ class GfootballAcademyEnv(BaseEnv):
         ours_loc = cur_obs['left_team'][-self.n_agents:]
 
         if ball_loc[0] < 0 or any(ours_loc[:, 0] < 0):
-            return True  # TODO(pu)
+            """
+            This is based on the CDS paper:
+            'We make a small and reasonable change to the half-court offensive scenarios: our players will lose if
+            they or the ball returns to our half-court.'
+            """
+            return True
 
         return False
 
     def reset(self):
         """Returns initial observations and states."""
+        if self._save_replay:
+            self._frames = []
         self.time_step = 0
         self._env.reset()
         obs = {
@@ -203,13 +219,14 @@ class GfootballAcademyEnv(BaseEnv):
 
     def step(self, actions):
         """Returns reward, terminated, info."""
+        assert isinstance(actions, np.ndarray) or isinstance(actions, list), type(actions)
         self.time_step += 1
-
         if isinstance(actions, np.ndarray):
-            actions = torch.from_numpy(actions)
-
-        _, original_rewards, done, infos = self._env.step(actions.to('cpu').numpy().tolist())
-
+            actions = actions.tolist()
+        
+        if self._save_replay:
+            self._frames.append(self._env.render(mode='rgb_array'))
+        _, original_rewards, done, infos = self._env.step(actions)
         obs = {
             'agent_state': np.stack(self.get_obs(), axis=0).astype(np.float32),
             # Note: here 'global_state' is the agent_specific_global_state,
@@ -227,12 +244,28 @@ class GfootballAcademyEnv(BaseEnv):
 
         if self.check_if_done():
             done = True
+        
+        if done:
+            if self._save_replay:
+                path = os.path.join(
+                    self._replay_path, '{}_episode_{}.gif'.format(self.env_name, self._save_replay_count)
+                )
+                self.display_frames_as_gif(self._frames, path)
+                self._save_replay_count += 1
 
         if sum(rewards) <= 0:
-            infos['final_eval_reward'] = infos['score_reward']  # TODO
+            """
+            This is based on the CDS paper:
+            "Environmental reward only occurs at the end of the game. 
+            They will get +100 if they win, else get -1."
+            If done=False, the reward is -1, 
+            If done=True and sum(rewards)<=0 the reward is 1.
+            If done=True and sum(rewards)>0 the reward is 100.
+            """
+            infos['final_eval_reward'] = infos['score_reward']  # TODO(pu)
             return BaseEnvTimestep(obs, np.array(-int(done)).astype(np.float32), done, infos)
         else:
-            infos['final_eval_reward'] = infos['score_reward']  # TODO
+            infos['final_eval_reward'] = infos['score_reward']
             return BaseEnvTimestep(obs, np.array(100).astype(np.float32), done, infos)
 
     def get_obs(self):
@@ -264,10 +297,6 @@ class GfootballAcademyEnv(BaseEnv):
         """Returns the available actions for agent_id."""
         return self.get_avail_actions()[agent_id]
 
-    def get_total_actions(self):
-        """Returns the total number of actions an agent could ever take."""
-        return self.action_space[0].n
-
     def render(self):
         pass
 
@@ -277,6 +306,15 @@ class GfootballAcademyEnv(BaseEnv):
     def save_replay(self):
         """Save a replay."""
         pass
+    
+    def enable_save_replay(self, replay_path: str) -> None:
+        """
+        Overview:
+            Save replay file in the given path, need to be self-implemented.
+        Arguments:
+            - replay_path(:obj:`str`): Storage path.
+        """
+        raise NotImplementedError
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -300,19 +338,23 @@ class GfootballAcademyEnv(BaseEnv):
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
 
-    @staticmethod
-    def create_collector_env_cfg(cfg: dict) -> List[dict]:
-        collector_env_num = cfg.pop('collector_env_num')
-        cfg = copy.deepcopy(cfg)
-        cfg.is_train = True
-        return [cfg for _ in range(collector_env_num)]
-
-    @staticmethod
-    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.pop('evaluator_env_num')
-        cfg = copy.deepcopy(cfg)
-        cfg.is_train = False
-        return [cfg for _ in range(evaluator_env_num)]
-
     def __repr__(self) -> str:
         return f'GfootballEnv Academy Env {self.env_name}'
+
+    def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
+        if replay_path is None:
+            replay_path = './video'
+        self._save_replay = True
+        self._replay_path = replay_path
+        self._save_replay_count = 0
+
+    @staticmethod
+    def display_frames_as_gif(frames: list, path: str) -> None:
+        patch = plt.imshow(frames[0])
+        plt.axis('off')
+
+        def animate(i):
+            patch.set_data(frames[i])
+
+        anim = animation.FuncAnimation(plt.gcf(), animate, frames=len(frames), interval=5)
+        anim.save(path, writer='imagemagick', fps=20)

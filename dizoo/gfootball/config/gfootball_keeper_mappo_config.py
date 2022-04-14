@@ -12,7 +12,7 @@ main_config = dict(
         agent_num=agent_num,
         obs_dim=obs_dim,
         n_evaluator_episode=32,
-        stop_value=0.99,
+        stop_value=1,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         manager=dict(
@@ -22,13 +22,8 @@ main_config = dict(
     ),
     policy=dict(
         cuda=True,
-        # share_weight=True,
         multi_agent=True,
-        # action_space='discrete',
         model=dict(
-            # (int) agent_num: The number of the agent.
-            # For SMAC 3s5z, agent_num=8; for 2c_vs_64zg, agent_num=2.
-            agent_num=agent_num,
             # (int) obs_shape: The shapeof observation of each agent.
             # (int) global_obs_shape: The shape of global observation.
             agent_obs_shape=obs_dim,
