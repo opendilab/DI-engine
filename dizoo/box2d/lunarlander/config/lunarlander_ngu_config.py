@@ -1,7 +1,6 @@
 import torch
 from easydict import EasyDict
 
-
 collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
@@ -93,7 +92,7 @@ lunarlander_ngu_create_config = dict(
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(type='sample_ngu',)
+    collector=dict(type='sample_ngu', )
 )
 lunarlander_ngu_create_config = EasyDict(lunarlander_ngu_create_config)
 create_config = lunarlander_ngu_create_config

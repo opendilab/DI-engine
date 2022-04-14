@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-collector_env_num=8
-evaluator_env_num=5
+collector_env_num = 8
+evaluator_env_num = 5
 spaceinvaders_r2d2_residual_config = dict(
     exp_name='spaceinvaders_r2d2_residual_link_seed0',
     env=dict(

@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-
 collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5

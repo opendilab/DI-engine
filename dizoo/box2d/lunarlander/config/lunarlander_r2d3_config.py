@@ -8,7 +8,6 @@ module_path = os.path.dirname(__file__)
 
 collector_env_num = 8
 evaluator_env_num = 5
-
 """agent config"""
 lunarlander_r2d3_config = dict(
     exp_name='debug_lunarlander_r2d3_k0_pho0',
@@ -71,12 +70,13 @@ lunarlander_r2d3_config = dict(
                 end=0.1,
                 decay=100000,
             ),
-            replay_buffer=dict(replay_buffer_size=10000,
-                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                               alpha=0.6,  # priority exponent default=0.6
-                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                               beta=0.4,
-                               )
+            replay_buffer=dict(
+                replay_buffer_size=10000,
+                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                alpha=0.6,  # priority exponent default=0.6
+                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                beta=0.4,
+            )
         ),
     ),
 )
@@ -92,7 +92,6 @@ lunarlander_r2d3_create_config = dict(
 )
 lunarlander_r2d3_create_config = EasyDict(lunarlander_r2d3_create_config)
 create_config = lunarlander_r2d3_create_config
-
 """export config"""
 
 expert_lunarlander_r2d3_config = dict(
@@ -132,12 +131,13 @@ expert_lunarlander_r2d3_config = dict(
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
-            replay_buffer=dict(replay_buffer_size=1000,  # 10000,8 TODO(pu)
-                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                               alpha=0.9,  # priority exponent default=0.6
-                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                               beta=0.4,
-                               )
+            replay_buffer=dict(
+                replay_buffer_size=1000,  # 10000,8 TODO(pu)
+                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                alpha=0.9,  # priority exponent default=0.6
+                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                beta=0.4,
+            )
         ),
     ),
 )

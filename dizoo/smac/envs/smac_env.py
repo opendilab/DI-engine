@@ -203,7 +203,6 @@ class SMACEnv(SC2Env, BaseEnv):
         self._action_space = self.action_helper.info(),
         self._reward_space = self.reward_helper.info(),
 
-
     def seed(self, seed, dynamic_seed=False):
         self._seed = seed
 
@@ -1632,7 +1631,6 @@ class SMACEnv(SC2Env, BaseEnv):
                     None,
                 )
         return obs_space
-
 
     @property
     def observation_space(self):

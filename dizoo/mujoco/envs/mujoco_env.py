@@ -36,7 +36,7 @@ class MujocoEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env()
-            self._env.observation_space.dtype=np.float32 # To unify the format of envs in DI-engine
+            self._env.observation_space.dtype = np.float32  # To unify the format of envs in DI-engine
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(

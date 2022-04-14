@@ -38,14 +38,13 @@ class MiniGridEnv(BaseEnv):
         # self._max_step = MINIGRID_INFO_DICT[self._env_id].max_step
         self._max_step = cfg.max_step
 
-
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._env_id)
             if self._env_id in ['MiniGrid-AKTDT-13x13-v0' or 'MiniGrid-AKTDT-13x13-1-v0']:
-                # customize the agent field of view size, note this must be an odd number 
+                # customize the agent field of view size, note this must be an odd number
                 # This also related to the observation space, see gym_minigrid.wrappers for more details
-                self._env = ViewSizeWrapper(self._env, agent_view_size=5)  
+                self._env = ViewSizeWrapper(self._env, agent_view_size=5)
             if self._env_id == 'MiniGrid-AKTDT-7x7-1-v0':
                 self._env = ViewSizeWrapper(self._env, agent_view_size=3)
             if self._flat_obs:
@@ -69,7 +68,7 @@ class MiniGridEnv(BaseEnv):
         self._observation_space.dtype = np.dtype('float32')
         self._action_space = self._env.action_space
         self._reward_space = gym.spaces.Box(
-            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
         )
 
         return obs
@@ -86,7 +85,7 @@ class MiniGridEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1,):
+        if action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))

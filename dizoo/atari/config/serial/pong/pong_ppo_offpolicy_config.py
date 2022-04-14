@@ -34,9 +34,7 @@ pong_ppo_config = dict(
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
             clip_ratio=0.1,
-            learner=dict(
-                hook=dict(save_ckpt_after_iter=1000)
-            ),
+            learner=dict(hook=dict(save_ckpt_after_iter=1000)),
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
