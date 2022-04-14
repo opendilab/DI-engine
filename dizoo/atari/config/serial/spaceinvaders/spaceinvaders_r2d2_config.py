@@ -1,10 +1,9 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
-collector_env_num = 8
-evaluator_env_num = 5
+collector_env_num=8
+evaluator_env_num=5
 spaceinvaders_r2d2_config = dict(
-    exp_name='spaceinvaders_r2d2_n5_bs20_ul80_rbs1e4',
+    exp_name='spaceinvaders_r2d2_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -38,7 +37,7 @@ spaceinvaders_r2d2_config = dict(
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
             update_per_collect=8,
-            batch_size=64,  # TODO(pu)
+            batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
         ),
@@ -56,7 +55,7 @@ spaceinvaders_r2d2_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=10000,  # TODO(pu)
+                replay_buffer_size=10000, 
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -72,32 +71,13 @@ spaceinvaders_r2d2_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d2'),
 )
 spaceinvaders_r2d2_create_config = EasyDict(spaceinvaders_r2d2_create_config)
 create_config = spaceinvaders_r2d2_create_config
 
-# if __name__ == "__main__":
-#     serial_pipeline([main_config, create_config], seed=0)
-
-
-def train(args):
-    main_config.exp_name = 'spaceinvaders_r2d2_n5_bs20_ul80_rbs1e4' + '_seed' + f'{args.seed}'
-    import copy
-    # 3125 iterations= 10M env steps / (100*32) env steps
-    serial_pipeline(
-        [copy.deepcopy(main_config), copy.deepcopy(create_config)],
-        seed=args.seed,
-        max_iterations=int(3125),
-    )
-
-
 if __name__ == "__main__":
-    import argparse
-    for seed in [0, 1, 2, 3, 4]:
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--seed', '-s', type=int, default=seed)
-        args = parser.parse_args()
-
-        train(args)
+    # or you can enter ding -m serial -c spaceinvaders_r2d2_config.py -s 0
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)
