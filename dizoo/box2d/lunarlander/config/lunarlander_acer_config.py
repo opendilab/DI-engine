@@ -5,7 +5,6 @@ lunarlander_acer_config = dict(
     exp_name='lunarlander_acer_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # To_delete manager=dict(shared_memory=True, ),
         # Env number respectively for collector and evaluator.
         collector_env_num=8,
         evaluator_env_num=8,

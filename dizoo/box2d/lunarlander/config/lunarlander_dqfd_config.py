@@ -4,8 +4,6 @@ lunarlander_dqfd_config = dict(
     exp_name='lunarlander_dqfd_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # To_confirm
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=8,
         env_id='LunarLander-v2',

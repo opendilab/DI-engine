@@ -3,8 +3,6 @@ from easydict import EasyDict
 lunarlander_trex_ppo_config = dict(
     exp_name='lunarlander_trex_offppo_seed0',
     env=dict(
-        #To confirm
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=8,
         env_id='LunarLander-v2',
@@ -22,9 +20,18 @@ lunarlander_trex_ppo_config = dict(
         checkpoint_step=1000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./lunarlander.params',
-        offline_data_path='abs data path',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='data_path_placeholder + /lunarlander.params',
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # See ding/entry/application_entry_trex_collect_data.py to collect the data
+        data_path='data_path_placeholder',
     ),
     policy=dict(
         cuda=True,

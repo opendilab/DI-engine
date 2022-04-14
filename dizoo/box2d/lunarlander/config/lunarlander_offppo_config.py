@@ -3,8 +3,6 @@ from easydict import EasyDict
 lunarlander_ppo_config = dict(
     exp_name='lunarlander_offppo_seed0',
     env=dict(
-        #To confirm
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=8,
         env_id='LunarLander-v2',

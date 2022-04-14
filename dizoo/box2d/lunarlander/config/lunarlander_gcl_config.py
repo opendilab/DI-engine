@@ -35,7 +35,10 @@ lunarlander_ppo_config = dict(
             adv_norm=True,
         ),
         collect=dict(
-            demonstration_info_path='path',
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
             n_sample=800,
             unroll_len=1,
             discount_factor=0.99,

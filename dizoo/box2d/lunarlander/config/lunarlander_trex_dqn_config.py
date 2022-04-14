@@ -5,8 +5,6 @@ lunarlander_trex_dqn_config = dict(
     exp_name='lunarlander_trex_dqn_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # To confirm
-        manager=dict(shared_memory=True, reset_inplace=True),
         # Env number respectively for collector and evaluator.
         collector_env_num=8,
         evaluator_env_num=8,
@@ -26,9 +24,17 @@ lunarlander_trex_dqn_config = dict(
         num_snippets=60000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./lunarlander.params',
-        offline_data_path='abs data path',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='data_path_placeholder + /lunarlander.params',
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # e.g. 'exp_name/expert_data.pkl'
+        data_path='data_path_placeholder',
     ),
     policy=dict(
         # Whether to use cuda for network.

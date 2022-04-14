@@ -4,8 +4,6 @@ lunarlander_sqil_config = dict(
     exp_name='lunarlander_sqil_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # To confirm
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=8,
         env_id='LunarLander-v2',
@@ -25,8 +23,10 @@ lunarlander_sqil_config = dict(
         learn=dict(batch_size=64, learning_rate=0.001, alpha=0.08),
         collect=dict(
             n_sample=64,
-            # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='path',
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
             # Cut trajectories into pieces with length "unrol_len".
             unroll_len=1,
         ),

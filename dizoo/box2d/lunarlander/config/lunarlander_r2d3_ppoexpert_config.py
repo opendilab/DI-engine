@@ -11,8 +11,6 @@ lunarlander_r2d3_config = dict(
     exp_name='lunarlander_r2d3_ppoexpert_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        # To confirm
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         env_id='LunarLander-v2',
@@ -112,7 +110,6 @@ expert_lunarlander_r2d3_config = dict(
         model=dict(
             obs_shape=8,
             action_shape=4,
-            # encoder_hidden_size_list=[512, 64],  # dqn
             encoder_hidden_size_list=[128, 128, 64],  # ppo
         ),
         discount_factor=0.997,
@@ -121,8 +118,10 @@ expert_lunarlander_r2d3_config = dict(
         learn=dict(expert_replay_buffer_size=expert_replay_buffer_size, ),
         collect=dict(
             # n_sample=32, NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_12948.pth.tar',
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=42,  # TODO(pu) should equals self._unroll_len_add_burnin_step in r2d2 policy
             env_num=collector_env_num,

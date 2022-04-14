@@ -15,8 +15,6 @@ lunarlander_ppo_rnd_config = dict(
         intrinsic_reward_type='add',  # 'assign'
         learning_rate=5e-4,
         obs_shape=8,
-        # batch_size=32,
-        # update_per_collect=10,
         batch_size=320,
         update_per_collect=4,
     ),
@@ -31,7 +29,7 @@ lunarlander_ppo_rnd_config = dict(
         ),
         learn=dict(
             epoch_per_collect=10,
-            update_per_collect=1,  # 4
+            update_per_collect=1,
             batch_size=64,
             learning_rate=3e-4,
             value_weight=0.5,
@@ -44,11 +42,6 @@ lunarlander_ppo_rnd_config = dict(
             # n_sample=128,
             collector_env_num=collector_env_num,
             n_sample=int(64 * collector_env_num),
-            #  self._traj_len  = max(1,64*8//8)=64
-            #    self._traj_len = max(
-            #      self._unroll_len,
-            #     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
-            #  )
             unroll_len=1,
             discount_factor=0.99,
             gae_lambda=0.95,
