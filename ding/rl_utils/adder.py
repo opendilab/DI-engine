@@ -163,7 +163,7 @@ class Adder(object):
                 template = copy.deepcopy(residual[0])
                 template['null'] = True
                 if isinstance(template['obs'], dict):
-                    template['obs'] = {k: torch.zeros_like(v) for k,v in template['obs'].items()}
+                    template['obs'] = {k: torch.zeros_like(v) for k, v in template['obs'].items()}
                 else:
                     template['obs'] = torch.zeros_like(template['obs'])
                 # template['action'] = -1 * torch.ones_like(template['action']) # TODO(pu)
