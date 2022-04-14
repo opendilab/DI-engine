@@ -84,8 +84,18 @@ spaceinvaders_trex_dqn_create_config = EasyDict(spaceinvaders_trex_dqn_create_co
 create_config = spaceinvaders_trex_dqn_create_config
 
 if __name__ == '__main__':
-    from ding.entry import trex_collecting_data, serial_pipeline_reward_model_trex
-
-    args = EasyDict(dict(cfg=[main_config, create_config], seed=0, device='cuda'))
+    # Users should first run ``spaceinvaders_dqn_config.py`` to save models (or checkpoints).
+    # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
+    # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
+    import argparse
+    import torch
+    from ding.entry import trex_collecting_data
+    from ding.entry import serial_pipeline_reward_model_trex
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    args = parser.parse_args()
+    # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_reward_model_trex([main_config, create_config], seed=0)
+    serial_pipeline_reward_model_trex([main_config, create_config])
