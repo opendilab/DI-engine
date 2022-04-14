@@ -1,7 +1,3 @@
-import torch
-# To confirm
-print(torch.cuda.is_available(), torch.__version__)
-
 from easydict import EasyDict
 
 collector_env_num = 8

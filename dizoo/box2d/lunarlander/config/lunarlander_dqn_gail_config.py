@@ -33,7 +33,6 @@ lunarlander_dqn_gail_config = dict(
         data_path='data_path_placeholder',
     ),
     policy=dict(
-        # load_path='lunarlander_dqn_gail_seed0/ckpt/ckpt_best.pth.tar',
         # Whether to use cuda for network.
         cuda=False,
         # Whether the RL algorithm is on-policy or off-policy.
