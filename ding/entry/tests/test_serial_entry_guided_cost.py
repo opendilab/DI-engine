@@ -15,7 +15,7 @@ def test_guided_cost():
     torch.save(expert_policy.collect_mode.state_dict(), expert_policy_state_dict_path)
 
     config = [deepcopy(cartpole_gcl_ppo_onpolicy_config), deepcopy(cartpole_gcl_ppo_onpolicy_create_config)]
-    config[0].policy.collect.demonstration_info_path = expert_policy_state_dict_path
+    config[0].policy.collect.model_path = expert_policy_state_dict_path
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline_guided_cost(config, seed=0, max_train_iter=1)

@@ -1,9 +1,8 @@
 from easydict import EasyDict
 
-halfcheetah_trex_sac_default_config = dict(
-    exp_name='halfcheetah_trex_sac',
+halfcheetah_gcl_sac_config = dict(
+    exp_name='halfcheetah_gcl_sac_seed0',
     env=dict(
-        manager=dict(shared_memory=True, reset_inplace=True),
         env_id='HalfCheetah-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
@@ -14,24 +13,17 @@ halfcheetah_trex_sac_default_config = dict(
         stop_value=12000,
     ),
     reward_model=dict(
-        type='trex',
-        algo_for_model='sac',
-        env_id='HalfCheetah-v3',
-        learning_rate=1e-5,
-        min_snippet_length=30,
-        max_snippet_length=100,
-        checkpoint_min=1000,
-        checkpoint_max=9000,
-        checkpoint_step=1000,
-        update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + /HalfCheetah.params',
+        learning_rate=0.001,
+        input_size=23,
+        batch_size=32,
+        action_shape=6,
         continuous=True,
-        offline_data_path='asb data path',
+        update_per_collect=20,
     ),
     policy=dict(
-        cuda=True,
-        random_collect_size=10000,
+        cuda=False,
+        on_policy=False,
+        random_collect_size=0,
         model=dict(
             obs_shape=17,
             action_shape=6,
@@ -54,7 +46,15 @@ halfcheetah_trex_sac_default_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            n_sample=1,
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
+            # If you need the data collected by the collector to contain logit key which reflect the probability of
+            # the action, you can change the key to be True.
+            # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
+            collector_logit=True,
+            n_sample=256,
             unroll_len=1,
         ),
         command=dict(),
@@ -63,10 +63,10 @@ halfcheetah_trex_sac_default_config = dict(
     ),
 )
 
-halfcheetah_trex_sac_default_config = EasyDict(halfcheetah_trex_sac_default_config)
-main_config = halfcheetah_trex_sac_default_config
+halfcheetah_gcl_sac_config = EasyDict(halfcheetah_gcl_sac_config)
+main_config = halfcheetah_gcl_sac_config
 
-halfcheetah_trex_sac_default_create_config = dict(
+halfcheetah_gcl_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -77,6 +77,11 @@ halfcheetah_trex_sac_default_create_config = dict(
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
+    reward_model=dict(type='guided_cost'),
 )
-halfcheetah_trex_sac_default_create_config = EasyDict(halfcheetah_trex_sac_default_create_config)
-create_config = halfcheetah_trex_sac_default_create_config
+halfcheetah_gcl_sac_create_config = EasyDict(halfcheetah_gcl_sac_create_config)
+create_config = halfcheetah_gcl_sac_create_config
+
+if __name__ == '__main__':
+    from ding.entry import serial_pipeline_guided_cost
+    serial_pipeline_guided_cost((main_config, create_config), seed=0)
