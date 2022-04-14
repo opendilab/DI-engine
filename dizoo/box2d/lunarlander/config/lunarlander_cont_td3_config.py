@@ -8,7 +8,7 @@ lunarlander_td3_config = dict(
         evaluator_env_num=8,
         # (bool) Scale output action into legal range.
         act_scale=True,
-        n_evaluator_episode=5,
+        n_evaluator_episode=8,
         stop_value=200,
     ),
     policy=dict(

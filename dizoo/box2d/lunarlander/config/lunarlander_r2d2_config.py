@@ -8,7 +8,7 @@ lunarlander_r2d2_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         env_id='LunarLander-v2',
-        n_evaluator_episode=5,
+        n_evaluator_episode=8,
         stop_value=200,
     ),
     policy=dict(

@@ -5,7 +5,7 @@ print(torch.cuda.is_available(), torch.__version__)
 from easydict import EasyDict
 
 collector_env_num = 32
-evaluator_env_num = 32
+evaluator_env_num = 16
 nstep = 5
 lunarlander_ngu_config = dict(
     exp_name='lunarlander_ngu_seed0',
@@ -13,7 +13,7 @@ lunarlander_ngu_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         env_id='LunarLander-v2',
-        n_evaluator_episode=5,
+        n_evaluator_episode=16,
         stop_value=195,
     ),
     rnd_reward_model=dict(
