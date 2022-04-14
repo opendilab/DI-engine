@@ -11,5 +11,4 @@ from .her_reward_model import HerRewardModel
 from .rnd_reward_model import RndRewardModel
 from .ngu_reward_model import RndNGURewardModel, EpisodicNGURewardModel
 from .guided_cost_reward_model import GuidedCostRewardModel
-from .ngu_reward_model import RndNGURewardModel, EpisodicNGURewardModel
 from .icm_reward_model import ICMRewardModel

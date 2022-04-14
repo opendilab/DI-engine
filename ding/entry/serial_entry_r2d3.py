@@ -39,6 +39,9 @@ def serial_pipeline_r2d3(
             ``Tuple[dict, dict]`` type means [user_config, create_cfg].
         - seed (:obj:`int`): Random seed.
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
+            ``BaseEnv`` subclass, collector env config, and evaluator env config.
+        - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
+        - expert_model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.\
             The default model is DQN(**cfg.policy.model)
         - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
         - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
