@@ -1,9 +1,8 @@
 from easydict import EasyDict
 
 cartpole_dqfd_config = dict(
-    exp_name='cartpole_dqfd',
+    exp_name='cartpole_dqfd_seed0',
     env=dict(
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
@@ -53,8 +52,13 @@ cartpole_dqfd_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='dqfd'),
 )
 cartpole_dqfd_create_config = EasyDict(cartpole_dqfd_create_config)
 create_config = cartpole_dqfd_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c cartpole_dqfd_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)

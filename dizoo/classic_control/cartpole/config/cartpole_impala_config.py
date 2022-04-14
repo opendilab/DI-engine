@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 cartpole_impala_config = dict(
+    exp_name='cartpole_impala_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -70,3 +71,9 @@ cartpole_impala_create_config = dict(
 
 cartpole_impala_create_config = EasyDict(cartpole_impala_create_config)
 create_config = cartpole_impala_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c cartpole_impala_config.py -s 0`
+    from ding.entry import serial_pipeline
+
+    serial_pipeline([main_config, create_config], seed=0)

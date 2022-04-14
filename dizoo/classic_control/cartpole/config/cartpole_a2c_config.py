@@ -1,4 +1,3 @@
-# ding -m serial_onpolicy -c cartpole_a2c_config.py -s 0
 from easydict import EasyDict
 
 cartpole_a2c_config = dict(
@@ -49,3 +48,8 @@ cartpole_a2c_create_config = dict(
 )
 cartpole_a2c_create_config = EasyDict(cartpole_a2c_create_config)
 create_config = cartpole_a2c_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c cartpole_a2c_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)

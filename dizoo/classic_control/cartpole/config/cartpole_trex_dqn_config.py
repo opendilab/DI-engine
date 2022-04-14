@@ -1,9 +1,8 @@
 from easydict import EasyDict
 
 cartpole_trex_dqn_config = dict(
-    exp_name='cartpole_trex_dqn',
+    exp_name='cartpole_trex_dqn_seed0',
     env=dict(
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=5,
         n_evaluator_episode=5,
@@ -65,3 +64,8 @@ cartpole_trex_dqn_create_config = dict(
 )
 cartpole_trex_dqn_create_config = EasyDict(cartpole_trex_dqn_create_config)
 create_config = cartpole_trex_dqn_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c cartpole_trex_dqn_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)

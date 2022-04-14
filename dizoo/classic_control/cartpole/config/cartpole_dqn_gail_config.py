@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_dqn_gail_config = dict(
-    exp_name='cartpole_dqn_gail',
+    exp_name='cartpole_dqn_gail_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -61,3 +61,8 @@ cartpole_dqn_gail_create_config = dict(
 )
 cartpole_dqn_gail_create_config = EasyDict(cartpole_dqn_gail_create_config)
 create_config = cartpole_dqn_gail_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c cartpole_dqn_gail_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)
