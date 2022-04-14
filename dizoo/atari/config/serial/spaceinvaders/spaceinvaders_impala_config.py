@@ -5,7 +5,7 @@ spaceinvaders_impala_config = dict(
     exp_name='spaceinvaders_impala_seed0',
     env=dict(
         collector_env_num=8,
-        evaluator_env_num=4,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
@@ -59,7 +59,8 @@ spaceinvaders_impala_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
     ),
 )
-main_config = EasyDict(spaceinvaders_impala_config)
+spaceinvaders_impala_config = EasyDict(spaceinvaders_impala_config)
+main_config = spaceinvaders_impala_config
 
 spaceinvaders_impala_create_config = dict(
     env=dict(
@@ -70,8 +71,10 @@ spaceinvaders_impala_create_config = dict(
     policy=dict(type='impala'),
     replay_buffer=dict(type='naive'),
 )
-create_config = EasyDict(spaceinvaders_impala_create_config)
+spaceinvaders_impala_create_config = EasyDict(spaceinvaders_impala_create_config)
+create_config = spaceinvaders_impala_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c spaceinvaders_impala_config.py -s 0
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)
