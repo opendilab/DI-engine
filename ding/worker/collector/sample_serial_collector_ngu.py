@@ -361,4 +361,3 @@ class SampleCollectorNGU(ISerialCollector):
                 if k in ['total_envstep_count']:
                     continue
                 self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, self._total_envstep_count)
-                

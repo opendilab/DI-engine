@@ -548,4 +548,3 @@ class TestModelWrappers:
         assert sum(new_memory2[:, -16:].flatten()) != 0
         assert sum(new_memory2[:, :-16].flatten()) == 0
         assert torch.all(torch.eq(new_memory1[:, -8:], new_memory2[:, -16:-8]))
-        

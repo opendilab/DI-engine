@@ -557,4 +557,3 @@ class NGUPolicy(Policy):
         return super()._monitor_vars_learn() + [
             'total_loss', 'priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
         ]
-        

@@ -441,4 +441,3 @@ def test_fn_td_lambda():
     assert tmp == reward.shape[0]
     tmp = shape_fn_td_lambda([data], {})
     assert tmp == reward.shape
-    

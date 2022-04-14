@@ -908,4 +908,3 @@ def register_wrapper(name: str, wrapper_type: type):
     assert isinstance(name, str)
     assert issubclass(wrapper_type, IModelWrapper)
     wrapper_name_map[name] = wrapper_type
-    

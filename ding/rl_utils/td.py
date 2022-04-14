@@ -1037,4 +1037,3 @@ def multistep_forward_view(
                        + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
 
     return result
-    
