@@ -23,8 +23,6 @@ pong_ppo_rnd_config = dict(
         update_per_collect=int(10),  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
-        # update_per_collect=3,  # 32*5/64=3
-        # only_use_last_five_frames_for_icm_rnd=True,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='rnd-ngu',
@@ -48,9 +46,9 @@ pong_ppo_rnd_config = dict(
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=10,
+        burnin_step=2,
         nstep=nstep,
-        unroll_len=98,  # TODO(pu): 40
+        unroll_len=40,  # 98,  # TODO(pu): according to the episode length
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -77,7 +75,7 @@ pong_ppo_rnd_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=20000,  # TODO(pu)
+                replay_buffer_size=int(2e4),  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -101,6 +99,14 @@ pong_ppo_rnd_create_config = dict(
 )
 pong_ppo_rnd_create_config = EasyDict(pong_ppo_rnd_create_config)
 create_config = pong_ppo_rnd_create_config
+
+# if __name__ == "__main__":
+#     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+
+
+def train(args):
+    serial_pipeline_reward_model_ngu([main_config, create_config], seed=args.seed)
+
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_reward_model_ngu

@@ -185,6 +185,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 policy_output = self._policy.forward(obs)
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 actions = to_ndarray(actions)
+
                 timesteps = self._env.step(actions)
                 timesteps = to_tensor(timesteps, dtype=torch.float32)
                 for env_id, t in timesteps.items():

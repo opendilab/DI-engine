@@ -1,15 +1,16 @@
 from easydict import EasyDict
+from ding.entry import serial_pipeline
 
 collector_env_num = 8
 evaluator_env_num = 5
-montezuma_r2d2_config = dict(
-    exp_name='debug_montezuma_r2d2_n5_bs2_ul40',
+pitfall_r2d2_config = dict(
+    exp_name='debug_pitfall_r2d2_n5_bs2_ul40_rbs1e4_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         stop_value=int(1e5),
-        env_id='MontezumaRevengeNoFrameskip-v4',
+        env_id='PitfallNoFrameskip-v4',
         frame_stack=4,
     ),
     policy=dict(
@@ -36,7 +37,7 @@ montezuma_r2d2_config = dict(
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
             update_per_collect=8,
-            batch_size=64,
+            batch_size=64,  # TODO(pu)
             learning_rate=0.0005,
             target_update_theta=0.001,
         ),
@@ -51,10 +52,10 @@ montezuma_r2d2_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.05,
-                decay=100000,
+                decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=50000,
+                replay_buffer_size=10000,  # TODO(pu)
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -63,9 +64,9 @@ montezuma_r2d2_config = dict(
         ),
     ),
 )
-montezuma_r2d2_config = EasyDict(montezuma_r2d2_config)
-main_config = montezuma_r2d2_config
-montezuma_r2d2_create_config = dict(
+pitfall_r2d2_config = EasyDict(pitfall_r2d2_config)
+main_config = pitfall_r2d2_config
+pitfall_r2d2_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -73,9 +74,8 @@ montezuma_r2d2_create_config = dict(
     env_manager=dict(type='base'),
     policy=dict(type='r2d2'),
 )
-montezuma_r2d2_create_config = EasyDict(montezuma_r2d2_create_config)
-create_config = montezuma_r2d2_create_config
+pitfall_r2d2_create_config = EasyDict(pitfall_r2d2_create_config)
+create_config = pitfall_r2d2_create_config
 
 if __name__ == "__main__":
-    from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

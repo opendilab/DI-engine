@@ -2,6 +2,7 @@ from easydict import EasyDict
 
 collector_env_num = 32
 evaluator_env_num = 5
+
 nstep = 5
 minigrid_ppo_ngu_config = dict(
     exp_name='minigrid_doorkey_ngu_seed0',
@@ -15,7 +16,7 @@ minigrid_ppo_ngu_config = dict(
         stop_value=0.96,
     ),
     rnd_reward_model=dict(
-        intrinsic_reward_type='add',  # 'assign'
+        intrinsic_reward_type='add',
         learning_rate=5e-4,
         obs_shape=2739,
         action_shape=7,
@@ -55,13 +56,13 @@ minigrid_ppo_ngu_config = dict(
             collector_env_num=collector_env_num,
         ),
         learn=dict(
-            update_per_collect=8,
+            update_per_collect=16,
             batch_size=64,
             learning_rate=1e-4,
             target_update_theta=0.001,
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
+            # NOTE: it is important that don't include key n_sample here, to make sure self._traj_len=INF
             each_iter_n_sample=32,
             env_num=collector_env_num,
         ),
@@ -70,8 +71,8 @@ minigrid_ppo_ngu_config = dict(
             eps=dict(
                 type='exp',
                 start=0.95,
-                end=0.05,
-                decay=1e5,
+                end=0.1,
+                decay=1e7,
             ),
             replay_buffer=dict(
                 replay_buffer_size=30000,

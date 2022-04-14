@@ -17,7 +17,7 @@ enduro_qrdqn_config = dict(
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],
-            action_shape=6,
+            action_shape=9,#6,
             encoder_hidden_size_list=[128, 128, 512],
             num_quantiles=64,
         ),

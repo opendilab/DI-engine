@@ -402,16 +402,16 @@ class NGUPolicy(Policy):
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample_ngu')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
-        self.index_to_gamma = {
+        self.index_to_gamma = {  # NOTE
             i: 1 - torch.exp(
                 (
                     (self._cfg.collect.env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) +
                     i * torch.log(torch.tensor(1 - 0.99))
                 ) / (self._cfg.collect.env_num - 1)
             )
-            for i in range(self._cfg.collect.env_num)  # TODO
+            for i in range(self._cfg.collect.env_num)
         }
 
     def _forward_collect(self, beta: dict, obs: dict, prev_action: dict, prev_reward_e: dict, eps: dict) -> dict:

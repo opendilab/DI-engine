@@ -90,6 +90,7 @@ class MiniGridEnv(BaseEnv):
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
         obs, rew, done, info = self._env.step(action)
+        # self._env.render() # TODO(pu)
         rew = float(rew)
         self._final_eval_reward += rew
         self._current_step += 1
@@ -101,8 +102,11 @@ class MiniGridEnv(BaseEnv):
             info['max_step'] = self._max_step
             if self._save_replay:
                 path = os.path.join(
-                    self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)
+                    self._replay_path, '{}_episode_{}.gif'.format(self._env_id, self._save_replay_count)  # TODO(pu)
                 )
+                # path = os.path.join(
+                #     self._replay_path, '{}_episode_seed{}.gif'.format(self._env_id, self._seed)
+                # )
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
         obs = to_ndarray(obs).astype(np.float32)

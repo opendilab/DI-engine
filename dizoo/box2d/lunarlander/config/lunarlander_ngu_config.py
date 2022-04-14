@@ -20,7 +20,7 @@ lunarlander_ngu_config = dict(
         action_shape=4,
         batch_size=320,  # transitions
         update_per_collect=int(10),  # 32*100/320=10
-        only_use_last_five_frames_for_icm_rnd=False,  # True
+        only_use_last_five_frames_for_icm_rnd=False,  # TODO(pu): True
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
@@ -33,7 +33,7 @@ lunarlander_ngu_config = dict(
         action_shape=4,
         batch_size=320,  # transitions
         update_per_collect=int(10),  # 32*100/320=10
-        only_use_last_five_frames_for_icm_rnd=False,  # True
+        only_use_last_five_frames_for_icm_rnd=False,  # TODO(pu): True
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
@@ -45,7 +45,7 @@ lunarlander_ngu_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=98,
+        unroll_len=98,  # TODO(pu): according to the episode length
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -71,13 +71,12 @@ lunarlander_ngu_config = dict(
                 end=0.05,
                 decay=1e5,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=50000,
-                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                alpha=0.6,
-                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                beta=0.4,
-            )
+            replay_buffer=dict(replay_buffer_size=int(5e4),
+                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                               alpha=0.6,
+                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                               beta=0.4,
+                               )
         ),
     ),
 )

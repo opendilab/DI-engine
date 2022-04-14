@@ -8,6 +8,7 @@ from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
+from collections import namedtuple
 
 
 @ENV_REGISTRY.register("atari")
@@ -34,6 +35,9 @@ class AtariEnv(BaseEnv):
         obs = self._env.reset()
         obs = to_ndarray(obs)
         self._final_eval_reward = 0.
+
+        # TODO(pu)
+        self._current_step = 0
         return obs
 
     def close(self) -> None:
@@ -53,7 +57,7 @@ class AtariEnv(BaseEnv):
         # self._env.render()
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
-        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
