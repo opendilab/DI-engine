@@ -46,15 +46,19 @@ class EnsembleDoubleModel(nn.Module):
         max_epochs_since_update=5,
         train_freq=250,
         eval_freq=20,
+        deterministic_rollout=False,
         cuda=True,
         tb_logger=None,
 
         # parameters for DDPPO
-        use_gradient_model=True,
+        gradient_model=True,
         k=3,
         reg=1,
+        neighbor_pool_size=10000,
+        train_freq_gradient_model=250
     ):
         super(EnsembleDoubleModel, self).__init__()
+        self.deterministic_rollout = deterministic_rollout
         self._cuda = cuda
         self.tb_logger = tb_logger
 
@@ -67,13 +71,8 @@ class EnsembleDoubleModel(nn.Module):
         self.rollout_model = EnsembleModel(
             state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
         )
-        self.gradient_model = EnsembleGradientModel(
-            state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
-        )
 
         self.scaler = StandardScaler(state_size + action_size)
-        if self._cuda:
-            self.cuda()
 
         self.last_train_step = 0
         self.last_eval_step = 0
@@ -88,9 +87,23 @@ class EnsembleDoubleModel(nn.Module):
         self.elite_model_idxes = []
 
         # parameters for DDPPO
-        self._use_gradient_model = use_gradient_model
-        self._k = k
-        self._reg = reg
+        self.gradient_model = gradient_model
+        self.k = k
+        self.reg = reg
+        self.neighbor_pool_size = neighbor_pool_size
+        self.train_freq_gradient_model = train_freq_gradient_model
+
+        if self.gradient_model:
+            self.gradient_model = EnsembleGradientModel(
+                state_size, action_size, reward_size, 
+                network_size, hidden_size, use_decay=use_decay
+            )
+        self.elite_model_idxes_gradient_model = []
+                
+        self.last_train_step_gradient_model = 0
+
+        if self._cuda:
+            self.cuda()
 
 
     def should_eval(self, envstep):
@@ -183,13 +196,14 @@ class EnsembleDoubleModel(nn.Module):
         inputs, labels = train_sample(data)
         logvar.update(self._train_rollout_model(inputs, labels))
 
-        if self._use_gradient_model:
-            # Sample from the end of the buffer to get clustered data points for gradient loss regulation.
-            # https://github.com/paperddppo/ddppo/blob/main/ddppo/model_regular_on_jacobian.py#L513
-            n = min(buffer.count(), 10000)
-            data_reg = buffer.sample(n, train_iter, sample_range=slice(-n, None))
-            inputs_reg, labels_reg = train_sample(data_reg)
-            logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
+        if self.gradient_model:
+            # update neighbor pool
+            if (envstep - self.last_train_step_gradient_model) >= self.train_freq_gradient_model:
+                n = min(buffer.count(), self.neighbor_pool_size)
+                self.neighbor_pool = buffer.sample(n, train_iter, sample_range=slice(-n, None))
+                inputs_reg, labels_reg = train_sample(self.neighbor_pool)
+                logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
+                self.last_train_step_gradient_model = envstep
 
 
         self.last_train_step = envstep
@@ -296,7 +310,7 @@ class EnsembleDoubleModel(nn.Module):
         holdout_inputs, holdout_labels = inputs[:num_holdout], labels[:num_holdout]
 
         #normalize
-        self.scaler.fit(train_inputs)
+        # self.scaler.fit(train_inputs)
         train_inputs = self.scaler.transform(train_inputs)
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
@@ -307,11 +321,11 @@ class EnsembleDoubleModel(nn.Module):
         #no split and normalization on regulation data 
         train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
 
-        knn_index  = get_knn_index(train_inputs_reg, self._k)
-        knn_inputs = train_inputs_reg[knn_index]  # [N, k, state_size+action_size]
-        knn_labels = train_labels_reg[knn_index]  # [N, k, state_size+reward_size]
-        knn_inputs_distance = (knn_inputs - train_inputs_reg.unsqueeze(1))  # [N, k, state_size+action_size]
-        knn_labels_distance = (knn_labels - train_labels_reg.unsqueeze(1))  # [N, k, state_size+reward_size]
+        neighbor_index = get_neighbor_index(train_inputs_reg, self.k)
+        neighbor_inputs = train_inputs_reg[neighbor_index]  # [N, k, state_size+action_size]
+        neighbor_labels = train_labels_reg[neighbor_index]  # [N, k, state_size+reward_size]
+        neighbor_inputs_distance = (neighbor_inputs - train_inputs_reg.unsqueeze(1))  # [N, k, state_size+action_size]
+        neighbor_labels_distance = (neighbor_labels - train_labels_reg.unsqueeze(1))  # [N, k, state_size+reward_size]
 
         self._epochs_since_update = 0
         self._snapshots = {i: (-1, 1e10) for i in range(self.network_size)}
@@ -340,16 +354,16 @@ class EnsembleDoubleModel(nn.Module):
                     idx_reg = train_idx_reg[:, 0: (start_pos + self.batch_size) % train_inputs_reg.shape[0]]
 
                 train_input_reg = train_inputs_reg[idx_reg]
-                knn_input_distance = knn_inputs_distance[idx_reg]  # [network_size, B, k, state_size+action_size]
-                knn_label_distance = knn_labels_distance[idx_reg]  # [network_size, B, k, state_size+reward_size]
+                neighbor_input_distance = neighbor_inputs_distance[idx_reg]  # [network_size, B, k, state_size+action_size]
+                neighbor_label_distance = neighbor_labels_distance[idx_reg]  # [network_size, B, k, state_size+reward_size]
 
-                jacobian = self._get_jacobian(self.gradient_model, train_input_reg).unsqueeze(2).repeat_interleave(self._k, dim=2)  # [network_size, B, k(repeat), state_size+reward_size, state_size+action_size]
+                jacobian = self._get_jacobian(self.gradient_model, train_input_reg).unsqueeze(2).repeat_interleave(self.k, dim=2)  # [network_size, B, k(repeat), state_size+reward_size, state_size+action_size]
 
-                directional_derivative = (jacobian @ knn_input_distance.unsqueeze(-1)).squeeze(-1)  # [network_size, B, k, state_size+reward_size]
+                directional_derivative = (jacobian @ neighbor_input_distance.unsqueeze(-1)).squeeze(-1)  # [network_size, B, k, state_size+reward_size]
 
-                loss_reg = torch.pow((knn_label_distance - directional_derivative), 2).sum(0).mean()  # sumed over network
+                loss_reg = torch.pow((neighbor_label_distance - directional_derivative), 2).sum(0).mean()  # sumed over network
 
-                self.gradient_model.train(loss, loss_reg, self._reg)
+                self.gradient_model.train(loss, loss_reg, self.reg)
                 self.mse_loss.append(mse_loss.mean().item())
                 self.grad_loss.append(loss_reg.item())
 
@@ -371,7 +385,7 @@ class EnsembleDoubleModel(nn.Module):
             sorted_loss, sorted_loss_idx = holdout_mse_loss.sort()
             sorted_loss = sorted_loss.detach().cpu().numpy().tolist()
             sorted_loss_idx = sorted_loss_idx.detach().cpu().numpy().tolist()
-            self.elite_model_idxes = sorted_loss_idx[:self.elite_size]
+            self.elite_model_idxes_gradient_model = sorted_loss_idx[:self.elite_size]
             self.top_holdout_mse_loss = sorted_loss[0]
             self.middle_holdout_mse_loss = sorted_loss[self.network_size // 2]
             self.bottom_holdout_mse_loss = sorted_loss[-1]
@@ -421,15 +435,63 @@ class EnsembleDoubleModel(nn.Module):
         else:
             return False
 
+    # def batch_predict(self, obs, action):
+    #     # to predict a batch
+    #     # norm and repeat for ensemble
+    #     class Predict(torch.autograd.Function):
+    #         # use different model for forward and backward
+    #         @staticmethod
+    #         def forward(ctx, x):
+    #             ctx.save_for_backward(x)
+    #             return self.rollout_model(x, ret_log_var=False)[0]
+
+    #         @staticmethod
+    #         def backward(ctx, grad_out):
+    #             x, = ctx.saved_tensors
+    #             with torch.enable_grad():
+    #                 x = x.detach()
+    #                 x.requires_grad_(True)
+    #                 y = self.gradient_model(x, ret_log_var=False)[0]
+    #                 return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
+
+    #     if len(action.shape) == 1:
+    #         action = action.unsqueeze(1)
+    #     inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
+    #     # predict
+    #     if self.gradient_model:
+    #         outputs = Predict.apply(inputs)
+    #     else: 
+    #         outputs, _ = self.rollout_model(inputs, ret_log_var=False)
+    #     outputs = outputs.mean(0)
+    #     return outputs[:, 0], outputs[:, 1:] + obs
+
     def batch_predict(self, obs, action):
-        # to predict a batch
-        # norm and repeat for ensemble
+
+        def forward(inputs, mode='rollout'):
+            # model = self.rollout_model
+            if mode == 'rollout':
+                model = self.rollout_model
+                elite_model_indxes = self.elite_model_idxes
+            else:
+                model = self.gradient_model
+                elite_model_indxes = self.elite_model_idxes_gradient_model
+            ensemble_mean, ensemble_var = model(inputs, ret_log_var=False)
+            ensemble_std = ensemble_var.sqrt()
+            if self.deterministic_rollout:
+                ensemble_sample = ensemble_mean
+            else:
+                ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+            model_idxes = torch.from_numpy(np.random.choice(elite_model_indxes, size=len(obs))).to(inputs.device)
+            batch_idxes = torch.arange(len(obs)).to(inputs.device)
+            sample = ensemble_sample[model_idxes, batch_idxes]
+            return sample
+
         class Predict(torch.autograd.Function):
             # use different model for forward and backward
             @staticmethod
             def forward(ctx, x):
                 ctx.save_for_backward(x)
-                return self.rollout_model(x, ret_log_var=False)[0]
+                return forward(x)
 
             @staticmethod
             def backward(ctx, grad_out):
@@ -437,22 +499,22 @@ class EnsembleDoubleModel(nn.Module):
                 with torch.enable_grad():
                     x = x.detach()
                     x.requires_grad_(True)
-                    y = self.gradient_model(x, ret_log_var=False)[0]
+                    y = forward(x, mode='gradient')
                     return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
 
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
         inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
-        # predict
-        if self._use_gradient_model:
-            outputs = Predict.apply(inputs)
+        if self.gradient_model:
+            sample = Predict.apply(inputs)
         else: 
-            outputs, _ = self.rollout_model(inputs, ret_log_var=False)
-        outputs = outputs.mean(0)
-        return outputs[:, 0], outputs[:, 1:] + obs
+            sample = forward(inputs)
+        rewards, next_obs = sample[:, 0], sample[:, 1:] + obs
+
+        return rewards, next_obs
 
 
-    def predict(self, obs, act, batch_size=8192, deterministic=True):
+    def predict(self, obs, act, batch_size=8192):
         # to predict the whole buffer and return cpu tensor
         # form inputs
         if len(act.shape) == 1:
@@ -474,10 +536,10 @@ class EnsembleDoubleModel(nn.Module):
         ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
         ensemble_std = ensemble_var.sqrt()
         # sample from the predicted distribution
-        if deterministic:
+        if self.deterministic_rollout:
             ensemble_sample = ensemble_mean
         else:
-            ensemble_sample = ensemble_mean + torch.randn(**ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
         # sample from ensemble
         model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
@@ -488,7 +550,7 @@ class EnsembleDoubleModel(nn.Module):
 
 
 #======================= Helper functions =======================
-def get_knn_index(data, k):
+def get_neighbor_index(data, k):
     """
         data: [B, N]
         k: int

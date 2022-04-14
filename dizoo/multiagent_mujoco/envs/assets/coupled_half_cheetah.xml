@@ -35,7 +35,7 @@
     <geom conaffinity="0" condim="3" contype="1" friction=".4 .1 .1" rgba="0.8 0.6 .4 1" solimp="0.0 0.8 0.01" solref="0.02 1"/>
     <motor ctrllimited="true" ctrlrange="-1 1"/>
   </default>
-  <size nstack="300000" nuser_geom="1"/>
+  <size nstack="500000" nuser_geom="1"/>
   <option gravity="0 0 -9.81" timestep="0.01"/>
   <asset>
     <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>

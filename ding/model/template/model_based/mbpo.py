@@ -170,10 +170,12 @@ class EnsembleDynamicsModel(nn.Module):
         max_epochs_since_update=5,
         train_freq=250,
         eval_freq=20,
+        deterministic_rollout=True,
         cuda=True,
         tb_logger=None
     ):
         super(EnsembleDynamicsModel, self).__init__()
+        self.deterministic_rollout = deterministic_rollout,
         self._cuda = cuda
         self.tb_logger = tb_logger
 
@@ -392,12 +394,22 @@ class EnsembleDynamicsModel(nn.Module):
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
         inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
-        # predict
-        outputs, _ = self.ensemble_model(inputs, ret_log_var=False)
-        outputs = outputs.mean(0)
-        return outputs[:, 0], outputs[:, 1:] + obs
+        ensemble_mean, ensemble_var = self.ensemble_model(inputs, ret_log_var=False)
+        ensemble_std = ensemble_var.sqrt()
+        # sample from the predicted distribution
+        if self.deterministic_rollout:
+            ensemble_sample = ensemble_mean
+        else:
+            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+        model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
+        batch_idxes = torch.arange(len(obs)).to(inputs.device)
+        sample = ensemble_sample[model_idxes, batch_idxes]
+        rewards, next_obs = sample[:, 0], sample[:, 1:]
 
-    def predict(self, obs, act, batch_size=8192, deterministic=True):
+        return rewards, next_obs + obs
+
+
+    def predict(self, obs, act, batch_size=8192):
         # to predict the whole buffer and return cpu tensor
         # form inputs
         if len(act.shape) == 1:
@@ -419,10 +431,10 @@ class EnsembleDynamicsModel(nn.Module):
         ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
         ensemble_std = ensemble_var.sqrt()
         # sample from the predicted distribution
-        if deterministic:
+        if self.deterministic_rollout:
             ensemble_sample = ensemble_mean
         else:
-            ensemble_sample = ensemble_mean + torch.randn(**ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
         # sample from ensemble
         model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
