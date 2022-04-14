@@ -3,7 +3,6 @@ from easydict import EasyDict
 ant_sac_default_config = dict(
     exp_name='multi_mujoco_ant_2x4',
     env=dict(
-        manager=dict(shared_memory=True, ),
         scenario='Ant-v2',
         agent_conf="2x4d",
         agent_obsk=2,
