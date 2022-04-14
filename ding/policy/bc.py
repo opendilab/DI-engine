@@ -58,7 +58,8 @@ class DiscreteBehaviourCloningPolicy(Policy):
         self._ce_loss = nn.CrossEntropyLoss()
 
     def _forward_learn(self, data):
-        data = default_collate(data)
+        if not isinstance(data, dict):
+            data = default_collate(data)
         if self._cuda:
             data = to_device(data, self._device)
         self._learn_model.train()
@@ -66,7 +67,7 @@ class DiscreteBehaviourCloningPolicy(Policy):
             if self.cfg.eval.evaluator.cfg_type == 'MetricSerialEvaluatorDict':
                 obs, action = data
             else:
-                obs, action = data['obs'], data['action']
+                obs, action = data['obs'], data['action'].squeeze()
             a_logit = self._learn_model.forward(obs)
             loss = self._ce_loss(a_logit['logit'], action)
         forward_time = self._timer.value
@@ -97,7 +98,7 @@ class DiscreteBehaviourCloningPolicy(Policy):
         self._eval_model.reset()
 
     def _forward_eval(self, data):
-        if self.cfg.eval.evaluator.cfg_type == 'MetricSerialEvaluatorDict':
+        if self.cfg.eval.evaluator.cfg_type == 'MetricSerialEvaluatorDict' or isinstance(data, torch.Tensor):
             data = default_collate(list(data))
             if self._cuda:
                 data = to_device(data, self._device)

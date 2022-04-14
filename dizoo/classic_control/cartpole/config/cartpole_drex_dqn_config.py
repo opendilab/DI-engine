@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-cartpole_drex_ppo_offpolicy_config = dict(
-    exp_name='cartpole_drex_offppo_seed0',
+cartpole_drex_dqn_config = dict(
+    exp_name='cartpole_drex_dqn_seed0',
     env=dict(
         manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
@@ -11,7 +11,7 @@ cartpole_drex_ppo_offpolicy_config = dict(
     ),
     reward_model=dict(
         type='drex',
-        algo_for_model='ppo',
+        algo_for_model='dqn',
         env_id='CartPole-v0',
         min_snippet_length=5,
         max_snippet_length=100,
@@ -40,43 +40,47 @@ cartpole_drex_ppo_offpolicy_config = dict(
         # Users should add their own model path here. Model path should lead to a model ckpt.
         # Absolute path is recommended.
         bc_path='bc_path_placeholder',
+        # list of noises
+        eps_list=[0, 0.5, 1],
+        num_trajs_per_bin=20,
+        bc_iterations=6000,
     ),
     policy=dict(
         cuda=False,
         model=dict(
             obs_shape=4,
             action_shape=2,
-            encoder_hidden_size_list=[64, 64, 128],
-            critic_head_hidden_size=128,
-            actor_head_hidden_size=128,
-            critic_head_layer_num=1,
+            encoder_hidden_size_list=[128, 128, 64],
+            dueling=True,
         ),
+        nstep=1,
+        discount_factor=0.97,
         learn=dict(
-            update_per_collect=6,
             batch_size=64,
             learning_rate=0.001,
-            value_weight=0.5,
-            entropy_weight=0.01,
-            clip_ratio=0.2,
         ),
-        collect=dict(
-            n_sample=128,
-            unroll_len=1,
-            discount_factor=0.9,
-            gae_lambda=0.95,
+        collect=dict(n_sample=8, collector=dict(get_train_sample=False, )),
+        eval=dict(evaluator=dict(eval_freq=40, )),
+        other=dict(
+            eps=dict(
+                type='exp',
+                start=0.95,
+                end=0.1,
+                decay=10000,
+            ),
+            replay_buffer=dict(replay_buffer_size=20000, ),
         ),
-        other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )
-cartpole_drex_ppo_offpolicy_config = EasyDict(cartpole_drex_ppo_offpolicy_config)
-main_config = cartpole_drex_ppo_offpolicy_config
-cartpole_drex_ppo_offpolicy_create_config = dict(
+cartpole_drex_dqn_config = EasyDict(cartpole_drex_dqn_config)
+main_config = cartpole_drex_dqn_config
+cartpole_drex_dqn_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo_offpolicy'),
+    policy=dict(type='dqn'),
 )
-cartpole_drex_ppo_offpolicy_create_config = EasyDict(cartpole_drex_ppo_offpolicy_create_config)
-create_config = cartpole_drex_ppo_offpolicy_create_config
+cartpole_drex_dqn_create_config = EasyDict(cartpole_drex_dqn_create_config)
+create_config = cartpole_drex_dqn_create_config

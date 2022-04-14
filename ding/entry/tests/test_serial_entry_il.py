@@ -10,8 +10,8 @@ from ding.torch_utils import Adam, to_device
 from ding.config import compile_config
 from ding.model import model_wrap
 from ding.rl_utils import get_train_sample, get_nstep_return_data
-from ding.entry import serial_pipeline_il, collect_demo_data, serial_pipeline
-from ding.policy import PPOOffPolicy, ILPolicy
+from ding.entry import serial_pipeline_bc, collect_demo_data, serial_pipeline
+from ding.policy import PPOOffPolicy, DiscreteBehaviourCloningPolicy
 from ding.policy.common_utils import default_preprocess_learn
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -19,7 +19,7 @@ from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_
     cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config
 
 
-@POLICY_REGISTRY.register('ppo_il')
+@POLICY_REGISTRY.register('ppo_bc')
 class PPOILPolicy(PPOOffPolicy):
 
     def _forward_learn(self, data: dict) -> dict:
@@ -39,12 +39,20 @@ class PPOILPolicy(PPOOffPolicy):
             'value_loss': value_loss.item(),
         }
 
+    def _forward_eval(self, data):
+        if isinstance(data, dict):
+            data_id = list(data.keys())
+            data = default_collate(list(data.values()))
+            o = default_decollate(self._eval_model.forward(data, mode='compute_actor'))
+            return {i: d for i, d in zip(data_id, o)}
+        return self._model(data, mode='compute_actor')
+
     def _monitor_vars_learn(self) -> list:
         return super()._monitor_vars_learn() + ['policy_loss', 'value_loss']
 
 
 @pytest.mark.unittest
-def test_serial_pipeline_il_ppo():
+def test_serial_pipeline_bc_ppo():
     # train expert policy
     train_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
     expert_policy = serial_pipeline(train_config, seed=0)
@@ -60,31 +68,20 @@ def test_serial_pipeline_il_ppo():
 
     # il training 1
     il_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    il_config[0].policy.eval.evaluator.multi_gpu = False
     il_config[0].policy.learn.train_epoch = 20
-    il_config[0].policy.type = 'ppo_il'
-    _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
+    il_config[0].policy.type = 'ppo_bc'
+    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag
 
     os.popen('rm -rf ' + expert_data_path)
 
 
-@POLICY_REGISTRY.register('dqn_il')
-class DQNILPolicy(ILPolicy):
+@POLICY_REGISTRY.register('dqn_bc')
+class DQNILPolicy(DiscreteBehaviourCloningPolicy):
 
     def _forward_learn(self, data: dict) -> dict:
-        for d in data:
-            if isinstance(d['obs'], torch.Tensor):
-                d['obs'] = {'processed_obs': d['obs']}
-            else:
-                assert 'processed_obs' in d['obs']
         return super()._forward_learn(data)
-
-    def _init_collect(self) -> None:
-        self._unroll_len = self._cfg.collect.unroll_len
-        self._gamma = self._cfg.discount_factor  # necessary for parallel
-        self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='argmax_sample')
-        self._collect_model.reset()
 
     def _forward_collect(self, data: dict, eps: float):
         data_id = list(data.keys())
@@ -93,7 +90,7 @@ class DQNILPolicy(ILPolicy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data)
+            output = self._collect_model.forward(data, eps=eps)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -106,19 +103,23 @@ class DQNILPolicy(ILPolicy):
 
     def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         super()._get_train_sample(data)
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, unroll_len=self._unroll_len)
+        data = get_nstep_return_data(data, 1, gamma=0.99)
+        return get_train_sample(data, unroll_len=1)
 
     def _forward_eval(self, data: dict) -> dict:
-        new_data = {id: {'obs': {'processed_obs': t}} for id, t in data.items()}
-        return super()._forward_eval(new_data)
+        if isinstance(data, dict):
+            data_id = list(data.keys())
+            data = default_collate(list(data.values()))
+            o = default_decollate(self._eval_model.forward(data))
+            return {i: d for i, d in zip(data_id, o)}
+        return self._model(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
         return 'dqn', ['ding.model.template.q_learning']
 
 
 @pytest.mark.unittest
-def test_serial_pipeline_il_dqn():
+def test_serial_pipeline_bc_dqn():
     # train expert policy
     train_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     expert_policy = serial_pipeline(train_config, seed=0)
@@ -128,7 +129,8 @@ def test_serial_pipeline_il_dqn():
     expert_data_path = 'expert_data_dqn.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
     collect_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
-    collect_config[0].policy.type = 'dqn_il'
+    collect_config[0].policy.type = 'dqn_bc'
+    collect_config[0].policy.other.eps = 0
     collect_demo_data(
         collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
     )
@@ -136,8 +138,9 @@ def test_serial_pipeline_il_dqn():
     # il training 2
     il_config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     il_config[0].policy.learn.train_epoch = 15
-    il_config[0].policy.type = 'dqn_il'
+    il_config[0].policy.type = 'dqn_bc'
     il_config[0].env.stop_value = 50
-    _, converge_stop_flag = serial_pipeline_il(il_config, seed=314, data_path=expert_data_path)
+    il_config[0].policy.eval.evaluator.multi_gpu = False
+    _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag
     os.popen('rm -rf ' + expert_data_path)

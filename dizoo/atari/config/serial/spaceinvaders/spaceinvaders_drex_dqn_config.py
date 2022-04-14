@@ -44,6 +44,7 @@ space_invaders_drex_dqn_config = dict(
         # list of noises
         eps_list=[0, 0.5, 1],
         num_trajs_per_bin=20,
+        bc_iterations=50000,
     ),
     policy=dict(
         cuda=True,

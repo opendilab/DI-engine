@@ -6,7 +6,7 @@ from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, InteractionSerialEvaluator
+from ding.worker import BaseLearner, InteractionSerialEvaluator, MetricSerialEvaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
@@ -14,7 +14,7 @@ from ding.utils.data import NaiveRLDataset
 from .utils import AccMetric
 
 
-def serial_pipeline_il(
+def serial_pipeline_bc(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int,
         data_path: str,
@@ -34,6 +34,7 @@ def serial_pipeline_il(
         - policy (:obj:`Policy`): Converged policy.
         - convergence (:obj:`bool`): whether il training is converged
     """
+
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
@@ -52,9 +53,10 @@ def serial_pipeline_il(
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     dataset = NaiveRLDataset(data_path)
     validation_set = dataset[-len(dataset) // 10:]
+    validation_set = [(validation_set[j]['obs'], validation_set[j]['action']) for j in range(len(validation_set))]
     dataset = dataset[:-len(dataset) // 10]
     dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
-    val_dataloader = DataLoader(validation_set, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+    val_dataloader = DataLoader(validation_set, cfg.policy.learn.batch_size)
 
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
@@ -74,6 +76,7 @@ def serial_pipeline_il(
     for epoch in range(cfg.policy.learn.train_epoch):
         # Evaluate policy performance
         _, acc = evaluator_val.eval()
+        acc = acc['Acc']
         if acc < best_acc:
             cnt += 1
             if cnt > 3:

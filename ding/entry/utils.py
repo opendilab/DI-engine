@@ -1,4 +1,4 @@
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, Any
 
 from ding.policy import PolicyFactory
 from ding.worker import IMetric, MetricSerialEvaluator
@@ -7,15 +7,22 @@ from ding.worker import IMetric, MetricSerialEvaluator
 class AccMetric(IMetric):
 
     def eval(self, inputs: Any, label: Any) -> dict:
-        return {'Acc': (inputs == label).sum().item() / label.shape[0]}
+        return {'Acc': (inputs['logit'].sum(dim=1) == label).sum().item() / label.shape[0]}
 
     def reduce_mean(self, inputs: List[Any]) -> Any:
-        return sum(inputs) / len(inputs)
+        s = 0
+        for item in inputs:
+            s += item['Acc']
+        return {'Acc': s / len(inputs)}
 
     def gt(self, metric1: Any, metric2: Any) -> bool:
         if metric2 is None:
             return True
-        return metric1 > metric2
+        if isinstance(metric2, dict):
+            m2 = metric2['Acc']
+        else:
+            m2 = metric2
+        return metric1['Acc'] > m2
 
 
 def mark_not_expert(ori_data: List[dict]) -> List[dict]:
