@@ -1,20 +1,15 @@
-import torch
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_reward_model_ngu
-
-print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
 cartpole_ngu_config = dict(
-    exp_name='cartpole_ngu_bs20_n5_ul80_upc8_tuf2500_ed1e4_rbs1e5_debug',
+    exp_name='cartpole_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
         stop_value=195,
-        # replay_path='eval_replay', #TODO
     ),
     rnd_reward_model=dict(
         intrinsic_reward_type='add',  # 'assign'
@@ -92,8 +87,7 @@ cartpole_ngu_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='ngu'),
-    # TODO(pu)
-    rnd_reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
     collector=dict(type='sample_ngu', )
 )
@@ -101,5 +95,6 @@ cartpole_ngu_create_config = EasyDict(cartpole_ngu_create_config)
 create_config = cartpole_ngu_create_config
 
 if __name__ == "__main__":
-    # from ding.entry import serial_pipeline_reward_model_ngu
+    from ding.entry import serial_pipeline_reward_model_ngu
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+    

@@ -1,14 +1,11 @@
-import torch
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_reward_model_ngu
 
-print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 32
 evaluator_env_num = 5
 nstep = 5
 lunarlander_ngu_config = dict(
-    exp_name='debug_lunarlander_ngu_ul98_er01_rlbs1e5_n32',
+    exp_name='lunarlander_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -23,10 +20,11 @@ lunarlander_ngu_config = dict(
         action_shape=4,
         batch_size=320,  # transitions
         update_per_collect=int(10),  # 32*100/320=10
-        only_use_last_five_frames_for_icm_rnd=False,  # True
+        only_use_last_five_frames_for_icm_rnd=False,  # TODO(pu): True
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
+        type='rnd-ngu',
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
@@ -35,7 +33,7 @@ lunarlander_ngu_config = dict(
         action_shape=4,
         batch_size=320,  # transitions
         update_per_collect=int(10),  # 32*100/320=10
-        only_use_last_five_frames_for_icm_rnd=False,  # True
+        only_use_last_five_frames_for_icm_rnd=False,  # TODO(pu): True
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
@@ -47,7 +45,7 @@ lunarlander_ngu_config = dict(
         discount_factor=0.997,
         burnin_step=2,
         nstep=nstep,
-        unroll_len=98,
+        unroll_len=98,  # TODO(pu): according to the episode length
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -73,13 +71,12 @@ lunarlander_ngu_config = dict(
                 end=0.05,
                 decay=1e5,
             ),
-            replay_buffer=dict(
-                replay_buffer_size=50000,
-                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                alpha=0.6,
-                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                beta=0.4,
-            )
+            replay_buffer=dict(replay_buffer_size=int(5e4),
+                               # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                               alpha=0.6,
+                               # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                               beta=0.4,
+                               )
         ),
     ),
 )
@@ -90,15 +87,16 @@ lunarlander_ngu_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
-    rnd_reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(type='sample_ngu', )
+    collector=dict(type='sample_ngu',)
 )
 lunarlander_ngu_create_config = EasyDict(lunarlander_ngu_create_config)
 create_config = lunarlander_ngu_create_config
 
 if __name__ == "__main__":
+    from ding.entry import serial_pipeline_reward_model_ngu
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+    

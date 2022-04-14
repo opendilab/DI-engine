@@ -4,8 +4,8 @@ import torch
 import copy
 
 from ding.torch_utils import Adam, to_device
-from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, q_nstep_td_error_ngu, \
-    q_nstep_td_error_with_rescale_ngu, get_nstep_return_data, get_train_sample
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
+    get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
@@ -101,7 +101,7 @@ class NGUPolicy(Policy):
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            # each_iter_n_sample=32,
+            each_iter_n_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -325,7 +325,7 @@ class NGUPolicy(Policy):
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        self._gamma = [self.index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B -> B, 75,64 -> 64
+        self._gamma = [self.index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B -> B, e.g. 75,64 -> 64
 
         # reward torch.Size([4, 5, 64])
         for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
@@ -335,11 +335,11 @@ class NGUPolicy(Policy):
                 q_value[t], target_q_value[t], action[t], target_q_action[t], reward[t], done[t], weight[t]
             )
             if self._value_rescale:
-                l, e = q_nstep_td_error_with_rescale_ngu(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+                l, e = q_nstep_td_error_with_rescale(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 td_error.append(e.abs())
             else:
-                l, e = q_nstep_td_error_ngu(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
+                l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
@@ -402,16 +402,16 @@ class NGUPolicy(Policy):
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
-        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample_ngu')
+        self._collect_model = model_wrap(self._collect_model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
-        self.index_to_gamma = {
+        self.index_to_gamma = {  # NOTE
             i: 1 - torch.exp(
                 (
                     (self._cfg.collect.env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) +
                     i * torch.log(torch.tensor(1 - 0.99))
                 ) / (self._cfg.collect.env_num - 1)
             )
-            for i in range(self._cfg.collect.env_num)  # TODO
+            for i in range(self._cfg.collect.env_num)
         }
 
     def _forward_collect(self, beta: dict, obs: dict, prev_action: dict, prev_reward_e: dict, eps: dict) -> dict:
@@ -557,3 +557,4 @@ class NGUPolicy(Policy):
         return super()._monitor_vars_learn() + [
             'total_loss', 'priority', 'q_s_taken-a_t0', 'target_q_s_max-a_t0', 'q_s_a-mean_t0'
         ]
+        

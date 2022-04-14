@@ -192,18 +192,24 @@ class BaseSerialEvaluatorNGU(object):
         self._policy.reset()
         beta_index = {i: 0 for i in range(self._env_num)}  # TODO
         beta_index = to_tensor(beta_index, dtype=torch.int64)
-        prev_action = {i: torch.tensor(-1) for i in range(self._env_num)}  # TODO    self.action_shape
+        prev_action = {i: torch.tensor(-1) for i in range(self._env_num)}  # TODO: self.action_shape
         prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(self._env_num)}
         with self._timer:
             while not eval_monitor.is_finished():
                 obs = self._env.ready_obs
                 obs = to_tensor(obs, dtype=torch.float32)
-                # policy_output = self._policy.forward(obs,beta_index)
-                policy_output = self._policy.forward(beta_index, obs, prev_action, prev_reward_e)  # TODO action,r_e,r_i
+                # TODO(pu): r_i, reward embeding
+                policy_output = self._policy.forward(beta_index, obs, prev_action, prev_reward_e)
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
                 timesteps = to_tensor(timesteps, dtype=torch.float32)
+
+                # TODO(pu)
+                prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
+                prev_reward_e = to_ndarray(prev_reward_e)
+                prev_action = actions
+
                 for env_id, t in timesteps.items():
                     if t.info.get('abnormal', False):
                         # If there is an abnormal timestep, reset all the related variables(including this env).
@@ -368,3 +374,4 @@ class VectorEvalMonitor(object):
                     new_dict[k + '_mean'] = np.mean(total_info[k])
             total_info.update(new_dict)
             return total_info
+            

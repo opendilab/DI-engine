@@ -1,10 +1,10 @@
 import pytest
 import torch
-from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_error, td_lambda_data,\
-    td_lambda_error, q_nstep_td_error_with_rescale, dist_1step_td_data, dist_1step_td_error, dist_nstep_td_data,\
-    dqfd_nstep_td_data, dqfd_nstep_td_error, dist_nstep_td_error, v_1step_td_data, v_1step_td_error, v_nstep_td_data,\
-    v_nstep_td_error, q_nstep_sql_td_error, iqn_nstep_td_data, iqn_nstep_td_error, qrdqn_nstep_td_data,\
-    qrdqn_nstep_td_error, q_nstep_td_error_ngu, q_nstep_td_error_with_rescale_ngu
+from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_error, td_lambda_data, \
+    td_lambda_error, q_nstep_td_error_with_rescale, dist_1step_td_data, dist_1step_td_error, dist_nstep_td_data, \
+    dqfd_nstep_td_data, dqfd_nstep_td_error, dist_nstep_td_error, v_1step_td_data, v_1step_td_error, v_nstep_td_data, \
+    v_nstep_td_error, q_nstep_sql_td_error, iqn_nstep_td_data, iqn_nstep_td_error, qrdqn_nstep_td_data, \
+    qrdqn_nstep_td_error
 from ding.rl_utils.td import shape_fn_dntd, shape_fn_qntd, shape_fn_td_lambda, shape_fn_qntd_rescale
 
 
@@ -43,24 +43,16 @@ def test_q_nstep_td_ngu():
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
-    gamma = torch.full((batch_size, ), 0.95)
+    gamma = [torch.tensor(0.95) for i in range(batch_size)]
+
     for nstep in range(1, 10):
         q = torch.randn(batch_size, action_dim).requires_grad_(True)
         reward = torch.rand(nstep, batch_size)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error_ngu(data, gamma, nstep=nstep)
+        loss, td_error_per_sample = q_nstep_td_error(data, gamma, nstep=nstep)
         assert td_error_per_sample.shape == (batch_size, )
         assert loss.shape == ()
         assert q.grad is None
-        loss.backward()
-        assert isinstance(q.grad, torch.Tensor)
-        data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error_ngu(data, gamma, nstep=nstep, cum_reward=True)
-        value_gamma = torch.tensor(0.9)
-        data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, td_error_per_sample = q_nstep_td_error_ngu(
-            data, gamma, nstep=nstep, cum_reward=True, value_gamma=value_gamma
-        )
         loss.backward()
         assert isinstance(q.grad, torch.Tensor)
 
@@ -160,12 +152,12 @@ def test_q_nstep_td_with_rescale_ngu():
     done = torch.randn(batch_size)
     action = torch.randint(0, action_dim, size=(batch_size, ))
     next_action = torch.randint(0, action_dim, size=(batch_size, ))
-    gamma = torch.full((batch_size, ), 0.95)
+    gamma = [torch.tensor(0.95) for i in range(batch_size)]
     for nstep in range(1, 10):
         q = torch.randn(batch_size, action_dim).requires_grad_(True)
         reward = torch.rand(nstep, batch_size)
         data = q_nstep_td_data(q, next_q, action, next_action, reward, done, None)
-        loss, _ = q_nstep_td_error_with_rescale_ngu(data, gamma, nstep=nstep)
+        loss, _ = q_nstep_td_error_with_rescale(data, gamma, nstep=nstep)
         assert loss.shape == ()
         assert q.grad is None
         loss.backward()
@@ -449,3 +441,4 @@ def test_fn_td_lambda():
     assert tmp == reward.shape[0]
     tmp = shape_fn_td_lambda([data], {})
     assert tmp == reward.shape
+    
