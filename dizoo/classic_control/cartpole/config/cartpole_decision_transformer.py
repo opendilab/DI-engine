@@ -13,13 +13,14 @@ cartpole_dt_config = dict(
         stop_value=195,
     ),
     policy=dict(
+        stop_value=200,
         env_name='CartPole-v0',
-        priority=True,
         dataset='medium',  # medium / medium-replay / medium-expert
         rtg_scale=1000,  # normalize returns to go
         max_eval_ep_len=1000,  # max len of one episode
         num_eval_ep=10,  # num of evaluation episodes
-        batch_size= 64, # training batch size
+        # batch_size= 64, # training batch size
+        batch_size= 2, # training batch size  # TODO
         lr=1e-4,
         wt_decay=1e-4,
         warmup_steps=10000,
@@ -47,16 +48,16 @@ cartpole_dt_config = dict(
         nstep=3,
         learn=dict(
             dataset_path='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/cartpole/expert_data_10eps.pkl',
-            train_epoch=3000,
-            batch_size=64,
+            # train_epoch=3000,
+            # batch_size=64,
+            # batch_size=2,
+
             learning_rate=0.001,
             target_update_freq=100,
             kappa=1.0,
             min_q_weight=4.0,
         ),
         collect=dict(
-            # data_type='hdf5',
-            # data_path='./cartpole_generation/expert_demos.hdf5',
             unroll_len=1,
         ),
         eval=dict(evaluator=dict(eval_freq=100, )),
@@ -86,9 +87,6 @@ create_config = cartpole_dt_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_dt, collect_demo_data, eval, serial_pipeline
-    # from dizoo.classic_control.cartpole.config.cartpole_dt_config import main_config, create_config
     main_config.exp_name = 'cartpole_dt'
-    # main_config.policy.collect.data_path = '/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data_cartpole/cartpole/expert_demos.pkl'
-    # main_config.policy.collect.data_type = 'naive'
     config = deepcopy([main_config, create_config])
     serial_pipeline_dt(config, seed=0)

@@ -246,6 +246,7 @@ class CQLCommandModePolicy(CQLPolicy, DummyCommandModePolicy):
 class CQLDiscreteCommandModePolicy(CQLDiscretePolicy, EpsCommandModePolicy):
     pass
 
+
 @POLICY_REGISTRY.register('dt_command')
 class DTCommandModePolicy(DTPolicy, DummyCommandModePolicy):
     pass

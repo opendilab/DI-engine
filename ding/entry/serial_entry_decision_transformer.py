@@ -1,3 +1,5 @@
+"""The code is adapted from https://github.com/nikhilbarhate99/min-decision-transformer
+"""
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
@@ -19,14 +21,12 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset
 
-"""The code is adapted from https://github.com/nikhilbarhate99/min-decision-transformer
-"""
 
 def discount_cumsum(x, gamma):
     disc_cumsum = np.zeros_like(x)
     disc_cumsum[-1] = x[-1]
-    for t in reversed(range(x.shape[0]-1)):
-        disc_cumsum[t] = x[t] + gamma * disc_cumsum[t+1]
+    for t in reversed(range(x.shape[0] - 1)):
+        disc_cumsum[t] = x[t] + gamma * disc_cumsum[t + 1]
     return disc_cumsum
 
 
@@ -35,6 +35,7 @@ def get_d4rl_dataset_stats(env_d4rl_name):
 
 
 class D4RLTrajectoryDataset(Dataset):
+
     def __init__(self, dataset_path, context_len, rtg_scale):
 
         self.context_len = context_len
@@ -42,61 +43,51 @@ class D4RLTrajectoryDataset(Dataset):
         # load dataset
         with open(dataset_path, 'rb') as f:
             self.trajectories = pickle.load(f)
-        
+
         if isinstance(self.trajectories[0], list):  # for cartpole
             self.trajectories_tmp = {}
-            self.trajectories_tmp =  [{'observations':
-            torch.stack([
-                self.trajectories[eps_index][transition_index]['obs'] for transition_index in range(len(self.trajectories[eps_index]))
-            ], axis=0),
-            'next_observations':
-                torch.stack([
-                self.trajectories[eps_index][transition_index]['next_obs'] for transition_index in range(len(self.trajectories[eps_index]))
-            ], axis=0),
-            'actions':
-                torch.stack([
-                self.trajectories[eps_index][transition_index]['action'] for transition_index in range(len(self.trajectories[eps_index]))
-            ], axis=0),
-            'rewards':
-                torch.stack([
-                self.trajectories[eps_index][transition_index]['reward'] for transition_index in range(len(self.trajectories[eps_index]))
-            ], axis=0),
-            'dones':
-                torch.stack([
-                torch.tensor(self.trajectories[eps_index][transition_index]['done']) for transition_index in range(len(self.trajectories[eps_index]))
-            ], axis=0)
+            self.trajectories_tmp = [
+                {
+                    'observations': np.stack(
+                        [
+                            self.trajectories[eps_index][transition_index]['obs']
+                            for transition_index in range(len(self.trajectories[eps_index]))
+                        ],
+                        axis=0
+                    ),
+                    'next_observations': np.stack(
+                        [
+                            self.trajectories[eps_index][transition_index]['next_obs']
+                            for transition_index in range(len(self.trajectories[eps_index]))
+                        ],
+                        axis=0
+                    ),
+                    'actions': np.stack(
+                        [
+                            self.trajectories[eps_index][transition_index]['action']
+                            for transition_index in range(len(self.trajectories[eps_index]))
+                        ],
+                        axis=0
+                    ),
+                    'rewards': np.stack(
+                        [
+                            self.trajectories[eps_index][transition_index]['reward']
+                            for transition_index in range(len(self.trajectories[eps_index]))
+                        ],
+                        axis=0
+                    ),
+                    # 'dones':
+                    #     np.stack([
+                    #     int(self.trajectories[eps_index][transition_index]['done']) for transition_index in range(len(self.trajectories[eps_index]))
+                    # ], axis=0)
+                } for eps_index in range(len(self.trajectories))
+            ]
 
-            }
-            for eps_index in range(len(self.trajectories))]
-
-            self.trajectories =  self.trajectories_tmp
-
-            # self.trajectories_tmp['next_observations'] =  [
-            # torch.stack([
-            #     self.trajectories[eps_index][transition_index]['next_obs'] for transition_index in range(len(self.trajectories[eps_index]))
-            # ], axis=0)
-            # for eps_index in range(len(self.trajectories))]
-            # self.trajectories_tmp['actions'] =  [
-            # torch.stack([
-            #     self.trajectories[eps_index][transition_index]['action'] for transition_index in range(len(self.trajectories[eps_index]))
-            # ], axis=0)
-            # for eps_index in range(len(self.trajectories))]
-            # self.trajectories_tmp['rewards'] =  [
-            # torch.stack([
-            #     self.trajectories[eps_index][transition_index]['reward'] for transition_index in range(len(self.trajectories[eps_index]))
-            # ], axis=0)
-            # for eps_index in range(len(self.trajectories))]
-            # self.trajectories_tmp['dones'] =  [
-            # torch.stack([
-            #     torch.tensor(self.trajectories[eps_index][transition_index]['done']) for transition_index in range(len(self.trajectories[eps_index]))
-            # ], axis=0)
-            # for eps_index in range(len(self.trajectories))]
-
- 
+            self.trajectories = self.trajectories_tmp
 
         # calculate min len of traj, state mean and variance
         # and returns_to_go for all traj
-        min_len = 10**6
+        min_len = 10 ** 6
         states = []
         for traj in self.trajectories:
             traj_len = traj['observations'].shape[0]
@@ -127,10 +118,10 @@ class D4RLTrajectoryDataset(Dataset):
             # sample random index to slice trajectory
             si = random.randint(0, traj_len - self.context_len)
 
-            states = torch.from_numpy(traj['observations'][si : si + self.context_len])
-            actions = torch.from_numpy(traj['actions'][si : si + self.context_len])
-            returns_to_go = torch.from_numpy(traj['returns_to_go'][si : si + self.context_len])
-            timesteps = torch.arange(start=si, end=si+self.context_len, step=1)
+            states = torch.from_numpy(traj['observations'][si:si + self.context_len])
+            actions = torch.from_numpy(traj['actions'][si:si + self.context_len])
+            returns_to_go = torch.from_numpy(traj['returns_to_go'][si:si + self.context_len])
+            timesteps = torch.arange(start=si, end=si + self.context_len, step=1)
 
             # all ones since no padding
             traj_mask = torch.ones(self.context_len, dtype=torch.long)
@@ -140,30 +131,32 @@ class D4RLTrajectoryDataset(Dataset):
 
             # padding with zeros
             states = torch.from_numpy(traj['observations'])
-            states = torch.cat([states,
-                                torch.zeros(([padding_len] + list(states.shape[1:])),
-                                dtype=states.dtype)],
-                            dim=0)
+            states = torch.cat(
+                [states, torch.zeros(([padding_len] + list(states.shape[1:])), dtype=states.dtype)], dim=0
+            )
 
             actions = torch.from_numpy(traj['actions'])
-            actions = torch.cat([actions,
-                                torch.zeros(([padding_len] + list(actions.shape[1:])),
-                                dtype=actions.dtype)],
-                            dim=0)
+            actions = torch.cat(
+                [actions, torch.zeros(([padding_len] + list(actions.shape[1:])), dtype=actions.dtype)], dim=0
+            )
 
             returns_to_go = torch.from_numpy(traj['returns_to_go'])
-            returns_to_go = torch.cat([returns_to_go,
-                                torch.zeros(([padding_len] + list(returns_to_go.shape[1:])),
-                                dtype=returns_to_go.dtype)],
-                            dim=0)
+            returns_to_go = torch.cat(
+                [
+                    returns_to_go,
+                    torch.zeros(([padding_len] + list(returns_to_go.shape[1:])), dtype=returns_to_go.dtype)
+                ],
+                dim=0
+            )
 
             timesteps = torch.arange(start=0, end=self.context_len, step=1)
 
-            traj_mask = torch.cat([torch.ones(traj_len, dtype=torch.long),
-                                torch.zeros(padding_len, dtype=torch.long)],
-                                dim=0)
+            traj_mask = torch.cat(
+                [torch.ones(traj_len, dtype=torch.long),
+                 torch.zeros(padding_len, dtype=torch.long)], dim=0
+            )
 
-        return  timesteps, states, actions, returns_to_go, traj_mask
+        return timesteps, states, actions, returns_to_go, traj_mask
 
 
 def serial_pipeline_dt(
@@ -198,12 +191,8 @@ def serial_pipeline_dt(
     # Dataset
     traj_dataset = D4RLTrajectoryDataset(cfg.policy.learn.dataset_path, cfg.policy.context_len, cfg.policy.rtg_scale)
     traj_data_loader = DataLoader(
-                            traj_dataset,
-                            batch_size=cfg.policy.batch_size,
-                            shuffle=True,
-                            pin_memory=True,
-                            drop_last=True
-                        )
+        traj_dataset, batch_size=cfg.policy.batch_size, shuffle=True, pin_memory=True, drop_last=True
+    )
     data_iter = iter(traj_data_loader)
     # get state stats from dataset
     state_mean, state_std = traj_dataset.get_state_stats()
@@ -221,10 +210,10 @@ def serial_pipeline_dt(
     stop = False
 
     for i in range(max_train_iter):
-        if i%10==0:
-            policy.evaluate(state_mean, state_std)
+        if i != 0 and i % 10 == 0:
+            stop = policy.evaluate(state_mean, state_std)
 
-        learner.train(data_iter,traj_data_loader)
+        learner.train({'data_iter': data_iter, 'traj_data_loader': traj_data_loader})
         if learner.train_iter >= max_train_iter:
             stop = True
         if stop:
