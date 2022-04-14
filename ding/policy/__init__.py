@@ -29,8 +29,6 @@ from .atoc import ATOCPolicy
 from .acer import ACERPolicy
 from .qtran import QTRANPolicy
 
-from .il import ILPolicy
-
 from .r2d3 import R2D3Policy
 
 from .command_mode_policy_instance import *
