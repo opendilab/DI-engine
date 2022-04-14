@@ -189,11 +189,13 @@ class SampleSerialCollector(ISerialCollector):
         """
         self.close()
 
-    def collect(self,
-                n_sample: Optional[int] = None,
-                train_iter: int = 0,
-                drop_extra: bool = True,
-                policy_kwargs: Optional[dict] = None) -> List[Any]:
+    def collect(
+            self,
+            n_sample: Optional[int] = None,
+            train_iter: int = 0,
+            drop_extra: bool = True,
+            policy_kwargs: Optional[dict] = None
+    ) -> List[Any]:
         """
         Overview:
             Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations.
