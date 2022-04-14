@@ -33,8 +33,10 @@ lunarlander_dqfd_config = dict(
         ),
         collect=dict(
             n_sample=64,
-            # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='path',
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
             # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
