@@ -154,9 +154,7 @@ class TrexRewardModel(BaseRewardModel):
         type='trex',
         learning_rate=1e-5,
         update_per_collect=100,
-        batch_size=64,
-        target_new_data_count=64,
-        hidden_size=128,
+
         num_trajs=0,  # number of downsampled full trajectories
         num_snippets=6000,  # number of short subtrajectories to sample
     )
@@ -201,14 +199,14 @@ class TrexRewardModel(BaseRewardModel):
     def load_expert_data(self) -> None:
         """
         Overview:
-            Getting the expert data from ``config.expert_data_path`` attribute in self
+            Getting the expert data from ``config.data_path`` attribute in self
         Effects:
             This is a side effect function which updates the expert data attribute \
                 (i.e. ``self.expert_data``) with ``fn:concat_state_action_pairs``
         """
-        with open(self.cfg.reward_model.offline_data_path + '/episodes_data.pkl', 'rb') as f:
+        with open(self.cfg.reward_model.data_path + '/episodes_data.pkl', 'rb') as f:
             self.pre_expert_data = pickle.load(f)
-        with open(self.cfg.reward_model.offline_data_path + '/learning_returns.pkl', 'rb') as f:
+        with open(self.cfg.reward_model.data_path + '/learning_returns.pkl', 'rb') as f:
             self.learning_returns = pickle.load(f)
 
         self.create_training_data()
