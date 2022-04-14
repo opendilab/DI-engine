@@ -68,11 +68,4 @@ create_config = cartpole_r2d2_gtrxl_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline
-    import time
-    start_time = time.time()
     serial_pipeline([main_config, create_config], seed=0)
-    print("--- %s seconds ---" % (time.time() - start_time))
-    # CPU
-    # --- 91.72819066047668 seconds --- ding implementation
-    # --- 241.31228852272034 seconds --- labmlai implementation
-    # --- 217.76270294189453 seconds --- labmlai 8 heads

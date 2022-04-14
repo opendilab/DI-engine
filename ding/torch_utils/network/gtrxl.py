@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 from ding.torch_utils.network.nn_module import fc_block, build_normalization, F
-from .labmlai_attention import RelativeMultiHeadAttention
 
 
 class PositionalEmbedding(nn.Module):
@@ -234,8 +233,6 @@ class AttentionXL(torch.nn.Module):
         x_padded = F.pad(x, [1, 0])  # step 1
         x_padded = x_padded.view(x.size(0), x.size(1), x.size(3) + 1, x.size(2))  # step 2
         x = x_padded[:, :, 1:].view_as(x)  # step 3
-        ones = torch.ones((x.size(2), x.size(3))).unsqueeze(0).unsqueeze(0)
-        x = x * torch.tril(ones.to(x.device), x.size(3) - x.size(2))  # step 4
         return x
 
     def forward(
@@ -304,8 +301,6 @@ class AttentionXL(torch.nn.Module):
         return output
 
 
-
-
 class GatedTransformerXLLayer(torch.nn.Module):
     """
     Overview:
@@ -342,10 +337,11 @@ class GatedTransformerXLLayer(torch.nn.Module):
         if self.gating is True:
             self.gate1 = GRUGatingUnit(input_dim, gru_bias)
             self.gate2 = GRUGatingUnit(input_dim, gru_bias)
-        self.attention = RelativeMultiHeadAttention(
-            head_num,
+        self.attention = AttentionXL(
             input_dim,
-            dropout_prob=0.2,
+            head_dim,
+            head_num,
+            dropout,
         )
         layers = []
         dims = [input_dim] + [hidden_dim] * (mlp_num - 1) + [input_dim]
@@ -383,10 +379,8 @@ class GatedTransformerXLLayer(torch.nn.Module):
         """
         # concat memory with input across sequence dimension
         full_input = torch.cat([memory, inputs], dim=0)  # full_seq x bs x input_dim
-        xi1 = self.layernorm1(inputs)
-        xm1 = self.layernorm1(memory)
-        m_i = torch.cat((xm1, xi1), dim=0)
-        a1 = self.dropout(self.attention(query=xi1, key=m_i, value=m_i, mask=None))
+        x1 = self.layernorm1(full_input)
+        a1 = self.dropout(self.attention(inputs, pos_embedding, x1, u, v, mask=mask))
         a1 = self.activation(a1)  # RELU after attention
         o1 = self.gate1(inputs, a1) if self.gating else inputs + a1
         x2 = self.layernorm2(o1)
@@ -546,12 +540,6 @@ class GTrXL(nn.Module):
             )  # cur_seq x full_seq x 1
             self.att_mask[cur_seq] = attn_mask
 
-        from labml_nn.transformers.utils import subsequent_mask
-        self.mask_x = subsequent_mask(cur_seq).to(x.device)
-        # Create an all ones (full visibility) mask for memory
-        self.mask_mem = self.mask_x.new_ones(cur_seq, prev_seq, 1)
-        mask = torch.cat((self.mask_mem[:cur_seq, :prev_seq], self.mask_x[:cur_seq, :cur_seq]), dim=1)
-
         if cur_seq in self.pos_embedding_dict.keys():
             pos_embedding = self.pos_embedding_dict[cur_seq]
         else:
@@ -569,7 +557,7 @@ class GTrXL(nn.Module):
                 pos_embedding,
                 self.u,
                 self.v,
-                mask=mask,
+                mask=attn_mask,
                 memory=memory[i],  # (layer_num+1) x memory_len x batch_size x embedding_dim
             )  # cur_seq x bs x embedding_dim
             hidden_state.append(out.clone())
