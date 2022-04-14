@@ -4,18 +4,18 @@ import gym
 import numpy as np
 import torch
 from tensorboardX import SummaryWriter
+from easydict import EasyDict
 
 from ding.config import compile_config
-from ding.worker import BaseLearner, BattleEpisodeSerialCollector, BattleInteractionSerialEvaluator, NaiveReplayBuffer
+from ding.worker import BaseLearner, BattleInteractionSerialEvaluator, NaiveReplayBuffer
 from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOPolicy
 from ding.model import VAC
-from ding.utils import set_pkg_seed, Scheduler
+from ding.utils import set_pkg_seed, Scheduler, deep_merge_dicts
 from dizoo.league_demo.game_env import GameEnv
 from dizoo.league_demo.demo_league import DemoLeague
+from dizoo.league_demo.league_demo_collector import LeagueDemoCollector
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
-from easydict import EasyDict
-from ding.utils.default_helper import deep_merge_dicts
 
 
 class EvalPolicy1:
@@ -50,13 +50,13 @@ class EvalPolicy2:
         pass
 
 
-def main(cfg, seed=0, max_iterations=int(1e10)):
+def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
     cfg = compile_config(
         cfg,
         BaseEnvManager,
         PPOPolicy,
         BaseLearner,
-        BattleEpisodeSerialCollector,
+        LeagueDemoCollector,
         BattleInteractionSerialEvaluator,
         NaiveReplayBuffer,
         save_cfg=True
@@ -103,12 +103,12 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             exp_name=cfg.exp_name,
             instance_name=player_id + '_learner'
         )
-        collectors[player_id] = BattleEpisodeSerialCollector(
+        collectors[player_id] = LeagueDemoCollector(
             cfg.policy.collect.collector,
             collector_env,
             tb_logger=tb_logger,
             exp_name=cfg.exp_name,
-            instance_name=player_id + '_colllector',
+            instance_name=player_id + '_collector',
         )
 
     model = VAC(**cfg.policy.model)
@@ -156,6 +156,7 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
     torch.save(policies['historical'].learn_mode.state_dict(), league.reset_checkpoint_path)
     league.load_checkpoint = load_checkpoint_fn
+    # snapshot the initial player as the first historial player
     for player_id, player_ckpt_path in zip(league.active_players_ids, league.active_players_ckpts):
         torch.save(policies[player_id].collect_mode.state_dict(), player_ckpt_path)
         league.judge_snapshot(player_id, force=True)
@@ -167,9 +168,10 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
         merged_scheduler_config = EasyDict(deep_merge_dicts(Scheduler.config, user_scheduler_config))
         param_scheduler = Scheduler(merged_scheduler_config)
 
-    for run_iter in range(max_iterations):
+    count = 0
+    while True:
         if evaluator1.should_eval(main_learner.train_iter):
-            stop_flag1, reward, episode_info = evaluator1.eval(
+            stop_flag1, episode_info = evaluator1.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -177,10 +179,9 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             main_player.rating = league.metric_env.rate_1vsC(
                 main_player.rating, league.metric_env.create_rating(mu=10, sigma=1e-8), win_loss_result
             )
-            tb_logger.add_scalar('fixed_evaluator_step/reward_mean', reward, main_collector.envstep)
 
         if evaluator2.should_eval(main_learner.train_iter):
-            stop_flag2, reward, episode_info = evaluator2.eval(
+            stop_flag2, episode_info = evaluator2.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -188,9 +189,8 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             main_player.rating = league.metric_env.rate_1vsC(
                 main_player.rating, league.metric_env.create_rating(mu=0, sigma=1e-8), win_loss_result
             )
-            tb_logger.add_scalar('uniform_evaluator_step/reward_mean', reward, main_collector.envstep)
         if evaluator3.should_eval(main_learner.train_iter):
-            _, reward, episode_info = evaluator3.eval(
+            _, episode_info = evaluator3.eval(
                 main_learner.save_checkpoint, main_learner.train_iter, main_collector.envstep
             )
             win_loss_result = [e['result'] for e in episode_info[0]]
@@ -198,7 +198,6 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
             main_player.rating, init_main_player_rating = league.metric_env.rate_1vs1(
                 main_player.rating, init_main_player_rating, win_loss_result
             )
-            tb_logger.add_scalar('init_evaluator_step/reward_mean', reward, main_collector.envstep)
             tb_logger.add_scalar(
                 'league/init_main_player_trueskill', init_main_player_rating.exposure, main_collector.envstep
             )
@@ -249,8 +248,11 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
                 entropy_weight = param_scheduler.step(metrics, entropy_weight)
                 learner.policy.set_attribute('entropy_weight', entropy_weight)
 
-        if run_iter % 100 == 0:
+        if main_collector.envstep >= max_env_step or main_learner.train_iter >= max_train_iter:
+            break
+        if count % 100 == 0:
             print(repr(league.payoff))
+        count += 1
 
 
 if __name__ == "__main__":

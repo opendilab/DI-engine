@@ -1,30 +1,68 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 import gym
 import copy
 import numpy as np
-from ding.envs.common.env_element import EnvElementInfo
+from numpy.lib.arraysetops import isin
+
+from ding.envs.common.common_function import affine_transform
+from ding.envs.env_wrappers import create_env_wrapper
 from ding.torch_utils import to_ndarray
-from .base_env import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from .base_env import BaseEnv, BaseEnvTimestep
+from .default_wrapper import get_default_wrappers
 
 
 class DingEnvWrapper(BaseEnv):
 
-    def __init__(self, env: gym.Env, cfg: dict = None) -> None:
+    def __init__(self, env: gym.Env = None, cfg: dict = None) -> None:
+        '''
+        You can pass in either an env instance, or a config to create an env instance:
+            - An env instance: Parameter `env` must not be `None`, but should be the instance.
+                               Do not support subprocess env manager; Thus usually used in simple env.
+            - A config to create an env instance: Parameter `cfg` dict must contain `env_id`.
+        '''
         self._cfg = cfg
         if self._cfg is None:
             self._cfg = dict()
-        self._env = env
+        if env is not None:
+            self._init_flag = True
+            self._env = env
+            self._wrap_env()
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            )
+        else:
+            assert 'env_id' in self._cfg
+            self._init_flag = False
+            self._observation_space = None
+            self._action_space = None
+            self._reward_space = None
+        # Only if user specifies the replay_path, will the video be saved. So its inital value is None.
+        self._replay_path = None
 
     # override
     def reset(self) -> None:
+        if not self._init_flag:
+            self._env = gym.make(self._cfg.env_id)
+            self._wrap_env()
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            )
+            self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        if self._replay_path is not None:
+            self._env = gym.wrappers.Monitor(
+                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+            )
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
-        self._final_eval_reward = 0.0
         self._action_type = self._cfg.get('action_type', 'scalar')
         return obs
 
@@ -40,48 +78,59 @@ class DingEnvWrapper(BaseEnv):
 
     # override
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1, ) and self._action_type == 'scalar':
-            action = action.squeeze()
+        action = self._judge_action_type(action)
+        if self._cfg.get('act_scale', False):
+            action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
         obs, rew, done, info = self._env.step(action)
-        self._final_eval_reward += rew
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transferred to a Tensor with shape (1,)
-        if done:
-            info['final_eval_reward'] = self._final_eval_reward
+        rew = to_ndarray([rew]).astype(np.float32)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> BaseEnvInfo:
-        obs_space = self._env.observation_space
-        act_space = self._env.action_space
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=EnvElementInfo(
-                shape=obs_space.shape,
-                value={
-                    'min': obs_space.low,
-                    'max': obs_space.high,
-                    'dtype': np.float32
-                },
-            ),
-            act_space=EnvElementInfo(
-                shape=(act_space.n, ),
-                value={
-                    'min': 0,
-                    'max': act_space.n,
-                    'dtype': np.float32
-                },
-            ),
-            rew_space=EnvElementInfo(
-                shape=1,
-                value={
-                    'min': -1,
-                    'max': 1,
-                    'dtype': np.float32
-                },
-            ),
-            use_wrappers=None
-        )
+    def _judge_action_type(self, action: Union[np.ndarray, dict]) -> Union[np.ndarray, dict]:
+        if isinstance(action, int):
+            return action
+        if isinstance(action, np.ndarray):
+            if action.shape == (1, ) and self._action_type == 'scalar':
+                action = action.item()
+            return action
+        elif isinstance(action, dict):
+            for k, v in action.items():
+                action[k] = self._judge_action_type(v)
+            return action
+        else:
+            raise TypeError(
+                '`action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
+                    type(action), action
+                )
+            )
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        if isinstance(random_action, np.ndarray):
+            pass
+        elif isinstance(random_action, int):
+            random_action = to_ndarray([random_action], dtype=np.int64)
+        elif isinstance(random_action, dict):
+            random_action = to_ndarray(random_action)
+        else:
+            raise TypeError(
+                '`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
+                    type(random_action), random_action
+                )
+            )
+        return random_action
+
+    def _wrap_env(self) -> None:
+        wrapper_cfgs = self._cfg.get('env_wrapper', None)
+        if wrapper_cfgs is None:
+            wrapper_cfgs = 'default'
+        if isinstance(wrapper_cfgs, str):
+            wrapper_cfgs = get_default_wrappers(wrapper_cfgs, self._cfg.get('env_id', None))
+        self._wrapper_cfgs = wrapper_cfgs
+        for wrapper_cfg in self._wrapper_cfgs:
+            if wrapper_cfg.get('disable', False):
+                continue
+            self._env = create_env_wrapper(self._env, wrapper_cfg)
 
     def __repr__(self) -> str:
         return "DI-engine Env({})".format(self._cfg.env_id)
@@ -104,8 +153,15 @@ class DingEnvWrapper(BaseEnv):
         if replay_path is None:
             replay_path = './video'
         self._replay_path = replay_path
-        # this function can lead to the meaningless result
-        # disable_gym_view_window()
-        self._env = gym.wrappers.Monitor(
-            self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-        )
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space

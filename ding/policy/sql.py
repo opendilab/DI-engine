@@ -54,8 +54,8 @@ class SQLPolicy(Policy):
         ),
         # collect_mode config
         collect=dict(
-            # (int) Only one of [n_sample, n_step, n_episode] shoule be set
-            #n_sample=8,  # collect 8 samples and put them in collector
+            # (int) Only one of [n_sample, n_episode] shoule be set
+            # n_sample=8,  # collect 8 samples and put them in collector
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -159,11 +159,13 @@ class SQLPolicy(Policy):
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:

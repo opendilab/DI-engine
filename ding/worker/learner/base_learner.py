@@ -35,6 +35,7 @@ class BaseLearner(object):
     config = dict(
         train_iterations=int(1e9),
         dataloader=dict(num_workers=0, ),
+        log_policy=True,
         # --- Hooks ---
         hook=dict(
             load_ckpt_before_run='',
@@ -238,6 +239,8 @@ class BaseLearner(object):
             self.call_hook('after_iter')
             self._last_iter.add(1)
 
+        return log_vars
+
     @auto_checkpoint
     def start(self) -> None:
         """
@@ -429,7 +432,8 @@ class BaseLearner(object):
         self._policy = _policy
         if self._rank == 0:
             self._monitor = get_simple_monitor_type(self._policy.monitor_vars())(TickTime(), expire=10)
-        self.info(self._policy.info())
+        if self._cfg.log_policy:
+            self.info(self._policy.info())
 
     @property
     def priority_info(self) -> dict:

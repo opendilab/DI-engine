@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 walker2d_ddpg_default_config = dict(
+    exp_name='walker2d_ddpg',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -20,7 +21,7 @@ walker2d_ddpg_default_config = dict(
             twin_critic=False,
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
-            actor_head_type='regression',
+            action_space='regression',
         ),
         learn=dict(
             update_per_collect=1,

@@ -27,14 +27,8 @@ from dizoo.classic_control.cartpole.config.cartpole_r2d2_config import cartpole_
 from dizoo.classic_control.pendulum.config import pendulum_ddpg_config, pendulum_ddpg_create_config
 from dizoo.classic_control.pendulum.config import pendulum_td3_config, pendulum_td3_create_config
 from dizoo.classic_control.pendulum.config import pendulum_sac_config, pendulum_sac_create_config
-from dizoo.classic_control.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
-from dizoo.classic_control.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
-from dizoo.multiagent_particle.config import cooperative_navigation_qmix_config, cooperative_navigation_qmix_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_wqmix_config, cooperative_navigation_wqmix_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_vdn_config, cooperative_navigation_vdn_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_coma_config, cooperative_navigation_coma_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_collaq_config, cooperative_navigation_collaq_create_config  # noqa
-from dizoo.multiagent_particle.config import cooperative_navigation_atoc_config, cooperative_navigation_atoc_create_config  # noqa
+from dizoo.bitflip.config import bitflip_her_dqn_config, bitflip_her_dqn_create_config
+from dizoo.bitflip.entry.bitflip_dqn_main import main as bitflip_dqn_main
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
@@ -44,6 +38,13 @@ from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config
 from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_bc_config import pendulum_td3_bc_config, pendulum_td3_bc_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_atoc_config, ptz_simple_spread_atoc_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_atoc_config, ptz_simple_spread_collaq_config, ptz_simple_spread_collaq_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_coma_config, ptz_simple_spread_coma_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_qmix_config, ptz_simple_spread_qmix_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_qtran_config, ptz_simple_spread_qtran_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_vdn_config, ptz_simple_spread_vdn_create_config  # noqa
+from dizoo.petting_zoo.config import ptz_simple_spread_wqmix_config, ptz_simple_spread_wqmix_create_config  # noqa
 
 with open("./algo_record.log", "w+") as f:
     f.write("ALGO TEST STARTS\n")
@@ -117,7 +118,7 @@ def test_ppo():
 
 # @pytest.mark.algotest
 def test_collaq():
-    config = [deepcopy(cooperative_navigation_collaq_config), deepcopy(cooperative_navigation_collaq_create_config)]
+    config = [deepcopy(ptz_simple_spread_collaq_config), deepcopy(ptz_simple_spread_collaq_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -128,7 +129,7 @@ def test_collaq():
 
 # @pytest.mark.algotest
 def test_coma():
-    config = [deepcopy(cooperative_navigation_coma_config), deepcopy(cooperative_navigation_coma_create_config)]
+    config = [deepcopy(ptz_simple_spread_coma_config), deepcopy(ptz_simple_spread_coma_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -172,7 +173,7 @@ def test_r2d2():
 
 # @pytest.mark.algotest
 def test_atoc():
-    config = [deepcopy(cooperative_navigation_atoc_config), deepcopy(cooperative_navigation_atoc_create_config)]
+    config = [deepcopy(ptz_simple_spread_atoc_config), deepcopy(ptz_simple_spread_atoc_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -183,7 +184,7 @@ def test_atoc():
 
 # @pytest.mark.algotest
 def test_vdn():
-    config = [deepcopy(cooperative_navigation_vdn_config), deepcopy(cooperative_navigation_vdn_create_config)]
+    config = [deepcopy(ptz_simple_spread_vdn_config), deepcopy(ptz_simple_spread_vdn_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -194,7 +195,7 @@ def test_vdn():
 
 # @pytest.mark.algotest
 def test_qmix():
-    config = [deepcopy(cooperative_navigation_qmix_config), deepcopy(cooperative_navigation_qmix_create_config)]
+    config = [deepcopy(ptz_simple_spread_qmix_config), deepcopy(ptz_simple_spread_qmix_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:
@@ -228,6 +229,10 @@ def test_iqn():
 @pytest.mark.algotest
 def test_her_dqn():
     try:
+        bitflip_her_dqn_config.exp_name = 'bitflip5_dqn'
+        bitflip_her_dqn_config.env.n_bits = 5
+        bitflip_her_dqn_config.policy.model.obs_shape = 10
+        bitflip_her_dqn_config.policy.model.action_shape = 5
         bitflip_dqn_main(bitflip_her_dqn_config, seed=0)
     except Exception:
         assert False, "pipeline fail"
@@ -306,7 +311,7 @@ def test_sqil():
     torch.save(expert_policy.collect_mode.state_dict(), expert_policy_state_dict_path)
 
     config = [deepcopy(cartpole_sqil_config), deepcopy(cartpole_sqil_create_config)]
-    config[0].policy.collect.demonstration_info_path = expert_policy_state_dict_path
+    config[0].policy.collect.model_path = expert_policy_state_dict_path
     try:
         serial_pipeline_sqil(config, [cartpole_sql_config, cartpole_sql_create_config], seed=0)
     except Exception:
@@ -386,7 +391,7 @@ def test_discrete_cql():
 
 # @pytest.mark.algotest
 def test_wqmix():
-    config = [deepcopy(cooperative_navigation_wqmix_config), deepcopy(cooperative_navigation_wqmix_create_config)]
+    config = [deepcopy(ptz_simple_spread_wqmix_config), deepcopy(ptz_simple_spread_wqmix_create_config)]
     try:
         serial_pipeline(config, seed=0)
     except Exception:

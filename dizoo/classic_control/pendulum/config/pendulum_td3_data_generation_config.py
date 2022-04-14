@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 pendulum_td3_generation_config = dict(
-    exp_name='td3',
+    exp_name='pendulum_td3_generation_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=10,
@@ -18,7 +18,7 @@ pendulum_td3_generation_config = dict(
             obs_shape=3,
             action_shape=1,
             twin_critic=True,
-            actor_head_type='regression',
+            action_space='regression',
         ),
         learn=dict(
             update_per_collect=2,
@@ -33,7 +33,7 @@ pendulum_td3_generation_config = dict(
                 min=-0.5,
                 max=0.5,
             ),
-            learner = dict(
+            learner=dict(
                 load_path='./td3/ckpt/ckpt_best.pth.tar',
                 hook=dict(
                     load_ckpt_before_run='./td3/ckpt/ckpt_best.pth.tar',
@@ -46,12 +46,10 @@ pendulum_td3_generation_config = dict(
             noise_sigma=0.1,
             collector=dict(collect_print_freq=1000, ),
             save_path='./td3/expert.pkl',
-            data_type = 'hdf5',
+            data_type='hdf5',
         ),
         eval=dict(evaluator=dict(eval_freq=100, ), ),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=40000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=40000, ), ),
     ),
 )
 pendulum_td3_generation_config = EasyDict(pendulum_td3_generation_config)
@@ -67,3 +65,7 @@ pendulum_td3_generation_create_config = dict(
 )
 pendulum_td3_generation_create_config = EasyDict(pendulum_td3_generation_create_config)
 create_config = pendulum_td3_generation_create_config
+
+if __name__ == "__main__":
+    from ding.entry import collect_demo_data
+    collect_demo_data([main_config, create_config], seed=0)

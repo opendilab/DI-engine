@@ -288,7 +288,11 @@ class EpisodicNGURewardModel(BaseRewardModel):
                                episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-11)
             ''' 1. transform to batch mean1: erbm1'''
             # episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)
+<<<<<<< HEAD
             # note that the null_padding transition have episodic reward=0,
+=======
+            # the null_padding transition have episodic reward=0,
+>>>>>>> 62d61b5b66fc23100f2c2eba25fabe58edffaab7
             # episodic_reward = episodic_reward / (episodic_reward_real_mean + 1e-11)
             '''2. transform to long-term mean1: erlm1'''
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean

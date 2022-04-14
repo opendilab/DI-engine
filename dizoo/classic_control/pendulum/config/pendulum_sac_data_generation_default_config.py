@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 pendulum_sac_data_genearation_default_config = dict(
-    seed=0,
+    exp_name='pendulum_sac_data_genearation_seed0',
     env=dict(
         collector_env_num=10,
         evaluator_env_num=5,
@@ -17,7 +17,7 @@ pendulum_sac_data_genearation_default_config = dict(
             obs_shape=3,
             action_shape=1,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
         ),
@@ -69,3 +69,7 @@ pendulum_sac_data_genearation_default_create_config = dict(
 )
 pendulum_sac_data_genearation_default_create_config = EasyDict(pendulum_sac_data_genearation_default_create_config)
 create_config = pendulum_sac_data_genearation_default_create_config
+
+if __name__ == "__main__":
+    from ding.entry import collect_demo_data
+    collect_demo_data([main_config, create_config], seed=0)

@@ -14,19 +14,16 @@ class TestSlimeVolley:
         env = SlimeVolleyEnv(EasyDict({'env_id': 'SlimeVolley-v0', 'agent_vs_agent': agent_vs_agent}))
         # env.enable_save_replay('replay_video')
         obs1 = env.reset()
-        done = False
-        print(env._env.observation_space)
+        print(env.observation_space)
         print('observation is like:', obs1)
         done = False
         while not done:
-            if agent_vs_agent:
-                action1 = np.random.randint(0, 2, (1, ))
-                action2 = np.random.randint(0, 2, (1, ))
-                action = [action1, action2]
-            else:
-                action = np.random.randint(0, 2, (1, ))
+            action = env.random_action()
             observations, rewards, done, infos = env.step(action)
-            total_rew += rewards[0]
+            if agent_vs_agent:
+                total_rew += rewards[0]
+            else:
+                total_rew += rewards
             obs1, obs2 = observations[0], observations[1]
             assert obs1.shape == obs2.shape, (obs1.shape, obs2.shape)
             if agent_vs_agent:

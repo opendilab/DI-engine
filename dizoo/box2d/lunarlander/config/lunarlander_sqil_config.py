@@ -1,13 +1,14 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
+from ding.entry import serial_pipeline_sqil
 
 lunarlander_sqil_config = dict(
     exp_name='lunarlander_sqil',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, force_reproducibility=True),
+        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
         evaluator_env_num=5,
+        env_id='LunarLander-v2',
         n_evaluator_episode=5,
         stop_value=200,
     ),
@@ -55,4 +56,4 @@ lunarlander_sqil_create_config = EasyDict(lunarlander_sqil_create_config)
 create_config = lunarlander_sqil_create_config
 
 if __name__ == "__main__":
-    serial_pipeline([main_config, create_config], seed=0)
+    serial_pipeline_sqil([main_config, create_config], seed=0)

@@ -189,17 +189,21 @@ class SampleSerialCollector(ISerialCollector):
         """
         self.close()
 
-    def collect(self,
-                n_sample: Optional[int] = None,
-                train_iter: int = 0,
-                policy_kwargs: Optional[dict] = None) -> List[Any]:
+    def collect(
+            self,
+            n_sample: Optional[int] = None,
+            train_iter: int = 0,
+            drop_extra: bool = True,
+            policy_kwargs: Optional[dict] = None
+    ) -> List[Any]:
         """
         Overview:
-            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations
+            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations.
         Arguments:
-            - n_sample (:obj:`int`): the number of collecting data sample
-            - train_iter (:obj:`int`): the number of training iteration
-            - policy_kwargs (:obj:`dict`): the keyword args for policy forward
+            - n_sample (:obj:`int`): The number of collecting data sample.
+            - train_iter (:obj:`int`): The number of training iteration when calling collect method.
+            - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.
+            - policy_kwargs (:obj:`dict`): The keyword args for policy forward.
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """
@@ -210,8 +214,8 @@ class SampleSerialCollector(ISerialCollector):
                 n_sample = self._default_n_sample
         if n_sample % self._env_num != 0:
             one_time_warning(
-                "Please make sure env_num is divisible by n_sample: {}/{}, which may cause convergence \
-                problems in a few algorithms".format(n_sample, self._env_num)
+                "Please make sure env_num is divisible by n_sample: {}/{}, ".format(n_sample, self._env_num) +
+                "which may cause convergence problems in a few algorithms"
             )
         if policy_kwargs is None:
             policy_kwargs = {}
@@ -245,7 +249,7 @@ class SampleSerialCollector(ISerialCollector):
                         self._env.reset({env_id: None})
                         self._policy.reset([env_id])
                         self._reset_stat(env_id)
-                        self._logger.info('env_id {}, abnormal step {}', env_id, timestep.info)
+                        self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
                     transition = self._policy.process_transition(
                         self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
@@ -257,6 +261,14 @@ class SampleSerialCollector(ISerialCollector):
                     self._total_envstep_count += 1
                     # prepare data
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
+                        # for r2d2:
+                        # 1. for each collect_env, we want to collect data of the length self._traj_len
+                        # except when it comes to a done.
+                        # 2. however, even if timestep is done and assume we only collected 9 transitions,
+                        # by going through self._policy.get_train_sample, it will be padded automatically.
+                        # 3. so, a unit of train transition for r2d2 will have seq len
+                        # (burnin + nstep) (collected_sample=1), and we need to collect n_sample.
+
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])
                         train_sample = self._policy.get_train_sample(transitions)
@@ -289,7 +301,10 @@ class SampleSerialCollector(ISerialCollector):
             for env_id in range(self._env_num):
                 self._reset_stat(env_id)
 
-        return return_data[:n_sample]
+        if drop_extra:
+            return return_data[:n_sample]
+        else:
+            return return_data
 
     def _output_log(self, train_iter: int) -> None:
         """

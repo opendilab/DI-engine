@@ -404,6 +404,7 @@ class Slave(ControllableService):
         Overview:
             Start current slave client
             Here are the steps executed inside in order:
+
                 1. Start the task-processing thread
                 2. Start the heartbeat thread
                 3. Start the http server thread
@@ -431,6 +432,7 @@ class Slave(ControllableService):
         Overview:
             Wait until current slave client is down completely.
             Here are the steps executed inside in order:
+
                 1. Wait until the http server thread down
                 2. Wait until the heartbeat thread down
                 3. Wait until the task-processing thread down
@@ -498,16 +500,19 @@ class Slave(ControllableService):
                 master will received the failure signal.
         Example:
             - A success task with return value (the return value will be received in master end)
+
             >>> def _process_task(self, task):
             >>>     print('this is task data :', task)
             >>>     return str(task)
 
             - A failed task with data (the data will be received in master end)
+
             >>> def _process_task(self, task):
             >>>     print('this is task data :', task)
             >>>     raise TaskFail(task)  # this is a failed task
 
             - A failed task with data and message (both will be received in master end)
+
             >>> def _process_task(self, task):
             >>>     print('this is task data :', task)
             >>>     raise TaskFail(task, 'this is message')  # this is a failed task with message

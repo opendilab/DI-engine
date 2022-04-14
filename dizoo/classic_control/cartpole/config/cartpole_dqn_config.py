@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_dqn_config = dict(
-    exp_name='cartpole_dqn',
+    exp_name='cartpole_dqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -10,7 +10,6 @@ cartpole_dqn_config = dict(
         replay_path='cartpole_dqn/video',
     ),
     policy=dict(
-        load_path='',
         cuda=False,
         model=dict(
             obs_shape=4,

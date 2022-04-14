@@ -29,8 +29,9 @@ class TestSubprocessEnvManager:
         name = env_manager.name
         assert len(name) == env_manager.env_num
         assert all([isinstance(n, str) for n in name])
-        assert env_manager._max_retry == 5
-        assert env_manager._reset_timeout == 10
+        assert env_manager._max_retry == 2
+        assert env_manager._connect_timeout == 8
+        assert env_manager._step_timeout == 5
         # Test arribute
         with pytest.raises(AttributeError):
             data = env_manager.xxx
@@ -77,14 +78,29 @@ class TestSubprocessEnvManager:
         with pytest.raises(AssertionError):
             env_manager.reset(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         with pytest.raises(RuntimeError):
-            obs = env_manager.launch(reset_param={i: {'stat': 'error'} for i in range(env_manager.env_num)})
+            env_manager.launch(reset_param={i: {'stat': 'error'} for i in range(env_manager.env_num)})
         assert env_manager._closed
         time.sleep(0.5)  # necessary time interval
-        obs = env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
+        env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         assert not env_manager._closed
 
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) == env_manager.env_num
+
+        # Test reset error once
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
+        assert env_manager._retry_type == 'reset'
+        env_id_0 = env_manager.time_id[0]
+        reset_param[0] = {'stat': 'error_once'}
+        env_manager.reset(reset_param)
+        assert not env_manager._closed
+        assert env_manager.time_id[0] == env_id_0
+        env_manager._retry_type = 'renew'
+        env_id_0 = env_manager.time_id[0]
+        reset_param[0] = {'stat': 'error_once'}
+        env_manager.reset(reset_param)
+        assert not env_manager._closed
+        assert env_manager.time_id[0] != env_id_0
 
         # Test step catched error
         action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
@@ -105,9 +121,9 @@ class TestSubprocessEnvManager:
         assert len(env_manager.ready_obs) == 4
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
 
-        # Test step error
+        # # Test step error
         action[0] = 'error'
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             timestep = env_manager.step(action)
         assert env_manager._closed
 
@@ -117,21 +133,21 @@ class TestSubprocessEnvManager:
         with pytest.raises(AssertionError):  # Assert env manager is not closed
             env_manager.step([])
 
-    @pytest.mark.tmp  # gitlab ci and local test pass, github always fail
-    def test_block(self, setup_async_manager_cfg, setup_watchdog, setup_model_type):
+    #@pytest.mark.tmp  # gitlab ci and local test pass, github always fail
+    @pytest.mark.unittest
+    @pytest.mark.timeout(100)
+    def test_block(self, setup_async_manager_cfg, setup_model_type):
         env_fn = setup_async_manager_cfg.pop('env_fn')
         env_manager = AsyncSubprocessEnvManager(env_fn, setup_async_manager_cfg)
-        watchdog = setup_watchdog(60)
         model = setup_model_type()
-        # Test reset timeout
-        watchdog.start()
+        # Test connect timeout
         with pytest.raises(RuntimeError):
             reset_param = {i: {'stat': 'block'} for i in range(env_manager.env_num)}
             obs = env_manager.launch(reset_param=reset_param)
         assert env_manager._closed
         time.sleep(0.5)
         reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
-        reset_param[0]['stat'] = 'timeout'
+        reset_param[0]['stat'] = 'wait'
         env_manager.launch(reset_param=reset_param)
         time.sleep(0.5)
         assert not env_manager._closed
@@ -139,14 +155,27 @@ class TestSubprocessEnvManager:
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
         obs = env_manager.ready_obs
         assert len(obs) >= 1
-        watchdog.stop()
+
+        # Test reset timeout
+        env_manager._connect_timeout = 30
+        env_manager._reset_timeout = 8
+        with pytest.raises(RuntimeError):
+            reset_param = {i: {'stat': 'block'} for i in range(env_manager.env_num)}
+            obs = env_manager.reset(reset_param=reset_param)
+        assert env_manager._closed
+        time.sleep(0.5)
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_manager.env_num)}
+        reset_param[0]['stat'] = 'wait'
+        env_manager.launch(reset_param=reset_param)
+        time.sleep(0.5)
+        assert not env_manager._closed
 
         # Test step timeout
-        watchdog.start()
+        env_manager._step_timeout = 5
         obs = env_manager.reset({i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
         action[0] = 'block'
-        with pytest.raises(RuntimeError):
+        with pytest.raises(TimeoutError):
             timestep = env_manager.step(action)
             obs = env_manager.ready_obs
             while 0 not in obs:
@@ -157,7 +186,7 @@ class TestSubprocessEnvManager:
 
         obs = env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
         time.sleep(1)
-        action[0] = 'timeout'
+        action[0] = 'wait'
         timestep = env_manager.step(action)
         obs = env_manager.ready_obs
         while 0 not in obs:
@@ -165,7 +194,6 @@ class TestSubprocessEnvManager:
             timestep = env_manager.step(action)
             obs = env_manager.ready_obs
         assert len(obs) >= 1
-        watchdog.stop()
 
         env_manager.close()
 
@@ -183,4 +211,11 @@ class TestSubprocessEnvManager:
             timestep = env_manager.step(action)
             if env_manager.done:
                 break
-        assert all(env_manager._env_episode_count[i] == 1 for i in range(env_manager.env_num))
+            for env_id, t in timestep.items():
+                if t.done and not env_manager.env_state_done(env_id):
+                    env_manager.reset({env_id: None})
+        assert all(
+            env_manager._env_episode_count[i] == setup_async_manager_cfg['episode_num']
+            for i in range(env_manager.env_num)
+        )
+        assert all(env_manager._env_states[i] == EnvState.DONE for i in range(env_manager.env_num))

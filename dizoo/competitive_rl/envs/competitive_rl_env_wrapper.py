@@ -107,22 +107,22 @@ def wrap_env(env_id, builtin_wrap, opponent, frame_stack=4, warp_frame=True, onl
             env.reset_opponent(opponent)
 
         if warp_frame:
-            env = WarpFrameCompetitveRl(env, builtin_wrap)
+            env = WarpFrameWrapperCompetitveRl(env, builtin_wrap)
         if frame_stack:
-            env = FrameStackCompetitiveRl(env, frame_stack, builtin_wrap)
+            env = FrameStackWrapperCompetitiveRl(env, frame_stack, builtin_wrap)
         return env
     else:
         wrapper_info = ''
         if builtin_wrap:
             wrapper_info += BuiltinOpponentWrapper.__name__ + '\n'
         if warp_frame:
-            wrapper_info = WarpFrameCompetitveRl.__name__ + '\n'
+            wrapper_info = WarpFrameWrapperCompetitveRl.__name__ + '\n'
         if frame_stack:
-            wrapper_info = FrameStackCompetitiveRl.__name__ + '\n'
+            wrapper_info = FrameStackWrapperCompetitiveRl.__name__ + '\n'
         return wrapper_info
 
 
-class WarpFrameCompetitveRl(gym.ObservationWrapper):
+class WarpFrameWrapperCompetitveRl(gym.ObservationWrapper):
     """Warp frames to 84x84 as done in the Nature paper and later work.
 
     :param gym.Env env: the environment to wrap.
@@ -168,7 +168,7 @@ class WarpFrameCompetitveRl(gym.ObservationWrapper):
             return frames
 
 
-class FrameStackCompetitiveRl(gym.Wrapper):
+class FrameStackWrapperCompetitiveRl(gym.Wrapper):
     """Stack n_frames last frames.
 
     :param gym.Env env: the environment to wrap.

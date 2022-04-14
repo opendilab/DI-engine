@@ -20,6 +20,7 @@ unittest:
 		--cov-report=xml \
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
+		${DURATIONS_COMMAND} \
 		${WORKERS_COMMAND} \
 		-sv -m unittest \
 
@@ -31,6 +32,10 @@ algotest:
 cudatest:
 	pytest ${TEST_DIR} \
 		-sv -m cudatest
+
+envpooltest:
+	pytest ${TEST_DIR} \
+		-sv -m envpooltest
 
 dockertest:
 	./ding/scripts/docker-test-entry.sh

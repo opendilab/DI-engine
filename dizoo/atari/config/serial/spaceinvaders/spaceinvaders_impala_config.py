@@ -1,10 +1,10 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-space_invaders_impala_config = dict(
+spaceinvaders_impala_config = dict(
+    exp_name='spaceinvaders_impala_seed0',
     env=dict(
-        collector_env_num=16,
+        collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
@@ -14,34 +14,35 @@ space_invaders_impala_config = dict(
     ),
     policy=dict(
         cuda=True,
+        # (int) the trajectory length to calculate v-trace target
+        unroll_len=32,
+        random_collect_size=500,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            encoder_hidden_size_list=[128, 128, 512],
+            encoder_hidden_size_list=[128, 128, 256, 512],
             critic_head_hidden_size=512,
-            critic_head_layer_num=2,
+            critic_head_layer_num=3,
             actor_head_hidden_size=512,
-            actor_head_layer_num=2,
+            actor_head_layer_num=3,
         ),
         learn=dict(
             # (int) collect n_sample data, train model update_per_collect times
-            # here we follow ppo serial pipeline
-            update_per_collect=10,
+            # here we follow impala serial pipeline
+            update_per_collect=3,  # update_per_collect show be in [1, 10]
             # (int) the number of data for a train iteration
             batch_size=128,
             grad_clip_type='clip_norm',
-            clip_value=0.5,
+            clip_value=5,
             learning_rate=0.0003,
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=0.5,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.01,
             # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.9,
+            discount_factor=0.99,
             # (float) additional discounting parameter
             lambda_=0.95,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=64,
             # (float) clip ratio of importance weights
             rho_clip_ratio=1.0,
             # (float) clip ratio of importance weights
@@ -52,34 +53,28 @@ space_invaders_impala_config = dict(
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=64,
-            # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.9,
-            gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(
-            type='naive',
-            replay_buffer_size=10000,
-            max_use=100,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
     ),
 )
-main_config = EasyDict(space_invaders_impala_config)
+spaceinvaders_impala_config = EasyDict(spaceinvaders_impala_config)
+main_config = spaceinvaders_impala_config
 
-space_invaders_impala_create_config = dict(
+spaceinvaders_impala_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
     policy=dict(type='impala'),
+    replay_buffer=dict(type='naive'),
 )
-create_config = EasyDict(space_invaders_impala_create_config)
+spaceinvaders_impala_create_config = EasyDict(spaceinvaders_impala_create_config)
+create_config = spaceinvaders_impala_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c spaceinvaders_impala_config.py -s 0
     from ding.entry import serial_pipeline
-
     serial_pipeline((main_config, create_config), seed=0)

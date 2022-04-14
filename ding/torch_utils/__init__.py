@@ -5,6 +5,7 @@ from .distribution import CategoricalPd, CategoricalPdPytorch
 from .loss import *
 from .metric import levenshtein_distance, hamming_distance
 from .network import *
-from .optimizer_helper import Adam, RMSprop
+from .optimizer_helper import Adam, RMSprop, calculate_grad_norm, calculate_grad_norm_without_bias_two_norm
 from .nn_test_helper import is_differentiable
 from .math_helper import cov
+from .dataparallel import DataParallel

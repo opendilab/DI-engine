@@ -1,16 +1,16 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
+
 collector_env_num = 8
 evaluator_env_num = 5
 minigrid_r2d2_config = dict(
-    exp_name='debug_minigrid_doorkey_r2d2_n5_bs2_ul40',
+    exp_name='debug_minigrid_doorkey_r2d2_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        # env_id='MiniGrid-Empty-8x8-v0',
-        # env_id='MiniGrid-FourRooms-v0',
+        # minigrid env id: 'MiniGrid-FourRooms-v0', 'MiniGrid-DoorKey-8x8-v0','MiniGrid-DoorKey-16x16-v0'
         env_id='MiniGrid-DoorKey-16x16-v0',
         n_evaluator_episode=5,
+        max_step=300,
         stop_value=0.96,
     ),
     policy=dict(
@@ -22,15 +22,14 @@ minigrid_r2d2_config = dict(
             obs_shape=2739,
             action_shape=7,
             encoder_hidden_size_list=[128, 128, 512],
-
         ),
         discount_factor=0.997,
-        burnin_step=2,  # TODO(pu) 20
+        burnin_step=2,
         nstep=5,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=40,  # TODO(pu) 80
+        unroll_len=40,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
@@ -54,13 +53,14 @@ minigrid_r2d2_config = dict(
                 start=0.95,
                 end=0.05,
                 decay=1e5,
-            ), 
-            replay_buffer=dict(replay_buffer_size=100000,
-                            # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
-                            alpha=0.6,
-                            # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
-                            beta=0.4,
-                            )
+            ),
+            replay_buffer=dict(
+                replay_buffer_size=100000,
+                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                alpha=0.6,
+                # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
+                beta=0.4,
+            )
         ),
     ),
 )
@@ -71,11 +71,13 @@ minigrid_r2d2_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d2'),
 )
 minigrid_r2d2_create_config = EasyDict(minigrid_r2d2_create_config)
 create_config = minigrid_r2d2_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c minigrid_r2d2_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

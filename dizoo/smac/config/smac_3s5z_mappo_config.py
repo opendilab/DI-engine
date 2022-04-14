@@ -1,6 +1,3 @@
-import sys
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 agent_num = 8
@@ -9,7 +6,7 @@ evaluator_env_num = 8
 special_global_state = True
 
 main_config = dict(
-    exp_name='smac_3s5z_ppo',
+    exp_name='smac_3s5z_mappo_seed0',
     env=dict(
         map_name='3s5z',
         difficulty=7,
@@ -18,7 +15,7 @@ main_config = dict(
         agent_num=agent_num,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=16,
+        n_evaluator_episode=32,
         stop_value=0.99,
         death_mask=False,
         special_global_state=special_global_state,
@@ -31,7 +28,7 @@ main_config = dict(
     policy=dict(
         cuda=True,
         multi_agent=True,
-        continuous=False,
+        action_space='discrete',
         model=dict(
             # (int) agent_num: The number of the agent.
             # For SMAC 3s5z, agent_num=8; for 2c_vs_64zg, agent_num=2.
@@ -49,6 +46,7 @@ main_config = dict(
             action_shape=14,
             # (List[int]) The size of hidden layer
             # hidden_size_list=[64],
+            action_space='discrete'
         ),
         # used in state_num of hidden_state
         learn=dict(
@@ -63,9 +61,9 @@ main_config = dict(
             # (float) The loss weight of value network, policy network weight is set to 1
             value_weight=0.5,
             # (float) The loss weight of entropy regularization, policy network weight is set to 1
-            entropy_weight=0.01,
+            entropy_weight=0.0,
             # (float) PPO clip ratio, defaults to 0.2
-            clip_ratio=0.2,
+            clip_ratio=0.5,
             # (bool) Whether to use advantage norm in a whole training batch
             adv_norm=False,
             value_norm=True,
@@ -75,7 +73,7 @@ main_config = dict(
             ignore_done=False,
         ),
         collect=dict(env_num=collector_env_num, n_sample=3200),
-        eval=dict(env_num=evaluator_env_num),
+        eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=50, )),
     ),
 )
 main_config = EasyDict(main_config)
@@ -88,3 +86,9 @@ create_config = dict(
     policy=dict(type='ppo'),
 )
 create_config = EasyDict(create_config)
+
+
+if __name__ == '__main__':
+
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)

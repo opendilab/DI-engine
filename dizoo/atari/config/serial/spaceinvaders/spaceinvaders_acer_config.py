@@ -1,13 +1,13 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 spaceinvaders_acer_config = dict(
+    exp_name='spaceinvaders_acer_seed0',
     env=dict(
         collector_env_num=16,
-        evaluator_env_num=4,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=1000000,
+        stop_value=int(1e6),
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
         manager=dict(shared_memory=False, )
@@ -35,7 +35,6 @@ spaceinvaders_acer_config = dict(
             # clip_value=10,
             learning_rate_actor=0.00005,
             learning_rate_critic=0.0001,
-            # (float) loss weight of the value network, the weight of policy network is set to 1
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
             entropy_weight=0.03,
             # (float) discount factor for future reward, defaults int [0, 1]
@@ -43,24 +42,22 @@ spaceinvaders_acer_config = dict(
             # (float) additional discounting parameter
             trust_region=True,
             # (float) clip ratio of importance weights
-            # (float) clip ratio of importance weights
             c_clip_ratio=10,
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
-            n_sample=16,
+            # n_sample=16,
+            n_sample=64,
             # (float) discount factor for future reward, defaults int [0, 1]
             discount_factor=0.99,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=1000, )),
-        other=dict(replay_buffer=dict(
-            type='naive',
-            replay_buffer_size=10000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=3000, ), ),
     ),
 )
-main_config = EasyDict(spaceinvaders_acer_config)
+spaceinvaders_acer_config = EasyDict(spaceinvaders_acer_config)
+main_config = spaceinvaders_acer_config
 
 spaceinvaders_acer_create_config = dict(
     env=dict(
@@ -70,8 +67,10 @@ spaceinvaders_acer_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='acer'),
 )
-create_config = EasyDict(spaceinvaders_acer_create_config)
+spaceinvaders_acer_create_config = EasyDict(spaceinvaders_acer_create_config)
+create_config = spaceinvaders_acer_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c spaceinvaders_acer_config.py -s 0
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

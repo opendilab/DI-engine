@@ -70,6 +70,7 @@ class SMACEnv(SC2Env, BaseEnv):
         special_global_state=False,
         # add map's center location ponit or not
         add_center_xy=True,
+        independent_obs=False,
         # add agent's id information or not in special global state
         state_agent_id=True,
     )
@@ -186,6 +187,8 @@ class SMACEnv(SC2Env, BaseEnv):
         self.previous_ally_units = None
         self.previous_enemy_units = None
 
+        self.independent_obs = cfg.independent_obs
+
         self.action_helper = SMACAction(self.n_agents, self.n_enemies, self.two_player, self.mirror_opponent)
         self.reward_helper = SMACReward(
             self.n_agents,
@@ -195,6 +198,11 @@ class SMACEnv(SC2Env, BaseEnv):
             self.max_reward,
             reward_only_positive=self.reward_only_positive
         )
+
+        self._observation_space = self.get_obs_space()
+        self._action_space = self.action_helper.info(),
+        self._reward_space = self.reward_helper.info(),
+
 
     def seed(self, seed, dynamic_seed=False):
         self._seed = seed
@@ -362,19 +370,24 @@ class SMACEnv(SC2Env, BaseEnv):
                     'global_state': self.get_state(),
                     'action_mask': self.get_avail_actions()
                 }
+            elif self.independent_obs:
+                return {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_obs(),
+                    'action_mask': self.get_avail_actions(),
+                }
+            elif self.special_global_state:
+                return {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_global_special_state(),
+                    'action_mask': self.get_avail_actions(),
+                }
             else:
-                if self.special_global_state:
-                    return {
-                        'agent_state': self.get_obs(),
-                        'global_state': self.get_global_special_state(),
-                        'action_mask': self.get_avail_actions(),
-                    }
-                else:
-                    return {
-                        'agent_state': self.get_obs(),
-                        'global_state': self.get_state(),
-                        'action_mask': self.get_avail_actions(),
-                    }
+                return {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions(),
+                }
 
         return {
             'agent_state': {
@@ -469,19 +482,24 @@ class SMACEnv(SC2Env, BaseEnv):
                     'global_state': self.get_state(),
                     'action_mask': self.get_avail_actions()
                 }
+            elif self.independent_obs:
+                obs = {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_obs(),
+                    'action_mask': self.get_avail_actions(),
+                }
+            elif self.special_global_state:
+                obs = {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_global_special_state(),
+                    'action_mask': self.get_avail_actions(),
+                }
             else:
-                if self.special_global_state:
-                    obs = {
-                        'agent_state': self.get_obs(),
-                        'global_state': self.get_global_special_state(),
-                        'action_mask': self.get_avail_actions(),
-                    }
-                else:
-                    obs = {
-                        'agent_state': self.get_obs(),
-                        'global_state': self.get_state(),
-                        'action_mask': self.get_avail_actions(),
-                    }
+                obs = {
+                    'agent_state': self.get_obs(),
+                    'global_state': self.get_state(),
+                    'action_mask': self.get_avail_actions(),
+                }
         else:
             raise NotImplementedError
 
@@ -1580,7 +1598,7 @@ class SMACEnv(SC2Env, BaseEnv):
         ava_action = np.array(ava_action).astype(np.float32)
         return ava_action
 
-    def info(self, is_opponent=False):
+    def get_obs_space(self, is_opponent=False):
         T = EnvElementInfo
         agent_num = self.n_enemies if is_opponent else self.n_agents
         if self.obs_alone:
@@ -1613,13 +1631,20 @@ class SMACEnv(SC2Env, BaseEnv):
                     },
                     None,
                 )
-        return self.SMACEnvInfo(
-            agent_num=agent_num,
-            obs_space=obs_space,
-            act_space=self.action_helper.info(),
-            rew_space=self.reward_helper.info(),
-            episode_limit=self.episode_limit,
-        )
+        return obs_space
+
+
+    @property
+    def observation_space(self):
+        return self._observation_space
+
+    @property
+    def action_space(self):
+        return self._action_space
+
+    @property
+    def reward_space(self):
+        return self._reward_space
 
     def __repr__(self):
         return "DI-engine SMAC Env"

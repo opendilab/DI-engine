@@ -8,6 +8,7 @@ from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
 from .rainbow import RainbowDQNPolicy
 from .r2d2 import R2D2Policy
+from .r2d2_gtrxl import R2D2GTrXLPolicy
 from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
@@ -18,8 +19,9 @@ from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
 from .ddpg import DDPGPolicy
 from .td3 import TD3Policy
+from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
-from .sac import SACPolicy
+from .sac import SACPolicy, SACDiscretePolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
@@ -34,6 +36,7 @@ from .r2d3 import R2D3Policy
 
 from .d4pg import D4PGPolicy
 from .cql import CQLPolicy, CQLDiscretePolicy
+from .pdqn import PDQNPolicy
 
 
 class EpsCommandModePolicy(CommandModePolicy):
@@ -52,12 +55,12 @@ class EpsCommandModePolicy(CommandModePolicy):
         Overview:
             Collect mode setting information including eps
         Arguments:
-            - command_info (:obj:`dict`): Dict type, including at least ['learner_step', 'envstep']
+            - command_info (:obj:`dict`): Dict type, including at least ['learner_train_iter', 'collector_envstep']
         Returns:
            - collect_setting (:obj:`dict`): Including eps in collect mode.
         """
-        # Decay according to `learner_step`
-        # step = command_info['learner_step']
+        # Decay according to `learner_train_iter`
+        # step = command_info['learner_train_iter']
         # Decay according to `envstep`
         step = command_info['envstep']
         return {'eps': self.epsilon_greedy(step)}
@@ -116,6 +119,11 @@ class RainbowDQNCommandModePolicy(RainbowDQNPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('r2d2_command')
 class R2D2CommandModePolicy(R2D2Policy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('r2d2_gtrxl_command')
+class R2D2GTrXLCommandModePolicy(R2D2GTrXLPolicy, EpsCommandModePolicy):
     pass
 
 
@@ -213,6 +221,11 @@ class TD3CommandModePolicy(TD3Policy, DummyCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('td3_vae_command')
+class TD3VAECommandModePolicy(TD3VAEPolicy, DummyCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('td3_bc_command')
 class TD3BCCommandModePolicy(TD3BCPolicy, DummyCommandModePolicy):
     pass
@@ -275,4 +288,14 @@ class NGUCommandModePolicy(NGUPolicy, EpsCommandModePolicy):
 
 @POLICY_REGISTRY.register('d4pg_command')
 class D4PGCommandModePolicy(D4PGPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('pdqn_command')
+class PDQNCommandModePolicy(PDQNPolicy, EpsCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('sac_discrete_command')
+class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
     pass

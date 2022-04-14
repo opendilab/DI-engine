@@ -3,6 +3,7 @@ from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_impala_config = dict(
+    exp_name='pong_impala',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=4,
@@ -15,6 +16,8 @@ pong_impala_config = dict(
     policy=dict(
         cuda=True,
         priority=False,
+        # (int) the trajectory length to calculate v-trace target
+        unroll_len=64,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
@@ -41,8 +44,6 @@ pong_impala_config = dict(
             discount_factor=0.9,
             # (float) additional discounting parameter
             lambda_=0.95,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=64,
             # (float) clip ratio of importance weights
             rho_clip_ratio=1.0,
             # (float) clip ratio of importance weights
@@ -53,19 +54,10 @@ pong_impala_config = dict(
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
             n_sample=16,
-            # (int) the trajectory length to calculate v-trace target
-            unroll_len=64,
-            # (float) discount factor for future reward, defaults int [0, 1]
-            discount_factor=0.9,
-            gae_lambda=0.95,
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(
-            type='naive',
-            replay_buffer_size=10000,
-            max_use=100,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=10000, ), ),
     ),
 )
 main_config = EasyDict(pong_impala_config)

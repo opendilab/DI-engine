@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 pendulum_cql_default_config = dict(
-    seed=0,
+    exp_name='pendulum_cql_seed0',
     env=dict(
         collector_env_num=1,
         evaluator_env_num=5,
@@ -15,7 +15,7 @@ pendulum_cql_default_config = dict(
             obs_shape=3,
             action_shape=1,
             twin_critic=True,
-            actor_head_type='reparameterization',
+            action_space='reparameterization',
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
         ),
@@ -34,10 +34,11 @@ pendulum_cql_default_config = dict(
             min_q_weight=5.0,
         ),
         collect=dict(
-            n_sample=1,
+            n_sample=48,
             unroll_len=1,
             data_type='hdf5',
             data_path='./sac/expert_demos.hdf5',
+            collector_logit=False,
         ),
         command=dict(),
         eval=dict(evaluator=dict(eval_freq=100, )),
@@ -61,3 +62,8 @@ pendulum_cql_default_create_config = dict(
 )
 pendulum_cql_default_create_config = EasyDict(pendulum_cql_default_create_config)
 create_config = pendulum_cql_default_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c pendulum_cql_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)

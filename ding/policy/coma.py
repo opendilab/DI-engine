@@ -84,7 +84,7 @@ class COMAPolicy(Policy):
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration time
-            n_episode=32,
+            # n_episode=32,
             # (int) unroll length of a train iteration(gradient update step)
             unroll_len=20,
         ),
@@ -222,11 +222,13 @@ class COMAPolicy(Policy):
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
@@ -362,6 +364,7 @@ class COMAPolicy(Policy):
             Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For coma, ``ding.model.coma.coma``

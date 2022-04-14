@@ -17,16 +17,16 @@ args = list(product(*[action_shape_args, ['regression', 'reparameterization']]))
 
 
 @pytest.mark.unittest
-@pytest.mark.parametrize('action_shape, actor_head_type', args)
+@pytest.mark.parametrize('action_shape, action_space', args)
 class TestQACDIST:
 
-    def test_fcqac_dist(self, action_shape, actor_head_type):
+    def test_fcqac_dist(self, action_shape, action_space):
         N = 32
         inputs = {'obs': torch.randn(B, N), 'action': torch.randn(B, squeeze(action_shape))}
         model = QACDIST(
             obs_shape=(N, ),
             action_shape=action_shape,
-            actor_head_type=actor_head_type,
+            action_space=action_space,
             critic_head_hidden_size=embedding_size,
             actor_head_hidden_size=embedding_size,
         )
@@ -43,7 +43,7 @@ class TestQACDIST:
 
         # compute_action
         print(model)
-        if actor_head_type == 'regression':
+        if action_space == 'regression':
             action = model(inputs['obs'], mode='compute_actor')['action']
             if squeeze(action_shape) == 1:
                 assert action.shape == (B, )
@@ -51,7 +51,7 @@ class TestQACDIST:
                 assert action.shape == (B, squeeze(action_shape))
             assert action.eq(action.clamp(-1, 1)).all()
             is_differentiable(action.sum(), model.actor)
-        elif actor_head_type == 'reparameterization':
+        elif action_space == 'reparameterization':
             (mu, sigma) = model(inputs['obs'], mode='compute_actor')['logit']
             assert mu.shape == (B, *action_shape)
             assert sigma.shape == (B, *action_shape)

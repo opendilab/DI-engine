@@ -1,6 +1,7 @@
 import os
 import gym
 from tensorboardX import SummaryWriter
+from easydict import EasyDict
 
 from ding.config import compile_config
 from ding.worker import BaseLearner, SampleSerialCollector, InteractionSerialEvaluator, AdvancedReplayBuffer
@@ -14,7 +15,10 @@ from dizoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c
 
 # Get DI-engine form env class
 def wrapped_cartpole_env():
-    return DingEnvWrapper(gym.make('CartPole-v0'))
+    return DingEnvWrapper(
+        gym.make('CartPole-v0'),
+        EasyDict(env_wrapper='default'),
+    )
 
 
 def main(cfg, seed=0):
@@ -74,13 +78,6 @@ def main(cfg, seed=0):
             if train_data is None:
                 break
             learner.train(train_data, collector.envstep)
-    # evaluate
-    evaluator_env = BaseEnvManager(env_fn=[wrapped_cartpole_env for _ in range(evaluator_env_num)], cfg=cfg.env.manager)
-    evaluator_env.enable_save_replay(cfg.env.replay_path)  # switch save replay interface
-    evaluator = InteractionSerialEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
-    )
-    evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
 
 
 if __name__ == "__main__":

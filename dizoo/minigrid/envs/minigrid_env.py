@@ -8,157 +8,12 @@ import gym
 import numpy as np
 from matplotlib import animation
 import matplotlib.pyplot as plt
-from gym_minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper
+from gym_minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
 from gym_minigrid.window import Window
 
-from ding.envs import BaseEnv, BaseEnvTimestep
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
-
-MiniGridEnvInfo = namedtuple(
-    'MiniGridEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'max_step', 'use_wrappers']
-)
-MINIGRID_INFO_DICT = {
-    'MiniGrid-Empty-8x8-v0': MiniGridEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(shape=(2739, ), value={
-            'min': 0,
-            'max': 8,
-            'dtype': np.float32
-        }),
-        act_space=EnvElementInfo(
-            shape=(1, ),
-            value={
-                'min': 0,
-                'max': 7,  # [0, 7)
-                'dtype': np.int64,
-            }
-        ),
-        rew_space=EnvElementInfo(shape=(1, ), value={
-            'min': 0,
-            'max': 1,
-            'dtype': np.float32
-        }),
-        max_step=100,
-        use_wrappers=None,
-    ),
-    'MiniGrid-FourRooms-v0': MiniGridEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(shape=(2739, ), value={
-            'min': 0,
-            'max': 8,
-            'dtype': np.float32
-        }),
-        act_space=EnvElementInfo(
-            shape=(1, ),
-            value={
-                'min': 0,
-                'max': 7,  # [0, 7)
-                'dtype': np.int64,
-            }
-        ),
-        rew_space=EnvElementInfo(shape=(1, ), value={
-            'min': 0,
-            'max': 1,
-            'dtype': np.float32
-        }),
-        max_step=100,
-        use_wrappers=None,
-    ),
-    'MiniGrid-DoorKey-16x16-v0': MiniGridEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(shape=(2739, ), value={
-            'min': 0,
-            'max': 8,
-            'dtype': np.float32
-        }),
-        act_space=EnvElementInfo(
-            shape=(1, ),
-            value={
-                'min': 0,
-                'max': 7,  # [0, 7)
-                'dtype': np.int64,
-            }
-        ),
-        rew_space=EnvElementInfo(shape=(1, ), value={
-            'min': 0,
-            'max': 1,
-            'dtype': np.float32
-        }),
-        max_step=300,
-        use_wrappers=None,
-    ),
-    'MiniGrid-KeyCorridorS3R3-v0': MiniGridEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(shape=(2739, ), value={
-            'min': 0,
-            'max': 6,
-            'dtype': np.float32
-        }),
-        act_space=EnvElementInfo(
-            shape=(1, ),
-            value={
-                'min': 0,
-                'max': 7,  # [0, 7)
-                'dtype': np.int64,
-            }
-        ),
-        rew_space=EnvElementInfo(shape=(1, ), value={
-            'min': 0,
-            'max': 1,
-            'dtype': np.float32
-        }),
-        max_step=300,
-        use_wrappers=None,
-    ),
-    'MiniGrid-ObstructedMaze-2Dlh-v0': MiniGridEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(shape=(2739, ), value={
-            'min': 0,
-            'max': 7,
-            'dtype': np.float32
-        }),
-        act_space=EnvElementInfo(
-            shape=(1, ),
-            value={
-                'min': 0,
-                'max': 7,  # [0, 7)
-                'dtype': np.int64,
-            }
-        ),
-        rew_space=EnvElementInfo(shape=(1, ), value={
-            'min': 0,
-            'max': 1,
-            'dtype': np.float32
-        }),
-        max_step=300,
-        use_wrappers=None,
-    ),
-    'MiniGrid-ObstructedMaze-Full-v0': MiniGridEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(shape=(2739, ), value={
-            'min': 0,
-            'max': 7,
-            'dtype': np.float32
-        }),
-        act_space=EnvElementInfo(
-            shape=(1, ),
-            value={
-                'min': 0,
-                'max': 7,  # [0, 7)
-                'dtype': np.int64,
-            }
-        ),
-        rew_space=EnvElementInfo(shape=(1, ), value={
-            'min': 0,
-            'max': 1,
-            'dtype': np.float32
-        }),
-        max_step=300,
-        use_wrappers=None,
-    ),
-}
 
 
 @ENV_REGISTRY.register('minigrid')
@@ -180,11 +35,19 @@ class MiniGridEnv(BaseEnv):
         self._env_id = cfg.env_id
         self._flat_obs = cfg.flat_obs
         self._save_replay = False
-        self._max_step = MINIGRID_INFO_DICT[cfg.env_id].max_step
+        # self._max_step = MINIGRID_INFO_DICT[self._env_id].max_step
+        self._max_step = cfg.max_step
+
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._env_id)
+            if self._env_id in ['MiniGrid-AKTDT-13x13-v0' or 'MiniGrid-AKTDT-13x13-1-v0']:
+                # customize the agent field of view size, note this must be an odd number 
+                # This also related to the observation space, see gym_minigrid.wrappers for more details
+                self._env = ViewSizeWrapper(self._env, agent_view_size=5)  
+            if self._env_id == 'MiniGrid-AKTDT-7x7-1-v0':
+                self._env = ViewSizeWrapper(self._env, agent_view_size=3)
             if self._flat_obs:
                 self._env = FlatObsWrapper(self._env)
                 # self._env = RGBImgPartialObsWrapper(self._env)
@@ -201,6 +64,14 @@ class MiniGridEnv(BaseEnv):
         self._current_step = 0
         if self._save_replay:
             self._frames = []
+
+        self._observation_space = self._env.observation_space
+        self._observation_space.dtype = np.dtype('float32')
+        self._action_space = self._env.action_space
+        self._reward_space = gym.spaces.Box(
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
+        )
+
         return obs
 
     def close(self) -> None:
@@ -215,7 +86,7 @@ class MiniGridEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1, ):
+        if action.shape == (1,):
             action = action.squeeze()  # 0-dim array
         if self._save_replay:
             self._frames.append(self._env.render(mode='rgb_array'))
@@ -236,14 +107,42 @@ class MiniGridEnv(BaseEnv):
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = to_ndarray([rew])  # wrapped to be transferred to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
-    def info(self) -> MiniGridEnvInfo:
-        return MINIGRID_INFO_DICT[self._env_id]
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        random_action = to_ndarray([random_action], dtype=np.int64)
+        return random_action
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
+
+    @staticmethod
+    def create_collector_env_cfg(cfg: dict) -> List[dict]:
+        collector_env_num = cfg.pop('collector_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.is_train = True
+        return [cfg for _ in range(collector_env_num)]
+
+    @staticmethod
+    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
+        evaluator_env_num = cfg.pop('evaluator_env_num')
+        cfg = copy.deepcopy(cfg)
+        cfg.is_train = False
+        return [cfg for _ in range(evaluator_env_num)]
 
     def __repr__(self) -> str:
-        return "DI-engine MiniGrid Env"
+        return "DI-engine MiniGrid Env({})".format(self._cfg.env_id)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:
         if replay_path is None:

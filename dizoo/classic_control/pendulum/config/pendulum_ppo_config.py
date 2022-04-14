@@ -1,8 +1,9 @@
 from easydict import EasyDict
 
 pendulum_ppo_config = dict(
+    exp_name='pendulum_ppo_seed0',
     env=dict(
-        collector_env_num=1,
+        collector_env_num=10,
         evaluator_env_num=5,
         act_scale=True,
         n_evaluator_episode=5,
@@ -10,13 +11,13 @@ pendulum_ppo_config = dict(
     ),
     policy=dict(
         cuda=False,
-        continuous=True,
-        recompute_adv=False,
+        action_space='continuous',
+        recompute_adv=True,
         model=dict(
             obs_shape=3,
             action_shape=1,
             encoder_hidden_size_list=[64, 64],
-            continuous=True,
+            action_space='continuous',
             actor_head_layer_num=0,
             critic_head_layer_num=0,
             sigma_type='conditioned',
@@ -31,7 +32,7 @@ pendulum_ppo_config = dict(
             clip_ratio=0.2,
             adv_norm=False,
             value_norm=True,
-            ignore_done=False,
+            ignore_done=True,
         ),
         collect=dict(
             n_sample=200,
@@ -49,8 +50,13 @@ pendulum_ppo_create_config = dict(
         type='pendulum',
         import_names=['dizoo.classic_control.pendulum.envs.pendulum_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ppo'),
 )
 pendulum_ppo_create_config = EasyDict(pendulum_ppo_create_config)
 create_config = pendulum_ppo_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial_onpolicy -c pendulum_ppo_config.py -s 0`
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy([main_config, create_config], seed=0)

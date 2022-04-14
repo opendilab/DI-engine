@@ -28,9 +28,9 @@ class DDPGPolicy(Policy):
         == ====================  ========    =============  =================================   =======================
         ID Symbol                Type        Default Value  Description                         Other(Shape)
         == ====================  ========    =============  =================================   =======================
-        1  ``type``              str         ddpg           | RL policy register name, refer    | this arg is optional,
-                                                            | to registry ``POLICY_REGISTRY``   | a placeholder
-        2  ``cuda``              bool        True           | Whether to use cuda for network   |
+        1  | ``type``            str         ddpg           | RL policy register name, refer    | this arg is optional,
+           |                                                | to registry ``POLICY_REGISTRY``   | a placeholder
+        2  | ``cuda``            bool        False          | Whether to use cuda for network   |
         3  | ``random_``         int         25000          | Number of randomly collected      | Default to 25000 for
            | ``collect_size``                               | training samples in replay        | DDPG/TD3, 10000 for
            |                                                | buffer when training starts.      | sac.
@@ -54,13 +54,13 @@ class DDPGPolicy(Policy):
         9  | ``learn.-``         bool        False          | Determine whether to ignore       | Use ignore_done only
            | ``ignore_done``                                | done flag.                        | in halfcheetah env.
         10 | ``learn.-``         float       0.005          | Used for soft update of the       | aka. Interpolation
-           | ``target_theta``                               | target network.                   | factor in polyak aver
+           | ``target_theta``                               | target network.                   | factor in polyak aver-
            |                                                |                                   | aging for target
            |                                                |                                   | networks.
-        11 | ``collect.-``       float       0.1            | Used for add noise during co-     | Sample noise from dis
+        11 | ``collect.-``       float       0.1            | Used for add noise during co-     | Sample noise from dis-
            | ``noise_sigma``                                | llection, through controlling     | tribution, Ornstein-
            |                                                | the sigma of distribution         | Uhlenbeck process in
-           |                                                |                                   | DDPG paper, Guassian
+           |                                                |                                   | DDPG paper, Gaussian
            |                                                |                                   | process in ours.
         == ====================  ========    =============  =================================   =======================
     """
@@ -130,7 +130,7 @@ class DDPGPolicy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_sample=1,
+            # n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # (float) It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
@@ -145,7 +145,7 @@ class DDPGPolicy(Policy):
         other=dict(
             replay_buffer=dict(
                 # (int) Maximum size of replay buffer.
-                replay_buffer_size=1000000,
+                replay_buffer_size=100000,
             ),
         ),
     )
@@ -309,12 +309,14 @@ class DDPGPolicy(Policy):
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer_actor': self._optimizer_actor.state_dict(),
             'optimizer_critic': self._optimizer_critic.state_dict(),
         }
 
     def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer_actor.load_state_dict(state_dict['optimizer_actor'])
         self._optimizer_critic.load_state_dict(state_dict['optimizer_critic'])
 
@@ -433,7 +435,7 @@ class DDPGPolicy(Policy):
     def _monitor_vars_learn(self) -> List[str]:
         r"""
         Overview:
-            Return variables' name if variables are to used in monitor.
+            Return variables' names if variables are to used in monitor.
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """

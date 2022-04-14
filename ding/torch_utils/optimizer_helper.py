@@ -5,6 +5,46 @@ from torch._six import inf
 from typing import Union, Iterable, Tuple, Callable
 
 
+def calculate_grad_norm(model: torch.nn.Module, norm_type=2) -> float:
+    r"""
+    Overview:
+        calculate grad norm of the parameters whose grad norms are not None in the model.
+    Arguments:
+        - model: torch.nn.Module
+        - norm_type (:obj:`int` or `inf`)
+    """
+    parameters = list(filter(lambda p: p.grad is not None, model.parameters()))
+    if parameters == []:
+        parameters = 0
+        return 0
+    if norm_type == 'inf':
+        total_norm = max(p.grad.data.abs().max() for p in parameters)
+        return float(total_norm)
+    else:
+        total_norm = 0
+        for p in parameters:
+            param_norm = p.grad.data.norm(norm_type)
+            total_norm += param_norm.item() ** norm_type
+        total_norm = total_norm ** (1. / norm_type)
+        return float(total_norm)
+
+
+def calculate_grad_norm_without_bias_two_norm(model: torch.nn.Module) -> float:
+    r"""
+    Overview:
+        calculate grad norm of the parameters whose grad norms are not None in the model.
+    Arguments:
+        - model: torch.nn.Module
+    """
+    _list = []
+    for name, param in model.named_parameters():
+        if 'bias' not in name and param.requires_grad:
+            if param.grad is None:
+                return 0
+            _list.append(param.grad.data.norm(2).item() ** 2)
+    return float(sum(_list) ** (1. / 2))
+
+
 def grad_ignore_norm(parameters, max_norm, norm_type=2):
     if isinstance(parameters, torch.Tensor):
         parameters = [parameters]
@@ -428,7 +468,7 @@ class RMSprop(torch.optim.RMSprop):
             clip_grad_norm_(new_params, self._clip_value, self._clip_norm_type)
         elif self._grad_clip_type == 'clip_momentum':
             '''
-            This is the implimentation mimic the clip used in OPENAI, quote:
+                 This implementation mimics the clip used in OPENAI, quote:
                 'Gradients are additionally clipped per parameter to be within between ±5√v
                  where v is the running estimate of the second moment of the (unclipped) gradient'
             '''

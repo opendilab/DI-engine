@@ -81,7 +81,7 @@ class CollaQPolicy(Policy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] shoule be set
-            n_episode=32,
+            # n_episode=32,
             # (int) Cut trajectories into pieces with length "unroll_len", the length of timesteps
             # in each forward when training. In qmix, it is greater than 1 because there is RNN.
             unroll_len=10,
@@ -259,6 +259,7 @@ class CollaQPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
@@ -268,12 +269,14 @@ class CollaQPolicy(Policy):
             Load the state_dict variable into policy learn mode.
         Arguments:
             - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+
         .. tip::
             If you want to only load some parts of model, you can simply set the ``strict`` argument in \
             load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def _init_collect(self) -> None:
@@ -422,6 +425,7 @@ class CollaQPolicy(Policy):
             Return this algorithm default model setting for demonstration.
         Returns:
             - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
         .. note::
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For collaq, ``ding.model.qmix.qmix``

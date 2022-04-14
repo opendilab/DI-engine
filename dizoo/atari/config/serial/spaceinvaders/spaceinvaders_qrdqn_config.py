@@ -1,8 +1,8 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-space_invaders_qrdqn_config = dict(
+spaceinvaders_qrdqn_config = dict(
+    exp_name='spaceinvaders_qrdqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -42,9 +42,9 @@ space_invaders_qrdqn_config = dict(
         ),
     ),
 )
-space_invaders_qrdqn_config = EasyDict(space_invaders_qrdqn_config)
-main_config = space_invaders_qrdqn_config
-space_invaders_qrdqn_create_config = dict(
+spaceinvaders_qrdqn_config = EasyDict(spaceinvaders_qrdqn_config)
+main_config = spaceinvaders_qrdqn_config
+spaceinvaders_qrdqn_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -52,8 +52,10 @@ space_invaders_qrdqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='qrdqn'),
 )
-space_invaders_qrdqn_create_config = EasyDict(space_invaders_qrdqn_create_config)
-create_config = space_invaders_qrdqn_create_config
+spaceinvaders_qrdqn_create_config = EasyDict(spaceinvaders_qrdqn_create_config)
+create_config = spaceinvaders_qrdqn_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c spaceinvaders_qrdqn_config.py -s 0
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

@@ -17,7 +17,7 @@ from .base_serial_evaluator import ISerialEvaluator
 class BattleInteractionSerialEvaluator(ISerialEvaluator):
     """
     Overview:
-        1v1 battle evaluator class.
+        Multiple player battle evaluator class.
     Interfaces:
         __init__, reset, reset_policy, reset_env, close, should_eval, eval
     Property:
@@ -108,8 +108,9 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
         """
         assert hasattr(self, '_env'), "please set env first"
         if _policy is not None:
-            assert len(_policy) == 2, "1v1 serial evaluator needs 2 policy, but found {}".format(len(_policy))
+            assert len(_policy) > 1, "battle evaluator needs more than 1 policy, but found {}".format(len(_policy))
             self._policy = _policy
+            self._policy_num = len(self._policy)
         for p in self._policy:
             p.reset()
 
@@ -173,7 +174,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             train_iter: int = -1,
             envstep: int = -1,
             n_episode: Optional[int] = None
-    ) -> Tuple[bool, float, list]:
+    ) -> Tuple[bool, List[dict]]:
         '''
         Overview:
             Evaluate policy and store the best policy based on whether it reaches the highest historical reward.
@@ -184,15 +185,14 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
             - n_episode (:obj:`int`): Number of evaluation episodes.
         Returns:
             - stop_flag (:obj:`bool`): Whether this training program can be ended.
-            - eval_reward (:obj:`float`): Current eval_reward.
-            - return_info (:obj:`list`): Environment information of each finished episode
+            - return_info (:obj:`list`): Environment information of each finished episode.
         '''
         if n_episode is None:
             n_episode = self._default_n_episode
         assert n_episode is not None, "please indicate eval n_episode"
         envstep_count = 0
         info = {}
-        return_info = [[] for _ in range(2)]
+        return_info = [[] for _ in range(self._policy_num)]
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()
         for p in self._policy:
@@ -223,7 +223,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                         if 'episode_info' in t.info[0]:
                             eval_monitor.update_info(env_id, t.info[0]['episode_info'])
                         eval_monitor.update_reward(env_id, reward)
-                        for policy_id in range(2):
+                        for policy_id in range(self._policy_num):
                             return_info[policy_id].append(t.info[policy_id])
                         self._logger.info(
                             "[EVALUATOR]env {} finish episode, final reward: {}, current episode: {}".format(
@@ -272,7 +272,7 @@ class BattleInteractionSerialEvaluator(ISerialEvaluator):
                 "Current eval_reward: {} is greater than stop_value: {}".format(eval_reward, self._stop_value) +
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
-        return stop_flag, eval_reward, return_info
+        return stop_flag, return_info
 
 
 class VectorEvalMonitor(object):

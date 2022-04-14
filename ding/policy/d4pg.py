@@ -50,15 +50,15 @@ class D4PGPolicy(DDPGPolicy):
         11 | ``collect.-``       float       0.1            | Used for add noise during co-     | Sample noise from dis
            | ``noise_sigma``                                | llection, through controlling     | tribution, Gaussian
            |                                                | the sigma of distribution         | process.
-        12 | ``model.v_min``      float    -10              | Value of the smallest atom        |
+        12 | ``model.v_min``      float      -10            | Value of the smallest atom        |
            |                                                | in the support set.               |
-        13 | ``model.v_max``      float    10               | Value of the largest atom         |
+        13 | ``model.v_max``      float      10             | Value of the largest atom         |
            |                                                | in the support set.               |
-        14 | ``model.n_atom``     int      51               | Number of atoms in the support    |
+        14 | ``model.n_atom``     int        51             | Number of atoms in the support    |
            |                                                | set of the value distribution.    |
-        15 | ``nstep``            int      3,               | N-step reward discount sum for    |
-           |                              [1, 5]            | target q_value estimation         |
-        16 | ``priority``         bool     True             | Whether use priority(PER)         | priority sample,
+        15 | ``nstep``            int        3, [1, 5]      | N-step reward discount sum for    |
+           |                                                | target q_value estimation         |
+        16 | ``priority``         bool       True           | Whether use priority(PER)         | priority sample,
                                                                                                 | update priority
         == ====================  ========    =============  =================================   =======================
     """
@@ -132,7 +132,7 @@ class D4PGPolicy(DDPGPolicy):
         ),
         collect=dict(
             # (int) Only one of [n_sample, n_episode] should be set
-            n_sample=1,
+            # n_sample=1,
             # (int) Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
             # It is a must to add noise during collection. So here omits "noise" and only set "noise_sigma".
@@ -279,8 +279,8 @@ class D4PGPolicy(DDPGPolicy):
         return {
             'cur_lr_actor': self._optimizer_actor.defaults['lr'],
             'cur_lr_critic': self._optimizer_critic.defaults['lr'],
-            'q_value': np.array(q_value['q_value'].detach().numpy()).mean(),
-            'action': data.get('action').mean(),
+            'q_value': q_value['q_value'].mean().item(),
+            'action': data['action'].mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             **loss_dict,
             **q_value_dict,

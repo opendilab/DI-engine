@@ -1,14 +1,11 @@
-import torch
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_reward_model_ngu
 
-print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
 evaluator_env_num = 5
 nstep = 5
 montezuma_ppo_rnd_config = dict(
-    exp_name='debug_montezuma_ngu_n5_bs2_ul298',
+    exp_name='montezuma_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -25,13 +22,10 @@ montezuma_ppo_rnd_config = dict(
         batch_size=128,
         update_per_collect=int(75),  # 32*300/128=75
         only_use_last_five_frames_for_icm_rnd=False,
-        # update_per_collect=3,  # 32*5/64=3
-        # only_use_last_five_frames_for_icm_rnd=True,
-
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
-        type='rnd',
+        type='rnd-ngu',
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
@@ -42,10 +36,6 @@ montezuma_ppo_rnd_config = dict(
         update_per_collect=int(75),  # 32*300/128=75
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
-
-        # update_per_collect=3,  # 32*5/64=3
-        # only_use_last_five_frames_for_icm_rnd=True,
-
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
         type='episodic',
@@ -101,18 +91,15 @@ montezuma_ppo_rnd_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
-    # reward_model=dict(type='rnd'),
-    rnd_reward_model=dict(type='rnd'),
+    rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(
-        type='sample_ngu',
-    )
+    collector=dict(type='sample_ngu', )
 )
 montezuma_ppo_rnd_create_config = EasyDict(montezuma_ppo_rnd_create_config)
 create_config = montezuma_ppo_rnd_create_config
 
 if __name__ == "__main__":
+    from ding.entry import serial_pipeline_reward_model_ngu
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
