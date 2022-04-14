@@ -175,32 +175,41 @@ class TransformerInputWrapper(IModelWrapper):
         self.bs = None
         self.memory_idx = []  # len bs, index of where to put the next element in the sequence for each batch
 
-    def forward(self, input_obs: torch.Tensor, only_last_logit: bool = True, **kwargs) -> Dict[str, torch.Tensor]:
+    def forward(self,
+                input_obs: torch.Tensor,
+                only_last_logit: bool = True,
+                data_id: List = None,
+                **kwargs) -> Dict[str, torch.Tensor]:
         """
         Arguments:
             - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: (bs, *obs_shape)
             - only_last_logit (:obj:`bool`): if True 'logit' only contains the output corresponding to the current
-            observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)
+                observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)
+            - data_id (:obj:`List`): id of the envs that are currently running. Memory update and logits return has only
+                effect for those environments. If `None` it is considered that all envs are running.
         Returns:
             - Dictionary containing the input_sequence 'input_seq' stored in memory and the transformer output 'logit'.
         """
         if self.obs_memory is None:
             self.reset_input(torch.zeros_like(input_obs))  # init the memory with the size of the input observation
+        if data_id is None:
+            data_id = list(range(self.bs))
         assert self.obs_memory.shape[0] == self.seq_len
         # implements a fifo queue, self.memory_idx is index where to put the last element
-        for b in range(self.bs):
+        for i, b in enumerate(data_id):
             if self.memory_idx[b] == self.seq_len:
                 # roll back of 1 position along dim 1 (sequence dim)
                 self.obs_memory[:, b] = torch.roll(self.obs_memory[:, b], -1, 0)
-                self.obs_memory[self.memory_idx[b] - 1, b] = input_obs[b]
+                self.obs_memory[self.memory_idx[b] - 1, b] = input_obs[i]
             if self.memory_idx[b] < self.seq_len:
-                self.obs_memory[self.memory_idx[b], b] = input_obs[b]
+                self.obs_memory[self.memory_idx[b], b] = input_obs[i]
                 if self.memory_idx != self.seq_len:
                     self.memory_idx[b] += 1
         out = self._model.forward(self.obs_memory, **kwargs)
         out['input_seq'] = self.obs_memory
         if only_last_logit:
-            out['logit'] = [out['logit'][self.memory_idx[b] - 1][b] for b in range(self.bs)]
+            # return only the logits for running environments
+            out['logit'] = [out['logit'][self.memory_idx[b] - 1][b] for b in range(self.bs) if b in data_id]
             out['logit'] = default_collate(out['logit'])
         return out
 
