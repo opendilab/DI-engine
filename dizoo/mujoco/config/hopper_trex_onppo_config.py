@@ -3,7 +3,6 @@ from easydict import EasyDict
 hopper_trex_onppo_config = dict(
     exp_name='hopper_trex_onppo_seed0',
     env=dict(
-        manager=dict(shared_memory=True, reset_inplace=True),
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),

@@ -3,7 +3,6 @@ from easydict import EasyDict
 walker2d_trex_onppo_config = dict(
     exp_name='walker2d_trex_onppo_seed0',
     env=dict(
-        manager=dict(shared_memory=True, reset_inplace=True),
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
