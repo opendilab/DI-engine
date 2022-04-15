@@ -100,7 +100,7 @@ class ShmBufferContainer(object):
 
     def __init__(
             self,
-            dtype: Union[type, np.dtype],
+            dtype: Union[Dict[Any, type], type, np.dtype],
             shape: Union[Dict[Any, tuple], tuple],
             copy_on_get: bool = True
     ) -> None:
@@ -114,7 +114,7 @@ class ShmBufferContainer(object):
             - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.
         """
         if isinstance(shape, dict):
-            self._data = {k: ShmBufferContainer(dtype, v, copy_on_get) for k, v in shape.items()}
+            self._data = {k: ShmBufferContainer(dtype[k], v, copy_on_get) for k, v in shape.items()}
         elif isinstance(shape, (tuple, list)):
             self._data = ShmBuffer(dtype, shape, copy_on_get)
         else:
@@ -240,14 +240,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._observation_space
-            if isinstance(obs_space, list):
-                # for multi_agent case
-                if isinstance(obs_space[0], gym.spaces.Dict):
-                    shape = {k: (len(obs_space), ) + v.shape for k, v in obs_space[0].items()}
-                    dtype = list(obs_space[0].values())[0].dtype
-                else:
-                    shape = (len(obs_space), ) + obs_space[0].shape
-                    dtype = obs_space[0].dtype
+            if isinstance(obs_space, gym.spaces.Dict):
+                # For multi_agent case, such as multiagent_mujoco and petting_zoo mpe.
+                # Now only for the case that each agent in the team have the same obs structure
+                # and corresponding shape.
+                shape = {k: v.shape for k, v in obs_space.spaces.items()}
+                dtype = {k: v.dtype for k, v in obs_space.spaces.items()}
             else:
                 shape = obs_space.shape
                 dtype = obs_space.dtype

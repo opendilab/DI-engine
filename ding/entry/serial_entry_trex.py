@@ -44,7 +44,6 @@ def serial_pipeline_reward_model_trex(
     else:
         cfg, create_cfg = input_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
-    create_cfg.reward_model = dict(type='trex')
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
     # Create main components: env, policy

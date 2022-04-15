@@ -1,8 +1,7 @@
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 spaceinvaders_r2d2_gtrxl_config = dict(
-    exp_name='spaceinvaders_r2d2_gtrxl',
+    exp_name='spaceinvaders_r2d2_gtrxl_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -10,7 +9,7 @@ spaceinvaders_r2d2_gtrxl_config = dict(
         stop_value=10000000000,
         env_id='SpaceInvadersNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
+        manager=dict(shared_memory=False)
     ),
     policy=dict(
         cuda=True,
@@ -70,11 +69,13 @@ spaceinvaders_r2d2_gtrxl_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d2_gtrxl'),
 )
 spaceinvaders_r2d2_gtrxl_create_config = EasyDict(spaceinvaders_r2d2_gtrxl_create_config)
 create_config = spaceinvaders_r2d2_gtrxl_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c spaceinvaders_r2d2_gtrxl_config.py -s 0
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

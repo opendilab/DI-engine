@@ -73,12 +73,12 @@ def serial_pipeline_gail(
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:
             expert_cfg.policy.other.eps.collect = -1
         if expert_cfg.policy.get('load_path', None) is None:
-            expert_cfg.policy.load_path = cfg.reward_model.expert_load_path
+            expert_cfg.policy.load_path = cfg.reward_model.expert_model_path
         collect_demo_data(
             (expert_cfg, expert_create_cfg),
             seed,
             state_dict_path=expert_cfg.policy.load_path,
-            expert_data_path=cfg.reward_model.expert_data_path,
+            expert_data_path=cfg.reward_model.data_path + '/expert_data.pkl',
             collect_count=cfg.reward_model.collect_count
         )
     # Create main components: env, policy
