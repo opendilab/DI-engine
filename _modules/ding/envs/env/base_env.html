@@ -170,12 +170,10 @@
 <span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">namedlist</span> <span class="kn">import</span> <span class="n">namedlist</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">ENV_REGISTRY</span>
 
 <span class="n">BaseEnvTimestep</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;BaseEnvTimestep&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">,</span> <span class="s1">&#39;info&#39;</span><span class="p">])</span>
-<span class="n">BaseEnvInfo</span> <span class="o">=</span> <span class="n">namedlist</span><span class="p">(</span><span class="s1">&#39;BaseEnvInfo&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;agent_num&#39;</span><span class="p">,</span> <span class="s1">&#39;obs_space&#39;</span><span class="p">,</span> <span class="s1">&#39;act_space&#39;</span><span class="p">,</span> <span class="s1">&#39;rew_space&#39;</span><span class="p">,</span> <span class="s1">&#39;use_wrappers&#39;</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="BaseEnv"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.BaseEnv">[docs]</a><span class="k">class</span> <span class="nc">BaseEnv</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">):</span>
