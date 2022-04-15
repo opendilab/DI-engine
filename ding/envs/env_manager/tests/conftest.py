@@ -8,8 +8,7 @@ from easydict import EasyDict
 from functools import partial
 import gym
 
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
-from ding.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
+from ding.envs.env.base_env import BaseEnvTimestep
 from ding.envs.env_manager.base_env_manager import EnvState
 from ding.envs.env_manager import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, to_list

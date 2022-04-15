@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from namedlist import namedlist
+from collections import namedtuple
 from typing import Any
 
-EnvElementInfo = namedlist('EnvElementInfo', ['shape', 'value'])
+EnvElementInfo = namedtuple('EnvElementInfo', ['shape', 'value'])
 
 
 class IEnvElement(ABC):
