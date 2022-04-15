@@ -2,16 +2,32 @@ import time
 import logging
 import argparse
 import sys
+import os
 from ding.framework import Parallel
 
+class EasyCounter:
+    def __init__(self):
+        self._last = None
+        self._cnt = 0
+    
+    def add(self, a):
+        self._last = a
+        self._cnt += 1
+    
+    def cnt(self):
+        return self._cnt
+    
+    def last(self):
+        return self._last
 
-class AutoRecoverV2:
+
+class SockTest:
 
     @classmethod
     def main_p0(cls, epoch, interval):
         router = Parallel()
-        greets = []
-        router.on("greeting_0", lambda msg: greets.append(msg))
+        greets = EasyCounter()
+        router.on("greeting_0", lambda msg: greets.add(msg))
         start_t = time.time()
         logging.info("main_p0 start ...")
 
@@ -19,27 +35,27 @@ class AutoRecoverV2:
             while time.time() - start_t < i * interval:
                 time.sleep(0.01)
 
-            if not greets or i % 10 != 0:
+            if greets.cnt() == 0 or i % 10 != 0:
                 continue
-            last_msg = greets[-1]
+            last_msg = greets.last()
             msg_idx, msg_t = last_msg.split("_")[-2:]
             logging.info("main_p0 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s"\
-                .format(time.time() - start_t, len(greets), msg_idx, msg_t))
+                .format(time.time() - start_t, greets.cnt(), msg_idx, msg_t))
 
-        logging.info("main_p0 done! total msg: {}".format(len(greets)))
+        logging.info("main_p0 done! total msg: {}".format(greets.cnt()))
 
     @classmethod
-    def main_p1(cls, file, epoch, interval):
-        s = "rfvbhukm" * 1024 * 128 * 16
+    def main_p1(cls, epoch, interval, data_size, tmp_file):
+        s = "a" * 1024 * 1024 * data_size
         print("msg length: {:.4f} MB".format(sys.getsizeof(s) / 1024 / 1024))
 
         router = Parallel()
-        greets = []
-        router.on("greeting_1", lambda msg: greets.append(msg))
+        greets = EasyCounter()
+        router.on("greeting_1", lambda msg: greets.add(msg))
         start_t = time.time()
         logging.info("main_p1 start ...")
 
-        with open(file, "w") as f:
+        with open(tmp_file, "w") as f:
             f.write("{}\n".format(router.get_ip()))
 
         for i in range(epoch):
@@ -53,18 +69,21 @@ class AutoRecoverV2:
             else:
                 raise Exception("Failed too many times")
 
-            if not greets or i % 10 != 0:
+            if greets.cnt() == 0 or i % 10 != 0:
                 continue
-            last_msg = greets[-1]
+            last_msg = greets.last()
             msg_idx, msg_t = last_msg.split("_")[-2:]
             logging.info("main_p1 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s"\
-                .format(time.time() - start_t, len(greets), msg_idx, msg_t))
+                .format(time.time() - start_t, greets.cnt(), msg_idx, msg_t))
 
-        logging.info("main_p1 done! total msg: {} retries: {}".format(len(greets), router._retries))
+        if os.path.exists(tmp_file):
+            os.remove(tmp_file)
+
+        logging.info("main_p1 done! total msg: {} retries: {}".format(greets.cnt(), router._retries))
 
     @classmethod
-    def main_p2(cls, epoch, interval):
-        s = "cnhudofs" * 1024 * 128 * 16
+    def main_p2(cls, epoch, interval, data_size):
+        s = "b" * 1024 * 1024 * data_size
         print("msg length: {:.4f} MB".format(sys.getsizeof(s) / 1024 / 1024))
 
         router = Parallel()
@@ -80,25 +99,24 @@ class AutoRecoverV2:
         logging.info("main_p2 done!")
 
     @classmethod
-    def main(cls, file, epoch=1000, interval=1.0):
+    def main(cls, epoch=1000, interval=1.0, data_size=1, file="tmp_p1"):
         router = Parallel()
         if router.node_id == 0:
             cls.main_p0(epoch, interval)
         elif router.node_id == 1:
-            cls.main_p1(file, epoch, interval)
+            cls.main_p1(epoch, interval, data_size, file)
         elif router.node_id == 2:
-            cls.main_p2(epoch, interval)
+            cls.main_p2(epoch, interval, data_size)
         else:
             raise Exception("Invalid node id")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file', '-f', type=str, default="tmp_123")
     parser.add_argument('--epoch', '-t', type=int, default=1200)
     parser.add_argument('--interval', '-i', type=float, default=0.1)
+    parser.add_argument('--data_size', '-s', type=int, default=1)
+    parser.add_argument('--file', '-f', type=str, default="tmp_p1")
     args = parser.parse_args()
     Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh", auto_recover=True, max_retries=1)(
-        AutoRecoverV2.main, args.file, args.epoch, args.interval)
-
-
+        SockTest.main, args.epoch, args.interval, args.data_size, args.file)

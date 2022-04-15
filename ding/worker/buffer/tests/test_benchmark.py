@@ -62,7 +62,7 @@ buffer = DequeBuffer(size={0})
 buffer.use(PriorityExperienceReplay(buffer, buffer_size={0}, IS_weight=True))
 for i in range({0}):
     data = torch.rand({1}, {1})
-    buffer.push(data)
+    buffer.push(data, meta={'priority': 2.0})
 """
 
 
