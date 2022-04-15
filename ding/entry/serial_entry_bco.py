@@ -1,8 +1,4 @@
-import sys, os
-
 from ding.model.common.head import DiscreteHead
-sys.path[0] = os.getcwd()
-
 from typing import Union, Optional, List, Any, Tuple
 import time
 import os
@@ -10,19 +6,16 @@ import torch
 from tensorboardX import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
 
-from ding.worker import BaseLearner, LearnerHook, MetricSerialEvaluator, IMetric, create_serial_collector,\
-    InteractionSerialEvaluator, BaseSerialCommander, create_buffer
+from ding.worker import BaseLearner, create_serial_collector,\
+    InteractionSerialEvaluator
 from ding.config import read_config, compile_config
-from ding.model.template.q_learning import DQN
 from ding.utils import set_pkg_seed, get_rank, dist_init
-from ding.policy import BCOPolicy
 from ding.envs import get_vec_env_setting, create_env_manager
 from functools import partial
 import numpy as np
 from ding.policy.common_utils import default_preprocess_learn
 import pickle
 import torch.nn as nn
-from ding.entry.application_entry import collect_demo_data
 from ding.policy import create_policy, PolicyFactory
 from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
 from ding.model.common.encoder import FCEncoder, ConvEncoder
@@ -39,7 +32,7 @@ class InverseDynamicsModel(nn.Module):
             self,
             obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
-            encoder_hidden_size_list: SequenceType = [60, 80, 100, 70, 10],
+            encoder_hidden_size_list: SequenceType = [60, 80, 100, 40],
             activation: Optional[nn.Module] = nn.LeakyReLU(),
             norm_type: Optional[str] = None
     ) -> None:
@@ -74,8 +67,6 @@ class InverseDynamicsModel(nn.Module):
         self.header = DiscreteHead(
             encoder_hidden_size_list[-1], action_shape, activation=activation, norm_type=norm_type
         )
-        print(self.encoder)
-        print(self.header)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.encoder(x)
@@ -85,50 +76,59 @@ class InverseDynamicsModel(nn.Module):
 
 class BCODataset(Dataset):
 
-    def __init__(self, data):
-        self._obsPair = []
-        self._action = []
-        self._load_agentdata(data)
+    def __init__(self, data=None):
+        if data is None:
+            self._data = []
+        else:
+            self._data = data
 
     def __len__(self):
-        return len(self._obsPair)
+        return len(self._data['obs'])
 
     def __getitem__(self, idx):
-        obsPair = self._obsPair[idx]
-        if self.__action == []:
-            sample = {"obs": obsPair}
-        else:
-            action = self._action[idx]
-            sample = {"obs": obsPair, "action": action}
-        return sample
+        return {k: self._data[k][idx] for k in self._data.keys()}
 
-    def _load_expertdata(self, data: Dict[str, torch.Tensor]) -> None:
-        """
-        loading from demonstration data, which only have obs and next_obs
-        action need to be inferred from Inverse Dynamics Model
-        """
-        data = default_preprocess_learn(data)
-        newlist = list()
-        for key in data.keys():
-            newlist.append(key)
-        for key in newlist:
-            if key not in ['obs', 'next_obs']:
-                del data[key]
-        self._obsPair = torch.cat((data['obs'], data['next_obs']), 1)
+    @property
+    def obs(self):
+        return self._data['obs']
 
-    def _load_agentdata(self, data: Dict[str, torch.Tensor]) -> None:
-        """
-        loading from policy data, which only have obs and next_obs as features and action as label
-        """
-        data = default_preprocess_learn(data)
-        newlist = list()
-        for key in data.keys():
-            newlist.append(key)
-        for key in newlist:
-            if key not in ['obs', 'next_obs', 'action']:
-                del data[key]
-        self._obsPair = torch.cat((data['obs'], data['next_obs']), 1)
-        self._action = data['action']
+
+def load_expertdata(data: Dict[str, torch.Tensor]) -> None:
+    """
+    loading from demonstration data, which only have obs and next_obs
+    action need to be inferred from Inverse Dynamics Model
+    """
+    post_data = list()
+    for episode in range(len(data)):
+        for transition in data[episode]:
+            transition['episode_id'] = episode
+            post_data.append(transition)
+    post_data = default_preprocess_learn(post_data)
+    return BCODataset(
+        {
+            'obs': torch.cat((post_data['obs'], post_data['next_obs']), 1),
+            'episode_id': post_data['episode_id']
+        }
+    )
+
+
+def load_agentdata(data) -> None:
+    """
+    loading from policy data, which only have obs and next_obs as features and action as label
+    """
+    post_data = list()
+    for episode in range(len(data)):
+        for transition in data[episode]:
+            transition['episode_id'] = episode
+            post_data.append(transition)
+    post_data = default_preprocess_learn(post_data)
+    return BCODataset(
+        {
+            'obs': torch.cat((post_data['obs'], post_data['next_obs']), 1),
+            'action': post_data['action'],
+            'episode_id': post_data['episode_id']
+        }
+    )
 
 
 def train_state_trainsition_model(training_set, model, n_epoch):
@@ -150,36 +150,56 @@ def train_state_trainsition_model(training_set, model, n_epoch):
         total_loss = 0
         data = training_set['obs']
         y = training_set['action']
-        y_pred = model.forward(data)
+        y_pred = model.forward(data)['logit']
         loss = criterion(y_pred, y)
         total_loss += loss.item()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        print("[EPOCH]: %i, [LOSS]: %.6f" % (itr + 1, total_loss))
         loss_list.append(total_loss / training_set['obs'].shape[0])
     return model
 
 
-def serial_pipeline_bco(cfg: dict, create_cfg: dict, seed: int, env_setting: Optional[List[Any]] = None) -> None:
+def serial_pipeline_bco(
+        input_cfg: Union[str, Tuple[dict, dict]],
+        expert_cfg: Union[str, Tuple[dict, dict]],
+        seed: int = 0,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        expert_model: Optional[torch.nn.Module] = None,
+        # model: Optional[torch.nn.Module] = None,
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
+) -> None:
 
+    if isinstance(input_cfg, str):
+        cfg, create_cfg = read_config(input_cfg)
+        expert_cfg, expert_create_cfg = read_config(expert_cfg)
+    else:
+        cfg, create_cfg = input_cfg
+        expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
-    cfg = compile_config(cfg, seed=seed, policy=BCOPolicy, auto=True, create_cfg=create_cfg, save_cfg=True)
+    expert_create_cfg.policy.type = expert_create_cfg.policy.type + '_command'
+    env_fn = None if env_setting is None else env_setting[0]
+    cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+    expert_cfg = compile_config(
+        expert_cfg, seed=seed, env=env_fn, auto=True, create_cfg=expert_create_cfg, save_cfg=True
+    )
+    # 保留
     if cfg.policy.learn.multi_gpu:
         rank, world_size = dist_init()
     else:
         rank, world_size = 0, 1
     # Random seed
     set_pkg_seed(cfg.seed + rank, use_cuda=cfg.policy.cuda)
-
-    # Generate Expert Data
-    policy_model = DQN(obs_shape=cfg.policy.model.obs_shape, action_shape=cfg.policy.model.action_shape)
+    # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     else:
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
+
+    # Generate Expert Data
     if cfg.policy.collect.demonstration_model_path is None:
-        policy = BCOPolicy(cfg.policy, model=policy_model, enable_field=['learn', 'collect', 'eval'])
         with open(cfg.policy.collect.demonstration_offline_data_path, 'rb') as f:
             data = pickle.load(f)
             length = len(data)
@@ -187,36 +207,32 @@ def serial_pipeline_bco(cfg: dict, create_cfg: dict, seed: int, env_setting: Opt
             text_data_length = length - train_data_length
 
         learn_dataset = data[:train_data_length]
-        #eval_dataset = data[train_data_length:]
-        expert_learn_dataset = data_process_BCO_expertdata(learn_dataset)
-        #expert_eval_dataset = data_process_BCO_expertdata(eval_dataset)
+        expert_learn_dataset = load_expertdata(learn_dataset)
     else:
-        policy = BCOPolicy(cfg.policy, model=policy_model, enable_field=['learn', 'collect', 'eval'])
-        collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
-        '''
-        action_space = collector_env.env_info().act_space
-        random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-        collector.reset_policy(random_policy)
-        collect_kwargs = commander.step()
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
-        '''
-
-        policy.collect_mode.load_state_dict(torch.load(cfg.policy.collect.demonstration_model_path, map_location='cpu'))
-        collector = create_serial_collector(
-            cfg.policy.collect.collector, env=collector_env, policy=policy.collect_mode, exp_name=cfg.exp_name
+        # TODO(lisong):cfg should be expert_cfg. we set this as cfg to avoid the issue of eps
+        expert_policy = create_policy(cfg.policy, model=expert_model, enable_field=['collect'])
+        expert_collector_env = create_env_manager(
+            expert_cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg]
+        )
+        expert_collector_env.seed(cfg.seed)
+        expert_policy.collect_mode.load_state_dict(
+            torch.load(cfg.policy.collect.demonstration_model_path, map_location='cpu')
         )
 
-        learn_dataset = collector.collect(n_sample=100000)
-        #eval_dataset = collector.collect(n_sample=100000)
-        expert_learn_dataset = data_process_BCO_expertdata(learn_dataset)
-        #expert_eval_dataset = data_process_BCO_expertdata(eval_dataset)
-        collector.reset_policy(policy.collect_mode)
-        #check??
+        expert_collector = create_serial_collector(
+            cfg.policy.collect.collector,  # for episode collector 
+            env=expert_collector_env,
+            policy=expert_policy.collect_mode,
+            exp_name=expert_cfg.exp_name
+        )
+
+        expert_data = expert_collector.collect(n_episode=10)
+        expert_learn_dataset = load_expertdata(expert_data)
+        expert_collector.reset_policy(expert_policy.collect_mode)
 
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
+    policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
@@ -232,46 +248,49 @@ def serial_pipeline_bco(cfg: dict, create_cfg: dict, seed: int, env_setting: Opt
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
+    learned_model = InverseDynamicsModel(cfg.policy.model.obs_shape, cfg.policy.model.action_shape)
+
     # ==========
     # Main loop
     # ==========
-    #replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)  #??
-    #commander = BaseSerialCommander(
-    #    cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
-    #)
     learner.call_hook('before_run')
     end = time.time()
-    learned_model = None
     m = nn.Softmax(dim=-1)
     for epoch in range(cfg.policy.learn.train_epoch):
-        #collect_kwargs = commander.step()
-        if learned_model is None:
-            learned_model = InverseDynamicsModel(
-                cfg.policy.model.obs_shape,
-                cfg.policy.model.action_shape,
-            )
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
-            stop, reward = evaluator.eval(learner.save_checkpoint, epoch, 0)
+            stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        new_data = collector.collect(train_iter=learner.train_iter)
-        learn_dataset = data_process_BCO_agentdata(new_data)
+
+        # Improve InverseDynamicsModel by agent data.(produced by policy)
+        # TODO(lisong): why all data['action'] is 1?
+        new_data = collector.collect(n_episode=cfg.policy.collect.n_episode, train_iter=learner.train_iter)
+        learn_dataset = load_agentdata(new_data)
         learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.batch_size, sampler=None, num_workers=3)
         for i, train_data in enumerate(learn_dataloader):
             learned_model = train_state_trainsition_model(train_data, learned_model, 10)
-        expert_learn_dataset_obj = BCODataset(
-            expert_learn_dataset[:, 0:int(expert_learn_dataset.shape[1] / 2)],
-            torch.argmax(m(learned_model(expert_learn_dataset)), -1)
-        )
+        # Generate state transitions from demonstrated state trajectories by IDM
+        expert_action_data = torch.argmax(m(learned_model.forward(expert_learn_dataset.obs)['logit']), -1)
+        post_expert_dataset = BCODataset(
+            {
+                'obs': expert_learn_dataset.obs[:, 0:int(expert_learn_dataset.obs.shape[1] / 2)],
+                'action': expert_action_data
+            }
+        )  # post_expert_dataset: Only obs and action are reserved for BC. next_obs are deleted
         expert_learn_dataloader = DataLoader(
-            expert_learn_dataset_obj, cfg.policy.learn.batch_size, sampler=None, num_workers=3
+            post_expert_dataset, cfg.policy.learn.batch_size, sampler=None, num_workers=3
         )
+        # Improve policy using BC
         for i, train_data in enumerate(expert_learn_dataloader):
             learner.data_time = time.time() - end
             learner.epoch_info = (epoch, i, len(learn_dataloader))
-            learner.train(train_data)
+            learner.train(train_data, collector.envstep)
             end = time.time()
         learner.policy.get_attribute('lr_scheduler').step()
 
+        if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
+            break
+
+    # Learner's after_run hook.
     learner.call_hook('after_run')

@@ -19,7 +19,7 @@ from ding.utils import POLICY_REGISTRY
 @POLICY_REGISTRY.register('bco')
 class BCOPolicy(Policy):
     config = dict(
-        type='bc',
+        type='bco',
         on_policy=False,
         collect=dict(
             # (int) Only one of [n_sample, n_step, n_episode] shoule be set
@@ -45,8 +45,6 @@ class BCOPolicy(Policy):
         self._optimizer = SGD(
             self._model.parameters(),
             lr=self._cfg.learn.learning_rate,
-            weight_decay=self._cfg.learn.weight_decay,
-            momentum=0.9
         )
         self._timer = EasyTimer(cuda=True)
 
@@ -54,11 +52,11 @@ class BCOPolicy(Policy):
             if epoch <= self._cfg.learn.warmup_epoch:
                 return self._cfg.learn.warmup_lr / self._cfg.learn.learning_rate
             else:
-                ratio = epoch // self._cfg.learn.decay_epoch
+                ratio = (epoch - self._cfg.learn.warmup_epoch) // self._cfg.learn.decay_epoch
                 return math.pow(self._cfg.learn.decay_rate, ratio)
 
         self._lr_scheduler = LambdaLR(self._optimizer, lr_scheduler_fn)
-        self._lr_scheduler.step()
+
         self._learn_model = model_wrap(self._model, 'base')
         self._learn_model.reset()
 
@@ -68,13 +66,17 @@ class BCOPolicy(Policy):
         if self._cuda:
             data = to_device(data, self._device)
         self._learn_model.train()
-
+        # ====================
+        # forward
+        # ====================
         with self._timer:
             obs, action = data['obs'], data['action']
             a_logit = self._learn_model.forward(obs)
             loss = self._ce_loss(a_logit['logit'], action)
         forward_time = self._timer.value
-
+        # ====================
+        # update
+        # ====================
         with self._timer:
             self._optimizer.zero_grad()
             loss.backward()
@@ -85,9 +87,7 @@ class BCOPolicy(Policy):
                 self.sync_gradients(self._learn_model)
         sync_time = self._timer.value
         self._optimizer.step()
-
-        cur_lr = [param_group['lr'] for param_group in self._optimizer.param_groups]
-        cur_lr = sum(cur_lr) / len(cur_lr)
+        cur_lr = self._lr_scheduler.get_last_lr()[0]
         return {
             'cur_lr': cur_lr,
             'total_loss': loss.item(),
@@ -189,3 +189,6 @@ class BCOPolicy(Policy):
         """
         data = get_nstep_return_data(data, 1, 1)
         return get_train_sample(data, self._unroll_len)
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        return 'bc', ['ding.model.template.bc']

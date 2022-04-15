@@ -37,5 +37,4 @@ from .command_mode_policy_instance import *
 
 from .policy_factory import PolicyFactory
 from .pdqn import PDQNPolicy
-from .bc import BehaviourCloningPolicy
 from .bco import BCOPolicy

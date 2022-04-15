@@ -1,7 +1,9 @@
+from gc import collect
 from easydict import EasyDict
+from cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 
 cartpole_expert_model_config = dict(
-    exp_name='cartpole_expert_model',
+    exp_name='cartpole_bco',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -28,23 +30,13 @@ cartpole_expert_model_config = dict(
             warmup_lr=1e-4,
             warmup_epoch=3,
             weight_decay=1e-4,
-            learner=dict(
-                log_show_freq=10,
-                hook=dict(
-                    log_show_after_iter=int(1e9),  # use user-defined hook, disable it
-                    save_ckpt_after_iter=1000,
-                )
-            )
         ),
         collect=dict(
-            n_sample=96,
-            demonstration_model_path='/home/lisong/Projects/BCO/DI-engine/cartpole_dqn/ckpt/ckpt_best.pth.tar',
-            demonstration_offline_data_path='/home/lisong/Projects/BCO/DI-engine/cartpole_dqn/expert_data.pkl',
+            n_episode=10,
+            demonstration_model_path='abs model path',
+            demonstration_offline_data_path='abs data path',
         ),
-        eval=dict(batch_size=32, evaluator=dict(eval_freq=1, multi_gpu=False, stop_value=dict(
-            loss=0.5,
-            acc=75.0,
-        ))),
+        eval=dict(evaluator=dict(eval_freq=40, )),
     ),
 )
 cartpole_expert_model_config = EasyDict(cartpole_expert_model_config)
@@ -55,11 +47,14 @@ cartpole_expert_model_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='bc'),
+    policy=dict(type='bco'),
+    collector=dict(type='episode')
 )
 cartpole_expert_model_create_config = EasyDict(cartpole_expert_model_create_config)
 create_config = cartpole_expert_model_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_bco
-    serial_pipeline_bco(main_config, create_config, 0)
+    serial_pipeline_bco(
+        [main_config, create_config], [cartpole_dqn_config, cartpole_dqn_create_config], seed=0, max_env_step=10000
+    )
