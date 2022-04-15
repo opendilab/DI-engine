@@ -3,12 +3,10 @@ from typing import Any, List, Tuple
 import gym
 import copy
 from easydict import EasyDict
-from namedlist import namedlist
 from collections import namedtuple
 from ding.utils import import_module, ENV_REGISTRY
 
 BaseEnvTimestep = namedtuple('BaseEnvTimestep', ['obs', 'reward', 'done', 'info'])
-BaseEnvInfo = namedlist('BaseEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space', 'use_wrappers'])
 
 
 class BaseEnv(ABC, gym.Env):

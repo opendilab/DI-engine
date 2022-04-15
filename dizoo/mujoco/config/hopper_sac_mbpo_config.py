@@ -1,10 +1,9 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_mbrl
 
 # environment hypo
-env_id = 'Walker2d-v2'
-obs_shape = 17
-action_shape = 6
+env_id = 'Hopper-v2'
+obs_shape = 11
+action_shape = 3
 
 # gpu
 cuda = True
@@ -15,7 +14,7 @@ rollout_retain = 4
 rollout_start_step = 20000
 rollout_end_step = 150000
 rollout_length_min = 1
-rollout_length_max = 1
+rollout_length_max = 15
 
 x0 = rollout_start_step
 y0 = rollout_length_min
@@ -26,12 +25,12 @@ set_rollout_length = lambda x: int(min(max(w * (x - x0) + b, y0), y1))
 set_buffer_size = lambda x: set_rollout_length(x) * rollout_batch_size * rollout_retain
 
 main_config = dict(
-    exp_name='walker2d_sac_mbpo_seed0',
+    exp_name='hopper_sac_mbpo_seed0',
     env=dict(
         env_id=env_id,
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=4,
+        collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
         n_evaluator_episode=8,
@@ -50,7 +49,7 @@ main_config = dict(
         ),
         learn=dict(
             update_per_collect=20,
-            batch_size=2048,
+            batch_size=256,
             learning_rate_q=3e-4,
             learning_rate_policy=3e-4,
             learning_rate_alpha=3e-4,
@@ -62,7 +61,7 @@ main_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            n_sample=8,
+            n_sample=1,
             unroll_len=1,
         ),
         command=dict(),
@@ -89,7 +88,7 @@ main_config = dict(
             reward_size=1,
             hidden_size=200,
             use_decay=True,
-            batch_size=2048,
+            batch_size=256,
             holdout_ratio=0.1,
             max_epochs_since_update=5,
             eval_freq=250,
@@ -122,5 +121,7 @@ create_config = dict(
 )
 create_config = EasyDict(create_config)
 
+
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline_mbrl
     serial_pipeline_mbrl((main_config, create_config), seed=0)
