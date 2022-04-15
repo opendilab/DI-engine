@@ -20,9 +20,9 @@ pong_dqn_gail_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='pong_dqn/expert_data_train.pkl',
-        expert_load_path='pong_dqn/ckpt/ckpt_best.pth.tar',
-        collect_count=300000,
+        data_path='pong_dqn/expert_data_train.pkl',
+        expert_model_path='pong_dqn/ckpt/ckpt_best.pth.tar',
+        collect_count=1000000,
         action_size=6
     ),
     policy=dict(
