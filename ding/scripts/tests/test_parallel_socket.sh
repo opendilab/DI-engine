@@ -20,8 +20,6 @@ do
 done
 echo "get ip: $ip"
 
-rm $tmp_file
-
 sleep $test_start_time
 echo "Network shutsown . . ."
 sudo iptables -A INPUT -p tcp -s $ip --dport 50516 -j DROP
