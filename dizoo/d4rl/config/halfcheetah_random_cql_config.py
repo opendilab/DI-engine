@@ -3,9 +3,9 @@
 from easydict import EasyDict
 
 main_config = dict(
-    exp_name="hopper_medium_cql_seed0",
+    exp_name="halfcheetah_expert_cql_seed0",
     env=dict(
-        env_id='hopper-medium-v0',
+        env_id='halfcheetah-expert-v0',
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
