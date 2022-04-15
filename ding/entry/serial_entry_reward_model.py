@@ -15,6 +15,7 @@ from ding.utils import set_pkg_seed
 from .utils import random_collect
 import copy
 
+
 def serial_pipeline_reward_model(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,

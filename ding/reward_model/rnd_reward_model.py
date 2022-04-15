@@ -129,7 +129,6 @@ class RndRewardModel(BaseRewardModel):
 
             rnd_reward = rnd_reward.to(data[0]['reward'].device)
             rnd_reward = torch.chunk(rnd_reward, rnd_reward.shape[0], dim=0)
-
         """NOTE: 
         Following normalization approach to extrinsic reward is not reasonable,
         because this approach compresses the extrinsic reward magnitude, resulting in less informative reward signals.
