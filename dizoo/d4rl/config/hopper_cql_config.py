@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-hopper_expert_cql_default_config = dict(
+hopper_cql_config = dict(
     env=dict(
         env_id='hopper-expert-v0',
         norm_obs=dict(use_norm=False, ),
@@ -47,10 +47,10 @@ hopper_expert_cql_default_config = dict(
     ),
 )
 
-hopper_expert_cql_default_config = EasyDict(hopper_expert_cql_default_config)
-main_config = hopper_expert_cql_default_config
+hopper_cql_config = EasyDict(hopper_cql_config)
+main_config = hopper_cql_config
 
-hopper_expert_cql_default_create_config = dict(
+hopper_cql_create_config = dict(
     env=dict(
         type='d4rl',
         import_names=['dizoo.d4rl.envs.d4rl_env'],
@@ -62,5 +62,5 @@ hopper_expert_cql_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_expert_cql_default_create_config = EasyDict(hopper_expert_cql_default_create_config)
-create_config = hopper_expert_cql_default_create_config
+hopper_cql_create_config = EasyDict(hopper_cql_create_config)
+create_config = hopper_cql_create_config

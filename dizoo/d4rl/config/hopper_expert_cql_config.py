@@ -1,8 +1,10 @@
+from cv2 import exp
 from easydict import EasyDict
 
-hopper_medium_cql_default_config = dict(
+hopper_expert_cql_config = dict(
+    exp_name="hopper_expert_cql_seed0",
     env=dict(
-        env_id='hopper-medium-v0',
+        env_id='hopper-expert-v0',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=1,
@@ -47,10 +49,10 @@ hopper_medium_cql_default_config = dict(
     ),
 )
 
-hopper_medium_cql_default_config = EasyDict(hopper_medium_cql_default_config)
-main_config = hopper_medium_cql_default_config
+hopper_expert_cql_config = EasyDict(hopper_expert_cql_config)
+main_config = hopper_expert_cql_config
 
-hopper_medium_cql_default_create_config = dict(
+hopper_expert_cql_create_config = dict(
     env=dict(
         type='d4rl',
         import_names=['dizoo.d4rl.envs.d4rl_env'],
@@ -62,5 +64,5 @@ hopper_medium_cql_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_medium_cql_default_create_config = EasyDict(hopper_medium_cql_default_create_config)
-create_config = hopper_medium_cql_default_create_config
+hopper_expert_cql_create_config = EasyDict(hopper_expert_cql_create_config)
+create_config = hopper_expert_cql_create_config

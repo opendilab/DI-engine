@@ -1,6 +1,7 @@
 from typing import Any, Union, List
 import copy
 import numpy as np
+import gym
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
@@ -322,6 +323,12 @@ class D4RLEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env(only_info=False)
+            self._env.observation_space.dtype=np.float32 # To unify the format of envs in DI-engine
+            self._observation_space = self._env.observation_space
+            self._action_space = self._env.action_space
+            self._reward_space = gym.spaces.Box(
+                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
+            )
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -395,3 +402,15 @@ class D4RLEnv(BaseEnv):
         evaluator_env_num = evaluator_cfg.pop('evaluator_env_num', 1)
         evaluator_cfg.norm_reward.use_norm = False
         return [evaluator_cfg for _ in range(evaluator_env_num)]
+
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space

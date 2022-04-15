@@ -1,4 +1,4 @@
-from dizoo.d4rl.config.hopper_expert_cql_config import main_config, create_config
+from dizoo.d4rl.config.hopper_td3bc_medium_expert_config import main_config, create_config
 from ding.entry import serial_pipeline_offline
 import os
 
