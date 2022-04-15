@@ -52,7 +52,13 @@ cartpole_sqil_create_config = dict(
 cartpole_sqil_create_config = EasyDict(cartpole_sqil_create_config)
 create_config = cartpole_sqil_create_config
 
-if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_sqil_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+if __name__ == '__main__':
+    # or you can enter `ding -m serial_sqil -c cartpole_sqil_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. spaceinvaders_dqn_config.py
+    from ding.entry import serial_pipeline_sqil
+    from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config
+
+    expert_main_config = cartpole_dqn_config
+    expert_create_config = cartpole_dqn_create_config
+    serial_pipeline_sqil((main_config, create_config), (expert_main_config, expert_create_config), seed=0)

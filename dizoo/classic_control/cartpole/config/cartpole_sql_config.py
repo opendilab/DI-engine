@@ -48,4 +48,5 @@ create_config = cartpole_sql_create_config
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c cartpole_sql_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+
+    serial_pipeline((main_config, create_config), seed=0)

@@ -59,6 +59,13 @@ cartpole_dqfd_create_config = EasyDict(cartpole_dqfd_create_config)
 create_config = cartpole_dqfd_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_dqfd_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+    # or you can enter `ding -m serial_dqfd -c cartpole_dqfd_config.py -s 0`
+    # then input ``cartpole_dqfd_config.py`` upon the instructions.
+    # The reason we need to input the dqfd config is we have to borrow its ``_get_train_sample`` function
+    # in the collector part even though the expert model may be generated from other Q learning algos.
+    from ding.entry.serial_entry_dqfd import serial_pipeline_dqfd
+    from dizoo.classic_control.cartpole.config import cartpole_dqfd_config, cartpole_dqfd_create_config
+
+    expert_main_config = cartpole_dqfd_config
+    expert_create_config = cartpole_dqfd_create_config
+    serial_pipeline_dqfd((main_config, create_config), (expert_main_config, expert_create_config), seed=0)

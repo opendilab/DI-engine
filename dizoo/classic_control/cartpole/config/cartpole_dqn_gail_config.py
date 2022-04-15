@@ -63,6 +63,17 @@ cartpole_dqn_gail_create_config = EasyDict(cartpole_dqn_gail_create_config)
 create_config = cartpole_dqn_gail_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_dqn_gail_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+    # or you can enter `ding -m serial_gail -c cartpole_dqn_gail_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. cartpole_dqn_config.py
+    from ding.entry import serial_pipeline_gail
+    from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config
+
+    expert_main_config = cartpole_dqn_config
+    expert_create_config = cartpole_dqn_create_config
+    serial_pipeline_gail(
+        (main_config, create_config), (expert_main_config, expert_create_config),
+        max_env_step=1000000,
+        seed=0,
+        collect_data=True
+    )

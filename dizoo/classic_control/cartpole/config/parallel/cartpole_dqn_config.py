@@ -97,4 +97,5 @@ system_config = cartpole_dqn_system_config
 
 if __name__ == '__main__':
     from ding.entry.parallel_entry import parallel_pipeline
-    parallel_pipeline([main_config, create_config, system_config], seed=0)
+
+    parallel_pipeline((main_config, create_config, system_config), seed=0)
