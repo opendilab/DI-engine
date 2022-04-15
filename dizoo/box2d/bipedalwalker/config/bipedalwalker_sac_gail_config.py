@@ -22,23 +22,17 @@ bipedalwalker_sac_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        # Users should add their own expert data path here.
-        # Expert data path should lead to a file to store data or load the stored data.
-        # It is the path where the expert data is stored
-        # Absolute path is recommended.
-        # In DI-engine, it is usually located in ``exp_name`` directory
-        expert_data_path='expert_data_path_placeholder',
-        # Users should add their expert load path here. Expert load path should lead to a model.
-        # It is the path where the expert state_dict is stored
+        # Users should add their own model path here. Model path should lead to a model.
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-        expert_load_path='expert_load_path_placeholder',
-        collect_count=100000,
-        # Users should add their own load path here. Load path should lead to a model.
-        # It is the path where the state_dict of reward model is stored
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='data_path_placeholder+/reward_model/ckpt/ckpt_best.pth.tar',
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
         # Absolute path is recommended.
-        # In DI-engine, it is ``exp_name/reward_model/ckpt/ckpt_best.pth.tar``
-        load_path='load_path_placeholder',
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        data_path='data_path_placeholder',
+        collect_count=100000,
     ),
     policy=dict(
         cuda=False,
