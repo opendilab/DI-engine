@@ -200,10 +200,10 @@ class EpisodicNGURewardModel(BaseRewardModel):
 
         if s > siminarity_max:
             print('s > siminarity_max:', s.max(), s.min())
-            return torch.tensor(0)  # todo
+            return torch.tensor(0)  # NOTE
         if torch.isnan(s):
             print('torch.isnan(s):', s.max(), s.min())
-            return torch.tensor(0)  # todo
+            return torch.tensor(0)  # NOTE
         return 1 / s
         # torch.tensor(1 / s)
         # average value 1/( ( 10* 1e-4/(1+1e-4) )**(1/2)+1e-3 ) = 30
@@ -249,7 +249,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
                         episodic_reward[i].append(reward)
 
                 if torch.nonzero(torch.tensor(is_null[i]).float()).shape[0] != 0:
-                    # TODO if have null padding, the episodic_reward should be 0
+                    # TODO(pu): if have null padding, the episodic_reward should be 0
                     not_null_index = torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)
                     null_start_index = int(torch.nonzero(torch.tensor(is_null[i]).float()).squeeze(-1)[0])
                     # add the number of null transitions in i'th sequence in batch
@@ -262,14 +262,14 @@ class EpisodicNGURewardModel(BaseRewardModel):
             # list(list(tensor)) - > tensor
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
             # stack batch dim
-            episodic_reward = torch.stack(tmp, dim=0)  # TODO image
+            episodic_reward = torch.stack(tmp, dim=0)  # TODO(pu): image case
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
             episodic_reward_real_mean = sum(episodic_reward) / (
                 batch_size * seq_length - null_cnt
-            )  # TODO recompute mean
+            )  # TODO(pu): recompute mean
             self.estimate_cnt_episodic += 1
-            self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())  # .cpu().numpy() # TODO
+            self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())
 
             self.tb_logger.add_scalar(
                 'episodic_reward/episodic_reward_max', episodic_reward.max(), self.estimate_cnt_episodic

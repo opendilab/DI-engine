@@ -9,13 +9,13 @@ minigrid_ppo_ngu_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=5,
-        # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
+        # MiniGrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
         env_id='MiniGrid-DoorKey-16x16-v0',
         max_step=300,
         stop_value=0.96,
     ),
     rnd_reward_model=dict(
-        intrinsic_reward_type='add',  # 'assign'
+        intrinsic_reward_type='add',
         learning_rate=5e-4,
         obs_shape=2739,
         action_shape=7,
