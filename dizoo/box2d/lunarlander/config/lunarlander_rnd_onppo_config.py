@@ -17,6 +17,7 @@ lunarlander_ppo_rnd_config = dict(
         obs_shape=8,
         batch_size=320,
         update_per_collect=4,
+        clear_buffer_per_iters=10,
     ),
     policy=dict(
         recompute_adv=True,
@@ -63,5 +64,5 @@ lunarlander_ppo_rnd_create_config = EasyDict(lunarlander_ppo_rnd_create_config)
 create_config = lunarlander_ppo_rnd_create_config
 
 if __name__ == "__main__":
-    from ding.entry import serial_pipeline_reward_model
-    serial_pipeline_reward_model([main_config, create_config], seed=0)
+    from ding.entry import serial_pipeline_reward_model_onpolicy
+    serial_pipeline_reward_model_onpolicy([main_config, create_config], seed=0)
