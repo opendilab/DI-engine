@@ -1,18 +1,15 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_gail
-from lunarlander_dqn_config import lunarlander_dqn_default_config, lunarlander_dqn_create_config
 
 nstep = 1
-lunarlander_dqn_gail_default_config = dict(
-    exp_name='lunarlander_dqn_gail',
+lunarlander_dqn_gail_config = dict(
+    exp_name='lunarlander_dqn_gail_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, ),
         # Env number respectively for collector and evaluator.
         collector_env_num=8,
-        evaluator_env_num=5,
+        evaluator_env_num=8,
         env_id='LunarLander-v2',
-        n_evaluator_episode=5,
+        n_evaluator_episode=8,
         stop_value=200,
     ),
     reward_model=dict(
@@ -22,13 +19,20 @@ lunarlander_dqn_gail_default_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='lunarlander_dqn/expert_data.pkl',  # path where the expert data is stored
-        expert_load_path='lunarlander_dqn/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
         collect_count=100000,
-        load_path='lunarlander_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='data_path_placeholder+/reward_model/ckpt/ckpt_best.pth.tar',
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # e.g. 'exp_name/expert_data.pkl'
+        data_path='data_path_placeholder',
     ),
     policy=dict(
-        load_path='lunarlander_dqn_gail/ckpt/ckpt_best.pth.tar',
         # Whether to use cuda for network.
         cuda=False,
         # Whether the RL algorithm is on-policy or off-policy.
@@ -74,8 +78,8 @@ lunarlander_dqn_gail_default_config = dict(
         ),
     ),
 )
-lunarlander_dqn_gail_default_config = EasyDict(lunarlander_dqn_gail_default_config)
-main_config = lunarlander_dqn_gail_default_config
+lunarlander_dqn_gail_config = EasyDict(lunarlander_dqn_gail_config)
+main_config = lunarlander_dqn_gail_config
 
 lunarlander_dqn_gail_create_config = dict(
     env=dict(
@@ -89,8 +93,16 @@ lunarlander_dqn_gail_create_config = EasyDict(lunarlander_dqn_gail_create_config
 create_config = lunarlander_dqn_gail_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial_gail -c lunarlander_dqn_gail_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. lunarlander_dqn_config.py
+    from ding.entry import serial_pipeline_gail
+    from dizoo.box2d.lunarlander.config import lunarlander_dqn_config, lunarlander_dqn_create_config
+    expert_main_config = lunarlander_dqn_config
+    expert_create_config = lunarlander_dqn_create_config
     serial_pipeline_gail(
-        [main_config, create_config], [lunarlander_dqn_default_config, lunarlander_dqn_create_config],
+        [main_config, create_config], [expert_main_config, expert_create_config],
+        max_env_step=1000000,
         seed=0,
         collect_data=True
     )

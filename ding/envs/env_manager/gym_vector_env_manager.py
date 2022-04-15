@@ -5,7 +5,7 @@ from easydict import EasyDict
 from collections import namedtuple
 from gym.vector.async_vector_env import AsyncVectorEnv
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
 from .base_env_manager import BaseEnvManager

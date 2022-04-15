@@ -1,24 +1,24 @@
 from easydict import EasyDict
 
-lunarlander_trex_ppo_config = dict(
-    exp_name='lunarlander_trex_offppo_seed0',
+hopper_trex_sac_config = dict(
+    exp_name='hopper_trex_sac_seed0',
     env=dict(
-        collector_env_num=8,
+        env_id='Hopper-v3',
+        norm_obs=dict(use_norm=False, ),
+        norm_reward=dict(use_norm=False, ),
+        collector_env_num=1,
         evaluator_env_num=8,
-        env_id='LunarLander-v2',
+        use_act_scale=True,
         n_evaluator_episode=8,
-        stop_value=200,
+        stop_value=6000,
     ),
     reward_model=dict(
-        type='trex',
-        algo_for_model='ppo',
-        env_id='LunarLander-v2',
+        learning_rate=1e-5,
         min_snippet_length=30,
         max_snippet_length=100,
         checkpoint_min=1000,
         checkpoint_max=9000,
         checkpoint_step=1000,
-        learning_rate=1e-5,
         update_per_collect=1,
         # Users should add their own model path here. Model path should lead to a model.
         # Absolute path is recommended.
@@ -26,7 +26,7 @@ lunarlander_trex_ppo_config = dict(
         # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
         expert_model_path='model_path_placeholder',
         # Path where to store the reward model
-        reward_model_path='data_path_placeholder + /lunarlander.params',
+        reward_model_path='data_path_placeholder + /Hopper.params',
         # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
         # Absolute path is recommended.
         # In DI-engine, it is usually located in ``exp_name`` directory
@@ -35,44 +35,59 @@ lunarlander_trex_ppo_config = dict(
     ),
     policy=dict(
         cuda=True,
+        random_collect_size=10000,
         model=dict(
-            obs_shape=8,
-            action_shape=4,
+            obs_shape=11,
+            action_shape=3,
+            twin_critic=True,
+            action_space='reparameterization',
+            actor_head_hidden_size=256,
+            critic_head_hidden_size=256,
         ),
         learn=dict(
-            update_per_collect=4,
-            batch_size=64,
-            learning_rate=0.001,
-            value_weight=0.5,
-            entropy_weight=0.01,
-            clip_ratio=0.2,
-            nstep=1,
-            nstep_return=False,
-            adv_norm=True,
+            update_per_collect=1,
+            batch_size=256,
+            learning_rate_q=1e-3,
+            learning_rate_policy=1e-3,
+            learning_rate_alpha=3e-4,
+            ignore_done=False,
+            target_theta=0.005,
+            discount_factor=0.99,
+            alpha=0.2,
+            reparameterization=True,
+            auto_alpha=False,
         ),
         collect=dict(
-            n_sample=128,
+            n_sample=1,
             unroll_len=1,
-            discount_factor=0.99,
-            gae_lambda=0.95,
         ),
+        command=dict(),
+        eval=dict(),
+        other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     ),
 )
-lunarlander_trex_ppo_config = EasyDict(lunarlander_trex_ppo_config)
-main_config = lunarlander_trex_ppo_config
-lunarlander_trex_ppo_create_config = dict(
+
+hopper_trex_sac_config = EasyDict(hopper_trex_sac_config)
+main_config = hopper_trex_sac_config
+
+hopper_trex_sac_create_config = dict(
     env=dict(
-        type='lunarlander',
-        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
+        type='mujoco',
+        import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo_offpolicy'),
+    policy=dict(
+        type='sac',
+        import_names=['ding.policy.sac'],
+    ),
+    replay_buffer=dict(type='naive', ),
 )
-lunarlander_trex_ppo_create_config = EasyDict(lunarlander_trex_ppo_create_config)
-create_config = lunarlander_trex_ppo_create_config
+hopper_trex_sac_create_config = EasyDict(hopper_trex_sac_create_config)
+create_config = hopper_trex_sac_create_config
+
 
 if __name__ == '__main__':
-    # Users should first run ``lunarlander_offppo_config.py`` to save models (or checkpoints).
+    # Users should first run ``hopper_sac_config.py`` to save models (or checkpoints).
     # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
     # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
     import argparse

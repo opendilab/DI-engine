@@ -1,23 +1,24 @@
 from easydict import EasyDict
 
-lunarlander_trex_ppo_config = dict(
-    exp_name='lunarlander_trex_offppo_seed0',
+walker2d_trex_onppo_config = dict(
+    exp_name='walker2d_trex_onppo_seed0',
     env=dict(
+        env_id='Walker2d-v3',
+        norm_obs=dict(use_norm=False, ),
+        norm_reward=dict(use_norm=False, ),
         collector_env_num=8,
-        evaluator_env_num=8,
-        env_id='LunarLander-v2',
-        n_evaluator_episode=8,
-        stop_value=200,
+        evaluator_env_num=10,
+        use_act_scale=True,
+        n_evaluator_episode=10,
+        stop_value=3000,
     ),
     reward_model=dict(
-        type='trex',
-        algo_for_model='ppo',
-        env_id='LunarLander-v2',
         min_snippet_length=30,
         max_snippet_length=100,
-        checkpoint_min=1000,
-        checkpoint_max=9000,
-        checkpoint_step=1000,
+        checkpoint_min=10000,
+        checkpoint_max=90000,
+        checkpoint_step=10000,
+        num_snippets=60000,
         learning_rate=1e-5,
         update_per_collect=1,
         # Users should add their own model path here. Model path should lead to a model.
@@ -26,7 +27,7 @@ lunarlander_trex_ppo_config = dict(
         # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
         expert_model_path='model_path_placeholder',
         # Path where to store the reward model
-        reward_model_path='data_path_placeholder + /lunarlander.params',
+        reward_model_path='data_path_placeholder + /Walker2d.params',
         # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
         # Absolute path is recommended.
         # In DI-engine, it is usually located in ``exp_name`` directory
@@ -35,50 +36,55 @@ lunarlander_trex_ppo_config = dict(
     ),
     policy=dict(
         cuda=True,
+        recompute_adv=True,
         model=dict(
-            obs_shape=8,
-            action_shape=4,
+            obs_shape=17,
+            action_shape=6,
+            action_space='continuous',
         ),
+        action_space='continuous',
         learn=dict(
-            update_per_collect=4,
+            epoch_per_collect=10,
             batch_size=64,
-            learning_rate=0.001,
+            learning_rate=3e-4,
             value_weight=0.5,
-            entropy_weight=0.01,
+            entropy_weight=0.0,
             clip_ratio=0.2,
-            nstep=1,
-            nstep_return=False,
             adv_norm=True,
+            value_norm=True,
         ),
         collect=dict(
-            n_sample=128,
+            n_sample=2048,
             unroll_len=1,
             discount_factor=0.99,
-            gae_lambda=0.95,
+            gae_lambda=0.97,
         ),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
     ),
 )
-lunarlander_trex_ppo_config = EasyDict(lunarlander_trex_ppo_config)
-main_config = lunarlander_trex_ppo_config
-lunarlander_trex_ppo_create_config = dict(
+walker2d_trex_onppo_config = EasyDict(walker2d_trex_onppo_config)
+main_config = walker2d_trex_onppo_config
+
+walker2d_trex_onppo_create_config = dict(
     env=dict(
-        type='lunarlander',
-        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
+        type='mujoco',
+        import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo_offpolicy'),
+    policy=dict(type='ppo', ),
 )
-lunarlander_trex_ppo_create_config = EasyDict(lunarlander_trex_ppo_create_config)
-create_config = lunarlander_trex_ppo_create_config
+walker2d_trex_onppo_create_config = EasyDict(walker2d_trex_onppo_create_config)
+create_config = walker2d_trex_onppo_create_config
+
 
 if __name__ == '__main__':
-    # Users should first run ``lunarlander_offppo_config.py`` to save models (or checkpoints).
+    # Users should first run ``walker2d_onppo_config.py`` to save models (or checkpoints).
     # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
     # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
     import argparse
     import torch
     from ding.entry import trex_collecting_data
-    from ding.entry import serial_pipeline_reward_model_trex
+    from ding.entry import serial_pipeline_reward_model_trex_onpolicy
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
     parser.add_argument('--seed', type=int, default=0)
@@ -86,4 +92,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_reward_model_trex([main_config, create_config])
+    serial_pipeline_reward_model_trex_onpolicy([main_config, create_config])
