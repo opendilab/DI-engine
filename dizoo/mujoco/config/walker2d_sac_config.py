@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-walker2d_sac_default_config = dict(
-    exp_name='walker2d_sac',
+walker2d_sac_config = dict(
+    exp_name='walker2d_sac_seed0',
     env=dict(
         env_id='Walker2d-v3',
         norm_obs=dict(use_norm=False, ),
@@ -46,20 +46,26 @@ walker2d_sac_default_config = dict(
     ),
 )
 
-walker2d_sac_default_config = EasyDict(walker2d_sac_default_config)
-main_config = walker2d_sac_default_config
+walker2d_sac_config = EasyDict(walker2d_sac_config)
+main_config = walker2d_sac_config
 
-walker2d_sac_default_create_config = dict(
+walker2d_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-walker2d_sac_default_create_config = EasyDict(walker2d_sac_default_create_config)
-create_config = walker2d_sac_default_create_config
+walker2d_sac_create_config = EasyDict(walker2d_sac_create_config)
+create_config = walker2d_sac_create_config
+
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c walker2d_sac_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline([main_config, create_config], seed=0)

@@ -1,16 +1,16 @@
 from easydict import EasyDict
 
-walker2d_d4pg_default_config = dict(
-    exp_name='walker2d_d4pg_seed',
+hopper_d4pg_config = dict(
+    exp_name='hopper_d4pg_seed0',
     env=dict(
-        env_id='Walker2d-v3',
+        env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
         collector_env_num=4,
         evaluator_env_num=4,
         use_act_scale=True,
         n_evaluator_episode=8,
-        stop_value=7000,
+        stop_value=5000,
     ),
     policy=dict(
         cuda=True,
@@ -18,18 +18,18 @@ walker2d_d4pg_default_config = dict(
         nstep=5,
         random_collect_size=10000,
         model=dict(
-            obs_shape=17,
-            action_shape=6,
+            obs_shape=11,
+            action_shape=3,
             actor_head_hidden_size=512,
             critic_head_hidden_size=512,
             action_space='regression',
             critic_head_type='categorical',
             v_min=0,
-            v_max=2000,  # [1000, 4000]
+            v_max=1000,  # 1000 ~ 3000
             n_atom=51,
         ),
         learn=dict(
-            update_per_collect=3,  # [1, 4]
+            update_per_collect=1,
             batch_size=256,
             learning_rate_actor=3e-4,
             learning_rate_critic=3e-4,
@@ -42,15 +42,15 @@ walker2d_d4pg_default_config = dict(
         collect=dict(
             n_sample=8,
             unroll_len=1,
-            noise_sigma=0.2,  # [0.1, 0.2]
+            noise_sigma=0.2,  # 0.1 ~ 0.2
         ),
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
-walker2d_d4pg_default_config = EasyDict(walker2d_d4pg_default_config)
-main_config = walker2d_d4pg_default_config
+hopper_d4pg_config = EasyDict(hopper_d4pg_config)
+main_config = hopper_d4pg_config
 
-walker2d_d4pg_default_create_config = dict(
+hopper_d4pg_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -61,9 +61,11 @@ walker2d_d4pg_default_create_config = dict(
         import_names=['ding.policy.d4pg'],
     ),
 )
-walker2d_d4pg_default_create_config = EasyDict(walker2d_d4pg_default_create_config)
-create_config = walker2d_d4pg_default_create_config
+hopper_d4pg_create_config = EasyDict(hopper_d4pg_create_config)
+create_config = hopper_d4pg_create_config
+
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c hopper_d4pg_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

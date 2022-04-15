@@ -1,9 +1,7 @@
 from easydict import EasyDict
 
-obs_shape = 11
-act_shape = 3
-hopper_gail_sac_config = dict(
-    exp_name='hopper_gail_sac_seed0',
+hopper_trex_sac_config = dict(
+    exp_name='hopper_trex_sac_seed0',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -15,29 +13,32 @@ hopper_gail_sac_config = dict(
         stop_value=6000,
     ),
     reward_model=dict(
-        input_size=obs_shape + act_shape,
-        hidden_size=256,
-        batch_size=64,
-        learning_rate=1e-3,
-        update_per_collect=100,
+        learning_rate=1e-5,
+        min_snippet_length=30,
+        max_snippet_length=100,
+        checkpoint_min=1000,
+        checkpoint_max=9000,
+        checkpoint_step=1000,
+        update_per_collect=1,
         # Users should add their own model path here. Model path should lead to a model.
         # Absolute path is recommended.
         # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
         expert_model_path='model_path_placeholder',
         # Path where to store the reward model
-        reward_model_path='data_path_placeholder+/reward_model/ckpt/ckpt_best.pth.tar',
+        reward_model_path='data_path_placeholder + /Hopper.params',
         # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
         # Absolute path is recommended.
         # In DI-engine, it is usually located in ``exp_name`` directory
+        # See ding/entry/application_entry_trex_collect_data.py to collect the data
         data_path='data_path_placeholder',
-        collect_count=100000,
     ),
     policy=dict(
         cuda=True,
-        random_collect_size=25000,
+        random_collect_size=10000,
         model=dict(
-            obs_shape=obs_shape,
-            action_shape=act_shape,
+            obs_shape=11,
+            action_shape=3,
             twin_critic=True,
             action_space='reparameterization',
             actor_head_hidden_size=256,
@@ -57,7 +58,7 @@ hopper_gail_sac_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            n_sample=64,
+            n_sample=1,
             unroll_len=1,
         ),
         command=dict(),
@@ -66,10 +67,10 @@ hopper_gail_sac_config = dict(
     ),
 )
 
-hopper_gail_sac_config = EasyDict(hopper_gail_sac_config)
-main_config = hopper_gail_sac_config
+hopper_trex_sac_config = EasyDict(hopper_trex_sac_config)
+main_config = hopper_trex_sac_config
 
-hopper_gail_sac_create_config = dict(
+hopper_trex_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -80,23 +81,24 @@ hopper_gail_sac_create_config = dict(
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
-    reward_model=dict(type='gail'),
 )
-hopper_gail_sac_create_config = EasyDict(hopper_gail_sac_create_config)
-create_config = hopper_gail_sac_create_config
+hopper_trex_sac_create_config = EasyDict(hopper_trex_sac_create_config)
+create_config = hopper_trex_sac_create_config
 
 
-if __name__ == "__main__":
-    # or you can enter `ding -m serial_gail -c hopper_gail_sac_config.py -s 0`
-    # then input the config you used to generate your expert model in the path mentioned above
-    # e.g. hopper_sac_config.py
-    from ding.entry import serial_pipeline_gail
-    from dizoo.mujoco.config.hopper_sac_config import hopper_sac_config, hopper_sac_create_config
-    expert_main_config = hopper_sac_config
-    expert_create_config = hopper_sac_create_config
-    serial_pipeline_gail(
-        [main_config, create_config], [expert_main_config, expert_create_config],
-        max_env_step=1000000,
-        seed=0,
-        collect_data=True
-    )
+if __name__ == '__main__':
+    # Users should first run ``hopper_sac_config.py`` to save models (or checkpoints).
+    # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
+    # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
+    import argparse
+    import torch
+    from ding.entry import trex_collecting_data
+    from ding.entry import serial_pipeline_reward_model_trex
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    args = parser.parse_args()
+    # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
+    trex_collecting_data(args)
+    serial_pipeline_reward_model_trex([main_config, create_config])
