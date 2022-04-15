@@ -1,19 +1,15 @@
-import torch
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_reward_model_ngu
-
-print(torch.cuda.is_available(), torch.__version__)
-collector_env_num = 32
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 8
 nstep = 5
 lunarlander_ngu_config = dict(
-    exp_name='debug_lunarlander_ngu_ul98_er01_rlbs1e5_n32',
+    exp_name='lunarlander_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         env_id='LunarLander-v2',
-        n_evaluator_episode=5,
+        n_evaluator_episode=8,
         stop_value=195,
     ),
     rnd_reward_model=dict(
@@ -27,6 +23,7 @@ lunarlander_ngu_config = dict(
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
+        type='rnd',
     ),
     episodic_reward_model=dict(
         intrinsic_reward_type='add',
@@ -39,6 +36,7 @@ lunarlander_ngu_config = dict(
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
+        type='episodic',
     ),
     policy=dict(
         cuda=True,
@@ -56,13 +54,13 @@ lunarlander_ngu_config = dict(
         ),
         learn=dict(
             update_per_collect=8,
-            batch_size=64,
+            batch_size=32,
             learning_rate=1e-4,
             target_update_theta=0.001,
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            each_iter_n_sample=320,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -90,8 +88,7 @@ lunarlander_ngu_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
-    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd'),
     episodic_reward_model=dict(type='episodic'),
@@ -101,4 +98,5 @@ lunarlander_ngu_create_config = EasyDict(lunarlander_ngu_create_config)
 create_config = lunarlander_ngu_create_config
 
 if __name__ == "__main__":
+    from ding.entry import serial_pipeline_reward_model_ngu
     serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
