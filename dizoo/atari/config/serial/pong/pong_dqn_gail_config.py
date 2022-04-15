@@ -1,4 +1,6 @@
 from easydict import EasyDict
+from ding.entry import serial_pipeline_gail
+from pong_dqn_config import pong_dqn_config, pong_dqn_create_config
 
 pong_dqn_gail_config = dict(
     exp_name='pong_dqn_gail',
@@ -19,12 +21,11 @@ pong_dqn_gail_config = dict(
         learning_rate=1e-3,
         update_per_collect=100,
         expert_data_path='pong_dqn/expert_data_train.pkl',
-        load_path='pong_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',  # state_dict of the reward model
-        collect_count=1000,
+        expert_load_path='pong_dqn/ckpt/ckpt_best.pth.tar',
+        collect_count=300000,
         action_size=6
     ),
     policy=dict(
-        load_path='pong_dqn_gail/ckpt/ckpt_best.pth.tar',
         cuda=True,
         priority=False,
         model=dict(
@@ -65,3 +66,9 @@ pong_dqn_gail_create_config = dict(
 )
 pong_dqn_gail_create_config = EasyDict(pong_dqn_gail_create_config)
 create_config = pong_dqn_gail_create_config
+
+if __name__ == '__main__':
+    serial_pipeline_gail([main_config, create_config],
+                         [pong_dqn_config, pong_dqn_create_config],
+                         max_env_step=10000000,
+                         seed=0, collect_data=1)
