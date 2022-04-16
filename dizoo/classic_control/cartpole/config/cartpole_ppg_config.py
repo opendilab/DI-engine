@@ -65,7 +65,13 @@ cartpole_ppg_create_config = EasyDict(cartpole_ppg_create_config)
 create_config = cartpole_ppg_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_ppg_config.py -s 0`
-    from ding.entry import serial_pipeline
+    # This config file can be executed by `dizoo/classic_control/cartpole/entry/cartpole_ppg_main.py`
+    import os
+    import warnings
 
-    serial_pipeline((main_config, create_config), seed=0)
+    from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main
+    from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import __file__ as _origin_py_file
+
+    origin_py_file_rel = os.path.relpath(_origin_py_file, os.path.abspath(os.path.curdir))
+    warnings.warn(UserWarning(f"This config file can be executed by {repr(origin_py_file_rel)}"))
+    main(cartpole_ppg_config)
