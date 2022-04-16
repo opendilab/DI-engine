@@ -57,7 +57,7 @@ cartpole_discrete_cql_create_config = EasyDict(cartpole_discrete_cql_create_conf
 create_config = cartpole_discrete_cql_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_cql_config.py -s 0`
+    # or you can enter `ding -m serial_offline -c cartpole_cql_config.py -s 0`
     from ding.entry import serial_pipeline_offline
 
     serial_pipeline_offline((main_config, create_config), seed=0)
