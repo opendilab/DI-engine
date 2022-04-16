@@ -30,9 +30,7 @@ main_config = dict(
             lagrange_thresh=-1.0,
             min_q_weight=5.0,
         ),
-        collect=dict(
-            data_type='d4rl',
-        ),
+        collect=dict(data_type='d4rl', ),
         eval=dict(evaluator=dict(eval_freq=500, )),
         other=dict(replay_buffer=dict(replay_buffer_size=2000000, ), ),
     ),

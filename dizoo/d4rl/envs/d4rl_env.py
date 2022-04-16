@@ -11,6 +11,7 @@ from ding.torch_utils import to_ndarray, to_list
 from .d4rl_wrappers import wrap_d4rl
 from ding.utils import ENV_REGISTRY
 
+
 @ENV_REGISTRY.register('d4rl')
 class D4RLEnv(BaseEnv):
 
@@ -22,7 +23,7 @@ class D4RLEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env(only_info=False)
-            self._env.observation_space.dtype=np.float32 # To unify the format of envs in DI-engine
+            self._env.observation_space.dtype = np.float32  # To unify the format of envs in DI-engine
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(

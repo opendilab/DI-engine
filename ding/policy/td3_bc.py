@@ -99,13 +99,13 @@ class TD3BCPolicy(DDPGPolicy):
             # Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).
             # Default True for TD3, False for DDPG.
             twin_critic=True,
-            
+
             # (str type) action_space: Use regression trick for continous action
             action_space='regression',
-            
+
             # (int) Hidden size for actor network head.
             actor_head_hidden_size=256,
-            
+
             # (int) Hidden size for critic network head.
             critic_head_hidden_size=256,
         ),
