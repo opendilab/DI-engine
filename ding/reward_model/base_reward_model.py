@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from easydict import EasyDict
 import copy
+from typing import Any
 from ding.utils import REWARD_MODEL_REGISTRY, import_module
 
 
@@ -19,7 +20,7 @@ class BaseRewardModel(ABC):
         return cfg
 
     @abstractmethod
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> Any:
         """
         Overview:
             estimate reward
@@ -75,7 +76,7 @@ class BaseRewardModel(ABC):
         """
         pass
 
-    def reward_deepcopy(self, train_data) -> list:
+    def reward_deepcopy(self, train_data) -> Any:
         """
         Overview:
             this method deepcopy reward part in train_data, and other parts keep shallow copy
@@ -83,7 +84,11 @@ class BaseRewardModel(ABC):
         Arguments:
             - train_data (:obj:`List`): the List of train data in which the reward part will be operated by deepcopy.
         """
-        pass
+        train_data_reward_deepcopy = [
+            {k: copy.deepcopy(v) if k == 'reward' else v
+             for k, v in sample.items()} for sample in train_data
+        ]
+        return train_data_reward_deepcopy
 
 
 def create_reward_model(cfg: dict, device: str, tb_logger: 'SummaryWriter') -> BaseRewardModel:  # noqa

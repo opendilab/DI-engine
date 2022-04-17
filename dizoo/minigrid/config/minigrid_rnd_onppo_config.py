@@ -3,13 +3,13 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 8
 minigrid_ppo_rnd_config = dict(
-    exp_name='minigrid_doorkey8_rnd_onppo_seed0',
+    exp_name='minigrid_empty8_rnd_onppo_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         # MiniGrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0','MiniGrid-DoorKey-16x16-v0'
-        env_id='MiniGrid-DoorKey-8x8-v0',
+        env_id='MiniGrid-Empty-8x8-v0',
         max_step=300,
         stop_value=0.96,
     ),

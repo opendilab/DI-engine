@@ -111,7 +111,11 @@ class RndRewardModel(BaseRewardModel):
         """
         Rewrite the reward key in each row of the data.
         """
-        obs = collect_states(data)
+        # NOTE: deepcopy reward part of train_data is very important,
+        # otherwise the reward of train_data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+
+        obs = collect_states(train_data_augmented)
         obs = torch.stack(obs).to(self.device)
         if self.cfg.obs_norm:
             # Note: observation normalization: transform obs to mean 0, std 1
@@ -132,7 +136,7 @@ class RndRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', rnd_reward.mean(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_min', rnd_reward.min(), self.estimate_cnt_rnd)
 
-            rnd_reward = rnd_reward.to(data[0]['reward'].device)
+            rnd_reward = rnd_reward.to(train_data_augmented[0]['reward'].device)
             rnd_reward = torch.chunk(rnd_reward, rnd_reward.shape[0], dim=0)
         """NOTE:
         Following normalization approach to extrinsic reward seems be not reasonable,
@@ -141,7 +145,7 @@ class RndRewardModel(BaseRewardModel):
         # rewards = torch.stack([data[i]['reward'] for i in range(len(data))])
         # rewards = (rewards - torch.min(rewards)) / (torch.max(rewards) - torch.min(rewards))
 
-        # TODO(pu): how to set intrinsic_reward_weight and intrinsic_reward_rescale automatically?
+        # TODO(pu): how to set intrinsic_reward_rescale automatically?
         if self.cfg.intrinsic_reward_weight is None:
             """Note: the following way of setting self.cfg.intrinsic_reward_weight is only suitable for the dense
             reward env like lunarlander, not suitable for the dense reward env.
@@ -152,11 +156,11 @@ class RndRewardModel(BaseRewardModel):
             self.cfg.intrinsic_reward_weight = self.intrinsic_reward_rescale * max(
                 1,
                 abs(
-                    max([data[i]['reward']
-                         for i in range(len(data))]) - min([data[i]['reward'] for i in range(len(data))])
+                    max([train_data_augmented[i]['reward'] for i in range(len(train_data_augmented))]) -
+                    min([train_data_augmented[i]['reward'] for i in range(len(train_data_augmented))])
                 )
             )
-        for item, rnd_rew in zip(data, rnd_reward):
+        for item, rnd_rew in zip(train_data_augmented, rnd_reward):
             if self.intrinsic_reward_type == 'add':
                 item['reward'] = item['reward'] + rnd_rew * self.cfg.intrinsic_reward_weight
             elif self.intrinsic_reward_type == 'new':
@@ -164,19 +168,10 @@ class RndRewardModel(BaseRewardModel):
             elif self.intrinsic_reward_type == 'assign':
                 item['reward'] = rnd_rew
 
+        return train_data_augmented
+
     def collect_data(self, data: list) -> None:
         self.train_obs.extend(collect_states(data))
 
     def clear_data(self) -> None:
         self.train_obs.clear()
-
-    def reward_deepcopy(self, train_data):
-        """
-        this method deepcopy reward part in train_data, and other parts keep shallow copy
-        to avoid the reward part of train_data in the replay buffer be incorrectly modified.
-        """
-        train_data_reward_deepcopy = [
-            {k: copy.deepcopy(v) if k == 'reward' else v
-             for k, v in sample.items()} for sample in train_data
-        ]
-        return train_data_reward_deepcopy

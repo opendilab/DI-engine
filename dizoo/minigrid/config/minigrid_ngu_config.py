@@ -1,14 +1,14 @@
 from easydict import EasyDict
 
-collector_env_num = 32
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 8
 nstep = 5
 minigrid_ppo_ngu_config = dict(
-    exp_name='debug_minigrid_doorkey_ngu_seed0',
+    exp_name='minigrid_doorkey_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
+        n_evaluator_episode=evaluator_env_num,
         # MiniGrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
         env_id='MiniGrid-DoorKey-16x16-v0',
         max_step=300,

@@ -1,6 +1,5 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
-import copy
 import torch
 import logging
 from functools import partial
@@ -8,11 +7,10 @@ from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
-from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator  # TODO
+from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.reward_model import create_reward_model
-from ding.reward_model.ngu_reward_model import fusion_reward
 from ding.utils import set_pkg_seed
 from .utils import random_collect
 
@@ -134,15 +132,13 @@ def serial_pipeline_reward_model_ngu(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # NOTE: deepcopy reward part of train_data is very important,
-            # otherwise the reward of train_data in the replay buffer will be incorrectly modified.
-            train_data_augmented = rnd_reward_model.reward_deepcopy(train_data)
+            # calculate the inter-episodic and episodic intrinsic reward
+            rnd_reward = rnd_reward_model.estimate(train_data)
+            episodic_reward = episodic_reward_model.estimate(train_data)
 
-            # update train_data reward
-            rnd_reward = rnd_reward_model.estimate(train_data_augmented)
-            episodic_reward = episodic_reward_model.estimate(train_data_augmented)
-            train_data_augmented, estimate_cnt = fusion_reward(
-                train_data_augmented,
+            # update train_data reward using the augmented reward
+            train_data_augmented, estimate_cnt = episodic_reward_model.fusion_reward(
+                train_data,
                 rnd_reward,
                 episodic_reward,
                 nstep=cfg.policy.nstep,

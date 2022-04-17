@@ -13,7 +13,6 @@ from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 from .utils import random_collect
-import copy
 
 
 def serial_pipeline_reward_model_onpolicy(
@@ -116,12 +115,8 @@ def serial_pipeline_reward_model_onpolicy(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # NOTE: deepcopy reward part of train_data is very important,
-            # otherwise the reward of train_data in the replay buffer will be incorrectly modified.
-            train_data_augmented = reward_model.reward_deepcopy(train_data)
-
-            # update train_data rewa
-            reward_model.estimate(train_data_augmented)
+            # update train_data reward using the augmented reward
+            train_data_augmented = reward_model.estimate(train_data)
             learner.train(train_data_augmented, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
