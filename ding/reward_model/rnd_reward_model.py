@@ -36,7 +36,7 @@ class RndNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                    format(obs_shape)
+                format(obs_shape)
             )
         for param in self.target.parameters():
             param.requires_grad = False
@@ -149,8 +149,13 @@ class RndRewardModel(BaseRewardModel):
             Thus, in sparse reward env, it's reasonable to set the intrinsic_reward_weight approximately equal to
              the inverse of max_episode_steps.
             """
-            self.cfg.intrinsic_reward_weight = self.intrinsic_reward_rescale * max(1, abs(max(
-                [data[i]['reward'] for i in range(len(data))]) - min([data[i]['reward'] for i in range(len(data))])))
+            self.cfg.intrinsic_reward_weight = self.intrinsic_reward_rescale * max(
+                1,
+                abs(
+                    max([data[i]['reward']
+                         for i in range(len(data))]) - min([data[i]['reward'] for i in range(len(data))])
+                )
+            )
         for item, rnd_rew in zip(data, rnd_reward):
             if self.intrinsic_reward_type == 'add':
                 item['reward'] = item['reward'] + rnd_rew * self.cfg.intrinsic_reward_weight
@@ -170,7 +175,8 @@ class RndRewardModel(BaseRewardModel):
         this method deepcopy reward part in train_data, and other parts keep shallow copy
         to avoid the reward part of train_data in the replay buffer be incorrectly modified.
         """
-        train_data_reward_deepcopy = [{k: copy.deepcopy(v) if k == 'reward' else v for k, v in sample.items()} for
-                                      sample
-                                      in train_data]
+        train_data_reward_deepcopy = [
+            {k: copy.deepcopy(v) if k == 'reward' else v
+             for k, v in sample.items()} for sample in train_data
+        ]
         return train_data_reward_deepcopy
