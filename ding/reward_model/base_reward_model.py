@@ -75,6 +75,16 @@ class BaseRewardModel(ABC):
         """
         pass
 
+    def reward_deepcopy(self, train_data) -> list:
+        """
+        Overview:
+            this method deepcopy reward part in train_data, and other parts keep shallow copy
+            to avoid the reward part of train_data in the replay buffer be incorrectly modified.
+        Arguments:
+            - train_data (:obj:`List`): the List of train data in which the reward part will be operated by deepcopy.
+        """
+        pass
+
 
 def create_reward_model(cfg: dict, device: str, tb_logger: 'SummaryWriter') -> BaseRewardModel:  # noqa
     """

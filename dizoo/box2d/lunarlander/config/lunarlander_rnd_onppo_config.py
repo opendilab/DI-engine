@@ -8,11 +8,19 @@ lunarlander_ppo_rnd_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         env_id='LunarLander-v2',
-        n_evaluator_episode=8,
+        n_evaluator_episode=evaluator_env_num,
         stop_value=200,
     ),
     reward_model=dict(
         intrinsic_reward_type='add',
+        intrinsic_reward_weight=None,
+        # means the relative weight of RND intrinsic_reward.
+        # If intrinsic_reward_weight=None, we will automatically set it based on
+        # the absolute value of the difference between max and min extrinsic reward in the sampled mini-batch
+        # please refer to rnd_reward_model for details.
+        intrinsic_reward_rescale=0.001,
+        # means the rescale value of RND intrinsic_reward only used when intrinsic_reward_weight is None
+        # please refer to rnd_reward_model for details.
         learning_rate=5e-4,
         obs_shape=8,
         batch_size=320,
@@ -21,10 +29,6 @@ lunarlander_ppo_rnd_config = dict(
         obs_norm_clamp_min=-1,
         obs_norm_clamp_max=1,
         clear_buffer_per_iters=10,
-        intrinsic_reward_weight=None,
-        # If intrinsic_reward_weight=None, we will automatically set it based on
-        # the absolute value of the max extrinsic reward in the sampled mini-batch
-        # please refer to rnd_reward_model for details.
     ),
     policy=dict(
         recompute_adv=True,

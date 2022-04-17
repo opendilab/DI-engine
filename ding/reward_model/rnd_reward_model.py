@@ -12,6 +12,7 @@ from ding.model import FCEncoder, ConvEncoder
 from .base_reward_model import BaseRewardModel
 from ding.utils import RunningMeanStd
 from ding.torch_utils.data_helper import to_tensor
+import copy
 
 
 def collect_states(iterator):
@@ -35,7 +36,7 @@ class RndNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
+                    format(obs_shape)
             )
         for param in self.target.parameters():
             param.requires_grad = False
@@ -60,14 +61,18 @@ class RndRewardModel(BaseRewardModel):
         obs_norm_clamp_min=-1,
         obs_norm_clamp_max=1,
         intrinsic_reward_weight=None,
+        # means the relative weight of RND intrinsic_reward.
         # If intrinsic_reward_weight=None, we will automatically set it based on
-        # the absolute value of the max extrinsic reward in the sampled mini-batch
+        # the absolute value of the difference between max and min extrinsic reward in the sampled mini-batch
         # please refer to  estimate() method for details.
+        intrinsic_reward_rescale=0.01,
+        # means the rescale value of RND intrinsic_reward only used when intrinsic_reward_weight is None
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
         super(RndRewardModel, self).__init__()
         self.cfg = config
+        self.intrinsic_reward_rescale = self.cfg.intrinsic_reward_rescale
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
         self.tb_logger = tb_logger
@@ -130,13 +135,13 @@ class RndRewardModel(BaseRewardModel):
             rnd_reward = rnd_reward.to(data[0]['reward'].device)
             rnd_reward = torch.chunk(rnd_reward, rnd_reward.shape[0], dim=0)
         """NOTE:
-        Following normalization approach to extrinsic reward is not reasonable,
+        Following normalization approach to extrinsic reward seems be not reasonable,
         because this approach compresses the extrinsic reward magnitude, resulting in less informative reward signals.
         """
         # rewards = torch.stack([data[i]['reward'] for i in range(len(data))])
         # rewards = (rewards - torch.min(rewards)) / (torch.max(rewards) - torch.min(rewards))
 
-        # TODO(pu): how to set intrinsic_reward_weight automatically?
+        # TODO(pu): how to set intrinsic_reward_weight and intrinsic_reward_rescale automatically?
         if self.cfg.intrinsic_reward_weight is None:
             """Note: the following way of setting self.cfg.intrinsic_reward_weight is only suitable for the dense
             reward env like lunarlander, not suitable for the dense reward env.
@@ -144,9 +149,9 @@ class RndRewardModel(BaseRewardModel):
             Thus, in sparse reward env, it's reasonable to set the intrinsic_reward_weight approximately equal to
              the inverse of max_episode_steps.
             """
-            self.cfg.intrinsic_reward_weight = 0.1 * max(1, abs(max([data[i]['reward'] for i in range(len(data))])))
+            self.cfg.intrinsic_reward_weight = self.intrinsic_reward_rescale * max(1, abs(max(
+                [data[i]['reward'] for i in range(len(data))]) - min([data[i]['reward'] for i in range(len(data))])))
         for item, rnd_rew in zip(data, rnd_reward):
-            item['reward'] = item['reward'].float()
             if self.intrinsic_reward_type == 'add':
                 item['reward'] = item['reward'] + rnd_rew * self.cfg.intrinsic_reward_weight
             elif self.intrinsic_reward_type == 'new':
@@ -159,3 +164,13 @@ class RndRewardModel(BaseRewardModel):
 
     def clear_data(self) -> None:
         self.train_obs.clear()
+
+    def reward_deepcopy(self, train_data):
+        """
+        this method deepcopy reward part in train_data, and other parts keep shallow copy
+        to avoid the reward part of train_data in the replay buffer be incorrectly modified.
+        """
+        train_data_reward_deepcopy = [{k: copy.deepcopy(v) if k == 'reward' else v for k, v in sample.items()} for
+                                      sample
+                                      in train_data]
+        return train_data_reward_deepcopy

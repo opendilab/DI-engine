@@ -81,7 +81,7 @@ class InverseNetwork(nn.Module):
         else:
             raise KeyError(
                 "not support obs_shape for pre-defined encoder: {}, please customize your own RND model".
-                format(obs_shape)
+                    format(obs_shape)
             )
         self.inverse_net = nn.Sequential(
             nn.Linear(hidden_size_list[-1] * 2, 512), nn.ReLU(inplace=True), nn.Linear(512, action_shape)
@@ -201,11 +201,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
         if s > siminarity_max:
             print('s > siminarity_max:', s.max(), s.min())
             return torch.tensor(0)  # NOTE
-        if torch.isnan(s):
-            print('torch.isnan(s):', s.max(), s.min())
-            return torch.tensor(0)  # NOTE
         return 1 / s
-        # torch.tensor(1 / s)
         # average value 1/( ( 10* 1e-4/(1+1e-4) )**(1/2)+1e-3 ) = 30
 
     def estimate(self, data: list) -> None:
@@ -266,7 +262,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
             episodic_reward = episodic_reward.view(-1)  # torch.Size([32, 42]) -> torch.Size([32*42]
 
             episodic_reward_real_mean = sum(episodic_reward) / (
-                batch_size * seq_length - null_cnt
+                    batch_size * seq_length - null_cnt
             )  # TODO(pu): recompute mean
             self.estimate_cnt_episodic += 1
             self._running_mean_std_episodic_reward.update(episodic_reward.cpu().numpy())
@@ -310,6 +306,16 @@ class EpisodicNGURewardModel(BaseRewardModel):
     def clear_data(self) -> None:
         self.train_obs_total = []
         self.train_action_total = []
+
+    def reward_deepcopy(self, train_data):
+        """
+        this method deepcopy reward part in train_data, and other parts keep shallow copy
+        to avoid the reward part of train_data in the replay buffer be incorrectly modified.
+        """
+        train_data_reward_deepcopy = [{k: copy.deepcopy(v) if k == 'reward' else v for k, v in sample.items()} for
+                                      sample
+                                      in train_data]
+        return train_data_reward_deepcopy
 
 
 class RndNetwork(nn.Module):
@@ -435,6 +441,16 @@ class RndNGURewardModel(BaseRewardModel):
 
     def clear_data(self) -> None:
         self.train_data_total.clear()
+
+    def reward_deepcopy(self, train_data):
+        """
+        this method deepcopy reward part in train_data, and other parts keep shallow copy
+        to avoid the reward part of train_data in the replay buffer be incorrectly modified.
+        """
+        train_data_reward_deepcopy = [{k: copy.deepcopy(v) if k == 'reward' else v for k, v in sample.items()} for
+                                      sample
+                                      in train_data]
+        return train_data_reward_deepcopy
 
 
 def fusion_reward(data, inter_episodic_reward, episodic_reward, nstep, collector_env_num, tb_logger, estimate_cnt):

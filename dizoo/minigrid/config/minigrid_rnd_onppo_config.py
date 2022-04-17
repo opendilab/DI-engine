@@ -1,12 +1,13 @@
 from easydict import EasyDict
 
 collector_env_num = 8
+evaluator_env_num = 8
 minigrid_ppo_rnd_config = dict(
     exp_name='minigrid_doorkey8_rnd_onppo_seed0',
     env=dict(
         collector_env_num=collector_env_num,
-        evaluator_env_num=5,
-        n_evaluator_episode=5,
+        evaluator_env_num=evaluator_env_num,
+        n_evaluator_episode=evaluator_env_num,
         # MiniGrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0','MiniGrid-DoorKey-16x16-v0'
         env_id='MiniGrid-DoorKey-8x8-v0',
         max_step=300,
@@ -14,10 +15,17 @@ minigrid_ppo_rnd_config = dict(
     ),
     reward_model=dict(
         intrinsic_reward_type='add',
-        intrinsic_reward_weight=0.001,
-        # Specifically for sparse reward env minigrid, in this env,
+        intrinsic_reward_weight=None,
+        # means the relative weight of RND intrinsic_reward.
+        # If intrinsic_reward_weight=None, we will automatically set it based on
+        # the absolute value of the difference between max and min extrinsic reward in the sampled mini-batch
+        # please refer to rnd_reward_model for details.
+        # Specifically for sparse reward env MiniGrid, in this env,
         # if reach goal, the agent get reward ~1, otherwise 0.
-        # We should set the intrinsic_reward_weight approximately equal to the inverse of max_episode_steps.
+        # We could set the intrinsic_reward_weight approximately equal to the inverse of max_episode_steps.
+        intrinsic_reward_rescale=0.001,
+        # means the rescale value of RND intrinsic_reward only used when intrinsic_reward_weight is None
+        # please refer to rnd_reward_model for details.
         learning_rate=5e-4,
         obs_shape=2739,
         batch_size=320,

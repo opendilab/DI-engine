@@ -115,9 +115,9 @@ def serial_pipeline_reward_model(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # NOTE: deepcopy is very important, otherwise the reward of train_data in the replay buffer will be
-            # incorrectly modified.
-            train_data_augmented = copy.deepcopy(train_data)
+            # NOTE: deepcopy reward part of train_data is very important,
+            # otherwise the reward of train_data in the replay buffer will be incorrectly modified.
+            train_data_augmented = reward_model.reward_deepcopy(train_data)
 
             # update train_data reward
             reward_model.estimate(train_data_augmented)
