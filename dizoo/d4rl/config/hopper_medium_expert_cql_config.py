@@ -1,10 +1,11 @@
+# You can conduct Experiments on D4RL with this config file through the following command:
+# cd ../entry && python d4rl_cql_main.py
 from easydict import EasyDict
 
-hopper_cql_default_config = dict(
+main_config = dict(
+    exp_name="hopper_medium_expert_cql_seed0",
     env=dict(
-        env_id='hopper-expert-v0',
-        norm_obs=dict(use_norm=False, ),
-        norm_reward=dict(use_norm=False, ),
+        env_id='hopper-medium-expert-v0',
         collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
@@ -16,10 +17,6 @@ hopper_cql_default_config = dict(
         model=dict(
             obs_shape=11,
             action_shape=3,
-            twin_critic=True,
-            action_space='reparameterization',
-            actor_head_hidden_size=256,
-            critic_head_hidden_size=256,
         ),
         learn=dict(
             data_path=None,
@@ -28,29 +25,21 @@ hopper_cql_default_config = dict(
             learning_rate_q=3e-4,
             learning_rate_policy=1e-4,
             learning_rate_alpha=1e-4,
-            ignore_done=False,
-            target_theta=0.005,
-            discount_factor=0.99,
             alpha=0.2,
-            reparameterization=True,
             auto_alpha=False,
             lagrange_thresh=-1.0,
             min_q_weight=5.0,
         ),
-        collect=dict(
-            unroll_len=1,
-            data_type='d4rl',
-        ),
-        command=dict(),
+        collect=dict(data_type='d4rl', ),
         eval=dict(evaluator=dict(eval_freq=500, )),
         other=dict(replay_buffer=dict(replay_buffer_size=2000000, ), ),
     ),
 )
 
-hopper_cql_default_config = EasyDict(hopper_cql_default_config)
-main_config = hopper_cql_default_config
+main_config = EasyDict(main_config)
+main_config = main_config
 
-hopper_cql_default_create_config = dict(
+create_config = dict(
     env=dict(
         type='d4rl',
         import_names=['dizoo.d4rl.envs.d4rl_env'],
@@ -62,5 +51,5 @@ hopper_cql_default_create_config = dict(
     ),
     replay_buffer=dict(type='naive', ),
 )
-hopper_cql_default_create_config = EasyDict(hopper_cql_default_create_config)
-create_config = hopper_cql_default_create_config
+create_config = EasyDict(create_config)
+create_config = create_config
