@@ -53,6 +53,8 @@ class EnsembleDoubleModel(nn.Module):
         use_gradient_model=True,
         k=3,
         reg=1,
+        neighbor_pool_size=10000,
+        neighbor_pool_update_freq=1000
     ):
         super(EnsembleDoubleModel, self).__init__()
         self._cuda = cuda
@@ -88,9 +90,13 @@ class EnsembleDoubleModel(nn.Module):
         self.elite_model_idxes = []
 
         # parameters for DDPPO
-        self._use_gradient_model = use_gradient_model
-        self._k = k
-        self._reg = reg
+        self.use_gradient_model = use_gradient_model
+        self.k = k
+        self.reg = reg
+        self.neighbor_pool_size = neighbor_pool_size
+        self.neighbor_pool_update_freq = neighbor_pool_update_freq
+        self.last_neighbor_pool_update_step = 0
+        self.neighbor_pool = None
 
 
     def should_eval(self, envstep):
@@ -183,12 +189,14 @@ class EnsembleDoubleModel(nn.Module):
         inputs, labels = train_sample(data)
         logvar.update(self._train_rollout_model(inputs, labels))
 
-        if self._use_gradient_model:
-            # Sample from the end of the buffer to get clustered data points for gradient loss regulation.
-            # https://github.com/paperddppo/ddppo/blob/main/ddppo/model_regular_on_jacobian.py#L513
-            n = min(buffer.count(), 10000)
-            data_reg = buffer.sample(n, train_iter, sample_range=slice(-n, None))
-            inputs_reg, labels_reg = train_sample(data_reg)
+        if self.use_gradient_model:
+            # update neighbor pool
+            if (envstep - self.last_neighbor_pool_update_step
+                    ) > self.neighbor_pool_update_freq or self.last_neighbor_pool_update_step == 0:
+                n = min(buffer.count(), self.neighbor_pool_size)
+                self.neighbor_pool = buffer.sample(n, train_iter, sample_range=slice(-n, None))
+                self.last_neighbor_pool_update_step = envstep
+            inputs_reg, labels_reg = train_sample(self.neighbor_pool)
             logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
 
 
@@ -307,7 +315,7 @@ class EnsembleDoubleModel(nn.Module):
         #no split and normalization on regulation data 
         train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
 
-        knn_index  = get_knn_index(train_inputs_reg, self._k)
+        knn_index  = get_knn_index(train_inputs_reg, self.k)
         knn_inputs = train_inputs_reg[knn_index]  # [N, k, state_size+action_size]
         knn_labels = train_labels_reg[knn_index]  # [N, k, state_size+reward_size]
         knn_inputs_distance = (knn_inputs - train_inputs_reg.unsqueeze(1))  # [N, k, state_size+action_size]
@@ -343,13 +351,13 @@ class EnsembleDoubleModel(nn.Module):
                 knn_input_distance = knn_inputs_distance[idx_reg]  # [network_size, B, k, state_size+action_size]
                 knn_label_distance = knn_labels_distance[idx_reg]  # [network_size, B, k, state_size+reward_size]
 
-                jacobian = self._get_jacobian(self.gradient_model, train_input_reg).unsqueeze(2).repeat_interleave(self._k, dim=2)  # [network_size, B, k(repeat), state_size+reward_size, state_size+action_size]
+                jacobian = self._get_jacobian(self.gradient_model, train_input_reg).unsqueeze(2).repeat_interleave(self.k, dim=2)  # [network_size, B, k(repeat), state_size+reward_size, state_size+action_size]
 
                 directional_derivative = (jacobian @ knn_input_distance.unsqueeze(-1)).squeeze(-1)  # [network_size, B, k, state_size+reward_size]
 
                 loss_reg = torch.pow((knn_label_distance - directional_derivative), 2).sum(0).mean()  # sumed over network
 
-                self.gradient_model.train(loss, loss_reg, self._reg)
+                self.gradient_model.train(loss, loss_reg, self.reg)
                 self.mse_loss.append(mse_loss.mean().item())
                 self.grad_loss.append(loss_reg.item())
 
@@ -444,7 +452,7 @@ class EnsembleDoubleModel(nn.Module):
             action = action.unsqueeze(1)
         inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
         # predict
-        if self._use_gradient_model:
+        if self.use_gradient_model:
             outputs = Predict.apply(inputs)
         else: 
             outputs, _ = self.rollout_model(inputs, ret_log_var=False)

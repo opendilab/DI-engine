@@ -47,7 +47,7 @@ def save_ckpt_fn(learner, env_model, envstep):
     return model_policy_save_ckpt_fn
 
 
-def serial_pipeline_mbrl(
+def serial_pipeline_ddppo(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -136,6 +136,7 @@ def serial_pipeline_mbrl(
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     # Train
     batch_size = learner.policy.get_attribute('batch_size')
+    policy_batch_size = cfg.policy.learn.policy_batch_size
     real_ratio = model_based_cfg['real_ratio']
     replay_batch_size = int(batch_size * real_ratio)
     imagine_batch_size = batch_size - replay_batch_size
@@ -165,18 +166,19 @@ def serial_pipeline_mbrl(
                 env_model, policy.collect_mode, replay_buffer, imagine_buffer, collector.envstep, learner.train_iter
             )
             policy._rollout_length = model_env._set_rollout_length(collector.envstep)
-        # Learn policy from collected data
-        for i in range(cfg.policy.learn.update_per_collect):
-            # Learner will train ``update_per_collect`` times in one iteration.
+        # Update value from env+img buffer
+        for i in range(cfg.policy.learn.value_update_per_collect):
             replay_train_data = replay_buffer.sample(replay_batch_size, learner.train_iter)
             imagine_batch_data = imagine_buffer.sample(imagine_batch_size, learner.train_iter)
             if replay_train_data is None or imagine_batch_data is None:
                 break
             train_data = replay_train_data + imagine_batch_data
-            learner.train(train_data, collector.envstep)
-            # Priority is not support
-            # if learner.policy.get_attribute('priority'):
-            #     replay_buffer.update(learner.priority_info)
+            learner.train({'mode': 'value', 'data': train_data}, collector.envstep)
+        # Update policy from env buffer
+        for i in range(cfg.policy.learn.policy_update_per_collect):
+            train_data = replay_buffer.sample(policy_batch_size, learner.train_iter)
+            learner.train({'mode': 'policy', 'data': train_data}, collector.envstep)
+
         if cfg.policy.on_policy:
             # On-policy algorithm must clear the replay buffer.
             replay_buffer.clear()

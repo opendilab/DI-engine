@@ -23,6 +23,7 @@ from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy, SACDiscretePolicy
 from .sac_nstep import SACNstepPolicy
+from .model_based.mbsac import MBSACPolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
 from .collaq import CollaQPolicy
@@ -239,6 +240,11 @@ class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('sac_nstep_command')
 class SACNstepCommandModePolicy(SACNstepPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('mbsac_command')
+class MBSACCommandModePolicy(MBSACPolicy, DummyCommandModePolicy):
     pass
 
 
