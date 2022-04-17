@@ -70,7 +70,7 @@ class D4RLDataset(Dataset):
             trans_data['done'] = dataset['terminals'][i]
             trans_data['collect_iter'] = 0
             self._data.append(trans_data)
-        
+
     def _normalize_states(self, dataset, eps=1e-3):
         self._mean = dataset['observations'].mean(0, keepdims=True)
         self._std = dataset['observations'].std(0, keepdims=True) + eps

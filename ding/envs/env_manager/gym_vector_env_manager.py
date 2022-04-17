@@ -21,7 +21,7 @@ class GymVectorEnvManager(BaseEnvManager):
     Interfaces:
         seed, ready_obs, step, reset, close
     """
-    config = dict(shared_memory=False, )
+    config = dict(shared_memory=False, episode_num=float("inf"))
 
     def __init__(self, env_fn: List[Callable], cfg: EasyDict) -> None:
         """
@@ -47,7 +47,6 @@ class GymVectorEnvManager(BaseEnvManager):
             shared_memory=cfg.shared_memory,
         )
         self._env_states = {i: EnvState.INIT for i in range(self._env_num)}
-        self._closed = False
         self._final_eval_reward = [0. for _ in range(self._env_num)]
 
     def reset(self, reset_param: Optional[Dict] = None) -> None:
@@ -109,8 +108,8 @@ class GymVectorEnvManager(BaseEnvManager):
         }
 
     def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
-        # TODO dynamic_seed
         self._env_manager.seed(seed)
+        # TODO dynamic_seed
         logging.warning("gym env doesn't support dynamic_seed in different episode")
 
     def close(self) -> None:
