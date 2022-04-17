@@ -214,11 +214,7 @@ def serial_pipeline_dt(
             stop = policy.evaluate(state_mean, state_std)
 
         learner.train({'data_iter': data_iter, 'traj_data_loader': traj_data_loader})
-        if learner.train_iter >= max_train_iter:
-            stop = True
         if stop:
             break
-
     learner.call_hook('after_run')
-    print('final reward is: {}'.format(reward))
     return policy, stop

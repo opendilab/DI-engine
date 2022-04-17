@@ -1,4 +1,4 @@
-from dizoo.classic_control.cartpole.dt_data_cartpole.collect_demo_data_config import main_config, create_config
+from dizoo.box2d.lunarlander.dt_data.collect_dqn_data_config import main_config, create_config
 from ding.entry import collect_episodic_demo_data, eval
 import torch
 import copy

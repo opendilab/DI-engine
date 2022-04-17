@@ -3,25 +3,25 @@ import torch
 from copy import deepcopy
 
 
-cartpole_dt_config = dict(
-    exp_name='cartpole_dt',
+lunarlander_dt_config = dict(
+    exp_name='lunarlander_dt',
     env=dict(
-        env_name='CartPole-v0',
+        env_name='LunarLander-v2',
         collector_env_num=8,
-        evaluator_env_num=8,
-        n_evaluator_episode=8,
-        stop_value=195,
+        evaluator_env_num=5,
+        n_evaluator_episode=5,
+        stop_value=200,
     ),
     policy=dict(
+        stop_value=200,
         device='cuda',
-        stop_value=195,
-        env_name='CartPole-v0',
-        dataset='medium',  # medium / medium-replay / medium-expert
+        env_name='LunarLander-v2',
+        # dataset='medium',  # medium / medium-replay / medium-expert
         rtg_scale=1000,  # normalize returns to go
         max_eval_ep_len=1000,  # max len of one episode
         num_eval_ep=10,  # num of evaluation episodes
-        batch_size= 64, # training batch size
-        # batch_size= 2, # debug
+        # batch_size= 64, # training batch size
+        batch_size= 2, # debug
         lr=1e-4,
         wt_decay=1e-4,
         warmup_steps=10000,
@@ -31,22 +31,22 @@ cartpole_dt_config = dict(
         embed_dim=128,
         n_heads =1,
         dropout_p=0.1,
-        log_dir='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_log',
+        log_dir='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_log',
         max_test_ep_len=200,
         model=dict(
-            state_dim=4,
-            act_dim=2,
+            state_dim=8,
+            act_dim=4,
             n_blocks=3,
             h_dim=128,
             context_len=20,
             n_heads =1,
             drop_p=0.1,
-            continuous=False,
+            continuous=False,  # TODO
         ),
         discount_factor=0.999,
         nstep=3,
         learn=dict(
-            dataset_path='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data/data/expert_data_1000eps.pkl',
+            dataset_path='/home/puyuan/DI-engine/dizoo/box2d/lunarlander/dt_data/data/dqn_data_10eps.pkl',  # TODO
             learning_rate=0.001,
             target_update_freq=100,
             kappa=1.0,
@@ -61,27 +61,27 @@ cartpole_dt_config = dict(
                 type='exp',
                 start=0.95,
                 end=0.1,
-                decay=int(1e4),
-            ), replay_buffer=dict(replay_buffer_size=int(2e4), )
+                decay=10000,
+            ), replay_buffer=dict(replay_buffer_size=20000, )
         ),
     ),
 )
-cartpole_dt_config = EasyDict(cartpole_dt_config)
-main_config = cartpole_dt_config
-cartpole_dt_create_config = dict(
+lunarlander_dt_config = EasyDict(lunarlander_dt_config)
+main_config = lunarlander_dt_config
+lunarlander_dt_create_config = dict(
     env=dict(
-        type='cartpole',
-        import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
+        type='lunarlander',
+        import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dt'),
 )
-cartpole_dt_create_config = EasyDict(cartpole_dt_create_config)
-create_config = cartpole_dt_create_config
+lunarlander_dt_create_config = EasyDict(lunarlander_dt_create_config)
+create_config = lunarlander_dt_create_config
 
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_dt, collect_demo_data, eval, serial_pipeline
-    main_config.exp_name = 'cartpole_dt'
+    main_config.exp_name = 'lunarlander_dt_seed0'
     config = deepcopy([main_config, create_config])
-    serial_pipeline_dt(config, seed=0, max_train_iter=200)
+    serial_pipeline_dt(config, seed=0, max_train_iter=1000)

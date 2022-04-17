@@ -411,7 +411,7 @@ class DTPolicy(DQNPolicy):
                 actions = one_hot(actions.squeeze(-1), num=self.act_dim)
                 returns_to_go = returns_to_go.to(self.device).squeeze(dim=-1)  # B x T x 1
 
-
+            returns_to_go =  returns_to_go.float()
             state_preds, action_preds, return_preds = self._learn_model.forward(
                 timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
             )

@@ -14,7 +14,7 @@ lunarlander_dqn_config = dict(
     ),
     policy=dict(
         # Whether to use cuda for network.
-        cuda=False,
+        cuda=True,
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -64,7 +64,8 @@ lunarlander_dqn_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='dqn'),
 )
 lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)
