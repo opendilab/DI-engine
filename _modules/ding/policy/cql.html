@@ -269,6 +269,12 @@
 
             <span class="c1"># (str type) action_space: Use reparameterization trick for continous action</span>
             <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;reparameterization&#39;</span><span class="p">,</span>
+
+            <span class="c1"># (int) Hidden size for actor network head.</span>
+            <span class="n">actor_head_hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+
+            <span class="c1"># (int) Hidden size for critic network head.</span>
+            <span class="n">critic_head_hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool) Whether to use multi gpu</span>

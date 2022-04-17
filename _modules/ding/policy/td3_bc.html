@@ -266,6 +266,15 @@
             <span class="c1"># Clipped Double Q-Learning for Actor-Critic in original TD3 paper(https://arxiv.org/pdf/1802.09477.pdf).</span>
             <span class="c1"># Default True for TD3, False for DDPG.</span>
             <span class="n">twin_critic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+
+            <span class="c1"># (str type) action_space: Use regression trick for continous action</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;regression&#39;</span><span class="p">,</span>
+
+            <span class="c1"># (int) Hidden size for actor network head.</span>
+            <span class="n">actor_head_hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+
+            <span class="c1"># (int) Hidden size for critic network head.</span>
+            <span class="n">critic_head_hidden_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
