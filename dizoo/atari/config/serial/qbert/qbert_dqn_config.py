@@ -1,16 +1,14 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 qbert_dqn_config = dict(
+    exp_name='qbert_dqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
-        frame_stack=4,
-        manager=dict(shared_memory=False, )
+        frame_stack=4
     ),
     policy=dict(
         cuda=True,
@@ -55,4 +53,5 @@ qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
 create_config = qbert_dqn_create_config
 
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

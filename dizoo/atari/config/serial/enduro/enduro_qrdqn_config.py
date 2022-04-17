@@ -1,8 +1,7 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 enduro_qrdqn_config = dict(
+    exp_name='enduro_qrdqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -10,7 +9,6 @@ enduro_qrdqn_config = dict(
         stop_value=10000000000,
         env_id='EnduroNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -56,4 +54,5 @@ enduro_qrdqn_create_config = EasyDict(enduro_qrdqn_create_config)
 create_config = enduro_qrdqn_create_config
 
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)
