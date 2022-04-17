@@ -1,8 +1,7 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-enduro_ppo_config = dict(
+enduro_onppo_config = dict(
+    exp_name='enduro_onppo_seed0',
     env=dict(
         collector_env_num=64,
         evaluator_env_num=8,
@@ -31,8 +30,7 @@ enduro_ppo_config = dict(
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=1.0,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            # entropy_weight=0.00001,
-            entropy_weight=1e-6,
+            entropy_weight=0.1, # [0.1, 0.01 ,0.0]
             clip_ratio=0.1
         ),
         collect=dict(
@@ -49,9 +47,9 @@ enduro_ppo_config = dict(
         ), ),
     ),
 )
-main_config = EasyDict(enduro_ppo_config)
+main_config = EasyDict(enduro_onppo_config)
 
-enduro_ppo_create_config = dict(
+enduro_onppo_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -59,4 +57,8 @@ enduro_ppo_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
 )
-create_config = EasyDict(enduro_ppo_create_config)
+create_config = EasyDict(enduro_onppo_create_config)
+
+if __name__ == '__main__':
+    from ding.entry import serial_pipeline_onpolicy
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)
