@@ -1,5 +1,5 @@
 from time import time
-from numpy.core.shape_base import stack
+from easydict import EasyDict
 import pytest
 import numpy as np
 from dizoo.overcooked.envs import OvercookEnv, OvercookGameEnv
@@ -8,37 +8,37 @@ from dizoo.overcooked.envs import OvercookEnv, OvercookGameEnv
 @pytest.mark.envtest
 class TestOvercooked:
 
-    def test_overcook(self):
-        concat_obs = True
+    @pytest.mark.parametrize("action_mask", [True, False])
+    def test_overcook(self, action_mask):
         num_agent = 2
         sum_rew = 0.0
-        env = OvercookEnv({'concat_obs': concat_obs})
+        env = OvercookEnv(EasyDict({'concat_obs': True, 'action_mask': action_mask}))
         obs = env.reset()
         for _ in range(env._horizon):
-            action = np.random.randint(0, 6, (num_agent, ))
+            action = env.random_action()
             timestep = env.step(action)
             obs = timestep.obs
-            for k, v in obs.items():
-                if k not in ['agent_state', 'action_mask']:
-                    continue
-                if concat_obs:
-                    assert v.shape == env.info().obs_space.shape[k]
-                else:
-                    assert len(v) == len(env.info().obs_space.shape[k])
+            if action_mask:
+                for k, v in obs.items():
+                    if k not in ['agent_state', 'action_mask']:
+                        assert False
+                    assert v.shape == env.observation_space[k].shape
+            else:
+                assert obs.shape == env.observation_space.shape
         assert timestep.done
         sum_rew += timestep.info['final_eval_reward'][0]
         print("sum reward is:", sum_rew)
 
-    def test_overcook_game(self):
-        concat_obs = False
-        num_agent = 2
-        env = OvercookGameEnv({'concat_obs': concat_obs})
+    @pytest.mark.parametrize("concat_obs", [True, False])
+    def test_overcook_game(self, concat_obs):
+        env = OvercookGameEnv(EasyDict({'concat_obs': concat_obs}))
+        print('observation space: {}'.format(env.observation_space.shape))
         obs = env.reset()
         for _ in range(env._horizon):
-            action = [np.random.randint(0, 6), np.random.randint(0, 6)]
+            action = env.random_action()
             timestep = env.step(action)
             obs = timestep.obs
-            print("shaped reward is:", timestep.info[0]['shaped_r_by_agent'], timestep.info[1]['shaped_r_by_agent'])
+            assert obs.shape == env.observation_space.shape
         assert timestep.done
         print("agent 0 sum reward is:", timestep.info[0]['final_eval_reward'])
         print("agent 1 sum reward is:", timestep.info[1]['final_eval_reward'])

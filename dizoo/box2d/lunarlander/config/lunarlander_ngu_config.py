@@ -1,8 +1,8 @@
 from easydict import EasyDict
 
 
-collector_env_num = 32
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 8
 nstep = 5
 lunarlander_ngu_config = dict(
     exp_name='lunarlander_ngu_seed0',
@@ -10,7 +10,7 @@ lunarlander_ngu_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         env_id='LunarLander-v2',
-        n_evaluator_episode=5,
+        n_evaluator_episode=8,
         stop_value=195,
     ),
     rnd_reward_model=dict(
@@ -37,6 +37,7 @@ lunarlander_ngu_config = dict(
         clear_buffer_per_iters=10,
         nstep=nstep,
         hidden_size_list=[128, 128, 64],
+        type='episodic',
     ),
     policy=dict(
         cuda=True,
@@ -54,13 +55,13 @@ lunarlander_ngu_config = dict(
         ),
         learn=dict(
             update_per_collect=8,
-            batch_size=64,
+            batch_size=32,
             learning_rate=1e-4,
             target_update_theta=0.001,
         ),
         collect=dict(
             # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            each_iter_n_sample=320,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),

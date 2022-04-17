@@ -34,6 +34,7 @@ class VAC(nn.Module):
         sigma_type: Optional[str] = 'independent',
         fixed_sigma_value: Optional[int] = 0.3,
         bound_type: Optional[str] = None,
+        encoder: Optional[torch.nn.Module] = None,
     ) -> None:
         r"""
         Overview:
@@ -61,24 +62,32 @@ class VAC(nn.Module):
         action_shape = squeeze(action_shape)
         self.obs_shape, self.action_shape = obs_shape, action_shape
         # Encoder Type
-        if isinstance(obs_shape, int) or len(obs_shape) == 1:
-            encoder_cls = FCEncoder
-        elif len(obs_shape) == 3:
-            encoder_cls = ConvEncoder
+        if encoder is None:
+            if isinstance(obs_shape, int) or len(obs_shape) == 1:
+                encoder_cls = FCEncoder
+            elif len(obs_shape) == 3:
+                encoder_cls = ConvEncoder
+            else:
+                raise RuntimeError(
+                    "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".
+                    format(obs_shape)
+                )
+            self.share_encoder = share_encoder
+            if self.share_encoder:
+                self.encoder = encoder_cls(
+                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                )
+            else:
+                self.actor_encoder = encoder_cls(
+                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                )
+                self.critic_encoder = encoder_cls(
+                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                )
         else:
-            raise RuntimeError(
-                "not support obs_shape for pre-defined encoder: {}, please customize your own DQN".format(obs_shape)
-            )
-        self.share_encoder = share_encoder
-        if self.share_encoder:
-            self.encoder = encoder_cls(obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type)
-        else:
-            self.actor_encoder = encoder_cls(
-                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-            )
-            self.critic_encoder = encoder_cls(
-                obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-            )
+            assert share_encoder
+            self.share_encoder = share_encoder
+            self.encoder = encoder
         # Head Type
         self.critic_head = RegressionHead(
             critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
