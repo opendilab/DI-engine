@@ -1,7 +1,6 @@
 import copy
 import random
-from typing import Tuple
-from typing import Union, Dict, List
+from typing import Union, Tuple, Any, Dict, List
 
 import numpy as np
 import torch
@@ -164,9 +163,8 @@ class RndNGURewardModel(BaseRewardModel):
 
         for _ in range(self.cfg.update_per_collect):
             self._train()
-        # self.clear_data()
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> torch.Tensor:
         """
         Rewrite the reward key in each row of the data.
         """
@@ -340,7 +338,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
         return 1 / s
         # average value 1/( ( 10* 1e-4/(1+1e-4) )**(1/2)+1e-3 ) = 30
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> torch.Tensor:
         """
         Rewrite the reward key in each row of the data.
         """

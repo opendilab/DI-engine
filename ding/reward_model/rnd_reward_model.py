@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, List, Dict, Any
 from easydict import EasyDict
 
 import random
@@ -107,7 +107,7 @@ class RndRewardModel(BaseRewardModel):
         for _ in range(self.cfg.update_per_collect):
             self._train()
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> List[Dict]:
         """
         Rewrite the reward key in each row of the data.
         """
