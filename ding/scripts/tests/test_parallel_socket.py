@@ -1,22 +1,28 @@
+import sys
+import os
 import time
 import logging
 import argparse
-import sys
-import os
+
+from random import random
+from string import ascii_lowercase
 from ding.framework import Parallel
+
+alphabet = [c.encode('ascii') for c in ascii_lowercase]
+
 
 class EasyCounter:
     def __init__(self):
         self._last = None
         self._cnt = 0
-    
-    def add(self, a):
-        self._last = a
+
+    def add(self, item):
+        self._last = item
         self._cnt += 1
-    
+
     def cnt(self):
         return self._cnt
-    
+
     def last(self):
         return self._last
 
@@ -39,15 +45,17 @@ class SockTest:
                 continue
             last_msg = greets.last()
             msg_idx, msg_t = last_msg.split("_")[-2:]
-            logging.info("main_p0 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s"\
-                .format(time.time() - start_t, greets.cnt(), msg_idx, msg_t))
+            logging.info("main_p0 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s"
+                         .format(time.time() - start_t, greets.cnt(), msg_idx, msg_t))
 
         logging.info("main_p0 done! total msg: {}".format(greets.cnt()))
 
     @classmethod
     def main_p1(cls, epoch, interval, data_size, tmp_file):
-        s = "a" * 1024 * 1024 * data_size
-        print("msg length: {:.4f} MB".format(sys.getsizeof(s) / 1024 / 1024))
+        words = b''.join([alphabet[int(random() * 26)]
+                          for _ in range(1024 * 1024)]) * data_size
+        print("msg length: {:.4f} MB".format(
+            sys.getsizeof(words) / 1024 / 1024))
 
         router = Parallel()
         greets = EasyCounter()
@@ -55,17 +63,19 @@ class SockTest:
         start_t = time.time()
         logging.info("main_p1 start ...")
 
-        with open(tmp_file, "w") as f:
-            f.write("{}\n".format(router.get_ip()))
+        with open(tmp_file, "w") as file:
+            file.write("{}\n".format(router.get_ip()))
 
         for i in range(epoch):
             while time.time() - start_t < i * interval:
                 time.sleep(0.01)
 
             if router._retries == 0:
-                router.emit("greeting_0", "{}_{}_{:.2f}".format(s, i, time.time() - start_t))
+                router.emit("greeting_0", "{}_{}_{:.2f}".format(
+                    words, i, time.time() - start_t))
             elif router._retries == 1:
-                router.emit("greeting_0", "recovered_{}_{:.2f}".format(i, time.time() - start_t))
+                router.emit("greeting_0", "recovered_{}_{:.2f}".format(
+                    i, time.time() - start_t))
             else:
                 raise Exception("Failed too many times")
 
@@ -73,18 +83,21 @@ class SockTest:
                 continue
             last_msg = greets.last()
             msg_idx, msg_t = last_msg.split("_")[-2:]
-            logging.info("main_p1 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s"\
-                .format(time.time() - start_t, greets.cnt(), msg_idx, msg_t))
+            logging.info("main_p1 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s"
+                         .format(time.time() - start_t, greets.cnt(), msg_idx, msg_t))
 
         if os.path.exists(tmp_file):
             os.remove(tmp_file)
 
-        logging.info("main_p1 done! total msg: {} retries: {}".format(greets.cnt(), router._retries))
+        logging.info("main_p1 done! total msg: {} retries: {}".format(
+            greets.cnt(), router._retries))
 
     @classmethod
     def main_p2(cls, epoch, interval, data_size):
-        s = "b" * 1024 * 1024 * data_size
-        print("msg length: {:.4f} MB".format(sys.getsizeof(s) / 1024 / 1024))
+        words = b''.join([alphabet[int(random() * 26)]
+                          for _ in range(1024 * 1024)]) * data_size
+        print("msg length: {:.4f} MB".format(
+            sys.getsizeof(words) / 1024 / 1024))
 
         router = Parallel()
         start_t = time.time()
@@ -94,7 +107,8 @@ class SockTest:
             while time.time() - start_t < i * interval:
                 time.sleep(0.01)
 
-            router.emit("greeting_1", "{}_{}_{:.2f}".format(s, i, time.time() - start_t))
+            router.emit("greeting_1", "{}_{}_{:.2f}".format(
+                words, i, time.time() - start_t))
 
         logging.info("main_p2 done!")
 

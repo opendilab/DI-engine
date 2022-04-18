@@ -1,8 +1,8 @@
-total_epoch=8000            # the total num of msg
+total_epoch=1800            # the total num of msg
 interval=0.1                # msg send interval
-size=64                     # data size (MB)
+size=16                     # data size (MB)
 test_start_time=30          # network fail time (s)
-test_duration=600           # network fail duration (s)
+test_duration=60            # network fail duration (s)
 
 tmp_file="tmp123"          # tmp file to tranfer data, will be remove automatically
 output_file="my_test.log"  # the python script will write its output into this file
