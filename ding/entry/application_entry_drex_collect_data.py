@@ -223,6 +223,7 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
         cfg, create_cfg = read_config(args.cfg)
     else:
         cfg, create_cfg = deepcopy(args.cfg)
+    bc_iteration = getattr(cfg, 'bc_iteration', 50000)
     cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
     pre_expert_data = drex_generating_data(cfg)
     returns = [torch.sum(default_collate(pre_expert_data[i])['reward']).item() for i in range(len(pre_expert_data))]
@@ -231,7 +232,7 @@ def drex_collecting_data(args=drex_get_args(), seed=0):
     if 'bc_path' in cfg.reward_model and os.path.exists(cfg.reward_model.bc_path):
         bc_policy = load_bc(cfg.reward_model.bc_path, cfg)
     else:
-        bc_policy = train_bc(cfg=cfg, pre_expert_data=pre_expert_data, max_iterations=50000)
+        bc_policy = train_bc(cfg=cfg, pre_expert_data=pre_expert_data, max_iterations=bc_iteration)
     created_data, created_data_returns = create_data_drex(bc_policy, cfg)
     offline_data_path = cfg.reward_model.offline_data_path
 
