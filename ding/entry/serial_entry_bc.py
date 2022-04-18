@@ -13,7 +13,7 @@ from ding.utils import set_pkg_seed
 from ding.utils.data import NaiveRLDataset
 
 
-def serial_pipeline_il(
+def serial_pipeline_bc(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int,
         data_path: str,

@@ -16,9 +16,9 @@ class TestGymVectorEnvManager:
         env_fn = setup_gym_vector_manager_cfg.pop('env_fn')
         env_manager = GymVectorEnvManager(env_fn, setup_gym_vector_manager_cfg)
         env_manager.seed([314 for _ in range(env_manager.env_num)])
-        assert not env_manager._closed
         # Test reset
         obs = env_manager.reset()
+        assert not env_manager._closed
         assert env_manager._env_manager._state == AsyncState.DEFAULT
         # Test arribute
         with pytest.raises(AttributeError):
