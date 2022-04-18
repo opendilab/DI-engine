@@ -111,8 +111,8 @@ class RndRewardModel(BaseRewardModel):
         """
         Rewrite the reward key in each row of the data.
         """
-        # NOTE: deepcopy reward part of train_data is very important,
-        # otherwise the reward of train_data in the replay buffer will be incorrectly modified.
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
         train_data_augmented = self.reward_deepcopy(data)
 
         obs = collect_states(train_data_augmented)

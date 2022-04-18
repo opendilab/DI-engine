@@ -14,7 +14,7 @@ from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 
 
-def serial_pipeline_reward_model_trex_onpolicy(
+def serial_pipeline_trex_onpolicy(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -91,11 +91,10 @@ def serial_pipeline_reward_model_trex_onpolicy(
                 break
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter)
-        # Learn policy from collected data with modified rewards
-        reward_model.estimate(new_data)
-
-        # Learn policy from collected data
-        learner.train(new_data, collector.envstep)
+        train_data = new_data
+        # update train_data reward using the augmented reward
+        train_data_augmented = reward_model.estimate(train_data)
+        learner.train(train_data_augmented, collector.envstep)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
 

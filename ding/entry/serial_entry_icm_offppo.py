@@ -15,7 +15,7 @@ from ding.utils import set_pkg_seed
 from .utils import random_collect
 
 
-def serial_pipeline_reward_model_onpolicy(
+def serial_pipeline_icm_offppo(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -25,7 +25,7 @@ def serial_pipeline_reward_model_onpolicy(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry with reward model.for on-policy RL
+        Serial pipeline entry with reward model.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -86,7 +86,6 @@ def serial_pipeline_reward_model_onpolicy(
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
-    count = 0
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
@@ -100,14 +99,14 @@ def serial_pipeline_reward_model_onpolicy(
             new_data_count += len(new_data)
             # collect data for reward_model training
             reward_model.collect_data(new_data)
+            replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
         reward_model.train()
-        if count % cfg.reward_model.clear_buffer_per_iters == 0:
-            reward_model.clear_data()
+        reward_model.clear_data()
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            train_data = new_data
+            train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
@@ -122,7 +121,6 @@ def serial_pipeline_reward_model_onpolicy(
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
-        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

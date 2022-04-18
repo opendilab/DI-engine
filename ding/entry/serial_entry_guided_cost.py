@@ -120,7 +120,6 @@ def serial_pipeline_guided_cost(
                 break
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-        train_data = copy.deepcopy(new_data)
         expert_data = expert_collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         expert_buffer.push(expert_data, cur_collector_envstep=expert_collector.envstep)
@@ -131,9 +130,7 @@ def serial_pipeline_guided_cost(
             reward_model.train(expert_demo, samp, learner.train_iter, collector.envstep)
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            train_data = train_data
-            reward_model.estimate(train_data)
+            train_data = new_data
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(
@@ -141,7 +138,9 @@ def serial_pipeline_guided_cost(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            learner.train(train_data, collector.envstep)
+            # update train_data reward using the augmented reward
+            train_data_augmented = reward_model.estimate(train_data)
+            learner.train(train_data_augmented, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:

@@ -15,7 +15,7 @@ from ding.utils import set_pkg_seed
 from .utils import random_collect
 
 
-def serial_pipeline_reward_model_trex(
+def serial_pipeline_trex(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -114,9 +114,9 @@ def serial_pipeline_reward_model_trex(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # update train_data reward
-            reward_model.estimate(train_data)
-            learner.train(train_data, collector.envstep)
+            # update train_data reward using the augmented reward
+            train_data_augmented = reward_model.estimate(train_data)
+            learner.train(train_data_augmented, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:

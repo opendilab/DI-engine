@@ -7,7 +7,7 @@ import torch
 import numpy as np
 
 from ding.entry import serial_pipeline
-from ding.entry.serial_entry_trex import serial_pipeline_reward_model_trex
+from ding.entry.serial_entry_trex import serial_pipeline_trex
 from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_ppo_offpolicy_config,\
      cartpole_trex_ppo_offpolicy_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config,\
@@ -39,7 +39,7 @@ def test_serial_pipeline_reward_model_trex():
     args = EasyDict({'cfg': deepcopy(config), 'seed': 0, 'device': 'cpu'})
     trex_collecting_data(args=args)
     try:
-        serial_pipeline_reward_model_trex(config, seed=0, max_train_iter=1)
+        serial_pipeline_trex(config, seed=0, max_train_iter=1)
         os.popen('rm -rf {}'.format(config[0].reward_model.data_path))
     except Exception:
         assert False, "pipeline fail"

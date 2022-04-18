@@ -8,7 +8,7 @@ from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_d
 from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_ppo_rnd_config import cartpole_ppo_rnd_config, cartpole_ppo_rnd_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_ppo_icm_config import cartpole_ppo_icm_config, cartpole_ppo_icm_create_config  # noqa
-from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_reward_model
+from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_icm_offppo
 
 cfg = [
     {
@@ -63,7 +63,7 @@ def test_irl(reward_model_config):
         reward_model_config['expert_data_path'] = expert_data_path
     cp_cartpole_dqn_config.reward_model = reward_model_config
     cp_cartpole_dqn_config.policy.collect.n_sample = 128
-    serial_pipeline_reward_model((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0, max_train_iter=2)
+    serial_pipeline_icm_offppo((cp_cartpole_dqn_config, cp_cartpole_dqn_create_config), seed=0, max_train_iter=2)
 
     os.popen("rm -rf ckpt_* log expert_data.pkl")
 
@@ -72,7 +72,7 @@ def test_irl(reward_model_config):
 def test_rnd():
     config = [deepcopy(cartpole_ppo_rnd_config), deepcopy(cartpole_ppo_rnd_create_config)]
     try:
-        serial_pipeline_reward_model(config, seed=0, max_train_iter=2)
+        serial_pipeline_icm_offppo(config, seed=0, max_train_iter=2)
     except Exception:
         assert False, "pipeline fail"
 
@@ -81,6 +81,6 @@ def test_rnd():
 def test_icm():
     config = [deepcopy(cartpole_ppo_icm_config), deepcopy(cartpole_ppo_icm_create_config)]
     try:
-        serial_pipeline_reward_model(config, seed=0, max_train_iter=2)
+        serial_pipeline_icm_offppo(config, seed=0, max_train_iter=2)
     except Exception:
         assert False, "pipeline fail"

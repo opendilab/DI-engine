@@ -107,12 +107,18 @@ class GuidedCostRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar('reward_model/loss_iter', loss_IOC, iter)
             self.tb_logger.add_scalar('reward_model/loss_step', loss_IOC, step)
 
-    def estimate(self, data: list) -> None:
-        for i in range(len(data)):
+    def estimate(self, data: list) -> List[Dict]:
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+        for i in range(len(train_data_augmented)):
             with torch.no_grad():
-                reward = self.reward_model(torch.cat([data[i]['obs'],
-                                                      data[i]['action'].float()]).unsqueeze(0)).squeeze(0)
-                data[i]['reward'] = -reward
+                reward = self.reward_model(
+                    torch.cat([train_data_augmented[i]['obs'], train_data_augmented[i]['action'].float()]).unsqueeze(0)
+                ).squeeze(0)
+                train_data_augmented[i]['reward'] = -reward
+
+        return train_data_augmented
 
     def collect_data(self, data) -> None:
         """
