@@ -55,13 +55,15 @@ class PPOILPolicy(PPOOffPolicy):
 def test_serial_pipeline_bc_ppo():
     # train expert policy
     train_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    train_config[0].exp_name = 'test_serial_pipeline_bc_ppo'
     expert_policy = serial_pipeline(train_config, seed=0)
 
     # collect expert demo data
     collect_count = 10000
-    expert_data_path = 'expert_data_ppo.pkl'
+    expert_data_path = 'expert_data_ppo_bc.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
     collect_config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    collect_config[0].exp_name = 'test_serial_pipeline_bc_ppo_collect'
     collect_demo_data(
         collect_config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
     )
@@ -71,6 +73,7 @@ def test_serial_pipeline_bc_ppo():
     il_config[0].policy.eval.evaluator.multi_gpu = False
     il_config[0].policy.learn.train_epoch = 20
     il_config[0].policy.type = 'ppo_bc'
+    il_config[0].exp_name = 'test_serial_pipeline_bc_ppo_il'
     _, converge_stop_flag = serial_pipeline_bc(il_config, seed=314, data_path=expert_data_path)
     assert converge_stop_flag
 
