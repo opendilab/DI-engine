@@ -247,32 +247,11 @@ class DTPolicy(DQNPolicy):
                 Init the optimizer, algorithm config, main and target models.
             """
 
-        if self._cfg.env_name == 'walker2d':
-            env_name = 'Walker2d-v3'
-            rtg_target = 5000
-            env_d4rl_name = f'walker2d-{dataset}-v2'
-
-        elif self._cfg.env_name == 'halfcheetah':
-            env_name = 'HalfCheetah-v3'
-            rtg_target = 6000
-            env_d4rl_name = f'halfcheetah-{dataset}-v2'
-
-        elif self._cfg.env_name == 'hopper':
-            env_name = 'Hopper-v3'
-            rtg_target = 3600
-            env_d4rl_name = f'hopper-{dataset}-v2'
-
-        else:
-            # raise NotImplementedError
-            rtg_target = 200
-            self.env_name = 'CartPole-v0'
-
         self.stop_value = self._cfg.stop_value
         self.env_name = self._cfg.env_name
         dataset = self._cfg.dataset  # medium / medium-replay / medium-expert
-        self.rtg_scale = self._cfg.rtg_scale  # normalize returns to go
-        self.max_test_ep_len = self._cfg.max_test_ep_len
-        self.rtg_target = rtg_target
+        self.rtg_scale = self._cfg.rtg_target  # normalize returns to go 
+        self.rtg_target = self._cfg.rtg_target # max target reward_to_go
         self.max_eval_ep_len = self._cfg.max_eval_ep_len  # max len of one episode
         self.num_eval_ep = self._cfg.num_eval_ep  # num of evaluation episodes
 
@@ -464,7 +443,7 @@ class DTPolicy(DQNPolicy):
 
         # same as timesteps used for training the transformer
         # also, crashes if device is passed to arange()
-        timesteps = torch.arange(start=0, end=self.max_test_ep_len, step=1)
+        timesteps = torch.arange(start=0, end=self.max_eval_ep_len, step=1)
         timesteps = timesteps.repeat(eval_batch_size, 1).to(self.device)
 
         self._learn_model.eval()
@@ -477,17 +456,17 @@ class DTPolicy(DQNPolicy):
                 # zeros place holders
                 # continuous action
                 actions = torch.zeros(
-                    (eval_batch_size, self.max_test_ep_len, self.act_dim), dtype=torch.float32, device=self.device
+                    (eval_batch_size, self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self.device
                 )
 
                 # discrete action # TODO
-                # actions = torch.randint(0,self.act_dim,[eval_batch_size, self.max_test_ep_len, 1], dtype=torch.long, device=self.device)
+                # actions = torch.randint(0,self.act_dim,[eval_batch_size, self.max_eval_ep_len, 1], dtype=torch.long, device=self.device)
 
                 states = torch.zeros(
-                    (eval_batch_size, self.max_test_ep_len, self.state_dim), dtype=torch.float32, device=self.device
+                    (eval_batch_size, self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self.device
                 )
                 rewards_to_go = torch.zeros(
-                    (eval_batch_size, self.max_test_ep_len, 1), dtype=torch.float32, device=self.device
+                    (eval_batch_size, self.max_eval_ep_len, 1), dtype=torch.float32, device=self.device
                 )
 
                 # init episode
@@ -495,7 +474,7 @@ class DTPolicy(DQNPolicy):
                 running_reward = 0
                 running_rtg = self.rtg_target / self.rtg_scale
 
-                for t in range(self.max_test_ep_len):
+                for t in range(self.max_eval_ep_len):
 
                     total_timesteps += 1
 
