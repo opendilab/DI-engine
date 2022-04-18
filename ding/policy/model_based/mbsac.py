@@ -101,12 +101,14 @@ class MBSACPolicy(SACPolicy):
             action_space='reparameterization',
         ),
         learn=dict(
-            # TODO
             value_expansion_horizon=0,
-            value_expansion_type='mve', # 'steve' or 'mve'
             value_expansion_norm=True,
+            value_expansion_type='mve', # 'steve' or 'mve'
+            value_expansion_grad_clip_norm=0,
+
             value_gradient_horizon=0,
             value_gradient_norm=True,
+            value_gradient_grad_clip_norm=0,
 
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -211,11 +213,13 @@ class MBSACPolicy(SACPolicy):
         self._value_expansion_horizon = self._cfg.learn.value_expansion_horizon
         self._value_expansion_type = self._cfg.learn.value_expansion_type
         self._value_expansion_norm = self._cfg.learn.value_expansion_norm
+        self._value_expansion_grad_clip_norm = self._cfg.learn.value_expansion_grad_clip_norm
         # TODO: implement steve style value expansion
         self._value_expansion_type = 'mve'
 
         self._value_gradient_horizon = self._cfg.learn.value_gradient_horizon
         self._value_gradient_norm = self._cfg.learn.value_gradient_norm
+        self._value_gradient_grad_clip_norm = self._cfg.learn.value_gradient_grad_clip_norm
 
         self._history_vars = dict()
         self._history_loss = dict()
@@ -361,6 +365,11 @@ class MBSACPolicy(SACPolicy):
 
             self._optimizer_q.zero_grad()
             self._history_loss['value_loss'].backward()
+            if self._value_expansion_grad_clip_norm:
+                torch.nn.utils.clip_grad_norm_(
+                        self._model.critic.parameters(), 
+                        max_norm=self._value_expansion_grad_clip_norm,
+                        error_if_nonfinite=True)
             self._optimizer_q.step()
                 
 
@@ -399,6 +408,11 @@ class MBSACPolicy(SACPolicy):
         # update policy network
         self._optimizer_policy.zero_grad()
         self._history_loss['policy_loss'].backward()
+        if self._value_gradient_grad_clip_norm:
+            torch.nn.utils.clip_grad_norm_(
+                    self._model.actor.parameters(), 
+                    max_norm=self._value_gradient_grad_clip_norm,
+                    error_if_nonfinite=True)
         self._optimizer_policy.step()
 
 
@@ -432,7 +446,6 @@ class MBSACPolicy(SACPolicy):
         Returns:
             - vars (:obj:`List[str]`): Variables' name list.
         """
-
 
         return [
             'alpha_loss',

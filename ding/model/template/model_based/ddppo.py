@@ -69,9 +69,6 @@ class EnsembleDoubleModel(nn.Module):
         self.rollout_model = EnsembleModel(
             state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
         )
-        self.gradient_model = EnsembleGradientModel(
-            state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
-        )
 
         self.scaler = StandardScaler(state_size + action_size)
         if self._cuda:
@@ -95,6 +92,12 @@ class EnsembleDoubleModel(nn.Module):
         self.reg = reg
         self.neighbor_pool_size = neighbor_pool_size
         self.neighbor_pool_update_freq = neighbor_pool_update_freq
+
+        self.gradient_model = EnsembleGradientModel(
+            state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
+        )
+        self.elite_model_idxes_gradient_model = []
+                
         self.last_neighbor_pool_update_step = 0
         self.neighbor_pool = None
 
@@ -304,7 +307,7 @@ class EnsembleDoubleModel(nn.Module):
         holdout_inputs, holdout_labels = inputs[:num_holdout], labels[:num_holdout]
 
         #normalize
-        self.scaler.fit(train_inputs)
+        # self.scaler.fit(train_inputs)
         train_inputs = self.scaler.transform(train_inputs)
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
@@ -379,7 +382,7 @@ class EnsembleDoubleModel(nn.Module):
             sorted_loss, sorted_loss_idx = holdout_mse_loss.sort()
             sorted_loss = sorted_loss.detach().cpu().numpy().tolist()
             sorted_loss_idx = sorted_loss_idx.detach().cpu().numpy().tolist()
-            self.elite_model_idxes = sorted_loss_idx[:self.elite_size]
+            self.elite_model_idxes_gradient_model = sorted_loss_idx[:self.elite_size]
             self.top_holdout_mse_loss = sorted_loss[0]
             self.middle_holdout_mse_loss = sorted_loss[self.network_size // 2]
             self.bottom_holdout_mse_loss = sorted_loss[-1]
@@ -429,15 +432,103 @@ class EnsembleDoubleModel(nn.Module):
         else:
             return False
 
-    def batch_predict(self, obs, action):
-        # to predict a batch
-        # norm and repeat for ensemble
+    # def batch_predict(self, obs, action):
+    #     # to predict a batch
+    #     # norm and repeat for ensemble
+    #     class Predict(torch.autograd.Function):
+    #         # use different model for forward and backward
+    #         @staticmethod
+    #         def forward(ctx, x):
+    #             ctx.save_for_backward(x)
+    #             return self.rollout_model(x, ret_log_var=False)[0]
+
+    #         @staticmethod
+    #         def backward(ctx, grad_out):
+    #             x, = ctx.saved_tensors
+    #             with torch.enable_grad():
+    #                 x = x.detach()
+    #                 x.requires_grad_(True)
+    #                 y = self.gradient_model(x, ret_log_var=False)[0]
+    #                 return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
+
+    #     if len(action.shape) == 1:
+    #         action = action.unsqueeze(1)
+    #     inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
+    #     # predict
+    #     if self.use_gradient_model:
+    #         outputs = Predict.apply(inputs)
+    #     else: 
+    #         outputs, _ = self.rollout_model(inputs, ret_log_var=False)
+    #     outputs = outputs.mean(0)
+    #     return outputs[:, 0], outputs[:, 1:] + obs
+
+    # def batch_predict(self, obs, action, deterministic=False):
+    #     class Predict(torch.autograd.Function):
+    #         # use different model for forward and backward
+    #         @staticmethod
+    #         def forward(ctx, x):
+    #             ctx.save_for_backward(x)
+    #             # return self.rollout_model(x, ret_log_var=False)[0]
+    #             return torch.cat(self.rollout_model(x, ret_log_var=False), dim=2)
+
+    #         @staticmethod
+    #         def backward(ctx, grad_out):
+    #             x, = ctx.saved_tensors
+    #             with torch.enable_grad():
+    #                 x = x.detach()
+    #                 x.requires_grad_(True)
+    #                 y = torch.cat(self.gradient_model(x, ret_log_var=False), dim=2)
+    #                 return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
+
+    #     if len(action.shape) == 1:
+    #         action = action.unsqueeze(1)
+    #     inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
+    #     if self.use_gradient_model:
+    #         outputs = Predict.apply(inputs)
+    #         ensemble_mean, ensemble_var = outputs.chunk(2, dim=2)
+    #     else:
+    #         ensemble_mean, ensemble_var = self.rollout_model(inputs, ret_log_var=False)
+    #     ensemble_std = ensemble_var.sqrt()
+    #     if deterministic:
+    #         ensemble_sample = ensemble_mean
+    #     else:
+    #         ensemble_sample = ensemble_mean + torch.randn(**ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+    #     model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
+    #     batch_idxes = torch.arange(len(obs)).to(inputs.device)
+    #     sample = ensemble_sample[model_idxes, batch_idxes]
+    #     rewards, next_obs = sample[:, :1], sample[:, 1:]
+
+    #     return rewards, next_obs
+
+    def batch_predict(self, obs, action, deterministic=False):
+
+        def forward(inputs, mode='rollout'):
+            # model = self.rollout_model
+            if mode == 'rollout':
+                model = self.rollout_model
+                elite_model_indxes = self.elite_model_idxes
+            else:
+                model = self.gradient_model
+                elite_model_indxes = self.elite_model_idxes_gradient_model
+            ensemble_mean, ensemble_var = model(inputs, ret_log_var=False)
+            ensemble_std = ensemble_var.sqrt()
+            if deterministic:
+                ensemble_sample = ensemble_mean
+            else:
+                ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+            model_idxes = torch.from_numpy(np.random.choice(elite_model_indxes, size=len(obs))).to(inputs.device)
+            batch_idxes = torch.arange(len(obs)).to(inputs.device)
+            sample = ensemble_sample[model_idxes, batch_idxes]
+            return sample
+
         class Predict(torch.autograd.Function):
             # use different model for forward and backward
             @staticmethod
             def forward(ctx, x):
                 ctx.save_for_backward(x)
-                return self.rollout_model(x, ret_log_var=False)[0]
+                # return self.rollout_model(x, ret_log_var=False)[0]
+                # return torch.cat(self.rollout_model(x, ret_log_var=False), dim=2)
+                return forward(x)
 
             @staticmethod
             def backward(ctx, grad_out):
@@ -445,22 +536,22 @@ class EnsembleDoubleModel(nn.Module):
                 with torch.enable_grad():
                     x = x.detach()
                     x.requires_grad_(True)
-                    y = self.gradient_model(x, ret_log_var=False)[0]
+                    y = forward(x, mode='gradient')
                     return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
 
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
         inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
-        # predict
         if self.use_gradient_model:
-            outputs = Predict.apply(inputs)
+            sample = Predict.apply(inputs)
         else: 
-            outputs, _ = self.rollout_model(inputs, ret_log_var=False)
-        outputs = outputs.mean(0)
-        return outputs[:, 0], outputs[:, 1:] + obs
+            sample = forward(inputs)
+        rewards, next_obs = sample[:, :1], sample[:, 1:] + obs
+
+        return rewards, next_obs
 
 
-    def predict(self, obs, act, batch_size=8192, deterministic=True):
+    def predict(self, obs, act, batch_size=8192, deterministic=False):
         # to predict the whole buffer and return cpu tensor
         # form inputs
         if len(act.shape) == 1:
@@ -485,7 +576,7 @@ class EnsembleDoubleModel(nn.Module):
         if deterministic:
             ensemble_sample = ensemble_mean
         else:
-            ensemble_sample = ensemble_mean + torch.randn(**ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
         # sample from ensemble
         model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
