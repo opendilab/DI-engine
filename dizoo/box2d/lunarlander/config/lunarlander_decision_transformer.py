@@ -4,7 +4,7 @@ from copy import deepcopy
 
 
 lunarlander_dt_config = dict(
-    exp_name='data_dt/lunarlander_dt_1000eps_rtgt300_meel1000_seed0',
+    exp_name='data_dt/lunarlander_dt_1000eps_rtgt300_meel1000_seed0_debug',
     env=dict(
         env_name='LunarLander-v2',
         collector_env_num=8,
