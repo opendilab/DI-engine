@@ -1,15 +1,14 @@
 from easydict import EasyDict
 
-qbert_dqn_config = dict(
-    exp_name='qbert_dqfd',
+qbert_dqfd_config = dict(
+    exp_name='qbert_dqfd_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
-        frame_stack=4,
-        manager=dict(shared_memory=True, reset_inplace=True)
+        frame_stack=4
     ),
     policy=dict(
         cuda=True,
@@ -46,9 +45,9 @@ qbert_dqn_config = dict(
         ),
     ),
 )
-qbert_dqn_config = EasyDict(qbert_dqn_config)
-main_config = qbert_dqn_config
-qbert_dqn_create_config = dict(
+qbert_dqfd_config = EasyDict(qbert_dqfd_config)
+main_config = qbert_dqfd_config
+qbert_dqfd_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -56,5 +55,16 @@ qbert_dqn_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqfd'),
 )
-qbert_dqn_create_config = EasyDict(qbert_dqn_create_config)
-create_config = qbert_dqn_create_config
+qbert_dqfd_create_config = EasyDict(qbert_dqfd_create_config)
+create_config = qbert_dqfd_create_config
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial_dqfd -c spaceinvaders_dqfd_config.py -s 0`
+    # then input ``spaceinvaders_dqfd_config.py`` upon the instructions.
+    # The reason we need to input the dqfd config is we have to borrow its ``_get_train_sample`` function
+    # in the collector part even though the expert model may be generated from other Q learning algos.
+    from ding.entry.serial_entry_dqfd import serial_pipeline_dqfd
+    from dizoo.atari.config.serial.qbert import qbert_dqfd_config, qbert_dqfd_create_config
+    expert_main_config = qbert_dqfd_config
+    expert_create_config = qbert_dqfd_create_config
+    serial_pipeline_dqfd([main_config, create_config], [expert_main_config, expert_create_config], seed=0)

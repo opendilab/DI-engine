@@ -1,4 +1,3 @@
-from copy import deepcopy
 from ding.entry import serial_pipeline
 from easydict import EasyDict
 

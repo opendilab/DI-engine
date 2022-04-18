@@ -7,7 +7,7 @@ enduro_dqn_config = dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=10000000000,
+        stop_value=int(1e10),
         env_id='EnduroNoFrameskip-v4',
         frame_stack=4,
     ),
@@ -54,5 +54,6 @@ enduro_dqn_create_config = EasyDict(enduro_dqn_create_config)
 create_config = enduro_dqn_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c enduro_dqn_config.py -s 0
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

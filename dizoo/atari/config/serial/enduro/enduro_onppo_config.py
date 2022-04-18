@@ -30,7 +30,7 @@ enduro_onppo_config = dict(
             # (float) loss weight of the value network, the weight of policy network is set to 1
             value_weight=1.0,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            entropy_weight=0.1, # [0.1, 0.01 ,0.0]
+            entropy_weight=0.001,  # [0.1, 0.01 ,0.0]
             clip_ratio=0.1
         ),
         collect=dict(
@@ -60,5 +60,6 @@ enduro_onppo_create_config = dict(
 create_config = EasyDict(enduro_onppo_create_config)
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial_onpolicy -c enduro_onppo_config.py -s 0
     from ding.entry import serial_pipeline_onpolicy
     serial_pipeline_onpolicy((main_config, create_config), seed=0)
