@@ -20,8 +20,6 @@ from ding.utils import SequenceType
 from ding.model.common import FCEncoder
 from ding.utils.data import offline_data_save_type
 from ding.utils import build_logger
-from dizoo.atari.envs.atari_wrappers import wrap_deepmind
-from dizoo.mujoco.envs.mujoco_wrappers import wrap_mujoco
 
 from .base_reward_model import BaseRewardModel
 from .rnd_reward_model import collect_states

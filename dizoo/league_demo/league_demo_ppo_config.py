@@ -9,7 +9,6 @@ league_demo_ppo_config = dict(
         n_evaluator_episode=100,
         env_type='prisoner_dilemma',  # ['zero_sum', 'prisoner_dilemma']
         stop_value=[-10.1, -5.05],  # prisoner_dilemma
-        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=False,
@@ -27,18 +26,7 @@ league_demo_ppo_config = dict(
             update_per_collect=3,
             batch_size=32,
             learning_rate=0.00001,
-            value_weight=0.5,
             entropy_weight=0.0,
-            clip_ratio=0.2,
-            scheduler=dict(
-                schedule_flag=False,
-                schedule_mode='reduce',
-                factor=0.005,
-                change_range=[0, 1],
-                threshold=0.5,
-                patience=50,
-                # cooldown=0,
-            ),
             learner=dict(log_policy=False),
         ),
         collect=dict(
@@ -92,4 +80,4 @@ league_demo_ppo_config = dict(
     ),
 )
 league_demo_ppo_config = EasyDict(league_demo_ppo_config)
-league_demo_ppo_create_config = EasyDict({})
+# This config file can be executed by `dizoo/league_demo/league_demo_ppo_main.py`

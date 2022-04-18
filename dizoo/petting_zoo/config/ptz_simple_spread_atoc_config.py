@@ -1,9 +1,9 @@
 from easydict import EasyDict
 
-n_agent = 4
+n_agent = 5
 n_landmark = n_agent  # In simple_spread_v2, n_landmark must = n_agent
-collector_env_num = 4
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 8
 communication = True
 ptz_simple_spread_atoc_config = dict(
     exp_name='ptz_simple_spread_atoc_seed0',

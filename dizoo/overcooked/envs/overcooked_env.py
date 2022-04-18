@@ -1,19 +1,19 @@
-from namedlist import namedlist
-import numpy as np
-import gym
 from typing import Any, Union, List
+from collections import namedtuple
+from easydict import EasyDict
+import gym
 import copy
+import numpy as np
 
 from overcooked_ai_py.mdp.actions import Action, Direction
-from overcooked_ai_py.mdp.overcooked_mdp import PlayerState, OvercookedGridworld, OvercookedState, ObjectState, SoupState, Recipe
+from overcooked_ai_py.mdp.overcooked_mdp import PlayerState, OvercookedGridworld, OvercookedState, ObjectState, \
+    SoupState, Recipe
 from overcooked_ai_py.mdp.overcooked_env import OvercookedEnv, DEFAULT_ENV_PARAMS
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
-from ding.utils import ENV_REGISTRY
+from ding.envs import BaseEnv
+from ding.utils import ENV_REGISTRY, deep_merge_dicts
 
-OvercookEnvTimestep = namedlist('OvercookEnvTimestep', ['obs', 'reward', 'done', 'info'])
-OvercookEnvInfo = namedlist('OvercookEnvInfo', ['agent_num', 'obs_space', 'act_space', 'rew_space'])
+OvercookEnvTimestep = namedtuple('OvercookEnvTimestep', ['obs', 'reward', 'done', 'info'])
 
 # n, s = Direction.NORTH, Direction.SOUTH
 # e, w = Direction.EAST, Direction.WEST
@@ -23,26 +23,52 @@ OvercookEnvInfo = namedlist('OvercookEnvInfo', ['agent_num', 'obs_space', 'act_s
 
 @ENV_REGISTRY.register('overcooked')
 class OvercookEnv(BaseEnv):
+    config = EasyDict(
+        dict(
+            env_name="cramped_room",
+            horizon=400,
+            concat_obs=False,
+            action_mask=True,
+            shape_reward=True,
+        )
+    )
 
     def __init__(self, cfg) -> None:
-        self._cfg = cfg
-        self._env_name = cfg.get("env_name", "cramped_room")
-        self._horizon = cfg.get("horizon", 400)
-        self._concat_obs = cfg.get("concat_obs", False)
-        self._action_mask = cfg.get("action_mask", True)
-        self._use_shaped_reward = cfg.get("use_shaped_reward", True)
+        self._cfg = deep_merge_dicts(self.config, cfg)
+        self._env_name = self._cfg.env_name
+        self._horizon = self._cfg.horizon
+        self._concat_obs = self._cfg.concat_obs
+        self._action_mask = self._cfg.action_mask
+        self._shape_reward = self._cfg.shape_reward
         self.mdp = OvercookedGridworld.from_layout_name(self._env_name)
         self.base_env = OvercookedEnv.from_mdp(self.mdp, horizon=self._horizon, info_level=0)
-        featurize_fn = lambda mdp, state: mdp.lossless_state_encoding(state)
-        self.featurize_fn = featurize_fn
-        self.action_dim = len(Action.ALL_ACTIONS)
-        self.action_space = gym.spaces.Discrete(len(Action.ALL_ACTIONS))
+
         # rightnow overcook environment encoding only support 2 agent game
         self.agent_num = 2
+        self.action_dim = len(Action.ALL_ACTIONS)
+        self.action_space = gym.spaces.Discrete(len(Action.ALL_ACTIONS))
         # set up obs shape
+        featurize_fn = lambda mdp, state: mdp.lossless_state_encoding(state)
+        self.featurize_fn = featurize_fn
         dummy_mdp = self.base_env.mdp
         dummy_state = dummy_mdp.get_standard_start_state()
-        self.obs_shape = self.featurize_fn(dummy_mdp, dummy_state)[0].shape
+        obs_shape = self.featurize_fn(dummy_mdp, dummy_state)[0].shape  # (5, 4, 26)
+        obs_shape = (obs_shape[-1], *obs_shape[:-1])  # permute channel first
+        if self._concat_obs:
+            obs_shape = (obs_shape[0] * 2, *obs_shape[1:])
+        else:
+            obs_shape = (2, ) + obs_shape
+        self.observation_space = gym.spaces.Box(low=0, high=1, shape=obs_shape, dtype=np.int64)
+        if self._action_mask:
+            self.observation_space = gym.spaces.Dict(
+                {
+                    'agent_state': self.observation_space,
+                    'action_mask': gym.spaces.Box(
+                        low=0, high=1, shape=(self.agent_num, self.action_dim), dtype=np.int64
+                    )
+                }
+            )
+        self.reward_space = gym.spaces.Box(low=0, high=100, shape=(1, ), dtype=np.float32)
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -53,9 +79,10 @@ class OvercookEnv(BaseEnv):
         # Note: the real env instance only has a empty close method, only pas
         pass
 
+    def random_action(self):
+        return [self.action_space.sample() for _ in range(self.agent_num)]
+
     def step(self, action):
-        if isinstance(action, list):
-            action = np.concatenate(action)
         assert all(self.action_space.contains(a) for a in action), "%r (%s) invalid" % (action, type(action))
         agent_action, other_agent_action = [Action.INDEX_TO_ACTION[a] for a in action]
 
@@ -65,13 +92,14 @@ class OvercookEnv(BaseEnv):
             joint_action = (other_agent_action, agent_action)
 
         next_state, reward, done, env_info = self.base_env.step(joint_action)
-        if self._use_shaped_reward:
-            reward += env_info['shaped_r_by_agent'][0]
-            reward += env_info['shaped_r_by_agent'][1]
-
         reward = np.array([float(reward)])
         self._final_eval_reward += reward
+        if self._shape_reward:
+            self._final_eval_reward += sum(env_info['shaped_r_by_agent'])
+            reward += sum(env_info['shaped_r_by_agent'])
+
         ob_p0, ob_p1 = self.featurize_fn(self.mdp, next_state)
+        ob_p0, ob_p1 = self.obs_preprocess(ob_p0), self.obs_preprocess(ob_p1)
         if self.agent_idx == 0:
             both_agents_ob = [ob_p0, ob_p1]
         else:
@@ -83,18 +111,22 @@ class OvercookEnv(BaseEnv):
 
         env_info["policy_agent_idx"] = self.agent_idx
         env_info["final_eval_reward"] = self._final_eval_reward
+        env_info["other_agent_env_idx"] = 1 - self.agent_idx
 
         action_mask = self.get_action_mask()
         if self._action_mask:
             obs = {
                 "agent_state": both_agents_ob,
-                "overcooked_state": self.base_env.state,
-                "other_agent_env_idx": 1 - self.agent_idx,
+                # "overcooked_state": self.base_env.state,
                 "action_mask": action_mask
             }
         else:
             obs = both_agents_ob
         return OvercookEnvTimestep(obs, reward, done, env_info)
+
+    def obs_preprocess(self, obs):
+        obs = obs.transpose(2, 0, 1)
+        return obs
 
     def reset(self):
         self.base_env.reset()
@@ -103,6 +135,7 @@ class OvercookEnv(BaseEnv):
         # random init agent index
         self.agent_idx = np.random.choice([0, 1])
         ob_p0, ob_p1 = self.featurize_fn(self.mdp, self.base_env.state)
+        ob_p0, ob_p1 = self.obs_preprocess(ob_p0), self.obs_preprocess(ob_p1)
 
         if self.agent_idx == 0:
             both_agents_ob = [ob_p0, ob_p1]
@@ -116,12 +149,7 @@ class OvercookEnv(BaseEnv):
         action_mask = self.get_action_mask()
 
         if self._action_mask:
-            obs = {
-                "agent_state": both_agents_ob,
-                "overcooked_state": self.base_env.state,
-                "other_agent_env_idx": 1 - self.agent_idx,
-                "action_mask": action_mask
-            }
+            obs = {"agent_state": both_agents_ob, "action_mask": action_mask}
         else:
             obs = both_agents_ob
         return obs
@@ -132,7 +160,7 @@ class OvercookEnv(BaseEnv):
     def get_action_mask(self):
         available_actions = self.get_available_actions()
 
-        action_masks = np.zeros((2, self.action_dim))
+        action_masks = np.zeros((self.agent_num, self.action_dim)).astype(np.int64)
 
         for i in range(self.action_dim):
             if Action.INDEX_TO_ACTION[i] in available_actions[0]:
@@ -142,51 +170,59 @@ class OvercookEnv(BaseEnv):
 
         return action_masks
 
-    def info(self):
-        T = EnvElementInfo
-        if self._concat_obs:
-            agent_state = list(self.obs_shape)
-            agent_state[0] = agent_state[0] * 2
-            agent_state = tuple(agent_state)
-        else:
-            agent_state = (self.agent_num, self.obs_shape)
-        env_info = OvercookEnvInfo(
-            agent_num=self.agent_num,
-            obs_space=T({
-                'agent_state': agent_state,
-                'action_mask': (self.agent_num, self.action_dim),
-            }, None),
-            act_space=T((self.agent_num, self.action_dim), None),
-            rew_space=T((1, ), None)
-        )
-        return env_info
-
     def __repr__(self):
-        pass
+        return "DI-engine Overcooked Env"
 
 
 @ENV_REGISTRY.register('overcooked_game')
 class OvercookGameEnv(BaseEnv):
+    config = EasyDict(
+        dict(
+            env_name="cramped_room",
+            horizon=400,
+            concat_obs=False,
+            action_mask=False,
+            shape_reward=True,
+        )
+    )
 
     def __init__(self, cfg) -> None:
-        self._cfg = cfg
-        self._env_name = cfg.get("env_name", "cramped_room")
-        self._horizon = cfg.get("horizon", 400)
-        self._concat_obs = cfg.get("concat_obs", False)
-        self._action_mask = cfg.get("action_mask", False)
-        self._use_shaped_reward = cfg.get("use_shaped_reward", True)
+        self._cfg = deep_merge_dicts(self.config, cfg)
+        self._env_name = self._cfg.env_name
+        self._horizon = self._cfg.horizon
+        self._concat_obs = self._cfg.concat_obs
+        self._action_mask = self._cfg.action_mask
+        self._shape_reward = self._cfg.shape_reward
         self.mdp = OvercookedGridworld.from_layout_name(self._env_name)
         self.base_env = OvercookedEnv.from_mdp(self.mdp, horizon=self._horizon, info_level=0)
-        featurize_fn = lambda mdp, state: mdp.lossless_state_encoding(state)
-        self.featurize_fn = featurize_fn
-        self.action_dim = len(Action.ALL_ACTIONS)
-        self.action_space = gym.spaces.Discrete(len(Action.ALL_ACTIONS))
+
         # rightnow overcook environment encoding only support 2 agent game
         self.agent_num = 2
+        self.action_dim = len(Action.ALL_ACTIONS)
+        self.action_space = gym.spaces.Discrete(len(Action.ALL_ACTIONS))
         # set up obs shape
+        featurize_fn = lambda mdp, state: mdp.lossless_state_encoding(state)
+        self.featurize_fn = featurize_fn
         dummy_mdp = self.base_env.mdp
         dummy_state = dummy_mdp.get_standard_start_state()
-        self.obs_shape = self.featurize_fn(dummy_mdp, dummy_state)[0].shape
+        obs_shape = self.featurize_fn(dummy_mdp, dummy_state)[0].shape  # (5, 4, 26)
+        obs_shape = (obs_shape[-1], *obs_shape[:-1])  # permute channel first
+        if self._concat_obs:
+            obs_shape = (obs_shape[0] * 2, *obs_shape[1:])
+        else:
+            obs_shape = (2, ) + obs_shape
+        self.observation_space = gym.spaces.Box(low=0, high=1, shape=obs_shape, dtype=np.int64)
+        if self._action_mask:
+            self.observation_space = gym.spaces.Dict(
+                {
+                    'agent_state': self.observation_space,
+                    'action_mask': gym.spaces.Box(
+                        low=0, high=1, shape=(self.agent_num, self.action_dim), dtype=np.int64
+                    )
+                }
+            )
+
+        self.reward_space = gym.spaces.Box(low=0, high=100, shape=(1, ), dtype=np.float32)
 
     def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
@@ -194,14 +230,13 @@ class OvercookGameEnv(BaseEnv):
         np.random.seed(self._seed)
 
     def close(self) -> None:
-        # Note: the real env instance only has a empty close method, only pas
+        # Note: the real env instance only has a empty close method, only pass
         pass
 
+    def random_action(self):
+        return [self.action_space.sample() for _ in range(self.agent_num)]
+
     def step(self, action):
-        if isinstance(action, list):
-            action = np.array(action).astype(np.int)
-            if action.shape == (2, 1):
-                action = [action[0][0], action[1][0]]
         assert all(self.action_space.contains(a) for a in action), "%r (%s) invalid" % (action, type(action))
         agent_action, other_agent_action = [Action.INDEX_TO_ACTION[a] for a in action]
 
@@ -214,14 +249,11 @@ class OvercookGameEnv(BaseEnv):
 
         reward = np.array([float(reward)])
         self._final_eval_reward += reward
-        if self._use_shaped_reward:
-            self._final_eval_reward += env_info['shaped_r_by_agent'][0]
-            self._final_eval_reward += env_info['shaped_r_by_agent'][1]
-        rewards = np.array([reward, reward]).astype(np.float32)
-        if self._use_shaped_reward:
-            rewards[0] += env_info['shaped_r_by_agent'][0]
-            rewards[1] += env_info['shaped_r_by_agent'][1]
+        if self._shape_reward:
+            self._final_eval_reward += sum(env_info['shaped_r_by_agent'])
+            reward += sum(env_info['shaped_r_by_agent'])
         ob_p0, ob_p1 = self.featurize_fn(self.mdp, next_state)
+        ob_p0, ob_p1 = self.obs_preprocess(ob_p0), self.obs_preprocess(ob_p1)
         if self.agent_idx == 0:
             both_agents_ob = [ob_p0, ob_p1]
         else:
@@ -233,18 +265,18 @@ class OvercookGameEnv(BaseEnv):
 
         env_info["policy_agent_idx"] = self.agent_idx
         env_info["final_eval_reward"] = self._final_eval_reward
+        env_info["other_agent_env_idx"] = 1 - self.agent_idx
 
         action_mask = self.get_action_mask()
         if self._action_mask:
-            obs = {
-                "agent_state": both_agents_ob,
-                "overcooked_state": self.base_env.state,
-                "other_agent_env_idx": 1 - self.agent_idx,
-                "action_mask": action_mask
-            }
+            obs = {"agent_state": both_agents_ob, "action_mask": action_mask}
         else:
             obs = both_agents_ob
-        return OvercookEnvTimestep(obs, rewards, done, [env_info, env_info])
+        return OvercookEnvTimestep(obs, reward, done, env_info)
+
+    def obs_preprocess(self, obs):
+        obs = obs.transpose(2, 0, 1)
+        return obs
 
     def reset(self):
         self.base_env.reset()
@@ -255,6 +287,7 @@ class OvercookGameEnv(BaseEnv):
         #fix init agent index
         self.agent_idx = 0
         ob_p0, ob_p1 = self.featurize_fn(self.mdp, self.base_env.state)
+        ob_p0, ob_p1 = self.obs_preprocess(ob_p0), self.obs_preprocess(ob_p1)
 
         if self.agent_idx == 0:
             both_agents_ob = [ob_p0, ob_p1]
@@ -268,12 +301,7 @@ class OvercookGameEnv(BaseEnv):
         action_mask = self.get_action_mask()
 
         if self._action_mask:
-            obs = {
-                "agent_state": both_agents_ob,
-                "overcooked_state": self.base_env.state,
-                "other_agent_env_idx": 1 - self.agent_idx,
-                "action_mask": action_mask
-            }
+            obs = {"agent_state": both_agents_ob, "action_mask": action_mask}
         else:
             obs = both_agents_ob
         return obs
@@ -284,7 +312,7 @@ class OvercookGameEnv(BaseEnv):
     def get_action_mask(self):
         available_actions = self.get_available_actions()
 
-        action_masks = np.zeros((2, self.action_dim))
+        action_masks = np.zeros((self.agent_num, self.action_dim)).astype(np.int64)
 
         for i in range(self.action_dim):
             if Action.INDEX_TO_ACTION[i] in available_actions[0]:
@@ -293,25 +321,6 @@ class OvercookGameEnv(BaseEnv):
                 action_masks[1][i] = 1
 
         return action_masks
-
-    def info(self):
-        T = EnvElementInfo
-        if self._concat_obs:
-            agent_state = list(self.obs_shape)
-            agent_state[0] = agent_state[0] * 2
-            agent_state = tuple(agent_state)
-        else:
-            agent_state = (self.agent_num, self.obs_shape)
-        env_info = OvercookEnvInfo(
-            agent_num=self.agent_num,
-            obs_space=T({
-                'agent_state': agent_state,
-                'action_mask': (self.agent_num, self.action_dim),
-            }, None),
-            act_space=T((self.agent_num, self.action_dim), None),
-            rew_space=T((1, ), None)
-        )
-        return env_info
 
     def __repr__(self):
         return "DI-engine Overcooked GameEnv"

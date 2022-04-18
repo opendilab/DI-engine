@@ -374,3 +374,14 @@ def get_tensor_data(data: Any) -> Any:
         return {k: get_tensor_data(v) for k, v in data.items()}
     else:
         raise TypeError("not support type in get_tensor_data: {}".format(type(data)))
+
+
+def unsqueeze(data: Any, dim: int = 0) -> Any:
+    if isinstance(data, torch.Tensor):
+        return data.unsqueeze(dim)
+    elif isinstance(data, Sequence):
+        return [unsqueeze(d) for d in data]
+    elif isinstance(data, dict):
+        return {k: unsqueeze(v, 0) for k, v in data.items()}
+    else:
+        raise TypeError("not support type in unsqueeze: {}".format(type(data)))

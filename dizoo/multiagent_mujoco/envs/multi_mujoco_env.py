@@ -1,14 +1,13 @@
 from typing import Any, Union, List
 import copy
 import numpy as np
+from numpy import dtype
 import gym
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_ndarray, to_list
-from .mujoco_multi import MujocoMulti
 from ding.utils import ENV_REGISTRY
-from namedlist import namedlist
-from numpy import dtype
+from .mujoco_multi import MujocoMulti
 
 
 @ENV_REGISTRY.register('mujoco_multi')
@@ -30,8 +29,8 @@ class MujocoEnv(BaseEnv):
         obs = self._env.reset()
         self._final_eval_reward = 0.
 
-        # TODO: 
-        # self.env_info for scenario='Ant-v2', agent_conf="2x4d", 
+        # TODO:
+        # self.env_info for scenario='Ant-v2', agent_conf="2x4d",
         # {'state_shape': 2, 'obs_shape': 54,...}
         # 'state_shape' is wrong, it should be 111
         self.env_info = self._env.get_env_info()
@@ -39,22 +38,22 @@ class MujocoEnv(BaseEnv):
 
         self._num_agents = self.env_info['n_agents']
         self._agents = [i for i in range(self._num_agents)]
-        self._observation_space = [gym.spaces.Dict({
+        self._observation_space = gym.spaces.Dict({
             'agent_state':
                 gym.spaces.Box(
                     low=float("-inf"),
                     high=float("inf"),
-                    shape=obs['agent_state'].shape[1:],
+                    shape=obs['agent_state'].shape,
                     dtype=np.float32
-                ), 
+                ),
             'global_state':
                 gym.spaces.Box(
                     low=float("-inf"),
                     high=float("inf"),
-                    shape=obs['global_state'].shape[1:],
+                    shape=obs['global_state'].shape,
                     dtype=np.float32
                 ),
-        }) for agent in self._agents]
+        })
         self._action_space = gym.spaces.Dict({agent: self._env.action_space[agent] for agent in self._agents})
         single_agent_obs_space = self._env.action_space[self._agents[0]]
         if isinstance(single_agent_obs_space, gym.spaces.Box):
@@ -111,20 +110,6 @@ class MujocoEnv(BaseEnv):
     @property
     def reward_space(self) -> gym.spaces.Space:
         return self._reward_space
-
-    @staticmethod
-    def create_collector_env_cfg(cfg: dict) -> List[dict]:
-        collector_env_num = cfg.pop('collector_env_num')
-        cfg = copy.deepcopy(cfg)
-        cfg.is_train = True
-        return [cfg for _ in range(collector_env_num)]
-
-    @staticmethod
-    def create_evaluator_env_cfg(cfg: dict) -> List[dict]:
-        evaluator_env_num = cfg.pop('evaluator_env_num')
-        cfg = copy.deepcopy(cfg)
-        cfg.is_train = False
-        return [cfg for _ in range(evaluator_env_num)]
 
     def __repr__(self) -> str:
         return "DI-engine Multi-agent Mujoco Env({})".format(self._cfg.env_id)

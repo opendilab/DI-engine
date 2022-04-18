@@ -1,10 +1,8 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
-from ding.model.template.q_learning import DQN
-from ding.torch_utils import DataParallel
 
 spaceinvaders_dqn_config = dict(
+    exp_name='spaceinvaders_dqn_multi_gpu_dp_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -57,5 +55,8 @@ spaceinvaders_dqn_create_config = EasyDict(spaceinvaders_dqn_create_config)
 create_config = spaceinvaders_dqn_create_config
 
 if __name__ == '__main__':
+    from ding.entry import serial_pipeline
+    from ding.model.template.q_learning import DQN
+    from ding.torch_utils import DataParallel
     model = DataParallel(DQN(obs_shape=[4, 84, 84], action_shape=6))
     serial_pipeline((main_config, create_config), seed=0, model=model)
