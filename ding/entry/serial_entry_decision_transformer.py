@@ -1,4 +1,5 @@
-"""The code is adapted from https://github.com/nikhilbarhate99/min-decision-transformer
+"""
+The code is adapted from https://github.com/nikhilbarhate99/min-decision-transformer
 """
 from typing import Union, Optional, List, Any, Tuple
 import os
@@ -44,7 +45,8 @@ class D4RLTrajectoryDataset(Dataset):
         with open(dataset_path, 'rb') as f:
             self.trajectories = pickle.load(f)
 
-        if isinstance(self.trajectories[0], list):  # for cartpole
+        if isinstance(self.trajectories[0], list):
+            # for our collected dataset, e.g. cartpole/lunarlander case
             self.trajectories_tmp = {}
             self.trajectories_tmp = [
                 {

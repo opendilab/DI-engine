@@ -250,8 +250,8 @@ class DTPolicy(DQNPolicy):
         self.stop_value = self._cfg.stop_value
         self.env_name = self._cfg.env_name
         dataset = self._cfg.dataset  # medium / medium-replay / medium-expert
-        self.rtg_scale = self._cfg.rtg_target  # normalize returns to go 
-        self.rtg_target = self._cfg.rtg_target # max target reward_to_go
+        self.rtg_scale = self._cfg.rtg_target  # normalize returns to go
+        self.rtg_target = self._cfg.rtg_target  # max target reward_to_go
         self.max_eval_ep_len = self._cfg.max_eval_ep_len  # max len of one episode
         self.num_eval_ep = self._cfg.num_eval_ep  # num of evaluation episodes
 
@@ -311,37 +311,10 @@ class DTPolicy(DQNPolicy):
         print("model save path: " + self.save_model_path)
         print("log csv save path: " + log_csv_path)
 
-        # traj_dataset = D4RLTrajectoryDataset(dataset_path, self.context_len, rtg_scale)
-
-        # traj_data_loader = DataLoader(
-        #                         traj_dataset,
-        #                         batch_size=batch_size,
-        #                         shuffle=True,
-        #                         pin_memory=True,
-        #                         drop_last=True
-        #                     )
-
-        # data_iter = iter(traj_data_loader)
-
-        # ## get state stats from dataset
-        # self.state_mean, self.state_std = traj_dataset.get_state_stats()
-
         self._env = gym.make(self.env_name)
 
-        # state_dim = env.observation_space.shape[0]
-        # act_dim = env.action_space.shape[0]
         self.state_dim = self._cfg.model.state_dim
         self.act_dim = self._cfg.model.act_dim
-
-        # self._learn_model = DecisionTransformer(
-        #             state_dim=self._cfg.model.state_dim,
-        #             act_dim=self._cfg.model.act_dim,
-        #             n_blocks=self._cfg.model.n_blocks,
-        #             h_dim=self._cfg.model.embed_dim,
-        #             context_len=self._cfg.model.context_len,
-        #             n_heads=self._cfg.model.n_heads,
-        #             drop_p=self._cfg.model.dropout_p,
-        #         ).to(device)
 
         self._learn_model = self._model
         self._optimizer = torch.optim.AdamW(self._learn_model.parameters(), lr=lr, weight_decay=wt_decay)
@@ -390,7 +363,7 @@ class DTPolicy(DQNPolicy):
                 actions = one_hot(actions.squeeze(-1), num=self.act_dim)
                 returns_to_go = returns_to_go.to(self.device).squeeze(dim=-1)  # B x T x 1
 
-            returns_to_go =  returns_to_go.float()
+            returns_to_go = returns_to_go.float()
             state_preds, action_preds, return_preds = self._learn_model.forward(
                 timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
             )
@@ -403,7 +376,7 @@ class DTPolicy(DQNPolicy):
                 action_target = action_target.view(-1)[traj_mask.view(-1, ) > 0]
 
             if self._cfg.model.continuous:
-                action_loss = F.mse_loss(action_preds, action_target, reduction='mean')
+                action_loss = F.mse_loss(action_preds, action_target)
             else:
                 action_loss = F.cross_entropy(action_preds, action_target)
 
@@ -533,8 +506,8 @@ class DTPolicy(DQNPolicy):
         self.total_updates += self.num_updates_per_iter
 
         log_str = (
-            "=" * 60 + '\n' + "time elapsed: " + time_elapsed + '\n' + "num of updates: " + str(self.total_updates) + '\n' +
-            "action loss: " + format(mean_action_loss, ".5f") + '\n' + "eval avg reward: " +
+            "=" * 60 + '\n' + "time elapsed: " + time_elapsed + '\n' + "num of updates: " + str(self.total_updates) +
+            '\n' + "action loss: " + format(mean_action_loss, ".5f") + '\n' + "eval avg reward: " +
             format(eval_avg_reward, ".5f") + '\n' + "eval avg ep len: " + format(eval_avg_ep_len, ".5f")  #+ '\n' +
             # "eval d4rl score: " + format(eval_d4rl_score, ".5f")
         )
@@ -544,7 +517,6 @@ class DTPolicy(DQNPolicy):
         # log_data = [time_elapsed, self.total_updates, mean_action_loss, eval_avg_reward, eval_avg_ep_len, eval_d4rl_score]
         log_data = [time_elapsed, self.total_updates, mean_action_loss, eval_avg_reward, eval_avg_ep_len]
 
-
         log_csv_name = self.prefix + "_log_" + self.start_time_str + ".csv"
         log_csv_path = os.path.join(self.log_dir, log_csv_name)
 
@@ -552,9 +524,7 @@ class DTPolicy(DQNPolicy):
         # csv_header = (
         #     ["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"]
         # )
-        csv_header = (
-            ["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len"]
-        )
+        csv_header = (["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len"])
         csv_writer.writerow(log_data)
 
         # save model
@@ -567,17 +537,17 @@ class DTPolicy(DQNPolicy):
         # save model
         print("eval_avg_reward: " + format(eval_avg_reward, ".5f"))
         eval_cartpole_score = eval_avg_reward
-        if  eval_cartpole_score >= self.max_cartpole_score:
+        if eval_cartpole_score >= self.max_cartpole_score:
             print("saving max cartpole score model at: " + self.save_best_model_path)
             torch.save(self._learn_model.state_dict(), self.save_best_model_path)
             self.max_cartpole_score = eval_cartpole_score
 
         print("saving current model at: " + self.save_model_path)
         torch.save(self._learn_model.state_dict(), self.save_model_path)
-        
-        stop=False
+
+        stop = False
         if self.max_cartpole_score >= self.stop_value:
-            stop=True
+            stop = True
         return stop
 
     def get_d4rl_normalized_score(self, score, env_name):

@@ -1,7 +1,6 @@
 """
 The code is borrowed from https://github.com/nikhilbarhate99/min-decision-transformer
 """
-
 """
 this extremely minimal GPT model is based on:
 Misha Laskin's tweet:
@@ -63,6 +62,8 @@ class MaskedCausalAttention(nn.Module):
         normalized_weights = F.softmax(weights, dim=-1)
 
         # attention (B, N, T, D)
+        # normalized_weights.shape: (B, N, T, T)
+        # v.shape: (B, N, T, D)
         attention = self.att_drop(normalized_weights @ v)
 
         # gather heads and project (B, N, T, D) -> (B, T, N*D)
@@ -137,15 +138,17 @@ class DecisionTransformer(nn.Module):
 
         B, T, _ = states.shape
 
-        time_embeddings = self.embed_timestep(timesteps)
+        time_embeddings = self.embed_timestep(timesteps)  # shape: (B,context_len/T,h_dim)
 
         # time embeddings are treated similar to positional embeddings
+        # shape: (B,context_len,h_dim)
         state_embeddings = self.embed_state(states) + time_embeddings
         action_embeddings = self.embed_action(actions) + time_embeddings
         returns_embeddings = self.embed_rtg(returns_to_go) + time_embeddings
 
         # stack rtg, states and actions and reshape sequence as
         # (r1, s1, a1, r2, s2, a2 ...)
+        # after stack shape: (B,3, context_len/T, h_dim)
         h = torch.stack((returns_embeddings, state_embeddings, action_embeddings),
                         dim=1).permute(0, 2, 1, 3).reshape(B, 3 * T, self.h_dim)
 
