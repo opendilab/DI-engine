@@ -4,7 +4,7 @@ from .serial_entry import serial_pipeline
 from .serial_entry_td3_vae import serial_pipeline_td3_vae
 from .serial_entry_onpolicy import serial_pipeline_onpolicy
 from .serial_entry_offline import serial_pipeline_offline
-from .serial_entry_il import serial_pipeline_il
+from .serial_entry_bc import serial_pipeline_bc
 from .serial_entry_reward_model_ngu import serial_pipeline_reward_model_ngu
 from .serial_entry_reward_model import serial_pipeline_reward_model
 from .serial_entry_reward_model_onpolicy import serial_pipeline_reward_model_onpolicy
@@ -21,3 +21,8 @@ from .application_entry_trex_collect_data import trex_collecting_data, collect_e
 from .serial_entry_guided_cost import serial_pipeline_guided_cost
 from .serial_entry_gail import serial_pipeline_gail
 from .utils import random_collect
+from .serial_entry_reward_model_preference_based_irl \
+      import serial_pipeline_reward_model_preference_based_irl
+from .serial_entry_reward_model_preference_based_irl_onpolicy \
+      import serial_pipeline_reward_model_preference_based_irl_onpolicy
+from .application_entry_drex_collect_data import drex_collecting_data

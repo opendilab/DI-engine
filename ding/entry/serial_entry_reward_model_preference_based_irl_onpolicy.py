@@ -14,7 +14,7 @@ from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
 
 
-def serial_pipeline_reward_model_trex_onpolicy(
+def serial_pipeline_reward_model_preference_based_irl_onpolicy(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -24,7 +24,7 @@ def serial_pipeline_reward_model_trex_onpolicy(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry for trex reward model of on-policy algorithm(such as PPO).
+        Serial pipeline entry for preference based irl of on-policy algorithm(such as PPO).
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -43,7 +43,7 @@ def serial_pipeline_reward_model_trex_onpolicy(
     else:
         cfg, create_cfg = input_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
-    create_cfg.reward_model = dict(type='trex')
+    create_cfg.reward_model = dict(type=cfg.reward_model.type)
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
     # Create main components: env, policy
