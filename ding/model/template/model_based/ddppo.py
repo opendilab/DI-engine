@@ -71,8 +71,6 @@ class EnsembleDoubleModel(nn.Module):
         )
 
         self.scaler = StandardScaler(state_size + action_size)
-        if self._cuda:
-            self.cuda()
 
         self.last_train_step = 0
         self.last_eval_step = 0
@@ -100,6 +98,9 @@ class EnsembleDoubleModel(nn.Module):
                 
         self.last_neighbor_pool_update_step = 0
         self.neighbor_pool = None
+
+        if self._cuda:
+            self.cuda()
 
 
     def should_eval(self, envstep):
