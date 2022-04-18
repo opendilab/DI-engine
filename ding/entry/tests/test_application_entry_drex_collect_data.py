@@ -66,7 +66,8 @@ def test_drex_collecting_data():
     args.cfg[0].reward_model.expert_model_path = './cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar'
     args.cfg[0].reward_model.expert_model_path = os.path.abspath(args.cfg[0].reward_model.expert_model_path)
     args.cfg[0].reward_model.bc_iterations = 6
-    args.cfg[0].reward_model.num_trajs_per_bin = 2
+    args.cfg[0].reward_model.num_trajs_per_bin = 8
+    args.cfg[0].bc_iteration = 1000  # for unittest
     drex_collecting_data(args=args)
     os.popen('rm -rf {}'.format(expert_policy_state_dict_path))
     os.popen('rm -rf {}'.format(args.cfg[0].reward_model.offline_data_path))
