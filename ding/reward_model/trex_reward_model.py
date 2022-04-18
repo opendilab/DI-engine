@@ -154,7 +154,6 @@ class TrexRewardModel(BaseRewardModel):
         type='trex',
         learning_rate=1e-5,
         update_per_collect=100,
-
         num_trajs=0,  # number of downsampled full trajectories
         num_snippets=6000,  # number of short subtrajectories to sample
     )
