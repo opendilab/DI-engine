@@ -47,7 +47,7 @@ def test_collect_episodic_demo_data_for_drex():
 
 @pytest.mark.unittest
 def test_drex_collecting_data():
-    expert_policy_state_dict_path = './cartpole_dqn'
+    expert_policy_state_dict_path = './cartpole_dqn_seed0'
     expert_policy_state_dict_path = os.path.abspath(expert_policy_state_dict_path)
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     expert_policy = serial_pipeline(config, seed=0, max_train_iter=1)
@@ -60,10 +60,10 @@ def test_drex_collecting_data():
             'device': 'cpu'
         }
     )
-    args.cfg[0].reward_model.offline_data_path = './cartpole_drex_dqn'
+    args.cfg[0].reward_model.offline_data_path = './cartpole_drex_dqn_seed0'
     args.cfg[0].reward_model.offline_data_path = os.path.abspath(args.cfg[0].reward_model.offline_data_path)
     args.cfg[0].reward_model.reward_model_path = args.cfg[0].reward_model.offline_data_path + '/cartpole.params'
-    args.cfg[0].reward_model.expert_model_path = './cartpole_dqn/ckpt/ckpt_best.pth.tar'
+    args.cfg[0].reward_model.expert_model_path = './cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar'
     args.cfg[0].reward_model.expert_model_path = os.path.abspath(args.cfg[0].reward_model.expert_model_path)
     args.cfg[0].reward_model.bc_iterations = 6
     drex_collecting_data(args=args)
