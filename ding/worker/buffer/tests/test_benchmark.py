@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 # test different buffer size, eg: 1000, 10000, 100000;
-size_list = [1000, 10000, 100000]
+size_list = [1000, 10000]
 # test different tensor dim, eg: 32*32, 128*128, 512*512;
 data_dim_list = [32, 128]
 # repeat times.
