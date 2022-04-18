@@ -40,7 +40,7 @@ def test_decision_transformer(action_space):
     # all ones since no padding
     traj_mask = torch.ones([B, T], dtype=torch.long)  # B x T
 
-    # if discrete
+    # discrete action case
     if not is_continuous:
         actions = one_hot(actions.squeeze(-1), num=act_dim)
 
@@ -72,7 +72,7 @@ def test_decision_transformer(action_space):
         action_loss = F.cross_entropy(action_preds, action_target)
 
     # print(action_loss)
-    # is_differentiable(action_loss, DT_model)
+    # is_differentiable(action_loss, DT_model)  # TODO
     is_differentiable(
         action_loss, [
             DT_model.transformer, DT_model.embed_action, DT_model.predict_action, DT_model.embed_rtg,

@@ -37,12 +37,12 @@ def get_d4rl_dataset_stats(env_d4rl_name):
 
 class D4RLTrajectoryDataset(Dataset):
 
-    def __init__(self, dataset_path, context_len, rtg_scale):
+    def __init__(self, data_path, context_len, rtg_scale):
 
         self.context_len = context_len
 
         # load dataset
-        with open(dataset_path, 'rb') as f:
+        with open(data_path, 'rb') as f:
             self.trajectories = pickle.load(f)
 
         if isinstance(self.trajectories[0], list):
@@ -191,7 +191,7 @@ def serial_pipeline_dt(
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg)
 
     # Dataset
-    traj_dataset = D4RLTrajectoryDataset(cfg.policy.learn.dataset_path, cfg.policy.context_len, cfg.policy.rtg_scale)
+    traj_dataset = D4RLTrajectoryDataset(cfg.policy.learn.data_path, cfg.policy.context_len, cfg.policy.rtg_scale)
     traj_data_loader = DataLoader(
         traj_dataset, batch_size=cfg.policy.batch_size, shuffle=True, pin_memory=True, drop_last=True
     )

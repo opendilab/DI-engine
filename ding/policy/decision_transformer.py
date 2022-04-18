@@ -260,8 +260,6 @@ class DTPolicy(DQNPolicy):
         wt_decay = self._cfg.wt_decay  # weight decay
         warmup_steps = self._cfg.warmup_steps  # warmup steps for lr scheduler
 
-        # total updates = max_train_iters x num_updates_per_iter
-        max_train_iters = self._cfg.max_train_iters
         self.num_updates_per_iter = self._cfg.num_updates_per_iter
 
         self.context_len = self._cfg.context_len  # K in decision transformer
@@ -271,7 +269,7 @@ class DTPolicy(DQNPolicy):
         dropout_p = self._cfg.dropout_p  # dropout probability
 
         # # load data from this file
-        # dataset_path = f'{self._cfg.dataset_dir}/{env_d4rl_name}.pkl'
+        # data_path = f'{self._cfg.dataset_dir}/{env_d4rl_name}.pkl'
 
         # saves model and csv in this directory
         self.log_dir = self._cfg.log_dir
@@ -301,13 +299,13 @@ class DTPolicy(DQNPolicy):
 
         # self.csv_writer.writerow(csv_header)
 
-        dataset_path = self._cfg.learn.dataset_path
+        data_path = self._cfg.learn.data_path
         print("=" * 60)
         print("start time: " + self.start_time_str)
         print("=" * 60)
 
         print("device set to: " + str(device))
-        print("dataset path: " + dataset_path)
+        print("dataset path: " + data_path)
         print("model save path: " + self.save_model_path)
         print("log csv save path: " + log_csv_path)
 
@@ -427,13 +425,20 @@ class DTPolicy(DQNPolicy):
             for _ in range(self.num_eval_ep):
 
                 # zeros place holders
-                # continuous action
-                actions = torch.zeros(
-                    (eval_batch_size, self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self.device
-                )
-
-                # discrete action # TODO
-                # actions = torch.randint(0,self.act_dim,[eval_batch_size, self.max_eval_ep_len, 1], dtype=torch.long, device=self.device)
+                if not self._cfg.model.continuous:
+                    # discrete action
+                    actions = torch.randint(
+                        0,
+                        self.act_dim, [eval_batch_size, self.max_eval_ep_len, 1],
+                        dtype=torch.long,
+                        device=self.device
+                    )
+                    actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+                else:
+                    # continuous action
+                    actions = torch.zeros(
+                        (eval_batch_size, self.max_eval_ep_len, self.act_dim), dtype=torch.float32, device=self.device
+                    )
 
                 states = torch.zeros(
                     (eval_batch_size, self.max_eval_ep_len, self.state_dim), dtype=torch.float32, device=self.device
@@ -453,7 +458,6 @@ class DTPolicy(DQNPolicy):
 
                     # add state in placeholder and normalize
                     states[0, t] = torch.from_numpy(running_state).to(self.device)
-                    # states[0, t] = (states[0, t].cpu() - self.state_mean.cpu().numpy()) / self.state_std.cpu().numpy()
                     states[0, t] = (states[0, t] - self.state_mean) / self.state_std
 
                     # calcualate running rtg and add it in placeholder

@@ -64,8 +64,7 @@ lunarlander_dqn_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    # env_manager=dict(type='subprocess'),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
 lunarlander_dqn_create_config = EasyDict(lunarlander_dqn_create_config)

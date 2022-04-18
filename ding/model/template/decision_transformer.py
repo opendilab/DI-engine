@@ -1,5 +1,5 @@
 """
-The code is borrowed from https://github.com/nikhilbarhate99/min-decision-transformer
+The code is adapted from https://github.com/nikhilbarhate99/min-decision-transformer
 """
 """
 this extremely minimal GPT model is based on:

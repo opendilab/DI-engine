@@ -1,7 +1,4 @@
 from easydict import EasyDict
-import torch
-from copy import deepcopy
-
 
 cartpole_dt_config = dict(
     exp_name='cartpole_dt',
@@ -13,12 +10,11 @@ cartpole_dt_config = dict(
         stop_value=195,
     ),
     policy=dict(
-        device='cuda',
         stop_value=195,
+        device='cuda',
         env_name='CartPole-v0',
-        dataset='medium',  # medium / medium-replay / medium-expert
-        rtg_scale=1000,  # normalize returns to go
-        max_eval_ep_len=1000,  # max len of one episode
+        rtg_target=200,  # max target reward_to_go
+        max_eval_ep_len=1000,  # max len of one episode # TODO
         num_eval_ep=10,  # num of evaluation episodes
         batch_size= 64, # training batch size
         # batch_size= 2, # debug
@@ -26,7 +22,7 @@ cartpole_dt_config = dict(
         wt_decay=1e-4,
         warmup_steps=10000,
         num_updates_per_iter=100,
-        context_len=20,
+        context_len=20,  # TODO
         n_blocks=3,
         embed_dim=128,
         n_heads =1,
@@ -46,7 +42,7 @@ cartpole_dt_config = dict(
         discount_factor=0.999,
         nstep=3,
         learn=dict(
-            dataset_path='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data/data/expert_data_1000eps.pkl',
+            data_path='/home/puyuan/DI-engine/dizoo/classic_control/cartpole/dt_data/data/expert_data_1000eps.pkl',
             learning_rate=0.001,
             target_update_freq=100,
             kappa=1.0,
@@ -62,7 +58,7 @@ cartpole_dt_config = dict(
                 start=0.95,
                 end=0.1,
                 decay=int(1e4),
-            ), replay_buffer=dict(replay_buffer_size=int(2e4), )
+            ), replay_buffer=dict(replay_buffer_size=int(1000), )
         ),
     ),
 )
@@ -82,6 +78,4 @@ create_config = cartpole_dt_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_dt, collect_demo_data, eval, serial_pipeline
-    main_config.exp_name = 'cartpole_dt'
-    config = deepcopy([main_config, create_config])
-    serial_pipeline_dt(config, seed=0, max_train_iter=200)
+    serial_pipeline_dt([main_config, create_config], seed=0, max_train_iter=200)
