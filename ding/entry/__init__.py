@@ -22,5 +22,5 @@ from .utils import random_collect
 from .serial_entry_preference_based_irl \
       import serial_pipeline_preference_based_irl
 from .serial_entry_preference_based_irl_onpolicy \
-      import serial_pipelin_preference_based_irl_onpolicy
+      import serial_pipeline_preference_based_irl_onpolicy
 from .application_entry_drex_collect_data import drex_collecting_data
