@@ -1,3 +1,4 @@
+import copy
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
@@ -9,13 +10,12 @@ from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
-from ding.policy import create_policy
+from ding.policy import create_policy, PolicyFactory
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
-from .utils import random_collect
 
 
-def serial_pipeline_reward_model_trex(
+def serial_pipeline_reward_model_preference_based_irl(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -25,7 +25,7 @@ def serial_pipeline_reward_model_trex(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entor for trex reward model of off-policy RL
+        serial_pipeline_reward_model_reward_model_preference_based_irl.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -34,8 +34,8 @@ def serial_pipeline_reward_model_trex(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
-        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
+        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
+            when reaching this iteration.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -44,8 +44,10 @@ def serial_pipeline_reward_model_trex(
     else:
         cfg, create_cfg = input_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
+    create_cfg.reward_model = dict(type=cfg.reward_model.type)
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+    cfg_bak = copy.deepcopy(cfg)
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -75,7 +77,8 @@ def serial_pipeline_reward_model_trex(
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-    reward_model = create_reward_model(cfg, policy.collect_mode.get_attribute('device'), tb_logger)
+
+    reward_model = create_reward_model(cfg_bak, policy.collect_mode.get_attribute('device'), tb_logger)
     reward_model.train()
     # ==========
     # Main loop
@@ -85,7 +88,16 @@ def serial_pipeline_reward_model_trex(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
+        if cfg.policy.get('transition_with_policy_data', False):
+            collector.reset_policy(policy.collect_mode)
+        else:
+            action_space = collector_env.env_info().act_space
+            random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
+            collector.reset_policy(random_policy)
+        collect_kwargs = commander.step()
+        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
+        replay_buffer.push(new_data, cur_collector_envstep=0)
+        collector.reset_policy(policy.collect_mode)
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
