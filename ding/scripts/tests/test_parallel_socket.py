@@ -12,6 +12,7 @@ alphabet = [c.encode('ascii') for c in ascii_lowercase]
 
 
 class EasyCounter:
+
     def __init__(self):
         self._last = None
         self._cnt = 0
@@ -45,17 +46,18 @@ class SockTest:
                 continue
             last_msg = greets.last()
             msg_idx, msg_t = last_msg.split("_")[-2:]
-            logging.info("main_p0 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s"
-                         .format(time.time() - start_t, greets.cnt(), msg_idx, msg_t))
+            logging.info(
+                "main_p0 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s".format(
+                    time.time() - start_t, greets.cnt(), msg_idx, msg_t
+                )
+            )
 
         logging.info("main_p0 done! total msg: {}".format(greets.cnt()))
 
     @classmethod
     def main_p1(cls, epoch, interval, data_size, tmp_file):
-        words = b''.join([alphabet[int(random() * 26)]
-                          for _ in range(1024 * 1024)]) * data_size
-        print("msg length: {:.4f} MB".format(
-            sys.getsizeof(words) / 1024 / 1024))
+        words = b''.join([alphabet[int(random() * 26)] for _ in range(1024 * 1024)]) * data_size
+        print("msg length: {:.4f} MB".format(sys.getsizeof(words) / 1024 / 1024))
 
         router = Parallel()
         greets = EasyCounter()
@@ -71,11 +73,9 @@ class SockTest:
                 time.sleep(0.01)
 
             if router._retries == 0:
-                router.emit("greeting_0", "{}_{}_{:.2f}".format(
-                    words, i, time.time() - start_t))
+                router.emit("greeting_0", "{}_{}_{:.2f}".format(words, i, time.time() - start_t))
             elif router._retries == 1:
-                router.emit("greeting_0", "recovered_{}_{:.2f}".format(
-                    i, time.time() - start_t))
+                router.emit("greeting_0", "recovered_{}_{:.2f}".format(i, time.time() - start_t))
             else:
                 raise Exception("Failed too many times")
 
@@ -83,21 +83,21 @@ class SockTest:
                 continue
             last_msg = greets.last()
             msg_idx, msg_t = last_msg.split("_")[-2:]
-            logging.info("main_p1 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s"
-                         .format(time.time() - start_t, greets.cnt(), msg_idx, msg_t))
+            logging.info(
+                "main_p1 passed {:.2f} s, received {} msgs. last msg: idx {}, time {} s".format(
+                    time.time() - start_t, greets.cnt(), msg_idx, msg_t
+                )
+            )
 
         if os.path.exists(tmp_file):
             os.remove(tmp_file)
 
-        logging.info("main_p1 done! total msg: {} retries: {}".format(
-            greets.cnt(), router._retries))
+        logging.info("main_p1 done! total msg: {} retries: {}".format(greets.cnt(), router._retries))
 
     @classmethod
     def main_p2(cls, epoch, interval, data_size):
-        words = b''.join([alphabet[int(random() * 26)]
-                          for _ in range(1024 * 1024)]) * data_size
-        print("msg length: {:.4f} MB".format(
-            sys.getsizeof(words) / 1024 / 1024))
+        words = b''.join([alphabet[int(random() * 26)] for _ in range(1024 * 1024)]) * data_size
+        print("msg length: {:.4f} MB".format(sys.getsizeof(words) / 1024 / 1024))
 
         router = Parallel()
         start_t = time.time()
@@ -107,8 +107,7 @@ class SockTest:
             while time.time() - start_t < i * interval:
                 time.sleep(0.01)
 
-            router.emit("greeting_1", "{}_{}_{:.2f}".format(
-                words, i, time.time() - start_t))
+            router.emit("greeting_1", "{}_{}_{:.2f}".format(words, i, time.time() - start_t))
 
         logging.info("main_p2 done!")
 
@@ -132,5 +131,6 @@ if __name__ == "__main__":
     parser.add_argument('--data_size', '-s', type=int, default=1)
     parser.add_argument('--file', '-f', type=str, default="tmp_p1")
     args = parser.parse_args()
-    Parallel.runner(n_parallel_workers=3, protocol="tcp", topology="mesh", auto_recover=True, max_retries=1)(
-        SockTest.main, args.epoch, args.interval, args.data_size, args.file)
+    Parallel.runner(
+        n_parallel_workers=3, protocol="tcp", topology="mesh", auto_recover=True, max_retries=1
+    )(SockTest.main, args.epoch, args.interval, args.data_size, args.file)

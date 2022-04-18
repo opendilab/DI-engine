@@ -4,14 +4,12 @@ import torch
 import pytest
 import numpy as np
 
-
 # test different buffer size, eg: 1000, 10000, 100000;
 size_list = [1000, 10000, 100000]
 # test different tensor dim, eg: 32*32, 128*128, 512*512;
 data_dim_list = [32, 128]
 # repeat times.
 repeats = 100
-
 
 empty_base_setup = """import sys
 import torch
@@ -84,26 +82,26 @@ def _timeit(buf_type, buf_size, data_dim):
     sample_stmt = "buffer.sample(128, replace=False)"
     replace_sample_stmt = "buffer.sample(128, replace=True)"
 
-    print("exp-buffer_{}_{}-data_{:.2f}_KB".format(buf_type, buf_size,
-          sys.getsizeof(torch.rand(data_dim, data_dim).storage()) / 1024))
+    print(
+        "exp-buffer_{}_{}-data_{:.2f}_KB".format(
+            buf_type, buf_size,
+            sys.getsizeof(torch.rand(data_dim, data_dim).storage()) / 1024
+        )
+    )
 
     # test pushing
-    mean, std = get_mean_std(timeit.repeat(
-        push_stmt, setup=empty_setup.format(buf_size, data_dim), number=repeats))
-    print(
-        "Empty Push Test:          mean {:.4f} s, std {:.4f} s".format(mean, std))
+    mean, std = get_mean_std(timeit.repeat(push_stmt, setup=empty_setup.format(buf_size, data_dim), number=repeats))
+    print("Empty Push Test:          mean {:.4f} s, std {:.4f} s".format(mean, std))
 
     # test sampling without replace
-    mean, std = get_mean_std(timeit.repeat(
-        sample_stmt, setup=full_setup.format(buf_size, data_dim), number=repeats))
-    print(
-        "No-Replace Sample Test:   mean {:.4f} s, std {:.4f} s".format(mean, std))
+    mean, std = get_mean_std(timeit.repeat(sample_stmt, setup=full_setup.format(buf_size, data_dim), number=repeats))
+    print("No-Replace Sample Test:   mean {:.4f} s, std {:.4f} s".format(mean, std))
 
     # test sampling with replace
-    mean, std = get_mean_std(timeit.repeat(
-        replace_sample_stmt, setup=full_setup.format(buf_size, data_dim), number=repeats))
-    print(
-        "Replace Sample Test:      mean {:.4f} s, std {:.4f} s".format(mean, std))
+    mean, std = get_mean_std(
+        timeit.repeat(replace_sample_stmt, setup=full_setup.format(buf_size, data_dim), number=repeats)
+    )
+    print("Replace Sample Test:      mean {:.4f} s, std {:.4f} s".format(mean, std))
 
     # Attention:
     # the test results are the sum of repeats, rather than avg!
