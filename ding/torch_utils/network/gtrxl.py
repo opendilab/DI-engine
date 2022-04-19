@@ -208,7 +208,7 @@ class AttentionXL(torch.nn.Module):
         self.project_pos = fc_block(input_dim, head_dim * head_num)  # project the positional embedding
         self.scale = 1 / (head_dim ** 0.5)  # for scaled dot product attention
 
-    def _rel_shift(self, x: torch.Tensor):
+    def _rel_shift(self, x: torch.Tensor, zero_upper: bool = False):
         """
         Overview:
             Relatively shift the attention score matrix.
@@ -233,6 +233,9 @@ class AttentionXL(torch.nn.Module):
         x_padded = F.pad(x, [1, 0])  # step 1
         x_padded = x_padded.view(x.size(0), x.size(1), x.size(3) + 1, x.size(2))  # step 2
         x = x_padded[:, :, 1:].view_as(x)  # step 3
+        if zero_upper:
+            ones = torch.ones((x.size(2), x.size(3))).unsqueeze(0).unsqueeze(0)
+            x = x * torch.tril(ones.to(x.device), x.size(3) - x.size(2))  # step 4
         return x
 
     def forward(
