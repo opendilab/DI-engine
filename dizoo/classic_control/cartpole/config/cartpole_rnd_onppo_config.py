@@ -10,13 +10,25 @@ cartpole_ppo_rnd_config = dict(
     ),
     reward_model=dict(
         intrinsic_reward_type='add',
-        learning_rate=1e-3,
+        intrinsic_reward_weight=None,
+        # means the relative weight of RND intrinsic_reward.
+        # If intrinsic_reward_weight=None, we will automatically set it based on
+        # the absolute value of the difference between max and min extrinsic reward in the sampled mini-batch
+        # please refer to rnd_reward_model for details.
+        intrinsic_reward_rescale=0.001,
+        # means the rescale value of RND intrinsic_reward only used when intrinsic_reward_weight is None
+        # please refer to rnd_reward_model for details.
+        learning_rate=5e-4,
         obs_shape=4,
         batch_size=32,
-        update_per_collect=10,
+        update_per_collect=4,
+        obs_norm=True,
+        obs_norm_clamp_min=-1,
+        obs_norm_clamp_max=1,
+        clear_buffer_per_iters=10,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         model=dict(
             obs_shape=4,
             action_shape=2,

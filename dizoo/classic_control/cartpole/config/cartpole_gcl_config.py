@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_gcl_ppo_onpolicy_config = dict(
-    exp_name='cartpole_guided_cost',
+    exp_name='cartpole_guided_cost_seedo',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -36,7 +36,14 @@ cartpole_gcl_ppo_onpolicy_config = dict(
             clip_ratio=0.2,
         ),
         collect=dict(
-            demonstration_info_path='path',
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
+            # If you need the data collected by the collector to contain logit key which reflect the probability of
+            # the action, you can change the key to be True.
+            # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
+            collector_logit=True,
             n_sample=256,
             unroll_len=1,
             discount_factor=0.9,
@@ -65,3 +72,8 @@ cartpole_gcl_ppo_onpolicy_create_config = dict(
 )
 cartpole_gcl_ppo_onpolicy_create_config = EasyDict(cartpole_gcl_ppo_onpolicy_create_config)
 create_config = cartpole_gcl_ppo_onpolicy_create_config
+
+if __name__ == "__main__":
+    from ding.entry import serial_pipeline_guided_cost
+    serial_pipeline_guided_cost([main_config, create_config], seed=0)
+
