@@ -70,6 +70,6 @@ qbert_impala_create_config = dict(
 create_config = EasyDict(qbert_impala_create_config)
 
 if __name__ == '__main__':
-    # or you can enter ding -m serial_onpolicy -c qbert_impala_config.py -s 0
+    # or you can enter ding -m serial -c qbert_impala_config.py -s 0
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

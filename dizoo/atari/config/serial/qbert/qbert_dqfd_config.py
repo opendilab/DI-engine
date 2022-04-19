@@ -31,8 +31,13 @@ qbert_dqfd_config = dict(
             per_train_iter_k=10,
             expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
         ),
-        collect=dict(n_sample=100, demonstration_info_path='path'
-                     ),  # Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(
+            n_sample=100,
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder'
+        ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
