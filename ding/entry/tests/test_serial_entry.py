@@ -273,7 +273,6 @@ def test_collaq():
     config = [deepcopy(ptz_simple_spread_collaq_config), deepcopy(ptz_simple_spread_collaq_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
-    config[0].env.n_evaluator_episode = 2
     config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
@@ -288,7 +287,6 @@ def test_coma():
     config = [deepcopy(ptz_simple_spread_coma_config), deepcopy(ptz_simple_spread_coma_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
-    config[0].env.n_evaluator_episode = 2
     config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
@@ -303,7 +301,6 @@ def test_qmix():
     config = [deepcopy(ptz_simple_spread_qmix_config), deepcopy(ptz_simple_spread_qmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
-    config[0].env.n_evaluator_episode = 2
     config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
@@ -318,7 +315,6 @@ def test_wqmix():
     config = [deepcopy(ptz_simple_spread_wqmix_config), deepcopy(ptz_simple_spread_wqmix_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
-    config[0].env.n_evaluator_episode = 2
     config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
@@ -333,7 +329,6 @@ def test_qtran():
     config = [deepcopy(ptz_simple_spread_qtran_config), deepcopy(ptz_simple_spread_qtran_create_config)]
     config[0].policy.cuda = False
     config[0].policy.learn.update_per_collect = 1
-    config[0].env.n_evaluator_episode = 2
     config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
@@ -347,7 +342,6 @@ def test_qtran():
 def test_atoc():
     config = [deepcopy(ptz_simple_spread_atoc_config), deepcopy(ptz_simple_spread_atoc_create_config)]
     config[0].policy.cuda = False
-    config[0].env.n_evaluator_episode = 2
     config[0].policy.collect.n_sample = 100
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
