@@ -5,8 +5,8 @@ from .serial_entry_td3_vae import serial_pipeline_td3_vae
 from .serial_entry_onpolicy import serial_pipeline_onpolicy
 from .serial_entry_offline import serial_pipeline_offline
 from .serial_entry_ngu import serial_pipeline_ngu
-from .serial_entry_icm_offppo import serial_pipeline_icm_offppo
-from .serial_entry_rnd_onppo import serial_pipeline_rnd_onppo
+from .serial_entry_reward_model_offpolicy import serial_pipeline_reward_model_offpolicy
+from .serial_entry_reward_model_onpolicy import serial_pipeline_reward_model_onpolicy
 from .serial_entry_bc import serial_pipeline_bc
 from .serial_entry_mbrl import serial_pipeline_mbrl
 from .serial_entry_dqfd import serial_pipeline_dqfd

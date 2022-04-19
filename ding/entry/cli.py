@@ -197,8 +197,8 @@ def cli(
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
             serial_pipeline_sqil(config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_reward_model':
-            from .serial_entry_icm_offppo import serial_pipeline_icm_offppo
-            serial_pipeline_icm_offppo(config, seed, max_train_iter=train_iter, max_env_step=env_step)
+            from .serial_entry_reward_model_offpolicy import serial_pipeline_reward_model_offpolicy
+            serial_pipeline_reward_model_offpolicy(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_gail':
             from .serial_entry_gail import serial_pipeline_gail
             expert_config = input("Enter the name of the config you used to generate your expert model: ")

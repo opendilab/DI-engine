@@ -58,5 +58,5 @@ create_config = minigrid_ppo_icm_create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c minigrid_icm_config.py -s 0`
-    from ding.entry import serial_pipeline_icm_offppo
-    serial_pipeline_icm_offppo([main_config, create_config], seed=0)
+    from ding.entry import serial_pipeline_reward_model_offpolicy
+    serial_pipeline_reward_model_offpolicy([main_config, create_config], seed=0)
