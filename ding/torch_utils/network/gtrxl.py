@@ -227,6 +227,7 @@ class AttentionXL(torch.nn.Module):
                 https://arxiv.org/pdf/1901.02860.pdf (Appendix B)
         Arguments:
             - x (:obj:`torch.Tensor`): input tensor of shape (cur_seq, full_seq, bs, head_num).
+            - zero_upper (:obj:`bool`): if True set the upper-right triangle to zero.
         Returns:
             - x (:obj:`torch.Tensor`): input after relative shift. Shape (cur_seq, full_seq, bs, head_num).
         """
