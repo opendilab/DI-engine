@@ -1,7 +1,7 @@
 import torch
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_reward_model_ngu
+from ding.entry import serial_pipeline_ngu
 
 print(torch.cuda.is_available(), torch.__version__)
 collector_env_num = 8
@@ -101,5 +101,5 @@ cartpole_ngu_create_config = EasyDict(cartpole_ngu_create_config)
 create_config = cartpole_ngu_create_config
 
 if __name__ == "__main__":
-    # from ding.entry import serial_pipeline_reward_model_ngu
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+    # from ding.entry import serial_pipeline_ngu
+    serial_pipeline_ngu([main_config, create_config], seed=0)

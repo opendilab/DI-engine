@@ -67,8 +67,8 @@ def test_dataset_1d(cfg):
     assert len(policy.train_data) == 20
     for _ in range(5):
         policy.train()
-    policy.estimate(data)
-    assert 'reward' in data[0].keys()
+    train_data_augmented = policy.estimate(data)
+    assert 'reward' in train_data_augmented[0].keys()
     policy.clear_data()
     assert len(policy.train_data) == 0
     os.popen('rm -rf {}'.format(expert_data_path_1d))
@@ -91,8 +91,8 @@ def test_dataset_3d(cfg):
     assert len(policy.train_data) == 20
     for _ in range(5):
         policy.train()
-    policy.estimate(data)
-    assert 'reward' in data[0].keys()
+    train_data_augmented = policy.estimate(data)
+    assert 'reward' in train_data_augmented[0].keys()
     policy.clear_data()
     assert len(policy.train_data) == 0
     os.popen('rm -rf {}'.format(expert_data_path_3d))
