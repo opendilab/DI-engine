@@ -3,6 +3,7 @@ from collections import namedtuple
 import torch
 from ding.torch_utils import to_device
 import numpy as np
+import gym
 
 
 class PolicyFactory:
@@ -33,7 +34,10 @@ class PolicyFactory:
             actions = {}
             for env_id in data:
                 if not isinstance(action_space, list):
-                    actions[env_id] = {'action': action_space.sample()}
+                    action = action_space.sample()
+                    if isinstance(action_space, gym.spaces.MultiDiscrete):
+                        action = [torch.LongTensor([v]) for v in action]
+                    actions[env_id] = {'action': action}
                 elif 'global_state' in data[env_id].keys():
                     # for smac
                     logit = np.ones_like(data[env_id]['action_mask'])
