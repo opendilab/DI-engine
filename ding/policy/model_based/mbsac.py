@@ -360,7 +360,7 @@ class MBSACPolicy(SACPolicy):
                 'cur_lr_q': self._optimizer_q.defaults['lr'],
                 # 'priority': td_error_per_sample.abs().tolist(),
                 'td_error': td_error_per_sample.detach().mean().item(),
-                've_rollout_termination_ratio': done_mask_list[-1].sum() / done_mask_list[-1].numel(),
+                've_rollout_termination_ratio': done_mask_list[-2].sum() / done_mask_list[-2].numel(),
             })
 
             self._optimizer_q.zero_grad()
@@ -369,7 +369,7 @@ class MBSACPolicy(SACPolicy):
                 torch.nn.utils.clip_grad_norm_(
                         self._model.critic.parameters(), 
                         max_norm=self._value_expansion_grad_clip_norm,
-                        error_if_nonfinite=True)
+                        error_if_nonfinite=False)
             self._optimizer_q.step()
                 
 
@@ -412,7 +412,7 @@ class MBSACPolicy(SACPolicy):
             torch.nn.utils.clip_grad_norm_(
                     self._model.actor.parameters(), 
                     max_norm=self._value_gradient_grad_clip_norm,
-                    error_if_nonfinite=True)
+                    error_if_nonfinite=False)
         self._optimizer_policy.step()
 
 

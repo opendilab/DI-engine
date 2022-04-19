@@ -170,11 +170,12 @@ class EnsembleDynamicsModel(nn.Module):
         max_epochs_since_update=5,
         train_freq=250,
         eval_freq=20,
-        deterministic=True,
+        deterministic_rollout=True,
         cuda=True,
         tb_logger=None
     ):
         super(EnsembleDynamicsModel, self).__init__()
+        self.deterministic_rollout = deterministic_rollout,
         self._cuda = cuda
         self.tb_logger = tb_logger
 
@@ -387,7 +388,7 @@ class EnsembleDynamicsModel(nn.Module):
         else:
             return False
 
-    def batch_predict(self, obs, action, deterministic=True):
+    def batch_predict(self, obs, action):
         # to predict a batch
         # norm and repeat for ensemble
         if len(action.shape) == 1:
@@ -396,7 +397,7 @@ class EnsembleDynamicsModel(nn.Module):
         ensemble_mean, ensemble_var = self.ensemble_model(inputs, ret_log_var=False)
         ensemble_std = ensemble_var.sqrt()
         # sample from the predicted distribution
-        if deterministic:
+        if self.deterministic_rollout:
             ensemble_sample = ensemble_mean
         else:
             ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
@@ -405,10 +406,10 @@ class EnsembleDynamicsModel(nn.Module):
         sample = ensemble_sample[model_idxes, batch_idxes]
         rewards, next_obs = sample[:, :1], sample[:, 1:]
 
-        return rewards, next_obs
+        return rewards, next_obs + obs
 
 
-    def predict(self, obs, act, batch_size=8192, deterministic=True):
+    def predict(self, obs, act, batch_size=8192):
         # to predict the whole buffer and return cpu tensor
         # form inputs
         if len(act.shape) == 1:
@@ -430,7 +431,7 @@ class EnsembleDynamicsModel(nn.Module):
         ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
         ensemble_std = ensemble_var.sqrt()
         # sample from the predicted distribution
-        if deterministic:
+        if self.deterministic_rollout:
             ensemble_sample = ensemble_mean
         else:
             ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
