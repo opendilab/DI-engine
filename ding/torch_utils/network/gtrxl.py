@@ -220,7 +220,7 @@ class AttentionXL(torch.nn.Module):
             1) Append one "column" of zeros to the left
             2) Reshape the matrix from [3 x 4] into [4 x 3]
             3) Remove the first "row"
-            4) Mask out the upper triangle
+            4) Mask out the upper triangle (optional)
         .. note::
             See the following material for better understanding:
                 https://github.com/kimiyoung/transformer-xl/issues/8
