@@ -1,0 +1,6 @@
+type: k3s # k3s or local
+name: di-cluster
+servers: 1 # # of k8s masters
+agents: 0 # # of k8s nodes
+preload_images:
+- diorchestrator/ding:v0.1.1 # di-engine image for training should be preloaded
