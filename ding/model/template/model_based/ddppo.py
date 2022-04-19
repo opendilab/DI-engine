@@ -55,7 +55,7 @@ class EnsembleDoubleModel(nn.Module):
         k=3,
         reg=1,
         neighbor_pool_size=10000,
-        neighbor_pool_update_freq=1000
+        train_freq_gradient_model=250
     ):
         super(EnsembleDoubleModel, self).__init__()
         self.deterministic_rollout = deterministic_rollout
@@ -91,17 +91,14 @@ class EnsembleDoubleModel(nn.Module):
         self.k = k
         self.reg = reg
         self.neighbor_pool_size = neighbor_pool_size
-        self.neighbor_pool_update_freq = neighbor_pool_update_freq
+        self.train_freq_gradient_model = train_freq_gradient_model
 
         self.gradient_model = EnsembleGradientModel(
             state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
         )
         self.elite_model_idxes_gradient_model = []
                 
-        self.last_neighbor_pool_update_step = 0
-        self.neighbor_pool = None
-        self.neighbor_pool_updated = False
-        self.neighbor_index = None
+        self.last_train_step_gradient_model = 0
 
         if self._cuda:
             self.cuda()
@@ -199,14 +196,12 @@ class EnsembleDoubleModel(nn.Module):
 
         if self.use_gradient_model:
             # update neighbor pool
-            if (envstep - self.last_neighbor_pool_update_step
-                    ) > self.neighbor_pool_update_freq or self.last_neighbor_pool_update_step == 0:
+            if (envstep - self.last_train_step_gradient_model) >= self.train_freq_gradient_model:
                 n = min(buffer.count(), self.neighbor_pool_size)
                 self.neighbor_pool = buffer.sample(n, train_iter, sample_range=slice(-n, None))
-                self.last_neighbor_pool_update_step = envstep
-                self.neighbor_pool_updated = True
-            inputs_reg, labels_reg = train_sample(self.neighbor_pool)
-            logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
+                inputs_reg, labels_reg = train_sample(self.neighbor_pool)
+                logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
+                self.last_train_step_gradient_model = envstep
 
 
         self.last_train_step = envstep
@@ -324,11 +319,9 @@ class EnsembleDoubleModel(nn.Module):
         #no split and normalization on regulation data 
         train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
 
-        if self.neighbor_pool_updated:
-            self.neighbor_index = get_neighbor_index(train_inputs_reg, self.k)
-            self.neighbor_pool_updated = False
-        neighbor_inputs = train_inputs_reg[self.neighbor_index]  # [N, k, state_size+action_size]
-        neighbor_labels = train_labels_reg[self.neighbor_index]  # [N, k, state_size+reward_size]
+        neighbor_index = get_neighbor_index(train_inputs_reg, self.k)
+        neighbor_inputs = train_inputs_reg[neighbor_index]  # [N, k, state_size+action_size]
+        neighbor_labels = train_labels_reg[neighbor_index]  # [N, k, state_size+reward_size]
         neighbor_inputs_distance = (neighbor_inputs - train_inputs_reg.unsqueeze(1))  # [N, k, state_size+action_size]
         neighbor_labels_distance = (neighbor_labels - train_labels_reg.unsqueeze(1))  # [N, k, state_size+reward_size]
 

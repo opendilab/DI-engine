@@ -166,18 +166,20 @@ def serial_pipeline_ddppo(
                 env_model, policy.collect_mode, replay_buffer, imagine_buffer, collector.envstep, learner.train_iter
             )
             policy._rollout_length = model_env._set_rollout_length(collector.envstep)
-        # Update value from env+img buffer
-        for i in range(cfg.policy.learn.value_update_per_collect):
-            replay_train_data = replay_buffer.sample(replay_batch_size, learner.train_iter)
-            imagine_batch_data = imagine_buffer.sample(imagine_batch_size, learner.train_iter)
-            if replay_train_data is None or imagine_batch_data is None:
-                break
-            train_data = replay_train_data + imagine_batch_data
-            learner.train({'mode': 'value', 'data': train_data}, collector.envstep)
-        # Update policy from env buffer
-        for i in range(cfg.policy.learn.policy_update_per_collect):
-            train_data = replay_buffer.sample(policy_batch_size, learner.train_iter)
-            learner.train({'mode': 'policy', 'data': train_data}, collector.envstep)
+
+        for i in range(cfg.policy.learn.update_per_collect):
+            # Update value from env+img buffer
+            for j in range(cfg.policy.learn.value_update_per_update):
+                replay_train_data = replay_buffer.sample(replay_batch_size, learner.train_iter)
+                imagine_batch_data = imagine_buffer.sample(imagine_batch_size, learner.train_iter)
+                if replay_train_data is None or imagine_batch_data is None:
+                    break
+                train_data = replay_train_data + imagine_batch_data
+                learner.train({'mode': 'value', 'data': train_data}, collector.envstep)
+            # Update policy from env buffer
+            for k in range(cfg.policy.learn.policy_update_per_update):
+                train_data = replay_buffer.sample(policy_batch_size, learner.train_iter)
+                learner.train({'mode': 'policy', 'data': train_data}, collector.envstep)
 
         if cfg.policy.on_policy:
             # On-policy algorithm must clear the replay buffer.

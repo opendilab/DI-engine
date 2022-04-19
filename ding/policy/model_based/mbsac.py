@@ -394,7 +394,7 @@ class MBSACPolicy(SACPolicy):
         # TODO: if self._value_expansion_horizon > 0 and self._value_expansion_type = 'steve'
         #   new_q_value = new_q_value.mean(0)
         policy_loss += (self._gamma ** self._value_gradient_horizon) * (
-            (1 - done_mask.int()) * self._alpha * log_prob - new_q_value).mean()
+            (1 - done_mask.int()) * (self._alpha * log_prob - new_q_value)).mean()
 
         if self._value_gradient_norm:
             policy_loss = policy_loss / (self._value_gradient_horizon + 1)
