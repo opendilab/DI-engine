@@ -296,7 +296,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;reward_model/red_loss&#39;</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">train_once_flag</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RedRewardModel.estimate"><a class="viewcode-back" href="../../../api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="RedRewardModel.estimate"><a class="viewcode-back" href="../../../api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Estimate reward by rewriting the reward key</span>
@@ -306,9 +306,12 @@
 <span class="sd">        Effects:</span>
 <span class="sd">            - This is a side effect function which updates the reward values in place.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># NOTE: deepcopy reward part of data is very important,</span>
+        <span class="c1"># otherwise the reward of data in the replay buffer will be incorrectly modified.</span>
+        <span class="n">train_data_augmented</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">states_data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">actions_data</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">train_data_augmented</span><span class="p">:</span>
             <span class="n">states_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">])</span>
             <span class="n">actions_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">])</span>
         <span class="n">states_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">states_data</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
@@ -320,8 +323,9 @@
             <span class="n">hat_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_net</span><span class="p">(</span><span class="n">states_actions_tensor</span><span class="p">)</span>
         <span class="n">c</span> <span class="o">=</span> <span class="p">((</span><span class="n">hat_1</span> <span class="o">-</span> <span class="n">hat_2</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">sigma</span> <span class="o">*</span> <span class="n">c</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">rew</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
-            <span class="n">item</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rew</span></div>
+        <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">rew</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">train_data_augmented</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+            <span class="n">item</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rew</span>
+        <span class="k">return</span> <span class="n">train_data_augmented</span></div>
 
 <div class="viewcode-block" id="RedRewardModel.collect_data"><a class="viewcode-back" href="../../../api_doc/reward_model/red_irl_model.html#ding.reward_model.red_irl_model.RedRewardModel.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
