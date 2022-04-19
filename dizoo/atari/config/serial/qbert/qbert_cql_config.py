@@ -32,7 +32,10 @@ qbert_cql_config = dict(
         collect=dict(
             n_sample=100,
             data_type='naive',
-            data_path='./default_experiment/expert.pkl',
+            # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+            # Absolute path is recommended.
+            # In DI-engine, it is usually located in ``exp_name`` directory
+            data_path='data_path_placeholder',
         ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
