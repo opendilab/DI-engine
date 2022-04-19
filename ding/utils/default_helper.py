@@ -1,7 +1,7 @@
+from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any, Dict
 import copy
 import logging
 import random
-from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 from functools import lru_cache  # in python3.9, we can change to cache
 import numpy as np
 import torch
@@ -546,3 +546,26 @@ class RunningMeanStd(object):
             obs_shape (:obj:`Any`), act_shape (:obj:`Any`), rew_shape (:obj:`Any`)
         """
         return obs_shape, act_shape, rew_shape
+
+
+def make_key_as_identifier(data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Overview:
+        Make the key of dict into legal python identifier string so that it is
+        compatible with some python magic method such as ``__getattr``.
+    Arguments:
+        - data (:obj:`Dict[str, Any]`): The original dict data.
+    Return:
+        - new_data (:obj:`Dict[str, Any]`): The new dict data with legal identifier keys.
+    """
+
+    def legalization(s: str) -> str:
+        if s[0].isdigit():
+            s = '_' + s
+        return s.replace('.', '_')
+
+    new_data = {}
+    for k in data:
+        new_k = legalization(k)
+        new_data[new_k] = data[k]
+    return new_data

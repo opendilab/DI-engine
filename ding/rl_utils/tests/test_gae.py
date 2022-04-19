@@ -5,6 +5,7 @@ from ding.rl_utils import gae_data, gae
 
 @pytest.mark.unittest
 def test_gae():
+    # batch trajectory case
     T, B = 32, 4
     value = torch.randn(T, B)
     next_value = torch.randn(T, B)
@@ -13,6 +14,15 @@ def test_gae():
     data = gae_data(value, next_value, reward, done, None)
     adv = gae(data)
     assert adv.shape == (T, B)
+    # single trajectory case/concat trajectory case
+    T = 24
+    value = torch.randn(T)
+    next_value = torch.randn(T)
+    reward = torch.randn(T)
+    done = torch.zeros((T))
+    data = gae_data(value, next_value, reward, done, None)
+    adv = gae(data)
+    assert adv.shape == (T, )
 
 
 def test_gae_multi_agent():

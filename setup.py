@@ -78,6 +78,7 @@ setup(
         'pynng',
         'pettingzoo==1.12.0',
         'pyglet>=1.4.0',
+        'DI-treetensor',
         'redis'
     ],
     extras_require={

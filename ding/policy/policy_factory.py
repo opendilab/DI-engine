@@ -1,6 +1,8 @@
 from typing import Dict, Any, Callable
 from collections import namedtuple
+from easydict import EasyDict
 import torch
+
 from ding.torch_utils import to_device
 import numpy as np
 
@@ -32,6 +34,7 @@ class PolicyFactory:
 
             actions = {}
             for env_id in data:
+<<<<<<< HEAD
                 if not isinstance(action_space, list):
                     actions[env_id] = {'action': action_space.sample()}
                 elif 'global_state' in data[env_id].keys():
@@ -47,6 +50,9 @@ class PolicyFactory:
                         'logit': np.ones([len(action_space), action_space[0].n])
                     }
 
+=======
+                actions[env_id] = {'action': torch.as_tensor(action_space.sample())}
+>>>>>>> bcfc76f255f0be1e8edbecb8dee3ac1438964c77
             return actions
 
         def reset(*args, **kwargs) -> None:
@@ -60,3 +66,11 @@ class PolicyFactory:
             return random_collect_function(
                 forward, policy.process_transition, policy.get_train_sample, reset, policy.get_attribute
             )
+
+
+def get_random_policy(cfg: EasyDict, policy: 'Policy.collect_mode', env: 'BaseEnvManager'):  # noqa
+    if cfg.policy.get('transition_with_policy_data', False):
+        return policy
+    else:
+        action_space = env.action_space
+        return PolicyFactory.get_random_policy(policy, action_space=action_space)

@@ -37,8 +37,8 @@ from dizoo.petting_zoo.config import ptz_simple_spread_wqmix_config, ptz_simple_
 from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
 from dizoo.league_demo.selfplay_demo_ppo_main import main as selfplay_main
 from dizoo.league_demo.league_demo_ppo_main import main as league_main
-from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_default_config import pendulum_sac_data_genearation_default_config, pendulum_sac_data_genearation_default_create_config  # noqa
-from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_default_config, pendulum_cql_default_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_sac_data_generation_config import pendulum_sac_data_genearation_config, pendulum_sac_data_genearation_create_config  # noqa
+from dizoo.classic_control.pendulum.config.pendulum_cql_config import pendulum_cql_config, pendulum_cql_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_qrdqn_generation_data_config import cartpole_qrdqn_generation_data_config, cartpole_qrdqn_generation_data_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_cql_config import cartpole_discrete_cql_config, cartpole_discrete_cql_create_config  # noqa
 from dizoo.classic_control.pendulum.config.pendulum_td3_data_generation_config import pendulum_td3_generation_config, pendulum_td3_generation_create_config  # noqa
@@ -52,12 +52,13 @@ from dizoo.gym_hybrid.config.gym_hybrid_mpdqn_config import gym_hybrid_mpdqn_con
 def test_dqn():
     config = [deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)]
     config[0].policy.learn.update_per_collect = 1
+    config[0].exp_name = 'cartpole_dqn_unittest'
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
-        os.popen('rm -rf log ckpt*')
+        os.popen('rm -rf cartpole_dqn_unittest')
 
 
 @pytest.mark.unittest
@@ -404,7 +405,7 @@ def test_cql():
     # train expert
     config = [deepcopy(pendulum_sac_config), deepcopy(pendulum_sac_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    config[0].exp_name = 'sac'
+    config[0].exp_name = 'sac_unittest'
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
@@ -412,13 +413,10 @@ def test_cql():
 
     # collect expert data
     import torch
-    config = [
-        deepcopy(pendulum_sac_data_genearation_default_config),
-        deepcopy(pendulum_sac_data_genearation_default_create_config)
-    ]
+    config = [deepcopy(pendulum_sac_data_genearation_config), deepcopy(pendulum_sac_data_genearation_create_config)]
     collect_count = 1000
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load('./sac/ckpt/iteration_0.pth.tar', map_location='cpu')
+    state_dict = torch.load('./sac_unittest/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
@@ -427,7 +425,7 @@ def test_cql():
         assert False, "pipeline fail"
 
     # test cql
-    config = [deepcopy(pendulum_cql_default_config), deepcopy(pendulum_cql_default_create_config)]
+    config = [deepcopy(pendulum_cql_config), deepcopy(pendulum_cql_create_config)]
     config[0].policy.learn.train_epoch = 1
     config[0].policy.eval.evaluator.eval_freq = 1
     try:
