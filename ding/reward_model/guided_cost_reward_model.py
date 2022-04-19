@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Independent, Normal
+import copy
 
 from ding.utils import SequenceType, REWARD_MODEL_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -108,9 +109,9 @@ class GuidedCostRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar('reward_model/loss_step', loss_IOC, step)
 
     def estimate(self, data: list) -> List[Dict]:
-        # NOTE: deepcopy reward part of data is very important,
-        # otherwise the reward of data in the replay buffer will be incorrectly modified.
-        train_data_augmented = self.reward_deepcopy(data)
+        # NOTE: this estimate method of gcl alg. is a little different from the one in other irl alg.,
+        # because its deepcopy is operated before learner train loop.
+        train_data_augmented = data
         for i in range(len(train_data_augmented)):
             with torch.no_grad():
                 reward = self.reward_model(
