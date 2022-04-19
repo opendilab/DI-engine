@@ -18,3 +18,4 @@ omit =
   ding/worker/collector/tests/speed_test/*
   ding/envs/env_wrappers/env_wrappers.py
   ding/rl_utils/tests/test_ppg.py
+  ding/scripts/tests/test_parallel_socket.py
