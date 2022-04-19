@@ -2,8 +2,8 @@ from easydict import EasyDict
 
 n_agent = 5
 n_landmark = n_agent
-collector_env_num = 4
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 8
 ptz_simple_spread_collaq_config = dict(
     exp_name='ptz_simple_spread_collaq_seed0',
     env=dict(
@@ -18,7 +18,6 @@ ptz_simple_spread_collaq_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
         stop_value=0,
-        manager=dict(shared_memory=False, ),
     ),
     policy=dict(
         cuda=True,

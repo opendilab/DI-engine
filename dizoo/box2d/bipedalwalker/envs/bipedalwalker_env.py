@@ -2,8 +2,7 @@ from typing import Any, List, Union, Optional
 import time
 import gym
 import numpy as np
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, FrameStackWrapper
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep, FrameStackWrapper
 from ding.torch_utils import to_ndarray, to_list
 from ding.envs.common.common_function import affine_transform
 from ding.utils import ENV_REGISTRY

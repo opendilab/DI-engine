@@ -384,7 +384,7 @@ class R2D2GTrXLPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, eps=eps)
+            output = self._collect_model.forward(data, eps=eps, data_id=data_id)
         del output['input_seq']
         if self._cuda:
             output = to_device(output, 'cpu')
@@ -461,7 +461,7 @@ class R2D2GTrXLPolicy(Policy):
             data = to_device(data, self._device)
         self._eval_model.eval()
         with torch.no_grad():
-            output = self._eval_model.forward(data)
+            output = self._eval_model.forward(data, data_id=data_id)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

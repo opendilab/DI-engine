@@ -68,7 +68,6 @@ setup(
         'URLObject~=2.4.3',
         'urllib3>=1.26.5',
         'readerwriterlock',
-        'namedlist',
         'opencv-python',  # pypy incompatible
         'enum_tools',
         'scipy',
@@ -100,6 +99,7 @@ setup(
         ],
         'common_env': [
             'ale-py==0.7.0',  # atari
+            'autorom',
             'box2d-py',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible

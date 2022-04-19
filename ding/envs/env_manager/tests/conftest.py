@@ -8,8 +8,7 @@ from easydict import EasyDict
 from functools import partial
 import gym
 
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
-from ding.envs.env.base_env import BaseEnvTimestep, BaseEnvInfo
+from ding.envs.env.base_env import BaseEnvTimestep
 from ding.envs.env_manager.base_env_manager import EnvState
 from ding.envs.env_manager import BaseEnvManager, SyncSubprocessEnvManager, AsyncSubprocessEnvManager
 from ding.torch_utils import to_tensor, to_ndarray, to_list
@@ -123,6 +122,30 @@ class FakeAsyncEnv(FakeEnv):
         return to_ndarray(torch.randn(3))
 
 
+class FakeGymEnv(FakeEnv):
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.metadata = "fake metadata"
+        self.action_space = gym.spaces.Box(low=-2.0, high=2.0, shape=(4, ), dtype=np.float32)
+
+    def random_action(self) -> np.ndarray:
+        random_action = self.action_space.sample()
+        if isinstance(random_action, np.ndarray):
+            pass
+        elif isinstance(random_action, int):
+            random_action = to_ndarray([random_action], dtype=np.int64)
+        elif isinstance(random_action, dict):
+            random_action = to_ndarray(random_action)
+        else:
+            raise TypeError(
+                '`random_action` should be either int/np.ndarray or dict of int/np.ndarray, but get {}: {}'.format(
+                    type(random_action), random_action
+                )
+            )
+        return random_action
+
+
 class FakeModel(object):
 
     def forward(self, obs):
@@ -170,6 +193,20 @@ def get_subprecess_manager_cfg(env_num=4):
     return EasyDict(manager_cfg)
 
 
+def get_gym_vector_manager_cfg(env_num=4):
+    manager_cfg = {
+        'env_cfg': [{
+            'name': 'name{}'.format(i),
+        } for i in range(env_num)],
+        'episode_num': 2,
+        'connect_timeout': 8,
+        'step_timeout': 5,
+        'max_retry': 2,
+        'share_memory': True
+    }
+    return EasyDict(manager_cfg)
+
+
 @pytest.fixture(scope='function')
 def setup_base_manager_cfg():
     manager_cfg = get_base_manager_cfg(4)
@@ -205,3 +242,12 @@ def setup_async_manager_cfg():
     manager_cfg['env_fn'] = [partial(FakeAsyncEnv, cfg=c) for c in env_cfg]
     manager_cfg['shared_memory'] = False
     return deep_merge_dicts(AsyncSubprocessEnvManager.default_config(), EasyDict(manager_cfg))
+
+
+@pytest.fixture(scope='function')
+def setup_gym_vector_manager_cfg():
+    manager_cfg = get_subprecess_manager_cfg(4)
+    env_cfg = manager_cfg.pop('env_cfg')
+    manager_cfg['env_fn'] = [partial(FakeGymEnv, cfg=c) for c in env_cfg]
+    manager_cfg['shared_memory'] = False
+    return EasyDict(manager_cfg)
