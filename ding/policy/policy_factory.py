@@ -34,25 +34,7 @@ class PolicyFactory:
 
             actions = {}
             for env_id in data:
-<<<<<<< HEAD
-                if not isinstance(action_space, list):
-                    actions[env_id] = {'action': action_space.sample()}
-                elif 'global_state' in data[env_id].keys():
-                    # for smac
-                    logit = np.ones_like(data[env_id]['action_mask'])
-                    logit[data[env_id]['action_mask'] == 0.0] = -1e8
-                    dist = torch.distributions.categorical.Categorical(logits=torch.Tensor(logit))
-                    actions[env_id] = {'action': np.array(dist.sample()), 'logit': np.array(logit)}
-                else:
-                    # for gfootball
-                    actions[env_id] = {
-                        'action': np.array([action_space_agent.sample() for action_space_agent in action_space]),
-                        'logit': np.ones([len(action_space), action_space[0].n])
-                    }
-
-=======
                 actions[env_id] = {'action': torch.as_tensor(action_space.sample())}
->>>>>>> bcfc76f255f0be1e8edbecb8dee3ac1438964c77
             return actions
 
         def reset(*args, **kwargs) -> None:
