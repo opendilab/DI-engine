@@ -1,3 +1,7 @@
+"""
+The following code is adapted from https://github.com/YeWR/EfficientZero/blob/main/core/model.py
+"""
+
 import torch
 import typing
 
@@ -87,6 +91,7 @@ class BaseNet(nn.Module):
 
         if not self.training:
             # if not in training, obtain the scalars of the value/reward
+            # tictoctoe: value {Tensor: (2,32)}
             value = self.inverse_value_transform(value).detach().cpu().numpy()
             state = state.detach().cpu().numpy()
             actor_logit = actor_logit.detach().cpu().numpy()
@@ -95,7 +100,8 @@ class BaseNet(nn.Module):
                              torch.zeros(1, num, self.lstm_hidden_size).detach().cpu().numpy())
         else:
             # zero initialization for reward (value prefix) hidden states
-            reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size).to('cuda'), torch.zeros(1, num, self.lstm_hidden_size).to('cuda'))
+            # reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size).to('cuda'), torch.zeros(1, num, self.lstm_hidden_size).to('cuda'))
+            reward_hidden = (torch.zeros(1, num, self.lstm_hidden_size), torch.zeros(1, num, self.lstm_hidden_size))
 
         return NetworkOutput(value, [0. for _ in range(num)], actor_logit, state, reward_hidden)
 

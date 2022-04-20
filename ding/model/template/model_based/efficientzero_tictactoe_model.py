@@ -1,3 +1,7 @@
+"""
+The following code is adapted from https://github.com/YeWR/EfficientZero/blob/main/config/atari/model.py
+"""
+
 import math
 import torch
 
@@ -7,14 +11,66 @@ from ding.utils import MODEL_REGISTRY
 from ding.model.template.model_based.efficientzero_base_model import BaseNet, renormalize
 
 
+class DiscreteSupport(object):
+    def __init__(self, min: int, max: int, delta=1.):
+        assert min < max
+        self.min = min
+        self.max = max
+        self.range = np.arange(min, max + 1, delta)
+        self.size = len(self.range)
+        self.delta = delta
+
+
+value_support = DiscreteSupport(-300, 300, delta=1)
+reward_support = DiscreteSupport(-300, 300, delta=1)
+
+
+def inverse_reward_transform(reward_logits):
+    # return inverse_scalar_transform(reward_logits, reward_support)
+    return reward_logits  # TODO
+
+
+def inverse_value_transform(value_logits):
+    # return inverse_scalar_transform(value_logits, value_support)
+    return value_logits # TODO
+
+
+
+def inverse_scalar_transform(logits, scalar_support):
+    """ Reference from MuZerp: Appendix F => Network Architecture
+    & Appendix A : Proposition A.2 in https://arxiv.org/pdf/1805.11593.pdf (Page-11)
+    """
+    value_support = DiscreteSupport(-300, 300, delta=1)
+    reward_support = DiscreteSupport(-300, 300, delta=1)
+    delta = value_support.delta
+    value_probs = torch.softmax(logits, dim=1)
+    value_support = torch.ones(value_probs.shape)
+    value_support[:, :] = torch.from_numpy(np.array([x for x in scalar_support.range]))
+    value_support = value_support.to(device=value_probs.device)
+    value = (value_support * value_probs).sum(1, keepdim=True) / delta
+
+    epsilon = 0.001
+    sign = torch.ones(value.shape).float().to(value.device)
+    sign[value < 0] = -1.0
+    output = (((torch.sqrt(1 + 4 * epsilon * (torch.abs(value) + 1 + epsilon)) - 1) / (2 * epsilon)) ** 2 - 1)
+    output = sign * output * delta
+
+    nan_part = torch.isnan(output)
+    output[nan_part] = 0.
+    output[torch.abs(output) < epsilon] = 0.
+    return output
+
+# value=torch.randn([2,32])
+# inverse_value_transform(value)
+
 def mlp(
-    input_size,
-    layer_sizes,
-    output_size,
-    output_activation=nn.Identity,
-    activation=nn.ReLU,
-    momentum=0.1,
-    init_zero=False,
+        input_size,
+        layer_sizes,
+        output_size,
+        output_activation=nn.Identity,
+        activation=nn.ReLU,
+        momentum=0.1,
+        init_zero=False,
 ):
     """MLP layers
     Parameters
@@ -48,6 +104,7 @@ def mlp(
         layers[-2].bias.data.fill_(0)
 
     return nn.Sequential(*layers)
+
 
 # test mlp
 # fc = mlp(27, [64,32,16,16], 9)
@@ -112,7 +169,8 @@ class DownSample(nn.Module):
             padding=1,
             bias=False,
         )
-        self.downsample_block = ResidualBlock(out_channels // 2, out_channels, momentum=momentum, stride=2, downsample=self.conv2)
+        self.downsample_block = ResidualBlock(out_channels // 2, out_channels, momentum=momentum, stride=2,
+                                              downsample=self.conv2)
         self.resblocks2 = nn.ModuleList(
             [ResidualBlock(out_channels, out_channels, momentum=momentum) for _ in range(1)]
         )
@@ -141,16 +199,15 @@ class DownSample(nn.Module):
 # Encode the observations into hidden states
 class RepresentationNetwork(nn.Module):
     def __init__(
-        self,
+            self,
     ):
         """Representation network
         equivalence transformation
         """
         super().__init__()
 
-
     def forward(self, x):
-        return x
+        return x  # TODO
 
     def get_param_mean(self):
         mean = []
@@ -163,16 +220,16 @@ class RepresentationNetwork(nn.Module):
 # Predict next hidden states given current states and actions
 class DynamicsNetwork(nn.Module):
     def __init__(
-        self,
-        num_blocks,
-        num_channels,
-        reduced_channels_reward,
-        fc_reward_layers,
-        full_support_size,
-        block_output_size_reward,
-        lstm_hidden_size=64,
-        momentum=0.1,
-        init_zero=False,
+            self,
+            num_blocks,
+            num_channels,
+            reduced_channels_reward,
+            fc_reward_layers,
+            full_support_size,
+            block_output_size_reward,
+            lstm_hidden_size=64,
+            momentum=0.1,
+            init_zero=False,
     ):
         """Dynamics network
         Parameters
@@ -211,12 +268,11 @@ class DynamicsNetwork(nn.Module):
         self.block_output_size_reward = block_output_size_reward
         self.lstm = nn.LSTM(input_size=self.block_output_size_reward, hidden_size=self.lstm_hidden_size)
         self.bn_value_prefix = nn.BatchNorm1d(self.lstm_hidden_size, momentum=momentum)
-        self.fc = mlp(self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero, momentum=momentum)
+        self.fc = mlp(self.lstm_hidden_size, fc_reward_layers, full_support_size, init_zero=init_zero,
+                      momentum=momentum)
 
     def forward(self, x, reward_hidden):
-        state = x[:,:-1,:,:]  # todo: not know the atari state or tic-tac-toc state -> lose one dim
-        # state = x
-
+        state = x[:, :-1, :, :]
         x = self.conv(x)
         x = self.bn(x)
 
@@ -263,19 +319,19 @@ class DynamicsNetwork(nn.Module):
 # predict the value and policy given hidden states
 class PredictionNetwork(nn.Module):
     def __init__(
-        self,
-        action_space_size,
-        num_blocks,
-        num_channels,
-        reduced_channels_value,
-        reduced_channels_policy,
-        fc_value_layers,
-        fc_policy_layers,
-        full_support_size,
-        block_output_size_value,
-        block_output_size_policy,
-        momentum=0.1,
-        init_zero=False,
+            self,
+            action_space_size,
+            num_blocks,
+            num_channels,
+            reduced_channels_value,
+            reduced_channels_policy,
+            fc_value_layers,
+            fc_policy_layers,
+            full_support_size,
+            block_output_size_value,
+            block_output_size_policy,
+            momentum=0.1,
+            init_zero=False,
     ):
         """Prediction network
         Parameters
@@ -314,8 +370,10 @@ class PredictionNetwork(nn.Module):
         self.bn_policy = nn.BatchNorm2d(reduced_channels_policy, momentum=momentum)
         self.block_output_size_value = block_output_size_value
         self.block_output_size_policy = block_output_size_policy
-        self.fc_value = mlp(self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero, momentum=momentum)
-        self.fc_policy = mlp(self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero, momentum=momentum)
+        self.fc_value = mlp(self.block_output_size_value, fc_value_layers, full_support_size, init_zero=init_zero,
+                            momentum=momentum)
+        self.fc_policy = mlp(self.block_output_size_policy, fc_policy_layers, action_space_size, init_zero=init_zero,
+                             momentum=momentum)
 
     def forward(self, x):
         for block in self.resblocks:
@@ -335,33 +393,35 @@ class PredictionNetwork(nn.Module):
         return policy, value
 
 
-@MODEL_REGISTRY.register('EfficientZeroNet')
+@MODEL_REGISTRY.register('EfficientZeroNet-tictactoe')
 class EfficientZeroNet(BaseNet):
     def __init__(
-        self,
-        observation_shape,
-        action_space_size,
-        num_blocks,
-        num_channels,
-        reduced_channels_reward,
-        reduced_channels_value,
-        reduced_channels_policy,
-        fc_reward_layers,
-        fc_value_layers,
-        fc_policy_layers,
-        reward_support_size,
-        value_support_size,
-        downsample,
-        inverse_value_transform,
-        inverse_reward_transform,
-        lstm_hidden_size,
-        bn_mt=0.1,
-        proj_hid=256,
-        proj_out=256,
-        pred_hid=64,
-        pred_out=256,
-        init_zero=False,
-        state_norm=False
+            self,
+            observation_shape,
+            action_space_size,
+            num_blocks,
+            num_channels,
+            reduced_channels_reward,
+            reduced_channels_value,
+            reduced_channels_policy,
+            fc_reward_layers,
+            fc_value_layers,
+            fc_policy_layers,
+            reward_support_size,
+            value_support_size,
+            downsample,
+            inverse_value_transform=inverse_value_transform,
+            inverse_reward_transform=inverse_reward_transform,
+            # inverse_value_transform,
+            # inverse_reward_transform,
+            lstm_hidden_size=512,
+            bn_mt=0.1,
+            proj_hid=256,
+            proj_out=256,
+            pred_hid=64,
+            pred_out=256,
+            init_zero=False,
+            state_norm=False
     ):
         """EfficientZero network
         Parameters
@@ -424,9 +484,9 @@ class EfficientZeroNet(BaseNet):
         self.action_space_size = action_space_size
         block_output_size_reward = (
             (
-                reduced_channels_reward
-                * math.ceil(observation_shape[1] / 16)
-                * math.ceil(observation_shape[2] / 16)
+                    reduced_channels_reward
+                    * math.ceil(observation_shape[1] / 16)
+                    * math.ceil(observation_shape[2] / 16)
             )
             if downsample
             else (reduced_channels_reward * observation_shape[1] * observation_shape[2])
@@ -434,9 +494,9 @@ class EfficientZeroNet(BaseNet):
 
         block_output_size_value = (
             (
-                reduced_channels_value
-                * math.ceil(observation_shape[1] / 16)
-                * math.ceil(observation_shape[2] / 16)
+                    reduced_channels_value
+                    * math.ceil(observation_shape[1] / 16)
+                    * math.ceil(observation_shape[2] / 16)
             )
             if downsample
             else (reduced_channels_value * observation_shape[1] * observation_shape[2])
@@ -444,9 +504,9 @@ class EfficientZeroNet(BaseNet):
 
         block_output_size_policy = (
             (
-                reduced_channels_policy
-                * math.ceil(observation_shape[1] / 16)
-                * math.ceil(observation_shape[2] / 16)
+                    reduced_channels_policy
+                    * math.ceil(observation_shape[1] / 16)
+                    * math.ceil(observation_shape[2] / 16)
             )
             if downsample
             else (reduced_channels_policy * observation_shape[1] * observation_shape[2])
@@ -524,11 +584,11 @@ class EfficientZeroNet(BaseNet):
                     encoded_state.shape[3],
                 )
             )
-            .to(action.device)
-            .float()
+                .to(action.device)
+                .float()
         )
         action_one_hot = (
-            action[:, :, None, None] * action_one_hot / self.action_space_size
+                action[:, :, None, None] * action_one_hot / self.action_space_size
         )
         x = torch.cat((encoded_state, action_one_hot), dim=1)
         next_encoded_state, reward_hidden, value_prefix = self.dynamics_network(x, reward_hidden)
@@ -557,4 +617,3 @@ class EfficientZeroNet(BaseNet):
             return proj
         else:
             return proj.detach()
-

@@ -1,19 +1,19 @@
 from easydict import EasyDict
-from tictactoe_config import game_config
+# from atari_config import game_config
 
 nstep = 3
-tictactoe_efficientzero_config = dict(
-    exp_name='tictactoe_efficientzero_seed0',
+atari_efficientzero_config = dict(
+    exp_name='atari_efficientzero_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         # Env number respectively for collector and evaluator.
         collector_env_num=2,
         evaluator_env_num=2,
         n_evaluator_episode=2,
-
-        env_name='LunarLander-v2',
         stop_value=200,
-        obs_shape=(3, 3, 3),
+
+        env_name='PongNoFrameskip-v4',
+        obs_shape=(12, 96, 96),
         gray_scale=False,
 
         training_steps=100000,
@@ -105,17 +105,18 @@ tictactoe_efficientzero_config = dict(
         value_delta_max=0.01,
 
         # UCB formula
-        pb_c_base=19652,
-        pb_c_init=1.25,
+        pb_c_base = 19652,
+        pb_c_init = 1.25,
         discount=0.997,
         # num_simulations=50,
         num_simulations=2,  # TODO Debug
-        amp_type='torch_amp',
+        amp_type = 'torch_amp',
+
         model=dict(
-            obs_shape=(3,3,3),
-            action_space_size=9,
-            blocks=1,
-            channels=64,
+            observation_shape=(12,96,96),
+            action_space_size=6,
+            num_blocks=1,
+            num_channels=64,
             reduced_channels_reward=16,
             reduced_channels_value=16,
             reduced_channels_policy=16,
@@ -124,7 +125,7 @@ tictactoe_efficientzero_config = dict(
             fc_policy_layers=[32],
             reward_support_size=601,
             value_support_size=601,
-            downsample=False,  # TODO
+            downsample=True,
             # inverse_value_transform=game_config.inverse_value_transform,
             # inverse_reward_transform=game_config.inverse_reward_transform,
             lstm_hidden_size=512,
@@ -138,11 +139,15 @@ tictactoe_efficientzero_config = dict(
         ),
         # learn_mode config
         learn=dict(
+            multi_gpu=False,
             update_per_collect=10,
             batch_size=64,
             learning_rate=0.001,
             # Frequency of target network update.
             target_update_freq=100,
+            # grad_clip_type='clip_norm',
+            # grad_clip_value=0.5,
+
         ),
         # collect_mode config
         collect=dict(
@@ -166,21 +171,21 @@ tictactoe_efficientzero_config = dict(
         ),
     ),
 )
-tictactoe_efficientzero_config = EasyDict(tictactoe_efficientzero_config)
-main_config = tictactoe_efficientzero_config
+atari_efficientzero_config = EasyDict(atari_efficientzero_config)
+main_config = atari_efficientzero_config
 
-tictactoe_efficientzero_create_config = dict(
+atari_efficientzero_create_config = dict(
     env=dict(
-        type='tictactoe',
-        import_names=['dizoo.board_games.tictactoe.envs.tictactoe_env'],
+        type='atari-di',
+        import_names=['dizoo.board_games.atari.envs.atari_env_di'],
     ),
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='muzero'),
     # collector=dict(type='sample_muzero', )
 )
-tictactoe_efficientzero_create_config = EasyDict(tictactoe_efficientzero_create_config)
-create_config = tictactoe_efficientzero_create_config
+atari_efficientzero_create_config = EasyDict(atari_efficientzero_create_config)
+create_config = atari_efficientzero_create_config
 
 if __name__ == "__main__":
     from ding.entry import serial_pipeline_muzero

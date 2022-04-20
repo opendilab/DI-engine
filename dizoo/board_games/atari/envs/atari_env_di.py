@@ -5,17 +5,23 @@ from typing import Any, List, Union, Sequence
 import copy
 import numpy as np
 import gym
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
+from ding.envs import BaseEnv, BaseEnvTimestep, update_shape
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from dizoo.atari.envs.atari_wrappers import wrap_deepmind, wrap_deepmind_mr
+import torch
+
+from dizoo.board_games.base_config import BaseConfig
+from ding.rl_utils.efficientzero.utils import make_atari, WarpFrame, EpisodicLifeEnv
+from ding.rl_utils.efficientzero.dataset import Transforms
+from ding.rl_utils.efficientzero.atari_env_wrapper import AtariWrapper
 
 """
 Adapte Atari to BaseGameEnv interface
 """
 
 
-@ENV_REGISTRY.register('AtariDI')
+@ENV_REGISTRY.register('atari-di')
 class AtariDIEnv(BaseGameEnv):
     def __init__(self, cfg=None):
         self.cfg = cfg
@@ -38,28 +44,58 @@ class AtariDIEnv(BaseGameEnv):
         return self.agents.index(self._agent_selector.next())
 
     def _make_env(self):
-        return wrap_deepmind(
-            self.cfg.env_id,
-            frame_stack=self.cfg.frame_stack,
-            episode_life=self.cfg.is_train,
-            clip_rewards=self.cfg.is_train
-        )
+        # DI-engine wrapper
+        # return wrap_deepmind(
+        #     self.cfg.env_id,
+        #     frame_stack=self.cfg.frame_stack,
+        #     episode_life=self.cfg.is_train,
+        #     clip_rewards=self.cfg.is_train
+        # )
+        # EfficientZero wrapper
+        # def new_game(self, seed=None, save_video=False, save_path=None, video_callable=None, uid=None, test=False, final_test=False):
+        seed = None
+        save_video = False
+        save_path = None
+        video_callable = None
+        uid = None
+        test = False
+        final_test = False
+        if test:
+            if final_test:
+                max_moves = 108000 // self.frame_skip
+            else:
+                max_moves = self.cfg.test_max_moves
+            env = make_atari(self.env_name, skip=self.frame_skip, max_episode_steps=max_moves)
+        else:
+            env = make_atari(self.cfg.env_name, skip=self.cfg.frame_skip, max_episode_steps=self.cfg.max_moves)
+
+        if self.cfg.episode_life and not test:
+            env = EpisodicLifeEnv(env)
+        env = WarpFrame(env, width=self.cfg.obs_shape[1], height=self.cfg.obs_shape[2], grayscale=self.cfg.gray_scale)
+
+        if seed is not None:
+            env.seed(seed)
+
+        if save_video:
+            from gym.wrappers import Monitor
+            env = Monitor(env, directory=save_path, force=True, video_callable=video_callable, uid=uid)
+        return AtariWrapper(env, discount=self.cfg.discount, cvt_string=self.cfg.cvt_string)
 
     def reset(self):
         if not self._init_flag:
             self._env = self._make_env()
-            self._observation_space = self._env.observation_space
-            self._action_space = self._env.action_space
+            self._observation_space = self._env.env.observation_space
+            self._action_space = self._env.env.action_space
             self._reward_space = gym.spaces.Box(
-                low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
+                low=self._env.env.reward_range[0], high=self._env.env.reward_range[1], shape=(1,), dtype=np.float32
             )
 
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
-            self._env.seed(self._seed + np_seed)
+            self._env.env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
-            self._env.seed(self._seed)
+            self._env.env.seed(self._seed)
         obs = self._env.reset()
         self.obs = to_ndarray(obs)
         self._final_eval_reward = 0.
@@ -109,7 +145,8 @@ class AtariDIEnv(BaseGameEnv):
             info['final_eval_reward'] = self._final_eval_reward
             self.infos[current_agent] = info['final_eval_reward']
             self.dones[current_agent] = True
-        return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], self.infos[agent])
+        # return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], self.infos[agent])
+        return BaseEnvTimestep(observation, self._cumulative_rewards[agent], self.dones[agent], info)  # TODO
 
     def legal_actions(self):
         return np.arange(self._action_space.n)
@@ -184,7 +221,7 @@ class AtariDIEnv(BaseGameEnv):
         pass
 
     def __repr__(self) -> str:
-        return "DI-engine Atari Env({})".format(self.cfg.env_id)
+        return "DI-engine Atari Env({})".format(self.cfg.env_name)
 
     @staticmethod
     def create_collector_envcfg(cfg: dict) -> List[dict]:

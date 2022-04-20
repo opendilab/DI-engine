@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-import ding.rl_utils.muzero_mcts.ptree as tree
+import ding.rl_utils.muzero.ptree as tree
 
 class MCTS(object):
     def __init__(self, config):

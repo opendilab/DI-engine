@@ -1,11 +1,14 @@
-from typing import Any, List, Optional, Union, Callable
 from dataclasses import dataclass
-from functools import wraps
 import time
 import numpy as np
-from typing import Any, Iterable, List, Optional, Tuple, Union
-from ding.worker.buffer import Buffer, apply_middleware, BufferedData
 from ding.utils import BUFFER_REGISTRY
+import itertools
+import random
+import logging
+from typing import Any, Iterable, List, Optional, Tuple, Union
+from collections import defaultdict, deque, OrderedDict
+from ding.worker.buffer import Buffer, apply_middleware, BufferedData
+from ding.worker.buffer.utils import fastcopy
 
 
 @dataclass
@@ -121,11 +124,98 @@ class GameBuffer(Buffer):
             - sample_data (:obj:`Union[List[BufferedData], List[List[BufferedData]]]`):
                 A list of data with length ``size``, may be nested if groupby or rolling_window is set.
         """
-        if size:
-            sampled_indices = np.random.randint(0, self.get_num_of_game_historys(), size)
-            return [self.buffer[game_id] for game_id in sampled_indices]
-        elif indices:
-            return [self.buffer[game_id] for game_id in indices]
+        # if size:
+        #     if replace:
+        #         sampled_indices = np.random.randint(0, self.get_num_of_game_historys(), size)
+        #         return [self.buffer[game_id] for game_id in sampled_indices]
+        # elif indices:
+        #     return [self.buffer[game_id] for game_id in indices]
+
+        storage = self.buffer
+        if sample_range:
+            storage = list(itertools.islice(self.storage, sample_range.start, sample_range.stop, sample_range.step))
+
+        # Size and indices
+        assert size or indices, "One of size and indices must not be empty."
+        if (size and indices) and (size != len(indices)):
+            raise AssertionError("Size and indices length must be equal.")
+        if not size:
+            size = len(indices)
+        # Indices and groupby
+        assert not (indices and groupby), "Cannot use groupby and indicex at the same time."
+        # Groupby and rolling_window
+        assert not (groupby and rolling_window), "Cannot use groupby and rolling_window at the same time."
+        assert not (indices and rolling_window), "Cannot use indices and rolling_window at the same time."
+
+        value_error = None
+        sampled_data = []
+        if indices:
+            # indices_set = set(indices)
+            # hashed_data = filter(lambda item: item.index in indices_set, storage)
+            # hashed_data = map(lambda item: (item.index, item), hashed_data)
+            # hashed_data = dict(hashed_data)
+            # # Re-sample and return in indices order
+            # sampled_data = [hashed_data[index] for index in indices]
+            sampled_data = [self.buffer[game_id] for game_id in indices]
+
+        elif groupby:
+            sampled_data = self._sample_by_group(size=size, groupby=groupby, replace=replace, storage=storage)
+        elif rolling_window:
+            sampled_data = self._sample_by_rolling_window(
+                size=size, replace=replace, rolling_window=rolling_window, storage=storage
+            )
+        else:
+            if replace:
+                sampled_data = random.choices(storage, k=size)
+            else:
+                try:
+                    sampled_data = random.sample(storage, k=size)
+                except ValueError as e:
+                    value_error = e
+
+        if value_error or len(sampled_data) != size:
+            if ignore_insufficient:
+                logging.warning(
+                    "Sample operation is ignored due to data insufficient, current buffer is {} while sample is {}".
+                    format(self.count(), size)
+                )
+            else:
+                raise ValueError("There are less than {} records/groups in buffer({})".format(size, self.count()))
+
+        # sampled_data = self._independence(sampled_data)
+
+        return sampled_data
+
+    def _independence(
+        self, buffered_samples: Union[List[BufferedData], List[List[BufferedData]]]
+    ) -> Union[List[BufferedData], List[List[BufferedData]]]:
+        """
+        Overview:
+            Make sure that each record is different from each other, but remember that this function
+            is different from clone_object. You may change the data in the buffer by modifying a record.
+        Arguments:
+            - buffered_samples (:obj:`Union[List[BufferedData], List[List[BufferedData]]]`) Sampled data,
+                can be nested if groupby or rolling_window has been set.
+        """
+        if len(buffered_samples) == 0:
+            return buffered_samples
+        occurred = defaultdict(int)
+
+        for i, buffered in enumerate(buffered_samples):
+            if isinstance(buffered, list):
+                sampled_list = buffered
+                # Loop over nested samples
+                for j, buffered in enumerate(sampled_list):
+                    occurred[buffered.index] += 1
+                    if occurred[buffered.index] > 1:
+                        sampled_list[j] = fastcopy.copy(buffered)
+            elif isinstance(buffered, BufferedData):
+                occurred[buffered.index] += 1
+                if occurred[buffered.index] > 1:
+                    buffered_samples[i] = fastcopy.copy(buffered)
+            else:
+                raise Exception("Get unexpected buffered type {}".format(type(buffered)))
+        return buffered_samples
 
     def get_game(self, idx):
         # def get_game() in EfficientZero replay_buffer.py
@@ -278,9 +368,9 @@ class GameBuffer(Buffer):
         # number of games, i.e. num  of game history blocks
         return len(self.buffer)
 
-    # def size(self):
-    #     # number of games, i.e. num  of game history blocks
-    #     return len(self.buffer)
+    def count(self):
+        # number of games, i.e. num  of game history blocks
+        return len(self.buffer)
 
     def clear(self) -> None:
         del self.buffer[:]

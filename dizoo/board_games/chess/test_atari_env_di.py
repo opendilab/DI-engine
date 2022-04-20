@@ -1,5 +1,5 @@
 import pytest
-from dizoo.board_games.atari.atari_env_di import AtariDIEnv
+from dizoo.board_games.atari import AtariDIEnv
 from easydict import EasyDict
 
 cfg = EasyDict(env_id='PongNoFrameskip-v4',

@@ -1,9 +1,11 @@
+"""
+The following code is adapted from https://github.com/YeWR/EfficientZero/core/mcts.py
+"""
+
 import torch
-
 import numpy as np
-import ding.rl_utils.efficientzero_mcts.ctree.cytree as tree
-
 from torch.cuda.amp import autocast as autocast
+import ding.rl_utils.efficientzero.ctree.cytree as tree
 
 
 class MCTS(object):

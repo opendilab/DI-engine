@@ -7,6 +7,7 @@ from ding.worker.buffer.buffer import BufferedData
 from torch.utils.data import DataLoader
 import numpy as np
 from easydict import EasyDict
+from ding.torch_utils import to_list
 
 
 class RateLimit:
@@ -64,12 +65,12 @@ config = EasyDict(dict(
 def test_naive_push_sample():
     buffer = GameBuffer(config)
     # fake data
-    data = [[i, i, i] for i in range(10)]  # (s,a,r)
+    data = [[1, 1, 1] for _ in range(10)]  # (s,a,r)
     meta = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
 
     # push
     for i in range(20):
-        buffer.push(data, meta)
+        buffer.push(to_list(np.multiply(i, data)), meta)
     assert buffer.count() == 20
 
     # push games
@@ -82,21 +83,24 @@ def test_naive_push_sample():
 
     # sample
     for i in range(5):
-        buffer.push(data, meta)
+        buffer.push(to_list(np.multiply(i, data)), meta)
 
-    assert buffer.sample(indices=[0, 1, 2, 3, 4]) == buffer.sample(5)
+    # assert len(buffer.sample(indices=['0', '1', '2', '3', '4'])) == 5
+    assert len(buffer.sample(indices=[0, 1, 2, 3, 4])) == 5
+
+    assert len(buffer.sample(size=5)) == 5
 
 
 @pytest.mark.unittest
 def test_update():
     buffer = GameBuffer(config)
     # fake data
-    data = [[i, i, i] for i in range(10)]  # (s,a,r)
+    data = [[1, 1, 1] for _ in range(10)]  # (s,a,r)
     meta = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
 
     # push
     for i in range(20):
-        buffer.push(data, meta)
+        buffer.push(to_list(np.multiply(i, data)), meta)
     assert buffer.count() == 20
 
     # update
@@ -112,12 +116,12 @@ def test_update():
 def test_rate_limit_push_sample():
     buffer = GameBuffer(config).use(RateLimit(max_rate=5))
     # fake data
-    data = [[i, i, i] for i in range(10)]  # (s,a,r)
+    data = [[1, 1, 1] for i in range(10)]  # (s,a,r)
     meta = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
 
     # push
     for i in range(20):
-        buffer.push(data, meta)
+        buffer.push(to_list(np.multiply(i, data)), meta)
     # print(buffer.sample(indices=[0,1,2,3,4]))
     # print(buffer.sample(5))
 
@@ -129,10 +133,10 @@ def test_prepare_batch_context():
     buffer = GameBuffer(config)
 
     # fake data
-    data_1 = [[i, i, i] for i in range(10)]  # (s,a,r)
+    data_1 = [[1, 1, 1] for i in range(10)]  # (s,a,r)
     meta_1 = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
 
-    data_2 = [[i, i, i] for i in range(10, 20)]  # (s,a,r)
+    data_2 = [[1, 1, 1] for i in range(10, 20)]  # (s,a,r)
     meta_2 = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
 
     # push
@@ -149,7 +153,7 @@ def test_buffer_view():
     buf1 = GameBuffer(config)
 
     # fake data
-    data = [[i, i, i] for i in range(10)]  # (s,a,r)
+    data = [[1, 1, 1] for _ in range(10)]  # (s,a,r)
     meta = {'end_tag': True, 'gap_steps': 5, 'priorities': np.array([0.9 for i in range(10)])}
 
     # push
@@ -159,7 +163,7 @@ def test_buffer_view():
     buf2 = buf1.view()
 
     for i in range(10):
-        buf2.push(data, meta)
+        buf2.push(to_list(np.multiply(i, data)), meta)
     assert len(buf1.middleware) == 0
     assert buf1.count() == 1
     assert buf2.count() == 10

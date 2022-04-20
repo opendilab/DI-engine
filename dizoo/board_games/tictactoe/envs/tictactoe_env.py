@@ -6,7 +6,7 @@ from ding.utils.registry_factory import ENV_REGISTRY
 from dizoo.board_games.base_game_env import BaseGameEnv
 
 
-@ENV_REGISTRY.register('tictactoe')
+# @ENV_REGISTRY.register('tictactoe')
 class TicTacToeEnv(BaseGameEnv):
     def __init__(self, cfg=None):
         self.board_size = 3

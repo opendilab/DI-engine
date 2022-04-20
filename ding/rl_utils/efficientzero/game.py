@@ -1,7 +1,10 @@
+"""
+The following code is adapted from https://github.com/YeWR/EfficientZero/blob/main/core/game.py
+"""
+
 import copy
-
 import numpy as np
-
+from ding.rl_utils.efficientzero.utils import str_to_arr
 
 
 class Game:
@@ -137,12 +140,15 @@ class GameHistory:
         padding: bool
             True -> padding frames if (t + stack frames) are out of trajectory
         """
+        # frames = self.obs_history[index:index + self.stacked_observations]
         frames = self.obs_history[i:i + self.stacked_observations + extra_len]
         if padding:
             pad_len = self.stacked_observations + extra_len - len(frames)
             if pad_len > 0:
                 pad_frames = [frames[-1] for _ in range(pad_len)]
                 frames = np.concatenate((frames, pad_frames))
+        if self.config.cvt_string:   # TODO
+            frames = [str_to_arr(obs, self.config.gray_scale) for obs in frames]
         return frames
 
     def zero_obs(self):
@@ -153,6 +159,8 @@ class GameHistory:
         # return an observation of correct format for model inference
         index = len(self.rewards)
         frames = self.obs_history[index:index + self.stacked_observations]
+        if self.config.cvt_string:  # TODO
+            frames = [str_to_arr(obs, self.config.gray_scale) for obs in frames]
         return frames
 
     def get_targets(self, i):
@@ -163,6 +171,7 @@ class GameHistory:
         # post processing the data when a history block is full
         # obs_history should be sent into the ray memory. Otherwise, it will cost large amounts of time in copying obs.
         self.rewards = np.array(self.rewards)
+        # self.obs_history = ray.put(np.array(self.obs_history))
         self.obs_history = np.array(self.obs_history)
         self.actions = np.array(self.actions)
         self.child_visits = np.array(self.child_visits)
@@ -180,3 +189,4 @@ class GameHistory:
 
     def __len__(self):
         return len(self.actions)
+

@@ -1,17 +1,21 @@
 from typing import List, Dict, Any, Tuple, Union
-import numpy as np
-import torch
 import treetensor.torch as ttorch
 
 # from ding.torch_utils import SGD
 import torch.optim as optim
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
-# from ding.rl_utils.efficientzero_mcts.efficientzero_mcts import MCTS, Root
-from ding.rl_utils.efficientzero_mcts.mcts import MCTS
-import ding.rl_utils.efficientzero_mcts.ctree.cytree as cytree
 from .base_policy import Policy
+import torch
+import numpy as np
+from tqdm.auto import tqdm
+from torch.cuda.amp import autocast as autocast
 
+import ding.rl_utils.efficientzero.ctree.cytree as cytree
+from ding.rl_utils.efficientzero.game import GameHistory
+from dizoo.board_games.atari.config.atari_config import game_config
+from ding.rl_utils.efficientzero.mcts import MCTS
+from ding.rl_utils.efficientzero.utils import select_action, prepare_observation_lst
 
 class ModifiedCrossEntropyLoss(torch.nn.Module):
 
@@ -33,6 +37,7 @@ class MuZeroPolicy(Policy):
     config = dict(
         type='muzero',
         cuda=False,
+        device='cpu',
         on_policy=False,
         priority=True,
         priority_IS_weight=True,
@@ -56,6 +61,39 @@ class MuZeroPolicy(Policy):
         root_dirichlet_alpha=0.3,
         root_exploration_fraction=0.25,
         value_delta_max=0.01,
+
+        # learn_mode config
+        learn=dict(
+            multi_gpu=False,
+            update_per_collect=10,
+            batch_size=64,
+            learning_rate=0.001,
+            # Frequency of target network update.
+            target_update_freq=100,
+            # grad_clip_type='clip_norm',
+            # grad_clip_value=0.5,
+
+        ),
+        # collect_mode config
+        collect=dict(
+            # You can use either "n_sample" or "n_episode" in collector.collect.
+            # Get "n_sample" samples per collect.
+            n_sample=64,
+            # Cut trajectories into pieces with length "unroll_len".
+            unroll_len=1,
+        ),
+        # command_mode config
+        other=dict(
+            # Epsilon greedy with decay.
+            eps=dict(
+                # Decay type. Support ['exp', 'linear'].
+                type='exp',
+                start=0.95,
+                end=0.1,
+                decay=50000,
+            ),
+            replay_buffer=dict(replay_buffer_size=100000, type='game')
+        ),
     )
 
     def _init_learn(self) -> None:
@@ -75,11 +113,11 @@ class MuZeroPolicy(Policy):
             lr=self._cfg.learning_rate,
             momentum=self._cfg.momentum,
             weight_decay=self._cfg.weight_decay,
-            grad_clip_type=self._cfg.grad_clip_type,
-            clip_value=self._cfg.grad_clip_value
+            # grad_clip_type=self._cfg.grad_clip_type,
+            # clip_value=self._cfg.grad_clip_value,
         )
 
-        self._learn_model = model_wrap(self._model, wrapper='base')
+        self._learn_model = model_wrap(self._model, wrapper_name='base')
         self._learn_model.reset()
 
     def _data_preprocess_learn(self, data: ttorch.Tensor):
@@ -146,15 +184,20 @@ class MuZeroPolicy(Policy):
                   for k, v in losses.items()})
 
     def _init_collect(self) -> None:
+        self._unroll_len = self._cfg.collect.unroll_len
+        self._action_shape = (6,)
+        self._gamma = self._cfg.discount_factor  # necessary for parallel
+        # self._nstep = self._cfg.nstep  # necessary for parallel
         self._collect_model = model_wrap(self._model, 'base')
-        self._mcts_handler = MCTS(
-            discount=self._cfg.discount_factor,
-            value_delta_max=self._cfg.value_delta_max,
-            horizons=self._cfg.lstm_horizon_len,
-            simulation_num=self._cfg.simulation_num
-        )
-
-        self._reset_collect()
+        # self._mcts_handler = MCTS(
+        #     discount=self._cfg.discount_factor,
+        #     value_delta_max=self._cfg.value_delta_max,
+        #     horizons=self._cfg.lstm_horizon_len,
+        #     simulation_num=self._cfg.simulation_num
+        # )
+        self.config = self._cfg
+        self._mcts_handler = MCTS(self.config)
+        # self._reset_collect()
 
     @staticmethod
     def _get_max_entropy(action_shape: int) -> None:
@@ -215,27 +258,7 @@ class MuZeroPolicy(Policy):
         )
 
     def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Overview:
-            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \
-            can be used for training directly. A train sample can be a processed transition(DQN with nstep TD) \
-            or some continuous transitions(DRQN).
-        Arguments:
-            - data (:obj:`List[Dict[str, Any]`): The trajectory data(a list of transition), each element is the same \
-                format as the return value of ``self._process_transition`` method.
-        Returns:
-            - samples (:obj:`dict`): The list of training samples.
-
-        .. note::
-            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
-            And the user can customize the this data processing procecure by overriding this two methods and collector \
-            itself.
-        """
-        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len)
-
-    def _reset_collect(self, env_id: List[int] = None):
-        self._collect_model.reset(env_id=env_id)
+        pass
 
     def _init_eval(self) -> None:
         r"""
@@ -243,9 +266,13 @@ class MuZeroPolicy(Policy):
             Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
         """
         self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.eval()
         self._eval_model.reset()
+        # self.config.device='cpu'
+        self.config = self._cfg
+        self._mcts_eval = MCTS(self.config)
 
-    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+    def _forward_eval(self, data: ttorch.Tensor, temperature: torch.Tensor = torch.tensor(1)):
         """
         Overview:
             Forward computation graph of eval mode(evaluate policy performance), at most cases, it is similar to \
@@ -260,17 +287,155 @@ class MuZeroPolicy(Policy):
         ReturnsKeys
             - necessary: ``action``
         """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._eval_model.eval()
+        self._eval_model.training = False  # TODO
+        config = game_config
+        test_episodes = 2
+
+        stack_obs = data
+        with autocast():
+            # stack_obs {Tensor:(2,12,96,96)}
+            network_output = self._eval_model.initial_inference(stack_obs.float())
+        hidden_state_roots = network_output.hidden_state  # （2, 64, 6, 6）
+        reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,2,512)
+        value_prefix_pool = network_output.value_prefix  # {list: 2}
+        policy_logits_pool = network_output.policy_logits.tolist()  # {list: 2} {list:6}
+
+        roots = cytree.Roots(test_episodes, config.action_space_size, config.num_simulations)
+        roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
+        # do MCTS for a policy (argmax in testing)
+        self._mcts_eval.search(roots, self._eval_model, hidden_state_roots, reward_hidden_roots)
+
+        roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
+        roots_values = roots.get_values()  # {list: 1}
+        data_id = [i for i in range(test_episodes)]
+        output = {i: None for i in data_id}
+        for i in range(test_episodes):
+            # if dones[i]:
+            #     continue
+
+            distributions, value = roots_distributions[i], roots_values[i]
+            # select the argmax, not sampling
+            action, _ = select_action(distributions, temperature=1, deterministic=True)
+
+            # actions.append(action)
+            output[i] = {'action': action, 'distributions': distributions,'value':value}
+
+        # return {i: d for i, d in zip(data_id, output)}
+        return output
+        # return output
+
+    def eval(self):
+        """
+        Overview:
+            self-consistent eval method for EfficientZero
+        """
+        config = game_config
+
+        exp_path = './'  # TODO
+        render = False
+        # render = True
+
+        save_video = False
+        final_test = False
+        use_pb = True
+        counter = 0
+        config.device = 'cpu'
+        device = config.device
+        test_episodes = 3
+        config.max_moves = 20
+        config.env_name = 'PongNoFrameskip-v4'
+        config.obs_shape = (12, 96, 96)
+        config.gray_scale = False
+        config.action_space_size = 6
+        config.amp_type = 'none'
+        # to obtain model = EfficientZeroNet()
+        # model = config.get_uniform_network()
+        model = self._eval_model
+        model.to(device)
+        model.eval()
+        # save_path = os.path.join(config.exp_path, 'recordings', 'step_{}'.format(counter))
+
+        if use_pb:
+            pb = tqdm(np.arange(config.max_moves), leave=True)
+
         with torch.no_grad():
-            output = self._eval_model.forward(data)
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
+            # new games
+            envs = [config.new_game(seed=i, save_video=save_video, save_path=None, test=True, final_test=final_test,
+                                    video_callable=lambda episode_id: True, uid=i) for i in range(test_episodes)]
+
+            # initializations
+            init_obses = [env.reset() for env in envs]
+            dones = np.array([False for _ in range(test_episodes)])
+            game_histories = [
+                GameHistory(envs[_].env.action_space, max_length=config.max_moves, config=config) for
+                _ in
+                range(test_episodes)]
+            for i in range(test_episodes):
+                game_histories[i].init([init_obses[i] for _ in range(config.stacked_observations)])
+
+            step = 0
+            ep_ori_rewards = np.zeros(test_episodes)
+            ep_clip_rewards = np.zeros(test_episodes)
+            # loop
+            while not dones.all():
+                if render:
+                    for i in range(test_episodes):
+                        envs[i].render()
+
+                if config.image_based:
+                    stack_obs = []
+                    for game_history in game_histories:
+                        stack_obs.append(game_history.step_obs())
+                    stack_obs = prepare_observation_lst(stack_obs)
+                    stack_obs = torch.from_numpy(stack_obs).to(device).float() / 255.0
+                else:
+                    stack_obs = [game_history.step_obs() for game_history in game_histories]
+                    stack_obs = torch.from_numpy(np.array(stack_obs)).to(device)
+
+                with autocast():
+                    network_output = model.initial_inference(stack_obs.float())
+                hidden_state_roots = network_output.hidden_state  # （1, 64, 6, 6）
+                reward_hidden_roots = network_output.reward_hidden  # {tuple:2} (1,1,512)
+                value_prefix_pool = network_output.value_prefix  # {list: 1}
+                policy_logits_pool = network_output.policy_logits.tolist()  # {list: 1} {list:6}
+
+                roots = cytree.Roots(test_episodes, config.action_space_size, config.num_simulations)
+                roots.prepare_no_noise(value_prefix_pool, policy_logits_pool)
+                # do MCTS for a policy (argmax in testing)
+                MCTS(config).search(roots, model, hidden_state_roots, reward_hidden_roots)
+
+                roots_distributions = roots.get_distributions()  # {list: 1}->{list:6}
+                roots_values = roots.get_values()  # {list: 1}
+                for i in range(test_episodes):
+                    if dones[i]:
+                        continue
+
+                    distributions, value, env = roots_distributions[i], roots_values[i], envs[i]
+                    # select the argmax, not sampling
+                    action, _ = select_action(distributions, temperature=1, deterministic=True)
+
+                    obs, ori_reward, done, info = env.step(action)
+                    if config.clip_reward:
+                        clip_reward = np.sign(ori_reward)
+                    else:
+                        clip_reward = ori_reward
+
+                    game_histories[i].store_search_stats(distributions, value)
+                    game_histories[i].append(action, obs, clip_reward)
+
+                    dones[i] = done
+                    ep_ori_rewards[i] += ori_reward
+                    ep_clip_rewards[i] += clip_reward
+
+                step += 1
+                if use_pb:
+                    pb.set_description('{} In step {}, scores: {}(max: {}, min: {}) currently.'
+                                       ''.format(config.env_name, counter,
+                                                 ep_ori_rewards.mean(), ep_ori_rewards.max(), ep_ori_rewards.min()))
+                    pb.update(1)
+
+            for env in envs:
+                env.close()
 
     def _monitor_vars_learn(self) -> List[str]:
         return ['cur_lr', 'total_loss', 'q_value']
@@ -284,7 +449,7 @@ class MuZeroPolicy(Policy):
         """
         return {
             'model': self._learn_model.state_dict(),
-            'target_model': self._target_model.state_dict(),
+            # 'target_model': self._target_model.state_dict(),
             'optimizer': self._optimizer.state_dict(),
         }
 
@@ -301,7 +466,7 @@ class MuZeroPolicy(Policy):
             complicated operation.
         """
         self._learn_model.load_state_dict(state_dict['model'])
-        self._target_model.load_state_dict(state_dict['target_model'])
+        # self._target_model.load_state_dict(state_dict['target_model'])
         self._optimizer.load_state_dict(state_dict['optimizer'])
 
     def default_model(self) -> Tuple[str, List[str]]:
@@ -315,4 +480,4 @@ class MuZeroPolicy(Policy):
             The user can define and use customized network model but must obey the same inferface definition indicated \
             by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
         """
-        return 'EfficientZeroNet', ['ding.model.template.model_based.efficientzero_tictactoe_model']
+        return 'EfficientZeroNet-atari', ['ding.model.template.model_based.efficientzero_atari_model']
