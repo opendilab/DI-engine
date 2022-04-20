@@ -1,15 +1,13 @@
 from typing import List, Dict, Any, Tuple, Union
 import copy
-import numpy as np
-import torch
-import torch.nn.functional as F
-from torch.distributions import Normal, Independent
 
-from ding.torch_utils import Adam, to_device
-from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample
-from ding.model import model_wrap
-from ding.utils import POLICY_REGISTRY
-from ding.utils.data import default_collate, default_decollate
+import torch
+from torch.distributions import Normal, Independent
+from easydict import EasyDict
+
+from ding.torch_utils import to_device
+from ding.rl_utils import v_1step_td_data, v_1step_td_error
+from ding.utils import POLICY_REGISTRY, deep_merge_dicts
 from ding.policy.sac import SACPolicy
 from ding.policy.common_utils import default_preprocess_learn
 
@@ -18,189 +16,52 @@ from ding.policy.common_utils import default_preprocess_learn
 class MBSACPolicy(SACPolicy):
     r"""
        Overview:
-           Policy class of SAC algorithm.
+           Policy class of SAC algorithm with model-based features including value expansion and value gradient.
 
        Config:
-           == ====================  ========    =============  ================================= =======================
-           ID Symbol                Type        Default Value  Description                       Other(Shape)
-           == ====================  ========    =============  ================================= =======================
-           1  ``type``              str         td3            | RL policy register name, refer  | this arg is optional,
-                                                               | to registry ``POLICY_REGISTRY`` | a placeholder
-           2  ``cuda``              bool        True           | Whether to use cuda for network |
-           3  | ``random_``         int         10000          | Number of randomly collected    | Default to 10000 for
-              | ``collect_size``                               | training samples in replay      | SAC, 25000 for DDPG/
-              |                                                | buffer when training starts.    | TD3.
-           4  | ``model.policy_``   int         256            | Linear layer size for policy    |
-              | ``embedding_size``                             | network.                        |
-           5  | ``model.soft_q_``   int         256            | Linear layer size for soft q    |
-              | ``embedding_size``                             | network.                        |
-           6  | ``model.value_``    int         256            | Linear layer size for value     | Defalut to None when
-              | ``embedding_size``                             | network.                        | model.value_network
-              |                                                |                                 | is False.
-           7  | ``learn.learning``  float       3e-4           | Learning rate for soft q        | Defalut to 1e-3, when
-              | ``_rate_q``                                    | network.                        | model.value_network
-              |                                                |                                 | is True.
-           8  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to 1e-3, when
-              | ``_rate_policy``                               | network.                        | model.value_network
-              |                                                |                                 | is True.
-           9  | ``learn.learning``  float       3e-4           | Learning rate for policy        | Defalut to None when
-              | ``_rate_value``                                | network.                        | model.value_network
-              |                                                |                                 | is False.
-           10 | ``learn.alpha``     float       0.2            | Entropy regularization          | alpha is initiali-
-              |                                                | coefficient.                    | zation for auto
-              |                                                |                                 | `\alpha`, when
-              |                                                |                                 | auto_alpha is True
-           11 | ``learn.repara_``   bool        True           | Determine whether to use        |
-              | ``meterization``                               | reparameterization trick.       |
-           12 | ``learn.``          bool        False          | Determine whether to use        | Temperature parameter
-              | ``auto_alpha``                                 | auto temperature parameter      | determines the
-              |                                                | `\alpha`.                       | relative importance
-              |                                                |                                 | of the entropy term
-              |                                                |                                 | against the reward.
-           13 | ``learn.-``         bool        False          | Determine whether to ignore     | Use ignore_done only
-              | ``ignore_done``                                | done flag.                      | in halfcheetah env.
-           14 | ``learn.-``         float       0.005          | Used for soft update of the     | aka. Interpolation
-              | ``target_theta``                               | target network.                 | factor in polyak aver
-              |                                                |                                 | aging for target
-              |                                                |                                 | networks.
-           == ====================  ========    =============  ================================= =======================
+           == ===================================  ========    =============  ================================= =======================
+           ID Symbol                               Type        Default Value  Description                       Other(Shape)
+           == ===================================  ========    =============  ================================= =======================
+           1  ``value_expansion_horizon``          int         0              TODO
+           2  ``value_expansion_norm``             bool        True
+           3  ``value_expansion_type``             str         'mve'
+           4  ``value_expansion_grad_clip_norm``   float       .0
+           5  ``value_gradient_horizon``           int         0
+           6  ``value_gradient_norm``              bool        True 
+           7  ``value_gradient_grad_clip_norm``    float       .0
+           == ===================================  ========    =============  ================================= =======================
        """
 
     config = dict(
-        # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='sac_nstep',
-        # (bool) Whether to use cuda for network.
-        cuda=False,
-        # (bool type) on_policy: Determine whether on-policy or off-policy.
-        # on-policy setting influences the behaviour of buffer.
-        # Default False in SAC.
-        on_policy=False,
-        # (bool type) priority: Determine whether to use priority in buffer sample.
-        # Default False in SAC.
-        priority=False,
-        # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
-        priority_IS_weight=False,
-        # (int) Number of training samples(randomly collected) in replay buffer when training starts.
-        # Default 10000 in SAC.
-        random_collect_size=10000,
-        multi_agent=False,
-        model=dict(
-            # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
-            # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
-            # Default to True.
-            twin_critic=True,
-
-            # (bool type) value_network: Determine whether to use value network as the
-            # original SAC paper (arXiv 1801.01290).
-            # using value_network needs to set learning_rate_value, learning_rate_q,
-            # and learning_rate_policy in `cfg.policy.learn`.
-            # Default to False.
-            # value_network=False,
-
-            # (str type) action_space: Use reparameterization trick for continous action
-            action_space='reparameterization',
-        ),
         learn=dict(
+            # (int) Model-based value expansion horizon H (arXiv 1803.00101). 
             value_expansion_horizon=0,
+            # (int) Whether to use value expansion norm 1/(H + 1).
             value_expansion_norm=True,
+            # (str) The style of value expansion to use.
+            # Support MVE with td-k trick (arXiv 1803.00101).
+            # STEVE style value expansion (arXiv 1807.01675) will be supported in the future.
             value_expansion_type='mve', # 'steve' or 'mve'
+            # (float) Gradient clips norm for value expansion.
+            # Gradient clip is deactivate when value_expansion_grad_clip_norm=0. 
             value_expansion_grad_clip_norm=0,
 
+            # (int) Model-based value gradient horizon H (arXiv 1510.09142). 
             value_gradient_horizon=0,
+            # (int) Whether to use value gradient norm 1/(H + 1).
             value_gradient_norm=True,
+            # (float) Gradient clips norm for value gradient.
+            # Gradient clip is deactivate when value_gradient_grad_clip_norm=0.
             value_gradient_grad_clip_norm=0,
-
-            # (bool) Whether to use multi gpu
-            multi_gpu=False,
-            # How many updates(iterations) to train after collector's one collection.
-            # Bigger "update_per_collect" means bigger off-policy.
-            # collect data -> update policy-> collect data -> ...
-            update_per_collect=1,
-            # (int) Minibatch size for gradient descent.
-            batch_size=256,
-
-            # (float type) learning_rate_q: Learning rate for soft q network.
-            # Default to 3e-4.
-            # Please set to 1e-3, when model.value_network is True.
-            learning_rate_q=3e-4,
-            # (float type) learning_rate_policy: Learning rate for policy network.
-            # Default to 3e-4.
-            # Please set to 1e-3, when model.value_network is True.
-            learning_rate_policy=3e-4,
-            # (float type) learning_rate_value: Learning rate for value network.
-            # `learning_rate_value` should be initialized, when model.value_network is True.
-            # Please set to 3e-4, when model.value_network is True.
-            learning_rate_value=3e-4,
-
-            # (float type) learning_rate_alpha: Learning rate for auto temperature parameter `\alpha`.
-            # Default to 3e-4.
-            learning_rate_alpha=3e-4,
-            # (float type) target_theta: Used for soft update of the target network,
-            # aka. Interpolation factor in polyak averaging for target networks.
-            # Default to 0.005.
-            target_theta=0.005,
-            # (float) discount factor for the discounted sum of rewards, aka. gamma.
-            discount_factor=0.99,
-
-            # (float type) alpha: Entropy regularization coefficient.
-            # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
-            # If auto_alpha is set  to `True`, alpha is initialization for auto `\alpha`.
-            # Default to 0.2.
-            alpha=0.2,
-
-            # (bool type) auto_alpha: Determine whether to use auto temperature parameter `\alpha` .
-            # Temperature parameter determines the relative importance of the entropy term against the reward.
-            # Please check out the original SAC paper (arXiv 1801.01290): Eq 1 for more details.
-            # Default to False.
-            # Note that: Using auto alpha needs to set learning_rate_alpha in `cfg.policy.learn`.
-            auto_alpha=True,
-            # (bool type) log_space: Determine whether to use auto `\alpha` in log space.
-            log_space=True,
-            # (bool) Whether ignore done(usually for max step termination env. e.g. pendulum)
-            # Note: Gym wraps the MuJoCo envs by default with TimeLimit environment wrappers.
-            # These limit HalfCheetah, and several other MuJoCo envs, to max length of 1000.
-            # However, interaction with HalfCheetah always gets done with False,
-            # Since we inplace done==True with done==False to keep
-            # TD-error accurate computation(``gamma * (1 - done) * next_v + reward``),
-            # when the episode step is greater than max episode step.
-            ignore_done=False,
-            # (float) Weight uniform initialization range in the last output layer
-            init_w=3e-3,
-        ),
-        collect=dict(
-            # If you need the data collected by the collector to contain logit key which reflect the probability of
-            # the action, you can change the key to be True.
-            # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
-            # Default collector_logit to False.
-            collector_logit=False,
-            # You can use either "n_sample" or "n_episode" in actor.collect.
-            # Get "n_sample" samples per collect.
-            # Default n_sample to 1.
-            n_sample=1,
-            # (int) Cut trajectories into pieces with length "unroll_len".
-            unroll_len=1,
-        ),
-        eval=dict(
-            evaluator=dict(
-                # (int) Evaluate every "eval_freq" training iterations.
-                eval_freq=5000,
-            ),
-        ),
-        other=dict(
-            replay_buffer=dict(
-                # (int type) replay_buffer_size: Max size of replay buffer.
-                replay_buffer_size=1000000,
-                # (int type) max_use: Max use times of one data in the buffer.
-                # Data will be removed once used for too many times.
-                # Default to infinite.
-                # max_use=256,
-            ),
-        ),
+        )
     )
-    r"""
-    Overview:
-        # TODO
-    """
+
+    @classmethod
+    def default_config(cls: type) -> EasyDict:
+        cfg = copy.deepcopy(cls.config)
+        cfg = EasyDict(deep_merge_dicts(super().config, cfg))
+        cfg.cfg_type = cls.__name__ + 'Dict'
+        return cfg
 
     def _init_learn(self) -> None:
         r"""
