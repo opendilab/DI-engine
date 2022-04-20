@@ -61,7 +61,7 @@ def plotter(
     data_holder = []  # for plotting together only
     foot_root = root  # for plotting together only
     for root, dirs, _ in os.walk(root):
-        if len(dirs)>1:
+        if len(dirs) > 1:
             dirs.sort()
         for d in dirs:
 
