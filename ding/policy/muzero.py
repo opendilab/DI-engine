@@ -3,10 +3,13 @@ import numpy as np
 import torch
 import treetensor.torch as ttorch
 
-from ding.torch_utils import SGD
+# from ding.torch_utils import SGD
+import torch.optim as optim
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
-from ding.rl_utils import MCTS, Root
+# from ding.rl_utils.efficientzero_mcts.efficientzero_mcts import MCTS, Root
+from ding.rl_utils.efficientzero_mcts.mcts import MCTS
+import ding.rl_utils.efficientzero_mcts.ctree.cytree as cytree
 from .base_policy import Policy
 
 
@@ -21,7 +24,7 @@ class ModifiedCrossEntropyLoss(torch.nn.Module):
 
 
 @POLICY_REGISTRY.register('muzero')
-class MuZero(Policy):
+class MuZeroPolicy(Policy):
     """
     Overview:
         MuZero
@@ -59,7 +62,15 @@ class MuZero(Policy):
         self._metric_loss = torch.nn.L1Loss()
         self._cos = torch.nn.CosineSimilarity(dim=1, eps=1e-05)
         self._ce = ModifiedCrossEntropyLoss(reduction='none')
-        self._optimizer = SGD(
+        # self._optimizer = SGD(  # TODO
+        #     self._model.parameters(),
+        #     lr=self._cfg.learning_rate,
+        #     momentum=self._cfg.momentum,
+        #     weight_decay=self._cfg.weight_decay,
+        #     grad_clip_type=self._cfg.grad_clip_type,
+        #     clip_value=self._cfg.grad_clip_value
+        # )
+        self._optimizer = optim.SGD(
             self._model.parameters(),
             lr=self._cfg.learning_rate,
             momentum=self._cfg.momentum,
@@ -117,9 +128,9 @@ class MuZero(Policy):
                 output.hidden_state_reward.zero_()
 
         total_loss = (
-            self._cfg.policy_weight * losses.policy_loss + self._cfg.value_weight * losses.value_loss +
-            self._cfg.value_prefix_weight * losses.value_prefix_loss +
-            self._cfg.consistent_weight * losses.consistent_loss
+                self._cfg.policy_weight * losses.policy_loss + self._cfg.value_weight * losses.value_loss +
+                self._cfg.value_prefix_weight * losses.value_prefix_loss +
+                self._cfg.consistent_weight * losses.consistent_loss
         )
         total_loss = total_loss.mean()
         total_loss.register_hook(lambda grad: grad / N)
@@ -166,7 +177,9 @@ class MuZero(Policy):
             obs = obs.view(obs.shape[0], -1, *obs.shape[2:])
             output = self._collect_model.forward(obs, mode='init')
 
-            root = Root(root_num=len(env_id), action_num=self._cfg.action_shape, tree_nodes=self._cfg.simulation_num)
+            # root = Root(root_num=len(env_id), action_num=self._cfg.action_shape, tree_nodes=self._cfg.simulation_num)
+            root = cytree.Roots(root_num=len(env_id), action_num=self._cfg.action_shape,
+                                tree_nodes=self._cfg.simulation_num)
             noise = np.random.dirichlet(self._cfg.root_dirichlet_alpha, size=(len(env_id), self._cfg.action_shape))
             root.prepare(
                 self._cfg.root_exploration_fraction, noise,
@@ -201,5 +214,105 @@ class MuZero(Policy):
             }
         )
 
+    def _get_train_sample(self, data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Overview:
+            For a given trajectory(transitions, a list of transition) data, process it into a list of sample that \
+            can be used for training directly. A train sample can be a processed transition(DQN with nstep TD) \
+            or some continuous transitions(DRQN).
+        Arguments:
+            - data (:obj:`List[Dict[str, Any]`): The trajectory data(a list of transition), each element is the same \
+                format as the return value of ``self._process_transition`` method.
+        Returns:
+            - samples (:obj:`dict`): The list of training samples.
+
+        .. note::
+            We will vectorize ``process_transition`` and ``get_train_sample`` method in the following release version. \
+            And the user can customize the this data processing procecure by overriding this two methods and collector \
+            itself.
+        """
+        data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
+        return get_train_sample(data, self._unroll_len)
+
     def _reset_collect(self, env_id: List[int] = None):
         self._collect_model.reset(env_id=env_id)
+
+    def _init_eval(self) -> None:
+        r"""
+        Overview:
+            Evaluate mode init method. Called by ``self.__init__``, initialize eval_model.
+        """
+        self._eval_model = model_wrap(self._model, wrapper_name='base')
+        self._eval_model.reset()
+
+    def _forward_eval(self, data: Dict[int, Any]) -> Dict[int, Any]:
+        """
+        Overview:
+            Forward computation graph of eval mode(evaluate policy performance), at most cases, it is similar to \
+            ``self._forward_collect``.
+        Arguments:
+            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
+                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
+        Returns:
+            - output (:obj:`Dict[int, Any]`): The dict of predicting action for the interaction with env.
+        ArgumentsKeys:
+            - necessary: ``obs``
+        ReturnsKeys
+            - necessary: ``action``
+        """
+        data_id = list(data.keys())
+        data = default_collate(list(data.values()))
+        if self._cuda:
+            data = to_device(data, self._device)
+        self._eval_model.eval()
+        with torch.no_grad():
+            output = self._eval_model.forward(data)
+        if self._cuda:
+            output = to_device(output, 'cpu')
+        output = default_decollate(output)
+        return {i: d for i, d in zip(data_id, output)}
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return ['cur_lr', 'total_loss', 'q_value']
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+        """
+        return {
+            'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+
+    def default_model(self) -> Tuple[str, List[str]]:
+        """
+        Overview:
+            Return this algorithm default model setting for demonstration.
+        Returns:
+            - model_info (:obj:`Tuple[str, List[str]]`): model name and mode import_names
+
+        .. note::
+            The user can define and use customized network model but must obey the same inferface definition indicated \
+            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``
+        """
+        return 'EfficientZeroNet', ['ding.model.template.model_based.efficientzero_tictactoe_model']

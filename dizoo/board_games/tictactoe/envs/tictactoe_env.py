@@ -1,9 +1,7 @@
 import sys
-
+import gym
 import numpy as np
-
-from ding.envs.common.env_element import EnvElementInfo
-from ding.envs.env.base_env import BaseEnvInfo, BaseEnvTimestep
+from ding.envs.env.base_env import BaseEnvTimestep
 from ding.utils.registry_factory import ENV_REGISTRY
 from dizoo.board_games.base_game_env import BaseGameEnv
 
@@ -33,6 +31,15 @@ class TicTacToeEnv(BaseGameEnv):
         return legal_actions
 
     def reset(self, start_player=0):
+        self._observation_space = gym.spaces.Box(
+            low=0, high=2, shape=(self.board_size, self.board_size, 3), dtype=np.int32
+        )
+        # self._observation_space = gym.spaces.Box(
+        #     low=-1, high=1, shape=(self.board_size, self.board_size, 3), dtype=np.float32
+        # )
+        self._action_space = gym.spaces.Discrete(self.board_size ** 2)
+        self._reward_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=np.float32)
+
         self._current_player = self.players[start_player]
         self.board = np.zeros((self.board_size, self.board_size), dtype="int32")
         return self.current_state()
@@ -218,36 +225,17 @@ class TicTacToeEnv(BaseGameEnv):
                                     'winner': winner})
         return extend_data
 
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=2,
-            obs_space=T(
-                (self.board_size, self.board_size, 3),
-                {
-                    'min': -1,
-                    'max': 1,
-                    'dtype': np.float32,
-                },
-            ),
-            # [min, max)
-            act_space=T(
-                (1,),
-                {
-                    'min': 0,
-                    'max': self.board_size ** 2,
-                    'dtype': int,
-                },
-            ),
-            rew_space=T(
-                (1,),
-                {
-                    'min': -1.0,
-                    'max': 1.0
-                },
-            ),
-            use_wrappers=None,
-        )
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
     def close(self) -> None:
         pass

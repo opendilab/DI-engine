@@ -1,12 +1,12 @@
 import os
 
-import ding.rl_utils.mcts.ctree.cytree as tree
+import ding.rl_utils.efficientzero_mcts.ctree.cytree as tree
 import easydict
 import numpy as np
 import torch
 import yaml
 
-from ding.rl_utils.mcts.mcts import MCTS
+from ding.rl_utils.efficientzero_mcts.mcts import MCTS
 
 
 class MuzeroModel(torch.nn.Module):

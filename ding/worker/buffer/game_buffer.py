@@ -5,6 +5,7 @@ import time
 import numpy as np
 from typing import Any, Iterable, List, Optional, Tuple, Union
 from ding.worker.buffer import Buffer, apply_middleware, BufferedData
+from ding.utils import BUFFER_REGISTRY
 
 
 @dataclass
@@ -14,6 +15,7 @@ class BufferedData:
     meta: dict
 
 
+@BUFFER_REGISTRY.register('game')
 class GameBuffer(Buffer):
     def __init__(self, config=None):
         """Reference : DISTRIBUTED PRIORITIZED EXPERIENCE REPLAY
@@ -55,7 +57,7 @@ class GameBuffer(Buffer):
             Save a game history block
         Arguments:
             - data (:obj:`Any`): The data which will be pushed into buffer.
-                                 a game history block
+                                 i.e. a game history block
             - meta (:obj:`dict`): Meta information, e.g. priority, count, staleness.
                 - end_tag: bool
                     True -> the game is finished. (always True)
@@ -69,7 +71,7 @@ class GameBuffer(Buffer):
         # in EfficientZero replay_buffer.py
         # def save_game(self, game, end_tag, gap_steps, priorities=None):
 
-        if self.get_total_len() >= self.config.total_transitions:
+        if self.get_total_num_transitions() >= self.config.total_transitions:
             return
 
         if meta['end_tag']:
@@ -80,6 +82,7 @@ class GameBuffer(Buffer):
 
         if meta['priorities'] is None:
             max_prio = self.priorities.max() if self.buffer else 1
+            # if no 'priorities' provided, set the valid part of the new-added game history the max_prio
             self.priorities = np.concatenate(
                 (self.priorities, [max_prio for _ in range(valid_len)] + [0. for _ in range(valid_len, len(data))]))
         else:
@@ -119,7 +122,7 @@ class GameBuffer(Buffer):
                 A list of data with length ``size``, may be nested if groupby or rolling_window is set.
         """
         if size:
-            sampled_indices = np.random.randint(0, self.count(), size)
+            sampled_indices = np.random.randint(0, self.get_num_of_game_historys(), size)
             return [self.buffer[game_id] for game_id in sampled_indices]
         elif indices:
             return [self.buffer[game_id] for game_id in indices]
@@ -127,7 +130,10 @@ class GameBuffer(Buffer):
     def get_game(self, idx):
         # def get_game() in EfficientZero replay_buffer.py
         # idx: transition index
-        # return a game including this transition
+        # return the game history including this transition
+
+        # game_id is the index of this game history in the self.buffer list
+        # game_pos is the relative position of this transition in this game history
         game_id, game_pos = self.game_look_up[idx]
         game_id -= self.base_idx
         game = self.buffer[game_id]
@@ -155,12 +161,14 @@ class GameBuffer(Buffer):
         """
         assert beta > 0
 
-        total = self.get_total_len()
+        # total number of transitions
+        total = self.get_total_num_transitions()
 
         probs = self.priorities ** self._alpha
 
         probs /= probs.sum()
-        # sample data
+        # TODO sample data in PER way
+        # sample according to transition index
         indices_lst = np.random.choice(total, batch_size, p=probs, replace=False)
 
         weights_lst = (total * probs[indices_lst]) ** (-beta)
@@ -182,13 +190,13 @@ class GameBuffer(Buffer):
         context = (game_lst, game_pos_lst, indices_lst, weights_lst, make_time)
         return context
 
-    def update(self, index: str, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
+    def update(self, index, data: Optional[Any] = None, meta: Optional[dict] = None) -> bool:
         """
         Overview:
             Update data and meta by index
         Arguments:
-            - index (:obj:`str`): Index of data.
-            - data (:obj:`any`): Pure data.
+            - index (:obj:`str`): Index of one transition to be updated.
+            - data (:obj:`any`): Pure data.  one transition.
             - meta (:obj:`dict`): Meta information.
         Returns:
             - success (:obj:`bool`): Success or not, if data with the index not exist in buffer, return false.
@@ -200,12 +208,12 @@ class GameBuffer(Buffer):
         # update the priorities for data still in replay buffer
         success = False
         # if meta['make_time'] > self.clear_time:
-        if index < self.get_total_len():
-            idx, prio = index, meta['priorities']
-            self.priorities[idx] = prio
-
-            game_id, game_pos = self.game_look_up[idx]
+        if index < self.get_total_num_transitions():
+            prio = meta['priorities']
+            self.priorities[index] = prio
+            game_id, game_pos = self.game_look_up[index]
             game_id -= self.base_idx
+            # update one transition
             self.buffer[game_id][game_pos] = data
             success = True
 
@@ -225,9 +233,8 @@ class GameBuffer(Buffer):
             - datas (:obj:`Optional[List[Optional[Any]]]`): Pure data.
             - metas (:obj:`Optional[List[Optional[dict]]]`): Meta information.
         """
-
         # def update_priorities(self, batch_indices, batch_priorities, make_time):
-        # update the priorities for data still in replay buffer
+        # only update the priorities for data still in replay buffer
         for i in range(len(indices)):
             if metas[i]['make_time'] > self.clear_time:
                 idx, prio = indices[i], metas[i]['batch_priorities']
@@ -235,11 +242,11 @@ class GameBuffer(Buffer):
 
     def remove_to_fit(self):
         # remove some old data if the replay buffer is full.
-        current_size = self.count()
-        total_transition = self.get_total_len()
+        nums_of_game_histoty = self.get_num_of_game_historys()
+        total_transition = self.get_total_num_transitions()
         if total_transition > self.transition_top:
             index = 0
-            for i in range(current_size):
+            for i in range(nums_of_game_histoty):
                 total_transition -= len(self.buffer[i])
                 if total_transition <= self.transition_top * self.keep_ratio:
                     index = i
@@ -267,13 +274,13 @@ class GameBuffer(Buffer):
         """
         pass
 
-    def count(self) -> int:
-        # number of games
+    def get_num_of_game_historys(self) -> int:
+        # number of games, i.e. num  of game history blocks
         return len(self.buffer)
 
-    def size(self):
-        # number of games
-        return len(self.buffer)
+    # def size(self):
+    #     # number of games, i.e. num  of game history blocks
+    #     return len(self.buffer)
 
     def clear(self) -> None:
         del self.buffer[:]
@@ -283,12 +290,13 @@ class GameBuffer(Buffer):
         Overview:
             Get item by subscript index
         Arguments:
-            - idx (:obj:`int`): Subscript index
+            - idx (:obj:`int`): Subscript index.  Index of one transition to get.
         Returns:
             - buffered_data (:obj:`BufferedData`): Item from buffer
         """
         # def get_game(self, idx):
         # return a game
+        #
         game_id, game_pos = self.game_look_up[idx]
         game_id -= self.base_idx
         game = self.buffer[game_id]
@@ -304,7 +312,7 @@ class GameBuffer(Buffer):
     def get_priorities(self):
         return self.priorities
 
-    def get_total_len(self):
+    def get_total_num_transitions(self):
         # number of transitions
         return len(self.priorities)
 

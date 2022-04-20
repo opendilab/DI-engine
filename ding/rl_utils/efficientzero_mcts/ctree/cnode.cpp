@@ -201,7 +201,7 @@ namespace tree{
 
     CRoots::~CRoots(){}
 
-    void CRoots::prepare(float root_exploration_fraction, const std::vector<std::vector<float>> &noises, const std::vector<float> &value_prefixs, const std::vector<std::vector<float>> &policies){
+    void CRoots::prepare(float root_exploration_fraction, const std::vector<std::vector<float> > &noises, const std::vector<float> &value_prefixs, const std::vector<std::vector<float> > &policies){
         for(int i = 0; i < this->root_num; ++i){
             this->roots[i].expand(0, 0, i, value_prefixs[i], policies[i]);
             this->roots[i].add_exploration_noise(root_exploration_fraction, noises[i]);
@@ -210,7 +210,7 @@ namespace tree{
         }
     }
 
-    void CRoots::prepare_no_noise(const std::vector<float> &value_prefixs, const std::vector<std::vector<float>> &policies){
+    void CRoots::prepare_no_noise(const std::vector<float> &value_prefixs, const std::vector<std::vector<float> > &policies){
         for(int i = 0; i < this->root_num; ++i){
             this->roots[i].expand(0, 0, i, value_prefixs[i], policies[i]);
 
@@ -223,8 +223,8 @@ namespace tree{
         this->roots.clear();
     }
 
-    std::vector<std::vector<int>> CRoots::get_trajectories(){
-        std::vector<std::vector<int>> trajs;
+    std::vector<std::vector<int> > CRoots::get_trajectories(){
+        std::vector<std::vector<int> > trajs;
         trajs.reserve(this->root_num);
 
         for(int i = 0; i < this->root_num; ++i){
@@ -233,8 +233,8 @@ namespace tree{
         return trajs;
     }
 
-    std::vector<std::vector<int>> CRoots::get_distributions(){
-        std::vector<std::vector<int>> distributions;
+    std::vector<std::vector<int> > CRoots::get_distributions(){
+        std::vector<std::vector<int> > distributions;
         distributions.reserve(this->root_num);
 
         for(int i = 0; i < this->root_num; ++i){
@@ -314,7 +314,7 @@ namespace tree{
         update_tree_q(root, min_max_stats, discount);
     }
 
-    void cbatch_back_propagate(int hidden_state_index_x, float discount, const std::vector<float> &value_prefixs, const std::vector<float> &values, const std::vector<std::vector<float>> &policies, tools::CMinMaxStatsList *min_max_stats_lst, CSearchResults &results, std::vector<int> is_reset_lst){
+    void cbatch_back_propagate(int hidden_state_index_x, float discount, const std::vector<float> &value_prefixs, const std::vector<float> &values, const std::vector<std::vector<float> > &policies, tools::CMinMaxStatsList *min_max_stats_lst, CSearchResults &results, std::vector<int> is_reset_lst){
         for(int i = 0; i < results.num; ++i){
             results.nodes[i]->expand(0, hidden_state_index_x, i, value_prefixs[i], policies[i]);
             // reset

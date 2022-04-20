@@ -2,7 +2,7 @@ import pytest
 from itertools import product
 import torch
 from ding.model.template.model_based import EfficientZeroNet
-from ding.model.template.model_based.efficientzero_tic_model_new import RepresentationNetwork, DynamicsNetwork
+from ding.model.template.model_based.efficientzero_tictactoe_model import RepresentationNetwork, DynamicsNetwork
 from ding.torch_utils import is_differentiable
 
 bs_args = [10]
