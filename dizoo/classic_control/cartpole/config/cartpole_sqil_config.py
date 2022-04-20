@@ -58,7 +58,6 @@ if __name__ == '__main__':
     # e.g. spaceinvaders_dqn_config.py
     from ding.entry import serial_pipeline_sqil
     from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config
-
     expert_main_config = cartpole_dqn_config
     expert_create_config = cartpole_dqn_create_config
     serial_pipeline_sqil((main_config, create_config), (expert_main_config, expert_create_config), seed=0)

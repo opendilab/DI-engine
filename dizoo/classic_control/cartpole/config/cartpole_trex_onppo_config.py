@@ -73,7 +73,6 @@ if __name__ == "__main__":
     import torch
     from ding.entry import trex_collecting_data
     from ding.entry import serial_pipeline_reward_model_trex_onpolicy
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
     parser.add_argument('--seed', type=int, default=0)

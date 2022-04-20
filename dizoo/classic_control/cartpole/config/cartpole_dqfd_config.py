@@ -65,7 +65,6 @@ if __name__ == "__main__":
     # in the collector part even though the expert model may be generated from other Q learning algos.
     from ding.entry.serial_entry_dqfd import serial_pipeline_dqfd
     from dizoo.classic_control.cartpole.config import cartpole_dqfd_config, cartpole_dqfd_create_config
-
     expert_main_config = cartpole_dqfd_config
     expert_create_config = cartpole_dqfd_create_config
     serial_pipeline_dqfd((main_config, create_config), (expert_main_config, expert_create_config), seed=0)

@@ -68,10 +68,8 @@ if __name__ == "__main__":
     # This config file can be executed by `dizoo/classic_control/cartpole/entry/cartpole_ppg_main.py`
     import os
     import warnings
-
     from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main
     from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import __file__ as _origin_py_file
-
     origin_py_file_rel = os.path.relpath(_origin_py_file, os.path.abspath(os.path.curdir))
     warnings.warn(UserWarning(f"This config file can be executed by {repr(origin_py_file_rel)}"))
     main(cartpole_ppg_config)

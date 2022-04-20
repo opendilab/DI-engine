@@ -68,7 +68,6 @@ if __name__ == "__main__":
     # e.g. cartpole_dqn_config.py
     from ding.entry import serial_pipeline_gail
     from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config
-
     expert_main_config = cartpole_dqn_config
     expert_create_config = cartpole_dqn_create_config
     serial_pipeline_gail(
