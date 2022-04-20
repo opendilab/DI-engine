@@ -162,12 +162,6 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
         league.judge_snapshot(player_id, force=True)
     init_main_player_rating = league.metric_env.create_rating(mu=0)
 
-    schedule_flag = cfg.policy.learn.scheduler.schedule_flag
-    if schedule_flag:
-        user_scheduler_config = cfg.policy.learn.scheduler
-        merged_scheduler_config = EasyDict(deep_merge_dicts(Scheduler.config, user_scheduler_config))
-        param_scheduler = Scheduler(merged_scheduler_config)
-
     count = 0
     while True:
         if evaluator1.should_eval(main_learner.train_iter):
@@ -241,12 +235,6 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
                 'result': [e['result'] for e in episode_info],
             }
             league.finish_job(job_finish_info)
-
-            if schedule_flag:
-                metrics = float(main_player.rating.exposure)
-                entropy_weight = learner.policy.get_attribute('entropy_weight')
-                entropy_weight = param_scheduler.step(metrics, entropy_weight)
-                learner.policy.set_attribute('entropy_weight', entropy_weight)
 
         if main_collector.envstep >= max_env_step or main_learner.train_iter >= max_train_iter:
             break

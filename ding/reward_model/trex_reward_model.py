@@ -3,7 +3,7 @@ from easydict import EasyDict
 import numpy as np
 import pickle
 from copy import deepcopy
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List, Dict
 
 import torch
 import torch.nn as nn
@@ -22,6 +22,7 @@ from ding.utils.data import offline_data_save_type
 from ding.utils import build_logger
 from dizoo.atari.envs.atari_wrappers import wrap_deepmind
 from dizoo.mujoco.envs.mujoco_wrappers import wrap_mujoco
+from ding.utils.data import default_collate
 
 from .base_reward_model import BaseRewardModel
 from .rnd_reward_model import collect_states
@@ -179,7 +180,6 @@ class TrexRewardModel(BaseRewardModel):
         self.opt = optim.Adam(self.reward_model.parameters(), config.reward_model.learning_rate)
         self.train_iter = 0
         self.learning_returns = []
-        self.learning_rewards = []
         self.training_obs = []
         self.training_labels = []
         self.num_trajs = self.cfg.reward_model.num_trajs
@@ -207,86 +207,81 @@ class TrexRewardModel(BaseRewardModel):
             self.pre_expert_data = pickle.load(f)
         with open(self.cfg.reward_model.data_path + '/learning_returns.pkl', 'rb') as f:
             self.learning_returns = pickle.load(f)
-        with open(self.cfg.reward_model.data_path + '/learning_rewards.pkl', 'rb') as f:
-            self.learning_reward = pickle.load(f)
-        with open(self.cfg.reward_model.data_path + '/checkpoints.pkl', 'rb') as f:
-            self.checkpoints = pickle.load(f)
-        self.training_obs, self.training_labels = self.create_training_data()
+
+        self.create_training_data()
         self._logger.info("num_training_obs: {}".format(len(self.training_obs)))
         self._logger.info("num_labels: {}".format(len(self.training_labels)))
 
     def create_training_data(self):
-        demonstrations = self.pre_expert_data
         num_trajs = self.num_trajs
         num_snippets = self.num_snippets
         min_snippet_length = self.min_snippet_length
         max_snippet_length = self.max_snippet_length
 
-        demo_lengths = [len(d) for d in demonstrations]
+        demo_lengths = []
+        for i in range(len(self.pre_expert_data)):
+            demo_lengths.append([len(d) for d in self.pre_expert_data[i]])
+
         self._logger.info("demo_lengths: {}".format(demo_lengths))
         max_snippet_length = min(np.min(demo_lengths), max_snippet_length)
         self._logger.info("min snippet length: {}".format(min_snippet_length))
         self._logger.info("max snippet length: {}".format(max_snippet_length))
 
-        self._logger.info(len(self.learning_returns))
-        self._logger.info(len(demonstrations))
-        self._logger.info("learning returns: {}".format([a[0] for a in zip(self.learning_returns, demonstrations)]))
-        demonstrations = [x for _, x in sorted(zip(self.learning_returns, demonstrations), key=lambda pair: pair[0])]
-        sorted_returns = sorted(self.learning_returns)
-        self._logger.info("sorted learning returns: {}".format(sorted_returns))
-
-        #collect training data
+        # collect training data
         max_traj_length = 0
-        num_demos = len(demonstrations)
-        assert num_demos >= 2
+        num_bins = len(self.pre_expert_data)
+        assert num_bins >= 2
 
-        #add full trajs (for use on Enduro)
+        # add full trajs (for use on Enduro)
         si = np.random.randint(6, size=num_trajs)
         sj = np.random.randint(6, size=num_trajs)
         step = np.random.randint(3, 7, size=num_trajs)
         for n in range(num_trajs):
-            #pick two random demonstrations
-            ti, tj = np.random.choice(num_demos, size=(2, ), replace=False)
-            #create random partial trajs by finding random start frame and random skip frame
-            traj_i = demonstrations[ti][si[n]::step[n]]  # slice(start,stop,step)
-            traj_j = demonstrations[tj][sj[n]::step[n]]
+            # pick two random demonstrations
+            bi, bj = np.random.choice(num_bins, size=(2, ), replace=False)
+            ti = np.random.choice(len(self.pre_expert_data[bi]))
+            tj = np.random.choice(len(self.pre_expert_data[bj]))
+            # create random partial trajs by finding random start frame and random skip frame
+            traj_i = self.pre_expert_data[bi][ti][si[n]::step[n]]  # slice(start,stop,step)
+            traj_j = self.pre_expert_data[bj][tj][sj[n]::step[n]]
 
-            label = int(ti <= tj)
+            label = int(bi <= bj)
 
             self.training_obs.append((traj_i, traj_j))
             self.training_labels.append(label)
             max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
 
-        #fixed size snippets with progress prior
+        # fixed size snippets with progress prior
         rand_length = np.random.randint(min_snippet_length, max_snippet_length, size=num_snippets)
         for n in range(num_snippets):
-            #pick two random demonstrations
-            ti, tj = np.random.choice(num_demos, size=(2, ), replace=False)
-            #create random snippets
-            #find min length of both demos to ensure we can pick a demo no earlier
-            #than that chosen in worse preferred demo
-            min_length = min(len(demonstrations[ti]), len(demonstrations[tj]))
-            if ti < tj:  # pick tj snippet to be later than ti
+            # pick two random demonstrations
+            bi, bj = np.random.choice(num_bins, size=(2, ), replace=False)
+            ti = np.random.choice(len(self.pre_expert_data[bi]))
+            tj = np.random.choice(len(self.pre_expert_data[bj]))
+            # create random snippets
+            # find min length of both demos to ensure we can pick a demo no earlier
+            # than that chosen in worse preferred demo
+            min_length = min(len(self.pre_expert_data[bi][ti]), len(self.pre_expert_data[bj][tj]))
+            if bi < bj:  # pick tj snippet to be later than ti
                 ti_start = np.random.randint(min_length - rand_length[n] + 1)
                 # print(ti_start, len(demonstrations[tj]))
-                tj_start = np.random.randint(ti_start, len(demonstrations[tj]) - rand_length[n] + 1)
+                tj_start = np.random.randint(ti_start, len(self.pre_expert_data[bj][tj]) - rand_length[n] + 1)
             else:  # ti is better so pick later snippet in ti
                 tj_start = np.random.randint(min_length - rand_length[n] + 1)
                 # print(tj_start, len(demonstrations[ti]))
-                ti_start = np.random.randint(tj_start, len(demonstrations[ti]) - rand_length[n] + 1)
-            # skip everyother FrameStackWrapper to reduce size
-            traj_i = demonstrations[ti][ti_start:ti_start + rand_length[n]:2]
-            traj_j = demonstrations[tj][tj_start:tj_start + rand_length[n]:2]
+                ti_start = np.random.randint(tj_start, len(self.pre_expert_data[bi][ti]) - rand_length[n] + 1)
+            # skip everyother framestack to reduce size
+            traj_i = self.pre_expert_data[bi][ti][ti_start:ti_start + rand_length[n]:2]
+            traj_j = self.pre_expert_data[bj][tj][tj_start:tj_start + rand_length[n]:2]
 
             max_traj_length = max(max_traj_length, len(traj_i), len(traj_j))
-            label = int(ti <= tj)
+            label = int(bi <= bj)
             self.training_obs.append((traj_i, traj_j))
             self.training_labels.append(label)
-
         self._logger.info(("maximum traj length: {}".format(max_traj_length)))
         return self.training_obs, self.training_labels
 
-    def train(self):
+    def _train(self):
         # check if gpu available
         device = self.device  # torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         # Assume that we are on a CUDA machine, then this should print a CUDA device:
@@ -330,21 +325,24 @@ class TrexRewardModel(BaseRewardModel):
                     torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
         torch.save(self.reward_model.state_dict(), self.cfg.reward_model.reward_model_path)
         self._logger.info("finished training")
+
+    def train(self):
+        self._train()
         # print out predicted cumulative returns and actual returns
-        sorted_returns = sorted(self.learning_returns)
+        sorted_returns = sorted(self.learning_returns, key=lambda s: s[0])
         demonstrations = [
-            x for _, x in sorted(zip(self.learning_returns, self.pre_expert_data), key=lambda pair: pair[0])
+            x for _, x in sorted(zip(self.learning_returns, self.pre_expert_data), key=lambda pair: pair[0][0])
         ]
         with torch.no_grad():
-            pred_returns = [self.predict_traj_return(self.reward_model, traj) for traj in demonstrations]
+            pred_returns = [self.predict_traj_return(self.reward_model, traj[0]) for traj in demonstrations]
         for i, p in enumerate(pred_returns):
-            self._logger.info("{} {} {}".format(i, p, sorted_returns[i]))
+            self._logger.info("{} {} {}".format(i, p, sorted_returns[i][0]))
         info = {
-            #"demo_length": [len(d) for d in self.pre_expert_data],
-            #"min_snippet_length": self.min_snippet_length,
-            #"max_snippet_length": min(np.min([len(d) for d in self.pre_expert_data]), self.max_snippet_length),
-            #"len_num_training_obs": len(self.training_obs),
-            #"lem_num_labels": len(self.training_labels),
+            "demo_length": [len(d[0]) for d in self.pre_expert_data],
+            "min_snippet_length": self.min_snippet_length,
+            "max_snippet_length": min(np.min([len(d[0]) for d in self.pre_expert_data]), self.max_snippet_length),
+            "len_num_training_obs": len(self.training_obs),
+            "lem_num_labels": len(self.training_labels),
             "accuracy": self.calc_accuracy(self.reward_model, self.training_obs, self.training_labels),
         }
         self._logger.info(
@@ -383,7 +381,13 @@ class TrexRewardModel(BaseRewardModel):
                     num_correct += 1.
         return num_correct / len(training_inputs)
 
-    def estimate(self, data: list) -> None:
+    def pred_data(self, data):
+        obs = [default_collate(data[i])['obs'] for i in range(len(data))]
+        res = [torch.sum(default_collate(data[i])['reward']).item() for i in range(len(data))]
+        pred_returns = [self.predict_traj_return(self.reward_model, obs[i]) for i in range(len(obs))]
+        return {'real': res, 'pred': pred_returns}
+
+    def estimate(self, data: list) -> List[Dict]:
         """
         Overview:
             Estimate reward by rewriting the reward key in each row of the data.
@@ -393,13 +397,19 @@ class TrexRewardModel(BaseRewardModel):
         Effects:
             - This is a side effect function which updates the reward values in place.
         """
-        res = collect_states(data)
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+
+        res = collect_states(train_data_augmented)
         res = torch.stack(res).to(self.device)
         with torch.no_grad():
             sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res, mode='batch')
 
-        for item, rew in zip(data, sum_rewards):  # TODO optimise this loop as well ?
+        for item, rew in zip(train_data_augmented, sum_rewards):  # TODO optimise this loop as well ?
             item['reward'] = rew
+
+        return train_data_augmented
 
     def collect_data(self, data: list) -> None:
         """

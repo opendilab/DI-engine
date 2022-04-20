@@ -4,8 +4,7 @@ import gym
 import copy
 import numpy as np
 from easydict import EasyDict
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
@@ -30,8 +29,11 @@ class CartPoleEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make('CartPole-v0')
             if self._replay_path is not None:
-                self._env = gym.wrappers.Monitor(
-                    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
                 )
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
@@ -63,7 +65,7 @@ class CartPoleEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:

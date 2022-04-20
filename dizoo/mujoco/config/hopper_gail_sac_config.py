@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 obs_shape = 11
 act_shape = 3
-hopper_sac_gail_config = dict(
+hopper_gail_sac_config = dict(
     exp_name='hopper_gail_sac_seed0',
     env=dict(
         env_id='Hopper-v3',
@@ -66,10 +66,10 @@ hopper_sac_gail_config = dict(
     ),
 )
 
-hopper_sac_gail_config = EasyDict(hopper_sac_gail_config)
-main_config = hopper_sac_gail_config
+hopper_gail_sac_config = EasyDict(hopper_gail_sac_config)
+main_config = hopper_gail_sac_config
 
-hopper_sac_gail_create_config = dict(
+hopper_gail_sac_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -82,8 +82,9 @@ hopper_sac_gail_create_config = dict(
     replay_buffer=dict(type='naive', ),
     reward_model=dict(type='gail'),
 )
-hopper_sac_gail_create_config = EasyDict(hopper_sac_gail_create_config)
-create_config = hopper_sac_gail_create_config
+hopper_gail_sac_create_config = EasyDict(hopper_gail_sac_create_config)
+create_config = hopper_gail_sac_create_config
+
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial_gail -c hopper_gail_sac_config.py -s 0`

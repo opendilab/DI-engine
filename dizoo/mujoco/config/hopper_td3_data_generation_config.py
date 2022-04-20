@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
-halfcheetah_td3_default_config = dict(
+hopper_td3_data_generation_config = dict(
+    exp_name='hopper_td3_data_generation_seed0',
     env=dict(
         env_id='Hopper-v3',
         norm_obs=dict(use_norm=False, ),
@@ -38,9 +39,12 @@ halfcheetah_td3_default_config = dict(
                 max=0.5,
             ),
             learner=dict(
-                load_path='./td3/ckpt/ckpt_best.pth.tar',
+                # Model path should lead to a model.
+                # Absolute path is recommended.
+                # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+                load_path='model_path_placeholder',
                 hook=dict(
-                    load_ckpt_before_run='./td3/ckpt/ckpt_best.pth.tar',
+                    load_ckpt_before_run='model_path_placeholder',
                     save_ckpt_after_run=False,
                 )
             ),
@@ -49,27 +53,30 @@ halfcheetah_td3_default_config = dict(
             n_sample=1,
             unroll_len=1,
             noise_sigma=0.1,
-            save_path='./td3/expert.pkl',
+            # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+            # Absolute path is recommended.
+            # In DI-engine, it is usually located in ``exp_name`` directory
+            save_path='data_path_placeholder',
             data_type='hdf5',
         ),
         other=dict(replay_buffer=dict(replay_buffer_size=1000000, ), ),
     )
 )
 
-halfcheetah_td3_default_config = EasyDict(halfcheetah_td3_default_config)
-main_config = halfcheetah_td3_default_config
+hopper_td3_data_generation_config = EasyDict(hopper_td3_data_generation_config)
+main_config = hopper_td3_data_generation_config
 
-halfcheetah_td3_default_create_config = dict(
+hopper_td3_data_generation_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='td3',
         import_names=['ding.policy.td3'],
     ),
     replay_buffer=dict(type='naive', ),
 )
-halfcheetah_td3_default_create_config = EasyDict(halfcheetah_td3_default_create_config)
-create_config = halfcheetah_td3_default_create_config
+hopper_td3_data_generation_create_config = EasyDict(hopper_td3_data_generation_create_config)
+create_config = hopper_td3_data_generation_create_config

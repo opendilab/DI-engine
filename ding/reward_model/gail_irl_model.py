@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import List, Dict, Any
 import pickle
 import random
 from collections.abc import Iterable
@@ -235,7 +235,7 @@ class GailRewardModel(BaseRewardModel):
             self.tb_logger.add_scalar('reward_model/gail_loss', loss, self.train_iter)
             self.train_iter += 1
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> List[Dict]:
         """
         Overview:
             Estimate reward by rewriting the reward key in each row of the data.
@@ -245,13 +245,18 @@ class GailRewardModel(BaseRewardModel):
         Effects:
             - This is a side effect function which updates the reward values in place.
         """
-        res = self.concat_state_action_pairs(data)
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+        res = self.concat_state_action_pairs(train_data_augmented)
         res = torch.stack(res).to(self.device)
         with torch.no_grad():
             reward = self.reward_model(res).squeeze(-1).cpu()
         reward = torch.chunk(reward, reward.shape[0], dim=0)
-        for item, rew in zip(data, reward):
+        for item, rew in zip(train_data_augmented, reward):
             item['reward'] = -torch.log(rew + 1e-8)
+
+        return train_data_augmented
 
     def collect_data(self, data: list) -> None:
         """
