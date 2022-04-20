@@ -8,7 +8,7 @@ import torch
 
 from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_ppo_offpolicy_config,\
      cartpole_trex_ppo_offpolicy_create_config
-from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config,\
+from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_ppo_offpolicy_config,\
      cartpole_ppo_offpolicy_create_config
 from ding.entry.application_entry_trex_collect_data import collect_episodic_demo_data_for_trex, trex_collecting_data
 from ding.entry import serial_pipeline

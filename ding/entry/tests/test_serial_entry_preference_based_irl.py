@@ -10,7 +10,7 @@ from ding.entry import serial_pipeline
 from ding.entry import serial_pipeline_preference_based_irl
 from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_ppo_offpolicy_config,\
      cartpole_trex_ppo_offpolicy_create_config
-from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config,\
+from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_ppo_offpolicy_config,\
      cartpole_ppo_offpolicy_create_config
 from dizoo.atari.config.serial.pong.pong_ppo_offpolicy_config import pong_ppo_config, \
     pong_ppo_create_config
