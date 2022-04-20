@@ -3,7 +3,7 @@ from easydict import EasyDict
 import numpy as np
 import pickle
 from copy import deepcopy
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List, Dict
 
 import torch
 import torch.nn as nn
@@ -387,7 +387,7 @@ class TrexRewardModel(BaseRewardModel):
         pred_returns = [self.predict_traj_return(self.reward_model, obs[i]) for i in range(len(obs))]
         return {'real': res, 'pred': pred_returns}
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> List[Dict]:
         """
         Overview:
             Estimate reward by rewriting the reward key in each row of the data.
@@ -397,13 +397,19 @@ class TrexRewardModel(BaseRewardModel):
         Effects:
             - This is a side effect function which updates the reward values in place.
         """
-        res = collect_states(data)
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+
+        res = collect_states(train_data_augmented)
         res = torch.stack(res).to(self.device)
         with torch.no_grad():
             sum_rewards, sum_abs_rewards = self.reward_model.cum_return(res, mode='batch')
 
-        for item, rew in zip(data, sum_rewards):  # TODO optimise this loop as well ?
+        for item, rew in zip(train_data_augmented, sum_rewards):  # TODO optimise this loop as well ?
             item['reward'] = rew
+
+        return train_data_augmented
 
     def collect_data(self, data: list) -> None:
         """

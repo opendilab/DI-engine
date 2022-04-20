@@ -6,8 +6,8 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
-    create_serial_collector
+from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
+from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.reward_model import create_reward_model
@@ -15,7 +15,7 @@ from ding.utils import set_pkg_seed
 from .utils import random_collect
 
 
-def serial_pipeline_reward_model(
+def serial_pipeline_ngu(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -61,6 +61,7 @@ def serial_pipeline_reward_model(
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
+    cfg.policy.collect.collector['type'] = 'sample_ngu'
     collector = create_serial_collector(
         cfg.policy.collect.collector,
         env=collector_env,
@@ -68,15 +69,17 @@ def serial_pipeline_reward_model(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = InteractionSerialEvaluator(
+    evaluator = BaseSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
-    reward_model = create_reward_model(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
-
+    rnd_reward_model = create_reward_model(cfg.rnd_reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
+    episodic_reward_model = create_reward_model(
+        cfg.episodic_reward_model, policy.collect_mode.get_attribute('device'), tb_logger
+    )
     # ==========
     # Main loop
     # ==========
@@ -86,6 +89,9 @@ def serial_pipeline_reward_model(
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
+
+    estimate_cnt = 0
+    count = 0
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
@@ -93,16 +99,28 @@ def serial_pipeline_reward_model(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
-        while new_data_count < target_new_data_count:
+        # Collect data by default config n_sample/n_episode
+        if hasattr(cfg.policy.collect, "each_iter_n_sample"):
+            new_data = collector.collect(
+                n_sample=cfg.policy.collect.each_iter_n_sample,
+                train_iter=learner.train_iter,
+                policy_kwargs=collect_kwargs
+            )
+        else:
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-            new_data_count += len(new_data)
-            # collect data for reward_model training
-            reward_model.collect_data(new_data)
-            replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+
+        # collect data for reward_model training
+        rnd_reward_model.collect_data(new_data)
+        episodic_reward_model.collect_data(new_data)
+        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
         # update reward_model
-        reward_model.train()
-        reward_model.clear_data()
+        rnd_reward_model.train()
+        if (count + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+            rnd_reward_model.clear_data()
+        episodic_reward_model.train()
+        if (count + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
+            episodic_reward_model.clear_data()
+
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
@@ -114,13 +132,26 @@ def serial_pipeline_reward_model(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # update train_data reward
-            reward_model.estimate(train_data)
-            learner.train(train_data, collector.envstep)
+            # calculate the inter-episodic and episodic intrinsic reward
+            rnd_reward = rnd_reward_model.estimate(train_data)
+            episodic_reward = episodic_reward_model.estimate(train_data)
+
+            # update train_data reward using the augmented reward
+            train_data_augmented, estimate_cnt = episodic_reward_model.fusion_reward(
+                train_data,
+                rnd_reward,
+                episodic_reward,
+                nstep=cfg.policy.nstep,
+                collector_env_num=cfg.policy.collect.env_num,
+                tb_logger=tb_logger,
+                estimate_cnt=estimate_cnt
+            )
+            learner.train(train_data_augmented, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
+        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

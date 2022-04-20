@@ -1,5 +1,5 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_reward_model
+from ding.entry import serial_pipeline_reward_model_offpolicy
 
 cartpole_ppo_icm_config = dict(
     exp_name='cartpole_ppo_icm',
@@ -60,4 +60,4 @@ cartpole_ppo_icm_create_config = EasyDict(cartpole_ppo_icm_create_config)
 create_config = cartpole_ppo_icm_create_config
 
 if __name__ == '__main__':
-    serial_pipeline_reward_model([main_config, create_config], seed=0)
+    serial_pipeline_reward_model_offpolicy([main_config, create_config], seed=0)

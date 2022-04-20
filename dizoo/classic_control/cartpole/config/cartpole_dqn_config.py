@@ -7,10 +7,11 @@ cartpole_dqn_config = dict(
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=195,
-        replay_path='cartpole_dqn/video',
+        replay_path='cartpole_dqn_seed0/video',
     ),
     policy=dict(
         cuda=False,
+        load_path='cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar',  # necessary for eval
         model=dict(
             obs_shape=4,
             action_shape=2,

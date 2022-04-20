@@ -1,4 +1,3 @@
-import copy
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
@@ -10,12 +9,13 @@ from ding.envs import get_vec_env_setting, create_env_manager
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
     create_serial_collector
 from ding.config import read_config, compile_config
-from ding.policy import create_policy, PolicyFactory
+from ding.policy import create_policy
 from ding.reward_model import create_reward_model
 from ding.utils import set_pkg_seed
+from .utils import random_collect
 
 
-def serial_pipeline_reward_model_preference_based_irl(
+def serial_pipeline_reward_model_offpolicy(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
@@ -25,7 +25,7 @@ def serial_pipeline_reward_model_preference_based_irl(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        serial_pipeline_reward_model_reward_model_preference_based_irl.
+        Serial pipeline entry for off-policy RL with reward model.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -34,8 +34,8 @@ def serial_pipeline_reward_model_preference_based_irl(
         - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
             ``BaseEnv`` subclass, collector env config, and evaluator env config.
         - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
-        - max_iterations (:obj:`Optional[torch.nn.Module]`): Learner's max iteration. Pipeline will stop \
-            when reaching this iteration.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
     Returns:
         - policy (:obj:`Policy`): Converged policy.
     """
@@ -44,10 +44,8 @@ def serial_pipeline_reward_model_preference_based_irl(
     else:
         cfg, create_cfg = input_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
-    create_cfg.reward_model = dict(type=cfg.reward_model.type)
     env_fn = None if env_setting is None else env_setting[0]
     cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
-    cfg_bak = copy.deepcopy(cfg)
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -77,9 +75,8 @@ def serial_pipeline_reward_model_preference_based_irl(
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, replay_buffer, policy.command_mode
     )
+    reward_model = create_reward_model(cfg.reward_model, policy.collect_mode.get_attribute('device'), tb_logger)
 
-    reward_model = create_reward_model(cfg_bak, policy.collect_mode.get_attribute('device'), tb_logger)
-    reward_model.train()
     # ==========
     # Main loop
     # ==========
@@ -88,16 +85,7 @@ def serial_pipeline_reward_model_preference_based_irl(
 
     # Accumulate plenty of data at the beginning of training.
     if cfg.policy.get('random_collect_size', 0) > 0:
-        if cfg.policy.get('transition_with_policy_data', False):
-            collector.reset_policy(policy.collect_mode)
-        else:
-            action_space = collector_env.env_info().act_space
-            random_policy = PolicyFactory.get_random_policy(policy.collect_mode, action_space=action_space)
-            collector.reset_policy(random_policy)
-        collect_kwargs = commander.step()
-        new_data = collector.collect(n_sample=cfg.policy.random_collect_size, policy_kwargs=collect_kwargs)
-        replay_buffer.push(new_data, cur_collector_envstep=0)
-        collector.reset_policy(policy.collect_mode)
+        random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
     while True:
         collect_kwargs = commander.step()
         # Evaluate policy performance
@@ -105,16 +93,16 @@ def serial_pipeline_reward_model_preference_based_irl(
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-        # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
-            new_data = collector.collect(
-                n_sample=cfg.policy.collect.each_iter_n_sample,
-                train_iter=learner.train_iter,
-                policy_kwargs=collect_kwargs
-            )
-        else:
+        new_data_count, target_new_data_count = 0, cfg.reward_model.get('target_new_data_count', 1)
+        while new_data_count < target_new_data_count:
             new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
-        replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+            new_data_count += len(new_data)
+            # collect data for reward_model training
+            reward_model.collect_data(new_data)
+            replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+        # update reward_model
+        reward_model.train()
+        reward_model.clear_data()
         # Learn policy from collected data
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
@@ -126,9 +114,9 @@ def serial_pipeline_reward_model_preference_based_irl(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # update train_data reward
-            reward_model.estimate(train_data)
-            learner.train(train_data, collector.envstep)
+            # update train_data reward using the augmented reward
+            train_data_augmented = reward_model.estimate(train_data)
+            learner.train(train_data_augmented, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
