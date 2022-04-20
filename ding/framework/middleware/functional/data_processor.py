@@ -8,15 +8,22 @@ from ding.data.buffer.middleware import PriorityExperienceReplay
 from ding.framework import task
 
 if TYPE_CHECKING:
-    from ding.framework import Context
+    from ding.framework import Context, OnlineRLContext, OfflineRLContext
 
 
 def data_pusher(cfg: EasyDict, buffer_: Buffer):
 
-    def _push(ctx: "Context"):
-        for t in ctx.trajectories:
-            buffer_.push(t)
-        ctx.trajectories = None
+    def _push(ctx: "OnlineRLContext"):
+        if ctx.trajectories is not None:
+            for t in ctx.trajectories:
+                buffer_.push(t)
+            ctx.trajectories = None
+        elif ctx.episodes is not None:
+            for t in ctx.episodes:
+                buffer_.push(t)
+            ctx.episodes = None
+        else:
+            raise RuntimeError("Either ctx.trajectories or ctx.episodes should be not None.")
 
     return _push
 
@@ -25,7 +32,7 @@ def offpolicy_data_fetcher(
         cfg: EasyDict, buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]
 ) -> Callable:
 
-    def _fetch(ctx: "Context"):
+    def _fetch(ctx: "OnlineRLContext"):
         try:
             if isinstance(buffer_, Buffer):
                 buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
@@ -71,23 +78,11 @@ def offpolicy_data_fetcher(
     return _fetch
 
 
-# TODO move ppo training for loop to new middleware
-def onpolicy_data_fetcher(cfg: EasyDict, buffer_: Buffer) -> Callable:
-
-    def _fetch(ctx: "Context"):
-        ctx.train_data = ctx.trajectories
-        ctx.train_data.traj_flag = torch.zeros(len(ctx.train_data))
-        ctx.train_data.traj_flag[ctx.trajectory_end_idx] = 1
-        yield
-
-    return _fetch
-
-
 def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
     # collate_fn is executed in policy now
     dataloader = DataLoader(dataset, batch_size=cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
 
-    def _fetch(ctx: "Context"):
+    def _fetch(ctx: "OfflineRLContext"):
         while True:
             for i, data in enumerate(dataloader):
                 ctx.train_data = data
@@ -100,7 +95,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
 
 def offline_data_saver(cfg: EasyDict, data_path: str, data_type: str = 'hdf5') -> Callable:
 
-    def _save(ctx: "Context"):
+    def _save(ctx: "OnlineRLContext"):
         data = ctx.trajectories
         offline_data_save_type(data, data_path, data_type)
         ctx.trajectories = None
