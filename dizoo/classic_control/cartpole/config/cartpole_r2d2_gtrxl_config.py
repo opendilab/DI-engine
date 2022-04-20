@@ -19,10 +19,10 @@ cartpole_r2d2_gtrxl_config = dict(
             action_shape=2,
             memory_len=5,  # length of transformer memory (can be 0)
             hidden_size=256,
-            gru_bias=1.,
+            gru_bias=2.,
             att_layer_num=3,
             dropout=0.,
-            att_head_num=2,
+            att_head_num=8,
         ),
         discount_factor=0.99,
         nstep=3,
