@@ -1424,3 +1424,7 @@ default*
 events.*
 
 cartpole_fqf/
+cartpole_fqf_seed0/
+cartpole_dqn/
+cartpole_dqn_seed0/
+default_experiment/

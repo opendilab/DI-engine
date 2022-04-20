@@ -1092,6 +1092,7 @@ def fqf_nstep_td_error(
     # shape: batch_size x num_tau_prime_samples x num_tau_samples x 1.
     quantiles_hats = quantiles_hats[:, None, :, None].repeat([1, tau_prime, 1, 1])
 
+    abcd=torch.abs(quantiles_hats - ((bellman_errors < 0).float()).detach())
     # shape: batch_size x tau_prime x tau x 1.
     quantile_huber_loss = (torch.abs(quantiles_hats - ((bellman_errors < 0).float()).detach()) * huber_loss) / kappa
 

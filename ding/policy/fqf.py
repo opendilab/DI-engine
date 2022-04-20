@@ -21,7 +21,7 @@ class FQFPolicy(DQNPolicy):
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
         == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      qrdqn          | RL policy register name, refer to      | this arg is optional,
+        1  ``type``             str      fqf          | RL policy register name, refer to      | this arg is optional,
                                                         | registry ``POLICY_REGISTRY``           | a placeholder
         2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
                                                                                                  | erent from modes
@@ -107,8 +107,10 @@ class FQFPolicy(DQNPolicy):
         """
         self._priority = self._cfg.priority
         # Optimizer
-        self._w2_optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._w1_optimizer = Adam(self._model.parameters(), lr=self._cfg.learn.learning_rate)
+        self._w1_optimizer = Adam(self._model.head.quantiles_proposal.parameters(), lr=self._cfg.learn.learning_rate)
+        self._w2_optimizer = Adam(list(self._model.head.Q.parameters())
+                                + list(self._model.head.fqf_fc.parameters())
+                                + list(self._model.encoder.parameters()), lr=self._cfg.learn.learning_rate)
 
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
@@ -178,7 +180,7 @@ class FQFPolicy(DQNPolicy):
         # fraction_proposal network update
         # ====================
         self._w1_optimizer.zero_grad()
-        w1_loss.backward()
+        w1_loss.backward(retain_graph=True)
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
         self._w1_optimizer.step()
@@ -197,7 +199,6 @@ class FQFPolicy(DQNPolicy):
         # =============
         self._target_model.update(self._learn_model.state_dict())
         return {
-            #'cur_lr': self._optimizer.defaults['lr'],
             'cur_lr_w1': self._w1_optimizer.defaults['lr'],
             'cur_lr_w2': self._w2_optimizer.defaults['lr'],
             'w1_loss': w1_loss.item(),
@@ -211,7 +212,6 @@ class FQFPolicy(DQNPolicy):
         return {
             'model': self._learn_model.state_dict(),
             'target_model': self._target_model.state_dict(),
-            #'optimizer': self._optimizer.state_dict(),
             'optimizer_w1': self._w1_optimizer.state_dict(),
             'optimizer_w2': self._w2_optimizer.state_dict(),
         }

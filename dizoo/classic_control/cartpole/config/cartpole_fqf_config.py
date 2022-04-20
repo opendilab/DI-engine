@@ -1,6 +1,7 @@
 from easydict import EasyDict
 
 cartpole_fqf_config = dict(
+    exp_name='cartpole_fqf_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -48,7 +49,7 @@ cartpole_fqf_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='iqn'),
+    policy=dict(type='fqf'),
 )
 cartpole_fqf_create_config = EasyDict(cartpole_fqf_create_config)
 create_config = cartpole_fqf_create_config
