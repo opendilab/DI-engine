@@ -25,10 +25,11 @@ def plot(data: list, xlabel: str, ylabel: str, title: str, pth: str = './picture
     for nowdata in data:
         step, value, label = nowdata['x'], nowdata['y'], nowdata['label']
         sns.lineplot(x=step, y=value, label=label)
+    plt.legend(loc='upper left', prop={'size': 8})
     plt.xlabel(xlabel, fontsize=15)
     plt.ylabel(ylabel, fontsize=15)
     plt.title(title)
-    plt.savefig(pth)
+    plt.savefig(pth, bbox_inches='tight')
 
 
 def plotter(
@@ -43,12 +44,11 @@ def plotter(
     plot_together_title: str = None
 ):
     '''
-    root: the location of file containing all algorithms. Each is a file containing\
-         five seeds of event file generated from tensorboard
-    titles: the titles to be plotted in each diagram
+    root: the location of the folder containing all algorithms data. Each is a folder containing a few seeds of event file generated from TensorBoard
+    titles: the titles to be plotted in each diagram; This has no effect in plot_together mode
     labels: the labels for each algorithm
-    x_axes: the x-axis for each diagram
-    y_axes: the y-axis for each diagram
+    x_axes: the x-axis for each diagram; This has no effect in plot_together mode
+    y_axes: the y-axis for each diagram; This has no effect in plot_together mode
     plot_together: whether to plot together or not
     plot_together_x_axis: if plot_together, indicates the x axis for the plot
     plot_together_y_axis: if plot_together, indicates the y axis for the plot
@@ -61,7 +61,8 @@ def plotter(
     data_holder = []  # for plotting together only
     foot_root = root  # for plotting together only
     for root, dirs, _ in os.walk(root):
-
+        if len(dirs)>1:
+            dirs.sort()
         for d in dirs:
 
             title = titles[count_file]
@@ -77,11 +78,15 @@ def plotter(
             for exp_root, _, exp_files in os.walk(exp_path):
                 reward_seeds = []
                 for exp_i, exp_file in enumerate(exp_files):  # ToDo: offline
-                    print(exp_i)
-                    ea = event_accumulator.EventAccumulator(os.path.join(exp_root, exp_file))
-                    ea.Reload()
-                    rewards = ea.scalars.Items('evaluator_step/reward_mean')
-                    reward_seeds.append(rewards)
+                    if ('.csv' in exp_file or '.png' in exp_file):
+                        continue
+                    try:
+                        ea = event_accumulator.EventAccumulator(os.path.join(exp_root, exp_file))
+                        ea.Reload()
+                        rewards = ea.scalars.Items('evaluator_step/reward_mean')
+                        reward_seeds.append(rewards)
+                    except:
+                        raise Exception("{0} should not be in the directory: {1}".format(exp_file, exp_path))
                 dummy = [len(i) for i in reward_seeds]
                 max_steps = max([len(i) for i in reward_seeds])
                 index = dummy.index(max([len(i) for i in reward_seeds]))
@@ -105,7 +110,7 @@ def plotter(
                 value.extend(results[i])
             if not plot_together:
                 figure_lineplot = sns.lineplot(x=steps, y=value, label=label, color='#ad1457')
-                sns.set(style="darkgrid", font_scale=1.5)
+                #sns.set(style="darkgrid", font_scale=1.5)
                 plt.title(title)
                 plt.legend(loc='upper left', prop={'size': 8})
                 plt.xlabel(x_axis, fontsize=15)
