@@ -97,6 +97,6 @@ create_config = cartpole_ngu_create_config
 
 if __name__ == "__main__":
     # TODO: confirm which mode to be used in CLI
-    from ding.entry import serial_pipeline_reward_model_ngu
+    from ding.entry import serial_pipeline_ngu
 
-    serial_pipeline_reward_model_ngu((main_config, create_config), seed=0)
+    serial_pipeline_ngu([main_config, create_config], seed=0)

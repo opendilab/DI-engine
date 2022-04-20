@@ -20,6 +20,8 @@ def wrapped_cartpole_env():
         gym.make('CartPole-v0'),
         EasyDict(env_wrapper='default'),
     )
+    # from dizoo.classic_control.cartpole.envs.cartpole_env import CartPoleEnv
+    # return CartPoleEnv({})
 
 
 def main(cfg, seed=0):

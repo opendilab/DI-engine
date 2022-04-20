@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, List, Dict
 from easydict import EasyDict
 
 import random
@@ -197,8 +197,11 @@ class ICMRewardModel(BaseRewardModel):
             self._train()
         self.clear_data()
 
-    def estimate(self, data: list) -> None:
-        states, next_states, actions = collect_states(data)
+    def estimate(self, data: list) -> List[Dict]:
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+        states, next_states, actions = collect_states(train_data_augmented)
         states = torch.stack(states).to(self.device)
         next_states = torch.stack(next_states).to(self.device)
         actions = torch.cat(actions).to(self.device)
@@ -206,15 +209,17 @@ class ICMRewardModel(BaseRewardModel):
             real_next_state_feature, pred_next_state_feature, _ = self.reward_model(states, next_states, actions)
             reward = self.forward_mse(real_next_state_feature, pred_next_state_feature).mean(dim=1)
             reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-8)
-            reward = reward.to(data[0]['reward'].device)
+            reward = reward.to(train_data_augmented[0]['reward'].device)
             reward = torch.chunk(reward, reward.shape[0], dim=0)
-        for item, rew in zip(data, reward):
+        for item, rew in zip(train_data_augmented, reward):
             if self.intrinsic_reward_type == 'add':
                 item['reward'] += rew
             elif self.intrinsic_reward_type == 'new':
                 item['intrinsic_reward'] = rew
             elif self.intrinsic_reward_type == 'assign':
                 item['reward'] = rew
+
+        return train_data_augmented
 
     def collect_data(self, data: list) -> None:
         self.train_data.extend(collect_states(data))

@@ -10,7 +10,7 @@ from ding.policy import PPOOffPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed, deep_merge_dicts
 from ding.reward_model import RndRewardModel
-from dizoo.classic_control.cartpole.config.cartpole_ppo_rnd_config import cartpole_ppo_rnd_config
+from dizoo.classic_control.cartpole.config.cartpole_rnd_onppo_config import cartpole_ppo_rnd_config
 
 
 def wrapped_cartpole_env():
