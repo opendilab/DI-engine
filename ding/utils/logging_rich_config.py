@@ -39,7 +39,7 @@ def enable_rich_handler(level: int = logging.INFO) -> None:
                 pass
 
     # get_terminal_size can report 0, 0 if run from pseudo-terminal
-    width = width or 285
+    width = width or 170
 
     root = logging.getLogger()
     other_handlers = []
