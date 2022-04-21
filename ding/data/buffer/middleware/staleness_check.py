@@ -1,7 +1,9 @@
-from typing import Callable, Any, List
+from typing import Callable, Any, List, TYPE_CHECKING
+if TYPE_CHECKING:
+    from ding.data.buffer.buffer import Buffer
 
 
-def staleness_check(buffer_: 'Buffer', max_staleness: int = float("inf")) -> Callable:  # noqa
+def staleness_check(buffer_: 'Buffer', max_staleness: int = float("inf")) -> Callable:
     """
     Overview:
         This middleware aims to check staleness before each sample operation,

@@ -101,3 +101,17 @@ def offline_data_saver(cfg: EasyDict, data_path: str, data_type: str = 'hdf5') -
         ctx.trajectories = None
 
     return _save
+
+
+def sqil_data_pusher(cfg: EasyDict, buffer_: Buffer, expert: bool) -> Callable:
+
+    def _pusher(ctx: "OnlineRLContext"):
+        for t in ctx.trajectories:
+            if expert:
+                t.reward = torch.ones_like(t.reward)
+            else:
+                t.reward = torch.zeros_like(t.reward)
+            buffer_.push(t)
+        ctx.trajectories = None
+
+    return _pusher

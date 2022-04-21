@@ -14,7 +14,7 @@ from ding.torch_utils import tensor_to_list
 from ding.utils import lists_to_dicts
 
 if TYPE_CHECKING:
-    from ding.framework import Context
+    from ding.framework import OnlineRLContext
 
 
 class IMetric(ABC):
@@ -148,7 +148,7 @@ class VectorEvalMonitor(object):
 def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     env.seed(cfg.seed, dynamic_seed=False)
 
-    def _evaluate(ctx: "Context"):
+    def _evaluate(ctx: "OnlineRLContext"):
         # evaluation will be executed if the task begins or enough train_iter after last evaluation
         if ctx.last_eval_iter != -1 and \
            (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):

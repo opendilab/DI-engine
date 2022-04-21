@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 from easydict import EasyDict
 import os
 import numpy as np
@@ -8,7 +8,7 @@ from ding.policy import Policy
 from ding.framework import task
 
 if TYPE_CHECKING:
-    from ding.framework import Context
+    from ding.framework import OnlineRLContext, OfflineRLContext
 
 
 class CkptSaver:
@@ -22,7 +22,7 @@ class CkptSaver:
         self.last_save_iter = 0
         self.max_eval_value = -np.inf
 
-    def __call__(self, ctx: "Context") -> None:
+    def __call__(self, ctx: Union["OnlineRLContext", "OfflineRLContext"]) -> None:
         # train enough iteration
         if self.train_freq and ctx.train_iter - self.last_save_iter >= self.train_freq:
             save_file(
