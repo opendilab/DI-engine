@@ -10,7 +10,6 @@ cartpole_discrete_cql_config = dict(
     ),
     policy=dict(
         cuda=False,
-        priority=True,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -29,18 +28,10 @@ cartpole_discrete_cql_config = dict(
         ),
         collect=dict(
             data_type='hdf5',
-            data_path='./cartpole_generation/expert_demos.hdf5',
-            unroll_len=1,
+            # offline data path
+            data_path='./cartpole_qrdqn_generation_data_seed0/expert_demos.hdf5',
         ),
         eval=dict(evaluator=dict(eval_freq=100, )),
-        other=dict(
-            eps=dict(
-                type='exp',
-                start=0.95,
-                end=0.1,
-                decay=10000,
-            ), replay_buffer=dict(replay_buffer_size=20000, )
-        ),
     ),
 )
 cartpole_discrete_cql_config = EasyDict(cartpole_discrete_cql_config)

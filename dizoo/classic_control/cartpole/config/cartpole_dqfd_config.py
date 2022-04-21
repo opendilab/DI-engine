@@ -22,16 +22,21 @@ cartpole_dqfd_config = dict(
         learn=dict(
             batch_size=64,
             learning_rate=0.001,
-            lambda1=1,
-            lambda2=3.0,
+            lambda1=1,  # n-step return
+            lambda2=3.0,  # supervised loss
             # set this to be 0 (L2 loss = 0) with expert_replay_buffer_size = 0 and lambda1 = 0
             # recover the one step pdd dqn
-            lambda3=0,
+            lambda3=0,  # L2 regularization
             per_train_iter_k=10,
             expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
         ),
-        # Users should add their own path here (path should lead to a well-trained model)
-        collect=dict(n_sample=8, demonstration_info_path='path'),
+        collect=dict(
+            n_sample=8,
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
+        ),
         # note: this is the times after which you learns to evaluate
         eval=dict(evaluator=dict(eval_freq=50, )),
         other=dict(

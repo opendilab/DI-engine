@@ -460,12 +460,10 @@ def test_discrete_cql():
     # collect expert data
     import torch
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
-    collect_count = 1000
-    expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load('./cql_cartpole/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
-            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+            config, seed=0, collect_count=1000, state_dict=state_dict
         )
     except Exception as e:
         assert False, "pipeline fail"
@@ -497,12 +495,10 @@ def test_td3_bc():
     # collect expert data
     import torch
     config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
-    collect_count = 1000
-    expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load('./td3/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
-            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
+            config, seed=0, collect_count=1000, state_dict=state_dict
         )
     except Exception:
         assert False, "pipeline fail"

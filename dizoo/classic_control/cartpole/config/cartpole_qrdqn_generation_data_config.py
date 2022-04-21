@@ -10,7 +10,6 @@ cartpole_qrdqn_generation_data_config = dict(
     ),
     policy=dict(
         cuda=False,
-        priority=True,
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -19,35 +18,18 @@ cartpole_qrdqn_generation_data_config = dict(
         ),
         discount_factor=0.97,
         nstep=3,
-        learn=dict(
-            update_per_collect=3,
-            batch_size=64,
-            learning_rate=0.001,
-            target_update_freq=100,
-            kappa=1.0,
-            learner=dict(
-                load_path='./cartpole/ckpt/ckpt_best.pth.tar',
-                hook=dict(
-                    load_ckpt_before_run='./cartpole/ckpt/ckpt_best.pth.tar',
-                    save_ckpt_after_run=False,
-                ),
-            ),
-        ),
         collect=dict(
-            n_sample=80,
-            unroll_len=1,
+            collect_count=1000,
             data_type='hdf5',
-            save_path='./cartpole_generation/expert.pkl',
+            # pretrained RL model path, user can modify it as its own path
+            model_path='./cartpole_qrdqn_seed0/ckpt/ckpt_best.pth.tar',
+            # this prefix should be the same as exp_name
+            save_path='./cartpole_qrdqn_generation_data_seed0/expert.pkl',
         ),
         other=dict(
             eps=dict(
-                type='exp',
-                start=0.95,
-                end=0.1,
-                decay=10000,
                 collect=0.2,
             ),
-            replay_buffer=dict(replay_buffer_size=100000, )
         ),
     ),
 )
@@ -65,6 +47,6 @@ cartpole_qrdqn_generation_data_create_config = EasyDict(cartpole_qrdqn_generatio
 create_config = cartpole_qrdqn_generation_data_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_qrdqn_generation_data_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    from ding.entry import collect_demo_data
+    cfg = main_config.policy.collect
+    collect_demo_data((main_config, create_config), seed=0, collect_count=cfg.collect_count, state_dict_path=cfg.model_path)

@@ -50,6 +50,7 @@ cartpole_ppo_rnd_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
+        eval=dict(evaluator=dict(eval_freq=100))
     ),
 )
 cartpole_ppo_rnd_config = EasyDict(cartpole_ppo_rnd_config)
@@ -67,6 +68,8 @@ cartpole_ppo_rnd_create_config = EasyDict(cartpole_ppo_rnd_create_config)
 create_config = cartpole_ppo_rnd_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c cartpole_rnd_onppo_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    from ding.entry import serial_pipeline_reward_model_onpolicy
+    serial_pipeline_reward_model_onpolicy((main_config, create_config), seed=0)
+    # you can use the following pipeline to execute pure PPO
+    # from ding.entry import serial_pipeline_onpolicy
+    # serial_pipeline_onpolicy((main_config, create_config), seed=0)

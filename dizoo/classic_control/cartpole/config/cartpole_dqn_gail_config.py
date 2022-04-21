@@ -15,13 +15,15 @@ cartpole_dqn_gail_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='cartpole_dqn/expert_data_train.pkl',
-        expert_load_path='cartpole_dqn/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
-        load_path='cartpole_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',  # state_dict of the reward model
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        # If collect_data is True, we will use this expert_model_path to collect expert data first, rather than we
+        # will load data directly from user-defined data_path
+        expert_model_path='model_path_placeholder',
         collect_count=1000,
     ),
     policy=dict(
-        load_path='cartpole_dqn_gail/ckpt/ckpt_best.pth.tar',  # state_dict of the policy
         cuda=False,
         model=dict(
             obs_shape=4,
