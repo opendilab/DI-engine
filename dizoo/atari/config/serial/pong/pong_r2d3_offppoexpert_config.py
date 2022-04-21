@@ -1,15 +1,14 @@
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_r2d3
 import os
 module_path = os.path.dirname(__file__)
 
-collector_env_num = 8
-evaluator_env_num = 5
+collector_env_num = 4
+evaluator_env_num = 4
 expert_replay_buffer_size = int(5e3)  # TODO(pu)
 """agent config"""
 pong_r2d3_config = dict(
-    exp_name='pong_r2d3_offppoexpert_k0_pho1-4_rbs2e4_ds5e3',
+    exp_name='pong_r2d3_offppoexpert_k0_pho1-4_rbs2e4_ds5e3_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, reset_inplace=True),
@@ -90,14 +89,14 @@ pong_r2d3_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d3'),
 )
 pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
 create_config = pong_r2d3_create_config
 """export config"""
 expert_pong_r2d3_config = dict(
-    exp_name='expert_pong_r2d3_ppoexpert_k0_pho1-4_rbs2e4_ds5e3',
+    exp_name='expert_pong_r2d3_ppoexpert_k0_pho1-4_rbs2e4_ds5e3_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
         manager=dict(shared_memory=True, reset_inplace=True),
@@ -131,8 +130,10 @@ expert_pong_r2d3_config = dict(
             each_iter_n_sample=32,
             # Users should add their own path here (path should lead to a well-trained model)
             # demonstration_info_path='dizoo/atari/config/serial/pong/demo_path/ppo-off_iteration_16127.pth.tar',
-            demonstration_info_path=module_path + '/demo_path/ppo-off_iteration_16127.pth.tar',
-            # demonstration_info_path=module_path + '/demo_path/ppo-off_ckpt_best.pth.tar',
+            demonstration_info_path=module_path + 'demonstration_info_path_placeholder',
+            # Users should add their own  path here. 
+            # Absolute path is recommended.
+            # demonstration_info_path=module_path + 'demonstration_info_path_placeholder',
             # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
             unroll_len=42,  # TODO(pu) should equals self._unroll_len_add_burnin_step in r2d2 policy
             env_num=collector_env_num,
@@ -156,11 +157,13 @@ expert_pong_r2d3_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy_collect_traj'),
 )
 expert_pong_r2d3_create_config = EasyDict(expert_pong_r2d3_create_config)
 expert_create_config = expert_pong_r2d3_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c pong_r2d3_ofppoexpert_config.py -s 0`
+    from ding.entry import serial_pipeline_r2d3
     serial_pipeline_r2d3([main_config, create_config], [expert_main_config, expert_create_config], seed=0)

@@ -1,15 +1,14 @@
 from easydict import EasyDict
 
 pong_dqn_gail_config = dict(
-    exp_name='pong_dqn_gail',
+    exp_name='pong_dqn_gail_seed0',
     env=dict(
-        collector_env_num=8,
-        evaluator_env_num=8,
+        collector_env_num=4,
+        evaluator_env_num=4,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     reward_model=dict(
         type='gail',
@@ -19,12 +18,18 @@ pong_dqn_gail_config = dict(
         learning_rate=1e-3,
         update_per_collect=100,
         expert_data_path='pong_dqn/expert_data_train.pkl',
-        load_path='pong_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',  # state_dict of the reward model
+        # Users should add their own expert data path here. 
+        # Absolute path is recommended.
+        load_path='pong_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar', 
+        # Users should add their own load path here.(state_dict of the reward model)
+        # Absolute path is recommended.
         collect_count=1000,
         action_size=6
     ),
     policy=dict(
         load_path='pong_dqn_gail/ckpt/ckpt_best.pth.tar',
+        # Users should add their own load path here.
+        # Absolute path is recommended.
         cuda=True,
         priority=False,
         model=dict(
@@ -65,3 +70,8 @@ pong_dqn_gail_create_config = dict(
 )
 pong_dqn_gail_create_config = EasyDict(pong_dqn_gail_create_config)
 create_config = pong_dqn_gail_create_config
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pong_dqn_gail_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

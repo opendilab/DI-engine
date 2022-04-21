@@ -1,16 +1,14 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_ppg_config = dict(
     env=dict(
-        collector_env_num=8,
+        exp_name='pong_ppg_seed0',
+        collector_env_num=4,
         evaluator_env_num=4,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -71,3 +69,9 @@ pong_ppg_create_config = dict(
 )
 create_config = EasyDict(pong_ppg_create_config)
 # PPG needs to use specific entry, like `cartpole_ppg_main.py`
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pong_ppg_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)
+

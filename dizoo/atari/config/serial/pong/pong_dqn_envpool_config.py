@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 pong_dqn_envpool_config = dict(
-    exp_name='pong_dqn_envpool',
+    exp_name='pong_dqn_envpool_seed0',
     env=dict(
         collector_env_num=8,
         collector_batch_size=8,
@@ -11,7 +11,6 @@ pong_dqn_envpool_config = dict(
         stop_value=20,
         env_id='Pong-v5',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -51,14 +50,12 @@ pong_dqn_envpool_create_config = dict(
     ),
     env_manager=dict(type='env_pool'),
     policy=dict(type='dqn'),
-    # replay_buffer=dict(type='deque'),
+    replay_buffer=dict(type='deque'),
 )
 pong_dqn_envpool_create_config = EasyDict(pong_dqn_envpool_create_config)
 create_config = pong_dqn_envpool_create_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pong_dqn_envpool_config.py -s 0`
     from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)
-
-# Alternatively, one can be opt to run the following command to directly execute this config file
-# ding -m serial -c pong_dqn_envpool_config.py -s 0

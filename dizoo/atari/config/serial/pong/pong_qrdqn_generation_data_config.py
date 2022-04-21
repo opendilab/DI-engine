@@ -1,16 +1,14 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_qrdqn_config = dict(
+    exp_name='pong_qrdqn_generation_data_seed0',
     env=dict(
-        collector_env_num=8,
-        evaluator_env_num=8,
+        collector_env_num=4,
+        evaluator_env_num=4,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -29,9 +27,13 @@ pong_qrdqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
             learner=dict(
-                load_path='./expert/ckpt/ckpt_best.pth.tar',
+                load_path='load_path_placeholder',
+                # Users should add their own data path here. 
+                # Absolute path is recommended.
                 hook=dict(
-                    load_ckpt_before_run='./expert/ckpt/ckpt_best.pth.tar',
+                    load_ckpt_before_run='load_path_placeholder',
+                    # Users should add their own data path here. 
+                    # Absolute path is recommended.
                     save_ckpt_after_run=False,
                 )
             ),
@@ -39,7 +41,9 @@ pong_qrdqn_config = dict(
         collect=dict(
             n_sample=100,
             data_type='hdf5',
-            save_path='./expert/expert.pkl',
+            save_path='save_path_placeholder',
+            # Users should add their own data path here. 
+            # Absolute path is recommended.
         ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
@@ -68,4 +72,6 @@ pong_qrdqn_create_config = EasyDict(pong_qrdqn_create_config)
 create_config = pong_qrdqn_create_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pong_qrdqn_generation_data_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

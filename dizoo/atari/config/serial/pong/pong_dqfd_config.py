@@ -1,15 +1,14 @@
 from easydict import EasyDict
 
 pong_dqfd_config = dict(
-    exp_name='pong_dqfd',
+    exp_name='pong_dqfd_seed0',
     env=dict(
-        collector_env_num=8,
-        evaluator_env_num=8,
+        collector_env_num=4,
+        evaluator_env_num=4,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=True, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -30,10 +29,12 @@ pong_dqfd_config = dict(
             lambda2=1.0,
             lambda3=1e-5,
             per_train_iter_k=10,
-            expert_replay_buffer_size=10000,  # justify the buffer size of the expert buffer
+            expert_replay_buffer_size=10000, 
+            # justify the buffer size of the expert buffer
         ),
-        collect=dict(n_sample=96, demonstration_info_path='path'
-                     ),  # Users should add their own path here (path should lead to a well-trained model)
+        collect=dict(n_sample=96, demonstration_info_path='demonstration_info_path_placeholder'), 
+        # Users should add their own path here (path should lead to a well-trained model)
+        # Absolute path is recommended
         other=dict(
             eps=dict(
                 type='exp',
@@ -57,3 +58,8 @@ pong_dqfd_create_config = dict(
 )
 pong_dqfd_create_config = EasyDict(pong_dqfd_create_config)
 create_config = pong_dqfd_create_config
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pong_dqfd_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

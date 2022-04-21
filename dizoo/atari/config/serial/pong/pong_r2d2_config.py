@@ -1,8 +1,8 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
-collector_env_num = 8
-evaluator_env_num = 5
+
+collector_env_num = 4
+evaluator_env_num = 4
 pong_r2d2_config = dict(
     exp_name='pong_r2d2_n5_bs2_ul40_rbs1e4_seed0',
     env=dict(
@@ -70,11 +70,13 @@ pong_r2d2_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d2'),
 )
 pong_r2d2_create_config = EasyDict(pong_r2d2_create_config)
 create_config = pong_r2d2_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c pong_r2d2_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

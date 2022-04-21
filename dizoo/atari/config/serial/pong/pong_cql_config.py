@@ -1,16 +1,14 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline, serial_pipeline_offline
 from easydict import EasyDict
 
 pong_cql_config = dict(
+     exp_name='pong_cql_seed0',
     env=dict(
-        collector_env_num=1,
-        evaluator_env_num=8,
+        collector_env_num=4,
+        evaluator_env_num=4,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -32,7 +30,10 @@ pong_cql_config = dict(
         ),
         collect=dict(
             n_sample=100,
-            data_type='hdf5',
+            data_type='hdf5',\
+            # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+            # Absolute path is recommended.
+            # In DI-engine, it is usually located in ``exp_name`` directory
             data_path='./default_experiment/expert.pkl',
         ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
@@ -54,11 +55,13 @@ pong_cql_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='cql_discrete'),
 )
 pong_cql_create_config = EasyDict(pong_cql_create_config)
 create_config = pong_cql_create_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial_offline -c pong_cql_config.py -s 0`
+    from ding.entry import serial_pipeline_offline
     serial_pipeline_offline((main_config, create_config), seed=0)
