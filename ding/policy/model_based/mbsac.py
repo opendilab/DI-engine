@@ -5,7 +5,7 @@ import torch
 from torch.distributions import Normal, Independent
 from easydict import EasyDict
 
-from ding.torch_utils import to_device
+from ding.torch_utils import Adam, to_device
 from ding.rl_utils import v_1step_td_data, v_1step_td_error
 from ding.utils import POLICY_REGISTRY, deep_merge_dicts
 from ding.policy.sac import SACPolicy
@@ -46,6 +46,8 @@ class MBSACPolicy(SACPolicy):
             # Gradient clip is deactivate when value_expansion_grad_clip_norm=0. 
             value_expansion_grad_clip_norm=0,
 
+            value_expansion_weight_decay=0,
+
             # (int) Model-based value gradient horizon H (arXiv 1510.09142). 
             value_gradient_horizon=0,
             # (int) Whether to use value gradient norm 1/(H + 1).
@@ -53,6 +55,8 @@ class MBSACPolicy(SACPolicy):
             # (float) Gradient clips norm for value gradient.
             # Gradient clip is deactivate when value_gradient_grad_clip_norm=0.
             value_gradient_grad_clip_norm=0,
+
+            value_gradient_weight_decay=0,
         )
     )
 
@@ -64,37 +68,44 @@ class MBSACPolicy(SACPolicy):
         return cfg
 
     def _init_learn(self) -> None:
-        r"""
-        Overview:
-            Learn mode init method. Called by ``self.__init__``.
-            Init q, value and policy's optimizers, algorithm config, main and target models.
-        """
         super()._init_learn()
 
         self._value_expansion_horizon = self._cfg.learn.value_expansion_horizon
         self._value_expansion_type = self._cfg.learn.value_expansion_type
         self._value_expansion_norm = self._cfg.learn.value_expansion_norm
         self._value_expansion_grad_clip_norm = self._cfg.learn.value_expansion_grad_clip_norm
+        self._value_expansion_weight_decay = self._cfg.learn.value_expansion_weight_decay
         # TODO: implement steve style value expansion
         self._value_expansion_type = 'mve'
 
         self._value_gradient_horizon = self._cfg.learn.value_gradient_horizon
         self._value_gradient_norm = self._cfg.learn.value_gradient_norm
         self._value_gradient_grad_clip_norm = self._cfg.learn.value_gradient_grad_clip_norm
+        self._value_gradient_weight_decay = self._cfg.learn.value_gradient_weight_decay
 
         self._history_vars = dict()
         self._history_loss = dict()
 
+        self._optimizer_q = Adam(
+            self._model.critic.parameters(),
+            lr=self._cfg.learn.learning_rate_q,
+            weight_decay=self._value_expansion_weight_decay,
+            grad_clip_type='clip_norm' if self._value_expansion_grad_clip_norm else None,
+            clip_value=self._value_expansion_grad_clip_norm
+        )
+        self._optimizer_policy = Adam(
+            self._model.actor.parameters(),
+            lr=self._cfg.learn.learning_rate_policy,
+            weight_decay=self._value_gradient_weight_decay,
+            grad_clip_type='clip_norm' if self._value_gradient_grad_clip_norm else None,
+            clip_value=self._value_gradient_grad_clip_norm
+        )
+
         # assert (self._value_expansion_horizon > 0 or self._value_gradient_horizon > 0) \
         #         and hasattr(self, '_env_model') and hasattr(self, '_model_env'), "_env_model missing"
 
-
     
     def _forward_learn(self, data: dict) -> Dict[str, Any]:
-        r"""
-        Overview:
-            # TODO
-        """
         mode = None
         if 'mode' in data:
             mode = data['mode']
@@ -226,11 +237,6 @@ class MBSACPolicy(SACPolicy):
 
             self._optimizer_q.zero_grad()
             self._history_loss['value_loss'].backward()
-            if self._value_expansion_grad_clip_norm:
-                torch.nn.utils.clip_grad_norm_(
-                        self._model.critic.parameters(), 
-                        max_norm=self._value_expansion_grad_clip_norm,
-                        error_if_nonfinite=False)
             self._optimizer_q.step()
                 
 
@@ -269,11 +275,6 @@ class MBSACPolicy(SACPolicy):
         # update policy network
         self._optimizer_policy.zero_grad()
         self._history_loss['policy_loss'].backward()
-        if self._value_gradient_grad_clip_norm:
-            torch.nn.utils.clip_grad_norm_(
-                    self._model.actor.parameters(), 
-                    max_norm=self._value_gradient_grad_clip_norm,
-                    error_if_nonfinite=False)
         self._optimizer_policy.step()
 
 
