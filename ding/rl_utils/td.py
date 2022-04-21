@@ -1027,8 +1027,8 @@ def fqf_nstep_td_error(
     """
     Overview:
         Multistep (1 step or n step) td_error with in FQF, \
-            referenced paper Implicit Quantile Networks for Distributional Reinforcement Learning \
-            <https://arxiv.org/pdf/1806.06923.pdf>
+            referenced paper Fully Parameterized Quantile Function for Distributional Reinforcement Learning \
+            <https://arxiv.org/pdf/1911.02140.pdf>
     Arguments:
         - data (:obj:`fqf_nstep_td_data`): the input data, fqf_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
@@ -1074,7 +1074,7 @@ def fqf_nstep_td_error(
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
-    reward = torch.matmul(reward_factor, reward)    #[batch_size]
+    reward = torch.matmul(reward_factor, reward)    # [batch_size]
     if value_gamma is None:
         target_q_s_a = reward.unsqueeze(-1) + (gamma ** nstep) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
     else:

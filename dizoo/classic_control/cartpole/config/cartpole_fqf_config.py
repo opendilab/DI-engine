@@ -7,7 +7,7 @@ cartpole_fqf_config = dict(
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=195,
-        replay_path='cartpole_fqf/video',
+        replay_path='cartpole_fqf_seed0/video',
     ),
     policy=dict(
         cuda=False,

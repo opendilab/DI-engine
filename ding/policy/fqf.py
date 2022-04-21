@@ -156,7 +156,7 @@ class FQFPolicy(DQNPolicy):
 
         # Target q value
         with torch.no_grad():
-            #quantiles_hats = (quantiles[:, :-1] + quantiles[:, 1:]) / 2.     #[batch_size, num_quantiles]
+            # quantiles_hats = (quantiles[:, :-1] + quantiles[:, 1:]) / 2.     #[batch_size, num_quantiles]
             target_q_value = self._target_model.forward(data['next_obs'])['q']
             # Max q value action (main model)
             target_q_action = self._learn_model.forward(data['next_obs'])['action']
@@ -236,33 +236,6 @@ class FQFPolicy(DQNPolicy):
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
-        """
-        Overview:
-            Forward computation graph of collect mode(collect training data), with eps_greedy for exploration.
-        Arguments:
-            - data (:obj:`Dict[str, Any]`): Dict type data, stacked env data for predicting policy_output(action), \
-                values are torch.Tensor or np.ndarray or dict/list combinations, keys are env_id indicated by integer.
-            - eps (:obj:`float`): epsilon value for exploration, which is decayed by collected env step.
-        Returns:
-            - output (:obj:`Dict[int, Any]`): The dict of predicting policy_output(action) for the interaction with \
-                env and the constructing of transition.
-        ArgumentsKeys:
-            - necessary: ``obs``
-        ReturnsKeys
-            - necessary: ``logit``, ``action``
-        """
-        data_id = list(data.keys())
-        data = default_collate(list(data.values()))
-        if self._cuda:
-            data = to_device(data, self._device)
-        self._collect_model.eval()
-        with torch.no_grad():
-            output = self._collect_model.forward(data, eps=eps)
-        if self._cuda:
-            output = to_device(output, 'cpu')
-        output = default_decollate(output)
-        return {i: d for i, d in zip(data_id, output)}
 
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""

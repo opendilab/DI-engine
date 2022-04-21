@@ -496,20 +496,16 @@ class FQFHead(nn.Module):
         self.num_quantiles = num_quantiles
         self.quantile_embedding_size = quantile_embedding_size
         self.output_size = output_size
-        self.fqf_fc = nn.Linear(self.quantile_embedding_size, hidden_size)
-        self.quantiles_proposal = nn.Sequential(
-            MLP(
-                hidden_size,
-                hidden_size,
-                num_quantiles,
-                layer_num = 1,
-                layer_fn=nn.Linear,
-                activation=nn.Softmax(),
-                norm_type=norm_type
-            )
+        self.fqf_fc = nn.Sequential(
+            nn.Linear(self.quantile_embedding_size, hidden_size),
+            nn.ReLU()
         )
-    # def quantiles_proposal(self, x: torch.Tensor, num_quantiles: Optional[int] = None) -> torch.Tensor:
-    #   return
+        self.sigma_pi = torch.arange(1, self.quantile_embedding_size + 1, 1).view(1, 1, self.quantile_embedding_size) * math.pi
+        self.quantiles_proposal = nn.Sequential(
+            nn.Linear(hidden_size, num_quantiles),
+            nn.Softmax()
+        )
+
 
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
         r"""
@@ -531,10 +527,9 @@ class FQFHead(nn.Module):
         """
         batch_size, num_quantiles = quantiles.shape[:2]
         quantile_net = torch.cos(
-            torch.arange(1, self.quantile_embedding_size + 1, 1).view(1, 1, self.quantile_embedding_size).to(quantiles) * math.pi * quantiles.view(batch_size, num_quantiles, 1)
-        )#.view(batch_size * num_quantiles, self.quantile_embedding_size)
-        quantile_net = self.fqf_fc(quantile_net)
-        quantile_net = F.relu(quantile_net)#.view(batch_size, num_quantiles, -1)   #(batch,num_quantiles,hidden_size)
+            self.sigma_pi.to(quantiles) * quantiles.view(batch_size, num_quantiles, 1)
+        )
+        quantile_net = self.fqf_fc(quantile_net)  # (batch, num_quantiles, hidden_size)
         return quantile_net
 
     def forward(self, x: torch.Tensor, num_quantiles: Optional[int] = None) -> Dict:
@@ -568,14 +563,11 @@ class FQFHead(nn.Module):
             num_quantiles = self.num_quantiles
         batch_size = x.shape[0]
 
-        q_quantiles = self.quantiles_proposal(x.detach())  # (batch,num_quantiles)
+        q_quantiles = self.quantiles_proposal(x.detach())   # (batch, num_quantiles)
+        
         # accumalative softmax
-        """ accumalative = 1
-        for i in range(1,num_quantiles):
-            q_quantiles[:,num_quantiles-1-i] = accumalative - q_quantiles[:,num_quantiles-i]
-            accumalative = q_quantiles[:,num_quantiles-1-i]
-        q_quantiles[:,-1] = 1 """
         q_quantiles = torch.cumsum(q_quantiles, dim=1)
+        
         # quantile_hats: find the optimal condition for τ to minimize W1(Z, τ)  
         tau_0 = torch.zeros((batch_size, 1)).to(x)
         q_quantiles = torch.cat((tau_0, q_quantiles), dim=1)     # [batch, num_quantiles+1]
@@ -583,7 +575,7 @@ class FQFHead(nn.Module):
         q_quantiles_hats = (q_quantiles[:,1:] + q_quantiles[:,:-1]).detach() / 2.   # (batch, num_quantiles)
         
         q_quantile_net = self.quantile_net(q_quantiles_hats)     # [batch, num_quantiles, hidden_size(64)]
-        #x = x.view(batch_size, 1, -1)                                      # [batch_size, 1, hidden_size(64)]
+        # x.view[batch_size, 1, hidden_size(64)]
         q_x = (x.view(batch_size, 1, -1) * q_quantile_net).view(batch_size * num_quantiles, -1)    # [batch_size*num_quantiles, hidden_size(64)]
         q = self.Q(q_x).reshape(batch_size, num_quantiles, -1)             # [batch_size, num_quantiles, action_size(64)]
         logit = q.mean(1)
