@@ -372,9 +372,7 @@ def test_discrete_cql():
     collect_count = config[0].policy.collect.collect_count
     state_dict = torch.load('cartpole/ckpt/ckpt_best.pth.tar', map_location='cpu')
     try:
-        collect_demo_data(
-            config, seed=0, collect_count=collect_count, state_dict=state_dict
-        )
+        collect_demo_data(config, seed=0, collect_count=collect_count, state_dict=state_dict)
     except Exception:
         assert False, "pipeline fail"
 

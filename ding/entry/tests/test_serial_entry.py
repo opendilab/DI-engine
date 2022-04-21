@@ -462,9 +462,7 @@ def test_discrete_cql():
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
     state_dict = torch.load('./cql_cartpole/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
-        collect_demo_data(
-            config, seed=0, collect_count=1000, state_dict=state_dict
-        )
+        collect_demo_data(config, seed=0, collect_count=1000, state_dict=state_dict)
     except Exception as e:
         assert False, "pipeline fail"
         print(repr(e))
@@ -497,9 +495,7 @@ def test_td3_bc():
     config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
     state_dict = torch.load('./td3/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
-        collect_demo_data(
-            config, seed=0, collect_count=1000, state_dict=state_dict
-        )
+        collect_demo_data(config, seed=0, collect_count=1000, state_dict=state_dict)
     except Exception:
         assert False, "pipeline fail"
 
