@@ -3,7 +3,7 @@ import pytest
 import os
 import pickle
 
-from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, \
+from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_ppo_offpolicy_config, \
     cartpole_ppo_offpolicy_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_trex_offppo_config import cartpole_trex_ppo_offpolicy_config,\
      cartpole_trex_ppo_offpolicy_create_config
