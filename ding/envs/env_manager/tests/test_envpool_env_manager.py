@@ -13,12 +13,20 @@ env_num_args = [[16, 8], [8, 8]]
 class TestPoolEnvManager:
 
     def test_naive(self, env_num, batch_size):
-        env_manager_cfg = EasyDict({
-            'env_id': 'Pong-v5',
-            'env_num': env_num,
-            'batch_size': batch_size,
-            'seed': 3,
-        })
+        env_manager_cfg = EasyDict(
+            {
+                'env_id': 'Pong-v5',
+                'env_num': env_num,
+                'batch_size': batch_size,
+                'seed': 3,
+                # env wrappers
+                'episodic_life': False,
+                'reward_clip': False,
+                'gray_scale': True,
+                'stack_num': 4,
+                'frame_skip': 4,
+            }
+        )
         env_manager = PoolEnvManager(env_manager_cfg)
         assert env_manager._closed
         env_manager.launch()
