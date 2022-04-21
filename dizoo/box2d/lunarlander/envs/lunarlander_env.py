@@ -72,8 +72,11 @@ class LunarLanderEnv(BaseEnv):
             replay_path = './video'
         self._replay_path = replay_path
         # this function can lead to the meaningless result
-        self._env = gym.wrappers.Monitor(
-            self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+        self._env = gym.wrappers.RecordVideo(
+            self._env,
+            video_folder=self._replay_path,
+            episode_trigger=lambda episode_id: True,
+            name_prefix='rl-video-{}'.format(id(self))
         )
 
     def random_action(self) -> np.ndarray:
