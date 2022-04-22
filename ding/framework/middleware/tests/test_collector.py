@@ -1,22 +1,38 @@
 import pytest
-import math
-import time
+import torch
+import copy
+from unittest.mock import patch
+from ding.framework import Context
+from ding.framework.middleware.functional.collector import inferencer, rolloutor
+from ding.framework.middleware.tests.mock_for_test import MockPolicy, MockEnv, CONFIG
+    
 
-from easydict import EasyDict
-from ding.model import DQN
-from ding.policy.dqn import Policy
-from ding.policy.policy_factory import get_random_policy
-from ding.framework import task, Context
-from ding.framework import Parallel
-from ding.framework.middleware.functional.collector import episode_collector
-from ding.data import DequeBuffer
+@pytest.mark.lxl
+def test_inferencer():
+    cfg = copy.deepcopy(CONFIG)
+    ctx = Context(CONFIG.ctx)
+    with patch("ding.policy.Policy",  MockPolicy):
+        with patch("ding.envs.BaseEnvManagerV2",  MockEnv):
+            policy = MockPolicy()
+            env = MockEnv()
+            inferencer(cfg, policy, env)(ctx)
+    assert isinstance(ctx.inference_output, dict)
+    assert ctx.inference_output[0] == {'action': torch.Tensor([0.])}
+    assert ctx.inference_output[1] == {'action': torch.Tensor([4.])}
 
 
+@pytest.mark.lxl
+def test_rolloutor():
+    cfg = copy.deepcopy(CONFIG)
+    ctx = Context(CONFIG.ctx)
+    transitions = [[], []]
+    with patch("ding.policy.Policy",  MockPolicy):
+        with patch("ding.envs.BaseEnvManagerV2",  MockEnv):
+            policy = MockPolicy()
+            env = MockEnv()
+            for _ in range(10):
+                inferencer(cfg, policy, env)(ctx)
+                rolloutor(cfg, policy, env, transitions)(ctx)
+    assert ctx.env_episode == 20           # 10 * env_num
+    assert ctx.env_step == 20              # 10 * env_num
 
-@pytest.mark.unittest
-def test_episode_collector():
-    cfg = Policy.default_config()
-    cfg.seed = 0
-    random_policy = get_random_policy()
-    buffer = DequeBuffer(size=1000)
-    policy = Policy(cfg)

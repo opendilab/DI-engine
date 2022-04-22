@@ -41,6 +41,8 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: L
             transition = ttorch.as_tensor(transition)  # TBD
             transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
             transitions[timestep.env_id].append(transition)
+            print(transition)
+            print(timestep.done)
             if timestep.done:
                 policy.reset([timestep.env_id])
                 ctx.env_episode += 1
