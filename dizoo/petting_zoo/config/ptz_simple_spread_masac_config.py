@@ -13,6 +13,7 @@ main_config = dict(
         n_landmark=n_landmark,
         max_cycles=100,
         agent_obs_only=False,
+        agent_specific_global_state=True,
         continuous_actions=False,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
