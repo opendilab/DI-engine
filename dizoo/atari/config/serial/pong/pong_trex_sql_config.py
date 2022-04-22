@@ -9,7 +9,6 @@ pong_trex_sql_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(reset_inplace=True)
     ),
     reward_model=dict(
         type='trex',
@@ -22,9 +21,18 @@ pong_trex_sql_config = dict(
         checkpoint_step=10000,
         learning_rate=1e-5,
         update_per_collect=1,
-        expert_model_path='abs model path',
-        reward_model_path='abs data path + ./pong.params',
-        offline_data_path='abs data path',
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        # However, here in ``expert_model_path``, it is ``exp_name`` of the expert config.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='data_path_placeholder + /pong.params',
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # See ding/entry/application_entry_trex_collect_data.py to collect the data
+        data_path='data_path_placeholder',
     ),
     policy=dict(
         cuda=False,
@@ -63,6 +71,18 @@ pong_trex_sql_create_config = EasyDict(pong_trex_sql_create_config)
 create_config = pong_trex_sql_create_config
 
 if __name__ == '__main__':
-    # or you can enter `ding -m serial -c pong_trex_sql_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    # Users should first run ``ppo_sql_config.py`` to save models (or checkpoints).
+    # Note: Users should check that the checkpoints generated should include iteration_'checkpoint_min'.pth.tar, iteration_'checkpoint_max'.pth.tar with the interval checkpoint_step
+    # where checkpoint_max, checkpoint_min, checkpoint_step are specified above.
+    import argparse
+    import torch
+    from ding.entry import trex_collecting_data
+    from ding.entry import serial_pipeline_preference_based_irl
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    args = parser.parse_args()
+    # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
+    trex_collecting_data(args)
+    serial_pipeline_preference_based_irl((main_config, create_config))

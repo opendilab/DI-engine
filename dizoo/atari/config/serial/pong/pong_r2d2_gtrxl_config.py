@@ -1,6 +1,5 @@
 from easydict import EasyDict
 
-
 collector_env_num = 4
 evaluator_env_num = 4
 pong_r2d2_gtrxl_config = dict(

@@ -3,8 +3,8 @@ from easydict import EasyDict
 pong_qrdqn_config = dict(
     exp_name='pong_qrdqn_generation_data_seed0',
     env=dict(
-        collector_env_num=4,
-        evaluator_env_num=4,
+        collector_env_num=8,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
@@ -21,29 +21,13 @@ pong_qrdqn_config = dict(
         ),
         nstep=1,
         discount_factor=0.99,
-        learn=dict(
-            update_per_collect=10,
-            batch_size=32,
-            learning_rate=0.0001,
-            target_update_freq=500,
-            learner=dict(
-                load_path='load_path_placeholder',
-                # Users should add their own data path here. 
-                # Absolute path is recommended.
-                hook=dict(
-                    load_ckpt_before_run='load_path_placeholder',
-                    # Users should add their own data path here. 
-                    # Absolute path is recommended.
-                    save_ckpt_after_run=False,
-                )
-            ),
-        ),
         collect=dict(
-            n_sample=100,
+            collect_count=1000,
             data_type='hdf5',
-            save_path='save_path_placeholder',
-            # Users should add their own data path here. 
-            # Absolute path is recommended.
+            # pretrained RL model path, user can modify it as its own path
+            model_path='./pong_qrdqn_seed0/ckpt/ckpt_best.pth.tar',
+            # this prefix should be the same as exp_name
+            expert_data_path='./pong_qrdqn_generation_data_seed0/expert.pkl',
         ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
@@ -71,7 +55,13 @@ pong_qrdqn_create_config = dict(
 pong_qrdqn_create_config = EasyDict(pong_qrdqn_create_config)
 create_config = pong_qrdqn_create_config
 
-if __name__ == '__main__':
-    # or you can enter `ding -m serial -c pong_qrdqn_generation_data_config.py -s 0`
-    from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+if __name__ == "__main__":
+    from ding.entry import collect_demo_data
+    cfg = main_config.policy.collect
+    collect_demo_data(
+        (main_config, create_config),
+        seed=0,
+        collect_count=cfg.collect_count,
+        expert_data_path=cfg.expert_data_path,
+        state_dict_path=cfg.model_path
+    )

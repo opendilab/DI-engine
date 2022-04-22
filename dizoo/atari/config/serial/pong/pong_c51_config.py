@@ -3,8 +3,8 @@ from easydict import EasyDict
 pong_c51_config = dict(
     exp_name='pong_c51_seed0',
     env=dict(
-        collector_env_num=4,
-        evaluator_env_num=4,
+        collector_env_num=8,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',

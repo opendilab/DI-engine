@@ -54,7 +54,6 @@ pong_dqn_create_config = EasyDict(pong_dqn_create_config)
 create_config = pong_dqn_create_config
 
 if __name__ == '__main__':
-       # or you can enter `ding -m serial -c pong_dqn_multi_gpu_config.py -s 0`
     from ding.utils import DistContext
     from ding.entry import serial_pipeline
     with DistContext():

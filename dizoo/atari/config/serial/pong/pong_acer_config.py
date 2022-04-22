@@ -2,8 +2,8 @@ from easydict import EasyDict
 
 pong_acer_config = dict(
     env=dict(
-        collector_env_num=4,
-        evaluator_env_num=4,
+        collector_env_num=8,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
@@ -49,9 +49,7 @@ pong_acer_config = dict(
             collector=dict(collect_print_freq=1000, ),
         ),
         eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(
-            replay_buffer_size=3000,
-        ), ),
+        other=dict(replay_buffer=dict(replay_buffer_size=3000, ), ),
     ),
 )
 main_config = EasyDict(pong_acer_config)
@@ -66,19 +64,7 @@ pong_acer_create_config = dict(
 )
 create_config = EasyDict(pong_acer_create_config)
 
-
-
-if __name__ == "__main__":
-    import argparse
+if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pong_acer_config.py -s 0`
     from ding.entry import serial_pipeline
-    import copy
-    for seed in [0,1,2,3,4]:     
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--seed', '-s', type=int, default=seed)
-        args = parser.parse_args()
-        def train(args):
-            main_config.exp_name='pong_acer'+'_ns64_ul64_bs64_rbs3e3_10m_seed'+f'{args.seed}'
-            # in theory: 2441.4 iterations = 10M env steps / (64*64) 
-            # in practice: 2500 iterations = 5M env steps 
-            serial_pipeline([copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=5500)
-            train(args)
+    serial_pipeline((main_config, create_config), seed=0)

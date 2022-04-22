@@ -1,10 +1,10 @@
 from easydict import EasyDict
 
 pong_cql_config = dict(
-     exp_name='pong_cql_seed0',
+    exp_name='pong_cql_seed0',
     env=dict(
-        collector_env_num=4,
-        evaluator_env_num=4,
+        collector_env_num=8,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
@@ -30,7 +30,7 @@ pong_cql_config = dict(
         ),
         collect=dict(
             n_sample=100,
-            data_type='hdf5',\
+            data_type='hdf5',
             # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
             # Absolute path is recommended.
             # In DI-engine, it is usually located in ``exp_name`` directory

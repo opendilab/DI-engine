@@ -2,8 +2,8 @@ from easydict import EasyDict
 
 pong_onppo_config = dict(
     env=dict(
-        collector_env_num=4,
-        evaluator_env_num=4,
+        collector_env_num=8,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
@@ -61,19 +61,6 @@ pong_onppo_create_config = dict(
 create_config = EasyDict(pong_onppo_create_config)
 
 if __name__ == "__main__":
-    import argparse
+    # or you can enter `ding -m serial_onpolicy -c pong_onppo_config.py -s 0`
     from ding.entry import serial_pipeline_onpolicy
-
-    def train(args):
-        main_config.exp_name = 'pong_onppo' + '_seed' + f'{args.seed}'
-        import copy
-        # 3125 iterations= 10M env steps / 3200
-        serial_pipeline_onpolicy(
-            [copy.deepcopy(main_config), copy.deepcopy(create_config)], seed=args.seed, max_iterations=3125
-    )
-    for seed in [0, 1, 2, 3, 4]:
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--seed', '-s', type=int, default=seed)
-        args = parser.parse_args()
-
-        train(args)
+    serial_pipeline_onpolicy((main_config, create_config), seed=0)
