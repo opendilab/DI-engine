@@ -3,13 +3,12 @@ from easydict import EasyDict
 pong_dqn_config = dict(
     exp_name='pong_dqn_seed0',
     env=dict(
-        collector_env_num=8,
-        evaluator_env_num=8,
+        collector_env_num=4,
+        evaluator_env_num=4,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,

@@ -1,18 +1,16 @@
 import torch
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_ngu
-
 print(torch.cuda.is_available(), torch.__version__)
-collector_env_num = 32
-evaluator_env_num = 5
+collector_env_num = 4
+evaluator_env_num = 4
 nstep = 5
 pong_ppo_rnd_config = dict(
-    exp_name='debug_pong_ngu_ul98_er01_rlbs2e4_n32',
+    exp_name='debug_pong_ngu_ul98_er01_rlbs2e4_n32_seed0',
     env=dict(
         collector_env_num=collector_env_num,
-        evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
+        evaluator_env_num=4,
+        n_evaluator_episode=evaluator_env_num,
         env_id='PongNoFrameskip-v4',
         stop_value=20,
         frame_stack=4,
@@ -96,7 +94,7 @@ pong_ppo_rnd_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     # env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     # reward_model=dict(type='rnd'),
@@ -108,4 +106,6 @@ pong_ppo_rnd_create_config = EasyDict(pong_ppo_rnd_create_config)
 create_config = pong_ppo_rnd_create_config
 
 if __name__ == "__main__":
-    serial_pipeline_ngu([main_config, create_config], seed=0)
+       # or you can enter `ding -m serial -c pong_ngu_config.py -s 0`
+    from ding.entry import serial_pipeline_reward_model_ngu
+    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
