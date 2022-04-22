@@ -101,8 +101,8 @@ class PettingZooEnv(BaseEnv):
                         dtype=np.float32
                     )})
                 # whether use agent_specific_global_state. It is usually used in AC multiagent algos, e.g., mappo, masac, etc.
-                if self.agent_specific_global_state:
-                    agent_specifig_global_state = gym.Spaces.Box(
+                if self._agent_specific_global_state:
+                    agent_specifig_global_state = gym.spaces.Box(
                         low = float("-inf"),
                         high = float("inf"),
                         shape = (self._num_agents, self._env.observation_space('agent_0').shape[0] + 70),
