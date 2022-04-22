@@ -44,14 +44,14 @@ class AtariDIEnv(BaseGameEnv):
         return self.agents.index(self._agent_selector.next())
 
     def _make_env(self):
-        # DI-engine wrapper
+        """DI-engine wrapper"""
         # return wrap_deepmind(
         #     self.cfg.env_id,
         #     frame_stack=self.cfg.frame_stack,
         #     episode_life=self.cfg.is_train,
         #     clip_rewards=self.cfg.is_train
         # )
-        # EfficientZero wrapper
+        """EfficientZero wrapper"""
         # def new_game(self, seed=None, save_video=False, save_path=None, video_callable=None, uid=None, test=False, final_test=False):
         seed = None
         save_video = False

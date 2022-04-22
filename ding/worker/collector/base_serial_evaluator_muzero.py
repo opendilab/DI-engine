@@ -242,6 +242,7 @@ class BaseSerialEvaluatorMuZero(object):
                     stack_obs = [game_history.step_obs() for game_history in game_histories]
                     stack_obs = torch.from_numpy(np.array(stack_obs)).to(device)
                 # stack_obs {Tensor:(2,12,96,96)}
+                # TODO
                 policy_output = self._policy.forward(stack_obs)
 
                 actions = {i: a['action'] for i, a in policy_output.items()}

@@ -310,9 +310,6 @@ class MuZeroPolicy(Policy):
         data_id = [i for i in range(test_episodes)]
         output = {i: None for i in data_id}
         for i in range(test_episodes):
-            # if dones[i]:
-            #     continue
-
             distributions, value = roots_distributions[i], roots_values[i]
             # select the argmax, not sampling
             action, _ = select_action(distributions, temperature=1, deterministic=True)
@@ -320,9 +317,7 @@ class MuZeroPolicy(Policy):
             # actions.append(action)
             output[i] = {'action': action, 'distributions': distributions,'value':value}
 
-        # return {i: d for i, d in zip(data_id, output)}
         return output
-        # return output
 
     def eval(self):
         """
