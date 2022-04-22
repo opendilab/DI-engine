@@ -1,13 +1,12 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_guided_cost
 
 lunarlander_ppo_config = dict(
-    exp_name='lunarlander_guided_cost',
+    exp_name='lunarlander_gcl_seed0',
     env=dict(
         collector_env_num=8,
-        evaluator_env_num=5,
+        evaluator_env_num=8,
         env_id='LunarLander-v2',
-        n_evaluator_episode=5,
+        n_evaluator_episode=8,
         stop_value=200,
     ),
     reward_model=dict(
@@ -36,7 +35,14 @@ lunarlander_ppo_config = dict(
             adv_norm=True,
         ),
         collect=dict(
-            demonstration_info_path='path',
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
+            # If you need the data collected by the collector to contain logit key which reflect the probability of
+            # the action, you can change the key to be True.
+            # In Guided cost Learning, we need to use logit to train the reward model, we change the key to be True.
+            collector_logit=True,
             n_sample=800,
             unroll_len=1,
             discount_factor=0.99,
@@ -51,7 +57,7 @@ lunarlander_ppo_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo'),
     reward_model=dict(type='guided_cost'),
 )
@@ -59,4 +65,5 @@ lunarlander_ppo_create_config = EasyDict(lunarlander_ppo_create_config)
 create_config = lunarlander_ppo_create_config
 
 if __name__ == "__main__":
+    from ding.entry import serial_pipeline_guided_cost
     serial_pipeline_guided_cost([main_config, create_config], seed=0)

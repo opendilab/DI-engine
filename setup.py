@@ -68,7 +68,6 @@ setup(
         'URLObject~=2.4.3',
         'urllib3>=1.26.5',
         'readerwriterlock',
-        'namedlist',
         'opencv-python',  # pypy incompatible
         'enum_tools',
         'scipy',

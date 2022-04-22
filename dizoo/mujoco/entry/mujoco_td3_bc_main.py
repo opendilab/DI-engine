@@ -6,7 +6,7 @@ from ding.entry import serial_pipeline_offline, collect_demo_data, eval, serial_
 
 
 def train_td3_bc(args):
-    from dizoo.mujoco.config.hopper_td3_bc_default_config import main_config, create_config
+    from dizoo.mujoco.config.hopper_td3_bc_config import main_config, create_config
     main_config.exp_name = 'td3_bc'
     main_config.policy.collect.data_path = './td3/expert_demos.hdf5'
     main_config.policy.collect.data_type = 'hdf5'
@@ -41,7 +41,7 @@ def generate(args):
 
 
 def train_expert(args):
-    from dizoo.mujoco.config.hopper_td3_default_config import main_config, create_config
+    from dizoo.mujoco.config.hopper_td3_config import main_config, create_config
     main_config.exp_name = 'td3'
     config = deepcopy([main_config, create_config])
     serial_pipeline(config, seed=args.seed, max_iterations=int(1e6))

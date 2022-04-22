@@ -113,7 +113,7 @@ class PwilRewardModel(BaseRewardModel):
         """
         self._train(self.train_data)
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> List[Dict]:
         """
         Overview:
             Estimate reward by rewriting the reward key in each row of the data.
@@ -124,7 +124,10 @@ class PwilRewardModel(BaseRewardModel):
             - This is a side effect function which updates the ``reward_table`` with ``(obs,action)`` \
                 tuples from input.
         """
-        for item in data:
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+        for item in train_data_augmented:
             s = item['obs']
             a = item['action']
             if (s, a) in self.reward_table:
@@ -132,6 +135,7 @@ class PwilRewardModel(BaseRewardModel):
             else:
                 # when (s, a) pair is not trained, set the reward value to default value(e.g.: 0)
                 item['reward'] = torch.zeros_like(item['reward'])
+        return train_data_augmented
 
     def _get_state_distance(self, s1: list, s2: list) -> torch.Tensor:
         """

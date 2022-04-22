@@ -311,7 +311,7 @@ def test_sqil():
     torch.save(expert_policy.collect_mode.state_dict(), expert_policy_state_dict_path)
 
     config = [deepcopy(cartpole_sqil_config), deepcopy(cartpole_sqil_create_config)]
-    config[0].policy.collect.model_path = expert_policy_state_dict_path
+    config[0].policy.collect.demonstration_info_path = expert_policy_state_dict_path
     try:
         serial_pipeline_sqil(config, [cartpole_sql_config, cartpole_sql_create_config], seed=0)
     except Exception:
@@ -369,13 +369,10 @@ def test_discrete_cql():
     # collect expert data
     import torch
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
-    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
-    expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    collect_count = config[0].policy.collect.collect_count
+    state_dict = torch.load('cartpole/ckpt/ckpt_best.pth.tar', map_location='cpu')
     try:
-        collect_demo_data(
-            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
-        )
+        collect_demo_data(config, seed=0, collect_count=collect_count, state_dict=state_dict)
     except Exception:
         assert False, "pipeline fail"
 

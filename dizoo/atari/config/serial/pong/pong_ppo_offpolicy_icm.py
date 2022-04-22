@@ -1,5 +1,5 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline_reward_model
+from ding.entry import serial_pipeline_reward_model_offpolicy
 from easydict import EasyDict
 
 pong_ppo_icm_config = dict(
@@ -70,4 +70,4 @@ pong_ppo_create_config = dict(
 create_config = EasyDict(pong_ppo_create_config)
 
 if __name__ == '__main__':
-    serial_pipeline_reward_model([main_config, create_config], seed=0)
+    serial_pipeline_reward_model_offpolicy([main_config, create_config], seed=0)

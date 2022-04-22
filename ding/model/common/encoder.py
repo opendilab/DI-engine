@@ -19,6 +19,9 @@ class ConvEncoder(nn.Module):
             obs_shape: SequenceType,
             hidden_size_list: SequenceType = [32, 64, 64, 128],
             activation: Optional[nn.Module] = nn.ReLU(),
+            kernel_size: SequenceType = [8, 4, 3],
+            stride: SequenceType = [4, 2, 1],
+            padding: Optional[SequenceType] = None,
             norm_type: Optional[str] = None
     ) -> None:
         r"""
@@ -37,13 +40,13 @@ class ConvEncoder(nn.Module):
         self.obs_shape = obs_shape
         self.act = activation
         self.hidden_size_list = hidden_size_list
+        if padding is None:
+            padding = [0 for _ in range(len(kernel_size))]
 
         layers = []
-        kernel_size = [8, 4, 3]
-        stride = [4, 2, 1]
         input_size = obs_shape[0]  # in_channel
         for i in range(len(kernel_size)):
-            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i]))
+            layers.append(nn.Conv2d(input_size, hidden_size_list[i], kernel_size[i], stride[i], padding[i]))
             layers.append(self.act)
             input_size = hidden_size_list[i]
         assert len(set(hidden_size_list[3:-1])) <= 1, "Please indicate the same hidden size for res block parts"
