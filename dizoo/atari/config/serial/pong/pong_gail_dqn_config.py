@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 pong_dqn_gail_config = dict(
-    exp_name='pong_dqn_gail',
+    exp_name='pong_gail_dqn_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -9,7 +9,6 @@ pong_dqn_gail_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     reward_model=dict(
         type='gail',
@@ -18,13 +17,21 @@ pong_dqn_gail_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='pong_dqn/expert_data_train.pkl',
-        load_path='pong_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',  # state_dict of the reward model
         collect_count=1000,
-        action_size=6
+        action_size=6,
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        expert_model_path='model_path_placeholder',
+        # Path where to store the reward model
+        reward_model_path='data_path_placeholder+/reward_model/ckpt/ckpt_best.pth.tar',
+        # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+        # Absolute path is recommended.
+        # In DI-engine, it is usually located in ``exp_name`` directory
+        # e.g. 'exp_name/expert_data.pkl'
+        data_path='data_path_placeholder',
     ),
     policy=dict(
-        load_path='pong_dqn_gail/ckpt/ckpt_best.pth.tar',
         cuda=True,
         priority=False,
         model=dict(
@@ -65,3 +72,18 @@ pong_dqn_gail_create_config = dict(
 )
 pong_dqn_gail_create_config = EasyDict(pong_dqn_gail_create_config)
 create_config = pong_dqn_gail_create_config
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial_gail -c pong_gail_dqn_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. pong_dqn_config.py
+    from ding.entry import serial_pipeline_gail
+    from dizoo.atari.config.serial.pong import pong_dqn_config, pong_dqn_create_config
+    expert_main_config = pong_dqn_config
+    expert_create_config = pong_dqn_create_config
+    serial_pipeline_gail(
+        (main_config, create_config), (expert_main_config, expert_create_config),
+        max_env_step=1000000,
+        seed=0,
+        collect_data=True
+    )

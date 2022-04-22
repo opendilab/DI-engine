@@ -16,8 +16,8 @@ from .base_policy import Policy
 from .common_utils import default_preprocess_learn
 
 
-@POLICY_REGISTRY.register('ppo_offpolicy_collect_traj')
-class PPOOffCollectTrajPolicy(Policy):
+@POLICY_REGISTRY.register('offppo_collect_traj')
+class OffPPOCollectTrajPolicy(Policy):
     r"""
     Overview:
         Policy class of off policy PPO algorithm to collect expert traj for R2D3.

@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-cartpole_trex_ppo_offpolicy_config = dict(
+cartpole_trex_offppo_config = dict(
     exp_name='cartpole_trex_offppo_seed0',
     env=dict(
         collector_env_num=8,
@@ -50,9 +50,9 @@ cartpole_trex_ppo_offpolicy_config = dict(
         other=dict(replay_buffer=dict(replay_buffer_size=5000))
     ),
 )
-cartpole_trex_ppo_offpolicy_config = EasyDict(cartpole_trex_ppo_offpolicy_config)
-main_config = cartpole_trex_ppo_offpolicy_config
-cartpole_trex_ppo_offpolicy_create_config = dict(
+cartpole_trex_offppo_config = EasyDict(cartpole_trex_offppo_config)
+main_config = cartpole_trex_offppo_config
+cartpole_trex_offppo_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -61,8 +61,8 @@ cartpole_trex_ppo_offpolicy_create_config = dict(
     policy=dict(type='ppo_offpolicy'),
     reward_model=dict(type='trex'),
 )
-cartpole_trex_ppo_offpolicy_create_config = EasyDict(cartpole_trex_ppo_offpolicy_create_config)
-create_config = cartpole_trex_ppo_offpolicy_create_config
+cartpole_trex_offppo_create_config = EasyDict(cartpole_trex_offppo_create_config)
+create_config = cartpole_trex_offppo_create_config
 
 if __name__ == "__main__":
     # Users should first run ``cartpole_offppo_config.py`` to save models (or checkpoints).
