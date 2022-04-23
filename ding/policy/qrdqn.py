@@ -204,7 +204,6 @@ class QRDQNPolicy(DQNPolicy):
         self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
-
     def _get_train_sample(self, data: list) -> Union[None, List[Any]]:
         r"""
         Overview:

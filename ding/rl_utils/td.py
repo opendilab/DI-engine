@@ -1074,11 +1074,12 @@ def fqf_nstep_td_error(
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
-    reward = torch.matmul(reward_factor, reward)    # [batch_size]
+    reward = torch.matmul(reward_factor, reward)  # [batch_size]
     if value_gamma is None:
         target_q_s_a = reward.unsqueeze(-1) + (gamma ** nstep) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
     else:
-        target_q_s_a = reward.unsqueeze(-1) + value_gamma.unsqueeze(-1) * target_q_s_a.squeeze(-1) * (1 - done).unsqueeze(-1)
+        target_q_s_a = reward.unsqueeze(-1) + value_gamma.unsqueeze(-1) * target_q_s_a.squeeze(-1) * (1 - done
+                                                                                                      ).unsqueeze(-1)
     target_q_s_a = target_q_s_a.unsqueeze(-1)
 
     # shape: batch_size x tau' x tau x 1.
@@ -1092,7 +1093,7 @@ def fqf_nstep_td_error(
     # shape: batch_size x num_tau_prime_samples x num_tau_samples x 1.
     quantiles_hats = quantiles_hats[:, None, :, None].repeat([1, tau_prime, 1, 1])
 
-    abcd=torch.abs(quantiles_hats - ((bellman_errors < 0).float()).detach())
+    abcd = torch.abs(quantiles_hats - ((bellman_errors < 0).float()).detach())
     # shape: batch_size x tau_prime x tau x 1.
     quantile_huber_loss = (torch.abs(quantiles_hats - ((bellman_errors < 0).float()).detach()) * huber_loss) / kappa
 
@@ -1125,26 +1126,22 @@ def fqf_calculate_fraction_loss(q_tau_i, q_s_a_hats, quantiles, actions):
 
     with torch.no_grad():
         sa_quantiles = evaluate_quantile_at_action(q_tau_i, actions)
-        assert sa_quantiles.shape == (batch_size, num_quantiles-1, 1)
+        assert sa_quantiles.shape == (batch_size, num_quantiles - 1, 1)
 
     # NOTE: Proposition 1 in the paper requires F^{-1} is non-decreasing.
     # I relax this requirements and calculate gradients of quantiles even when
     # F^{-1} is not non-decreasing.
 
     values_1 = sa_quantiles - q_s_a_hats[:, :-1]
-    signs_1 = sa_quantiles > torch.cat([
-        q_s_a_hats[:, :1], sa_quantiles[:, :-1]], dim=1)
+    signs_1 = sa_quantiles > torch.cat([q_s_a_hats[:, :1], sa_quantiles[:, :-1]], dim=1)
     assert values_1.shape == signs_1.shape
 
     values_2 = sa_quantiles - q_s_a_hats[:, 1:]
-    signs_2 = sa_quantiles < torch.cat([
-        sa_quantiles[:, 1:], q_s_a_hats[:, -1:]], dim=1)
+    signs_2 = sa_quantiles < torch.cat([sa_quantiles[:, 1:], q_s_a_hats[:, -1:]], dim=1)
     assert values_2.shape == signs_2.shape
 
-    gradient_of_taus = (
-        torch.where(signs_1, values_1, -values_1)
-        + torch.where(signs_2, values_2, -values_2)
-    ).view(batch_size, num_quantiles-1)
+    gradient_of_taus = (torch.where(signs_1, values_1, -values_1) +
+                        torch.where(signs_2, values_2, -values_2)).view(batch_size, num_quantiles - 1)
     assert not gradient_of_taus.requires_grad
     assert gradient_of_taus.shape == quantiles[:, 1:-1].shape
 
@@ -1153,7 +1150,6 @@ def fqf_calculate_fraction_loss(q_tau_i, q_s_a_hats, quantiles, actions):
     fraction_loss = (gradient_of_taus * quantiles[:, 1:-1]).sum(dim=1).mean()
 
     return fraction_loss
-
 
 
 td_lambda_data = namedtuple('td_lambda_data', ['value', 'reward', 'weight'])

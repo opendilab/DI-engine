@@ -1424,8 +1424,11 @@ default*
 events.*
 
 
-cartpole_dqn/
 cartpole_dqn_seed0/
-cartpole_fqf/
 cartpole_fqf_seed0/
 default_experiment/
+bipedalwalker_ppo_seed0/
+gym_hybrid_ddpg_seed0/
+lunarlander_dqn_seed0/
+pendulum_ddpg_seed0/
+pendulum_ppo_seed0/

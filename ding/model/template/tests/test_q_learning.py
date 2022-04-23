@@ -122,18 +122,22 @@ class TestQLearning:
         if isinstance(act_shape, int):
             assert outputs['logit'].shape == (B, act_shape)
             assert outputs['q'].shape == (B, num_quantiles, act_shape)
-            assert outputs['quantiles'].shape == (B, num_quantiles+1)
+            assert outputs['quantiles'].shape == (B, num_quantiles + 1)
         elif len(act_shape) == 1:
             assert outputs['logit'].shape == (B, *act_shape)
             assert outputs['q'].shape == (B, num_quantiles, *act_shape)
-            assert outputs['quantiles'].shape == (B, num_quantiles+1)
+            assert outputs['quantiles'].shape == (B, num_quantiles + 1)
         else:
             for i, s in enumerate(act_shape):
                 assert outputs['logit'][i].shape == (B, s)
                 assert outputs['q'][i].shape == (B, num_quantiles, s)
-                assert outputs['quantiles'][i].shape == (B, num_quantiles+1)
-                assert outputs['q_tau_i'][i].shape == (B, num_quantiles-1, s)
-        self.output_check(model, outputs['q_tau_i'])
+                assert outputs['quantiles'][i].shape == (B, num_quantiles + 1)
+                assert outputs['quantiles_hats'][i].shape == (B, num_quantiles)
+                assert outputs['q_tau_i'][i].shape == (B, num_quantiles - 1, s)
+        self.output_check(model.head.quantiles_proposal, outputs['quantiles'])
+        self.output_check(model.head.fqf_fc, outputs['q'])
+        self.output_check(model.head.Q, outputs['q'])
+        self.output_check(model.encoder, outputs['q'])
 
     @pytest.mark.parametrize('obs_shape, act_shape', args)
     def test_qrdqn(self, obs_shape, act_shape):

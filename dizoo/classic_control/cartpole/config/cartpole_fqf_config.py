@@ -23,7 +23,8 @@ cartpole_fqf_config = dict(
         learn=dict(
             update_per_collect=3,
             batch_size=64,
-            learning_rate=0.001,
+            learning_rate_fraction=0.001,
+            learning_rate_quantile=0.001,
             target_update_freq=100,
             kappa=1.0,
         ),
@@ -31,6 +32,7 @@ cartpole_fqf_config = dict(
             n_sample=80,
             unroll_len=1,
         ),
+        eval=dict(evaluator=dict(eval_freq=40, )),
         other=dict(
             eps=dict(
                 type='exp',
