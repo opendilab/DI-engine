@@ -7,8 +7,8 @@ import numpy as np
 import math
 from easydict import EasyDict
 import ctools.pysc2.env.sc2_env as sc2_env
-from ctools.pysc2.env.sc2_env import SC2Env
-from ctools.pysc2.lib import protocol
+from pysc2.env.sc2_env import SC2Env
+from pysc2.lib import protocol
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
@@ -202,7 +202,6 @@ class SMACEnv(SC2Env, BaseEnv):
         self._observation_space = self.get_obs_space()
         self._action_space = self.action_helper.info(),
         self._reward_space = self.reward_helper.info(),
-
 
     def seed(self, seed, dynamic_seed=False):
         self._seed = seed
@@ -1632,7 +1631,6 @@ class SMACEnv(SC2Env, BaseEnv):
                     None,
                 )
         return obs_space
-
 
     @property
     def observation_space(self):

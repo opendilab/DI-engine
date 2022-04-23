@@ -136,6 +136,9 @@ setup(
         'slimevolleygym_env': [
             'slimevolleygym',
         ],
+        'smac_env': [
+            'pysc2',
+        ],
         'k8s': [
             'kubernetes',
         ],
