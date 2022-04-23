@@ -507,7 +507,7 @@ class EnsembleDoubleModel(nn.Module):
             sample = Predict.apply(inputs)
         else: 
             sample = forward(inputs)
-        rewards, next_obs = sample[:, :1], sample[:, 1:] + obs
+        rewards, next_obs = sample[:, 0], sample[:, 1:] + obs
 
         return rewards, next_obs
 

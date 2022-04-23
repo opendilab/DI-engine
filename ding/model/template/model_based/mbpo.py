@@ -404,7 +404,7 @@ class EnsembleDynamicsModel(nn.Module):
         model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
         sample = ensemble_sample[model_idxes, batch_idxes]
-        rewards, next_obs = sample[:, :1], sample[:, 1:]
+        rewards, next_obs = sample[:, 0], sample[:, 1:]
 
         return rewards, next_obs + obs
 

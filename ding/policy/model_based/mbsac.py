@@ -25,10 +25,10 @@ class MBSACPolicy(SACPolicy):
            1  ``value_expansion_horizon``          int         0              TODO
            2  ``value_expansion_norm``             bool        True
            3  ``value_expansion_type``             str         'mve'
-           4  ``value_expansion_grad_clip_norm``   float       .0
+           4  ``value_expansion_grad_clip_value``  float       .0
            5  ``value_gradient_horizon``           int         0
            6  ``value_gradient_norm``              bool        True 
-           7  ``value_gradient_grad_clip_norm``    float       .0
+           7  ``value_gradient_grad_clip_value``   float       .0
            == ===================================  ========    =============  ================================= =======================
        """
 
@@ -43,8 +43,8 @@ class MBSACPolicy(SACPolicy):
             # STEVE style value expansion (arXiv 1807.01675) will be supported in the future.
             value_expansion_type='mve', # 'steve' or 'mve'
             # (float) Gradient clips norm for value expansion.
-            # Gradient clip is deactivate when value_expansion_grad_clip_norm=0. 
-            value_expansion_grad_clip_norm=0,
+            # Gradient clip is deactivate when value_expansion_grad_clip_value=0. 
+            value_expansion_grad_clip_value=0,
 
             value_expansion_weight_decay=0,
 
@@ -53,8 +53,8 @@ class MBSACPolicy(SACPolicy):
             # (int) Whether to use value gradient norm 1/(H + 1).
             value_gradient_norm=True,
             # (float) Gradient clips norm for value gradient.
-            # Gradient clip is deactivate when value_gradient_grad_clip_norm=0.
-            value_gradient_grad_clip_norm=0,
+            # Gradient clip is deactivate when value_gradient_grad_clip_value=0.
+            value_gradient_grad_clip_value=0,
 
             value_gradient_weight_decay=0,
         )
@@ -73,14 +73,14 @@ class MBSACPolicy(SACPolicy):
         self._value_expansion_horizon = self._cfg.learn.value_expansion_horizon
         self._value_expansion_type = self._cfg.learn.value_expansion_type
         self._value_expansion_norm = self._cfg.learn.value_expansion_norm
-        self._value_expansion_grad_clip_norm = self._cfg.learn.value_expansion_grad_clip_norm
+        self._value_expansion_grad_clip_value = self._cfg.learn.value_expansion_grad_clip_value
         self._value_expansion_weight_decay = self._cfg.learn.value_expansion_weight_decay
         # TODO: implement steve style value expansion
         self._value_expansion_type = 'mve'
 
         self._value_gradient_horizon = self._cfg.learn.value_gradient_horizon
         self._value_gradient_norm = self._cfg.learn.value_gradient_norm
-        self._value_gradient_grad_clip_norm = self._cfg.learn.value_gradient_grad_clip_norm
+        self._value_gradient_grad_clip_value = self._cfg.learn.value_gradient_grad_clip_value
         self._value_gradient_weight_decay = self._cfg.learn.value_gradient_weight_decay
 
         self._history_vars = dict()
@@ -90,15 +90,15 @@ class MBSACPolicy(SACPolicy):
             self._model.critic.parameters(),
             lr=self._cfg.learn.learning_rate_q,
             weight_decay=self._value_expansion_weight_decay,
-            grad_clip_type='clip_norm' if self._value_expansion_grad_clip_norm else None,
-            clip_value=self._value_expansion_grad_clip_norm
+            grad_clip_type='clip_value' if self._value_expansion_grad_clip_value else None,
+            clip_value=self._value_expansion_grad_clip_value
         )
         self._optimizer_policy = Adam(
             self._model.actor.parameters(),
             lr=self._cfg.learn.learning_rate_policy,
             weight_decay=self._value_gradient_weight_decay,
-            grad_clip_type='clip_norm' if self._value_gradient_grad_clip_norm else None,
-            clip_value=self._value_gradient_grad_clip_norm
+            grad_clip_type='clip_value' if self._value_gradient_grad_clip_value else None,
+            clip_value=self._value_gradient_grad_clip_value
         )
 
         # assert (self._value_expansion_horizon > 0 or self._value_gradient_horizon > 0) \
