@@ -14,7 +14,7 @@ from ding.torch_utils import tensor_to_list
 from ding.utils import lists_to_dicts
 
 if TYPE_CHECKING:
-    from ding.framework import OnlineRLContext
+    from ding.framework import Context, OnlineRLContext
 
 
 class IMetric(ABC):

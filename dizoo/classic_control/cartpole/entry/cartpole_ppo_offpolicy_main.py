@@ -9,7 +9,7 @@ from ding.envs import BaseEnvManager, DingEnvWrapper
 from ding.policy import PPOOffPolicy
 from ding.model import VAC
 from ding.utils import set_pkg_seed, deep_merge_dicts
-from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config
+from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config
 
 
 def wrapped_cartpole_env():
@@ -64,4 +64,4 @@ def main(cfg, seed=0, max_iterations=int(1e10)):
 
 
 if __name__ == "__main__":
-    main(cartpole_ppo_offpolicy_config)
+    main(cartpole_offppo_config)

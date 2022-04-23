@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from gym_minigrid.wrappers import FlatObsWrapper, RGBImgPartialObsWrapper, ImgObsWrapper, ViewSizeWrapper
 from gym_minigrid.window import Window
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 
@@ -38,14 +38,13 @@ class MiniGridEnv(BaseEnv):
         # self._max_step = MINIGRID_INFO_DICT[self._env_id].max_step
         self._max_step = cfg.max_step
 
-
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._env_id)
             if self._env_id in ['MiniGrid-AKTDT-13x13-v0' or 'MiniGrid-AKTDT-13x13-1-v0']:
-                # customize the agent field of view size, note this must be an odd number 
+                # customize the agent field of view size, note this must be an odd number
                 # This also related to the observation space, see gym_minigrid.wrappers for more details
-                self._env = ViewSizeWrapper(self._env, agent_view_size=5)  
+                self._env = ViewSizeWrapper(self._env, agent_view_size=5)
             if self._env_id == 'MiniGrid-AKTDT-7x7-1-v0':
                 self._env = ViewSizeWrapper(self._env, agent_view_size=3)
             if self._flat_obs:

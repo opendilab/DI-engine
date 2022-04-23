@@ -79,5 +79,5 @@ create_config = ant_trex_ppo_create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c ant_trex_onppo_config.py -s 0`
-    from ding.entry import serial_pipeline_reward_model_trex_onpolicy
-    serial_pipeline_reward_model_trex_onpolicy((main_config, create_config), seed=0)
+    from ding.entry import serial_pipeline_trex_onpolicy
+    serial_pipeline_trex_onpolicy((main_config, create_config), seed=0)

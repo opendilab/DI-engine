@@ -1,16 +1,14 @@
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 qbert_r2d2_gtrxl_config = dict(
-    exp_name='qbert_r2d2_gtrxl',
+    exp_name='qbert_r2d2_gtrxl_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
         env_id='QbertNoFrameskip-v4',
-        frame_stack=4,
-        manager=dict(shared_memory=False, )
+        frame_stack=4
     ),
     policy=dict(
         cuda=True,
@@ -50,7 +48,8 @@ qbert_r2d2_gtrxl_config = dict(
             ),
             replay_buffer=dict(
                 replay_buffer_size=10000,
-                # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
+                # (Float type) How much prioritization is used: 0 means no prioritization
+                #   while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
                 beta=0.4,
@@ -65,11 +64,13 @@ qbert_r2d2_gtrxl_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='r2d2_gtrxl'),
 )
 qbert_r2d2_gtrxl_create_config = EasyDict(qbert_r2d2_gtrxl_create_config)
 create_config = qbert_r2d2_gtrxl_create_config
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c qbert_gtrxl_config.py -s 0
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

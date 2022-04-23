@@ -5,9 +5,9 @@ import gym_hybrid
 import copy
 import numpy as np
 from easydict import EasyDict
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common import EnvElementInfo, affine_transform
-from ding.torch_utils import to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.envs.common import affine_transform
+from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 
 

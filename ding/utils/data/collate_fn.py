@@ -48,7 +48,11 @@ def default_collate(batch: Sequence,
         - ret (:obj:`Union[torch.Tensor, Mapping, Sequence]`): the collated data, with batch size into each data field.\
             the return dtype depends on the original element dtype, can be [torch.Tensor, Mapping, Sequence].
     """
-    elem = batch[0]
+    try:
+        elem = batch[0]
+    except Exception as e:
+        print(e)
+
     elem_type = type(elem)
     if isinstance(batch, ttorch.Tensor):
         return batch.json()

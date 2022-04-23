@@ -1,5 +1,6 @@
 from .trainer import trainer, multistep_trainer
-from .data_processor import offpolicy_data_fetcher, data_pusher, offline_data_fetcher, offline_data_saver, sqil_data_pusher
+from .data_processor import offpolicy_data_fetcher, data_pusher, offline_data_fetcher, offline_data_saver, \
+    sqil_data_pusher
 from .collector import inferencer, rolloutor, TransitionList
 from .evaluator import interaction_evaluator
 from .pace_controller import pace_controller

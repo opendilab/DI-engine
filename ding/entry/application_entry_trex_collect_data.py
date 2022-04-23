@@ -16,16 +16,16 @@ from ding.utils.data import default_collate
 
 
 def collect_episodic_demo_data_for_trex(
-        input_cfg: Union[str, dict],
-        seed: int,
-        collect_count: int,
-        rank: int,
-        save_cfg_path: str,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        state_dict: Optional[dict] = None,
-        state_dict_path: Optional[str] = None,
-) -> None:
+    input_cfg: Union[str, dict],
+    seed: int,
+    collect_count: int,
+    rank: int,
+    save_cfg_path: str,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    state_dict: Optional[dict] = None,
+    state_dict_path: Optional[str] = None,
+):
     r"""
     Overview:
         Collect episodic demonstration data by the trained policy for trex specifically.
@@ -109,7 +109,7 @@ def trex_collecting_data(args=None):
         cfg, create_cfg = deepcopy(args.cfg)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     compiled_cfg = compile_config(cfg, seed=args.seed, auto=True, create_cfg=create_cfg, save_cfg=False)
-    offline_data_path = compiled_cfg.reward_model.offline_data_path
+    data_path = compiled_cfg.reward_model.data_path
     expert_model_path = compiled_cfg.reward_model.expert_model_path
     checkpoint_min = compiled_cfg.reward_model.checkpoint_min
     checkpoint_max = compiled_cfg.reward_model.checkpoint_max
@@ -122,6 +122,7 @@ def trex_collecting_data(args=None):
     learning_rewards = []
     episodes_data = []
     for checkpoint in checkpoints:
+        num_per_ckpt = 1
         model_path = expert_model_path + \
         '/ckpt/iteration_' + checkpoint + '.pth.tar'
         seed = args.seed + (int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)
@@ -129,37 +130,33 @@ def trex_collecting_data(args=None):
             deepcopy(args.cfg),
             seed,
             state_dict_path=model_path,
-            save_cfg_path=offline_data_path,
-            collect_count=1,
+            save_cfg_path=data_path,
+            collect_count=num_per_ckpt,
             rank=(int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step) + 1
         )
-        data_for_save[(int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)] = exp_data[0]
-        obs = list(default_collate(exp_data[0])['obs'].numpy())
-        learning_rewards.append(default_collate(exp_data[0])['reward'].tolist())
-        sum_reward = torch.sum(default_collate(exp_data[0])['reward']).item()
-        learning_returns.append(sum_reward)
+        data_for_save[(int(checkpoint) - int(checkpoint_min)) // int(checkpoint_step)] = exp_data
+        obs = [list(default_collate(exp_data[i])['obs'].numpy()) for i in range(len(exp_data))]
+        rewards = [default_collate(exp_data[i])['reward'].tolist() for i in range(len(exp_data))]
+        sum_rewards = [torch.sum(default_collate(exp_data[i])['reward']).item() for i in range(len(exp_data))]
+
+        learning_rewards.append(rewards)
+        learning_returns.append(sum_rewards)
         episodes_data.append(obs)
     offline_data_save_type(
-        data_for_save,
-        offline_data_path + '/suboptimal_data.pkl',
-        data_type=cfg.policy.collect.get('data_type', 'naive')
+        data_for_save, data_path + '/suboptimal_data.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     # if not compiled_cfg.reward_model.auto: more feature
     offline_data_save_type(
-        episodes_data, offline_data_path + '/episodes_data.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
+        episodes_data, data_path + '/episodes_data.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     offline_data_save_type(
-        learning_returns,
-        offline_data_path + '/learning_returns.pkl',
-        data_type=cfg.policy.collect.get('data_type', 'naive')
+        learning_returns, data_path + '/learning_returns.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     offline_data_save_type(
-        learning_rewards,
-        offline_data_path + '/learning_rewards.pkl',
-        data_type=cfg.policy.collect.get('data_type', 'naive')
+        learning_rewards, data_path + '/learning_rewards.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     offline_data_save_type(
-        checkpoints, offline_data_path + '/checkpoints.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
+        checkpoints, data_path + '/checkpoints.pkl', data_type=cfg.policy.collect.get('data_type', 'naive')
     )
     return checkpoints, episodes_data, learning_returns, learning_rewards
 

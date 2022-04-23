@@ -68,17 +68,19 @@ def serial_pipeline_gail(
         expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
+    if 'data_path' not in cfg.reward_model:
+        cfg.reward_model.data_path = cfg.exp_name
     # Load expert data
     if collect_data:
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:
             expert_cfg.policy.other.eps.collect = -1
         if expert_cfg.policy.get('load_path', None) is None:
-            expert_cfg.policy.load_path = cfg.reward_model.expert_load_path
+            expert_cfg.policy.load_path = cfg.reward_model.expert_model_path
         collect_demo_data(
             (expert_cfg, expert_create_cfg),
             seed,
             state_dict_path=expert_cfg.policy.load_path,
-            expert_data_path=cfg.reward_model.expert_data_path,
+            expert_data_path=cfg.reward_model.data_path + '/expert_data.pkl',
             collect_count=cfg.reward_model.collect_count
         )
     # Create main components: env, policy
@@ -151,9 +153,9 @@ def serial_pipeline_gail(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # update train_data reward
-            reward_model.estimate(train_data)
-            learner.train(train_data, collector.envstep)
+            # update train_data reward using the augmented reward
+            train_data_augmented = reward_model.estimate(train_data)
+            learner.train(train_data_augmented, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:

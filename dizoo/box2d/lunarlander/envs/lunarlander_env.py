@@ -2,8 +2,7 @@ from typing import Any, List, Union, Optional
 import time
 import gym
 import numpy as np
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 from ding.envs.common import affine_transform
@@ -65,7 +64,7 @@ class LunarLanderEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transferred to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 
     def enable_save_replay(self, replay_path: Optional[str] = None) -> None:

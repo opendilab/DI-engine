@@ -4,6 +4,7 @@ from easydict import EasyDict
 import torch
 
 from ding.torch_utils import to_device
+import gym
 
 
 class PolicyFactory:
@@ -33,7 +34,23 @@ class PolicyFactory:
 
             actions = {}
             for env_id in data:
-                actions[env_id] = {'action': torch.as_tensor(action_space.sample())}
+                if not isinstance(action_space, list):
+                    action = torch.as_tensor(action_space.sample())
+                    if isinstance(action_space, gym.spaces.MultiDiscrete):
+                        action = [torch.LongTensor([v]) for v in action]
+                    actions[env_id] = {'action': action}
+                elif 'global_state' in data[env_id].keys():
+                    # for smac
+                    logit = torch.ones_like(data[env_id]['action_mask'])
+                    logit[data[env_id]['action_mask'] == 0.0] = -1e8
+                    dist = torch.distributions.categorical.Categorical(logits=torch.Tensor(logit))
+                    actions[env_id] = {'action': dist.sample(), 'logit': torch.as_tensor(logit)}
+                else:
+                    # for gfootball
+                    actions[env_id] = {
+                        'action': torch.as_tensor([action_space_agent.sample() for action_space_agent in action_space]),
+                        'logit': torch.ones([len(action_space), action_space[0].n])
+                    }
             return actions
 
         def reset(*args, **kwargs) -> None:

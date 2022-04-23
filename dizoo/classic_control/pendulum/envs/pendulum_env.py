@@ -1,8 +1,7 @@
 from typing import Any, Union, Optional
 import gym
 import numpy as np
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.common_function import affine_transform
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray, to_list
