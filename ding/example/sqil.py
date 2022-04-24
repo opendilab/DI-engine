@@ -9,34 +9,11 @@ from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, \
-    eps_greedy_handler, CkptSaver
+    eps_greedy_handler, CkptSaver, eps_greedy_masker, sqil_data_pusher
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import main_config as ex_main_config
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import create_config as ex_create_config
 from dizoo.classic_control.cartpole.config.cartpole_sqil_config import main_config, create_config
-
-
-def eps_greedy_masker():
-
-    def _masker(ctx):
-        # for collect expert data without randomness
-        ctx.collect_kwargs['eps'] = -1
-
-    return _masker
-
-
-def sqil_data_pusher(cfg, buffer_, expert):
-
-    def _pusher(ctx):
-        for t in ctx.trajectories:
-            if expert:
-                t.reward = torch.ones_like(t.reward)
-            else:
-                t.reward = torch.zeros_like(t.reward)
-            buffer_.push(t)
-        ctx.trajectories = None
-
-    return _pusher
 
 
 def main():

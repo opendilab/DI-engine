@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Union
 from easydict import EasyDict
 import logging
 import numpy as np
@@ -6,12 +6,12 @@ from ding.policy import Policy
 from ding.framework import task
 
 if TYPE_CHECKING:
-    from ding.framework import Context
+    from ding.framework import OnlineRLContext, OfflineRLContext
 
 
 def trainer(cfg: EasyDict, policy: Policy) -> Callable:
 
-    def _train(ctx: "Context"):
+    def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
 
         if ctx.train_data is None:  # no enough data from data fetcher
             return
@@ -28,7 +28,7 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
 
 def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
 
-    def _train(ctx: "Context"):
+    def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
 
         if ctx.train_data is None:  # no enough data from data fetcher
             return

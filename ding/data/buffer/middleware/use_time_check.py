@@ -1,9 +1,11 @@
+from typing import Callable, Any, List, Optional, Union, TYPE_CHECKING
 from collections import defaultdict
-from typing import Callable, Any, List, Optional, Union
 from ding.data.buffer import BufferedData
+if TYPE_CHECKING:
+    from ding.data.buffer.buffer import Buffer
 
 
-def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable:  # noqa
+def use_time_check(buffer_: 'Buffer', max_use: int = float("inf")) -> Callable:
     """
     Overview:
         This middleware aims to check the usage times of data in buffer. If the usage times of a data is

@@ -1,5 +1,3 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_sql_config = dict(
@@ -11,7 +9,6 @@ pong_sql_config = dict(
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, reset_inplace=True)
     ),
     policy=dict(
         cuda=True,
@@ -50,4 +47,6 @@ pong_sql_create_config = EasyDict(pong_sql_create_config)
 create_config = pong_sql_create_config
 
 if __name__ == '__main__':
+    # or you can enter `ding -m serial -c pong_sql_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

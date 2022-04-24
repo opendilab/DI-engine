@@ -1,42 +1,36 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
-pong_ppo_config = dict(
-    exp_name='ppo_offpolicy_pong',
+qbert_offppo_config = dict(
+    exp_name='qbert_offppo_seed0',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
-        stop_value=20,
-        env_id='PongNoFrameskip-v4',
-        frame_stack=4,
-        manager=dict(shared_memory=False, )
+        stop_value=10000000000,
+        env_id='QbertNoFrameskip-v4',
+        frame_stack=4
     ),
     policy=dict(
         cuda=True,
-        random_collect_size=2048,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
-            encoder_hidden_size_list=[64, 64, 128],
+            encoder_hidden_size_list=[32, 64, 64, 128],
             actor_head_hidden_size=128,
             critic_head_hidden_size=128,
+            critic_head_layer_num=2,
         ),
         learn=dict(
             update_per_collect=24,
             batch_size=128,
             # (bool) Whether to normalize advantage. Default to False.
             adv_norm=False,
-            learning_rate=0.0002,
+            learning_rate=0.0001,
             # (float) loss weight of the value network, the weight of policy network is set to 1
-            value_weight=0.5,
+            value_weight=1.0,
             # (float) loss weight of the entropy regularization, the weight of policy network is set to 1
-            entropy_weight=0.01,
+            entropy_weight=0.03,
             clip_ratio=0.1,
-            learner=dict(
-                hook=dict(save_ckpt_after_iter=1000)
-            ),
         ),
         collect=dict(
             # (int) collect n_sample data, train model n_iteration times
@@ -48,24 +42,23 @@ pong_ppo_config = dict(
         eval=dict(evaluator=dict(eval_freq=1000, )),
         other=dict(replay_buffer=dict(
             replay_buffer_size=100000,
-            max_use=5,
+            max_use=3,
         ), ),
     ),
 )
-pong_ppo_config = EasyDict(pong_ppo_config)
-main_config = pong_ppo_config
+main_config = EasyDict(qbert_offppo_config)
 
-pong_ppo_create_config = dict(
+qbert_offppo_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    # env_manager=dict(type='subprocess'),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ppo_offpolicy'),
 )
-pong_ppo_create_config = EasyDict(pong_ppo_create_config)
-create_config = pong_ppo_create_config
+create_config = EasyDict(qbert_offppo_create_config)
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c qbert_offppo_config.py -s 0
+    from ding.entry import serial_pipeline
     serial_pipeline((main_config, create_config), seed=0)

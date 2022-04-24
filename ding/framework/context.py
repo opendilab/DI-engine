@@ -51,6 +51,7 @@ class OnlineRLContext(Context):
         # collect
         self.collect_kwargs = {}
         self.trajectories = None
+        self.episodes = None
         self.trajectory_end_idx = []
         # eval
         self.eval_value = -np.inf

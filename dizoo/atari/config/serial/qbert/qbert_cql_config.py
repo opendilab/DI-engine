@@ -1,16 +1,14 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 qbert_cql_config = dict(
+    exp_name='qbert_cql_seed0',
     env=dict(
-        collector_env_num=1,
+        collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
-        frame_stack=4,
-        manager=dict(shared_memory=False, )
+        frame_stack=4
     ),
     policy=dict(
         cuda=True,
@@ -34,7 +32,10 @@ qbert_cql_config = dict(
         collect=dict(
             n_sample=100,
             data_type='naive',
-            data_path='./default_experiment/expert.pkl',
+            # Users should add their own data path here. Data path should lead to a file to store data or load the stored data.
+            # Absolute path is recommended.
+            # In DI-engine, it is usually located in ``exp_name`` directory
+            data_path='data_path_placeholder',
         ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
@@ -55,10 +56,12 @@ qbert_cql_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='cql_discrete'),
 )
 create_config = EasyDict(qbert_cql_create_config)
 
 if __name__ == '__main__':
-    serial_pipeline((main_config, create_config), seed=0)
+    # or you can enter ding -m serial_offline -c qbert_cql_config.py -s 0
+    from ding.entry import serial_pipeline_offline
+    serial_pipeline_offline((main_config, create_config), seed=0)

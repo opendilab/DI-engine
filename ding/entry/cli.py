@@ -197,8 +197,8 @@ def cli(
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
             serial_pipeline_sqil(config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_reward_model':
-            from .serial_entry_reward_model import serial_pipeline_reward_model
-            serial_pipeline_reward_model(config, seed, max_train_iter=train_iter, max_env_step=env_step)
+            from .serial_entry_reward_model_offpolicy import serial_pipeline_reward_model_offpolicy
+            serial_pipeline_reward_model_offpolicy(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_gail':
             from .serial_entry_gail import serial_pipeline_gail
             expert_config = input("Enter the name of the config you used to generate your expert model: ")
@@ -213,11 +213,11 @@ def cli(
             + "place, i.e., {}{}".format(config[:config.find('_dqfd')], '_dqfd_config.py')
             serial_pipeline_dqfd(config, expert_config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_trex':
-            from .serial_entry_trex import serial_pipeline_reward_model_trex
-            serial_pipeline_reward_model_trex(config, seed, max_train_iter=train_iter, max_env_step=env_step)
+            from .serial_entry_trex import serial_pipeline_trex
+            serial_pipeline_trex(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_trex_onpolicy':
-            from .serial_entry_trex_onpolicy import serial_pipeline_reward_model_trex_onpolicy
-            serial_pipeline_reward_model_trex_onpolicy(config, seed, max_train_iter=train_iter, max_env_step=env_step)
+            from .serial_entry_trex_onpolicy import serial_pipeline_trex_onpolicy
+            serial_pipeline_trex_onpolicy(config, seed, max_train_iter=train_iter, max_env_step=env_step)
         elif mode == 'serial_offline':
             from .serial_entry_offline import serial_pipeline_offline
             serial_pipeline_offline(config, seed, max_train_iter=train_iter)
