@@ -19,8 +19,13 @@ CONFIG = dict(
                 hook=dict(log_show_after_iter=10),
             ),
         ),
+        collect=dict(
+            n_sample=16,
+            unroll_len=1,
+            n_episode=16,
+        ),
         eval=dict(
-            evaluator=dict(eval_freq=100),
+            evaluator=dict(eval_freq=10),
         ),
         other=dict(
             eps=dict(
@@ -32,15 +37,8 @@ CONFIG = dict(
         ),
     ),
     env=dict(
-        n_evaluator_episode=4,
-        stop_value=0.9,
-    ),
-    ctx=dict(
-        collect_kwargs=dict(eps=0.1),
-        last_eval_iter=-1,
-        train_iter=0,
-        env_step=0,
-        env_episode=0,
+        n_evaluator_episode=5,
+        stop_value=2.0,
     ),
 )
 CONFIG = EasyDict(CONFIG)
@@ -79,6 +77,7 @@ class MockEnv(Mock):
         self.env_num = env_num
         self.obs_dim = obs_dim
         self.closed = False
+        self._reward_grow_indicator = 1
     
     @property
     def ready_obs(self) -> tnp.array:
@@ -99,13 +98,13 @@ class MockEnv(Mock):
     def step(self, actions: tnp.ndarray) -> List[tnp.ndarray]:
         timesteps = []
         for i in range(self.env_num):
-            timestep = dict()
-            # TODO:
-            timestep['obs'] = torch.rand(self.obs_dim)
-            timestep['reward'] = 1.0
-            timestep['done'] = True
-            timestep['info'] = {'final_eval_reward': 1.0}
-            timestep['env_id'] = i
-
+            timestep = dict(
+                obs=torch.rand(self.obs_dim),
+                reward=1.0,
+                done=True,
+                info={'final_eval_reward': self._reward_grow_indicator * 1.0},
+                env_id=i,
+            )
             timesteps.append(tnp.array(timestep))
+        self._reward_grow_indicator += 1   # final_eval_reward will increase as step method is called
         return timesteps

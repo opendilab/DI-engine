@@ -2,9 +2,9 @@ import pytest
 import torch
 import copy
 from unittest.mock import Mock, patch
-from ding.framework import Context
-from ding.framework.middleware.functional.trainer import trainer, multistep_trainer
-from ding.framework.middleware.tests.mock_for_test import CONFIG
+from ding.framework import OnlineRLContext
+from ding.framework.middleware import trainer, multistep_trainer
+from ding.framework.middleware.tests import CONFIG
 
 class MockPolicy(Mock):
     # MockPolicy class for train mode
@@ -22,25 +22,25 @@ class MultiStepMockPolicy(Mock):
 @pytest.mark.lxl
 def test_trainer():
     cfg = copy.deepcopy(CONFIG)
-    ctx = Context(CONFIG.ctx)
+    ctx = OnlineRLContext()
     ctx.train_data = {'data': torch.rand(4, 4)}
     with patch("ding.policy.Policy",  MockPolicy):
         policy = MockPolicy()
-        for _ in range(100):
+        for _ in range(30):
             trainer(cfg, policy)(ctx)
-    assert ctx.train_iter == 100
+    assert ctx.train_iter == 30
     assert "total_loss" in ctx.train_output
 
 
 @pytest.mark.lxl
 def test_multistep_trainer():
     cfg = copy.deepcopy(CONFIG)
-    ctx = Context(CONFIG.ctx)
+    ctx = OnlineRLContext()
     ctx.train_data = {'data': torch.rand(4, 4)}
     with patch("ding.policy.Policy",  MultiStepMockPolicy):
         policy = MultiStepMockPolicy()
-        for _ in range(100):
+        for _ in range(30):
             multistep_trainer(cfg, policy)(ctx)
-    assert ctx.train_iter == 200
+    assert ctx.train_iter == 60
     assert "total_loss" in ctx.train_output[0]
     
