@@ -1,2 +1,3 @@
 from .pong_dqn_config import pong_dqn_config, pong_dqn_create_config
 from .pong_dqn_envpool_config import pong_dqn_envpool_config, pong_dqn_envpool_create_config
+from .pong_fqf_config import pong_fqf_config, pong_fqf_create_config
