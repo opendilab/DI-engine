@@ -126,10 +126,10 @@ class BCOPolicy(Policy):
         self._unroll_len = self._cfg.collect.unroll_len
         #self._gamma = self._cfg.discount_factor  # necessary for parallel
         #self._nstep = self._cfg.nstep  # necessary for parallel
-        self._collect_model = model_wrap(self._model, wrapper_name='argmax_sample')
+        self._collect_model = model_wrap(self._model, wrapper_name='eps_greedy_sample')
         self._collect_model.reset()
 
-    def _forward_collect(self, data: Dict[int, Any]) -> Dict[int, Any]:
+    def _forward_collect(self, data: Dict[int, Any], eps: float) -> Dict[int, Any]:
         r"""
         Overview:
             Forward function for collect mode with eps_greedy
@@ -144,7 +144,7 @@ class BCOPolicy(Policy):
             data = to_device(data, self._device)
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data)
+            output = self._collect_model.forward(data, eps=eps)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)

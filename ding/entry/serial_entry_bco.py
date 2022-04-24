@@ -1,25 +1,23 @@
-from ding.model.common.head import DiscreteHead
-from typing import Union, Optional, List, Any, Tuple
-import time
 import os
+import time
+import copy
+import pickle
 import torch
+import torch.nn as nn
+from functools import partial
 from tensorboardX import SummaryWriter
 from torch.utils.data import Dataset, DataLoader
+from typing import Union, Optional, List, Any, Tuple, Dict
 
-from ding.worker import BaseLearner, create_serial_collector,\
-    InteractionSerialEvaluator
+from ding.model.common.head import DiscreteHead
+from ding.worker import BaseLearner, BaseSerialCommander, InteractionSerialEvaluator, create_serial_collector
 from ding.config import read_config, compile_config
-from ding.utils import set_pkg_seed, get_rank, dist_init
+from ding.utils import set_pkg_seed
 from ding.envs import get_vec_env_setting, create_env_manager
-from functools import partial
-import numpy as np
 from ding.policy.common_utils import default_preprocess_learn
-import pickle
-import torch.nn as nn
-from ding.policy import create_policy, PolicyFactory
-from ding.utils import MODEL_REGISTRY, SequenceType, squeeze
+from ding.policy import create_policy
+from ding.utils import SequenceType, squeeze
 from ding.model.common.encoder import FCEncoder, ConvEncoder
-from typing import List, Dict
 
 
 class InverseDynamicsModel(nn.Module):
@@ -185,13 +183,8 @@ def serial_pipeline_bco(
     expert_cfg = compile_config(
         expert_cfg, seed=seed, env=env_fn, auto=True, create_cfg=expert_create_cfg, save_cfg=True
     )
-    # 保留
-    if cfg.policy.learn.multi_gpu:
-        rank, world_size = dist_init()
-    else:
-        rank, world_size = 0, 1
     # Random seed
-    set_pkg_seed(cfg.seed + rank, use_cuda=cfg.policy.cuda)
+    set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     # Create main components: env, policy
     if env_setting is None:
         env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
@@ -202,31 +195,25 @@ def serial_pipeline_bco(
     if cfg.policy.collect.demonstration_model_path is None:
         with open(cfg.policy.collect.demonstration_offline_data_path, 'rb') as f:
             data = pickle.load(f)
-            length = len(data)
-            train_data_length = length * 9 // 10
-            text_data_length = length - train_data_length
-
-        learn_dataset = data[:train_data_length]
-        expert_learn_dataset = load_expertdata(learn_dataset)
+            expert_learn_dataset = load_expertdata(data)
     else:
-        # TODO(lisong):cfg should be expert_cfg. we set this as cfg to avoid the issue of eps
-        expert_policy = create_policy(cfg.policy, model=expert_model, enable_field=['collect'])
+        expert_policy = create_policy(expert_cfg.policy, model=expert_model, enable_field=['collect'])
         expert_collector_env = create_env_manager(
             expert_cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg]
         )
-        expert_collector_env.seed(cfg.seed)
+        expert_collector_env.seed(expert_cfg.seed)
         expert_policy.collect_mode.load_state_dict(
             torch.load(cfg.policy.collect.demonstration_model_path, map_location='cpu')
         )
 
         expert_collector = create_serial_collector(
-            cfg.policy.collect.collector,  # for episode collector 
+            cfg.policy.collect.collector,  # for episode collector
             env=expert_collector_env,
             policy=expert_policy.collect_mode,
             exp_name=expert_cfg.exp_name
         )
-
-        expert_data = expert_collector.collect(n_episode=10)
+        policy_kwargs = {'eps': 0}
+        expert_data = expert_collector.collect(n_episode=100, policy_kwargs=policy_kwargs)
         expert_learn_dataset = load_expertdata(expert_data)
         expert_collector.reset_policy(expert_policy.collect_mode)
 
@@ -248,25 +235,30 @@ def serial_pipeline_bco(
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
+    commander = BaseSerialCommander(
+        cfg.policy.other.commander, learner, collector, evaluator, None, policy=policy.command_mode
+    )
     learned_model = InverseDynamicsModel(cfg.policy.model.obs_shape, cfg.policy.model.action_shape)
-
     # ==========
     # Main loop
     # ==========
     learner.call_hook('before_run')
     end = time.time()
     m = nn.Softmax(dim=-1)
+    collect_episode = copy.deepcopy(cfg.policy.collect.n_episode)
+    agent_data = list()
     for epoch in range(cfg.policy.learn.train_epoch):
+        collect_kwargs = commander.step()
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
-
-        # Improve InverseDynamicsModel by agent data.(produced by policy)
-        # TODO(lisong): why all data['action'] is 1?
-        new_data = collector.collect(n_episode=cfg.policy.collect.n_episode, train_iter=learner.train_iter)
-        learn_dataset = load_agentdata(new_data)
+        new_data = collector.collect(
+            n_episode=collect_episode, train_iter=learner.train_iter, policy_kwargs=collect_kwargs
+        )
+        agent_data = agent_data + new_data
+        learn_dataset = load_agentdata(agent_data)
         learn_dataloader = DataLoader(learn_dataset, cfg.policy.learn.batch_size, sampler=None, num_workers=3)
         for i, train_data in enumerate(learn_dataloader):
             learned_model = train_state_trainsition_model(train_data, learned_model, 10)
@@ -288,7 +280,7 @@ def serial_pipeline_bco(
             learner.train(train_data, collector.envstep)
             end = time.time()
         learner.policy.get_attribute('lr_scheduler').step()
-
+        collect_episode = int(cfg.policy.collect.n_episode * cfg.policy.collect.alpha)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
 
