@@ -58,7 +58,7 @@ def main():
         task.use(sqil_data_pusher(cfg, expert_buffer, expert=True))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, [(buffer_, 0.5), (expert_buffer, 0.5)]))
         task.use(CkptSaver(cfg, policy, train_freq=100))
-        task.run(max_step=100000)
+        task.run()
 
 
 if __name__ == "__main__":

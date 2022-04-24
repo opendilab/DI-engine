@@ -46,7 +46,7 @@ def main():
         task.use(gae_estimator(cfg, policy.collect_mode, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, {'policy': policy_buffer, 'value': value_buffer}))
         task.use(CkptSaver(cfg, policy, train_freq=100))
-        task.run(max_step=100000)
+        task.run()
 
 
 if __name__ == "__main__":

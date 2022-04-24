@@ -41,7 +41,7 @@ def main():
         task.use(data_pusher(cfg, buffer_))
         task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_, reward_model=reward_model))
         task.use(CkptSaver(cfg, policy, train_freq=100))
-        task.run(max_step=100000)
+        task.run()
 
 
 if __name__ == "__main__":

@@ -152,7 +152,7 @@ class Task:
             patterns = [patterns]
         return any([fnmatch.filter(self.labels, p) for p in patterns])
 
-    def run(self, max_step: int = int(1e10)) -> None:
+    def run(self, max_step: int = int(1e12)) -> None:
         """
         Overview:
             Execute the iterations, when reach the max_step or task.finish is true,

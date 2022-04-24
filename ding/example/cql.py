@@ -33,7 +33,7 @@ def main():
         task.use(offline_data_fetcher(cfg, dataset))
         task.use(trainer(cfg, policy.learn_mode))
         task.use(CkptSaver(cfg, policy, train_freq=100))
-        task.run(max_step=100000)
+        task.run()
 
 
 if __name__ == "__main__":
