@@ -64,6 +64,9 @@ def main(cfg, create_cfg, seed=0):
             if train_data is None:
                 break
             learner.train(train_data, collector.envstep)
+        
+        if collector.envstep >= 10000000:
+            break
 
 
 if __name__ == "__main__":
