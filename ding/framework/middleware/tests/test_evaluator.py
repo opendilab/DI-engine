@@ -11,8 +11,8 @@ from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
 def test_interaction_evaluator():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
-    with patch("ding.policy.Policy",  MockPolicy):
-        with patch("ding.envs.BaseEnvManagerV2",  MockEnv):
+    with patch("ding.policy.Policy", MockPolicy):
+        with patch("ding.envs.BaseEnvManagerV2", MockEnv):
             with task.start():
                 policy = MockPolicy()
                 env = MockEnv()
