@@ -4,7 +4,7 @@ from ding.data.buffer import DequeBuffer
 
 from ding.framework import Context, OnlineRLContext, OfflineRLContext
 from ding.framework.middleware.functional.data_processor import \
-    data_pusher, offpolicy_data_fetcher,offline_data_fetcher,offline_data_saver, sqil_data_pusher
+    data_pusher, offpolicy_data_fetcher, offline_data_fetcher, offline_data_saver, sqil_data_pusher
 
 from ding.data.buffer.middleware import PriorityExperienceReplay
 
@@ -16,28 +16,26 @@ import math
 import os
 import copy
 
+
 @pytest.mark.unittest
 def test_data_pusher():
     buffer = DequeBuffer(size=10)
     ctx = OnlineRLContext()
     ctx.trajectories = [i for i in range(5)]
-    data_pusher(cfg = None, buffer_ = buffer)(ctx)
-    assert buffer.count() == 5 
+    data_pusher(cfg=None, buffer_=buffer)(ctx)
+    assert buffer.count() == 5
 
     buffer = DequeBuffer(size=10)
     ctx = OnlineRLContext()
     ctx.episodes = [i for i in range(5)]
-    data_pusher(cfg = None, buffer_ = buffer)(ctx)
-    assert buffer.count() == 5 
+    data_pusher(cfg=None, buffer_=buffer)(ctx)
+    assert buffer.count() == 5
 
-def offpolicy_data_fetcher_type_buffer_helper(priority = 0.5, use_deque = True):
-    cfg = EasyDict({'policy':{'learn':{'batch_size':20}}})
+
+def offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_deque=True):
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 20}}})
     buffer = DequeBuffer(size=20)
-    buffer.use(
-            PriorityExperienceReplay(
-                buffer = buffer
-            )
-        )
+    buffer.use(PriorityExperienceReplay(buffer=buffer))
     for i in range(20):
         buffer.push({'obs': i, 'reward': 1, 'info': 'xxx'})
     ctx = OnlineRLContext()
@@ -47,13 +45,13 @@ def offpolicy_data_fetcher_type_buffer_helper(priority = 0.5, use_deque = True):
     else:
         ctx.train_output = {'priority': [priority for _ in range(20)]}
 
-    func_generator = offpolicy_data_fetcher(cfg = cfg, buffer_ = buffer)(ctx)
+    func_generator = offpolicy_data_fetcher(cfg=cfg, buffer_=buffer)(ctx)
     try:
         next(func_generator)
     except:
         pass
     assert len(ctx.train_data) == cfg.policy.learn.batch_size
-    assert all(d['obs'] >= 0 and i < 20 and isinstance(i,int) for d in ctx.train_data)
+    assert all(d['obs'] >= 0 and i < 20 and isinstance(i, int) for d in ctx.train_data)
     assert [d['obs'] for d in ctx.train_data] == [i for i in range(20)]
     assert [d['reward'] for d in ctx.train_data] == [1 for i in range(20)]
     assert [d['info'] for d in ctx.train_data] == ['xxx' for i in range(20)]
@@ -70,14 +68,13 @@ def offpolicy_data_fetcher_type_buffer_helper(priority = 0.5, use_deque = True):
 
 def test_offpolicy_data_fetcher_type_buffer():
     # if isinstance(buffer_, Buffer):
-    offpolicy_data_fetcher_type_buffer_helper(priority=0.5,use_deque=True)
-    offpolicy_data_fetcher_type_buffer_helper(priority=0.3,use_deque=False)
-    
+    offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_deque=True)
+    offpolicy_data_fetcher_type_buffer_helper(priority=0.3, use_deque=False)
 
 
 def test_offpolicy_data_fetcher_type_list():
     #elif isinstance(buffer_, List)
-    cfg = EasyDict({'policy':{'learn':{'batch_size':5}}})
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
     buffer = DequeBuffer(size=20)
     for i in range(20):
         buffer.push(i)
@@ -85,16 +82,16 @@ def test_offpolicy_data_fetcher_type_list():
     buffer1 = copy.deepcopy(buffer)
     buffer2 = copy.deepcopy(buffer)
     buffer3 = copy.deepcopy(buffer)
-    buffer_list = [(buffer1,1),(buffer2,2),(buffer3,3)]
+    buffer_list = [(buffer1, 1), (buffer2, 2), (buffer3, 3)]
 
-    next(offpolicy_data_fetcher(cfg = cfg, buffer_ = buffer_list)(ctx))
+    next(offpolicy_data_fetcher(cfg=cfg, buffer_=buffer_list)(ctx))
     assert len(ctx.train_data) == cfg.policy.learn.batch_size * (1 + 2 + 3)
-    assert all(i >= 0 and i < 20 and isinstance(i,int) for i in ctx.train_data)
+    assert all(i >= 0 and i < 20 and isinstance(i, int) for i in ctx.train_data)
 
 
 def test_offpolicy_data_fetcher_type_dict():
     #elif isinstance(buffer_, Dict)
-    cfg = EasyDict({'policy':{'learn':{'batch_size':5}}})
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
     buffer = DequeBuffer(size=20)
     for i in range(20):
         buffer.push(i)
@@ -102,38 +99,41 @@ def test_offpolicy_data_fetcher_type_dict():
     buffer1 = copy.deepcopy(buffer)
     buffer2 = copy.deepcopy(buffer)
     buffer3 = copy.deepcopy(buffer)
-    buffer_dict = {'key1':buffer1, 'key2':buffer2, 'key3':buffer3}
+    buffer_dict = {'key1': buffer1, 'key2': buffer2, 'key3': buffer3}
 
-    next(offpolicy_data_fetcher(cfg = cfg, buffer_ = buffer_dict)(ctx))
+    next(offpolicy_data_fetcher(cfg=cfg, buffer_=buffer_dict)(ctx))
     assert all(len(v) == cfg.policy.learn.batch_size for k, v in ctx.train_data.items())
-    assert all(all(i >= 0 and i < 20 and isinstance(i,int) for i in v) for k, v in ctx.train_data.items())
+    assert all(all(i >= 0 and i < 20 and isinstance(i, int) for i in v) for k, v in ctx.train_data.items())
+
 
 @pytest.mark.unittest
 def test_offpolicy_data_fetcher():
     test_offpolicy_data_fetcher_type_buffer()
     test_offpolicy_data_fetcher_type_list()
-    test_offpolicy_data_fetcher_type_dict()    
-    
+    test_offpolicy_data_fetcher_type_dict()
+
+
 @pytest.mark.unittest
 def test_offline_data_fetcher():
-    cfg = EasyDict({'policy':{'learn':{'batch_size':5}}})
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
     dataset_size = 10
     num_batch = math.ceil(dataset_size / cfg.policy.learn.batch_size)
-    data = torch.linspace(11,20,dataset_size)
+    data = torch.linspace(11, 20, dataset_size)
     data_list = list(data)
 
     class MyDataset(Dataset):
+
         def __init__(self):
             self.x = data
             self.len = len(self.x)
- 
+
         def __getitem__(self, index):
             return self.x[index]
-    
+
         def __len__(self):
             return self.len
-    
-    ctx = OfflineRLContext() 
+
+    ctx = OfflineRLContext()
     ctx.train_epoch = 0
 
     data_tmp = []
@@ -146,6 +146,7 @@ def test_offline_data_fetcher():
             data_tmp = []
         if i >= num_batch * 5 - 1:
             break
+
 
 @pytest.mark.unittest
 def test_offline_data_saver():
@@ -162,20 +163,21 @@ def test_offline_data_saver():
     ctx = OnlineRLContext()
     ctx.trajectories = fake_data
     data_path_ = './expert.pkl'
-    offline_data_saver(cfg = None, data_path = data_path_, data_type = 'naive')(ctx)
+    offline_data_saver(cfg=None, data_path=data_path_, data_type='naive')(ctx)
     assert os.path.exists(data_path_)
     if os.path.exists(data_path_):
         os.remove(data_path_)
-    assert ctx.trajectories == None 
+    assert ctx.trajectories is None
 
     ctx = OnlineRLContext()
     ctx.trajectories = fake_data
-    offline_data_saver(cfg = None, data_path = data_path_, data_type = 'hdf5')(ctx)
-    data_path_ = data_path_[:-4]+'_demos.hdf5'
+    offline_data_saver(cfg=None, data_path=data_path_, data_type='hdf5')(ctx)
+    data_path_ = data_path_[:-4] + '_demos.hdf5'
     assert os.path.exists(data_path_)
     if os.path.exists(data_path_):
         os.remove(data_path_)
-    assert ctx.trajectories == None 
+    assert ctx.trajectories is None
+
 
 @pytest.mark.unittest
 def test_sqil_data_pusher():
@@ -193,16 +195,15 @@ def test_sqil_data_pusher():
     # expert = True
     ctx = OnlineRLContext()
     ctx.trajectories = copy.deepcopy(fake_data)
-    buffer = DequeBuffer(size = 10)
-    sqil_data_pusher(cfg = None, buffer_ = buffer, expert = True)(ctx)
+    buffer = DequeBuffer(size=10)
+    sqil_data_pusher(cfg=None, buffer_=buffer, expert=True)(ctx)
     assert buffer.count() == 5
     assert all(t.data.reward == 1 for t in buffer.export_data())
 
     # expert = False
     ctx = OnlineRLContext()
     ctx.trajectories = copy.deepcopy(fake_data)
-    buffer = DequeBuffer(size = 10)
-    sqil_data_pusher(cfg = None, buffer_ = buffer, expert = False)(ctx)
+    buffer = DequeBuffer(size=10)
+    sqil_data_pusher(cfg=None, buffer_=buffer, expert=False)(ctx)
     assert buffer.count() == 5
     assert all(t.data.reward == 0 for t in buffer.export_data())
-
