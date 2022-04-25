@@ -19,7 +19,7 @@ class MultiStepMockPolicy(Mock):
         return res
     
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_trainer():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
@@ -32,7 +32,7 @@ def test_trainer():
     assert "total_loss" in ctx.train_output
 
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_multistep_trainer():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()

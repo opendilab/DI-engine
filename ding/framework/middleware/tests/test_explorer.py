@@ -5,7 +5,7 @@ from ding.framework.middleware import eps_greedy_handler, eps_greedy_masker
 from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
     
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_eps_greedy_handler():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
@@ -19,7 +19,7 @@ def test_eps_greedy_handler():
     assert ctx.collect_kwargs['eps'] == 0.1
 
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_eps_greedy_masker():
     ctx = OnlineRLContext()
     for _ in range(10):

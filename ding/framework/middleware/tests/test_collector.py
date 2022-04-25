@@ -8,7 +8,7 @@ from ding.framework.middleware import StepCollector, EpisodeCollector
 from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
     
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_inferencer():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
@@ -22,7 +22,7 @@ def test_inferencer():
     assert ctx.inference_output[1] == {'action': torch.Tensor([4.])}  # sum of ones([2, 2])
 
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_rolloutor():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
@@ -38,7 +38,7 @@ def test_rolloutor():
     assert ctx.env_step == 20              # 10 * env_num
 
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_step_collector():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
@@ -66,7 +66,7 @@ def test_step_collector():
     assert ctx.trajectory_end_idx == [7, 15]
 
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_episode_collector():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()

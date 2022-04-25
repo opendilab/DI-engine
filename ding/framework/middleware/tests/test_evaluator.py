@@ -7,7 +7,7 @@ from ding.framework.middleware import interaction_evaluator
 from ding.framework.middleware.tests import MockPolicy, MockEnv, CONFIG
 
 
-@pytest.mark.lxl
+@pytest.mark.unittest
 def test_interaction_evaluator():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
