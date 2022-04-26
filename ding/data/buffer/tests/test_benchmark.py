@@ -22,11 +22,11 @@ class BufferBenchmark:
         if buffer_type == "clone":
             self._buffer.use(clone_object())
         if buffer_type == "priority":
-            self._buffer.use(PriorityExperienceReplay(self._buffer, buffer_size=buffer_size, IS_weight=True))
-        self._data = torch.rand(data_dim, data_dim)
+            self._buffer.use(PriorityExperienceReplay(self._buffer))
+        self._data = {"obs": torch.rand(data_dim, data_dim)}
 
     def data_storage(self) -> float:
-        return sys.getsizeof(self._data.storage()) / 1024
+        return sys.getsizeof(self._data["obs"].storage()) / 1024
 
     def count(self) -> int:
         return self._buffer.count()
@@ -50,7 +50,7 @@ def get_mean_std(res):
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize('buffer_type', ['base', 'clone', 'priority'])
-def test_clone_benchmark(buffer_type):
+def test_benchmark(buffer_type):
     for size in size_list:
         for dim in data_dim_list:
             assert size >= 128, "size is too small, please set an int no less than 128!"
