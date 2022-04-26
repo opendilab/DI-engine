@@ -17,7 +17,7 @@ class CkptSaver:
             The class used to save checkpoint data.
     """
 
-    def __init__(self, cfg: EasyDict, policy: Policy, train_freq: Optional[int] = None):
+    def __init__(self, cfg: EasyDict, policy: Policy, train_freq: Optional[int] = None, save_finish: bool = True):
         """
         Overview:
             Initialize the `CkptSaver`.
@@ -25,6 +25,7 @@ class CkptSaver:
             - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.exp_name`.
             - policy (:obj:`Policy`): Policy used to save the checkpoint.
             - train_freq (:obj:`int`): Number of training iterations between each saving checkpoint data.
+            - save_finish (:obj:`int`): Whether save final ckpt when ``task.finish = True``.
         """
         self.policy = policy
         self.train_freq = train_freq
@@ -33,6 +34,7 @@ class CkptSaver:
             os.mkdir(self.prefix)
         self.last_save_iter = 0
         self.max_eval_value = -np.inf
+        self.save_finish = save_finish
 
     def __call__(self, ctx: Union["OnlineRLContext", "OfflineRLContext"]) -> None:
         """
@@ -59,5 +61,5 @@ class CkptSaver:
             self.max_eval_value = ctx.eval_value
 
         # finish
-        if task.finish:
+        if task.finish and self.save_finish:
             save_file("{}/final.pth.tar".format(self.prefix), self.policy.learn_mode.state_dict())
