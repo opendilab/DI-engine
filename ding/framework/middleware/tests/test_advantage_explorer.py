@@ -12,13 +12,10 @@ from ding.framework.middleware.functional.advantage_estimator import gae_estimat
 
 from typing import Any, List, Dict, Optional
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 
-class MockModel(Mock):
-
-    def __init__(self) -> None:
-        super(MockModel, self).__init__()
+class TheModelClass:
 
     def forward(self, obs: Dict, mode: str) -> Dict:
         return {'value': torch.distributions.uniform.Uniform(0, 4).sample([len(obs.data)])}
@@ -26,9 +23,9 @@ class MockModel(Mock):
 
 class MockPolicy(Mock):
 
-    def __init__(self) -> None:
+    def __init__(self, model) -> None:
         super(MockPolicy, self).__init__()
-        self._model = MockModel()
+        self._model = model
 
     def get_attribute(self, name: str) -> Any:
         return self._model
@@ -60,7 +57,8 @@ def test_gae_estimator_helper(batch_size: int = 32, trajectory_end_idx_size: int
     traj_flag[ctx.trajectory_end_idx] = True
     ctx.trajectories_copy.traj_flag = traj_flag
 
-    gae_estimator(cfg, MockPolicy(), buffer)(ctx)
+    with patch("ding.policy.Policy", MockPolicy):
+        gae_estimator(cfg, MockPolicy(TheModelClass()), buffer)(ctx)
 
     if buffer is not None:
         train_data = [d.data for d in buffer.export_data()]

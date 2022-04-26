@@ -9,7 +9,7 @@ import torch.optim as optim
 import os
 import shutil
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from ding.framework import task
 
 
@@ -34,22 +34,11 @@ class TheModelClass(nn.Module):
         return x
 
 
-class MockModel(Mock):
-
-    def __init__(self) -> None:
-        super(MockModel, self).__init__()
-
-    def state_dict(self):
-        model = TheModelClass()
-        optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-        return model.state_dict()
-
-
 class MockPolicy(Mock):
 
-    def __init__(self) -> None:
+    def __init__(self, model) -> None:
         super(MockPolicy, self).__init__()
-        self.learn_mode = MockModel()
+        self.learn_mode = model
 
 
 @pytest.mark.unittest
@@ -59,27 +48,31 @@ def test_CkptSaver():
     ctx = OnlineRLContext()
 
     train_freq = 100
-    policy = MockPolicy()
+    model = TheModelClass()
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
     if not os.path.exists(cfg.exp_name):
         os.mkdir(cfg.exp_name)
 
     prefix = '{}/ckpt'.format(cfg.exp_name)
 
-    with task.start():
-        ctx.train_iter = 0
-        ctx.eval_value = 9.4
-        ckpt_saver = CkptSaver(cfg, policy, train_freq)
-        ckpt_saver.__call__(ctx)
-        assert os.path.exists("{}/eval.pth.tar".format(prefix))
+    with patch("ding.policy.Policy", MockPolicy):
+        with task.start():
+            policy = MockPolicy(model)
 
-        ctx.train_iter = 100
-        ctx.eval_value = 1
-        ckpt_saver.__call__(ctx)
-        assert os.path.exists("{}/iteration_{}.pth.tar".format(prefix, ctx.train_iter))
+            ctx.train_iter = 0
+            ctx.eval_value = 9.4
+            ckpt_saver = CkptSaver(cfg, policy, train_freq)
+            ckpt_saver(ctx)
+            assert os.path.exists("{}/eval.pth.tar".format(prefix))
 
-        task.finish = True
-        ckpt_saver.__call__(ctx)
-        assert os.path.exists("{}/final.pth.tar".format(prefix))
+            ctx.train_iter = 100
+            ctx.eval_value = 1
+            ckpt_saver(ctx)
+            assert os.path.exists("{}/iteration_{}.pth.tar".format(prefix, ctx.train_iter))
+
+            task.finish = True
+            ckpt_saver(ctx)
+            assert os.path.exists("{}/final.pth.tar".format(prefix))
 
     shutil.rmtree(cfg.exp_name)
