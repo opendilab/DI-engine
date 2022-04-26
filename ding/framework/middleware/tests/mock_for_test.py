@@ -112,6 +112,7 @@ class MockHerRewardModel(Mock):
     def __init__(self) -> None:
         super(MockHerRewardModel, self).__init__()
         self.episode_size = 8
+        self.episode_element_size = 4
 
     def estimate(self, episode: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        return [[episode[0] for _ in range(4)]]
+        return [[episode[0] for _ in range(self.episode_element_size)]]
