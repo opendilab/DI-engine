@@ -86,11 +86,10 @@ def test_her_learner():
     buffer = DequeBuffer(size=10)
     for _ in range(10):
         buffer.push([get_mock_train_input(), get_mock_train_input()])
-    with patch("ding.policy.Policy", MockPolicy):
-        with patch("ding.reward_model.HerRewardModel", MockHerRewardModel):
-            with task.start():
-                policy = MockPolicy()
-                her_reward_model = MockHerRewardModel()
-                learner = HERLearner(cfg, policy, buffer, her_reward_model)
-                learner(ctx)
+    with patch("ding.policy.Policy", MockPolicy), patch("ding.reward_model.HerRewardModel", MockHerRewardModel):
+        with task.start():
+            policy = MockPolicy()
+            her_reward_model = MockHerRewardModel()
+            learner = HERLearner(cfg, policy, buffer, her_reward_model)
+            learner(ctx)
     assert len(ctx.train_output) == 4
