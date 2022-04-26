@@ -12,6 +12,8 @@ from ding.policy.sac import SACPolicy
 from ding.policy.common_utils import default_preprocess_learn
 
 
+DEBUG = True
+
 @POLICY_REGISTRY.register('mbsac')
 class MBSACPolicy(SACPolicy):
     r"""
@@ -159,7 +161,17 @@ class MBSACPolicy(SACPolicy):
         pred = dist.rsample()
         action = torch.tanh(pred)
         # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
-        log_prob = dist.log_prob(pred) + 2 * torch.log(torch.cosh(pred) + 1e-6).sum(-1)
+        if not torch.isfinite(pred).all():
+            raise RuntimeError(f'pred contains infinite elements: \n{obs}')
+
+        # stable
+        # log_prob = dist.log_prob(pred) - torch.log(1 - action.pow(2) + 1e-6).sum(-1)
+
+        # numerical unstable logcosh
+        # log_prob = dist.log_prob(pred) + 2 * torch.log(torch.cosh(pred)).sum(-1)
+
+        # numerical stable logcosh
+        log_prob = dist.log_prob(pred) + 2 * (pred + torch.nn.functional.softplus(-2. * pred) - torch.log(torch.tensor(2.))).sum(-1)
 
         return action, log_prob
 
@@ -241,8 +253,8 @@ class MBSACPolicy(SACPolicy):
                 've_rollout_termination_ratio': done_mask_list[-2].sum() / done_mask_list[-2].numel(),
             })
 
-            self._optimizer_q.zero_grad()
-            with torch.autograd.detect_anomaly():
+            with torch.autograd.set_detect_anomaly(DEBUG):
+                self._optimizer_q.zero_grad()
                 self._history_loss['value_loss'].backward()
                 self._optimizer_q.step()
                 
@@ -280,8 +292,8 @@ class MBSACPolicy(SACPolicy):
         })
 
         # update policy network
-        self._optimizer_policy.zero_grad()
-        with torch.autograd.detect_anomaly():
+        with torch.autograd.set_detect_anomaly(DEBUG):
+            self._optimizer_policy.zero_grad()
             self._history_loss['policy_loss'].backward()
             self._optimizer_policy.step()
 
