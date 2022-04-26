@@ -1,6 +1,7 @@
 import pytest
 import time
 import random
+import functools
 from typing import Callable
 from ding.data.buffer import DequeBuffer
 from ding.data.buffer.buffer import BufferedData
@@ -250,28 +251,6 @@ def test_groupby():
 
 
 @pytest.mark.unittest
-def test_rolling_window():
-    buffer = DequeBuffer(size=10)
-    for i in range(10):
-        buffer.push(i)
-    sampled_data = buffer.sample(10, rolling_window=3)
-    assert len(sampled_data) == 10
-
-    # Test data independence
-    buffer = DequeBuffer(size=2)
-    for i in range(2):
-        buffer.push({"key": i})
-    sampled_data = buffer.sample(2, rolling_window=3)
-    assert len(sampled_data) == 2
-    group_long = sampled_data[0] if len(sampled_data[0]) == 2 else sampled_data[1]
-    group_short = sampled_data[0] if len(sampled_data[0]) == 1 else sampled_data[1]
-
-    # Modify the second value
-    group_long[1].data["key"] = 10
-    assert group_short[0].data["key"] == 1
-
-
-@pytest.mark.unittest
 def test_import_export():
     buffer = DequeBuffer(size=10)
     data_with_meta = [(i, {}) for i in range(10)]
@@ -290,3 +269,22 @@ def test_dataset():
     dataloader = DataLoader(buffer, batch_size=6, shuffle=True, collate_fn=lambda batch: batch)
     for batch in dataloader:
         assert len(batch) in [4, 6]
+
+
+@pytest.mark.unittest
+def test_unroll_len_in_group():
+    buffer = DequeBuffer(size=100)
+    for i in range(10):
+        for env_id in list("ABC"):
+            buffer.push(i, {"env": env_id})
+
+    sampled_data = buffer.sample(3, groupby="env", unroll_len=4)
+    assert len(sampled_data) == 3
+    for grouped_data in sampled_data:
+        assert len(grouped_data) == 4
+        # Ensure each group has the same env
+        env_ids = set(map(lambda sample: sample.meta["env"], grouped_data))
+        assert len(env_ids) == 1
+        # Ensure samples in each group is continuous
+        result = functools.reduce(lambda a, b: a and a.data + 1 == b.data and b, grouped_data)
+        assert isinstance(result, BufferedData), "Not continuous"
