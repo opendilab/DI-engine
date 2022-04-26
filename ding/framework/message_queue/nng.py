@@ -30,6 +30,7 @@ class NNGMQ(MQ):
         sleep(0.1)  # Wait for peers to bind
         for contact in self.attach_to:
             sock.dial(contact)
+        logging.info("NNG listen on {}, attach to {}".format(self.listen_to, self.attach_to))
 
     def publish(self, topic: str, data: bytes) -> None:
         if not self._finished:
