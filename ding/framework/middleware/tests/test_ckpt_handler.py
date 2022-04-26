@@ -34,22 +34,11 @@ class TheModelClass(nn.Module):
         return x
 
 
-class MockModel(Mock):
-
-    def __init__(self) -> None:
-        super(MockModel, self).__init__()
-
-    def state_dict(self):
-        model = TheModelClass()
-        optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-        return model.state_dict()
-
-
 class MockPolicy(Mock):
 
     def __init__(self, model) -> None:
         super(MockPolicy, self).__init__()
-        self.learn_mode = MockModel()
+        self.learn_mode = model
 
 
 @pytest.mark.unittest

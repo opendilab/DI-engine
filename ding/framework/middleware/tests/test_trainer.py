@@ -12,7 +12,9 @@ from ding.framework.middleware.tests import MockHerRewardModel, CONFIG
 class MockPolicy(Mock):
     # MockPolicy class for train mode
     def forward(self, train_data, **kwargs):
-        res = {'total_loss': 0.1,}
+        res = {
+            'total_loss': 0.1,
+        }
         return res
 
 
