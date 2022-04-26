@@ -159,7 +159,7 @@ class MBSACPolicy(SACPolicy):
         pred = dist.rsample()
         action = torch.tanh(pred)
         # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
-        log_prob = dist.log_prob(pred) + 2 * torch.log(torch.cosh(pred)).sum(-1)
+        log_prob = dist.log_prob(pred) + 2 * torch.log(torch.cosh(pred) + 1e-6).sum(-1)
 
         return action, log_prob
 
