@@ -4,8 +4,8 @@ import torch
 import pytest
 import numpy as np
 
-from ding.worker.buffer import DequeBuffer
-from ding.worker.buffer.middleware import clone_object, PriorityExperienceReplay
+from ding.data.buffer import DequeBuffer
+from ding.data.buffer.middleware import clone_object, PriorityExperienceReplay
 
 # test different buffer size, eg: 1000, 10000, 100000;
 size_list = [1000, 10000]

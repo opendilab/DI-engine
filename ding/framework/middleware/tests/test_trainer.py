@@ -12,7 +12,7 @@ from ding.framework.middleware.tests import MockHerRewardModel, CONFIG
 class MockPolicy(Mock):
     # MockPolicy class for train mode
     def forward(self, train_data, **kwargs):
-        res = {'total_loss': random.random()}
+        res = {'total_loss': 0.1,}
         return res
 
 
@@ -21,10 +21,10 @@ class MultiStepMockPolicy(Mock):
     def forward(self, train_data, **kwargs):
         res = [
             {
-                'total_loss': random.random()
+                'total_loss': 0.1,
             },
             {
-                'total_loss': random.random()
+                'total_loss': 1.0,
             },
         ]
         return res
@@ -45,7 +45,7 @@ def test_trainer():
         for _ in range(30):
             trainer(cfg, policy)(ctx)
     assert ctx.train_iter == 30
-    assert "total_loss" in ctx.train_output
+    assert ctx.train_output["total_loss"] == 0.1
 
 
 @pytest.mark.unittest
@@ -58,7 +58,8 @@ def test_multistep_trainer():
         for _ in range(30):
             multistep_trainer(cfg, policy)(ctx)
     assert ctx.train_iter == 60
-    assert "total_loss" in ctx.train_output[0]
+    assert ctx.train_output[0]["total_loss"] == 0.1
+    assert ctx.train_output[1]["total_loss"] == 1.0
 
 
 @pytest.mark.unittest
@@ -90,5 +91,4 @@ def test_her_learner():
                 her_reward_model = MockHerRewardModel()
                 learner = HERLearner(cfg, policy, buffer, her_reward_model)
                 learner(ctx)
-                print(len(ctx.train_output))
     assert len(ctx.train_output) == 4
