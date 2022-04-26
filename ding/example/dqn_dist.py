@@ -10,14 +10,20 @@ Remember to keep them connected by mesh to ensure that they can exchange informa
 
 # Second Example —— Execute on multiple machines.
 1. Execute 1 learner + 1 evaluator on one machine.
+
 > ditask --package . --main ding.example.dqn_dist.main --parallel-workers 2 --topology mesh --node-ids 0 --ports 50515
 
 2. Execute 2 collectors on another machine. (Suppose the ip of the first machine is 127.0.0.1).
     Here we use `alone` topology instead of `mesh` because the collectors do not need communicate with each other.
     Remember the `node_ids` cannot be duplicated with the learner, evaluator processes.
     And remember to set the `ports` (should not conflict with others) and `attach_to` parameters.
+    The value of the `attach_to` parameter should be obtained from the log of the
+    process started earlier (e.g. 'NNG listen on tcp://10.0.0.4:50515').
+
 > ditask --package . --main ding.example.dqn_dist.main --parallel-workers 2 --topology alone --node-ids 2 \
-    --ports 50517 --attach-to tcp://127.0.0.1:50515,tcp://127.0.0.1:50516
+    --ports 50517 --attach-to tcp://10.0.0.4:50515,tcp://127.0.0.1:50516
+
+3. You can repeat step 2 to start more collectors on other machines.
 """
 import gym
 import logging
@@ -68,7 +74,7 @@ def main():
                 env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.evaluator_env_num)],
                 cfg=cfg.env.manager
             )
-            task.use(context_exchanger(recv_keys=["train_iter"], skip_n_iter=1))
+            task.use(context_exchanger(recv_keys=["train_iter", "env_step"], skip_n_iter=1))
             task.use(model_exchanger(model, is_learner=False))
             task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
             task.use(CkptSaver(cfg, policy, save_finish=False))

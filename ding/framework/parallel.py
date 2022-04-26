@@ -130,7 +130,6 @@ class Parallel(metaclass=SingletonMetaclass):
     ) -> Dict[str, dict]:
         attach_to = attach_to or []
         nodes = cls.get_node_addrs(n_parallel_workers, protocol=protocol, address=address, ports=ports)
-        logging.info("Bind subprocesses on these addresses: {}".format(nodes))
 
         def cleanup_nodes():
             for node in nodes:
