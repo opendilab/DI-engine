@@ -242,14 +242,9 @@ class MBSACPolicy(SACPolicy):
             })
 
             self._optimizer_q.zero_grad()
-            self._history_loss['value_loss'].backward()
-            for name, param in self._model.critic.named_parameters():
-                if not torch.isfinite(param.grad).all():
-                    raise RuntimeError(f'{name} gradient contains infinite elements: \n{param}')
-            self._optimizer_q.step()
-            for name, param in self._model.critic.named_parameters():
-                if not torch.isfinite(param.data).all():
-                    raise RuntimeError(f'{name} data contains infinite elements after step: \n{name}')
+            with torch.autograd.detect_anomaly():
+                self._history_loss['value_loss'].backward()
+                self._optimizer_q.step()
                 
 
     def _update_policy(self, obs):
@@ -288,13 +283,7 @@ class MBSACPolicy(SACPolicy):
         self._optimizer_policy.zero_grad()
         with torch.autograd.detect_anomaly():
             self._history_loss['policy_loss'].backward()
-            # for name, param in self._model.actor.named_parameters():
-            #     if not torch.isfinite(param.grad).all():
-            #         raise RuntimeError(f'{name} gradient contains infinite elements: \n{param}')
             self._optimizer_policy.step()
-            # for name, param in self._model.actor.named_parameters():
-            #     if not torch.isfinite(param.data).all():
-            #         raise RuntimeError(f'{name} data contains infinite elements: \n{param}')
 
 
     def _update_temperature(self, obs):
