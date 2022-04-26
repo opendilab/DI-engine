@@ -66,13 +66,13 @@ def offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_deque=True):
     assert buffer.export_data()[0].meta['priority'] == priority
 
 
-def test_offpolicy_data_fetcher_type_buffer():
+def call_offpolicy_data_fetcher_type_buffer():
     # if isinstance(buffer_, Buffer):
     offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_deque=True)
     offpolicy_data_fetcher_type_buffer_helper(priority=0.3, use_deque=False)
 
 
-def test_offpolicy_data_fetcher_type_list():
+def call_offpolicy_data_fetcher_type_list():
     #elif isinstance(buffer_, List)
     cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
     buffer = DequeBuffer(size=20)
@@ -89,7 +89,7 @@ def test_offpolicy_data_fetcher_type_list():
     assert all(i >= 0 and i < 20 and isinstance(i, int) for i in ctx.train_data)
 
 
-def test_offpolicy_data_fetcher_type_dict():
+def call_offpolicy_data_fetcher_type_dict():
     #elif isinstance(buffer_, Dict)
     cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
     buffer = DequeBuffer(size=20)
@@ -108,9 +108,9 @@ def test_offpolicy_data_fetcher_type_dict():
 
 @pytest.mark.unittest
 def test_offpolicy_data_fetcher():
-    test_offpolicy_data_fetcher_type_buffer()
-    test_offpolicy_data_fetcher_type_list()
-    test_offpolicy_data_fetcher_type_dict()
+    call_offpolicy_data_fetcher_type_buffer()
+    call_offpolicy_data_fetcher_type_list()
+    call_offpolicy_data_fetcher_type_dict()
 
 
 @pytest.mark.unittest

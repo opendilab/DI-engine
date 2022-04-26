@@ -42,8 +42,8 @@ class MockPolicy(Mock):
 
 
 @pytest.mark.unittest
-def test_CkptSaver():
-    cfg = EasyDict({'exp_name': 'test_CkptSaver_exp'})
+def test_ckpt_saver():
+    cfg = EasyDict({'exp_name': 'test_ckpt_saver_exp'})
 
     ctx = OnlineRLContext()
 

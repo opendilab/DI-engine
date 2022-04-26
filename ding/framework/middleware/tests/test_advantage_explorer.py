@@ -31,7 +31,7 @@ class MockPolicy(Mock):
         return self._model
 
 
-def test_gae_estimator_helper(batch_size: int = 32, trajectory_end_idx_size: int = 5, buffer: Optional[Buffer] = None):
+def call_gae_estimator(batch_size: int = 32, trajectory_end_idx_size: int = 5, buffer: Optional[Buffer] = None):
     cfg = EasyDict({'policy': {'collect': {'discount_factor': 0.9, 'gae_lambda': 0.95}}})
 
     ctx = OnlineRLContext()
@@ -82,5 +82,5 @@ def test_gae_estimator_helper(batch_size: int = 32, trajectory_end_idx_size: int
 def test_gae_estimator():
     batch_size = 32
     trajectory_end_idx_size = 5
-    test_gae_estimator_helper(batch_size, trajectory_end_idx_size)
-    test_gae_estimator_helper(batch_size, trajectory_end_idx_size, DequeBuffer(size=batch_size))
+    call_gae_estimator(batch_size, trajectory_end_idx_size)
+    call_gae_estimator(batch_size, trajectory_end_idx_size, DequeBuffer(size=batch_size))
