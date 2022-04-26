@@ -148,6 +148,12 @@ class MBSACPolicy(SACPolicy):
     
     def _forward_helper(self, obs):
 
+
+        if not torch.isfinite(obs).all():
+            raise RuntimeError(f'obs contains infinite elements: \n{obs}')
+        for name, param in self._model.actor.named_parameters():
+            if not torch.isfinite(param.data).all():
+                raise RuntimeError(f'{name} contains infinite elements: \n{param}')
         (mu, sigma) = self._learn_model.forward(obs, mode='compute_actor')['logit']
         dist = Independent(Normal(mu, sigma), 1)
         pred = dist.rsample()
@@ -237,7 +243,13 @@ class MBSACPolicy(SACPolicy):
 
             self._optimizer_q.zero_grad()
             self._history_loss['value_loss'].backward()
+            for name, param in self._model.critic.named_parameters():
+                if not torch.isfinite(param.grad).all():
+                    raise RuntimeError(f'{name} gradient contains infinite elements: \n{param}')
             self._optimizer_q.step()
+            for name, param in self._model.critic.named_parameters():
+                if not torch.isfinite(param.data).all():
+                    raise RuntimeError(f'{name} data contains infinite elements after step: \n{name}')
                 
 
     def _update_policy(self, obs):
@@ -275,7 +287,13 @@ class MBSACPolicy(SACPolicy):
         # update policy network
         self._optimizer_policy.zero_grad()
         self._history_loss['policy_loss'].backward()
+        for name, param in self._model.actor.named_parameters():
+            if not torch.isfinite(param.grad).all():
+                raise RuntimeError(f'{name} gradient contains infinite elements: \n{param}')
         self._optimizer_policy.step()
+        for name, param in self._model.actor.named_parameters():
+            if not torch.isfinite(param.data).all():
+                raise RuntimeError(f'{name} data contains infinite elements: \n{param}')
 
 
     def _update_temperature(self, obs):
