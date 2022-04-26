@@ -7,6 +7,7 @@ class Context(dict):
         Context is an object that pass contextual data between middlewares, whose life cycle
         is only one training iteration. It is a dict that reflect itself, so you can set
         any properties as you wish.
+        Note that the initial value of the property must be equal to False.
     """
 
     def __init__(self, *args, **kwargs) -> None:
@@ -56,7 +57,7 @@ class OnlineRLContext(Context):
         self.trajectory_end_idx = []
         # eval
         self.eval_value = None
-        self.last_eval_iter = -1
+        self.last_eval_iter = None
 
         self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')
 
@@ -74,6 +75,6 @@ class OfflineRLContext(Context):
         self.train_output = None
         # eval
         self.eval_value = None
-        self.last_eval_iter = -1
+        self.last_eval_iter = None
 
         self.keep('train_iter', 'last_eval_iter')
