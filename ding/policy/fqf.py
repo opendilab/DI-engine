@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Tuple, Union
 import copy
 import torch
 
-from ding.torch_utils import Adam, to_device
+from ding.torch_utils import Adam, RMSprop, to_device
 from ding.rl_utils import fqf_nstep_td_data, fqf_nstep_td_error, fqf_calculate_fraction_loss, evaluate_quantile_at_action, get_train_sample, get_nstep_return_data
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
@@ -65,8 +65,8 @@ class FQFPolicy(DQNPolicy):
             # collect data -> update policy-> collect data -> ...
             update_per_collect=3,
             batch_size=64,
-            learning_rate_fraction=0.001,
-            learning_rate_quantile=0.001,
+            learning_rate_fraction=2.5e-9,
+            learning_rate_quantile=0.00005,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
@@ -108,11 +108,17 @@ class FQFPolicy(DQNPolicy):
         """
         self._priority = self._cfg.priority
         # Optimizer
-        self._fraction_loss_optimizer = Adam(self._model.head.quantiles_proposal.parameters(), lr=self._cfg.learn.learning_rate_fraction)
+        self._fraction_loss_optimizer = RMSprop(
+            self._model.head.quantiles_proposal.parameters(),
+            lr=self._cfg.learn.learning_rate_fraction,
+            alpha=0.95,
+            eps=0.00001
+        )
         self._quantile_loss_optimizer = Adam(
             list(self._model.head.Q.parameters()) + list(self._model.head.fqf_fc.parameters()) +
             list(self._model.encoder.parameters()),
-            lr=self._cfg.learn.learning_rate_quantile
+            lr=self._cfg.learn.learning_rate_quantile,
+            eps=1e-2 / self._cfg.learn.batch_size
         )
 
         self._gamma = self._cfg.discount_factor

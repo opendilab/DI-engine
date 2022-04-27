@@ -28,8 +28,8 @@ pong_fqf_config = dict(
         learn=dict(
             update_per_collect=10,
             batch_size=32,
-            learning_rate_fraction=0.0001,
-            learning_rate_quantile=0.0001,
+            learning_rate_fraction=2.5e-9,
+            learning_rate_quantile=0.00005,
             target_update_freq=500,
         ),
         collect=dict(n_sample=100, ),

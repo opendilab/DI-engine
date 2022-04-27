@@ -23,8 +23,8 @@ cartpole_fqf_config = dict(
         learn=dict(
             update_per_collect=3,
             batch_size=64,
-            learning_rate_fraction=0.001,
-            learning_rate_quantile=0.001,
+            learning_rate_fraction=0.0001,
+            learning_rate_quantile=0.0001,
             target_update_freq=100,
             kappa=1.0,
         ),
