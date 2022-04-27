@@ -16,6 +16,8 @@ import math
 import os
 import copy
 
+from unittest.mock import patch
+
 
 @pytest.mark.unittest
 def test_data_pusher():
@@ -30,6 +32,12 @@ def test_data_pusher():
     ctx.episodes = [i for i in range(5)]
     data_pusher(cfg=None, buffer_=buffer)(ctx)
     assert buffer.count() == 5
+
+    buffer = DequeBuffer(size=10)
+    ctx = OnlineRLContext()
+    with pytest.raises(RuntimeError) as exc_info:
+        data_pusher(cfg=None, buffer_=buffer)(ctx)
+    assert str(exc_info.value) == "Either ctx.trajectories or ctx.episodes should be not None."
 
 
 def offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_deque=True):
@@ -106,11 +114,21 @@ def call_offpolicy_data_fetcher_type_dict():
     assert all(all(i >= 0 and i < 20 and isinstance(i, int) for i in v) for k, v in ctx.train_data.items())
 
 
+def call_offpolicy_data_fetcher_type_int():
+    # else catch TypeError
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
+    ctx = OnlineRLContext()
+    with pytest.raises(TypeError) as exc_info:
+        next(offpolicy_data_fetcher(cfg=cfg, buffer_=1)(ctx))
+    assert str(exc_info.value) == "not support buffer argument type: {}".format(type(1))
+
+
 @pytest.mark.unittest
 def test_offpolicy_data_fetcher():
     call_offpolicy_data_fetcher_type_buffer()
     call_offpolicy_data_fetcher_type_list()
     call_offpolicy_data_fetcher_type_dict()
+    call_offpolicy_data_fetcher_type_int()
 
 
 @pytest.mark.unittest
@@ -163,19 +181,30 @@ def test_offline_data_saver():
     ctx = OnlineRLContext()
     ctx.trajectories = fake_data
     data_path_ = './expert.pkl'
-    offline_data_saver(cfg=None, data_path=data_path_, data_type='naive')(ctx)
-    assert os.path.exists(data_path_)
-    if os.path.exists(data_path_):
-        os.remove(data_path_)
+
+    def mock_offline_data_save_type(exp_data, expert_data_path, data_type):
+        assert exp_data == fake_data
+        assert expert_data_path == data_path_
+        assert data_type == 'naive'
+
+    with patch("ding.framework.middleware.functional.data_processor.offline_data_save_type",
+               mock_offline_data_save_type):
+        offline_data_saver(cfg=None, data_path=data_path_, data_type='naive')(ctx)
+
     assert ctx.trajectories is None
 
     ctx = OnlineRLContext()
     ctx.trajectories = fake_data
-    offline_data_saver(cfg=None, data_path=data_path_, data_type='hdf5')(ctx)
-    data_path_ = data_path_[:-4] + '_demos.hdf5'
-    assert os.path.exists(data_path_)
-    if os.path.exists(data_path_):
-        os.remove(data_path_)
+
+    def mock_offline_data_save_type(exp_data, expert_data_path, data_type):
+        assert exp_data == fake_data
+        assert expert_data_path == data_path_
+        assert data_type == 'hdf5'
+
+    with patch("ding.framework.middleware.functional.data_processor.offline_data_save_type",
+               mock_offline_data_save_type):
+        offline_data_saver(cfg=None, data_path=data_path_, data_type='hdf5')(ctx)
+
     assert ctx.trajectories is None
 
 
