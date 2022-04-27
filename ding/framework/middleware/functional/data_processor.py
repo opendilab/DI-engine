@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict
+from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict, Optional
 from easydict import EasyDict
 from collections import deque
 import logging
@@ -11,14 +11,18 @@ if TYPE_CHECKING:
     from ding.framework import Context, OnlineRLContext, OfflineRLContext
 
 
-def data_pusher(cfg: EasyDict, buffer_: Buffer):
+def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = None):
 
     def _push(ctx: "OnlineRLContext"):
-        if ctx.trajectories is not None:
-            for t in ctx.trajectories:
-                buffer_.push(t)
+        if ctx.trajectories is not None:  # each data in buffer is a transition
+            if group_by_env:
+                for i, t in enumerate(ctx.trajectories):
+                    buffer_.push(t, {'env': t.env_data_id.item()})
+            else:
+                for t in ctx.trajectories:
+                    buffer_.push(t)
             ctx.trajectories = None
-        elif ctx.episodes is not None:
+        elif ctx.episodes is not None:  # each data in buffer is a episode
             for t in ctx.episodes:
                 buffer_.push(t)
             ctx.episodes = None
@@ -34,10 +38,16 @@ def offpolicy_data_fetcher(
 
     def _fetch(ctx: "OnlineRLContext"):
         try:
+            unroll_len = cfg.policy.collect.unroll_len
             if isinstance(buffer_, Buffer):
-                buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
-                ctx.train_data = [d.data for d in buffered_data]
+                if unroll_len > 1:
+                    buffered_data = buffer_.sample(cfg.policy.learn.batch_size, groupby="env", unroll_len=unroll_len)
+                    ctx.train_data = [[t.data for t in d] for d in buffered_data]  # B, unroll_len
+                else:
+                    buffered_data = buffer_.sample(cfg.policy.learn.batch_size)
+                    ctx.train_data = [d.data for d in buffered_data]
             elif isinstance(buffer_, List):  # like sqil, r2d3
+                assert unroll_len == 1, "not support"
                 buffered_data = []
                 for buffer_elem, p in buffer_:
                     data_elem = buffer_elem.sample(int(cfg.policy.learn.batch_size * p))
@@ -46,6 +56,7 @@ def offpolicy_data_fetcher(
                 buffered_data = sum(buffered_data, [])
                 ctx.train_data = [d.data for d in buffered_data]
             elif isinstance(buffer_, Dict):  # like ppg_offpolicy
+                assert unroll_len == 1, "not support"
                 buffered_data = {k: v.sample(cfg.policy.learn.batch_size) for k, v in buffer_.items()}
                 ctx.train_data = {k: [d.data for d in v] for k, v in buffered_data.items()}
             else:

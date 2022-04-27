@@ -410,6 +410,8 @@ def compile_config(
     if len(reward_model_config) > 0:
         default_config['reward_model'] = reward_model_config
     cfg = deep_merge_dicts(default_config, cfg)
+    if 'unroll_len' in cfg.policy:  # for compatibility of r2d2 and impala
+        cfg.policy.collect.unroll_len = cfg.policy.unroll_len
     cfg.seed = seed
     # check important key in config
     if evaluator in [InteractionSerialEvaluator, BattleInteractionSerialEvaluator]:  # env interaction evaluation

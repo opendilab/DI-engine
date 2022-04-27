@@ -69,6 +69,17 @@ class BaseModelWrapper(IModelWrapper):
         pass
 
 
+def zeros_like(h):
+    if isinstance(h, torch.Tensor):
+        return torch.zeros_like(h)
+    elif isinstance(h, (list, tuple)):
+        return [zeros_like(t) for t in h]
+    elif isinstance(h, dict):
+        return {k: zeros_like(v) for k, v in h.items()}
+    else:
+        raise TypeError("not support type: {}".format(h))
+
+
 class HiddenStateWrapper(IModelWrapper):
 
     def __init__(
@@ -111,6 +122,8 @@ class HiddenStateWrapper(IModelWrapper):
             self.after_forward(h, state_info, valid_id)  # this is to store the 'next hidden state' for each time step
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
+            if prev_state[0] is None:  # for compatibility, because of the incompatibility between None and torch.Tensor
+                prev_state = [zeros_like(h[0]) for _ in range(len(prev_state))]
             output['prev_state'] = prev_state
         return output
 

@@ -6,6 +6,7 @@ from typing import Any, Iterable, List, Optional, Tuple, Union
 from collections import defaultdict, deque, OrderedDict
 from ding.data.buffer import Buffer, apply_middleware, BufferedData
 from ding.utils import fastcopy
+from ding.torch_utils import get_null_data
 
 
 class BufferIndex():
@@ -232,6 +233,13 @@ class DequeBuffer(Buffer):
         if groupby not in self.meta_index:
             self._create_index(groupby)
         meta_indices = list(set(self.meta_index[groupby]))
+        if unroll_len and unroll_len > 1:
+            data_count = defaultdict(int)
+            for buffered in storage:
+                meta_value = buffered.meta[groupby] if groupby in buffered.meta else None
+                data_count[buffered.meta[groupby]] += 1
+            meta_indices = [k for k, v in data_count.items() if v >= unroll_len]
+
         sampled_groups = []
         if replace:
             sampled_groups = random.choices(meta_indices, k=size)

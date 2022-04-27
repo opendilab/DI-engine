@@ -7,17 +7,10 @@ from ding.policy import Policy
 from ding.data import Buffer
 from ding.rl_utils import gae, gae_data
 from ding.framework import task
+from ding.utils.data import ttorch_collate
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
-
-
-def collate(x):  # TODO ttorch.collate
-    x = ttorch.stack(x)
-    for k in x.keys():
-        if len(x[k].shape) == 2 and x[k].shape[-1] == 1:
-            x[k] = x[k].squeeze(-1)
-    return x
 
 
 def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = None) -> Callable:
@@ -26,7 +19,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
     def _gae(ctx: "OnlineRLContext"):
 
         data = ctx.trajectories  # list
-        data = collate(data)
+        data = ttorch_collate(data)
         with torch.no_grad():
             value = model.forward(data.obs, mode='compute_critic')['value']
             next_value = model.forward(data.next_obs, mode='compute_critic')['value']
