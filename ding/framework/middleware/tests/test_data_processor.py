@@ -33,6 +33,12 @@ def test_data_pusher():
     data_pusher(cfg=None, buffer_=buffer)(ctx)
     assert buffer.count() == 5
 
+    buffer = DequeBuffer(size=10)
+    ctx = OnlineRLContext()
+    with pytest.raises(RuntimeError) as exc_info:
+        data_pusher(cfg=None, buffer_=buffer)(ctx)
+    assert str(exc_info.value) == "Either ctx.trajectories or ctx.episodes should be not None."
+
 
 def offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_deque=True):
     cfg = EasyDict({'policy': {'learn': {'batch_size': 20}}})
@@ -108,11 +114,21 @@ def call_offpolicy_data_fetcher_type_dict():
     assert all(all(i >= 0 and i < 20 and isinstance(i, int) for i in v) for k, v in ctx.train_data.items())
 
 
+def call_offpolicy_data_fetcher_type_int():
+    # else catch TypeError
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
+    ctx = OnlineRLContext()
+    with pytest.raises(TypeError) as exc_info:
+        next(offpolicy_data_fetcher(cfg=cfg, buffer_=1)(ctx))
+    assert str(exc_info.value) == "not support buffer argument type: {}".format(type(1))
+
+
 @pytest.mark.unittest
 def test_offpolicy_data_fetcher():
     call_offpolicy_data_fetcher_type_buffer()
     call_offpolicy_data_fetcher_type_list()
     call_offpolicy_data_fetcher_type_dict()
+    call_offpolicy_data_fetcher_type_int()
 
 
 @pytest.mark.unittest
