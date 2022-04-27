@@ -16,6 +16,8 @@ import math
 import os
 import copy
 
+from unittest.mock import patch
+
 
 @pytest.mark.unittest
 def test_data_pusher():
@@ -163,19 +165,30 @@ def test_offline_data_saver():
     ctx = OnlineRLContext()
     ctx.trajectories = fake_data
     data_path_ = './expert.pkl'
-    offline_data_saver(cfg=None, data_path=data_path_, data_type='naive')(ctx)
-    assert os.path.exists(data_path_)
-    if os.path.exists(data_path_):
-        os.remove(data_path_)
+
+    def mock_offline_data_save_type(exp_data, expert_data_path, data_type):
+        assert exp_data == fake_data
+        assert expert_data_path == data_path_
+        assert data_type == 'naive'
+
+    with patch("ding.framework.middleware.functional.data_processor.offline_data_save_type",
+               mock_offline_data_save_type):
+        offline_data_saver(cfg=None, data_path=data_path_, data_type='naive')(ctx)
+
     assert ctx.trajectories is None
 
     ctx = OnlineRLContext()
     ctx.trajectories = fake_data
-    offline_data_saver(cfg=None, data_path=data_path_, data_type='hdf5')(ctx)
-    data_path_ = data_path_[:-4] + '_demos.hdf5'
-    assert os.path.exists(data_path_)
-    if os.path.exists(data_path_):
-        os.remove(data_path_)
+
+    def mock_offline_data_save_type(exp_data, expert_data_path, data_type):
+        assert exp_data == fake_data
+        assert expert_data_path == data_path_
+        assert data_type == 'hdf5'
+
+    with patch("ding.framework.middleware.functional.data_processor.offline_data_save_type",
+               mock_offline_data_save_type):
+        offline_data_saver(cfg=None, data_path=data_path_, data_type='hdf5')(ctx)
+
     assert ctx.trajectories is None
 
 
