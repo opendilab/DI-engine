@@ -54,5 +54,13 @@ def test_her_data_enhancer():
             buffer.push(d)
 
         her_data_enhancer(cfg=cfg, buffer_=buffer, her_reward_model=MockHerRewardModel())(ctx)
-    assert len(ctx.train_data) == mock_her_reward_model.episode_size * mock_her_reward_model.episode_element_size
-    assert len(ctx.train_data[0]) == 6
+        assert len(ctx.train_data) == mock_her_reward_model.episode_size * mock_her_reward_model.episode_element_size
+        assert len(ctx.train_data[0]) == 6
+
+        buffer = DequeBuffer(cfg.policy.learn.batch_size)
+        for d in train_data:
+            buffer.push(d)
+        mock_her_reward_model.episode_size = None
+        her_data_enhancer(cfg=cfg, buffer_=buffer, her_reward_model=MockHerRewardModel())(ctx)
+        assert len(ctx.train_data) == cfg.policy.learn.batch_size * mock_her_reward_model.episode_element_size
+        assert len(ctx.train_data[0]) == 6
