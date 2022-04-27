@@ -41,6 +41,14 @@ def get_mock_train_input():
 def test_trainer():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
+
+    ctx.train_data = None
+    with patch("ding.policy.Policy", MockPolicy):
+        policy = MockPolicy()
+        for _ in range(10):
+            trainer(cfg, policy)(ctx)
+    assert ctx.train_iter == 0
+
     ctx.train_data = get_mock_train_input()
     with patch("ding.policy.Policy", MockPolicy):
         policy = MockPolicy()
@@ -54,6 +62,14 @@ def test_trainer():
 def test_multistep_trainer():
     cfg = copy.deepcopy(CONFIG)
     ctx = OnlineRLContext()
+
+    ctx.train_data = None
+    with patch("ding.policy.Policy", MockPolicy):
+        policy = MockPolicy()
+        for _ in range(10):
+            trainer(cfg, policy)(ctx)
+    assert ctx.train_iter == 0
+
     ctx.train_data = get_mock_train_input()
     with patch("ding.policy.Policy", MultiStepMockPolicy):
         policy = MultiStepMockPolicy()

@@ -20,4 +20,3 @@ omit =
   ding/rl_utils/tests/test_ppg.py
   ding/scripts/tests/test_parallel_socket.py
   ding/data/buffer/tests/test_benchmark.py
-  ding/framework/middleware/tests/*
