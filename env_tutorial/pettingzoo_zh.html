@@ -1,0 +1,573 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>PettingZoo &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Gym-Hybrid" href="gym_hybrid_zh.html" />
+    <link rel="prev" title="PyBullet" href="pybullet_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index_zh.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">使用者指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation/index_zh.html">安装说明</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start/index_zh.html">快速上手</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro_rl/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hands_on/index_zh.html">强化学习算法攻略合集</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习环境示例手册</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="atari_zh.html">Atari</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mujoco_zh.html">Mujoco</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cartpole_zh.html">Cartpole</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pendulum_zh.html">Pendulum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lunarlander_zh.html">LunarLander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bipedalwalker_zh.html">BipedalWalker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bitflip_zh.html">Bit-flip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minigrid_zh.html">MiniGrid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="slime_volleyball_zh.html">Slime Volleyball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="competitive_rl_zh.html">Competitive RL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procgen_zh.html">Procgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smac_zh.html">SMAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="d4rl_zh.html">D4RL (Mujoco)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gfootball_zh.html">Google Research Football (Gfootball)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multiagent_particle_zh.html">Multi-Agent Particle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybullet_zh.html">PyBullet</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">PettingZoo</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">概述</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">安装</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">安装方法</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">验证安装</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6">镜像</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">变换前的空间（原始环境）</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id9">观察空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11">动作空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13">奖励空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id15">其他</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">关键事实</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rl">变换后的空间（RL 环境）</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id19">观察空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id21">动作空间</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id23">奖励空间</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id25">其他</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id27">惰性初始化</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id28">随机种子</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id29">训练和测试环境的区别</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id30">存储录像</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id31">基准算法性能</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gym_hybrid_zh.html">Gym-Hybrid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gym_soccer_zh.html">Gym-Soccer (HFO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pybullet_zh.html">PyBullet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="image_cls_zh.html">Image Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributed/index_zh.html">分布式</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index_zh.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature/index_zh.html">特性介绍</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../guide/index_zh.html">开发者指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../specification/index_zh.html">中间件（middleware）编写规范</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index_zh.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index_zh.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index_zh.html">强化学习环境示例手册</a> &raquo;</li>
+        
+      <li>PettingZoo</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/env_tutorial/pettingzoo_zh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pettingzoo">
+<h1>PettingZoo<a class="headerlink" href="#pettingzoo" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://www.pettingzoo.ml/">PettingZoo</a> 是一个用于研究多智能体强化学习的 Python 库，可以认为是多智能体版本的 <a class="reference external" href="https://gym.openai.com/">Gym</a>。它包含以下几个环境家族：</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.pettingzoo.ml/atari">Atari</a>：多人 Atari 2600 游戏，包括合作、竞争以及混合等场景</p></li>
+<li><p><a class="reference external" href="https://www.pettingzoo.ml/butterfly">Butterfly</a>：PettingZoo 团队自己开发的需要高度协调的合作性图形游戏</p></li>
+<li><p><a class="reference external" href="https://www.pettingzoo.ml/classic">Classic</a>：经典游戏，包括纸牌、棋盘游戏等</p></li>
+<li><p><a class="reference external" href="https://www.pettingzoo.ml/magent">MAgent</a>：可配置的，具有大量数量粒子智能体的环境，源于 <a class="reference external" href="https://github.com/openai/multiagent-particle-envs">https://github.com/openai/multiagent-particle-envs</a></p></li>
+<li><p><a class="reference external" href="https://www.pettingzoo.ml/mpe">MPE</a>：一组简单的非图形通信任务，源于 <a class="reference external" href="https://github.com/openai/multiagent-particle-envs">https://github.com/openai/multiagent-particle-envs</a></p></li>
+<li><p><a class="reference external" href="https://www.pettingzoo.ml/sisl">SISL</a>：3 个合作环境，源于 <a class="reference external" href="https://github.com/sisl/MADRL">https://github.com/sisl/MADRL</a></p></li>
+</ul>
+<p>下图所示为其中的 mpe_simple_spread 环境：</p>
+<img alt="../_images/mpe_simple_spread.gif" class="align-center" src="../_images/mpe_simple_spread.gif" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>需要注意的是，PettingZoo 出于可重复的考虑，保持严格的版本管理。所有环境都以<code class="docutils literal notranslate"><span class="pre">_v0</span></code> 这样的后缀结尾。当环境发生变化而可能影响学习结果时，数字会增加一个（例如<code class="docutils literal notranslate"><span class="pre">_v0</span></code>-&gt;<code class="docutils literal notranslate"><span class="pre">_v1</span></code>），以防止潜在的混淆。</p>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>安装<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id4">
+<h3>安装方法<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>目前 PettingZoo 官方支持 Linux 和 macOS 上的 Python 3.7~3.9。</p>
+<p>可以通过 pip 直接安装；此外，由于 DI-engine 中有单元测试用到了 PettingZoo，因此安装 DI-engine 也会默认安装 PettingZoo：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install directly with pip</span>
+pip install pettingzoo
+<span class="c1"># Method2: Just install DI-engine</span>
+pip install DI-engine
+</pre></div>
+</div>
+<p>由于 PettingZoo 所包含的环境非常多，不同的环境在不同的系统上安装情况也各不相同。因此以上的安装并没有包含所有环境家族的所有依赖。对于特定的环境家族依赖，你可以这样安装：</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># install Atari family dependency</span>
+pip install pettingzoo<span class="o">[</span>atari<span class="o">]</span>
+<span class="c1"># or install all dependencies</span>
+pip install pettingzoo<span class="o">[</span>all<span class="o">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h3>验证安装<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<p>安装完成后，运行如下 Python 程序，如果没有报错则证明安装成功。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pettingzoo.mpe</span> <span class="kn">import</span> <span class="n">simple_spread_v2</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">simple_spread_v2</span><span class="o">.</span><span class="n">parallel_env</span><span class="p">()</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>  <span class="c1"># (18,)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id6">
+<h3>镜像<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<p>DI-engine 准备好了配备有框架本身和 PettingZoo 环境的镜像，可通过 <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code> 获取，或访问 <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
+hub</a> 获取更多镜像</p>
+</div>
+</div>
+<div class="section" id="id7">
+<span id="id8"></span><h2>变换前的空间（原始环境）<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>由于 PettingZoo 包含很多环境家族，每个的情况各不相同，难以顾全所有内容。这里以 <code class="docutils literal notranslate"><span class="pre">MPE</span></code> 中的 <code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Spread</span></code> 环境为例进行说明。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Spread</span></code> 的游戏目标是希望智能体覆盖所有的地标的同时，避免彼此之间发生碰撞。</p>
+</div>
+<div class="section" id="id9">
+<span id="id10"></span><h3>观察空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>智能体的观测由</p>
+<ul>
+<li><p>当前智能体的速度，self.vel, (2,)</p></li>
+<li><p>当前智能体的位置，self.pos, (2,)</p></li>
+<li><p>地标的相对位置，landmark_rel_positions, (n_landmarks * 2,)</p></li>
+<li><p>其他智能体的相对位置，other_agent_rel_positions, ((n_agents-1) * 2,)</p></li>
+<li><p>其他智能体与当前智能体的通信，communication, ((n_agents-1) * 2,)</p></li>
+</ul>
+</li>
+</ul>
+<p>组成，具体维度为 (2 + 2 + n_landmarks*2 + (n_agents-1)*2 + (n_agents-1)*2)，数据类型为 float32。
+例如，当你生成一个具有 5 个智能体（n_agents=5）与 5 个地标（n_landmarks=5）的 simple spread 环境时，每个智能体的观测维度为 (30,)。</p>
+</div>
+<div class="section" id="id11">
+<span id="id12"></span><h3>动作空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>无法手动控制</p></li>
+<li><p>离散动作空间：每个智能体的动作空间相同，大小为 <code class="docutils literal notranslate"><span class="pre">(5,)</span></code>，数据类型为 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Discrete(5)</span></code>。每个具体动作的维度为(,)，数据类型为 <code class="docutils literal notranslate"><span class="pre">int</span></code>，具体含义是什么都不做或向四个基本方向进行移动。</p></li>
+<li><p>连续动作空间：每个智能体的动作空间相同，数据类型为 <code class="docutils literal notranslate"><span class="pre">gym.spaces.Box(0.0,</span> <span class="pre">1.0,</span> <span class="pre">(5,))</span></code>。每个具体动作的维度为(5,)，数据类型为 <code class="docutils literal notranslate"><span class="pre">array</span></code>，具体含义是什么都不做或向四个基本方向的每个方向上输入 0.0 到 1.0 之间的速度，且相反方向的速度可以叠加。</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pettingzoo.mpe</span> <span class="kn">import</span> <span class="n">simple_spread_v2</span>
+<span class="c1"># discrete env</span>
+<span class="n">dis_env</span> <span class="o">=</span> <span class="n">simple_spread_v2</span><span class="o">.</span><span class="n">parallel_env</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">continuous_actions</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1"># continuous env</span>
+<span class="n">con_env</span> <span class="o">=</span> <span class="n">simple_spread_v2</span><span class="o">.</span><span class="n">parallel_env</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">continuous_actions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">dis_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">con_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">dis_env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="s1">&#39;agent_0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># 2</span>
+<span class="n">con_env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="s1">&#39;agent_0&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="c1"># array([0.24120373, 0.83279127, 0.4586939 , 0.4208583 , 0.97381055], dtype=float32)</span>
+</pre></div>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>注意这里我们使用的是 <code class="docutils literal notranslate"><span class="pre">parallel_env()</span></code> 来生成环境，该函数与普通的 <code class="docutils literal notranslate"><span class="pre">env()</span></code> 区别在于，在 <code class="docutils literal notranslate"><span class="pre">paralle_env</span></code> 环境下，所有 agent 的动作同时输入；相反，在 <code class="docutils literal notranslate"><span class="pre">env</span></code> 环境下，每个 agent 的动作是依次输入的。由于 <code class="docutils literal notranslate"><span class="pre">paralle_env</span></code> 更为方便，所以我们更为推崇，在<code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 封装的环境中，我们也是这么做的。</p>
+</div>
+</div>
+<div class="section" id="id13">
+<span id="id14"></span><h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>所有的智能体贡献一个全局奖励，依据距离每个地标的最近的智能体来判定，一个 <code class="docutils literal notranslate"><span class="pre">float</span></code>数值</p></li>
+<li><p>具体而言，所有的智能体都根据最近的智能体离每个地标的距离（最小距离的总和）来获得全局奖励。此外，如果智能体与其它智能体发生碰撞，他们将受到惩罚。</p></li>
+</ul>
+</div>
+<div class="section" id="id15">
+<span id="id16"></span><h3>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>游戏在执行完环境参数 <code class="docutils literal notranslate"><span class="pre">max_cycles</span></code> 所指定的周期数后就会终止。所有环境的默认值是 25 个周期。</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="id17">
+<h2>关键事实<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>输入为 state 而非 raw pixel；</p></li>
+<li><p>既可以选择离散动作空间，也可以选择连续动作空间；</p></li>
+<li><p>既有合作 (cooperation) 环境，例如 <code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Spread</span></code>、<code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Speaker</span> <span class="pre">Listener</span></code> 等；也有竞争 (competitive) 环境，例如 <code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Adversary</span></code>、<code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Crypto</span></code> 等。</p></li>
+</ol>
+</div>
+<div class="section" id="rl">
+<span id="id18"></span><h2>变换后的空间（RL 环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id19">
+<span id="id20"></span><h3>观察空间<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p>针对多智能体算法，根据变换前的 state，分别生成了局部的 agent_state 和全局的 global_state：</p>
+<ul>
+<li><p>agent_state: shape: (n_agent, 2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2)</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>智能体自己的状态：速度、坐标</p></li>
+<li><p>其他智能体与地标的相对位置</p></li>
+<li><p>来自其他智能体的通信</p></li>
+</ol>
+</div></blockquote>
+</li>
+<li><p>global_state: shape: (n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2, )</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>所有智能体的状态：速度、坐标</p></li>
+<li><p>所有地标的位置</p></li>
+<li><p>所有智能体之间的通信</p></li>
+</ol>
+</div></blockquote>
+</li>
+<li><p>如果环境参数<code class="docutils literal notranslate"><span class="pre">action_specific_global_state=True</span></code>，则每个智能体的 global_state 均不相同，由自己的 agent_state 和原 global_state 进行 concatenate 得到。</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="id21">
+<span id="id22"></span><h3>动作空间<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>离散动作空间无变换</p></li>
+<li><p>连续动作空间，若环境变量<code class="docutils literal notranslate"><span class="pre">act_scale=True</span></code>，则对动作值进行 affine 变换</p></li>
+</ul>
+</div>
+<div class="section" id="id23">
+<span id="id24"></span><h3>奖励空间<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>无变化，为<code class="docutils literal notranslate"><span class="pre">gym.spaces.Box(low=float(&quot;-inf&quot;),</span> <span class="pre">high=float(&quot;inf&quot;),</span> <span class="pre">shape=(1,</span> <span class="pre">),</span> <span class="pre">dtype=np.float32)</span></code></p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="id25">
+<span id="id26"></span><h2>其他<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id27">
+<h3>惰性初始化<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
+<p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
+</div>
+<div class="section" id="id28">
+<h3>随机种子<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
+<li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
+<li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
+<li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
+</ul>
+</div>
+<div class="section" id="id29">
+<h3>训练和测试环境的区别<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
+</ul>
+</div>
+<div class="section" id="id30">
+<h3>存储录像<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
+<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>）</p>
+</div>
+</div>
+<div class="section" id="di-zoo">
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/config/">github link</a>
+内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">ptz_simple_spread_mappo_config.py</span></code>，使用如下的 demo 即可运行：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">n_agent</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">n_landmark</span> <span class="o">=</span> <span class="n">n_agent</span>
+<span class="n">collector_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;ptz_simple_spread_mappo_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">env_family</span><span class="o">=</span><span class="s1">&#39;mpe&#39;</span><span class="p">,</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;simple_spread_v2&#39;</span><span class="p">,</span>
+        <span class="n">n_agent</span><span class="o">=</span><span class="n">n_agent</span><span class="p">,</span>
+        <span class="n">n_landmark</span><span class="o">=</span><span class="n">n_landmark</span><span class="p">,</span>
+        <span class="n">max_cycles</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">agent_obs_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">agent_specific_global_state</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">continuous_actions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+            <span class="n">agent_num</span><span class="o">=</span><span class="n">n_agent</span><span class="p">,</span>
+            <span class="n">agent_obs_shape</span><span class="o">=</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">global_obs_shape</span><span class="o">=</span><span class="n">n_agent</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">n_landmark</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">n_agent</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_agent</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">epoch_per_collect</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">5e-4</span><span class="p">,</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># The following configs is algorithm-specific</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># (float) The loss weight of value network, policy network weight is set to 1</span>
+            <span class="n">value_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+            <span class="c1"># (float) The loss weight of entropy regularization, policy network weight is set to 1</span>
+            <span class="n">entropy_weight</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+            <span class="c1"># (float) PPO clip ratio, defaults to 0.2</span>
+            <span class="n">clip_ratio</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether to use advantage norm in a whole training batch</span>
+            <span class="n">adv_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">value_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ppo_param_init</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">grad_clip_type</span><span class="o">=</span><span class="s1">&#39;clip_norm&#39;</span><span class="p">,</span>
+            <span class="n">grad_clip_value</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+            <span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+            <span class="n">start</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">end</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+            <span class="n">decay</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+        <span class="p">),</span> <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">main_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.petting_zoo.envs.petting_zoo_env&#39;</span><span class="p">],</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;petting_zoo&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;subprocess&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ppo&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">create_config</span><span class="p">)</span>
+<span class="n">ptz_simple_spread_mappo_config</span> <span class="o">=</span> <span class="n">main_config</span>
+<span class="n">ptz_simple_spread_mappo_create_config</span> <span class="o">=</span> <span class="n">create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># or you can enter `ding -m serial_onpolicy -c ptz_simple_spread_mappo_config.py -s 0`</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline_onpolicy</span>
+    <span class="n">serial_pipeline_onpolicy</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id31">
+<h2>基准算法性能<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gym_hybrid_zh.html" class="btn btn-neutral float-right" title="Gym-Hybrid" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pybullet_zh.html" class="btn btn-neutral float-left" title="PyBullet" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

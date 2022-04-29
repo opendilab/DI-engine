@@ -26,6 +26,7 @@
    gfootball_zh
    multiagent_particle_zh
    pybullet_zh
+   pettingzoo_zh
    
    
    gym_hybrid_zh
