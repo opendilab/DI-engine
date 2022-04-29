@@ -1,8 +1,7 @@
 ## PYSC2 Env
-DI-engine use modified pysc2 env (for more maps and agent vs agent training), and you need to install [DI-star](https://github.com/opendilab/DI-star#installation) first, then you can import related package like this:
-```python
-import ctools.pysc2
-from ctools.pysc2.maps import lib
+DI-engine uses standard pysc2 env, you can install it as follow:
+```shell
+pip install pysc2
 ```
 
 ## SMAC Benchmark
