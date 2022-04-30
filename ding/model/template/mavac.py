@@ -77,8 +77,11 @@ class MAVAC(nn.Module):
                 format(global_obs_shape)
             )
 
-        self.actor_encoder = nn.Sequential()
-        self.critic_encoder = nn.Sequential()
+        # We directly connect the Head after a Liner layer instead of using the 3-layer FCEncoder.
+        # In SMAC task it can obviously improve the performance.
+        # Users can change the model according to their own needs.
+        self.actor_encoder = nn.Identity()
+        self.critic_encoder = nn.Identity()
         # Head Type
         self.critic_head = nn.Sequential(
             nn.Linear(global_obs_shape, critic_head_hidden_size), activation,
