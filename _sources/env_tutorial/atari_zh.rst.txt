@@ -24,6 +24,8 @@ Atari是最经典最常用的离散动作空间强化学习环境，常作为离
    # Method1: Install Directly
    pip install gym
    pip install ale-py
+   pip install autorom
+   autorom --accept-license
    # Method2: Install with DI-engine requirements
    cd DI-engine
    pip install ".[common_env]"
