@@ -11,23 +11,34 @@ class PPG(nn.Module):
     mode = ['compute_actor', 'compute_critic', 'compute_actor_critic']
 
     def __init__(
-            self,
-            obs_shape: Union[int, SequenceType],
-            action_shape: Union[int, SequenceType],
-            action_space: str = 'discrete',
-            share_encoder: bool = True,
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            actor_head_hidden_size: int = 64,
-            actor_head_layer_num: int = 2,
-            critic_head_hidden_size: int = 64,
-            critic_head_layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
+        self,
+        obs_shape: Union[int, SequenceType],
+        action_shape: Union[int, SequenceType],
+        action_space: str = 'discrete',
+        share_encoder: bool = True,
+        encoder_hidden_size_list: SequenceType = [128, 128, 64],
+        actor_head_hidden_size: int = 64,
+        actor_head_layer_num: int = 2,
+        critic_head_hidden_size: int = 64,
+        critic_head_layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        use_impala_cnn_encoder: bool = False,
     ) -> None:
         super(PPG, self).__init__()
         self.actor_critic = VAC(
-            obs_shape, action_shape, action_space, share_encoder, encoder_hidden_size_list, actor_head_hidden_size,
-            actor_head_layer_num, critic_head_hidden_size, critic_head_layer_num, activation, norm_type
+            obs_shape,
+            action_shape,
+            action_space,
+            share_encoder,
+            encoder_hidden_size_list,
+            actor_head_hidden_size,
+            actor_head_layer_num,
+            critic_head_hidden_size,
+            critic_head_layer_num,
+            activation,
+            norm_type,
+            use_impala_cnn_encoder=use_impala_cnn_encoder
         )
         self.aux_critic = copy.deepcopy(self.actor_critic.critic)
 
