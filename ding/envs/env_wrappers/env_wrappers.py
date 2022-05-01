@@ -510,8 +510,8 @@ class RunningMeanStd(object):
             Resets the state of the environment and reset properties:  \
                 ``_mean``, ``_var``, ``_count``
         """
-        self._mean = np.zeros(self._shape, 'float64')
-        self._var = np.ones(self._shape, 'float64')
+        self._mean = np.zeros(self._shape, 'float32')
+        self._var = np.ones(self._shape, 'float32')
         self._count = self._epsilon
 
     @property

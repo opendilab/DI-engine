@@ -265,3 +265,23 @@ def affine_transform(
     assert alpha is not None
     beta = beta if beta is not None else 0.
     return data * alpha + beta
+
+
+def affine_action(
+        data: Any,
+        action_low: Optional[float] = None,
+        action_high: Optional[float] = None,
+        affine_low: Optional[float] = -1.0,
+        affine_high: Optional[float] = 1.0,
+) -> Any:
+    """
+    Overview: data's board to [-1, 1]
+    :param affine_high:
+    :param affine_low:
+    :param data:
+    :param action_low:
+    :param action_high:
+    :return:
+    """
+    data = ((affine_high - affine_low) // (action_high - action_low)) * (data - action_low) + affine_low
+    return data

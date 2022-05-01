@@ -6,6 +6,7 @@ import gym
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
+from ding.envs.common.common_function import affine_transform, affine_action
 from .car_racing_env_wrapper import wrap_car_racing
 
 
@@ -47,9 +48,12 @@ class CarRacingEnv(BaseEnv):
 
     def step(self, action: np.ndarray) -> BaseEnvTimestep:
         assert isinstance(action, np.ndarray), type(action)
-        # action = action.item()
-        # print(action)
+
+        # action = affine_action(action, action_low=self._env.action_space.low, action_high=self._env.action_space.high)
+        # action = affine_transform(action, max_val=self._env.action_space.high, min_val=self._env.action_space.low)
+        # print("offine_action:", action)
         obs, rew, done, info = self._env.step(action)
+        rew = 0.001 * rew
         # self._env.render()
         self._final_eval_reward += rew
         obs = to_ndarray(obs)

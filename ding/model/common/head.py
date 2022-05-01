@@ -659,9 +659,10 @@ class RegressionHead(nn.Module):
             hidden_size: int,
             output_size: int,
             layer_num: int = 2,
-            final_tanh: Optional[bool] = False,
+            final_tanh: Optional[bool] = True,
             activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None
+            norm_type: Optional[str] = None,
+            final_tanh_sigmod: Optional[bool] = False,
     ) -> None:
         r"""
         Overview:
@@ -683,6 +684,13 @@ class RegressionHead(nn.Module):
         self.final_tanh = final_tanh
         if self.final_tanh:
             self.tanh = nn.Tanh()
+        self.final_tanh_sigmod = final_tanh_sigmod
+        if self.final_tanh_sigmod:
+            self.tanh = nn.Tanh()
+            self.sigmod = nn.Sigmoid()
+            self.action_out1 = nn.Linear(hidden_size, int(output_size / 3))
+            self.action_out2 = nn.Linear(hidden_size, int(output_size / 3))
+            self.action_out3 = nn.Linear(hidden_size, int(output_size / 3))
 
     def forward(self, x: torch.Tensor) -> Dict:
         r"""
@@ -705,10 +713,17 @@ class RegressionHead(nn.Module):
             >>> assert isinstance(outputs, dict)
             >>> assert outputs['pred'].shape == torch.Size([4, 64])
         """
-        x = self.main(x)
-        x = self.last(x)
-        if self.final_tanh:
-            x = self.tanh(x)
+        if self.final_tanh_sigmod:
+            x = self.main(x)
+            action_out1 = self.tanh(self.action_out1(x))
+            action_out2 = self.sigmod(self.action_out2(x))
+            action_out3 = self.sigmod(self.action_out3(x))
+            x = torch.cat((action_out1, action_out2, action_out3), 1)
+        else:
+            x = self.main(x)
+            x = self.last(x)
+            if self.final_tanh:
+                x = self.tanh(x)
         if x.shape[-1] == 1 and len(x.shape) > 1:
             x = x.squeeze(-1)
         return {'pred': x}

@@ -2,11 +2,12 @@
 # https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 
 import gym
-from ding.envs import MaxAndSkipWrapper, EpisodicLifeWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, \
-                        ClipRewardWrapper, FrameStackWrapper
+from ding.envs import MaxAndSkipWrapper, RewardNormWrapper, WarpFrameWrapper, ScaledFloatFrameWrapper, \
+    ClipRewardWrapper, FrameStackWrapper, ObsNormWrapper
 
 
-def wrap_car_racing(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True):
+def wrap_car_racing(env_id, episode_life=True, clip_rewards=True, frame_stack=4, scale=True, warp_frame=True,
+                    obs_norm=True, rew_norm=True):
     """Configure environment for DeepMind-style Atari. The observation is
     channel-first: (c, h, w) instead of (h, w, c).
 
@@ -29,4 +30,8 @@ def wrap_car_racing(env_id, episode_life=True, clip_rewards=True, frame_stack=4,
         env = ClipRewardWrapper(env)
     if frame_stack:
         env = FrameStackWrapper(env, frame_stack)
+    if obs_norm:
+        env = ObsNormWrapper(env)
+    # if rew_norm:
+    #     env = RewardNormWrapper(env)
     return env
