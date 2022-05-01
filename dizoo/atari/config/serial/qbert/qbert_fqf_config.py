@@ -45,7 +45,8 @@ qbert_fqf_config = dict(
         ),
     ),
 )
-main_config = EasyDict(qbert_fqf_config)
+qbert_fqf_config = EasyDict(qbert_fqf_config)
+main_config = qbert_fqf_config
 
 qbert_fqf_create_config = dict(
     env=dict(
@@ -55,7 +56,8 @@ qbert_fqf_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='fqf'),
 )
-create_config = EasyDict(qbert_fqf_create_config)
+qbert_fqf_create_config = EasyDict(qbert_fqf_create_config)
+create_config = qbert_fqf_create_config
 
 if __name__ == '__main__':
     serial_pipeline((main_config, create_config), seed=0)

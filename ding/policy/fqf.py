@@ -124,6 +124,7 @@ class FQFPolicy(DQNPolicy):
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
         self._kappa = self._cfg.learn.kappa
+        #self._grad_norm = self._cfg.learn.grad_norm
 
         # use wrapper instead of plugin
         self._target_model = copy.deepcopy(self._model)
@@ -158,6 +159,7 @@ class FQFPolicy(DQNPolicy):
         self._target_model.train()
         # Current q value (main model)
         ret = self._learn_model.forward(data['obs'])
+        logit = ret['logit']  # [batch, 64(action_dim)]
         q_value = ret['q']  # [batch, num_quantiles, 64(action_dim)]
         quantiles = ret['quantiles']  # [batch, num_quantiles+1]
         quantiles_hats = ret['quantiles_hats']  # [batch, num_quantiles]
@@ -191,6 +193,11 @@ class FQFPolicy(DQNPolicy):
         fraction_loss.backward(retain_graph=True)
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
+        total_norm_quantiles_proposal = torch.norm(
+            torch.stack(
+                [torch.norm(p.grad.detach(), 2.0) for p in self._model.head.quantiles_proposal.parameters()]
+            ), 2.0
+        )
         self._fraction_loss_optimizer.step()
 
         # ====================
@@ -200,6 +207,16 @@ class FQFPolicy(DQNPolicy):
         quantile_loss.backward()
         if self._cfg.learn.multi_gpu:
             self.sync_gradients(self._learn_model)
+        total_norm_Q = torch.norm(
+            torch.stack([torch.norm(p.grad.detach(), 2.0) for p in self._model.head.Q.parameters()]), 2.0
+        )
+        total_norm_fqf_fc = torch.norm(
+            torch.stack([torch.norm(p.grad.detach(), 2.0) for p in self._model.head.fqf_fc.parameters()]),
+            2.0
+        )
+        total_norm_encoder = torch.norm(
+            torch.stack([torch.norm(p.grad.detach(), 2.0) for p in self._model.encoder.parameters()]), 2.0
+        )
         self._quantile_loss_optimizer.step()
 
         # =============
@@ -209,12 +226,23 @@ class FQFPolicy(DQNPolicy):
         return {
             'cur_lr_fraction_loss': self._fraction_loss_optimizer.defaults['lr'],
             'cur_lr_quantile_loss': self._quantile_loss_optimizer.defaults['lr'],
+            'logit': logit.mean().item(),
             'fraction_loss': fraction_loss.item(),
             'quantile_loss': quantile_loss.item(),
+            'total_norm_quantiles_proposal': total_norm_quantiles_proposal,
+            'total_norm_Q': total_norm_Q,
+            'total_norm_fqf_fc': total_norm_fqf_fc,
+            'total_norm_encoder': total_norm_encoder,
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return [
+            'cur_lr_fraction_loss', 'cur_lr_quantile_loss', 'logit', 'fraction_loss', 'quantile_loss',
+            'total_norm_quantiles_proposal', 'total_norm_Q', 'total_norm_fqf_fc', 'total_norm_encoder'
+        ]
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {
