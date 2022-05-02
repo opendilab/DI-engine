@@ -148,8 +148,6 @@ class OnPPGPolicy(Policy):
         # Optimizer
         self._optimizer_ac = Adam(self._model.actor_critic.parameters(), lr=self._cfg.learn.learning_rate)
         self._optimizer_aux_critic = Adam(self._model.aux_critic.parameters(), lr=self._cfg.learn.learning_rate)
-        #self._optimizer_ac = Adam(self._model.actor_critic.parameters(), lr=self._cfg.learn.learning_rate,grad_clip_type=self._cfg.learn.grad_clip_type,clip_value=self._cfg.learn.grad_clip_value)
-        #self._optimizer_aux_critic = Adam(self._model.aux_critic.parameters(), lr=self._cfg.learn.learning_rate,grad_clip_type=self._cfg.learn.grad_clip_type,clip_value=self._cfg.learn.grad_clip_value)
         self._learn_model = model_wrap(self._model, wrapper_name='base')
 
         # Algorithm config
