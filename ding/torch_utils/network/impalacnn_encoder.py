@@ -9,10 +9,6 @@ import torch.distributions as dis
 import time
 import random
 
-from gym3.types import Real, TensorType
-
-REAL = Real()
-
 
 def intprod(xs):
     """
@@ -74,10 +70,8 @@ class Encoder(nn.Module):
     doesn't store any state except parameters)
     """
 
-    def __init__(self, obtype, codetype):
+    def __init__(self):
         super().__init__()
-        self.obtype = obtype
-        self.codetype = codetype
 
     def initial_state(self, batchsize):
         raise NotImplementedError
@@ -208,9 +202,7 @@ class ImpalaCNN(nn.Module):
 class ImpalaEncoder(Encoder):
 
     def __init__(self, inshape, outsize=256, chans=(16, 32, 32), scale_ob=255.0, nblock=2, **kwargs):
-        codetype = TensorType(eltype=REAL, shape=(outsize, ))
-        obtype = TensorType(eltype=REAL, shape=inshape)
-        super().__init__(codetype=codetype, obtype=obtype)
+        super().__init__()
         self.cnn = ImpalaCNN(inshape=inshape, chans=chans, scale_ob=scale_ob, nblock=nblock, outsize=outsize, **kwargs)
 
     def forward(self, x):
