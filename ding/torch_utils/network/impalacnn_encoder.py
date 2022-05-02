@@ -21,7 +21,7 @@ def intprod(xs):
 
 
 def zeros(*args, **kwargs):
-    return torch.zeros(*args, **kwargs, device=dev())
+    return torch.zeros(*args, **kwargs)
 
 
 def NormedLinear(*args, scale=1.0, dtype=torch.float32, **kwargs):
