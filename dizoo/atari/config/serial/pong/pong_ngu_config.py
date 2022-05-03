@@ -1,21 +1,20 @@
 from easydict import EasyDict
 
-
-collector_env_num = 32
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 8
 nstep = 5
 pong_ppo_rnd_config = dict(
     exp_name='pong_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
+        n_evaluator_episode=evaluator_env_num,
         env_id='PongNoFrameskip-v4',
         stop_value=20,
         frame_stack=4,
     ),
     rnd_reward_model=dict(
-        intrinsic_reward_type='add',  # 'assign'
+        intrinsic_reward_type='add',
         learning_rate=1e-4,
         obs_shape=[4, 84, 84],
         action_shape=6,
@@ -75,7 +74,7 @@ pong_ppo_rnd_config = dict(
                 decay=1e5,
             ),
             replay_buffer=dict(
-                replay_buffer_size=int(2e4),  # TODO(pu)
+                replay_buffer_size=int(2e4),
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction
@@ -102,6 +101,5 @@ create_config = pong_ppo_rnd_create_config
 
 
 if __name__ == "__main__":
-    from ding.entry import serial_pipeline_reward_model_ngu
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
-
+    from ding.entry import serial_pipeline_ngu
+    serial_pipeline_ngu([main_config, create_config], seed=0)

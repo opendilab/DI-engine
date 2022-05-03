@@ -35,6 +35,7 @@ def test_random_collect(collector_type, transition_with_policy_data, data_postpr
         return ori_data
 
     RANDOM_COLLECT_SIZE = 8
+    cartpole_dqn_config.exp_name = 'test_cartpole_dqn_seed0'
     cfg, create_cfg = deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg.policy.random_collect_size = RANDOM_COLLECT_SIZE

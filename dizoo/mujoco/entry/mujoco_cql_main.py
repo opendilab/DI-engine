@@ -1,4 +1,4 @@
-from dizoo.mujoco.config.hopper_cql_default_config import main_config, create_config
+from dizoo.mujoco.config.hopper_cql_config import main_config, create_config
 from ding.entry import serial_pipeline_offline
 
 

@@ -5,9 +5,9 @@ import gym_hybrid
 import copy
 import numpy as np
 from easydict import EasyDict
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common import EnvElementInfo, affine_transform
-from ding.torch_utils import to_ndarray, to_list
+from ding.envs import BaseEnv, BaseEnvTimestep
+from ding.envs.common import affine_transform
+from ding.torch_utils import to_ndarray
 from ding.utils import ENV_REGISTRY
 
 
@@ -27,8 +27,11 @@ class GymHybridEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make(self._env_id)
             if self._replay_path is not None:
-                self._env = gym.wrappers.Monitor(
-                    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
                 )
                 self._env.metadata["render.modes"] = ["human", "rgb_array"]
             self._observation_space = self._env.observation_space

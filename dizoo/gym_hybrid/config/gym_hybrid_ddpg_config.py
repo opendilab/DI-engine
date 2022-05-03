@@ -10,6 +10,7 @@ gym_hybrid_ddpg_config = dict(
         env_id='Moving-v0',  # ['Sliding-v0', 'Moving-v0']
         n_evaluator_episode=5,
         stop_value=1.8,
+        replay_path='gym_hybrid_ddpg_seed0/video',
     ),
     policy=dict(
         cuda=True,

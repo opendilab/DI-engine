@@ -208,7 +208,7 @@ class AttentionXL(torch.nn.Module):
         self.project_pos = fc_block(input_dim, head_dim * head_num)  # project the positional embedding
         self.scale = 1 / (head_dim ** 0.5)  # for scaled dot product attention
 
-    def _rel_shift(self, x: torch.Tensor):
+    def _rel_shift(self, x: torch.Tensor, zero_upper: bool = False):
         """
         Overview:
             Relatively shift the attention score matrix.
@@ -220,21 +220,23 @@ class AttentionXL(torch.nn.Module):
             1) Append one "column" of zeros to the left
             2) Reshape the matrix from [3 x 4] into [4 x 3]
             3) Remove the first "row"
-            4) Mask out the upper triangle
+            4) Mask out the upper triangle (optional)
         .. note::
             See the following material for better understanding:
                 https://github.com/kimiyoung/transformer-xl/issues/8
                 https://arxiv.org/pdf/1901.02860.pdf (Appendix B)
         Arguments:
             - x (:obj:`torch.Tensor`): input tensor of shape (cur_seq, full_seq, bs, head_num).
+            - zero_upper (:obj:`bool`): if True set the upper-right triangle to zero.
         Returns:
             - x (:obj:`torch.Tensor`): input after relative shift. Shape (cur_seq, full_seq, bs, head_num).
         """
         x_padded = F.pad(x, [1, 0])  # step 1
         x_padded = x_padded.view(x.size(0), x.size(1), x.size(3) + 1, x.size(2))  # step 2
         x = x_padded[:, :, 1:].view_as(x)  # step 3
-        ones = torch.ones((x.size(2), x.size(3))).unsqueeze(0).unsqueeze(0)
-        x = x * torch.tril(ones.to(x.device), x.size(3) - x.size(2))  # step 4
+        if zero_upper:
+            ones = torch.ones((x.size(2), x.size(3))).unsqueeze(0).unsqueeze(0)
+            x = x * torch.tril(ones.to(x.device), x.size(3) - x.size(2))  # step 4
         return x
 
     def forward(

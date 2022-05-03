@@ -1,10 +1,9 @@
 from easydict import EasyDict
-import torch
 
 collector_env_num = 8
 evaluator_env_num = 5
 cartpole_r2d2__residual_config = dict(
-    exp_name='cartpole_r2d2_residual_link',
+    exp_name='cartpole_r2d2_residual_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -69,5 +68,6 @@ cartpole_r2d2_residual_create_config = EasyDict(cartpole_r2d2_residual_create_co
 create_config = cartpole_r2d2_residual_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c cartpole_r2d2_residual_config.py -s 0`
     from ding.entry import serial_pipeline
-    serial_pipeline([main_config, create_config], seed=0)
+    serial_pipeline((main_config, create_config), seed=0)

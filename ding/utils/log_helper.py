@@ -100,18 +100,36 @@ class LoggerFactory(object):
 
     @staticmethod
     def get_tabulate_vars_hor(variables: Dict[str, Any]) -> str:
+        column_to_divide = 5  # which includes the header "Name & Value"
+
         datak = []
         datav = []
-        datak.append("Name")
-        datav.append("Value")
+
+        divide_count = 0
         for k, v in variables.items():
+            if divide_count == 0 or divide_count >= (column_to_divide - 1):
+                datak.append("Name")
+                datav.append("Value")
+                if divide_count >= (column_to_divide - 1):
+                    divide_count = 0
+            divide_count += 1
+
             datak.append(k)
             if not isinstance(v, str) and np.isscalar(v):
                 datav.append("{:.6f}".format(v))
             else:
                 datav.append(v)
-        data = [datak, datav]
-        s = "\n" + tabulate(data, tablefmt='grid')
+
+        s = "\n"
+        row_number = len(datak) // column_to_divide + 1
+        for row_id in range(row_number):
+            item_start = row_id * column_to_divide
+            item_end = (row_id + 1) * column_to_divide
+            if (row_id + 1) * column_to_divide > len(datak):
+                item_end = len(datak)
+            data = [datak[item_start:item_end], datav[item_start:item_end]]
+            s = s + tabulate(data, tablefmt='grid') + "\n"
+
         return s
 
 

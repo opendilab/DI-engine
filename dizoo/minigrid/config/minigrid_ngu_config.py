@@ -1,16 +1,15 @@
 from easydict import EasyDict
 
-collector_env_num = 32
-evaluator_env_num = 5
-
+collector_env_num = 8
+evaluator_env_num = 8
 nstep = 5
 minigrid_ppo_ngu_config = dict(
     exp_name='minigrid_doorkey_ngu_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
-        # minigrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
+        n_evaluator_episode=evaluator_env_num,
+        # MiniGrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
         env_id='MiniGrid-DoorKey-16x16-v0',
         max_step=300,
         stop_value=0.96,
@@ -101,5 +100,6 @@ minigrid_ppo_ngu_create_config = EasyDict(minigrid_ppo_ngu_create_config)
 create_config = minigrid_ppo_ngu_create_config
 
 if __name__ == "__main__":
-    from ding.entry import serial_pipeline_reward_model_ngu
-    serial_pipeline_reward_model_ngu([main_config, create_config], seed=0)
+    # or you can enter `ding -m serial -c minigrid_ngu_config.py -s 0`
+    from ding.entry import serial_pipeline_ngu
+    serial_pipeline_ngu([main_config, create_config], seed=0)

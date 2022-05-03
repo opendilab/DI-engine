@@ -5,7 +5,7 @@ import copy
 import numpy as np
 from torch.distributions import Independent, Normal
 
-from ding.torch_utils import Adam, to_device
+from ding.torch_utils import Adam, to_device, unsqueeze
 from ding.rl_utils import ppo_data, ppo_error, ppo_policy_error, ppo_policy_data, get_gae_with_default_last_value, \
     v_nstep_td_data, v_nstep_td_error, get_nstep_return_data, get_train_sample, gae, gae_data, ppo_error_continuous, \
     get_gae
@@ -108,7 +108,6 @@ class PPOPolicy(Policy):
                 elif self._action_space == 'hybrid':  # actor_head[1]: ReparameterizationHead, for action_args
                     if hasattr(self._model.actor_head[1], 'log_sigma_param'):
                         torch.nn.init.constant_(self._model.actor_head[1].log_sigma_param, -0.5)
-                        print('init ok')
 
                 for m in list(self._model.critic.modules()) + list(self._model.actor.modules()):
                     if isinstance(m, torch.nn.Linear):
@@ -369,22 +368,12 @@ class PPOPolicy(Policy):
         if data[-1]['done']:
             last_value = torch.zeros_like(data[-1]['value'])
         else:
-            if self._cfg.multi_agent:
-                with torch.no_grad():
-                    last_value = self._collect_model.forward(
-                        {
-                            'agent_state': data[-1]['next_obs']['agent_state'].unsqueeze(0),
-                            'global_state': data[-1]['next_obs']['global_state'].unsqueeze(0),
-                            'action_mask': data[-1]['next_obs']['action_mask'].unsqueeze(0)
-                        },
-                        mode='compute_actor_critic'
-                    )['value']
-                    last_value = last_value.squeeze(0)
-            else:
-                with torch.no_grad():
-                    last_value = self._collect_model.forward(
-                        data[-1]['next_obs'].unsqueeze(0), mode='compute_actor_critic'
-                    )['value']
+            with torch.no_grad():
+                last_value = self._collect_model.forward(
+                    unsqueeze(data[-1]['next_obs'], 0), mode='compute_actor_critic'
+                )['value']
+            if len(last_value.shape) == 2:  # multi_agent case:
+                last_value = last_value.squeeze(0)
         if self._value_norm:
             last_value *= self._running_mean_std.std
             for i in range(len(data)):
