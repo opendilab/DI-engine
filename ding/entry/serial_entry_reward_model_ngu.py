@@ -95,7 +95,9 @@ def serial_pipeline_reward_model_ngu(
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
 
     estimate_cnt = 0
-    for iter in range(max_train_iter):
+    iter_ = 0
+    while True:
+        iter_ += 1
         eps = {i: 0.4 ** (1 + 8 * i / (cfg.policy.collect.env_num - 1)) for i in range(cfg.policy.collect.env_num)}
         collect_kwargs = {'eps': eps}
 
@@ -105,7 +107,7 @@ def serial_pipeline_reward_model_ngu(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):
+        if hasattr(cfg.policy.collect, "n_sequence_sample"):
             new_data = collector.collect(
                 n_sample=cfg.policy.collect.each_iter_n_sample,
                 train_iter=learner.train_iter,
@@ -121,10 +123,10 @@ def serial_pipeline_reward_model_ngu(
 
         # update reward_model
         rnd_reward_model.train()
-        if (iter + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+        if (iter_ + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
             rnd_reward_model.clear_data()
         episodic_reward_model.train()
-        if (iter + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
+        if (iter_ + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
             episodic_reward_model.clear_data()
 
         # Learn policy from collected data
