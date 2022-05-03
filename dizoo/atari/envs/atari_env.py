@@ -7,6 +7,7 @@ from ding.envs import BaseEnv, BaseEnvTimestep, update_shape
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
+from ding.envs import ObsPlusPrevActRewWrapper
 
 
 @ENV_REGISTRY.register("atari")
@@ -19,6 +20,8 @@ class AtariEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env()
+            if self._cfg.ObsPlusPrevActRewWrapper:
+                self._env = ObsPlusPrevActRewWrapper(self._env)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
@@ -31,7 +34,11 @@ class AtariEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
-        obs = to_ndarray(obs)
+        # obs = to_ndarray(obs)
+        if isinstance(obs, dict):
+            obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
+        elif isinstance(obs, np.ndarray):
+            obs = to_ndarray(obs).astype(np.float32)
         self._final_eval_reward = 0.
         return obs
 
@@ -51,7 +58,11 @@ class AtariEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         # self._env.render()
         self._final_eval_reward += rew
-        obs = to_ndarray(obs)
+        # obs = to_ndarray(obs)
+        if isinstance(obs, dict):
+            obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
+        elif isinstance(obs, np.ndarray):
+            obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward

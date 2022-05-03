@@ -262,13 +262,14 @@ class SampleSerialCollector(ISerialCollector):
                     # prepare data
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
                         # If policy is r2d2:
-                        # 1. For each collect_env, we want to collect data of the length self._traj_len=INF
-                        # except when it comes to a done.
-                        # 2. A train sample for r2d2 will have seq len <burnin + unroll_length>
-                        # (collected_sample=1), and we need to collect <n_sample>.
-                        # 3. Even if timestep is done and assume we only collected 9 transitions,
+                        # 1. For each collect_env, we want to collect data of length self._traj_len=INF
+                        # unless the episode enters the 'done' state.
+                        # 2. The length of a train (sequence) sample in r2d2 is <burnin + unroll_length>
+                        # (please refer to r2d2.py) and in each collect phase,
+                        # we collect a total of <n_sample> (sequence) samples.
+                        # 3. When timestep is done and we only collected very few transitions in self._traj_buffer,
                         # by going through self._policy.get_train_sample, it will be padded automatically to get the
-                        # sequence sample of length <burnin + unroll_length>.
+                        # sequence sample of length <burnin + unroll_length> (please refer to r2d2.py).
 
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])

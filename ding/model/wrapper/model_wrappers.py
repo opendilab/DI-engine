@@ -463,8 +463,10 @@ class MultinomialSampleWrapper(IModelWrapper):
 class EpsGreedySampleWrapper(IModelWrapper):
     r"""
     Overview:
-        eps is a dict n_env
         Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
+        The type of eps can vary from different algorithms, such as:
+        - float (i.e. python native scalar): for almost normal case
+        - Dict[str, float]: for algorithm NGU
     Interfaces:
         register
     """
@@ -485,7 +487,8 @@ class EpsGreedySampleWrapper(IModelWrapper):
         else:
             mask = None
         action = []
-        if isinstance(eps, dict) or isinstance(eps, list):  # for NGU, each env has a different eps
+        if isinstance(eps, dict):
+            # for NGU, each env has a different eps
             for i, l in enumerate(logit[0]):
                 eps_tmp = eps[i]
                 if np.random.random() > eps_tmp:

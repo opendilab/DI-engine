@@ -190,25 +190,23 @@ class BaseSerialEvaluatorNGU(object):
         eval_monitor = VectorEvalMonitor(self._env.env_num, n_episode)
         self._env.reset()
         self._policy.reset()
-        beta_index = {i: 0 for i in range(self._env_num)}  # TODO
+
+        # NOTE: for NGU policy eval phase
+        beta_index = {i: 0 for i in range(self._env_num)}
         beta_index = to_tensor(beta_index, dtype=torch.int64)
-        prev_action = {i: torch.tensor(-1) for i in range(self._env_num)}  # TODO: self.action_shape
-        prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(self._env_num)}
         with self._timer:
             while not eval_monitor.is_finished():
                 obs = self._env.ready_obs
                 obs = to_tensor(obs, dtype=torch.float32)
-                # TODO(pu): r_i, reward embeding
-                policy_output = self._policy.forward(beta_index, obs, prev_action, prev_reward_e)
+
+                # TODO(pu): prev_reward_intrinsic, reward embedding
+                # NOTE: for NGU policy, no eps passed into the policy, the eps is defined in ngu policy class
+                policy_output = self._policy.forward(obs, beta_index)
+
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
                 timesteps = to_tensor(timesteps, dtype=torch.float32)
-
-                # TODO(pu)
-                prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
-                prev_reward_e = to_ndarray(prev_reward_e)
-                prev_action = actions
 
                 for env_id, t in timesteps.items():
                     if t.info.get('abnormal', False):

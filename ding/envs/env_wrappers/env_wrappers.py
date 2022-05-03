@@ -926,6 +926,62 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
     #     return (size, size), act_shape, rew_shape
 
 
+@ENV_WRAPPER_REGISTRY.register('obs_plus_prev_action_reward')
+class ObsPlusPrevActRewWrapper(gym.Wrapper):
+    """
+    Overview:
+       dict {s_t, a_t-1, r_t-1} as obs.
+    Interface:
+        ``__init__``, ``reset``, ``step``
+    Properties:
+        - env (:obj:`gym.Env`): the environment to wrap.
+    """
+
+    def __init__(self, env):
+        """
+        Overview:
+            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.
+        Arguments:
+            - env (:obj:`gym.Env`): the environment to wrap.
+        """
+        super().__init__(env)
+
+    def reset(self):
+        """
+        Overview:
+            Resets the state of the environment and append new observation to frames
+        Returns:
+            - ``obs``: observation
+        """
+        obs = self.env.reset()
+        self.prev_action = -1  # null action
+        self.prev_reward_extrinsic = 0  # null reward
+        obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
+        return obs
+
+    def step(self, action):
+        """
+        Overview:
+            Step the environment with the given action. Repeat action, sum reward,  \
+                and max over last observations, and append new observation to frames
+        Arguments:
+            - action (:obj:`Any`): the given action to step with.
+        Returns:
+            - ``self._get_ob()`` : observation
+            - reward (:obj:`Any`) : amount of reward returned after previous action
+            - done (:obj:`Bool`) : whether the episode has ended, in which case further \
+                 step() calls will return undefined results
+            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful  \
+                for debugging, and sometimes learning)
+        """
+
+        obs, reward, done, info = self.env.step(action)
+        obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
+        self.prev_action = action
+        self.prev_reward_extrinsic = reward
+        return obs, reward, done, info
+
+
 def update_shape(obs_shape, act_shape, rew_shape, wrapper_names):
     """
     Overview:

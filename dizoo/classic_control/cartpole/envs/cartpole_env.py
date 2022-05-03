@@ -7,6 +7,7 @@ from easydict import EasyDict
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
+from ding.envs import ObsPlusPrevActRewWrapper
 
 
 @ENV_REGISTRY.register('cartpole')
@@ -35,6 +36,8 @@ class CartPoleEnv(BaseEnv):
                     episode_trigger=lambda episode_id: True,
                     name_prefix='rl-video-{}'.format(id(self))
                 )
+            if self._cfg.ObsPlusPrevActRewWrapper:
+                self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
@@ -43,7 +46,10 @@ class CartPoleEnv(BaseEnv):
             self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_ndarray(obs).astype(np.float32)
+        if isinstance(obs, dict):
+            obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
+        elif isinstance(obs, np.ndarray):
+            obs = to_ndarray(obs).astype(np.float32)
         return obs
 
     def close(self) -> None:
@@ -64,7 +70,10 @@ class CartPoleEnv(BaseEnv):
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs).astype(np.float32)
+        if isinstance(obs, dict):
+            obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
+        elif isinstance(obs, np.ndarray):
+            obs = to_ndarray(obs).astype(np.float32)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 

@@ -414,7 +414,8 @@ class NGUPolicy(Policy):
             for i in range(self._cfg.collect.env_num)
         }
 
-    def _forward_collect(self, beta: dict, obs: dict, prev_action: dict, prev_reward_e: dict, eps: dict) -> dict:
+    # def _forward_collect(self, beta: dict, obs: dict, prev_action: dict, prev_reward_extrinsic: dict, eps: dict) -> dict:
+    def _forward_collect(self, data: dict, beta_index: dict) -> dict:
         r"""
         Overview:
             Collect output according to eps_greedy plugin
@@ -425,18 +426,32 @@ class NGUPolicy(Policy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-        eps = {i: 0.4 ** (1 + 8 * i / (len(obs) - 1)) for i in range(len(obs))}  # epislon=0.4, alpha=9
-        data_id = list(obs.keys())
-        obs = default_collate(list(obs.values()))
-        beta = default_collate(list(beta.values()))
-        prev_action = default_collate(list(prev_action.values()))
-        prev_reward_e = default_collate(list(prev_reward_e.values()))
+
+        data_id = list(data.keys())
+        env_num = len(data_id)
+        data = default_collate(list(data.values()))
+
+        obs = data['obs']
+        prev_action = data['prev_action'].long()
+        prev_reward_extrinsic = data['prev_reward_extrinsic']
+
+        eps = {i: 0.4 ** (1 + 8 * i / (env_num - 1)) for i in range(env_num)}  # epsilon=0.4, alpha=9
+
+        # import numpy as np
+        # beta_index = {i: np.random.randint(0, env_num) for i in range(self._env_num)}
+        beta_index = default_collate(list(beta_index.values()))
+
         if self._cuda:
             obs = to_device(obs, self._device)
-            beta = to_device(beta, self._device)
+            beta_index = to_device(beta_index, self._device)
             prev_action = to_device(prev_action, self._device)
-            prev_reward_e = to_device(prev_reward_e, self._device)
-        data = {'obs': obs, 'beta': beta, 'prev_action': prev_action, 'prev_reward_e': prev_reward_e}
+            prev_reward_extrinsic = to_device(prev_reward_extrinsic, self._device)
+        data = {
+            'obs': obs,
+            'prev_action': prev_action,
+            'prev_reward_extrinsic': prev_reward_extrinsic,
+            'beta': beta_index
+        }
         self._collect_model.eval()
         with torch.no_grad():
             output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
@@ -448,7 +463,7 @@ class NGUPolicy(Policy):
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._collect_model.reset(data_id=data_id)
 
-    def _process_transition(self, beta_index: Any, obs: Any, model_output: dict, timestep: namedtuple) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple, beta_index: Any) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
@@ -463,24 +478,24 @@ class NGUPolicy(Policy):
         if hasattr(timestep, 'null'):
             transition = {
                 'beta': beta_index,
-                'obs': obs,
+                'obs': obs['obs'],  # NOTE: input obs including obs, prev_action, prev_reward_extrinsic
                 'action': model_output['action'],
                 # 'prev_action': model_output['action'],
                 'prev_state': model_output['prev_state'],
                 'reward': timestep.reward,
-                # 'prev_reward_e': timestep.reward,
+                # 'prev_reward_extrinsic': timestep.reward,
                 'done': timestep.done,
                 'null': timestep.null,
             }
         else:
             transition = {
                 'beta': beta_index,
-                'obs': obs,
+                'obs': obs['obs'],  # NOTE: input obs including obs, prev_action, prev_reward_extrinsic
                 'action': model_output['action'],
                 # 'prev_action': model_output['action'],
                 'prev_state': model_output['prev_state'],
                 'reward': timestep.reward,
-                # 'prev_reward_e': timestep.reward,
+                # 'prev_reward_extrinsic': timestep.reward,
                 'done': timestep.done,
                 'null': False,
             }
@@ -510,12 +525,17 @@ class NGUPolicy(Policy):
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
+    # def _forward_eval(
+    #         self,
+    #         beta: dict,
+    #         obs: dict,
+    #         prev_action: dict,
+    #         prev_reward_extrinsic: dict,
+    # ) -> dict:
     def _forward_eval(
             self,
-            beta: dict,
-            obs: dict,
-            prev_action: dict,
-            prev_reward_e: dict,
+            data: dict,
+            beta_index: dict,
     ) -> dict:
         r"""
         Overview:
@@ -527,17 +547,24 @@ class NGUPolicy(Policy):
         Returns:
             - output (:obj:`dict`): Dict type data, including at least inferred action according to input obs.
         """
-        data_id = list(obs.keys())
-        obs = default_collate(list(obs.values()))
-        beta = default_collate(list(beta.values()))
-        prev_action = default_collate(list(prev_action.values()))
-        prev_reward_e = default_collate(list(prev_reward_e.values()))
+
+        data_id = list(data.keys())
+        env_num = len(data_id)
+        data = default_collate(list(data.values()))
+
+        obs = data['obs']
+        prev_action = data['prev_action'].long()
+        prev_reward_extrinsic = data['prev_reward_extrinsic']
+
+        beta = default_collate(list(beta_index.values()))
+
+        prev_reward_extrinsic = default_collate(list(prev_reward_extrinsic.values()))
         if self._cuda:
             obs = to_device(obs, self._device)
             beta = to_device(beta, self._device)
             prev_action = to_device(prev_action, self._device)
-            prev_reward_e = to_device(prev_reward_e, self._device)
-        data = {'obs': obs, 'beta': beta, 'prev_action': prev_action, 'prev_reward_e': prev_reward_e}
+            prev_reward_extrinsic = to_device(prev_reward_extrinsic, self._device)
+        data = {'obs': obs, 'prev_action': prev_action, 'prev_reward_extrinsic': prev_reward_extrinsic, 'beta': beta}
 
         self._eval_model.eval()
         with torch.no_grad():

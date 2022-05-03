@@ -227,7 +227,7 @@ def collect_episodic_demo_data(
     else:
         policy_kwargs = None
 
-    # Let's collect some expert demostrations
+    # Let's collect some expert demonstrations
     exp_data = collector.collect(n_episode=collect_count, policy_kwargs=policy_kwargs)
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')

@@ -138,8 +138,8 @@ class RndRewardModel(BaseRewardModel):
 
             rnd_reward = rnd_reward.to(train_data_augmented[0]['reward'].device)
             rnd_reward = torch.chunk(rnd_reward, rnd_reward.shape[0], dim=0)
-        """NOTE:
-        Following normalization approach to extrinsic reward seems be not reasonable,
+        """
+        NOTE: Following normalization approach to extrinsic reward seems be not reasonable,
         because this approach compresses the extrinsic reward magnitude, resulting in less informative reward signals.
         """
         # rewards = torch.stack([data[i]['reward'] for i in range(len(data))])
@@ -147,7 +147,8 @@ class RndRewardModel(BaseRewardModel):
 
         # TODO(pu): how to set intrinsic_reward_rescale automatically?
         if self.cfg.intrinsic_reward_weight is None:
-            """Note: the following way of setting self.cfg.intrinsic_reward_weight is only suitable for the dense
+            """
+            NOTE: the following way of setting self.cfg.intrinsic_reward_weight is only suitable for the dense
             reward env like lunarlander, not suitable for the dense reward env.
             In sparse reward env, e.g. minigrid, if the agent reaches the goal, it obtain reward ~1, otherwise 0.
             Thus, in sparse reward env, it's reasonable to set the intrinsic_reward_weight approximately equal to

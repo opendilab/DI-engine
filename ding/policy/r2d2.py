@@ -102,8 +102,12 @@ class R2D2Policy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            # each_iter_n_sample=32,
+            # NOTE: It is important that don't include key <n_sample> here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sequence_sample> sequence samples.
+            n_sequence_sample=32,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -146,13 +150,6 @@ class R2D2Policy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
-        # here we should not adopt the 'assign' mode of target network here because the reset bug
-        # self._target_model = model_wrap(
-        #     self._target_model,
-        #     wrapper_name='target',
-        #     update_type='assign',
-        #     update_kwargs={'freq': self._cfg.learn.target_update_freq}
-        # )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',

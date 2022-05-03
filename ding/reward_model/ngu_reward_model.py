@@ -246,6 +246,17 @@ class EpisodicNGURewardModel(BaseRewardModel):
         batch_size=64,
         hidden_size_list=[64, 64, 128],
         update_per_collect=100,
+        # means if using rescale trick to the last non-zero reward
+        # when combing extrinsic and intrinsic reward.
+        # the rescale trick only used in:
+        # 1. sparse reward env minigrid, in which the last non-zero reward is a strong positive signal
+        # 2. the last reward of each episode directly reflects the agent's completion of the task, e.g. lunarlander
+        # Note that the ngu intrinsic reward is a positive value (max value is 5), in these envs,
+        # the last non-zero reward should not be overwhelmed by intrinsic rewards, so we need rescale the
+        # original last nonzero extrinsic reward.
+        last_nonzero_reward_rescale=False,
+        # means the rescale value for the last non-zero reward, only used when last_nonzero_reward_rescale is True
+        last_nonzero_reward_weight=1,
     )
 
     def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
@@ -390,7 +401,7 @@ class EpisodicNGURewardModel(BaseRewardModel):
                         # episodic_reward[i][null_start_index:-1]=[torch.tensor(0).to(self.device)
                         # for i in range(seq_length-null_start_index)]
 
-            # list(list(tensor)) - > tensor
+            # list(list(tensor)) -> tensor
             tmp = [torch.stack(episodic_reward_tmp, dim=0) for episodic_reward_tmp in episodic_reward]
             # stack batch dim
             episodic_reward = torch.stack(tmp, dim=0)  # TODO(pu): image case
@@ -417,18 +428,18 @@ class EpisodicNGURewardModel(BaseRewardModel):
             # transform to [0,1]: er01
             episodic_reward = (episodic_reward -
                                episodic_reward.min()) / (episodic_reward.max() - episodic_reward.min() + 1e-11)
-            ''' 1. transform to batch mean1: erbm1'''
+            """1. transform to batch mean1: erbm1"""
             # episodic_reward = episodic_reward / (episodic_reward.mean() + 1e-11)
             # the null_padding transition have episodic reward=0,
             # episodic_reward = episodic_reward / (episodic_reward_real_mean + 1e-11)
-            '''2. transform to long-term mean1: erlm1'''
+            """2. transform to long-term mean1: erlm1"""
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.mean
-            '''3. transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should >0,
+            """3. transform to mean 0, std 1, which is wrong, rnd_reward is in [1,5], episodic reward should >0,
             otherwise, e.g. when the  episodic_reward is -2, the rnd_reward larger,
-            the total intrinsic reward smaller, which is not correct.'''
+            the total intrinsic reward smaller, which is not correct."""
             # episodic_reward = (episodic_reward - self._running_mean_std_episodic_reward.mean)
             # / self._running_mean_std_episodic_reward.std
-            '''4. transform to std1, which is not very meaningful'''
+            """4. transform to std1, which is not very meaningful"""
             # episodic_reward = episodic_reward / self._running_mean_std_episodic_reward.std
 
         return episodic_reward
@@ -454,15 +465,15 @@ class EpisodicNGURewardModel(BaseRewardModel):
             i: 0.3 * torch.sigmoid(torch.tensor(10 * (2 * i - (collector_env_num - 2)) / (collector_env_num - 2)))
             for i in range(collector_env_num)
         }
-        index_to_gamma = {
-            i: 1 - torch.exp(
-                (
-                    (collector_env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) +
-                    i * torch.log(torch.tensor(1 - 0.99))
-                ) / (collector_env_num - 1)
-            )
-            for i in range(collector_env_num)
-        }
+        # index_to_gamma = {
+        #     i: 1 - torch.exp(
+        #         (
+        #             (collector_env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) +
+        #             i * torch.log(torch.tensor(1 - 0.99))
+        #         ) / (collector_env_num - 1)
+        #     )
+        #     for i in range(collector_env_num)
+        # }
         batch_size = len(data)
         seq_length = len(data[0]['reward'])
         device = data[0]['reward'][0].device
@@ -486,12 +497,9 @@ class EpisodicNGURewardModel(BaseRewardModel):
             # tensor to tuple
             intrisic_reward = torch.chunk(intrisic_reward, int(intrisic_reward.shape[0]), dim=0)
 
-            if len(data[0]['obs'][0].shape) == 3:
-                # atari, obs is image
-                last_rew_weight = 1
-            else:
-                # lularlander, minigrid
-                last_rew_weight = seq_length
+            if self.cfg.last_nonzero_reward_weight is None and self.cfg.last_nonzero_reward_rescale:
+                # for minigrid env
+                self.cfg.last_nonzero_reward_weight = seq_length
 
             # this is for the nstep rl algorithms
             for i in range(batch_size):  # batch_size typically 64
@@ -503,10 +511,15 @@ class EpisodicNGURewardModel(BaseRewardModel):
                         # if intrinsic_reward_type == 'add':
                         if not data[i]['null'][j]:
                             # if data[i]['null'][j]==True, means its's null data, only the not null data,
-                            # we add aintrinsic_reward reward
-                            if data[i]['done'][j]:
+                            # we add a intrinsic_reward
+                            if data[i]['done'][j] and self.cfg.last_nonzero_reward_rescale:
                                 # if not null data, and data[i]['done'][j]==True, so this is the last nstep transition
                                 # in the original data.
+
+                                # means if using rescale trick to the last non-zero reward
+                                # when combing extrinsic and intrinsic reward.
+                                # only used in sparse reward env minigrid, in which the last non-zero reward
+                                # is a strong positive signal, should not be overwhelmed by intrinsic rewards。
                                 for k in reversed(range(nstep)):
                                     # here we want to find the last nonzero reward in the nstep reward list:
                                     # data[i]['reward'][j], that is also the last reward in the sequence, here,
@@ -516,17 +529,15 @@ class EpisodicNGURewardModel(BaseRewardModel):
                                     # TODO(pu): what should we do if the last reward in the whole episode is zero?
                                     if data[i]['reward'][j][k] != 0:
                                         # find the last one that is nonzero, and enlarging <seq_length> times
-                                        tmp = copy.deepcopy(data[i]['reward'][j][k])  # should deepcopy to avoid
-                                        data[i]['reward'][j] += intrinsic_reward * index_to_beta[int(
-                                            data[i]['beta'][j]
-                                        )]
-                                        # data[i]['reward'][j][k] = last_rew_weight * tmp + intrinsic_reward[k]
-                                        # * index_to_beta[int(data[i]['beta'][j])]
-                                        data[i]['reward'][j][k] = last_rew_weight * tmp
+                                        last_nonzero_rew = copy.deepcopy(data[i]['reward'][j][k])
+                                        data[i]['reward'][j][k] = \
+                                            self.cfg.last_nonzero_reward_weight * last_nonzero_rew + \
+                                            intrinsic_reward[k] * index_to_beta[int(data[i]['beta'][j])]
                                         # substitute the kth reward in the list data[i]['reward'][j] with <seq_length>
                                         # times amplified reward
                                         break
                             else:
-                                data[i]['reward'][j] += intrinsic_reward * index_to_beta[int(data[i]['beta'][j])]
+                                data[i]['reward'][j] = data[i]['reward'][j] + intrinsic_reward * index_to_beta[
+                                    int(data[i]['beta'][j])]
 
         return data, estimate_cnt

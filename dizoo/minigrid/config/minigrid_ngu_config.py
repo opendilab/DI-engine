@@ -20,7 +20,7 @@ minigrid_ppo_ngu_config = dict(
         obs_shape=2739,
         action_shape=7,
         batch_size=320,  # transitions
-        update_per_collect=int(10),  # 32*100/320=10
+        update_per_collect=10,  # 32*100/320=10
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
         nstep=nstep,
@@ -33,7 +33,7 @@ minigrid_ppo_ngu_config = dict(
         obs_shape=2739,
         action_shape=7,
         batch_size=320,  # transitions
-        update_per_collect=int(10),  # 32*100/64=50
+        update_per_collect=10,  # 32*100/64=50
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
         nstep=nstep,
@@ -61,8 +61,12 @@ minigrid_ppo_ngu_config = dict(
             target_update_theta=0.001,
         ),
         collect=dict(
-            # NOTE: it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # NOTE: It is important that don't include key <n_sample> here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sequence_sample> sequence samples.
+            n_sequence_sample=32,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -100,6 +104,6 @@ minigrid_ppo_ngu_create_config = EasyDict(minigrid_ppo_ngu_create_config)
 create_config = minigrid_ppo_ngu_create_config
 
 if __name__ == "__main__":
-    # or you can enter `ding -m serial -c minigrid_ngu_config.py -s 0`
+    # or you can enter `ding -m serial_ngu -c minigrid_ngu_config.py -s 0`
     from ding.entry import serial_pipeline_ngu
     serial_pipeline_ngu([main_config, create_config], seed=0)

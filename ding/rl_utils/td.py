@@ -1,6 +1,6 @@
 import copy
 from collections import namedtuple
-from typing import Any, Optional, Callable
+from typing import Union, Optional, Callable
 
 import torch
 import torch.nn as nn
@@ -69,7 +69,7 @@ def view_similar(x: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
 nstep_return_data = namedtuple('nstep_return_data', ['reward', 'next_value', 'done'])
 
 
-def nstep_return(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional[torch.Tensor] = None):
+def nstep_return(data: namedtuple, gamma: Union[float, list], nstep: int, value_gamma: Optional[torch.Tensor] = None):
     reward, next_value, done = data
     assert reward.shape[0] == nstep
     device = reward.device
@@ -85,34 +85,19 @@ def nstep_return(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional
         else:
             return_ = return_tmp + value_gamma * next_value * (1 - done)
 
-    else:  # if gamma is list. for NGU
+    elif isinstance(gamma, list):
+        # if gamma is list, for NGU policy case
         reward_factor = torch.ones([nstep + 1, done.shape[0]]).to(device)
         for i in range(1, nstep + 1):
             reward_factor[i] = torch.stack(gamma, dim=0).to(device) * reward_factor[i - 1]
         reward_factor = view_similar(reward_factor, reward)
         return_tmp = reward.mul(reward_factor[:nstep]).sum(0)
         return_ = return_tmp + reward_factor[nstep] * next_value * (1 - done)
+    else:
+        raise TypeError("The type of gamma should be float or list")
 
     return return_
 
-
-# backup
-# def nstep_return_ngu(data: namedtuple, gamma: Any, nstep: int, value_gamma: Optional[torch.Tensor] = None):
-#     reward, next_value, done = data
-#     assert reward.shape[0] == nstep
-#     device = reward.device
-#     return_list = []
-#
-#     for j in range(done.shape[0]):  # reward.shape[1]):  # batch_size
-#         reward_factor = torch.ones(nstep).to(device)
-#         for i in range(1, nstep):
-#             reward_factor[i] = gamma[j] * reward_factor[i - 1]
-#         reward_tmp = torch.matmul(reward_factor, reward[:, j])
-#         return_ = reward_tmp + (gamma[j] ** nstep) * next_value[j] * (1 - done[j])
-#         return_list.append(return_.unsqueeze(0))
-#     return_ = torch.cat(return_list, dim=0)
-#
-#     return return_
 
 dist_1step_td_data = namedtuple(
     'dist_1step_td_data', ['dist', 'next_dist', 'act', 'next_act', 'reward', 'done', 'weight']
@@ -361,7 +346,7 @@ def shape_fn_qntd(args, kwargs):
 @hpc_wrapper(shape_fn=shape_fn_qntd, namedtuple_data=True, include_args=[0, 1], include_kwargs=['data', 'gamma'])
 def q_nstep_td_error(
         data: namedtuple,
-        gamma: Any,
+        gamma: Union[float, list],
         nstep: int = 1,
         cum_reward: bool = False,
         value_gamma: Optional[torch.Tensor] = None,
@@ -436,7 +421,7 @@ def shape_fn_qntd_rescale(args, kwargs):
 )
 def q_nstep_td_error_with_rescale(
     data: namedtuple,
-    gamma: Any,
+    gamma: Union[float, list],
     nstep: int = 1,
     value_gamma: Optional[torch.Tensor] = None,
     criterion: torch.nn.modules = nn.MSELoss(reduction='none'),

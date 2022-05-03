@@ -1,13 +1,10 @@
 from typing import Union, Optional, List, Any, Callable, Tuple
-import pickle
 import torch
-from functools import partial
 from ding.config import compile_config, read_config
 from ding.envs import get_vec_env_setting
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.torch_utils import to_tensor, to_ndarray, tensor_to_list
-import os
 
 
 def eval(
@@ -15,10 +12,11 @@ def eval(
         seed: int = 0,
         model: Optional[torch.nn.Module] = None,
         state_dict: Optional[dict] = None,
+        replay_path: Optional[str] = './video',
 ) -> float:
     r"""
     Overview:
-        Pure evaluation entry.
+        The evaluation entry for NGU policy.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -43,11 +41,7 @@ def eval(
     if state_dict is None:
         state_dict = torch.load(cfg.learner.load_path, map_location='cpu')
     policy.load_state_dict(state_dict)
-
-    module_path = os.path.dirname(__file__)
-    replay_path = module_path + '/doorkey_ngu/0',
-
-    env.enable_save_replay(replay_path=replay_path[0])
+    env.enable_save_replay(replay_path=replay_path)
     obs = env.reset()
     obs = {0: obs}
     eval_reward = 0.
@@ -58,7 +52,7 @@ def eval(
     prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(1)}
 
     while True:
-        # TODO(pu): r_i, reward embeding
+        # TODO(pu): r_i, reward embedding
         policy_output = policy.forward(beta_index, obs, prev_action, prev_reward_e)
 
         actions = {i: a['action'] for i, a in policy_output.items()}
@@ -91,9 +85,13 @@ def eval(
 
 
 if __name__ == "__main__":
-    path = './debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval/ckpt/iteration_0.pth.tar'
+    # Users should add their own model path here. Model path should lead to a model.
+    # Absolute path is recommended.
+    # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+    model_path = './debug_minigrid_doorkey_ngu_ul298_er01_n32_rbs3e4_fixepseval/ckpt/ckpt_best.pth.tar',
+    # model_path = 'model_path_placeholder',
     cfg = '../config/minigrid_ngu_config.py'
 
-    state_dict = torch.load(path, map_location='cpu')
-    for i in range(5,10):
-        eval(cfg, seed=i, state_dict=state_dict)
+    state_dict = torch.load(model_path, map_location='cpu')
+    for i in range(0, 10):
+        eval(cfg, seed=i, state_dict=state_dict, replay_path='./video')

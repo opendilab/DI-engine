@@ -445,7 +445,7 @@ class TestModelWrappers:
                 output = model.forward(data, tmp=1)
             assert isinstance(output, dict)
 
-    def test_eps_greedy_ngu_wrapper(self):
+    def test_eps_greedy_wrapper_with_list_eps(self):
         model = ActorMLP()
         model = model_wrap(model, wrapper_name='eps_greedy_sample')
         model.eval()

@@ -222,11 +222,9 @@ class SampleCollectorNGU(ISerialCollector):
             policy_kwargs = {}
         collected_sample = 0
         return_data = []
-        # beta={i:torch.randn(1)  for i in range(8)}
 
+        # NOTE: for NGU policy collect phase
         beta_index = {i: np.random.randint(0, self._env_num) for i in range(self._env_num)}
-        prev_action = {i: torch.tensor(-1) for i in range(self._env_num)}  # TODO    self.action_shape
-        prev_reward_e = {i: to_tensor(0, dtype=torch.float32) for i in range(self._env_num)}
         while collected_sample < n_sample:
             with self._timer:
                 # Get current env obs.
@@ -236,20 +234,20 @@ class SampleCollectorNGU(ISerialCollector):
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
 
+                # NOTE: for NGU policy
                 beta_index = to_tensor(beta_index, dtype=torch.int64)
                 self._beta_pool.update(beta_index)
-                policy_output = self._policy.forward(
-                    beta_index, obs, prev_action, prev_reward_e, **policy_kwargs
-                )  # TODO(pu): r_i, reward embeding
+
+                # TODO(pu): prev_reward_intrinsic, reward embedding
+                # NOTE: for NGU policy, no eps passed into the policy, the eps is defined in ngu policy class
+                policy_output = self._policy.forward(obs, beta_index)
+
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 actions = to_ndarray(actions)
                 timesteps = self._env.step(actions)
                 timesteps = to_tensor(timesteps, dtype=torch.float32)
-                prev_reward_e = {env_id: timestep.reward for env_id, timestep in timesteps.items()}
-                prev_reward_e = to_ndarray(prev_reward_e)
-                prev_action = actions
 
             # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
@@ -266,10 +264,11 @@ class SampleCollectorNGU(ISerialCollector):
                         self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
                     transition = self._policy.process_transition(
-                        self._beta_pool[env_id],
                         self._obs_pool[env_id],
                         self._policy_output_pool[env_id],
                         timestep,
+                        # NOTE: for NGU policy
+                        self._beta_pool[env_id],
                     )
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
@@ -280,7 +279,7 @@ class SampleCollectorNGU(ISerialCollector):
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])
-                        train_sample = self._policy.get_train_sample(transitions)  # pu if r2d2 n-step reward gamma
+                        train_sample = self._policy.get_train_sample(transitions)
                         return_data.extend(train_sample)
                         self._total_train_sample_count += len(train_sample)
                         self._env_info[env_id]['train_sample'] += len(train_sample)
@@ -291,9 +290,8 @@ class SampleCollectorNGU(ISerialCollector):
 
                 # If env is done, record episode info and reset
                 if timestep.done:
-                    beta_index[env_id] = np.random.randint(
-                        0, self._env_num
-                    )  # TODO complete episode, need self._traj_len=INF
+                    # NOTE: for NGU policy, in collect phase, each episode, we sample a new beta for each env
+                    beta_index[env_id] = np.random.randint(0, self._env_num)
 
                     self._total_episode_count += 1
                     reward = timestep.info['final_eval_reward']

@@ -40,11 +40,11 @@ pong_r2d2_config = dict(
             target_update_theta=0.001,
         ),
         collect=dict(
-            # NOTE: it is important that don't include key <n_sample> here,
+            # NOTE: It is important that don't include key <n_sample> here,
             # to make sure self._traj_len=INF in serial_sample_collector.py.
-            # in R2D2 alpg., for each collect_env, we want to collect data of the length self._traj_len=INF
-            # except when it comes to a done.
-            # In R2D2 alg., we collect <n_sequence_sample> sequence samples each collect phase.
+            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sequence_sample> sequence samples.
             n_sequence_sample=32,
             env_num=collector_env_num,
         ),
