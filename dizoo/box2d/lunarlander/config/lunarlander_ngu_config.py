@@ -9,7 +9,7 @@ lunarlander_ngu_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         env_id='LunarLander-v2',
-        ObsPlusPrevActRewWrapper=True,
+        ObsPlusPrevActRewWrapper=True,  # specific env wrapper for ngu policy
         n_evaluator_episode=evaluator_env_num,
         stop_value=195,
     ),
@@ -58,12 +58,12 @@ lunarlander_ngu_config = dict(
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=20,
+        burnin_step=2,
         nstep=nstep,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=98,
+        unroll_len=98,  # set this key according to the episode length
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -114,6 +114,7 @@ lunarlander_ngu_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
+    # TODO(pu): How to be compatible with subprocess env manager when we use ObsPlusPrevActRewWrapper
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='ngu'),

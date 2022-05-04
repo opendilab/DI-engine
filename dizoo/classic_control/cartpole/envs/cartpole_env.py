@@ -36,7 +36,7 @@ class CartPoleEnv(BaseEnv):
                     episode_trigger=lambda episode_id: True,
                     name_prefix='rl-video-{}'.format(id(self))
                 )
-            if self._cfg.ObsPlusPrevActRewWrapper:
+            if hasattr(self._cfg, 'ObsPlusPrevActRewWrapper') and self._cfg.ObsPlusPrevActRewWrapper:
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:

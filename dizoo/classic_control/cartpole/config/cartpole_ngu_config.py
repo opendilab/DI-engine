@@ -9,7 +9,7 @@ cartpole_ngu_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=evaluator_env_num,
-        ObsPlusPrevActRewWrapper=True,
+        ObsPlusPrevActRewWrapper=True,  # specific env wrapper for ngu policy
         stop_value=195,
     ),
     rnd_reward_model=dict(
@@ -57,12 +57,12 @@ cartpole_ngu_config = dict(
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=20,
+        burnin_step=2,
         nstep=nstep,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
         # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=80,
+        unroll_len=98,  # set this key according to the episode length
         model=dict(
             obs_shape=4,
             action_shape=2,

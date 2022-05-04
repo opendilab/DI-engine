@@ -25,7 +25,7 @@ class LunarLanderEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._cfg.env_id)
-            if self._cfg.ObsPlusPrevActRewWrapper:
+            if hasattr(self._cfg, 'ObsPlusPrevActRewWrapper') and self._cfg.ObsPlusPrevActRewWrapper:
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space

@@ -11,6 +11,7 @@ minigrid_ppo_ngu_config = dict(
         n_evaluator_episode=evaluator_env_num,
         # MiniGrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
         env_id='MiniGrid-DoorKey-16x16-v0',
+        ObsPlusPrevActRewWrapper=True,  # specific env wrapper for ngu policy
         max_step=300,
         stop_value=0.96,
     ),
@@ -28,6 +29,20 @@ minigrid_ppo_ngu_config = dict(
         type='rnd-ngu',
     ),
     episodic_reward_model=dict(
+        # means if using rescale trick to the last non-zero reward
+        # when combing extrinsic and intrinsic reward.
+        # the rescale trick only used in:
+        # 1. sparse reward env minigrid, in which the last non-zero reward is a strong positive signal
+        # 2. the last reward of each episode directly reflects the agent's completion of the task, e.g. lunarlander
+        # Note that the ngu intrinsic reward is a positive value (max value is 5), in these envs,
+        # the last non-zero reward should not be overwhelmed by intrinsic rewards, so we need rescale the
+        # original last nonzero extrinsic reward.
+        # please refer to ngu_reward_model for details.
+        last_nonzero_reward_rescale=True,
+        # means the rescale value for the last non-zero reward, only used when last_nonzero_reward_rescale is True
+        # please refer to ngu_reward_model for details.
+        last_nonzero_reward_weight=100,
+
         intrinsic_reward_type='add',
         learning_rate=5e-4,
         obs_shape=2739,
@@ -94,7 +109,9 @@ minigrid_ppo_ngu_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    # TODO(pu): How to be compatible with subprocess env manager when we use ObsPlusPrevActRewWrapper
+    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),

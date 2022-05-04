@@ -414,7 +414,6 @@ class NGUPolicy(Policy):
             for i in range(self._cfg.collect.env_num)
         }
 
-    # def _forward_collect(self, beta: dict, obs: dict, prev_action: dict, prev_reward_extrinsic: dict, eps: dict) -> dict:
     def _forward_collect(self, data: dict, beta_index: dict) -> dict:
         r"""
         Overview:
@@ -435,10 +434,9 @@ class NGUPolicy(Policy):
         prev_action = data['prev_action'].long()
         prev_reward_extrinsic = data['prev_reward_extrinsic']
 
-        eps = {i: 0.4 ** (1 + 8 * i / (env_num - 1)) for i in range(env_num)}  # epsilon=0.4, alpha=9
+        # epsilon=0.4, alpha=9
+        eps = {i: 0.4 ** (1 + 8 * i / (env_num - 1)) for i in range(env_num)}
 
-        # import numpy as np
-        # beta_index = {i: np.random.randint(0, env_num) for i in range(self._env_num)}
         beta_index = default_collate(list(beta_index.values()))
 
         if self._cuda:
@@ -525,18 +523,7 @@ class NGUPolicy(Policy):
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
 
-    # def _forward_eval(
-    #         self,
-    #         beta: dict,
-    #         obs: dict,
-    #         prev_action: dict,
-    #         prev_reward_extrinsic: dict,
-    # ) -> dict:
-    def _forward_eval(
-            self,
-            data: dict,
-            beta_index: dict,
-    ) -> dict:
+    def _forward_eval(self, data: dict, beta_index: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.
@@ -549,7 +536,6 @@ class NGUPolicy(Policy):
         """
 
         data_id = list(data.keys())
-        env_num = len(data_id)
         data = default_collate(list(data.values()))
 
         obs = data['obs']
