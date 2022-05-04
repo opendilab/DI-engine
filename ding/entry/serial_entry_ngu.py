@@ -53,7 +53,8 @@ def serial_pipeline_ngu(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
-    # evaluator_env.enable_save_replay(cfg.env.replay_path)  # if save replay
+    # if you want to save replay, please uncomment this line
+    # evaluator_env.enable_save_replay(cfg.env.replay_path)
 
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
@@ -106,6 +107,7 @@ def serial_pipeline_ngu(
                 break
         # Collect data by default config n_sample/n_episode
         if hasattr(cfg.policy.collect, "n_sequence_sample"):
+            # for sequence-sample-based policy, e.g. r2d2, r2d3, ngu
             new_data = collector.collect(
                 n_sample=cfg.policy.collect.n_sequence_sample,
                 train_iter=learner.train_iter,

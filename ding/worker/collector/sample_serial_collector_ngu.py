@@ -238,7 +238,8 @@ class SampleCollectorNGU(ISerialCollector):
                 beta_index = to_tensor(beta_index, dtype=torch.int64)
                 self._beta_pool.update(beta_index)
 
-                # TODO(pu): prev_reward_intrinsic, reward embedding
+                # TODO(pu): add prev_reward_intrinsic to network input,
+                #  reward uses some kind of embedding instead of 1D value
                 # NOTE: for NGU policy, no eps passed into the policy, the eps is defined in ngu policy class
                 policy_output = self._policy.forward(obs, beta_index)
 

@@ -199,7 +199,8 @@ class BaseSerialEvaluatorNGU(object):
                 obs = self._env.ready_obs
                 obs = to_tensor(obs, dtype=torch.float32)
 
-                # TODO(pu): prev_reward_intrinsic, reward embedding
+                # TODO(pu): add prev_reward_intrinsic to network input,
+                #  reward uses some kind of embedding instead of 1D value
                 # NOTE: for NGU policy, no eps passed into the policy, the eps is defined in ngu policy class
                 policy_output = self._policy.forward(obs, beta_index)
 

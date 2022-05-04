@@ -124,7 +124,7 @@ def serial_pipeline_td3_vae(
 
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
-        replay_buffer.clear()  # TODO(pu): NOTE
+        replay_buffer.clear()  # NOTE
 
     # NOTE: for the case collector_env_num>1, because after the random collect phase,  self._traj_buffer[env_id] may
     # be not empty. Only if the condition "timestep.done or len(self._traj_buffer[env_id]) == self._traj_len" is
@@ -141,7 +141,8 @@ def serial_pipeline_td3_vae(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):
+        if hasattr(cfg.policy.collect, "n_sequence_sample"):
+            # for sequence-sample-based policy, e.g. r2d2, r2d3, ngu
             new_data = collector.collect(
                 n_sample=cfg.policy.collect.each_iter_n_sample,
                 train_iter=learner.train_iter,
@@ -180,7 +181,7 @@ def serial_pipeline_td3_vae(
                                                                   cfg.policy.learn.rl_vae_update_circle):
             for i in range(cfg.policy.learn.update_per_collect_vae):
                 # Learner will train ``update_per_collect`` times in one iteration.
-                # TODO(pu):
+                # TODO(pu): different sample style
                 train_data_history = replay_buffer.sample(
                     int(learner.policy.get_attribute('batch_size') / 2), learner.train_iter
                 )
@@ -188,10 +189,6 @@ def serial_pipeline_td3_vae(
                     int(learner.policy.get_attribute('batch_size') / 2), learner.train_iter
                 )
                 train_data = train_data_history + train_data_recent
-
-                # train_data = replay_buffer.sample(  # TODO(pu): sample from all history data
-                #     int(learner.policy.get_attribute('batch_size')), learner.train_iter
-                # )
 
                 if train_data is not None:
                     for item in train_data:
@@ -205,9 +202,9 @@ def serial_pipeline_td3_vae(
                     )
                     break
                 learner.train(train_data, collector.envstep)
-                # if learner.policy.get_attribute('priority'):
-                #     replay_buffer.update(learner.priority_info)
-            replay_buffer_recent.clear()  # TODO(pu)
+                if learner.policy.get_attribute('priority'):
+                    replay_buffer.update(learner.priority_info)
+            replay_buffer_recent.clear()  # NOTE
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
         count += 1

@@ -930,7 +930,10 @@ class GymHybridDictActionWrapper(gym.ActionWrapper):
 class ObsPlusPrevActRewWrapper(gym.Wrapper):
     """
     Overview:
-       dict {s_t, a_t-1, r_t-1} as obs.
+       This wrapper is used in policy NGU.
+       Set a dict {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
+       as the new wrapped observation,
+       which including the current obs, previous action and previous reward.
     Interface:
         ``__init__``, ``reset``, ``step``
     Properties:
@@ -945,29 +948,31 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
             - env (:obj:`gym.Env`): the environment to wrap.
         """
         super().__init__(env)
+        self.prev_action = -1  # null action
+        self.prev_reward_extrinsic = 0  # null reward
 
     def reset(self):
         """
         Overview:
-            Resets the state of the environment and append new observation to frames
+            Resets the state of the environment.
         Returns:
-            - ``obs``: observation
+            -  obs (:obj:`Dict`) : the wrapped observation, which including the current obs, \
+                previous action and previous reward.
         """
         obs = self.env.reset()
-        self.prev_action = -1  # null action
-        self.prev_reward_extrinsic = 0  # null reward
         obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
         return obs
 
     def step(self, action):
         """
         Overview:
-            Step the environment with the given action. Repeat action, sum reward,  \
-                and max over last observations, and append new observation to frames
+            Step the environment with the given action.
+            Save the previous action and reward to be used in next new obs
         Arguments:
             - action (:obj:`Any`): the given action to step with.
         Returns:
-            - ``self._get_ob()`` : observation
+            -  obs (:obj:`Dict`) : the wrapped observation, which including the current obs, \
+                previous action and previous reward.
             - reward (:obj:`Any`) : amount of reward returned after previous action
             - done (:obj:`Bool`) : whether the episode has ended, in which case further \
                  step() calls will return undefined results

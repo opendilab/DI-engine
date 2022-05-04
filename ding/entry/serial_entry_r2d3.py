@@ -118,7 +118,8 @@ def serial_pipeline_r2d3(
     learner.call_hook('before_run')
     if expert_cfg.policy.learn.expert_replay_buffer_size != 0:  # for ablation study
         expert_buffer = create_buffer(expert_cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):  # TODO(pu)
+        if hasattr(cfg.policy.collect, "n_sequence_sample"):
+            # for sequence-sample-based policy, e.g. r2d2, r2d3, ngu
             expert_data = expert_collector.collect(
                 n_sample=expert_cfg.policy.learn.expert_replay_buffer_size,
                 train_iter=learner.train_iter,

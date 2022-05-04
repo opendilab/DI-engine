@@ -107,6 +107,7 @@ def serial_pipeline_preference_based_irl(
                 break
         # Collect data by default config n_sample/n_episode
         if hasattr(cfg.policy.collect, "n_sequence_sample"):
+            # for sequence-sample-based policy, e.g. r2d2, r2d3, ngu
             new_data = collector.collect(
                 n_sample=cfg.policy.collect.n_sequence_sample,
                 train_iter=learner.train_iter,

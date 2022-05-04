@@ -488,7 +488,7 @@ class EpsGreedySampleWrapper(IModelWrapper):
             mask = None
         action = []
         if isinstance(eps, dict):
-            # for NGU, each env has a different eps
+            # for NGU policy, eps is a dict, each collect env has a different eps
             for i, l in enumerate(logit[0]):
                 eps_tmp = eps[i]
                 if np.random.random() > eps_tmp:
