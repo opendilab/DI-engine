@@ -495,10 +495,8 @@ class NGUPolicy(Policy):
                 'beta': self.beta_index[env_id],
                 'obs': obs['obs'],  # NOTE: input obs including obs, prev_action, prev_reward_extrinsic
                 'action': model_output['action'],
-                # 'prev_action': model_output['action'],
                 'prev_state': model_output['prev_state'],
                 'reward': timestep.reward,
-                # 'prev_reward_extrinsic': timestep.reward,
                 'done': timestep.done,
                 'null': timestep.null,
             }
@@ -507,10 +505,8 @@ class NGUPolicy(Policy):
                 'beta': self.beta_index[env_id],
                 'obs': obs['obs'],  # NOTE: input obs including obs, prev_action, prev_reward_extrinsic
                 'action': model_output['action'],
-                # 'prev_action': model_output['action'],
                 'prev_state': model_output['prev_state'],
                 'reward': timestep.reward,
-                # 'prev_reward_extrinsic': timestep.reward,
                 'done': timestep.done,
                 'null': False,
             }

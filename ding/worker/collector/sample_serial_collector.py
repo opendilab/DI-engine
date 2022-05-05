@@ -252,7 +252,8 @@ class SampleSerialCollector(ISerialCollector):
                         self._reset_stat(env_id)
                         self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
-                    if self._policy.get_attribute('cfg').type == 'ngu_command':
+                    if 'type' in self._policy.get_attribute('cfg') and \
+                            self._policy.get_attribute('cfg').type == 'ngu_command':
                         # for NGU policy
                         transition = self._policy.process_transition(
                             self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, env_id
