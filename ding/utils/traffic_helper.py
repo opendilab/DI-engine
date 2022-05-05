@@ -95,8 +95,7 @@ class Traffic:
         msg = json.dumps(dict_to_record)
         if self._file:
             self._file.write(msg + "\n")
-
-        if self._router and self._router.is_active and not self._file:
+        elif self._router and self._router.is_active:
             self._router.emit("_Traffic_", dict_to_record)
 
         if self._data:
