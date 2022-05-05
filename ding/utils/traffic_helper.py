@@ -125,7 +125,7 @@ class Traffic:
         else:
             return None
 
-    def close(self):
+    def close(self) -> None:
         """
         Overview:
             Safely close the module.
@@ -143,7 +143,7 @@ class Traffic:
             self._data.clear()
             self._max_records = 0
 
-    def _on_msg(self, info: object, *args, **kwargs):
+    def _on_msg(self, info: object, *args, **kwargs) -> None:
         """
         Overview:
             Listen for RPC from non-master instance.
@@ -151,7 +151,7 @@ class Traffic:
         """
         self.record(info)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.close()
 
 
