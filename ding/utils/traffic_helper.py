@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 class Traffic:
 
     def __init__(self) -> None:
-        pass
+        self._file = None
+        self._router = None
+        self._data = None
 
     def config(
             self,
@@ -26,7 +28,7 @@ class Traffic:
     ) -> "Traffic":
         """
         Overview:
-            Enable and change the configuration of a Traffic instance. 
+            Enable and change the configuration of a Traffic instance.
         Arguments:
             - file_path (:obj:`str`): File path that offline data are to be saved at. \
                 In local mode, it must be set sucessfully for at least once. \
@@ -36,38 +38,30 @@ class Traffic:
             - router (:obj:`Parallel`): To enable remote mode.
         """
 
-        if online and maxlen <= 0:
+        if online:
             logging.error("Illegal data size.")
+            assert maxlen > 0
             return self
 
-        if not hasattr(self, "_file") or self._file is None:
-            self._file = None
-            self._has_file_writer = False
-            self._file_path = None
+        if self._file is None:
             if file_path:
                 try:
                     if not os.path.exists(os.path.dirname(file_path)):
                         os.makedirs(os.path.dirname(file_path))
                     self._file = open(file_path, "a+")
-                    self._has_file_writer = True
-                    self._file_path = file_path
                 except IOError as error:
+                    self._file = None
                     logging.error("Invalid file path.")
                     raise
 
-        if not hasattr(self, "_router") or self._router is None:
-            self._in_parallel = False
-            self._router = None
+        if self._router is None:
             if router and router.is_active:
-                self._in_parallel = True
                 self._router = router
-                if self._has_file_writer:
+                if self._file:
                     router.on("_Traffic_", self._on_msg)
 
-        if not hasattr(self, "_has_data") or self._has_data is False:
-            self._has_data = False
+        if self._data is None:
             if online:
-                self._has_data = True
                 self._data = deque(maxlen=maxlen)
                 self._max_records = 0
                 self._cache = {}
@@ -95,14 +89,14 @@ class Traffic:
             else:
                 dict_to_record = {}
 
-        if not "__time" in dict_to_record:
+        if "__time" not in dict_to_record:
             dict_to_record.update({"__time": time.time()})
 
         msg = json.dumps(dict_to_record)
-        if self._has_file_writer and self._file:
+        if self._file:
             self._file.write(msg + "\n")
 
-        if self._in_parallel and not self._has_file_writer:
+        if self._router and self._router.is_active and not self._file:
             self._router.emit("_Traffic_", dict_to_record)
 
         if self._has_data:
@@ -130,15 +124,13 @@ class Traffic:
         Overview:
             Safely close the module.
         """
-        self._has_file_writer = False
-        self._in_parallel = False
         if self._router:
             self._router.off("_Traffic_")
             self._router = None
         if self._file:
             self._file.close()
             self._file = None
-        if self._has_data:
+        if self._data:
             self._cache.clear()
             self._data.clear()
             self._max_records = 0
