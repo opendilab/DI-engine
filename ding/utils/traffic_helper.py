@@ -39,7 +39,6 @@ class Traffic:
         """
 
         if online:
-            logging.error("Illegal data size.")
             assert maxlen > 0
             return self
 
