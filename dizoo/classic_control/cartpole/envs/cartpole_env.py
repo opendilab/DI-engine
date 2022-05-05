@@ -44,6 +44,7 @@ class CartPoleEnv(BaseEnv):
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        self._observation_space = self._env.observation_space
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)

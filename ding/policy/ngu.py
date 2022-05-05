@@ -450,6 +450,9 @@ class NGUPolicy(Policy):
         prev_reward_extrinsic = data['prev_reward_extrinsic']
 
         beta_index = default_collate(list(self.beta_index.values()))
+        if len(data_id) != self._cfg.collect.env_num:
+            # in case, some env is in reset state and only return part data
+            beta_index = beta_index[data_id]
 
         if self._cuda:
             obs = to_device(obs, self._device)
@@ -558,16 +561,19 @@ class NGUPolicy(Policy):
         prev_action = data['prev_action'].long()
         prev_reward_extrinsic = data['prev_reward_extrinsic']
 
-        beta = default_collate(list(self.beta_index.values()))
+        beta_index = default_collate(list(self.beta_index.values()))
+        if len(data_id) != self._cfg.collect.env_num:
+            # in case, some env is in reset state and only return part data
+            beta_index = beta_index[data_id]
 
         if self._cuda:
             obs = to_device(obs, self._device)
-            beta = to_device(beta, self._device)
+            beta_index = to_device(beta_index, self._device)
             prev_action = to_device(prev_action, self._device)
             prev_reward_extrinsic = to_device(prev_reward_extrinsic, self._device)
         # TODO(pu): add prev_reward_intrinsic to network input,
         #  reward uses some kind of embedding instead of 1D value
-        data = {'obs': obs, 'prev_action': prev_action, 'prev_reward_extrinsic': prev_reward_extrinsic, 'beta': beta}
+        data = {'obs': obs, 'prev_action': prev_action, 'prev_reward_extrinsic': prev_reward_extrinsic, 'beta': beta_index}
 
         self._eval_model.eval()
         with torch.no_grad():

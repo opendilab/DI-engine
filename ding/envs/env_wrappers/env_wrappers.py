@@ -948,9 +948,6 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
             - env (:obj:`gym.Env`): the environment to wrap.
         """
         super().__init__(env)
-        # NOTE: to be compatible with subprocess env manager when we use ObsPlusPrevActRewWrapper
-        # env.observation_space.dtype = np.float32
-        # env.action_space.dtype = np.float32
         self.observation_space = gym.spaces.Dict(
             {
                 'obs': env.observation_space,
@@ -973,9 +970,6 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
         """
         obs = self.env.reset()
         obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
-        # NOTE: to be compatible with subprocess env manager when we use ObsPlusPrevActRewWrapper
-        # obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
-
         return obs
 
     def step(self, action):
@@ -997,9 +991,6 @@ class ObsPlusPrevActRewWrapper(gym.Wrapper):
 
         obs, reward, done, info = self.env.step(action)
         obs = {'obs': obs, 'prev_action': self.prev_action, 'prev_reward_extrinsic': self.prev_reward_extrinsic}
-        # NOTE: to be compatible with subprocess env manager when we use ObsPlusPrevActRewWrapper
-        # obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
-
         self.prev_action = action
         self.prev_reward_extrinsic = reward
         return obs, reward, done, info

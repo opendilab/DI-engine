@@ -110,9 +110,6 @@ cartpole_ngu_create_config = dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
-    # TODO(pu): How to be compatible with subprocess env manager
-    #  when we use ObsPlusPrevActRewWrapper
-    # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),

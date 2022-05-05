@@ -114,10 +114,7 @@ montezuma_ppo_rnd_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    # TODO(pu): How to be compatible with subprocess env manager
-    #  when we use ObsPlusPrevActRewWrapper
-    # env_manager=dict(type='subprocess'),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
