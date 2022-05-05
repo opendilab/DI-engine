@@ -28,7 +28,7 @@ def fn_record_something() -> Callable:
         os.makedirs(dir)
     clean_up(dir)
     file_path = "./tmp_test/traffic_log.txt"
-    traffic.config(file_path=file_path, online=True, router=Parallel())
+    traffic.set_config(file_path=file_path, online=True, router=Parallel())
 
     def _fn(ctx: "Context") -> None:
         while True:
@@ -44,7 +44,7 @@ def fn_record_something() -> Callable:
 
 
 def fn_send_something() -> Callable:
-    traffic.config(router=Parallel())
+    traffic.set_config(router=Parallel())
     i = 0
 
     def _fn(ctx: "Context") -> None:

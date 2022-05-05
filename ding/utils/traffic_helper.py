@@ -19,7 +19,7 @@ class Traffic:
         self._router = None
         self._data = None
 
-    def config(
+    def set_config(
             self,
             file_path: str = None,
             online: bool = False,
