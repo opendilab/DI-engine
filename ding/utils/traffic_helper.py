@@ -42,7 +42,9 @@ class Traffic:
             assert maxlen > 0
             return self
 
-        if self._file is None:
+        if self._file:
+            logging.warn("Configuration failure: file handle existed.")
+        else:
             if file_path:
                 try:
                     if not os.path.exists(os.path.dirname(file_path)):
@@ -53,13 +55,17 @@ class Traffic:
                     logging.error("Invalid file path.")
                     raise
 
-        if self._router is None:
+        if self._router and self._router.is_active:
+            logging.warn("Configuration failure: parallel router existed.")
+        else:
             if router and router.is_active:
                 self._router = router
                 if self._file:
                     router.on("_Traffic_", self._on_msg)
 
-        if self._data is None:
+        if self._data:
+            logging.warn("Configuration failure: data existed.")
+        else:
             if online:
                 self._data = deque(maxlen=maxlen)
                 self._max_records = 0
