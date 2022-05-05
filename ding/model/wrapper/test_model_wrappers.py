@@ -445,11 +445,11 @@ class TestModelWrappers:
                 output = model.forward(data, tmp=1)
             assert isinstance(output, dict)
 
-    def test_eps_greedy_ngu_wrapper(self):
+    def test_eps_greedy_wrapper_with_list_eps(self):
         model = ActorMLP()
-        model = model_wrap(model, wrapper_name='eps_greedy_sample_ngu')
+        model = model_wrap(model, wrapper_name='eps_greedy_sample')
         model.eval()
-        eps_threshold = 0.5
+        eps_threshold = {i: 0.5 for i in range(4)}  # for NGU
         data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
         with torch.no_grad():
             output = model.forward(data, eps=eps_threshold)

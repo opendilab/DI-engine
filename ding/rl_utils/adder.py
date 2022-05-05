@@ -166,8 +166,8 @@ class Adder(object):
                     template['obs'] = {k: torch.zeros_like(v) for k, v in template['obs'].items()}
                 else:
                     template['obs'] = torch.zeros_like(template['obs'])
-                # template['action'] = -1 * torch.ones_like(template['action']) # TODO(pu)
-                template['action'] = torch.zeros_like(template['action'])
+                if 'action' in template:
+                    template['action'] = torch.zeros_like(template['action'])
                 template['done'] = True
                 template['reward'] = torch.zeros_like(template['reward'])
                 if 'value_gamma' in template:
