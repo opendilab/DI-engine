@@ -305,8 +305,8 @@
 
             <span class="n">rnd_reward</span> <span class="o">=</span> <span class="n">rnd_reward</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">train_data_augmented</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
             <span class="n">rnd_reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">rnd_reward</span><span class="p">,</span> <span class="n">rnd_reward</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="sd">&quot;&quot;&quot;NOTE:</span>
-<span class="sd">        Following normalization approach to extrinsic reward seems be not reasonable,</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        NOTE: Following normalization approach to extrinsic reward seems be not reasonable,</span>
 <span class="sd">        because this approach compresses the extrinsic reward magnitude, resulting in less informative reward signals.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># rewards = torch.stack([data[i][&#39;reward&#39;] for i in range(len(data))])</span>
@@ -314,7 +314,8 @@
 
         <span class="c1"># TODO(pu): how to set intrinsic_reward_rescale automatically?</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">intrinsic_reward_weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="sd">&quot;&quot;&quot;Note: the following way of setting self.cfg.intrinsic_reward_weight is only suitable for the dense</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            NOTE: the following way of setting self.cfg.intrinsic_reward_weight is only suitable for the dense</span>
 <span class="sd">            reward env like lunarlander, not suitable for the dense reward env.</span>
 <span class="sd">            In sparse reward env, e.g. minigrid, if the agent reaches the goal, it obtain reward ~1, otherwise 0.</span>
 <span class="sd">            Thus, in sparse reward env, it&#39;s reasonable to set the intrinsic_reward_weight approximately equal to</span>

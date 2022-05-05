@@ -1093,6 +1093,76 @@
     <span class="c1">#     return (size, size), act_shape, rew_shape</span>
 
 
+<span class="nd">@ENV_WRAPPER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;obs_plus_prev_action_reward&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ObsPlusPrevActRewWrapper</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">       This wrapper is used in policy NGU.</span>
+<span class="sd">       Set a dict {&#39;obs&#39;: obs, &#39;prev_action&#39;: self.prev_action, &#39;prev_reward_extrinsic&#39;: self.prev_reward_extrinsic}</span>
+<span class="sd">       as the new wrapped observation,</span>
+<span class="sd">       which including the current obs, previous action and previous reward.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``reset``, ``step``</span>
+<span class="sd">    Properties:</span>
+<span class="sd">        - env (:obj:`gym.Env`): the environment to wrap.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize ``self.`` See ``help(type(self))`` for accurate signature; setup the properties.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - env (:obj:`gym.Env`): the environment to wrap.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observation_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">observation_space</span><span class="p">,</span>
+                <span class="s1">&#39;prev_action&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">,</span>
+                <span class="s1">&#39;prev_reward_extrinsic&#39;</span><span class="p">:</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span>
+                    <span class="n">low</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">reward_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">reward_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+                <span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_action</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># null action</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_reward_extrinsic</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># null reward</span>
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Resets the state of the environment.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            -  obs (:obj:`Dict`) : the wrapped observation, which including the current obs, \</span>
+<span class="sd">                previous action and previous reward.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span> <span class="s1">&#39;prev_action&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_action</span><span class="p">,</span> <span class="s1">&#39;prev_reward_extrinsic&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_reward_extrinsic</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">obs</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Step the environment with the given action.</span>
+<span class="sd">            Save the previous action and reward to be used in next new obs</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - action (:obj:`Any`): the given action to step with.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            -  obs (:obj:`Dict`) : the wrapped observation, which including the current obs, \</span>
+<span class="sd">                previous action and previous reward.</span>
+<span class="sd">            - reward (:obj:`Any`) : amount of reward returned after previous action</span>
+<span class="sd">            - done (:obj:`Bool`) : whether the episode has ended, in which case further \</span>
+<span class="sd">                 step() calls will return undefined results</span>
+<span class="sd">            - info (:obj:`Dict`) : contains auxiliary diagnostic information (helpful  \</span>
+<span class="sd">                for debugging, and sometimes learning)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span> <span class="s1">&#39;prev_action&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_action</span><span class="p">,</span> <span class="s1">&#39;prev_reward_extrinsic&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prev_reward_extrinsic</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_action</span> <span class="o">=</span> <span class="n">action</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prev_reward_extrinsic</span> <span class="o">=</span> <span class="n">reward</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span>
+
+
 <span class="k">def</span> <span class="nf">update_shape</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">act_shape</span><span class="p">,</span> <span class="n">rew_shape</span><span class="p">,</span> <span class="n">wrapper_names</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>

@@ -167,7 +167,7 @@
   <h1>Source code for ding.rl_utils.td</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
@@ -236,36 +236,32 @@
 <span class="n">nstep_return_data</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;nstep_return_data&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">,</span> <span class="s1">&#39;next_value&#39;</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">nstep_return</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nstep</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_gamma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">nstep_return</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span> <span class="n">nstep</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_gamma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="n">reward</span><span class="p">,</span> <span class="n">next_value</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">data</span>
     <span class="k">assert</span> <span class="n">reward</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">nstep</span>
     <span class="n">device</span> <span class="o">=</span> <span class="n">reward</span><span class="o">.</span><span class="n">device</span>
-    <span class="n">reward_factor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nstep</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nstep</span><span class="p">):</span>
-        <span class="n">reward_factor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">reward_factor</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">reward_factor</span> <span class="o">=</span> <span class="n">view_similar</span><span class="p">(</span><span class="n">reward_factor</span><span class="p">,</span> <span class="n">reward</span><span class="p">)</span>
-    <span class="n">reward</span> <span class="o">=</span> <span class="n">reward</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">reward_factor</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">value_gamma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">return_</span> <span class="o">=</span> <span class="n">reward</span> <span class="o">+</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">**</span> <span class="n">nstep</span><span class="p">)</span> <span class="o">*</span> <span class="n">next_value</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">return_</span> <span class="o">=</span> <span class="n">reward</span> <span class="o">+</span> <span class="n">value_gamma</span> <span class="o">*</span> <span class="n">next_value</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">return_</span>
 
-
-<span class="k">def</span> <span class="nf">nstep_return_ngu</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">nstep</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">value_gamma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="n">reward</span><span class="p">,</span> <span class="n">next_value</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">data</span>
-    <span class="k">assert</span> <span class="n">reward</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">nstep</span>
-    <span class="n">device</span> <span class="o">=</span> <span class="n">reward</span><span class="o">.</span><span class="n">device</span>
-    <span class="n">return_list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">done</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>  <span class="c1"># reward.shape[1]):  # batch_size</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
         <span class="n">reward_factor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nstep</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nstep</span><span class="p">):</span>
-            <span class="n">reward_factor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gamma</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">reward_factor</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">reward_tmp</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">reward_factor</span><span class="p">,</span> <span class="n">reward</span><span class="p">[:,</span> <span class="n">j</span><span class="p">])</span>
-        <span class="n">return_</span> <span class="o">=</span> <span class="n">reward_tmp</span> <span class="o">+</span> <span class="p">(</span><span class="n">gamma</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">**</span> <span class="n">nstep</span><span class="p">)</span> <span class="o">*</span> <span class="n">next_value</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-        <span class="n">return_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">return_</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-    <span class="c1"># return_list = to_tensor(return_list)</span>
-    <span class="n">return_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">return_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">reward_factor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">reward_factor</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">reward_factor</span> <span class="o">=</span> <span class="n">view_similar</span><span class="p">(</span><span class="n">reward_factor</span><span class="p">,</span> <span class="n">reward</span><span class="p">)</span>
+        <span class="n">return_tmp</span> <span class="o">=</span> <span class="n">reward</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">reward_factor</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value_gamma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">return_</span> <span class="o">=</span> <span class="n">return_tmp</span> <span class="o">+</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">**</span> <span class="n">nstep</span><span class="p">)</span> <span class="o">*</span> <span class="n">next_value</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">return_</span> <span class="o">=</span> <span class="n">return_tmp</span> <span class="o">+</span> <span class="n">value_gamma</span> <span class="o">*</span> <span class="n">next_value</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="c1"># if gamma is list, for NGU policy case</span>
+        <span class="n">reward_factor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">nstep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">done</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nstep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">reward_factor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">gamma</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="o">*</span> <span class="n">reward_factor</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">reward_factor</span> <span class="o">=</span> <span class="n">view_similar</span><span class="p">(</span><span class="n">reward_factor</span><span class="p">,</span> <span class="n">reward</span><span class="p">)</span>
+        <span class="n">return_tmp</span> <span class="o">=</span> <span class="n">reward</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="n">reward_factor</span><span class="p">[:</span><span class="n">nstep</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">return_</span> <span class="o">=</span> <span class="n">return_tmp</span> <span class="o">+</span> <span class="n">reward_factor</span><span class="p">[</span><span class="n">nstep</span><span class="p">]</span> <span class="o">*</span> <span class="n">next_value</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The type of gamma should be float or list&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">return_</span>
 
@@ -517,7 +513,7 @@
 <span class="nd">@hpc_wrapper</span><span class="p">(</span><span class="n">shape_fn</span><span class="o">=</span><span class="n">shape_fn_qntd</span><span class="p">,</span> <span class="n">namedtuple_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_args</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">include_kwargs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;gamma&#39;</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">q_nstep_td_error</span><span class="p">(</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
-        <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">gamma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
         <span class="n">nstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">cum_reward</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">value_gamma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -571,59 +567,6 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">td_error_per_sample</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_per_sample</span>
 
 
-<span class="nd">@hpc_wrapper</span><span class="p">(</span><span class="n">shape_fn</span><span class="o">=</span><span class="n">shape_fn_qntd</span><span class="p">,</span> <span class="n">namedtuple_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_args</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">include_kwargs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;gamma&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">q_nstep_td_error_ngu</span><span class="p">(</span>
-        <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
-        <span class="n">gamma</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>  <span class="c1"># float,</span>
-        <span class="n">nstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">cum_reward</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">value_gamma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">criterion</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">),</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        Multistep (1 step or n step) td_error for q-learning based algorithm</span>
-<span class="sd">    Arguments:</span>
-<span class="sd">        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss</span>
-<span class="sd">        - gamma (:obj:`float`): discount factor</span>
-<span class="sd">        - cum_reward (:obj:`bool`): whether to use cumulative nstep reward, which is figured out when collecting data</span>
-<span class="sd">        - value_gamma (:obj:`torch.Tensor`): gamma discount value for target q_value</span>
-<span class="sd">        - criterion (:obj:`torch.nn.modules`): loss function criterion</span>
-<span class="sd">        - nstep (:obj:`int`): nstep num, default set to 1</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor</span>
-<span class="sd">        - td_error_per_sample (:obj:`torch.Tensor`): nstep td error, 1-dim tensor</span>
-<span class="sd">    Shapes:</span>
-<span class="sd">        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\</span>
-<span class="sd">            [&#39;q&#39;, &#39;next_n_q&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;done&#39;]</span>
-<span class="sd">        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]</span>
-<span class="sd">        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`</span>
-<span class="sd">        - action (:obj:`torch.LongTensor`): :math:`(B, )`</span>
-<span class="sd">        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`</span>
-<span class="sd">        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)</span>
-<span class="sd">        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep</span>
-<span class="sd">        - td_error_per_sample (:obj:`torch.FloatTensor`): :math:`(B, )`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">q</span><span class="p">,</span> <span class="n">next_n_q</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_n_action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">shape</span>
-    <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
-
-    <span class="n">batch_range</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">q_s_a</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">batch_range</span><span class="p">,</span> <span class="n">action</span><span class="p">]</span>
-    <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">next_n_q</span><span class="p">[</span><span class="n">batch_range</span><span class="p">,</span> <span class="n">next_n_action</span><span class="p">]</span>
-
-    <span class="k">if</span> <span class="n">cum_reward</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">value_gamma</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">reward</span> <span class="o">+</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">**</span> <span class="n">nstep</span><span class="p">)</span> <span class="o">*</span> <span class="n">target_q_s_a</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">reward</span> <span class="o">+</span> <span class="n">value_gamma</span> <span class="o">*</span> <span class="n">target_q_s_a</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">nstep_return_ngu</span><span class="p">(</span><span class="n">nstep_return_data</span><span class="p">(</span><span class="n">reward</span><span class="p">,</span> <span class="n">target_q_s_a</span><span class="p">,</span> <span class="n">done</span><span class="p">),</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">value_gamma</span><span class="p">)</span>
-    <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">q_s_a</span><span class="p">,</span> <span class="n">target_q_s_a</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">td_error_per_sample</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_per_sample</span>
-
-
 <span class="k">def</span> <span class="nf">shape_fn_qntd_rescale</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -645,7 +588,7 @@
 <span class="p">)</span>
 <span class="k">def</span> <span class="nf">q_nstep_td_error_with_rescale</span><span class="p">(</span>
     <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
-    <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">gamma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
     <span class="n">nstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">value_gamma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">criterion</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">),</span>
@@ -687,59 +630,6 @@
 
     <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">inv_trans_fn</span><span class="p">(</span><span class="n">target_q_s_a</span><span class="p">)</span>
     <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">nstep_return</span><span class="p">(</span><span class="n">nstep_return_data</span><span class="p">(</span><span class="n">reward</span><span class="p">,</span> <span class="n">target_q_s_a</span><span class="p">,</span> <span class="n">done</span><span class="p">),</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">value_gamma</span><span class="p">)</span>
-    <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">trans_fn</span><span class="p">(</span><span class="n">target_q_s_a</span><span class="p">)</span>
-
-    <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">q_s_a</span><span class="p">,</span> <span class="n">target_q_s_a</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">td_error_per_sample</span> <span class="o">*</span> <span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">td_error_per_sample</span>
-
-
-<span class="nd">@hpc_wrapper</span><span class="p">(</span>
-    <span class="n">shape_fn</span><span class="o">=</span><span class="n">shape_fn_qntd_rescale</span><span class="p">,</span> <span class="n">namedtuple_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_args</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">include_kwargs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;gamma&#39;</span><span class="p">]</span>
-<span class="p">)</span>
-<span class="k">def</span> <span class="nf">q_nstep_td_error_with_rescale_ngu</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span>
-    <span class="n">gamma</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
-    <span class="n">nstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">value_gamma</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">criterion</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">modules</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">),</span>
-    <span class="n">trans_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">value_transform</span><span class="p">,</span>
-    <span class="n">inv_trans_fn</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">value_inv_transform</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Overview:</span>
-<span class="sd">        Multistep (1 step or n step) td_error with value rescaling</span>
-<span class="sd">    Arguments:</span>
-<span class="sd">        - data (:obj:`q_nstep_td_data`): the input data, q_nstep_td_data to calculate loss</span>
-<span class="sd">        - gamma (:obj:`float`): discount factor</span>
-<span class="sd">        - nstep (:obj:`int`): nstep num, default set to 1</span>
-<span class="sd">        - criterion (:obj:`torch.nn.modules`): loss function criterion</span>
-<span class="sd">        - trans_fn (:obj:`Callable`): value transfrom function, default to value_transform\</span>
-<span class="sd">            (refer to rl_utils/value_rescale.py)</span>
-<span class="sd">        - inv_trans_fn (:obj:`Callable`): value inverse transfrom function, default to value_inv_transform\</span>
-<span class="sd">            (refer to rl_utils/value_rescale.py)</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        - loss (:obj:`torch.Tensor`): nstep td error, 0-dim tensor</span>
-<span class="sd">    Shapes:</span>
-<span class="sd">        - data (:obj:`q_nstep_td_data`): the q_nstep_td_data containing\</span>
-<span class="sd">        [&#39;q&#39;, &#39;next_n_q&#39;, &#39;action&#39;, &#39;reward&#39;, &#39;done&#39;]</span>
-<span class="sd">        - q (:obj:`torch.FloatTensor`): :math:`(B, N)` i.e. [batch_size, action_dim]</span>
-<span class="sd">        - next_n_q (:obj:`torch.FloatTensor`): :math:`(B, N)`</span>
-<span class="sd">        - action (:obj:`torch.LongTensor`): :math:`(B, )`</span>
-<span class="sd">        - next_n_action (:obj:`torch.LongTensor`): :math:`(B, )`</span>
-<span class="sd">        - reward (:obj:`torch.FloatTensor`): :math:`(T, B)`, where T is timestep(nstep)</span>
-<span class="sd">        - done (:obj:`torch.BoolTensor`) :math:`(B, )`, whether done in last timestep</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">q</span><span class="p">,</span> <span class="n">next_n_q</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">next_n_action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">data</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">shape</span>
-    <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">weight</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
-
-    <span class="n">batch_range</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">q_s_a</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="n">batch_range</span><span class="p">,</span> <span class="n">action</span><span class="p">]</span>
-    <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">next_n_q</span><span class="p">[</span><span class="n">batch_range</span><span class="p">,</span> <span class="n">next_n_action</span><span class="p">]</span>
-
-    <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">inv_trans_fn</span><span class="p">(</span><span class="n">target_q_s_a</span><span class="p">)</span>
-    <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">nstep_return_ngu</span><span class="p">(</span><span class="n">nstep_return_data</span><span class="p">(</span><span class="n">reward</span><span class="p">,</span> <span class="n">target_q_s_a</span><span class="p">,</span> <span class="n">done</span><span class="p">),</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">value_gamma</span><span class="p">)</span>
     <span class="n">target_q_s_a</span> <span class="o">=</span> <span class="n">trans_fn</span><span class="p">(</span><span class="n">target_q_s_a</span><span class="p">)</span>
 
     <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">q_s_a</span><span class="p">,</span> <span class="n">target_q_s_a</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span>

@@ -536,7 +536,7 @@
     <span class="c1"># If the value is -1, then it should be converted to all zeros encodings and</span>
     <span class="c1"># the corresponding entry in index_neg_one is 1, which is used to transform</span>
     <span class="c1"># the ret after the operation of ret.scatter_(1, val_reshape, 1) to their correct encodings bellowing</span>
-    <span class="n">index_neg_one</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">val_reshape</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+    <span class="n">index_neg_one</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">val_reshape</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">index_neg_one</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># if -1 exists in val</span>
         <span class="c1"># convert the original value -1 to 0</span>
         <span class="n">val_reshape</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>

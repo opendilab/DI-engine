@@ -248,10 +248,10 @@
         <span class="n">nstep</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
         <span class="c1"># (int) the timestep of burnin operation, which is designed to RNN hidden state difference</span>
         <span class="c1"># caused by off-policy</span>
-        <span class="n">burnin_step</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">burnin_step</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
         <span class="c1"># (int) the trajectory length to unroll the RNN network minus</span>
         <span class="c1"># the timestep of burnin operation</span>
-        <span class="n">unroll_len</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+        <span class="n">learn_unroll_len</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
         <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool) Whether to use multi gpu</span>
             <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -269,8 +269,13 @@
             <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="c1"># NOTE it is important that don&#39;t include key n_sample here, to make sure self._traj_len=INF</span>
-            <span class="c1"># each_iter_n_sample=32,</span>
+            <span class="c1"># NOTE: It is important that set key traj_len_inf=True here,</span>
+            <span class="c1"># to make sure self._traj_len=INF in serial_sample_collector.py.</span>
+            <span class="c1"># In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF</span>
+            <span class="c1"># unless the episode enters the &#39;done&#39; state.</span>
+            <span class="c1"># In each collect phase, we collect a total of &lt;n_sample&gt; sequence samples.</span>
+            <span class="n">n_sample</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">traj_len_inf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="c1"># `env_num` is used in hidden state, should equal to that one in env config.</span>
             <span class="c1"># User should specify this value in user config.</span>
             <span class="n">env_num</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -313,13 +318,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_value_rescale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">value_rescale</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
-        <span class="c1"># here we should not adopt the &#39;assign&#39; mode of target network here because the reset bug</span>
-        <span class="c1"># self._target_model = model_wrap(</span>
-        <span class="c1">#     self._target_model,</span>
-        <span class="c1">#     wrapper_name=&#39;target&#39;,</span>
-        <span class="c1">#     update_type=&#39;assign&#39;,</span>
-        <span class="c1">#     update_kwargs={&#39;freq&#39;: self._cfg.learn.target_update_freq}</span>
-        <span class="c1"># )</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span> <span class="o">=</span> <span class="n">model_wrap</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="p">,</span>
             <span class="n">wrapper_name</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span>
@@ -367,25 +365,25 @@
         <span class="n">burnin_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span>
 
         <span class="c1"># data[&#39;done&#39;], data[&#39;weight&#39;], data[&#39;value_gamma&#39;] is used in def _forward_learn() to calculate</span>
-        <span class="c1"># the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]</span>
+        <span class="c1"># the q_nstep_td_error, should be length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step]</span>
         <span class="n">ignore_done</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ignore_done</span>
         <span class="k">if</span> <span class="n">ignore_done</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len_add_burnin_step</span> <span class="o">-</span> <span class="n">burnin_step</span><span class="p">)]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_unroll_len_plus_burnin_step</span> <span class="o">-</span> <span class="n">burnin_step</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">][</span><span class="n">burnin_step</span><span class="p">:]</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>  <span class="c1"># for computation of online model self._learn_model</span>
             <span class="c1"># NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample</span>
             <span class="c1"># the data[&#39;done&#39;] [t] is already the n-step done</span>
 
         <span class="c1"># if the data don&#39;t include &#39;weight&#39; or &#39;value_gamma&#39; then fill in None in a list</span>
-        <span class="c1"># with length of [self._unroll_len_add_burnin_step-self._burnin_step],</span>
+        <span class="c1"># with length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step],</span>
         <span class="c1"># below is two different implementation ways</span>
         <span class="k">if</span> <span class="s1">&#39;value_gamma&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value_gamma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len_add_burnin_step</span> <span class="o">-</span> <span class="n">burnin_step</span><span class="p">)]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value_gamma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_unroll_len_plus_burnin_step</span> <span class="o">-</span> <span class="n">burnin_step</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value_gamma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;value_gamma&#39;</span><span class="p">][</span><span class="n">burnin_step</span><span class="p">:]</span>
 
         <span class="k">if</span> <span class="s1">&#39;weight&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">or</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len_add_burnin_step</span> <span class="o">-</span> <span class="n">burnin_step</span><span class="p">)]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_unroll_len_plus_burnin_step</span> <span class="o">-</span> <span class="n">burnin_step</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">])</span>
             <span class="c1"># every timestep in sequence has same weight, which is the _priority_IS_weight in PER</span>
@@ -401,7 +399,7 @@
         <span class="c1"># these slicing are all done in the outermost layer, which is the seq_len dim</span>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;burnin_nstep_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][:</span><span class="n">burnin_step</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
         <span class="c1"># the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from</span>
-        <span class="c1"># [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep</span>
+        <span class="c1"># [bs] timestep to [self._learn_unroll_len_plus_burnin_step-self._nstep] timestep</span>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;main_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">burnin_step</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">]</span>
         <span class="c1"># the target_obs is used to calculate the target_q_value</span>
         <span class="n">data</span><span class="p">[</span><span class="s1">&#39;target_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="n">burnin_step</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">:]</span>
@@ -459,7 +457,7 @@
         <span class="n">reward</span> <span class="o">=</span> <span class="n">reward</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">td_error</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len_add_burnin_step</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_unroll_len_plus_burnin_step</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">):</span>
             <span class="c1"># here t=0 means timestep &lt;self._burnin_step&gt; in the original sample sequence, we minus self._nstep</span>
             <span class="c1"># because for the last &lt;self._nstep&gt; timestep in the sequence, we don&#39;t have their target obs</span>
             <span class="n">td_data</span> <span class="o">=</span> <span class="n">q_nstep_td_data</span><span class="p">(</span>
@@ -472,7 +470,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">l</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">q_nstep_td_error</span><span class="p">(</span><span class="n">td_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">value_gamma</span><span class="o">=</span><span class="n">value_gamma</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
                 <span class="n">loss</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
-                <span class="c1"># td will be a list of the length (self._unroll_len_add_burnin_step - self._burnin_step - self._nstep)</span>
+                <span class="c1"># td will be a list of the length</span>
+                <span class="c1"># &lt;self._learn_unroll_len_plus_burnin_step - self._burnin_step - self._nstep&gt;</span>
                 <span class="c1"># and each value is a tensor of the size batch_size</span>
                 <span class="n">td_error</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">abs</span><span class="p">())</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
@@ -482,7 +481,8 @@
             <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">td_error</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span>
         <span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.9</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">td_error</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">td_error</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">))</span>
         <span class="c1"># torch.max(torch.stack(td_error), dim=0) will return tuple like thing, please refer to torch.max</span>
-        <span class="c1"># td_error shape list(&lt;self._unroll_len_add_burnin_step-self._burnin_step-self._nstep&gt;, B), for example, (75,64)</span>
+        <span class="c1"># td_error shape list(&lt;self._learn_unroll_len_plus_burnin_step-self._burnin_step-self._nstep&gt;, B),</span>
+        <span class="c1"># for example, (75,64)</span>
         <span class="c1"># torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)</span>
 
         <span class="c1"># update</span>
@@ -526,12 +526,12 @@
 <span class="sd">            Collect mode init method. Called by ``self.__init__``.</span>
 <span class="sd">            Init traj and unroll length, collect model.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="s1">&#39;unroll_len&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="p">,</span> <span class="s2">&quot;r2d2 use default unroll_len&quot;</span>
+        <span class="k">assert</span> <span class="s1">&#39;unroll_len&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">collect</span><span class="p">,</span> <span class="s2">&quot;r2d2 use default &lt;unroll_len = learn_unroll_len + burnin_step&gt;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">nstep</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_burnin_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">burnin_step</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">discount_factor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len_add_burnin_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">unroll_len</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">burnin_step</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len_add_burnin_step</span>  <span class="c1"># for compatibility</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_unroll_len_plus_burnin_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn_unroll_len</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">burnin_step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_unroll_len_plus_burnin_step</span>
 
         <span class="c1"># for r2d2, this hidden_state wrapper is to add the &#39;prev hidden state&#39; for each transition.</span>
         <span class="c1"># Note that collect env forms a batch and the key is added for the batch simultaneously.</span>
@@ -603,7 +603,7 @@
 <span class="sd">            - samples (:obj:`dict`): The training samples generated</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">get_nstep_return_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len_add_burnin_step</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_train_sample</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_len</span><span class="p">)</span>
 
 <div class="viewcode-block" id="R2D2Policy._init_eval"><a class="viewcode-back" href="../../../api_doc/policy/r2d2.html#ding.policy.r2d2.R2D2Policy._init_eval">[docs]</a>    <span class="k">def</span> <span class="nf">_init_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
