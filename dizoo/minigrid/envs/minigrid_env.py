@@ -56,6 +56,13 @@ class MiniGridEnv(BaseEnv):
             if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
+        self._observation_space = self._env.observation_space
+        # to be compatiable with subprocess env manager
+        self._observation_space['obs'].dtype = np.dtype('float32')
+        self._action_space = self._env.action_space
+        self._reward_space = gym.spaces.Box(
+            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
+        )
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
@@ -67,13 +74,6 @@ class MiniGridEnv(BaseEnv):
         self._current_step = 0
         if self._save_replay:
             self._frames = []
-
-        self._observation_space = self._env.observation_space
-        self._observation_space.dtype = np.dtype('float32')
-        self._action_space = self._env.action_space
-        self._reward_space = gym.spaces.Box(
-            low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1,), dtype=np.float32
-        )
 
         return obs
 
