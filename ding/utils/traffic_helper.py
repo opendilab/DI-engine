@@ -99,7 +99,7 @@ class Traffic:
         if self._router and self._router.is_active and not self._file:
             self._router.emit("_Traffic_", dict_to_record)
 
-        if self._has_data:
+        if self._data:
             self._data.append(dict_to_record)
             self._max_records += 1
 
@@ -109,7 +109,7 @@ class Traffic:
         Overview:
             Obtain current data in memory.
         """
-        if self._has_data:
+        if self._data:
             df = self._cache.get(self._max_records)
             if df is not None:
                 return df
@@ -133,6 +133,7 @@ class Traffic:
         if self._data:
             self._cache.clear()
             self._data.clear()
+            self._data = None
             self._max_records = 0
 
     def _on_msg(self, info: object, *args, **kwargs) -> None:
