@@ -20,7 +20,7 @@ class AtariEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env()
-            if hasattr(self._cfg, 'ObsPlusPrevActRewWrapper') and self._cfg.ObsPlusPrevActRewWrapper:
+            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
@@ -34,11 +34,7 @@ class AtariEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         obs = self._env.reset()
-        # obs = to_ndarray(obs)
-        if isinstance(obs, dict):
-            obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
-        elif isinstance(obs, np.ndarray):
-            obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         self._final_eval_reward = 0.
         return obs
 
@@ -58,12 +54,8 @@ class AtariEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         # self._env.render()
         self._final_eval_reward += rew
-        # obs = to_ndarray(obs)
-        if isinstance(obs, dict):
-            obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
-        elif isinstance(obs, np.ndarray):
-            obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a Tensor with shape (1,)
+        obs = to_ndarray(obs)
+        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transferred to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)

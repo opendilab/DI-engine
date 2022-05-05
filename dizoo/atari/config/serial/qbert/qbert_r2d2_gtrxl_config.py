@@ -34,12 +34,14 @@ qbert_r2d2_gtrxl_config = dict(
             target_update_theta=0.001,
         ),
         collect=dict(
-            # NOTE: It is important that don't include key <n_sample> here,
+            # NOTE: It is important that set key traj_len_inf=True here,
             # to make sure self._traj_len=INF in serial_sample_collector.py.
-            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
-            # In each collect phase, we collect a total of <n_sequence_sample> sequence samples.
-            n_sequence_sample=32,
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=8,
         ),
         eval=dict(env_num=8, ),

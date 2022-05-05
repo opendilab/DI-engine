@@ -9,7 +9,7 @@ lunarlander_ngu_config = dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
         env_id='LunarLander-v2',
-        ObsPlusPrevActRewWrapper=True,  # specific env wrapper for ngu policy
+        obs_plus_prev_action_reward=True,  # use specific env wrapper for ngu policy
         n_evaluator_episode=evaluator_env_num,
         stop_value=195,
     ),
@@ -22,7 +22,7 @@ lunarlander_ngu_config = dict(
         update_per_collect=10,
         only_use_last_five_frames_for_icm_rnd=False,
         clear_buffer_per_iters=10,
-        nstep=nstep,
+        nstep=5,
         hidden_size_list=[128, 128, 64],
         type='rnd-ngu',
     ),
@@ -58,12 +58,12 @@ lunarlander_ngu_config = dict(
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=2,
         nstep=nstep,
-        # (int) the whole sequence length to unroll the RNN network minus
-        # the timesteps of burnin part,
-        # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=98,  # set this key according to the episode length
+        burnin_step=10,
+        # (int) <learn_unroll_len> is the total length of [sequence sample] minus
+        # the length of burnin part in [sequence sample],
+        # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
+        learn_unroll_len=20,  # set this key according to the episode length
         model=dict(
             obs_shape=8,
             action_shape=4,
@@ -72,22 +72,24 @@ lunarlander_ngu_config = dict(
         ),
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
-            # environment timesteps, and in per collect phase, we collect 32 sequence
-            # samples, the length of each samlpe sequence is <burnin_step> + <unroll_len>,
-            # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
-            # in most environments
+            # environment timesteps, and in per collect phase, we collect <n_sample> sequence
+            # samples, the length of each sequence sample is <burnin_step> + <learn_unroll_len>,
+            # e.g. if n_sample=32, <sequence length> is 100, thus 32*100/400=8,
+            # we will set update_per_collect=8 in most environments.
             update_per_collect=8,
             batch_size=32,
             learning_rate=1e-4,
             target_update_theta=0.001,
         ),
         collect=dict(
-            # NOTE: It is important that don't include key <n_sample> here,
+            # NOTE: It is important that set key traj_len_inf=True here,
             # to make sure self._traj_len=INF in serial_sample_collector.py.
-            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
-            # In each collect phase, we collect a total of <n_sequence_sample> sequence samples.
-            n_sequence_sample=320,
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -114,13 +116,13 @@ lunarlander_ngu_create_config = dict(
         type='lunarlander',
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
-    # TODO(pu): How to be compatible with subprocess env manager when we use ObsPlusPrevActRewWrapper
+    # TODO(pu): How to be compatible with subprocess env manager
+    #  when we use ObsPlusPrevActRewWrapper
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(type='sample_ngu',)
 )
 lunarlander_ngu_create_config = EasyDict(lunarlander_ngu_create_config)
 create_config = lunarlander_ngu_create_config

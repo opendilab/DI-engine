@@ -11,7 +11,7 @@ minigrid_ppo_ngu_config = dict(
         n_evaluator_episode=evaluator_env_num,
         # MiniGrid env id: 'MiniGrid-Empty-8x8-v0', 'MiniGrid-FourRooms-v0'
         env_id='MiniGrid-DoorKey-16x16-v0',
-        ObsPlusPrevActRewWrapper=True,  # specific env wrapper for ngu policy
+        obs_plus_prev_action_reward=True,  # use specific env wrapper for ngu policy
         max_step=300,
         stop_value=0.96,
     ),
@@ -60,9 +60,12 @@ minigrid_ppo_ngu_config = dict(
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=2,
         nstep=nstep,
-        unroll_len=298,  # set this key according to the episode length
+        burnin_step=2,
+        # (int) <learn_unroll_len> is the total length of [sequence sample] minus
+        # the length of burnin part in [sequence sample],
+        # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
+        learn_unroll_len=298,  # set this key according to the episode length
         model=dict(
             obs_shape=2739,
             action_shape=7,
@@ -76,12 +79,14 @@ minigrid_ppo_ngu_config = dict(
             target_update_theta=0.001,
         ),
         collect=dict(
-            # NOTE: It is important that don't include key <n_sample> here,
+            # NOTE: It is important that set key traj_len_inf=True here,
             # to make sure self._traj_len=INF in serial_sample_collector.py.
-            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
-            # In each collect phase, we collect a total of <n_sequence_sample> sequence samples.
-            n_sequence_sample=32,
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -109,13 +114,13 @@ minigrid_ppo_ngu_create_config = dict(
         type='minigrid',
         import_names=['dizoo.minigrid.envs.minigrid_env'],
     ),
-    # TODO(pu): How to be compatible with subprocess env manager when we use ObsPlusPrevActRewWrapper
+    # TODO(pu): How to be compatible with subprocess env manager
+    #  when we use ObsPlusPrevActRewWrapper
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(type='sample_ngu', )
 )
 minigrid_ppo_ngu_create_config = EasyDict(minigrid_ppo_ngu_create_config)
 create_config = minigrid_ppo_ngu_create_config

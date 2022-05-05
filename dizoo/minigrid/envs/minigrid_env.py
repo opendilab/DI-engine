@@ -53,7 +53,7 @@ class MiniGridEnv(BaseEnv):
                 self._env = FlatObsWrapper(self._env)
                 # self._env = RGBImgPartialObsWrapper(self._env)
                 # self._env = ImgObsWrapper(self._env)
-            if hasattr(self._cfg, 'ObsPlusPrevActRewWrapper') and self._cfg.ObsPlusPrevActRewWrapper:
+            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
                 self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
@@ -63,10 +63,7 @@ class MiniGridEnv(BaseEnv):
             self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
-        if isinstance(obs, dict):
-            obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
-        elif isinstance(obs, np.ndarray):
-            obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         self._current_step = 0
         if self._save_replay:
             self._frames = []
@@ -112,10 +109,7 @@ class MiniGridEnv(BaseEnv):
                 )
                 self.display_frames_as_gif(self._frames, path)
                 self._save_replay_count += 1
-        if isinstance(obs, dict):
-            obs = {k: to_ndarray(v).astype(np.float32) for k, v in obs.items()}
-        elif isinstance(obs, np.ndarray):
-            obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         rew = to_ndarray([rew])  # wrapped to be transferred to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 

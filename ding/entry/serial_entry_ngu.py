@@ -6,8 +6,8 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
-from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
+    create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.reward_model import create_reward_model
@@ -25,7 +25,8 @@ def serial_pipeline_ngu(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry with reward model.
+        Serial pipeline entry for NGU. The corresponding paper is
+        `never give up: learning directed exploration strategies`.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -64,7 +65,6 @@ def serial_pipeline_ngu(
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
-    cfg.policy.collect.collector['type'] = 'sample_ngu'
     collector = create_serial_collector(
         cfg.policy.collect.collector,
         env=collector_env,
@@ -72,7 +72,7 @@ def serial_pipeline_ngu(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
@@ -96,9 +96,22 @@ def serial_pipeline_ngu(
     estimate_cnt = 0
     iter_ = 0
     while True:
+        """some hyper-parameters used in NGU"""
+        # index_to_eps = {i: 0.4 ** (1 + 8 * i / (self._env_num - 1)) for i in range(self._env_num)}
+        # index_to_beta = {
+        #     i: 0.3 * torch.sigmoid(torch.tensor(10 * (2 * i - (collector_env_num - 2)) / (collector_env_num - 2)))
+        #     for i in range(collector_env_num)
+        # }
+        # index_to_gamma = {
+        #     i: 1 - torch.exp(
+        #         (
+        #             (collector_env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) +
+        #             i * torch.log(torch.tensor(1 - 0.99))
+        #         ) / (collector_env_num - 1)
+        #     )
+        #     for i in range(collector_env_num)
+        # }
         iter_ += 1
-        eps = {i: 0.4 ** (1 + 8 * i / (cfg.policy.collect.env_num - 1)) for i in range(cfg.policy.collect.env_num)}
-        collect_kwargs = {'eps': eps}
 
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
@@ -106,15 +119,7 @@ def serial_pipeline_ngu(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "n_sequence_sample"):
-            # for sequence-sample-based policy, e.g. r2d2, r2d3, ngu
-            new_data = collector.collect(
-                n_sample=cfg.policy.collect.n_sequence_sample,
-                train_iter=learner.train_iter,
-                policy_kwargs=collect_kwargs
-            )
-        else:
-            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=None)
 
         # collect data for reward_model training
         rnd_reward_model.collect_data(new_data)

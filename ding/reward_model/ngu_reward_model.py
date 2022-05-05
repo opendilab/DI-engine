@@ -96,6 +96,11 @@ class RndNetwork(nn.Module):
 
 @REWARD_MODEL_REGISTRY.register('rnd-ngu')
 class RndNGURewardModel(BaseRewardModel):
+    r"""
+    Overview:
+        inter-episodic/RND reward model for NGU.
+        The corresponding paper is `never give up: learning directed exploration strategies`.
+    """
     config = dict(
         type='rnd-ngu',
         intrinsic_reward_type='add',
@@ -239,6 +244,11 @@ class InverseNetwork(nn.Module):
 
 @REWARD_MODEL_REGISTRY.register('episodic')
 class EpisodicNGURewardModel(BaseRewardModel):
+    r"""
+    Overview:
+        Episodic reward model for NGU.
+        The corresponding paper is `never give up: learning directed exploration strategies`.
+    """
     config = dict(
         type='episodic',
         intrinsic_reward_type='add',
@@ -460,20 +470,10 @@ class EpisodicNGURewardModel(BaseRewardModel):
         # otherwise the reward of train_data in the replay buffer will be incorrectly modified.
         data = self.reward_deepcopy(train_data)
         estimate_cnt += 1
-        # index_to_eps = {i: 0.4 ** (1 + 8 * i / (self._env_num - 1)) for i in range(self._env_num)}
         index_to_beta = {
             i: 0.3 * torch.sigmoid(torch.tensor(10 * (2 * i - (collector_env_num - 2)) / (collector_env_num - 2)))
             for i in range(collector_env_num)
         }
-        # index_to_gamma = {
-        #     i: 1 - torch.exp(
-        #         (
-        #             (collector_env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) +
-        #             i * torch.log(torch.tensor(1 - 0.99))
-        #         ) / (collector_env_num - 1)
-        #     )
-        #     for i in range(collector_env_num)
-        # }
         batch_size = len(data)
         seq_length = len(data[0]['reward'])
         device = data[0]['reward'][0].device

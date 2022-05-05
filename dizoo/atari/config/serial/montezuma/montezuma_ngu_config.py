@@ -10,6 +10,7 @@ montezuma_ppo_rnd_config = dict(
         evaluator_env_num=evaluator_env_num,
         n_evaluator_episode=8,
         env_id='MontezumaRevengeNoFrameskip-v4',
+        obs_plus_prev_action_reward=True,  # use specific env wrapper for ngu policy
         stop_value=int(1e5),
         frame_stack=4,
     ),
@@ -59,9 +60,12 @@ montezuma_ppo_rnd_config = dict(
         priority=True,
         priority_IS_weight=True,
         discount_factor=0.997,
-        burnin_step=2,
         nstep=nstep,
-        unroll_len=198,
+        burnin_step=20,
+        # (int) <learn_unroll_len> is the total length of [sequence sample] minus
+        # the length of burnin part in [sequence sample],
+        # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
+        learn_unroll_len=80,  # set this key according to the episode length
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=18,
@@ -75,12 +79,14 @@ montezuma_ppo_rnd_config = dict(
             target_update_theta=0.001,
         ),
         collect=dict(
-            # NOTE: It is important that don't include key <n_sample> here,
+            # NOTE: It is important that set key traj_len_inf=True here,
             # to make sure self._traj_len=INF in serial_sample_collector.py.
-            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
-            # In each collect phase, we collect a total of <n_sequence_sample> sequence samples.
-            n_sequence_sample=32,
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -108,11 +114,13 @@ montezuma_ppo_rnd_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='subprocess'),
+    # TODO(pu): How to be compatible with subprocess env manager
+    #  when we use ObsPlusPrevActRewWrapper
+    # env_manager=dict(type='subprocess'),
+    env_manager=dict(type='base'),
     policy=dict(type='ngu'),
     rnd_reward_model=dict(type='rnd-ngu'),
     episodic_reward_model=dict(type='episodic'),
-    collector=dict(type='sample_ngu', )
 )
 montezuma_ppo_rnd_create_config = EasyDict(montezuma_ppo_rnd_create_config)
 create_config = montezuma_ppo_rnd_create_config

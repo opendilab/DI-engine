@@ -28,12 +28,12 @@ lunarlander_r2d3_config = dict(
             encoder_hidden_size_list=[128, 128, 512],
         ),
         discount_factor=0.997,
-        burnin_step=2,
         nstep=5,
+        burnin_step=2,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
-        # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=40,
+        # i.e., <the whole sequence length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
+        learn_unroll_len=40,
         learn=dict(
             # according to the r2d3 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
@@ -42,7 +42,7 @@ lunarlander_r2d3_config = dict(
             # in most environments
             value_rescale=True,
             update_per_collect=8,
-            batch_size=64,  # TODO(pu)
+            batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
             # DQFD related parameters
@@ -54,12 +54,14 @@ lunarlander_r2d3_config = dict(
             per_train_iter_k=0,  # TODO(pu)
         ),
         collect=dict(
-            # NOTE: It is important that don't include key <n_sample> here,
+            # NOTE: It is important that set key traj_len_inf=True here,
             # to make sure self._traj_len=INF in serial_sample_collector.py.
-            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
             # unless the episode enters the 'done' state.
-            # In each collect phase, we collect a total of <n_sequence_sample> sequence samples.
-            n_sequence_sample=32,
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming
             # from expert demonstrations versus from the agent's own experience.
@@ -121,13 +123,13 @@ expert_lunarlander_r2d3_config = dict(
         nstep=5,
         learn=dict(expert_replay_buffer_size=expert_replay_buffer_size, ),
         collect=dict(
-            # n_sample=32, NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
             # Users should add their own model path here. Model path should lead to a model.
             # Absolute path is recommended.
             # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
             model_path='model_path_placeholder',
-            # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
-            unroll_len=42,  # TODO(pu) should equals self._unroll_len_add_burnin_step in r2d2 policy
+            # Cut trajectories into pieces with length "unroll_len",
+            # which should set as self._learn_unroll_len_plus_burnin_step of r2d2
+            unroll_len=42,  # NOTE: should equals self._learn_unroll_len_plus_burnin_step in r2d2 policy
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
@@ -150,7 +152,7 @@ expert_lunarlander_r2d3_create_config = dict(
         import_names=['dizoo.box2d.lunarlander.envs.lunarlander_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppo_offpolicy_collect_traj'),  # this policy is designed to collect off-ppo expert traj for r2d3
+    policy=dict(type='offppo_collect_traj'),  # this policy is designed to collect off-ppo expert traj for r2d3
 )
 expert_lunarlander_r2d3_create_config = EasyDict(expert_lunarlander_r2d3_create_config)
 expert_create_config = expert_lunarlander_r2d3_create_config

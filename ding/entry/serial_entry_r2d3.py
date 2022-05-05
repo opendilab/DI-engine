@@ -77,9 +77,7 @@ def serial_pipeline_r2d3(
     expert_policy = create_policy(expert_cfg.policy, model=expert_model, enable_field=['collect', 'command'])
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
-    expert_policy.collect_mode.load_state_dict(
-        torch.load(expert_cfg.policy.collect.demonstration_info_path, map_location='cpu')
-    )
+    expert_policy.collect_mode.load_state_dict(torch.load(expert_cfg.policy.collect.model_path, map_location='cpu'))
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
@@ -118,19 +116,11 @@ def serial_pipeline_r2d3(
     learner.call_hook('before_run')
     if expert_cfg.policy.learn.expert_replay_buffer_size != 0:  # for ablation study
         expert_buffer = create_buffer(expert_cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
-        if hasattr(cfg.policy.collect, "n_sequence_sample"):
-            # for sequence-sample-based policy, e.g. r2d2, r2d3, ngu
-            expert_data = expert_collector.collect(
-                n_sample=expert_cfg.policy.learn.expert_replay_buffer_size,
-                train_iter=learner.train_iter,
-                policy_kwargs=expert_collect_kwargs
-            )
-        else:
-            expert_data = expert_collector.collect(
-                n_sample=expert_cfg.policy.learn.expert_replay_buffer_size,
-                train_iter=learner.train_iter,
-                policy_kwargs=expert_collect_kwargs
-            )
+        expert_data = expert_collector.collect(
+            n_sample=expert_cfg.policy.learn.expert_replay_buffer_size,
+            train_iter=learner.train_iter,
+            policy_kwargs=expert_collect_kwargs
+        )
 
         for i in range(len(expert_data)):
             # set is_expert flag(expert 1, agent 0)
@@ -162,14 +152,7 @@ def serial_pipeline_r2d3(
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):
-            new_data = collector.collect(
-                n_sample=cfg.policy.collect.each_iter_n_sample,
-                train_iter=learner.train_iter,
-                policy_kwargs=collect_kwargs
-            )
-        else:
-            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
 
         for i in range(len(new_data)):
             # set is_expert flag(expert 1, agent 0)

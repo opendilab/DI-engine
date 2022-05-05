@@ -3,20 +3,21 @@ from collections import namedtuple
 import torch
 import copy
 
-from ding.torch_utils import Adam, to_device
+from ding.torch_utils import Adam, to_device, to_tensor
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, q_nstep_td_error_with_rescale, get_nstep_return_data, \
     get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import timestep_collate, default_collate, default_decollate
 from .base_policy import Policy
+import numpy as np
 
 
 @POLICY_REGISTRY.register('ngu')
 class NGUPolicy(Policy):
     r"""
     Overview:
-        Policy class of NGU, from paper `never give up: learning directed exploration strategies` .
+        Policy class of NGU. The corresponding paper is `never give up: learning directed exploration strategies`.
 
     Config:
         == ==================== ======== ============== ======================================== =======================
@@ -80,9 +81,10 @@ class NGUPolicy(Policy):
         # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
         # caused by off-policy
         burnin_step=20,
-        # (int) the trajectory length to unroll the RNN network minus
-        # the timestep of burnin operation
-        unroll_len=80,
+        # (int) <learn_unroll_len> is the total length of [sequence sample] minus
+        # the length of burnin part in [sequence sample],
+        # i.e., <sequence sample length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
+        learn_unroll_len=80,  # set this key according to the episode length
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -92,16 +94,22 @@ class NGUPolicy(Policy):
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
-            # (int) Frequence of target network update.
-            # target_update_freq=100,
+            # (float type) target_update_theta: Used for soft update of the target network,
+            # aka. Interpolation factor in polyak averaging for target networks.
             target_update_theta=0.001,
             # (bool) whether use value_rescale function for predicted value
             value_rescale=True,
             ignore_done=False,
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -199,25 +207,25 @@ class NGUPolicy(Policy):
         bs = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]
+        # the q_nstep_td_error, should be length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - bs - self._nstep)]
+            data['done'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - bs - self._nstep)]
         else:
             data['done'] = data['done'][bs:].float()  # for computation of online model self._learn_model
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
             # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
-        # with length of [self._unroll_len_add_burnin_step-self._burnin_step],
+        # with length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+            data['value_gamma'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - bs)]
         else:
             data['value_gamma'] = data['value_gamma'][bs:]
 
         if 'weight' not in data:
-            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - bs)]
+            data['weight'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - bs)]
         else:
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
             # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
@@ -318,7 +326,7 @@ class NGUPolicy(Policy):
 
         action, reward, done, weight = data['action'], data['reward'], data['done'], data['weight']
         value_gamma = [
-            None for _ in range(self._unroll_len_add_burnin_step - self._burnin_step)
+            None for _ in range(self._learn_unroll_len_plus_burnin_step - self._burnin_step)
         ]  # NOTE this is important, because we use diffrent gamma according to their beta in NGU alg.
 
         # T, B, nstep -> T, nstep, B
@@ -328,7 +336,7 @@ class NGUPolicy(Policy):
         self._gamma = [self.index_to_gamma[int(i)] for i in data['main_beta'][0]]  # T, B -> B, e.g. 75,64 -> 64
 
         # reward torch.Size([4, 5, 64])
-        for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
+        for t in range(self._learn_unroll_len_plus_burnin_step - self._burnin_step - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
             # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
@@ -348,7 +356,8 @@ class NGUPolicy(Policy):
         td_error_per_sample = 0.9 * torch.max(
             torch.stack(td_error), dim=0
         )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
-        # td_error shape list(<self._unroll_len_add_burnin_step-self._burnin_step-self._nstep>, B), for example, (75,64)
+        # td_error shape list(<self._learn_unroll_len_plus_burnin_step-self._burnin_step-self._nstep>, B),
+        # for example, (75,64)
         # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
 
         # update
@@ -394,11 +403,12 @@ class NGUPolicy(Policy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, collect model.
         """
+        assert 'unroll_len' not in self._cfg.collect, "ngu use default <unroll_len = learn_unroll_len + burnin_step>"
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
-        self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step
-        self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
+        self._learn_unroll_len_plus_burnin_step = self._cfg.learn_unroll_len + self._cfg.burnin_step
+        self._unroll_len = self._learn_unroll_len_plus_burnin_step
         self._collect_model = model_wrap(
             self._model, wrapper_name='hidden_state', state_num=self._cfg.collect.env_num, save_prev_state=True
         )
@@ -413,8 +423,15 @@ class NGUPolicy(Policy):
             )
             for i in range(self._cfg.collect.env_num)
         }
+        # NOTE: for NGU policy collect phase
+        self.beta_index = {
+            i: torch.randint(0, self._cfg.collect.env_num, [1])
+            for i in range(self._cfg.collect.env_num)
+        }
+        # epsilon=0.4, alpha=9
+        self.eps = {i: 0.4 ** (1 + 8 * i / (self._cfg.collect.env_num - 1)) for i in range(self._cfg.collect.env_num)}
 
-    def _forward_collect(self, data: dict, beta_index: dict) -> dict:
+    def _forward_collect(self, data: dict) -> dict:
         r"""
         Overview:
             Collect output according to eps_greedy plugin
@@ -425,25 +442,22 @@ class NGUPolicy(Policy):
         Returns:
             - data (:obj:`dict`): The collected data
         """
-
         data_id = list(data.keys())
-        env_num = len(data_id)
         data = default_collate(list(data.values()))
 
         obs = data['obs']
         prev_action = data['prev_action'].long()
         prev_reward_extrinsic = data['prev_reward_extrinsic']
 
-        # epsilon=0.4, alpha=9
-        eps = {i: 0.4 ** (1 + 8 * i / (env_num - 1)) for i in range(env_num)}
-
-        beta_index = default_collate(list(beta_index.values()))
+        beta_index = default_collate(list(self.beta_index.values()))
 
         if self._cuda:
             obs = to_device(obs, self._device)
             beta_index = to_device(beta_index, self._device)
             prev_action = to_device(prev_action, self._device)
             prev_reward_extrinsic = to_device(prev_reward_extrinsic, self._device)
+        # TODO(pu): add prev_reward_intrinsic to network input,
+        #  reward uses some kind of embedding instead of 1D value
         data = {
             'obs': obs,
             'prev_action': prev_action,
@@ -452,7 +466,7 @@ class NGUPolicy(Policy):
         }
         self._collect_model.eval()
         with torch.no_grad():
-            output = self._collect_model.forward(data, data_id=data_id, eps=eps, inference=True)
+            output = self._collect_model.forward(data, data_id=data_id, eps=self.eps, inference=True)
         if self._cuda:
             output = to_device(output, 'cpu')
         output = default_decollate(output)
@@ -460,8 +474,11 @@ class NGUPolicy(Policy):
 
     def _reset_collect(self, data_id: Optional[List[int]] = None) -> None:
         self._collect_model.reset(data_id=data_id)
+        # NOTE: for NGU policy, in collect phase, each episode, we sample a new beta for each env
+        if data_id is not None:
+            self.beta_index[data_id[0]] = torch.randint(0, self._cfg.collect.env_num, [1])
 
-    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple, beta_index: Any) -> dict:
+    def _process_transition(self, obs: Any, model_output: dict, timestep: namedtuple, env_id) -> dict:
         r"""
         Overview:
             Generate dict type transition data from inputs.
@@ -475,7 +492,7 @@ class NGUPolicy(Policy):
         """
         if hasattr(timestep, 'null'):
             transition = {
-                'beta': beta_index,
+                'beta': self.beta_index[env_id],
                 'obs': obs['obs'],  # NOTE: input obs including obs, prev_action, prev_reward_extrinsic
                 'action': model_output['action'],
                 # 'prev_action': model_output['action'],
@@ -487,7 +504,7 @@ class NGUPolicy(Policy):
             }
         else:
             transition = {
-                'beta': beta_index,
+                'beta': self.beta_index[env_id],
                 'obs': obs['obs'],  # NOTE: input obs including obs, prev_action, prev_reward_extrinsic
                 'action': model_output['action'],
                 # 'prev_action': model_output['action'],
@@ -511,7 +528,7 @@ class NGUPolicy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self.index_to_gamma[int(data[0]['beta'])].item())
-        return get_train_sample(data, self._unroll_len_add_burnin_step)
+        return get_train_sample(data, self._learn_unroll_len_plus_burnin_step)
 
     def _init_eval(self) -> None:
         r"""
@@ -522,8 +539,11 @@ class NGUPolicy(Policy):
         self._eval_model = model_wrap(self._model, wrapper_name='hidden_state', state_num=self._cfg.eval.env_num)
         self._eval_model = model_wrap(self._eval_model, wrapper_name='argmax_sample')
         self._eval_model.reset()
+        # NOTE: for NGU policy eval phase
+        # beta_index = 0 -> beta is approximately 0
+        self.beta_index = {i: torch.tensor([0]) for i in range(self._cfg.eval.env_num)}
 
-    def _forward_eval(self, data: dict, beta_index: dict) -> dict:
+    def _forward_eval(self, data: dict) -> dict:
         r"""
         Overview:
             Forward function of collect mode, similar to ``self._forward_collect``.
@@ -542,14 +562,15 @@ class NGUPolicy(Policy):
         prev_action = data['prev_action'].long()
         prev_reward_extrinsic = data['prev_reward_extrinsic']
 
-        beta = default_collate(list(beta_index.values()))
+        beta = default_collate(list(self.beta_index.values()))
 
-        prev_reward_extrinsic = default_collate(list(prev_reward_extrinsic.values()))
         if self._cuda:
             obs = to_device(obs, self._device)
             beta = to_device(beta, self._device)
             prev_action = to_device(prev_action, self._device)
             prev_reward_extrinsic = to_device(prev_reward_extrinsic, self._device)
+        # TODO(pu): add prev_reward_intrinsic to network input,
+        #  reward uses some kind of embedding instead of 1D value
         data = {'obs': obs, 'prev_action': prev_action, 'prev_reward_extrinsic': prev_reward_extrinsic, 'beta': beta}
 
         self._eval_model.eval()
