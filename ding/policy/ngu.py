@@ -573,7 +573,12 @@ class NGUPolicy(Policy):
             prev_reward_extrinsic = to_device(prev_reward_extrinsic, self._device)
         # TODO(pu): add prev_reward_intrinsic to network input,
         #  reward uses some kind of embedding instead of 1D value
-        data = {'obs': obs, 'prev_action': prev_action, 'prev_reward_extrinsic': prev_reward_extrinsic, 'beta': beta_index}
+        data = {
+            'obs': obs,
+            'prev_action': prev_action,
+            'prev_reward_extrinsic': prev_reward_extrinsic,
+            'beta': beta_index
+        }
 
         self._eval_model.eval()
         with torch.no_grad():
