@@ -32,6 +32,8 @@ if os.environ.get('ENABLE_RICH_LOGGING', 'true').lower() == 'true':
     enable_rich_handler()
 from .fast_copy import fastcopy
 
+from .traffic_helper import traffic
+
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
         allreduce, broadcast, DistContext, allreduce_async, synchronize
