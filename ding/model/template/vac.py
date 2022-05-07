@@ -77,7 +77,7 @@ class VAC(nn.Module):
             self.share_encoder = share_encoder
             if self.share_encoder:
                 if self.impala_cnn_encoder:
-                    encoder_cls = ImpalaEncoder
+                    encoder_cls = ImpalaCNN
                     self.encoder = encoder_cls(obs_shape)
                 else:
                     self.encoder = encoder_cls(
@@ -85,7 +85,7 @@ class VAC(nn.Module):
                     )
             else:
                 if self.impala_cnn_encoder:
-                    encoder_cls = ImpalaEncoder
+                    encoder_cls = ImpalaCNN
                     self.actor_encoder = encoder_cls(obs_shape)
                     self.critic_encoder = encoder_cls(obs_shape)
                 else:
