@@ -325,16 +325,14 @@ class ImpalaCNN(nn.Module):
             stack = CnnDownStack(curshape[0], nblock=nblock, outchan=outchan, scale=s, **kwargs)
             self.stacks.append(stack)
             curshape = stack.output_shape(curshape)
-        self.stacks = nn.Sequential(self.stacks)
         self.dense = NormedLinear(intprod(curshape), outsize, scale=1.4)
         self.outsize = outsize
         self.final_relu = final_relu
 
     def forward(self, x):
         x = x.to(dtype=torch.float32) / self.scale_ob
-
-        x = self.stacks(x)
-
+        for (i, layer) in enumerate(self.stacks):
+            x = layer(x)
         x = Flatten(x)
         x = torch.relu(x)
         x = self.dense(x)
