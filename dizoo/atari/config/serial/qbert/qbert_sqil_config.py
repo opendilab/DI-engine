@@ -8,7 +8,7 @@ qbert_sqil_config = dict(
         n_evaluator_episode=8,
         stop_value=30000,
         env_id='QbertNoFrameskip-v4',
-        frame_stack=4,
+        frame_stack=4
     ),
     policy=dict(
         cuda=True,
@@ -32,7 +32,7 @@ qbert_sqil_config = dict(
             # Users should add their own model path here. Model path should lead to a model.
             # Absolute path is recommended.
             # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
-            model_path='model_path_placeholder',
+            model_path='model_path_placeholder'
         ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(

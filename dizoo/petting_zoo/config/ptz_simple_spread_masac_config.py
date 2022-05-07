@@ -23,12 +23,12 @@ main_config = dict(
         cuda=True,
         on_policy=False,
         multi_agent=True,
-        priority=True,
-        priority_IS_weight=False,
+        # priority=True,
+        # priority_IS_weight=False,
         random_collect_size=0,
         model=dict(
             agent_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
-            global_obs_shape=n_agent * 4 + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
+            global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
             action_shape=5,
             # SAC concerned
             twin_critic=True,
@@ -81,7 +81,11 @@ create_config = dict(
         import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
         type='petting_zoo',
     ),
+<<<<<<< HEAD
     env_manager=dict(type='subprocess'),
+=======
+    env_manager=dict(type='base'),
+>>>>>>> 6d86f9bc0fb6c08a5d300e6a73142684db43e66a
     policy=dict(type='sac_discrete'),
 )
 create_config = EasyDict(create_config)

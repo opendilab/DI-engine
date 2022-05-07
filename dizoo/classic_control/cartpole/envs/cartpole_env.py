@@ -4,10 +4,10 @@ import gym
 import copy
 import numpy as np
 from easydict import EasyDict
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
+from ding.envs import ObsPlusPrevActRewWrapper
 
 
 @ENV_REGISTRY.register('cartpole')
@@ -30,18 +30,24 @@ class CartPoleEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make('CartPole-v0')
             if self._replay_path is not None:
-                self._env = gym.wrappers.Monitor(
-                    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
                 )
+            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
+                self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        self._observation_space = self._env.observation_space
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         return obs
 
     def close(self) -> None:
@@ -62,7 +68,7 @@ class CartPoleEnv(BaseEnv):
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 

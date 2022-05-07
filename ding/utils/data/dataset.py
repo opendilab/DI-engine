@@ -49,6 +49,8 @@ class D4RLDataset(Dataset):
             d4rl.set_dataset_path(data_path)
         env = gym.make(env_id)
         dataset = d4rl.qlearning_dataset(env)
+        if cfg.policy.collect.get('normalize_states', None):
+            dataset = self._normalize_states(dataset)
         self._data = []
         self._load_d4rl(dataset)
 
@@ -68,6 +70,21 @@ class D4RLDataset(Dataset):
             trans_data['done'] = dataset['terminals'][i]
             trans_data['collect_iter'] = 0
             self._data.append(trans_data)
+
+    def _normalize_states(self, dataset, eps=1e-3):
+        self._mean = dataset['observations'].mean(0, keepdims=True)
+        self._std = dataset['observations'].std(0, keepdims=True) + eps
+        dataset['observations'] = (dataset['observations'] - self._mean) / self._std
+        dataset['next_observations'] = (dataset['next_observations'] - self._mean) / self._std
+        return dataset
+
+    @property
+    def mean(self):
+        return self._mean
+
+    @property
+    def std(self):
+        return self._std
 
 
 @DATASET_REGISTRY.register('hdf5')

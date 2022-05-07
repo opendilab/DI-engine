@@ -91,7 +91,7 @@ if __name__ == '__main__':
     import argparse
     import torch
     from ding.entry import trex_collecting_data
-    from ding.entry import serial_pipeline_reward_model_trex_onpolicy
+    from ding.entry import serial_pipeline_trex_onpolicy
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, default='please enter abs path for this file')
     parser.add_argument('--seed', type=int, default=0)
@@ -99,4 +99,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # The function ``trex_collecting_data`` below is to collect episodic data for training the reward model in trex.
     trex_collecting_data(args)
-    serial_pipeline_reward_model_trex_onpolicy([main_config, create_config])
+    serial_pipeline_trex_onpolicy([main_config, create_config])

@@ -1,4 +1,4 @@
-from dizoo.mujoco.config.hopper_sac_data_generation_default_config import main_config, create_config
+from dizoo.mujoco.config.hopper_sac_data_generation_config import main_config, create_config
 from ding.entry import collect_demo_data, eval
 import torch
 import copy

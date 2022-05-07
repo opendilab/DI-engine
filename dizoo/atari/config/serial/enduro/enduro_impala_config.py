@@ -1,16 +1,15 @@
 from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 enduro_impala_config = dict(
+    exp_name='enduro_impala_seed0',
     env=dict(
         collector_env_num=16,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=10000000000,
         env_id='EnduroNoFrameskip-v4',
-        frame_stack=4,
-        manager=dict(shared_memory=False, )
+        frame_stack=4
     ),
     policy=dict(
         cuda=True,
@@ -78,6 +77,6 @@ enduro_impala_create_config = dict(
 create_config = EasyDict(enduro_impala_create_config)
 
 if __name__ == '__main__':
+    # or you can enter ding -m serial -c enduro_impala_config.py -s 0
     from ding.entry import serial_pipeline
-
     serial_pipeline((main_config, create_config), seed=0)

@@ -2,8 +2,7 @@ from typing import Any, List, Union, Optional
 import time
 import gym
 import numpy as np
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, FrameStackWrapper
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep, FrameStackWrapper
 from ding.torch_utils import to_ndarray, to_list
 from ding.envs.common.common_function import affine_transform
 from ding.utils import ENV_REGISTRY
@@ -34,8 +33,11 @@ class BipedalWalkerEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         if self._replay_path is not None:
-            self._env = gym.wrappers.Monitor(
-                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+            self._env = gym.wrappers.RecordVideo(
+                self._env,
+                video_folder=self._replay_path,
+                episode_trigger=lambda episode_id: True,
+                name_prefix='rl-video-{}'.format(id(self))
             )
         self._final_eval_reward = 0
         obs = self._env.reset()

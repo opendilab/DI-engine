@@ -12,7 +12,7 @@ from .r2d2_gtrxl import R2D2GTrXLPolicy
 from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
-from .ppo_offpolicy_collect_traj import PPOOffCollectTrajPolicy
+from .offppo_collect_traj import OffPPOCollectTrajPolicy
 from .ppg import PPGPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
@@ -157,8 +157,8 @@ class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('ppo_offpolicy_collect_traj_command')
-class PPOOffCollectTrajCommandModePolicy(PPOOffCollectTrajPolicy, DummyCommandModePolicy):
+@POLICY_REGISTRY.register('offppo_collect_traj_command')
+class PPOOffCollectTrajCommandModePolicy(OffPPOCollectTrajPolicy, DummyCommandModePolicy):
     pass
 
 
