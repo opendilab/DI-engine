@@ -74,6 +74,7 @@ class FQFPolicy(DQNPolicy):
             target_update_freq=100,
             # (float) Threshold of Huber loss. In the FQF paper, this is denoted by kappa. Default to 1.0.
             kappa=1.0,
+            ent_coef=0,
             # (bool) Whether ignore done(usually for max step termination env)
             ignore_done=False,
         ),
@@ -124,6 +125,7 @@ class FQFPolicy(DQNPolicy):
         self._gamma = self._cfg.discount_factor
         self._nstep = self._cfg.nstep
         self._kappa = self._cfg.learn.kappa
+        self._ent_coef = self._cfg.learn.ent_coef
         #self._grad_norm = self._cfg.learn.grad_norm
 
         # use wrapper instead of plugin
@@ -163,7 +165,8 @@ class FQFPolicy(DQNPolicy):
         q_value = ret['q']  # [batch, num_quantiles, 64(action_dim)]
         quantiles = ret['quantiles']  # [batch, num_quantiles+1]
         quantiles_hats = ret['quantiles_hats']  # [batch, num_quantiles]
-        q_tau_i = ret['q_tau_i']
+        q_tau_i = ret['q_tau_i']  # [batch_size, num_quantiles-1, action_size(64)]
+        entropies = ret['entropies']  # [batch, 1]
 
         # Target q value
         with torch.no_grad():
@@ -180,7 +183,9 @@ class FQFPolicy(DQNPolicy):
         )
         value_gamma = data.get('value_gamma')
 
-        fraction_loss = fqf_calculate_fraction_loss(q_tau_i.detach(), q_s_a_hats.detach(), quantiles, data['action'])
+        entropy_loss = -self._ent_coef * entropies.mean()
+        
+        fraction_loss = fqf_calculate_fraction_loss(q_tau_i.detach(), q_s_a_hats.detach(), quantiles, data['action']) + entropy_loss
 
         quantile_loss, td_error_per_sample = fqf_nstep_td_error(
             data_n, self._gamma, nstep=self._nstep, kappa=self._kappa, value_gamma=value_gamma

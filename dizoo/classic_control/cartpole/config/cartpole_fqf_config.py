@@ -17,9 +17,10 @@ cartpole_fqf_config = dict(
             action_shape=2,
             encoder_hidden_size_list=[128, 128, 64],
             num_quantiles=32,
+            quantile_embedding_size=64,
         ),
         discount_factor=0.97,
-        nstep=3,
+        nstep=1,
         learn=dict(
             update_per_collect=3,
             batch_size=64,
@@ -27,6 +28,7 @@ cartpole_fqf_config = dict(
             learning_rate_quantile=0.0001,
             target_update_freq=100,
             kappa=1.0,
+            ent_coef=0,
             #grad_norm=0.5,
         ),
         collect=dict(

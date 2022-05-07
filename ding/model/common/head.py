@@ -557,6 +557,10 @@ class FQFHead(nn.Module):
 
         q_quantiles = self.quantiles_proposal(x.detach())  # (batch, num_quantiles)
 
+        # Calculate entropies of value distributions.
+        entropies = -(torch.log(q_quantiles) * q_quantiles).sum(dim=-1, keepdim=True)  # (batch, 1)
+        assert entropies.shape == (batch_size, 1)
+
         # accumalative softmax
         q_quantiles = torch.cumsum(q_quantiles, dim=1)
 
@@ -587,7 +591,8 @@ class FQFHead(nn.Module):
             'q': q,
             'quantiles': q_quantiles,
             'quantiles_hats': q_quantiles_hats,
-            'q_tau_i': q_tau_i
+            'q_tau_i': q_tau_i,
+            'entropies': entropies
         }
 
 
