@@ -333,7 +333,8 @@ class ImpalaCNN(nn.Module):
         x = x.to(dtype=torch.float32) / self.scale_ob
         for (i, layer) in enumerate(self.stacks):
             x = layer(x)
-        x = Flatten(x)
+        *batch_shape, h, w, c = x.shape
+        x.reshape((*batch_shape, h * w * c))
         x = torch.relu(x)
         x = self.dense(x)
         if self.final_relu:
