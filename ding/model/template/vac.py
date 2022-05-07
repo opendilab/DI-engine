@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
-    FCEncoder, ConvEncoder, ImpalaCNN
+    FCEncoder, ConvEncoder, ImpalaEncoder
 
 
 @MODEL_REGISTRY.register('vac')
@@ -77,7 +77,7 @@ class VAC(nn.Module):
             self.share_encoder = share_encoder
             if self.share_encoder:
                 if self.impala_cnn_encoder:
-                    encoder_cls = ImpalaCNN
+                    encoder_cls = ImpalaEncoder
                     self.encoder = encoder_cls(obs_shape)
                 else:
                     self.encoder = encoder_cls(
@@ -85,7 +85,7 @@ class VAC(nn.Module):
                     )
             else:
                 if self.impala_cnn_encoder:
-                    encoder_cls = ImpalaCNN
+                    encoder_cls = ImpalaEncoder
                     self.actor_encoder = encoder_cls(obs_shape)
                     self.critic_encoder = encoder_cls(obs_shape)
                 else:
