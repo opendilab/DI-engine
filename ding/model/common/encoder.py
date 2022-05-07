@@ -162,7 +162,6 @@ class StructEncoder(nn.Module):
     pass
 
 
-
 def intprod(xs):
     """
     Product of a sequence of integers
