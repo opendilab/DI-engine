@@ -35,7 +35,7 @@ def create_shuffled_dataloader(data, batch_size):
 
 
 @POLICY_REGISTRY.register('ppg_onpolicy')
-class OnPPGPolicy(Policy):
+class PPGOnPolicy(Policy):
     """
     Overview:
         Policy class of PPG algorithm.

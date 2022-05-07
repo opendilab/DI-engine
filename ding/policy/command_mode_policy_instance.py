@@ -13,7 +13,7 @@ from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
 from .offppo_collect_traj import OffPPOCollectTrajPolicy
-from .ppg import PPGPolicy, OnPPGPolicy
+from .ppg import PPGPolicy, PPGOnPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
@@ -178,7 +178,7 @@ class PPGCommandModePolicy(PPGPolicy, DummyCommandModePolicy):
 
 
 @POLICY_REGISTRY.register('ppg_onpolicy_command')
-class OnPPGCommandModePolicy(OnPPGPolicy, DummyCommandModePolicy):
+class OnPPGCommandModePolicy(PPGOnPolicy, DummyCommandModePolicy):
     pass
 
 

@@ -21,7 +21,7 @@ coinrun_ppg_default_config = dict(
             encoder_hidden_size_list=[16,32,32],
             actor_head_hidden_size=256,
             critic_head_hidden_size=256,
-            use_impala_cnn_encoder=True,
+            impala_cnn_encoder=True,
         ),
         learn=dict(
             learning_rate=0.0005,
