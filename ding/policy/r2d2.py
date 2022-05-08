@@ -134,13 +134,14 @@ class R2D2Policy(Policy):
         Overview:
             Init the learner model of R2D2Policy
         Arguments:
-            .. note::
-                The _init_learn method takes the argument from the self._cfg.learn in the config file
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - nstep (:obj:`int`): The num of n step return
             - value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
             - burnin_step (:obj:`int`): The num of step of burnin
+
+        .. note::
+            The _init_learn method takes the argument from the self._cfg.learn in the config file
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
