@@ -207,7 +207,7 @@
 <span class="sd">           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env</span>
 <span class="sd">        7  | ``nstep``          int      5,             | N-step reward discount sum for target</span>
 <span class="sd">                                         [3, 5]         | q_value estimation</span>
-<span class="sd">        8  |``burnin_step``     int      1              | The timestep of burnin operation,</span>
+<span class="sd">        8  | ``burnin_step``    int      1              | The timestep of burnin operation,</span>
 <span class="sd">                                                        | which is designed to warm-up GTrXL</span>
 <span class="sd">                                                        | memory difference caused by off-policy</span>
 <span class="sd">        9  | ``learn.update``   int      1              | How many updates(iterations) to train  | This args can be vary</span>
@@ -227,7 +227,8 @@
 <span class="sd">                                                        | call of collector.                     | different envs</span>
 <span class="sd">        16 | ``collect.unroll`` int      25             | unroll length of an iteration          | unroll_len&gt;1</span>
 <span class="sd">           | ``_len``</span>
-<span class="sd">        17 | ``collect.seq_len`` int     20             | Training sequence length               | unroll_len&gt;=seq_len&gt;1</span>
+<span class="sd">        17 | ``collect.seq``    int      20             | Training sequence length               | unroll_len&gt;=seq_len&gt;1</span>
+<span class="sd">           | ``_len``</span>
 <span class="sd">        18 | ``learn.init_``    str      zero           | &#39;zero&#39; or &#39;old&#39;, how to initialize the |</span>
 <span class="sd">           | ``memory``                                 | memory before each training iteration. |</span>
 <span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
@@ -298,16 +299,13 @@
     <span class="p">)</span>
 
 <div class="viewcode-block" id="R2D2GTrXLPolicy._init_learn"><a class="viewcode-back" href="../../../hands_on/gtrxl.html#ding.policy.r2d2_gtrxl.R2D2GTrXLPolicy._init_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the learner model of GTrXLR2D2Policy.</span>
-<span class="sd">            Target model has 2 wrappers: &#39;target&#39; for weights update and &#39;transformer_segment&#39; to split trajectories</span>
-<span class="sd">             in segments.</span>
-<span class="sd">            Learn model has 2 wrappers: &#39;argmax&#39; to select the best action and &#39;transformer_segment&#39;.</span>
+<span class="sd">            Init the learner model of GTrXLR2D2Policy. \</span>
+<span class="sd">            Target model has 2 wrappers: &#39;target&#39; for weights update and &#39;transformer_segment&#39; to split trajectories \</span>
+<span class="sd">            in segments. Learn model has 2 wrappers: &#39;argmax&#39; to select the best action and &#39;transformer_segment&#39;.</span>
 
 <span class="sd">        Arguments:</span>
-<span class="sd">            .. note::</span>
-<span class="sd">                The _init_learn method takes the argument from the self._cfg.learn in the config file</span>
 <span class="sd">            - learning_rate (:obj:`float`): The learning rate fo the optimizer</span>
 <span class="sd">            - gamma (:obj:`float`): The discount factor</span>
 <span class="sd">            - nstep (:obj:`int`): The num of n step return</span>
@@ -315,6 +313,9 @@
 <span class="sd">            - burnin_step (:obj:`int`): The num of step of burnin</span>
 <span class="sd">            - seq_len (:obj:`int`): Training sequence length</span>
 <span class="sd">            - init_memory (:obj:`str`): &#39;zero&#39; or &#39;old&#39;, how to initialize the memory before each training iteration.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The ``_init_learn`` method takes the argument from the self._cfg.learn in the config file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>

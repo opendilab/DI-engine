@@ -301,13 +301,14 @@
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the learner model of R2D2Policy</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            .. note::</span>
-<span class="sd">                The _init_learn method takes the argument from the self._cfg.learn in the config file</span>
 <span class="sd">            - learning_rate (:obj:`float`): The learning rate fo the optimizer</span>
 <span class="sd">            - gamma (:obj:`float`): The discount factor</span>
 <span class="sd">            - nstep (:obj:`int`): The num of n step return</span>
 <span class="sd">            - value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm</span>
 <span class="sd">            - burnin_step (:obj:`int`): The num of step of burnin</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The _init_learn method takes the argument from the self._cfg.learn in the config file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priority_IS_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span>

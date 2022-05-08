@@ -179,9 +179,9 @@
 <div class="viewcode-block" id="BaseEnv"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.BaseEnv">[docs]</a><span class="k">class</span> <span class="nc">BaseEnv</span><span class="p">(</span><span class="n">ABC</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">Env</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        basic environment class, extended from ``gym.Env``</span>
+<span class="sd">        Basic environment class, extended from ``gym.Env``</span>
 <span class="sd">    Interface:</span>
-<span class="sd">        ``__init__``, ``reset``, ``close``, ``step``, ``create_collector_env_cfg``, \</span>
+<span class="sd">        ``__init__``, ``reset``, ``close``, ``step``, ``random_action``, ``create_collector_env_cfg``, \</span>
 <span class="sd">        ``create_evaluator_env_cfg``, ``enable_save_replay``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -189,7 +189,10 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Lazy init, only parameters will be initialized in ``self.__init__()``</span>
+<span class="sd">            Lazy init, only related arguments will be initialized in ``__init__`` method, and the concrete \</span>
+<span class="sd">            env will be initialized the first time ``reset`` method is called.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - cfg (:obj:`dict`): Environment configuration in dict type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
@@ -197,7 +200,9 @@
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Resets the env to an initial state and returns an initial observation. Abstract Method from ``gym.Env``.</span>
+<span class="sd">            Reset the env to an initial state and returns an initial observation.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - obs (:obj:`Any`): Initial observation after reset.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
@@ -205,8 +210,7 @@
     <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Environments will automatically ``close()`` themselves when garbage collected or exits. \</span>
-<span class="sd">                Abstract Method from ``gym.Env``.</span>
+<span class="sd">            Close env and all the related resources, it should be called after the usage of env instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
@@ -214,11 +218,11 @@
     <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;BaseEnv.timestep&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Run one timestep of the environment&#39;s dynamics. Abstract Method from ``gym.Env``.</span>
+<span class="sd">            Run one timestep of the environment&#39;s dynamics/simulation.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - action (:obj:`Any`): the ``action`` input to step with</span>
+<span class="sd">            - action (:obj:`Any`): The ``action`` input to step with.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - timestep (:obj:`BaseEnv.timestep`)</span>
+<span class="sd">            - timestep (:obj:`BaseEnv.timestep`): The result timestep of env executing one step.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
@@ -226,23 +230,36 @@
     <span class="k">def</span> <span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Sets the seed for this env&#39;s random number generator(s). Abstract Method from ``gym.Env``.</span>
+<span class="sd">            Set the seed for this env&#39;s random number generator(s).</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - seed (:obj:`Any`): Random seed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the information string of this env instance.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - info (:obj:`str`): Information of this env instance, like type and arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 <div class="viewcode-block" id="BaseEnv.create_collector_env_cfg"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.create_collector_env_cfg">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">create_collector_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return a list of all of the environment from input config.</span>
+<span class="sd">            Return a list of all of the environment from input config, used in env manager \</span>
+<span class="sd">            (a series of vectorized env), and this method is mainly responsible for envs collecting data.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - cfg (:obj:`Dict`) Env config, same config where ``self.__init__()`` takes arguments from</span>
+<span class="sd">            - cfg (:obj:`dict`): Original input env config, which needs to be transformed into the type of creating \</span>
+<span class="sd">                env instance actually and generated the corresponding number of configurations.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - List of ``cfg`` including all of the collector env&#39;s config</span>
+<span class="sd">            - env_cfg_list (:obj:`List[dict]`): List of ``cfg`` including all the config collector envs.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Elements(env config) in collector_env_cfg/evaluator_env_cfg can be different, such as server ip and port.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">collector_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;collector_env_num&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">cfg</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collector_env_num</span><span class="p">)]</span></div>
@@ -251,11 +268,13 @@
     <span class="k">def</span> <span class="nf">create_evaluator_env_cfg</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return a list of all of the environment from input config.</span>
+<span class="sd">            Return a list of all of the environment from input config, used in env manager \</span>
+<span class="sd">            (a series of vectorized env), and this method is mainly responsible for envs evaluating performance.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - cfg (:obj:`Dict`) Env config, same config where ``self.__init__()`` takes arguments from</span>
+<span class="sd">            - cfg (:obj:`dict`): Original input env config, which needs to be transformed into the type of creating \</span>
+<span class="sd">                env instance actually and generated the corresponding number of configurations.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - List of ``cfg`` including all of the evaluator env&#39;s config</span>
+<span class="sd">            - env_cfg_list (:obj:`List[dict]`): List of ``cfg`` including all the config evaluator envs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;evaluator_env_num&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">cfg</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)]</span></div>
@@ -264,26 +283,36 @@
 <div class="viewcode-block" id="BaseEnv.enable_save_replay"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.enable_save_replay">[docs]</a>    <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Save replay file in the given path, need to be self-implemented.</span>
+<span class="sd">            Save replay file in the given path, and this method need to be self-implemented by each env class.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - replay_path(:obj:`str`): Storage path.</span>
+<span class="sd">            - replay_path (:obj:`str`): The path to save replay file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="c1"># optional method</span>
+<div class="viewcode-block" id="BaseEnv.random_action"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.BaseEnv.random_action">[docs]</a>    <span class="k">def</span> <span class="nf">random_action</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return random action generated from the original action space, usually it is convenient for test.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - random_action (:obj:`Any`): Action generated randomly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div></div>
 
 
 <div class="viewcode-block" id="get_vec_env_setting"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.get_vec_env_setting">[docs]</a><span class="k">def</span> <span class="nf">get_vec_env_setting</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">       Get vectorized env setting(env_fn, collector_env_cfg, evaluator_env_cfg)</span>
+<span class="sd">        Get vectorized env setting (env_fn, collector_env_cfg, evaluator_env_cfg).</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - cfg (:obj:`Dict`) Env config, same config where ``self.__init__()`` takes arguments from</span>
+<span class="sd">        - cfg (:obj:`dict`): Original input env config in user config, such as ``cfg.env``.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - env_fn (:obj:`type`): Callable object, call it with proper arguments and then get a new env instance.</span>
 <span class="sd">        - collector_env_cfg (:obj:`List[dict]`): A list contains the config of collecting data envs.</span>
 <span class="sd">        - evaluator_env_cfg (:obj:`List[dict]`): A list contains the config of evaluation envs.</span>
 
 <span class="sd">    .. note::</span>
-<span class="sd">        elements(env config) in collector_env_cfg/evaluator_env_cfg can be different, such as server ip and port.</span>
+<span class="sd">        Elements (env config) in collector_env_cfg/evaluator_env_cfg can be different, such as server ip and port.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
@@ -296,18 +325,21 @@
 <div class="viewcode-block" id="get_env_cls"><a class="viewcode-back" href="../../../../api_doc/env/env.html#ding.envs.env.base_env.get_env_cls">[docs]</a><span class="k">def</span> <span class="nf">get_env_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">       Get the env class by correspondng module of ``cfg`` and return the callable class</span>
+<span class="sd">        Get the env class by correspondng module of ``cfg`` and return the callable class.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - cfg (:obj:`Dict`) Env config, same config where ``self.__init__()`` takes arguments from</span>
+<span class="sd">        - cfg (:obj:`dict`): Original input env config in user config, such as ``cfg.env``.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - Env module as the corresponding callable class</span>
-
+<span class="sd">        - env_cls_type (:obj:`type`): Env module as the corresponding callable class type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
     <span class="k">return</span> <span class="n">ENV_REGISTRY</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">create_model_env</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create model env, which is used in model-based RL.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cfg</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
     <span class="n">model_env_fn</span> <span class="o">=</span> <span class="n">get_env_cls</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
     <span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">)</span>

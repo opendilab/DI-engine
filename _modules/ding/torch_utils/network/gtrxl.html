@@ -165,9 +165,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ding.torch_utils.network.gtrxl</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span>
-<span class="kn">from</span> <span class="nn">ding.torch_utils.network.nn_module</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">MODEL_REGISTRY</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
@@ -563,7 +561,8 @@
 <div class="viewcode-block" id="GTrXL"><a class="viewcode-back" href="../../../../hands_on/gtrxl.html#ding.torch_utils.network.gtrxl.GTrXL">[docs]</a><span class="k">class</span> <span class="nc">GTrXL</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        GTrXL Transformer</span>
+<span class="sd">        GTrXL Transformer implementation.</span>
+
 <span class="sd">    .. note::</span>
 <span class="sd">        For details refer to Stabilizing Transformer for Reinforcement Learning: https://arxiv.org/abs/1910.06764</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -637,13 +636,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pos_embedding_dict</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># create a pos embedding for each different seq_len</span>
 
 <div class="viewcode-block" id="GTrXL.reset_memory"><a class="viewcode-back" href="../../../../hands_on/gtrxl.html#ding.torch_utils.network.gtrxl.GTrXL.reset_memory">[docs]</a>    <span class="k">def</span> <span class="nf">reset_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Clear or set the memory of GTrXL.</span>
-<span class="sd">         Arguments:</span>
+<span class="sd">        Arguments:</span>
 <span class="sd">            - batch_size (:obj:`Optional[int]`): batch size</span>
-<span class="sd">            - state (:obj:`Optional[torch.Tensor]`): input memory.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">            - state (:obj:`Optional[torch.Tensor]`): input memory. Shape is (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">Memory</span><span class="p">(</span><span class="n">memory_len</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memory_len</span><span class="p">,</span> <span class="n">layer_num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_num</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_dim</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">batch_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -652,12 +650,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="GTrXL.get_memory"><a class="viewcode-back" href="../../../../hands_on/gtrxl.html#ding.torch_utils.network.gtrxl.GTrXL.get_memory">[docs]</a>    <span class="k">def</span> <span class="nf">get_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Returns memory of GTrXL.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.</span>
-<span class="sd">            Shape is (layer_num, memory_len, bs, embedding_dim).</span>
+<span class="sd">            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized. \</span>
+<span class="sd">                Shape is (layer_num, memory_len, bs, embedding_dim).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
@@ -665,17 +663,17 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="GTrXL.forward"><a class="viewcode-back" href="../../../../hands_on/gtrxl.html#ding.torch_utils.network.gtrxl.GTrXL.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_first</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">return_mem</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            GTrXL forward pass.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).</span>
-<span class="sd">            - batch_first (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to &#39;True&#39;</span>
-<span class="sd">            in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size). This</span>
-<span class="sd">            param doesn&#39;t affects the output memory</span>
+<span class="sd">            - batch_first (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to \</span>
+<span class="sd">                ``True`` in order to transpose along the first and second dimension and obtain shape \</span>
+<span class="sd">                (seq_len, bs, input_size). This param doesn&#39;t affects the output memory.</span>
 <span class="sd">            - return_mem (:obj:`bool`): if this param is False, return only the output tensor without dict.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape</span>
+<span class="sd">            - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape \</span>
 <span class="sd">             (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">batch_first</span><span class="p">:</span>
