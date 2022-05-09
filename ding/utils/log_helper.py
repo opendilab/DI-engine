@@ -3,9 +3,9 @@ import logging
 import os
 from typing import Optional, Tuple, Union, Dict, Any
 
+import ditk.logging
 import numpy as np
 import yaml
-from ditk.logging import get_logger
 from hbutils.system import touch
 from tabulate import tabulate
 
@@ -71,14 +71,9 @@ class LoggerFactory(object):
         logger_file_path = os.path.join(path, f'{logger_name}.txt')
         touch(logger_file_path)
 
-        logger = get_logger(logger_name, [logger_file_path], level=level)
+        logger = ditk.logging.getLogger(logger_name, level, [logger_file_path])
         logger.get_tabulate_vars = LoggerFactory.get_tabulate_vars
         logger.get_tabulate_vars_hor = LoggerFactory.get_tabulate_vars_hor
-
-        # print(logger.handlers)
-        logger.removeHandler(logger.handlers[0])
-        print(logger.parent)
-        print(logger.parent.handlers)
 
         return logger
 

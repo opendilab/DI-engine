@@ -1,5 +1,6 @@
-import pytest
 import numpy as np
+import pytest
+
 from ding.league import get_elo, get_elo_array, LeagueMetricEnv
 
 
@@ -43,8 +44,8 @@ def test_league_metric():
     assert new_r1.mu > r1.mu
     assert new_r2.mu < r2.mu
     assert new_r1.mu + new_r2.mu == 0
-    assert pytest.approx(new_r1.mu, 3.230)
-    assert pytest.approx(new_r2.mu, -3.230)
+    assert pytest.approx(new_r1.mu) == 3.230
+    assert pytest.approx(new_r2.mu) == -3.230
     assert new_r1.elo == 1625
     assert new_r2.elo == 1561
     # multi result

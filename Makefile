@@ -2,15 +2,16 @@ CI := $(shell echo ${CI})
 
 WORKERS         ?= 2
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
+
 DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
 DING_DIR   ?= ./ding
 DIZOO_DIR  ?= ./dizoo
-RANGE_DIR  ?= .
-TEST_DIR   ?= ${DING_DIR}/${RANGE_DIR}
-COV_DIR    ?= ${DING_DIR}/${RANGE_DIR}
-FORMAT_DIR ?= ${DING_DIR}/${RANGE_DIR}
+RANGE_DIR  ?=
+TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR})
+COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR})
+FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR})
 PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR}/entry/tests/test_serial_entry.py ${DING_DIR}/entry/tests/test_serial_entry_onpolicy.py)
 
 docs:
