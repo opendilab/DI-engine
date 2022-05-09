@@ -11,6 +11,15 @@ if TYPE_CHECKING:
 
 
 class OffPolicyLearner:
+    """
+    Overview:
+        The middleware that executes the whole learning process, including data fetching and model training. 
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config.
+        - policy (:obj:`Policy`): The policy to be trained.
+        - buffer_: The replay buffer to store the data for training.
+        - reward_model: The reward estimator in model-based setting, default to None.
+    """
 
     def __init__(
             self,
@@ -28,6 +37,11 @@ class OffPolicyLearner:
             self._reward_estimator = None
 
     def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Output of ctx:
+            - train_output (:obj:`Deque`): The deque of training output.
+        """
+
         train_output_queue = deque()
         for _ in range(self.cfg.policy.learn.update_per_collect):
             self._fetcher(ctx)
@@ -41,6 +55,15 @@ class OffPolicyLearner:
 
 
 class HERLearner:
+    """
+    Overview:
+        The middleware that executes the whole learning process with HER reward. 
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config.
+        - policy (:obj:`Policy`): The policy to be trained.
+        - buffer_: The replay buffer to store the data for training.
+        - her_reward_model: HER reward model.
+    """
 
     def __init__(
             self,
@@ -54,6 +77,11 @@ class HERLearner:
         self._trainer = task.wrap(trainer(cfg, policy))
 
     def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Output of ctx:
+            - train_output (:obj:`Deque`): The deque of training output.
+        """
+
         train_output_queue = deque()
         for _ in range(self.cfg.policy.learn.update_per_collect):
             self._fetcher(ctx)

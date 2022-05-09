@@ -146,10 +146,28 @@ class VectorEvalMonitor(object):
 
 
 def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
+    """
+    Overview:
+        The middleware that executes the evaluation.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config.
+        - policy (:obj:`Policy`): The policy to be evaluated.
+        - env (:obj:`BaseEnvManager`): The env for the evaluation.
+    """
+
     env.seed(cfg.seed, dynamic_seed=False)
 
     def _evaluate(ctx: "OnlineRLContext"):
-        # evaluation will be executed if the task begins or enough train_iter after last evaluation
+        """
+        Overview:
+            - The evaluation will be executed if the task begins and enough train_iter after last evaluation.
+        Input of ctx:
+            - last_eval_iter (:obj:`int`): Last evaluation iteration.
+            - train_iter (:obj:`int`): Current train iteration.
+        Output of ctx:
+            - eval_value (:obj:`float`): The average reward in the current evaluation.
+        """
+
         if ctx.last_eval_iter != -1 and \
            (ctx.train_iter - ctx.last_eval_iter < cfg.policy.eval.evaluator.eval_freq):
             return

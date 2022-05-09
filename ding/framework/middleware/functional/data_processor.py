@@ -19,6 +19,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer):
         - cfg (:obj:`EasyDict`): Config.
         - buffer_ (:obj:`Buffer`): Buffer to push the data in.
     """
+
     def _push(ctx: "OnlineRLContext"):
         """
         Overview:
@@ -60,6 +61,7 @@ def offpolicy_data_fetcher(
             batch_size of data will be fetched and put under the same key of ctx.train_data, \
             which is also a dict and has the same keys with buffer_.
     """
+
     def _fetch(ctx: "OnlineRLContext"):
         """
         Input of ctx:
@@ -164,6 +166,7 @@ def offline_data_saver(cfg: EasyDict, data_path: str, data_type: str = 'hdf5') -
             The type of saved data is pkl if data_type == 'naive'. \
             The type of saved data is hdf5 if data_type == 'hdf5'.
     """
+
     def _save(ctx: "OnlineRLContext"):
         """
         Input of ctx:
@@ -186,6 +189,7 @@ def sqil_data_pusher(cfg: EasyDict, buffer_: Buffer, expert: bool) -> Callable:
         - buffer_ (:obj:`Buffer`): Buffer to push the data in.
         - expert (:obj:`bool`): Wether the pushed data is expert data or normal data. 
     """
+
     def _pusher(ctx: "OnlineRLContext"):
         """
         Input of ctx:
