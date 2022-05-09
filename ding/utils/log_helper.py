@@ -67,6 +67,8 @@ class LoggerFactory(object):
         Returns:
             - (:obj:`logging.Logger`): new logging logger
         """
+        ditk.logging.try_init_root(level)
+
         logger_name = f'{name}_logger'
         logger_file_path = os.path.join(path, f'{logger_name}.txt')
         touch(logger_file_path)
