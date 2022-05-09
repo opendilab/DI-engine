@@ -12,8 +12,20 @@ if TYPE_CHECKING:
 
 
 class CkptSaver:
+    """
+        Overview:
+            The class to save checkpoint file.
+    """
 
     def __init__(self, cfg: EasyDict, policy: Policy, train_freq: Optional[int] = None):
+        """
+        Overview:
+            Initialize the CkptSaver.
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config which should contain following keys: ['cfg.exp_name'].
+            - policy (:obj:`Policy`): Policy.
+            - train_freq (:obj:`int`): Number of training iterations every time saving checkpoint data.
+        """
         self.policy = policy
         self.train_freq = train_freq
         self.prefix = '{}/ckpt'.format(cfg.exp_name)
@@ -23,6 +35,17 @@ class CkptSaver:
         self.max_eval_value = -np.inf
 
     def __call__(self, ctx: Union["OnlineRLContext", "OfflineRLContext"]) -> None:
+        """
+        Overview:
+            The method to save checkpoint data. \
+            The checkpoint data will be saved in a file in following 3 cases: \
+                - Every time when train self.train_freq iterations; \
+                - Every time when the eval reward is the best eval reward so far; \
+                - When task.finish is True. \
+        Input of ctx:
+            - train_iter (:obj:`int`): Number of train_iter.
+            - eval_value (:obj:`int`): The eval reward of current iteration.
+        """
         # train enough iteration
         if self.train_freq and ctx.train_iter - self.last_save_iter >= self.train_freq:
             save_file(

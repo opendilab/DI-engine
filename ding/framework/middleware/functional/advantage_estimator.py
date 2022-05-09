@@ -21,10 +21,31 @@ def collate(x):  # TODO ttorch.collate
 
 
 def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = None) -> Callable:
+    """
+    Overview:
+        Calculate value using observation of input data, then call function gae to get advantage. \
+        The processed data will be pushed into buffer_ if it is not None, \
+        otherwise it will be assigned to ctx.train_data.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config which should contain following keys: \
+            ['cfg.policy.collect.discount_factor', 'cfg.policy.collect.gae_lambda'].
+        - policy (:obj:`Policy`): Policy which is actually policy.collect_mode.
+        - buffer_ (:obj:`Optional[Buffer]`): The buffer_ to push the processed data in if it is not None.
+    """
+
     model = policy.get_attribute('model')
 
     def _gae(ctx: "OnlineRLContext"):
-
+        """
+        Input of ctx:
+            - trajectories (:obj:`List[treetensor.torch.Tensor]`): The data to be processed.\
+                Each element should contain following keys: ['obs', 'next_obs', 'reward', 'done'].
+            - trajectory_end_idx: (:obj:`treetensor.torch.IntTensor`): \
+                The indices that define the ends of trajectories, \
+                which should be shorter than the length of ctx.trajectories.
+        Output of ctx:
+            - train_data (:obj:`List[treetensor.torch.Tensor]`): The processed data if buffer_ is None.
+        """
         data = ctx.trajectories  # list
         data = collate(data)
         with torch.no_grad():
