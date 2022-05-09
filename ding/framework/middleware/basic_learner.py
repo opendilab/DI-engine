@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 from ding.policy import Policy
 from ding.worker.buffer import Buffer
-import logging
+from ditk import logging
 
 if TYPE_CHECKING:
     from ding.framework import Task, Context

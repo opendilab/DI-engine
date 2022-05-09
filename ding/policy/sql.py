@@ -3,7 +3,7 @@ from collections import namedtuple, deque
 import copy
 import torch
 from torch.distributions import Categorical
-import logging
+from ditk import logging
 from easydict import EasyDict
 from ding.torch_utils import Adam, to_device
 from ding.utils.data import default_collate, default_decollate

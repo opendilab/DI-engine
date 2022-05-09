@@ -1,5 +1,5 @@
 import copy
-import logging
+from ditk import logging
 from collections import namedtuple
 from functools import partial
 from typing import Any, Union, Callable, List, Dict, Optional, Tuple

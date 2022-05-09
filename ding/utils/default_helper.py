@@ -1,5 +1,5 @@
 import copy
-import logging
+from ditk import logging
 import random
 from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any
 from functools import lru_cache  # in python3.9, we can change to cache

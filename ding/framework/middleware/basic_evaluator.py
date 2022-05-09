@@ -5,7 +5,7 @@ from ding.envs.env_manager import BaseEnvManager
 from ding.worker.collector.base_serial_evaluator import VectorEvalMonitor
 from ding.torch_utils import to_ndarray, to_tensor
 from ding.policy import Policy
-import logging
+from ditk import logging
 
 if TYPE_CHECKING:
     from ding.framework import Task, Context

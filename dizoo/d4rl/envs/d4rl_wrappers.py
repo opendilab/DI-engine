@@ -1,7 +1,7 @@
 from typing import Dict
 import gym
 import numpy as np
-import logging
+from ditk import logging
 from ding.envs import ObsNormWrapper, RewardNormWrapper
 
 try:

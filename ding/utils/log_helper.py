@@ -1,5 +1,5 @@
 import json
-import logging
+from ditk import logging
 import os
 from typing import Optional, Tuple, Union, Dict, Any
 
