@@ -1,10 +1,10 @@
 import pytest
 import gym
 
-from dizoo.mujoco.envs import mujoco_gym_env
 
 @pytest.mark.envtest
 def test_shapes():
+    from dizoo.mujoco.envs import mujoco_gym_env
     ant = gym.make('AntTruncatedObs-v2')
     assert ant.observation_space.shape == (27,)
     assert ant.action_space.shape == (8,)
