@@ -1,17 +1,18 @@
-from typing import Any, Union, Callable, List, Dict, Optional, Tuple
-import time
 import copy
 import logging
-from functools import partial
-from easydict import EasyDict
 from collections import namedtuple
+from functools import partial
+from typing import Any, Union, Callable, List, Dict, Optional, Tuple
+
+from easydict import EasyDict
 
 from ding.torch_utils import CountVar, auto_checkpoint, build_log_buffer
 from ding.utils import build_logger, EasyTimer, import_module, LEARNER_REGISTRY, get_rank, get_world_size
 from ding.utils.autolog import LoggedValue, LoggedModel, TickTime
 from ding.utils.data import AsyncDataLoader
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
-logging.info('')  # necessary
+
+# logging.info('')  # necessary
 
 
 @LEARNER_REGISTRY.register('base')
@@ -127,6 +128,8 @@ class BaseLearner(object):
         # Setup time wrapper and hook.
         self._setup_wrapper()
         self._setup_hook()
+
+        self._logger.critical(f'{repr(self._logger.handlers)}')
 
     def _setup_hook(self) -> None:
         """
@@ -495,7 +498,6 @@ class TickMonitor(LoggedModel):
         self.__register()
 
     def __register(self):
-
         def __avg_func(prop_name: str) -> float:
             records = self.range_values[prop_name]()
             _list = [_value for (_begin_time, _end_time), _value in records]
@@ -526,9 +528,9 @@ def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
     else:
         attrs = {}
         properties = [
-            'data_time', 'train_time', 'sample_count', 'total_collect_step', 'total_step', 'total_sample',
-            'total_episode', 'total_duration'
-        ] + properties
+                         'data_time', 'train_time', 'sample_count', 'total_collect_step', 'total_step', 'total_sample',
+                         'total_episode', 'total_duration'
+                     ] + properties
         for p_name in properties:
             attrs[p_name] = LoggedValue(float)
-        return type('SimpleTickMonitor', (TickMonitor, ), attrs)
+        return type('SimpleTickMonitor', (TickMonitor,), attrs)

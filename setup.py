@@ -78,7 +78,9 @@ setup(
         'pynng',
         'pettingzoo==1.12.0',
         'pyglet>=1.4.0',
-        'redis'
+        'redis',
+        'DI-toolkit>=0.0.1',
+        'hbutils>=0.5.0',
     ],
     extras_require={
         'test': [

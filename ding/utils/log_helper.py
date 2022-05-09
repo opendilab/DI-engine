@@ -1,21 +1,25 @@
 import json
 import logging
 import os
+from typing import Optional, Tuple, Union, Dict, Any
+
 import numpy as np
 import yaml
+from ditk.logging import get_logger
+from hbutils.system import touch
 from tabulate import tabulate
+
 from .log_writer_helper import DistributedWriter
-from typing import Optional, Tuple, Union, Dict, Any
 
 
 def build_logger(
-    path: str,
-    name: Optional[str] = None,
-    need_tb: bool = True,
-    need_text: bool = True,
-    text_level: Union[int, str] = logging.INFO
+        path: str,
+        name: Optional[str] = None,
+        need_tb: bool = True,
+        need_text: bool = True,
+        text_level: Union[int, str] = logging.INFO
 ) -> Tuple[Optional[logging.Logger], Optional['SummaryWriter']]:  # noqa
-    r'''
+    r"""
     Overview:
         Build text logger and tensorboard logger.
     Arguments:
@@ -27,7 +31,7 @@ def build_logger(
     Returns:
         - logger (:obj:`Optional[logging.Logger]`): Logger that displays terminal output
         - tb_logger (:obj:`Optional['SummaryWriter']`): Saves output to tfboard, only return when ``need_tb``.
-    '''
+    """
     if name is None:
         name = 'default'
     logger = LoggerFactory.create_logger(path, name=name) if need_text else None
@@ -37,7 +41,6 @@ def build_logger(
 
 
 class TBLoggerFactory(object):
-
     tb_loggers = {}
 
     @classmethod
@@ -52,7 +55,8 @@ class TBLoggerFactory(object):
 class LoggerFactory(object):
 
     @classmethod
-    def create_logger(cls, path: str, name: str = 'default', level: Union[int, str] = logging.INFO) -> logging.Logger:
+    def create_logger(cls, path: str, name: str = 'default',
+                      level: Union[int, str] = logging.INFO) -> logging.Logger:
         r"""
         Overview:
             Create logger using logging
@@ -63,22 +67,19 @@ class LoggerFactory(object):
         Returns:
             - (:obj:`logging.Logger`): new logging logger
         """
-        name += '_logger'
-        # ensure the path exists
-        try:
-            os.makedirs(path)
-        except FileExistsError:
-            pass
-        logger = logging.getLogger(name)
-        logger_file_path = os.path.join(path, name + '.txt')
-        if not logger.handlers:
-            formatter = logging.Formatter('[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
-            fh = logging.FileHandler(logger_file_path, 'a')
-            fh.setFormatter(formatter)
-            logger.setLevel(level)
-            logger.addHandler(fh)
+        logger_name = f'{name}_logger'
+        logger_file_path = os.path.join(path, f'{logger_name}.txt')
+        touch(logger_file_path)
+
+        logger = get_logger(logger_name, [logger_file_path], level=level)
         logger.get_tabulate_vars = LoggerFactory.get_tabulate_vars
         logger.get_tabulate_vars_hor = LoggerFactory.get_tabulate_vars_hor
+
+        # print(logger.handlers)
+        logger.removeHandler(logger.handlers[0])
+        print(logger.parent)
+        print(logger.parent.handlers)
+
         return logger
 
     @staticmethod

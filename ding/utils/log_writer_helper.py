@@ -1,5 +1,7 @@
-from tensorboardX import SummaryWriter
 from typing import TYPE_CHECKING
+
+from tensorboardX import SummaryWriter
+
 if TYPE_CHECKING:
     # TYPE_CHECKING is always False at runtime, but mypy will evaluate the contents of this block.
     # So if you import this module within TYPE_CHECKING, you will get code hints and other benefits.
@@ -62,7 +64,6 @@ class DistributedWriter(SummaryWriter):
 
 
 def enable_parallel(fn_name, fn):
-
     def _parallel_fn(self: DistributedWriter, *args, **kwargs):
         if not self._lazy_initialized:
             self.initialize()
