@@ -24,13 +24,13 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
     """
     Overview:
         Calculate value using observation of input data, then call function gae to get advantage. \
-        The processed data will be pushed into buffer_ if it is not None, \
+        The processed data will be pushed into buffer_ if buffer_ is not None, \
         otherwise it will be assigned to ctx.train_data.
     Arguments:
         - cfg (:obj:`EasyDict`): Config which should contain following keys: \
             ['cfg.policy.collect.discount_factor', 'cfg.policy.collect.gae_lambda'].
         - policy (:obj:`Policy`): Policy which is actually policy.collect_mode.
-        - buffer_ (:obj:`Optional[Buffer]`): The buffer_ to push the processed data in if it is not None.
+        - buffer_ (:obj:`Optional[Buffer]`): The buffer_ to push the processed data in if buffer_ is not None.
     """
 
     model = policy.get_attribute('model')
