@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 def eps_greedy_handler(cfg: EasyDict) -> Callable:
     """
     Overview:
-        The middleware that compute epsilon value according to the env_step. 
+        The middleware that compute epsilon value according to the env_step.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
     """
@@ -38,7 +38,7 @@ def eps_greedy_handler(cfg: EasyDict) -> Callable:
 def eps_greedy_masker():
     """
     Overview:
-        The middleware that returns masked epsilon value. 
+        The middleware that returns masked epsilon value.
     """
 
     def _masker(ctx: "OnlineRLContext"):

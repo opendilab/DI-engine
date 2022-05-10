@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     """
     Overview:
-        The middleware that executes a single training process. 
+        The middleware that executes a single training process.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be trained in step-by-step mode.
@@ -21,8 +21,8 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
         Input of ctx:
-            - train_data (:obj:`Dict`): The data used to update the network. 
-                It will trains only if the data is not empty. 
+            - train_data (:obj:`Dict`): The data used to update the network.
+                It will trains only if the data is not empty.
             - train_iter: (:obj:`int`): The training iteration count.
                 The log will be printed if it reachs certain values.
         Output of ctx:
@@ -45,7 +45,7 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
 def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
     """
     Overview:
-        The middleware that executes training for a target num of steps. 
+        The middleware that executes training for a target num of steps.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy specialized for multi-step training.
@@ -54,8 +54,8 @@ def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
     def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
         Input of ctx:
-            - train_data: The data used to update the network. 
-                It will trains only if the data is not empty. 
+            - train_data: The data used to update the network.
+                It will train only if the data is not empty.
             - train_iter: (:obj:`int`): The training iteration count.
                 The log will be printed if it reachs certain values.
         Output of ctx:

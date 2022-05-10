@@ -160,7 +160,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
     def _evaluate(ctx: "OnlineRLContext"):
         """
         Overview:
-            - The evaluation will be executed if the task begins and enough train_iter after last evaluation.
+            - The evaluation will be executed if the task begins and enough train_iter passed
+                since last evaluation.
         Input of ctx:
             - last_eval_iter (:obj:`int`): Last evaluation iteration.
             - train_iter (:obj:`int`): Current train iteration.
