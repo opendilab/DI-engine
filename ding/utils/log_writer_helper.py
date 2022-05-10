@@ -64,6 +64,7 @@ class DistributedWriter(SummaryWriter):
 
 
 def enable_parallel(fn_name, fn):
+
     def _parallel_fn(self: DistributedWriter, *args, **kwargs):
         if not self._lazy_initialized:
             self.initialize()

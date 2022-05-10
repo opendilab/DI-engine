@@ -34,7 +34,7 @@ class TestDefaultHelper():
         assert dicts_to_lists({1: [1, 2], 10: [3, 4]}) == [{1: 1, 10: 3}, {1: 2, 10: 4}]
 
     def test_squeeze(self):
-        assert squeeze((4,)) == 4
+        assert squeeze((4, )) == 4
         assert squeeze({'a': 4}) == 4
         assert squeeze([1, 3]) == (1, 3)
         data = np.random.randn(3)
@@ -49,6 +49,7 @@ class TestDefaultHelper():
         assert default_get({'val': 1}, 'val', default_value=2) == 1
 
     def test_override(self):
+
         class foo(object):
 
             def fun(self):
@@ -61,6 +62,7 @@ class TestDefaultHelper():
                 return "a"
 
         with pytest.raises(NameError):
+
             class foo2(foo):
 
                 @override(foo)
@@ -72,6 +74,7 @@ class TestDefaultHelper():
         foo1().fun()
 
     def test_error_wrapper(self):
+
         def good_ret(a, b=1):
             return a + b
 
@@ -231,20 +234,21 @@ class TestDict:
         assert pytest.approx(running.mean) == 5
         assert running.mean == pytest.approx(5, abs=1e-4)
         assert running.std == pytest.approx(2.582030, abs=1e-6)
-        new_shape = running.new_shape((2, 4), (3,), (1,))
+        new_shape = running.new_shape((2, 4), (3, ), (1, ))
         assert isinstance(new_shape, tuple) and len(new_shape) == 3
 
-        running = RunningMeanStd(shape=(4,))
+        running = RunningMeanStd(shape=(4, ))
         running.reset()
         running.update(np.random.random((10, 4)))
-        assert isinstance(running.mean, torch.Tensor) and running.mean.shape == (4,)
-        assert isinstance(running.std, torch.Tensor) and running.std.shape == (4,)
+        assert isinstance(running.mean, torch.Tensor) and running.mean.shape == (4, )
+        assert isinstance(running.std, torch.Tensor) and running.std.shape == (4, )
 
     def test_split_data_generator(self):
+
         def get_data():
             return {
                 'obs': torch.randn(5),
-                'action': torch.randint(0, 10, size=(1,)),
+                'action': torch.randint(0, 10, size=(1, )),
                 'prev_state': [None, None],
                 'info': {
                     'other_obs': torch.randn(5)

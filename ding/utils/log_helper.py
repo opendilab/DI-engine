@@ -13,11 +13,11 @@ from .log_writer_helper import DistributedWriter
 
 
 def build_logger(
-        path: str,
-        name: Optional[str] = None,
-        need_tb: bool = True,
-        need_text: bool = True,
-        text_level: Union[int, str] = logging.INFO
+    path: str,
+    name: Optional[str] = None,
+    need_tb: bool = True,
+    need_text: bool = True,
+    text_level: Union[int, str] = logging.INFO
 ) -> Tuple[Optional[logging.Logger], Optional['SummaryWriter']]:  # noqa
     r"""
     Overview:
@@ -55,8 +55,7 @@ class TBLoggerFactory(object):
 class LoggerFactory(object):
 
     @classmethod
-    def create_logger(cls, path: str, name: str = 'default',
-                      level: Union[int, str] = logging.INFO) -> logging.Logger:
+    def create_logger(cls, path: str, name: str = 'default', level: Union[int, str] = logging.INFO) -> logging.Logger:
         r"""
         Overview:
             Create logger using logging

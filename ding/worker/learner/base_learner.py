@@ -498,6 +498,7 @@ class TickMonitor(LoggedModel):
         self.__register()
 
     def __register(self):
+
         def __avg_func(prop_name: str) -> float:
             records = self.range_values[prop_name]()
             _list = [_value for (_begin_time, _end_time), _value in records]
@@ -528,9 +529,9 @@ def get_simple_monitor_type(properties: List[str] = []) -> TickMonitor:
     else:
         attrs = {}
         properties = [
-                         'data_time', 'train_time', 'sample_count', 'total_collect_step', 'total_step', 'total_sample',
-                         'total_episode', 'total_duration'
-                     ] + properties
+            'data_time', 'train_time', 'sample_count', 'total_collect_step', 'total_step', 'total_sample',
+            'total_episode', 'total_duration'
+        ] + properties
         for p_name in properties:
             attrs[p_name] = LoggedValue(float)
-        return type('SimpleTickMonitor', (TickMonitor,), attrs)
+        return type('SimpleTickMonitor', (TickMonitor, ), attrs)
