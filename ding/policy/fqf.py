@@ -240,7 +240,8 @@ class FQFPolicy(DQNPolicy):
             'total_norm_encoder': total_norm_encoder,
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
-            # '[histogram]action_distribution': data['action'],
+            '[histogram]action_distribution': data['action'],
+            '[histogram]quantiles_hats': quantiles_hats[0],
         }
 
     def _monitor_vars_learn(self) -> List[str]:
