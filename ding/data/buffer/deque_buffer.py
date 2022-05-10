@@ -3,6 +3,7 @@ import random
 import uuid
 import logging
 from typing import Any, Iterable, List, Optional, Tuple, Union
+from collections import Counter
 from collections import defaultdict, deque, OrderedDict
 from ding.data.buffer import Buffer, apply_middleware, BufferedData
 from ding.utils import fastcopy
@@ -232,35 +233,47 @@ class DequeBuffer(Buffer):
             storage = self.storage
         if groupby not in self.meta_index:
             self._create_index(groupby)
-        meta_indices = list(set(self.meta_index[groupby]))
+
+        def filter_by_unroll_len():
+            "Filter groups by unroll len, ensure count of items in each group is greater than unroll_len."
+            group_count = Counter(self.meta_index[groupby])
+            group_names = []
+            for key, count in group_count.items():
+                if count >= unroll_len:
+                    group_names.append(key)
+            return group_names
+
         if unroll_len and unroll_len > 1:
-            data_count = defaultdict(int)
-            for buffered in storage:
-                meta_value = buffered.meta[groupby] if groupby in buffered.meta else None
-                data_count[buffered.meta[groupby]] += 1
-            meta_indices = [k for k, v in data_count.items() if v >= unroll_len]
+            group_names = filter_by_unroll_len()
+        else:
+            group_names = list(set(self.meta_index[groupby]))
 
         sampled_groups = []
         if replace:
-            sampled_groups = random.choices(meta_indices, k=size)
+            sampled_groups = random.choices(group_names, k=size)
         else:
             try:
-                sampled_groups = random.sample(meta_indices, k=size)
+                sampled_groups = random.sample(group_names, k=size)
             except ValueError:
-                raise ValueError("There are less than {} groups in buffer({} groups)".format(size, len(meta_indices)))
+                raise ValueError("There are less than {} groups in buffer({} groups)".format(size, len(group_names)))
+
+        # Build dict like {"group name": [records]}
         sampled_data = defaultdict(list)
         for buffered in storage:
             meta_value = buffered.meta[groupby] if groupby in buffered.meta else None
             if meta_value in sampled_groups:
                 sampled_data[buffered.meta[groupby]].append(buffered)
-        sampled_result = []
+
+        final_sampled_data = []
         for group in sampled_groups:
+            seq_data = sampled_data[group]
+            # Filter records by unroll_len
             if unroll_len:
-                start_indice = random.choice(range(max(1, len(sampled_data[group]) - unroll_len)))
-                sampled_result.append(sampled_data[group][start_indice:start_indice + unroll_len])
-            else:
-                sampled_result.append(sampled_data[group])
-        return sampled_result
+                start_indice = random.choice(range(max(1, len(seq_data) - unroll_len)))
+                seq_data = seq_data[start_indice:start_indice + unroll_len]
+            final_sampled_data.append(seq_data)
+
+        return final_sampled_data
 
     def _create_index(self, meta_key: str):
         self.meta_index[meta_key] = deque(maxlen=self.storage.maxlen)
