@@ -9,16 +9,41 @@ if TYPE_CHECKING:
 
 
 def reward_estimator(cfg: EasyDict, reward_model: "BaseRewardModel") -> Callable:
+    """
+    Overview:
+        Estimate reward of train_data using reward_model.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config.
+        - reward_model (:obj:`BaseRewardModel`): Reward model.
+    """
 
     def _enhance(ctx: "OnlineRLContext"):
+        """
+        Input of ctx:
+            - train_data (:obj:`List`): The list of data used for estimation.
+        """
         reward_model.estimate(ctx.train_data)  # inplace modification
 
     return _enhance
 
 
 def her_data_enhancer(cfg: EasyDict, buffer_: "Buffer", her_reward_model: "HerRewardModel") -> Callable:
+    """
+    Overview:
+        Fetch a batch of data/a episode from buffer_, \
+        then use her_reward_model to get HER processed episodes from original episodes.
+    Arguments:
+        - cfg (:obj:`EasyDict`): Config which should contain following keys \
+            if her_reward_model.episode_size is None: ['cfg.policy.learn.batch_size'].
+        - buffer_ (:obj:`Buffer`): Buffer to sample data from.
+        - her_reward_model (:obj:`HerRewardModel`): Hindsight Experience Replay model which is used to process episodes.
+    """
 
     def _fetch_and_enhance(ctx: "OnlineRLContext"):
+        """
+        Output of ctx:
+            - train_data (:obj:`List[treetensor.torch.Tensor]`): The HER processed episodes.
+        """
         if her_reward_model.episode_size is None:
             size = cfg.policy.learn.batch_size
         else:
