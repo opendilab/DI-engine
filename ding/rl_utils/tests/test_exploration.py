@@ -12,7 +12,7 @@ def test_eps_greedy():
     assert lin_eps1(9) == 0.91
     assert lin_eps1(100) == 0.1
     lin_eps2 = get_epsilon_greedy_fn(start=0.9, end=0.3, decay=20, type_='linear')
-    assert pytest.approx(lin_eps2(9), 0.63)
+    assert pytest.approx(lin_eps2(9)) == 0.63
     assert lin_eps2(100) == 0.3
 
 
