@@ -23,7 +23,8 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
         Input of ctx:
             - train_data (:obj:`Dict`): The data used to update the network. 
                 It will trains only if the data is not empty. 
-            - train_iter: (:obj:`int`): The training iteration count. The log will be printed if it reachs certain values.
+            - train_iter: (:obj:`int`): The training iteration count.
+                The log will be printed if it reachs certain values.
         Output of ctx:
             - train_output (:obj:`Dict`): The training output in the Dict format, including loss info.
         """
@@ -55,7 +56,8 @@ def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
         Input of ctx:
             - train_data: The data used to update the network. 
                 It will trains only if the data is not empty. 
-            - train_iter: (:obj:`int`): The training iteration count. The log will be printed if it reachs certain values.
+            - train_iter: (:obj:`int`): The training iteration count.
+                The log will be printed if it reachs certain values.
         Output of ctx:
             - train_output (:obj:`List[Dict]`): The training output listed by steps.
         """

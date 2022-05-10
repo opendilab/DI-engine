@@ -64,7 +64,8 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
         Output of ctx:
             - obs (:obj:`Dict[Tenosr]`): The input states fed into the model.
             - action: (:obj:`List[np.ndarray]`): The infered actions listed by env_id.
-            - inference_output (:obj:`Dict[int, Dict]`): The dict that contains env_id (int) and inference result (Dict). 
+            - inference_output (:obj:`Dict[int, Dict]`): The dict that contains env_id (int)
+                and inference result (Dict). 
         """
 
         if env.closed:
