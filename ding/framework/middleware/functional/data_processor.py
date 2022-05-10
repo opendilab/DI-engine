@@ -41,7 +41,9 @@ def offpolicy_data_fetcher(
             unroll_len = cfg.policy.collect.unroll_len
             if isinstance(buffer_, Buffer):
                 if unroll_len > 1:
-                    buffered_data = buffer_.sample(cfg.policy.learn.batch_size, groupby="env", unroll_len=unroll_len)
+                    buffered_data = buffer_.sample(
+                        cfg.policy.learn.batch_size, groupby="env", unroll_len=unroll_len, replace=True
+                    )
                     ctx.train_data = [[t.data for t in d] for d in buffered_data]  # B, unroll_len
                 else:
                     buffered_data = buffer_.sample(cfg.policy.learn.batch_size)

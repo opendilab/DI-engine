@@ -253,11 +253,14 @@ class DequeBuffer(Buffer):
             meta_value = buffered.meta[groupby] if groupby in buffered.meta else None
             if meta_value in sampled_groups:
                 sampled_data[buffered.meta[groupby]].append(buffered)
-        if unroll_len:
-            for group, seq_data in sampled_data.items():
-                start_indice = random.choice(range(max(1, len(seq_data) - unroll_len)))
-                sampled_data[group] = seq_data[start_indice:start_indice + unroll_len]
-        return list(sampled_data.values())
+        sampled_result = []
+        for group in sampled_groups:
+            if unroll_len:
+                start_indice = random.choice(range(max(1, len(sampled_data[group]) - unroll_len)))
+                sampled_result.append(sampled_data[group][start_indice:start_indice + unroll_len])
+            else:
+                sampled_result.append(sampled_data[group])
+        return sampled_result
 
     def _create_index(self, meta_key: str):
         self.meta_index[meta_key] = deque(maxlen=self.storage.maxlen)
