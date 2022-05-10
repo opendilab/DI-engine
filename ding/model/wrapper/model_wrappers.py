@@ -122,8 +122,10 @@ class HiddenStateWrapper(IModelWrapper):
             self.after_forward(h, state_info, valid_id)  # this is to store the 'next hidden state' for each time step
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
-            if prev_state[0] is None:  # for compatibility, because of the incompatibility between None and torch.Tensor
-                prev_state = [zeros_like(h[0]) for _ in range(len(prev_state))]
+            # for compatibility, because of the incompatibility between None and torch.Tensor
+            for i in range(len(prev_state)):
+                if prev_state[i] is None:
+                    prev_state[i] = zeros_like(h[0])
             output['prev_state'] = prev_state
         return output
 
