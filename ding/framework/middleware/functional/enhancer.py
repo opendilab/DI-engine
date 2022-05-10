@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Callable
 from easydict import EasyDict
 import logging
+import torch
 from ding.policy import Policy
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
@@ -40,7 +41,34 @@ def her_data_enhancer(cfg: EasyDict, buffer_: "Buffer", her_reward_model: "HerRe
     return _fetch_and_enhance
 
 
-# TODO nstep reward
+def nstep_reward_enhancer(cfg: EasyDict) -> Callable:
+
+    def _enhance(ctx: "OnlineRLContext"):
+        nstep = cfg.policy.nstep
+        gamma = cfg.policy.discount_factor
+        L = len(ctx.trajectories)
+        reward_template = ctx.trajectories[0].reward
+        nstep_rewards = []
+        value_gamma = []
+        for i in range(L):
+            valid = min(nstep, L - i)
+            for j in range(1, valid):
+                if ctx.trajectories[j + i].done:
+                    valid = j
+                    break
+            value_gamma.append(torch.FloatTensor([gamma ** valid]))
+            nstep_reward = [ctx.trajectories[j].reward for j in range(i, i + valid)]
+            if nstep > valid:
+                nstep_reward.extend([torch.zeros_like(reward_template) for j in range(nstep - valid)])
+            nstep_reward = torch.cat(nstep_reward)  # (nstep, )
+            nstep_rewards.append(nstep_reward)
+        for i in range(L):
+            ctx.trajectories[i].reward = nstep_rewards[i]
+            ctx.trajectories[i].value_gamma = value_gamma[i]
+
+    return _enhance
+
+
 # TODO MBPO
 # TODO SIL
 # TODO TD3 VAE

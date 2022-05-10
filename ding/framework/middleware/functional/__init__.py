@@ -9,4 +9,4 @@ from .pace_controller import pace_controller
 # algorithm
 from .explorer import eps_greedy_handler, eps_greedy_masker
 from .advantage_estimator import gae_estimator
-from .enhancer import reward_estimator, her_data_enhancer
+from .enhancer import reward_estimator, her_data_enhancer, nstep_reward_enhancer
