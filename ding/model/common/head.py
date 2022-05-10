@@ -499,7 +499,7 @@ class FQFHead(nn.Module):
         self.fqf_fc = nn.Sequential(nn.Linear(self.quantile_embedding_size, hidden_size), nn.ReLU())
         self.sigma_pi = torch.arange(1, self.quantile_embedding_size + 1,
                                      1).view(1, 1, self.quantile_embedding_size) * math.pi
-        self.quantiles_proposal = nn.Sequential(nn.Linear(hidden_size, num_quantiles), nn.Softmax())
+        self.quantiles_proposal = nn.Sequential(nn.Linear(hidden_size, num_quantiles), nn.LogSoftmax(dim=1))
 
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
         r"""
@@ -555,10 +555,11 @@ class FQFHead(nn.Module):
             num_quantiles = self.num_quantiles
         batch_size = x.shape[0]
 
-        q_quantiles = self.quantiles_proposal(x.detach())  # (batch, num_quantiles)
-
+        log_q_quantiles = self.quantiles_proposal(x.detach())  # (batch, num_quantiles)
+        q_quantiles = log_q_quantiles.exp()
+        
         # Calculate entropies of value distributions.
-        entropies = -(torch.log(q_quantiles) * q_quantiles).sum(dim=-1, keepdim=True)  # (batch, 1)
+        entropies = -(log_q_quantiles * q_quantiles).sum(dim=-1, keepdim=True)  # (batch, 1)
         assert entropies.shape == (batch_size, 1)
 
         # accumalative softmax
