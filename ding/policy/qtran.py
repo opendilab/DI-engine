@@ -15,19 +15,15 @@ from .base_policy import Policy
 
 @POLICY_REGISTRY.register('qtran')
 class QTRANPolicy(Policy):
-    r"""
+    """
     Overview:
         Policy class of QTRAN algorithm. QTRAN is a multi model reinforcement learning algorithm, \
-            you can view the paper in the following link https://arxiv.org/abs/1803.11485
-    Interface:
-        _init_learn, _data_preprocess_learn, _forward_learn, _reset_learn, _state_dict_learn, _load_state_dict_learn\
-            _init_collect, _forward_collect, _reset_collect, _process_transition, _init_eval, _forward_eval\
-            _reset_eval, _get_train_sample, default_model
+        you can view the paper in the following link https://arxiv.org/abs/1803.11485
     Config:
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
         == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      qtran           | RL policy register name, refer to     | this arg is optional,
+        1  ``type``             str      qtran          | RL policy register name, refer to      | this arg is optional,
                                                         | registry ``POLICY_REGISTRY``           | a placeholder
         2  ``cuda``             bool     True           | Whether to use cuda for network        | this arg can be diff-
                                                                                                  | erent from modes
@@ -40,7 +36,7 @@ class QTRANPolicy(Policy):
         6  | ``learn.update_``  int      20             | How many updates(iterations) to train  | this args can be vary
            | ``per_collect``                            | after collector's one collection. Only | from envs. Bigger val
                                                         | valid in serial training               | means more off-policy
-        7  | ``learn.target_``   float    0.001         | Target network update momentum         | between[0,1]
+        7  | ``learn.target_``  float    0.001          | Target network update momentum         | between[0,1]
            | ``update_theta``                           | parameter.
         8  | ``learn.discount`` float    0.99           | Reward's future discount factor, aka.  | may be 1 when sparse
            | ``_factor``                                | gamma                                  | reward env
