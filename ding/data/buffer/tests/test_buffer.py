@@ -288,3 +288,31 @@ def test_unroll_len_in_group():
         # Ensure samples in each group is continuous
         result = functools.reduce(lambda a, b: a and a.data + 1 == b.data and b, grouped_data)
         assert isinstance(result, BufferedData), "Not continuous"
+
+
+@pytest.mark.unittest
+def test_insufficient_unroll_len_in_group():
+    buffer = DequeBuffer(size=100)
+
+    num = 3  # Items in group A,B,C is 3,4,5
+    for env_id in list("ABC"):
+        for i in range(num):
+            buffer.push(i, {"env": env_id})
+        num += 1
+
+    with pytest.raises(ValueError) as exc_info:
+        buffer.sample(3, groupby="env", unroll_len=4)
+    e = exc_info._excinfo[1]
+    assert "There are less than" in str(e)
+
+    # Sample with replace
+    sampled_data = buffer.sample(3, groupby="env", unroll_len=4, replace=True)
+    assert len(sampled_data) == 3
+    for grouped_data in sampled_data:
+        assert len(grouped_data) == 4
+        # Ensure each group has the same env
+        env_ids = set(map(lambda sample: sample.meta["env"], grouped_data))
+        assert len(env_ids) == 1
+        # Ensure samples in each group is continuous
+        result = functools.reduce(lambda a, b: a and a.data + 1 == b.data and b, grouped_data)
+        assert isinstance(result, BufferedData), "Not continuous"

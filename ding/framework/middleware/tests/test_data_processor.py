@@ -41,7 +41,7 @@ def test_data_pusher():
 
 
 def offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_deque=True):
-    cfg = EasyDict({'policy': {'learn': {'batch_size': 20}}})
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 20}, 'collect': {'unroll_len': 1}}})
     buffer = DequeBuffer(size=20)
     buffer.use(PriorityExperienceReplay(buffer=buffer))
     for i in range(20):
@@ -54,10 +54,7 @@ def offpolicy_data_fetcher_type_buffer_helper(priority=0.5, use_deque=True):
         ctx.train_output = {'priority': [priority for _ in range(20)]}
 
     func_generator = offpolicy_data_fetcher(cfg=cfg, buffer_=buffer)(ctx)
-    try:
-        next(func_generator)
-    except:
-        pass
+    next(func_generator)
     assert len(ctx.train_data) == cfg.policy.learn.batch_size
     assert all(d['obs'] >= 0 and i < 20 and isinstance(i, int) for d in ctx.train_data)
     assert [d['obs'] for d in ctx.train_data] == [i for i in range(20)]
@@ -82,7 +79,7 @@ def call_offpolicy_data_fetcher_type_buffer():
 
 def call_offpolicy_data_fetcher_type_list():
     #elif isinstance(buffer_, List)
-    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}, 'collect': {'unroll_len': 1}}})
     buffer = DequeBuffer(size=20)
     for i in range(20):
         buffer.push(i)
@@ -99,7 +96,7 @@ def call_offpolicy_data_fetcher_type_list():
 
 def call_offpolicy_data_fetcher_type_dict():
     #elif isinstance(buffer_, Dict)
-    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}, 'collect': {'unroll_len': 1}}})
     buffer = DequeBuffer(size=20)
     for i in range(20):
         buffer.push(i)
@@ -116,7 +113,7 @@ def call_offpolicy_data_fetcher_type_dict():
 
 def call_offpolicy_data_fetcher_type_int():
     # else catch TypeError
-    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}}})
+    cfg = EasyDict({'policy': {'learn': {'batch_size': 5}, 'collect': {'unroll_len': 1}}})
     ctx = OnlineRLContext()
     with pytest.raises(TypeError) as exc_info:
         next(offpolicy_data_fetcher(cfg=cfg, buffer_=1)(ctx))

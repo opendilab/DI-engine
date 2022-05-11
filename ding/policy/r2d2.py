@@ -359,7 +359,6 @@ class R2D2Policy(Policy):
             Collect mode init method. Called by ``self.__init__``.
             Init traj and unroll length, collect model.
         """
-        assert 'unroll_len' not in self._cfg.collect, "r2d2 use default unroll_len"
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor

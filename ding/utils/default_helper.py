@@ -31,7 +31,7 @@ def lists_to_dicts(
         if recursive:
             new_data = {}
             for k in data[0].keys():
-                if isinstance(data[0][k], dict):
+                if isinstance(data[0][k], dict) and k != 'prev_state':
                     tmp = [data[b][k] for b in range(len(data))]
                     new_data[k] = lists_to_dicts(tmp)
                 else:

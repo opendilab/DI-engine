@@ -187,10 +187,11 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
             action = [v['action'].numpy() for v in inference_output.values()]  # TBD
             timesteps = env.step(action)
             for timestep in timesteps:
+                env_id = timestep.env_id.item()
                 if timestep.done:
-                    policy.reset([timestep.env_id])
+                    policy.reset([env_id])
                     reward = timestep.info.final_eval_reward
-                    eval_monitor.update_reward(timestep.env_id, reward)
+                    eval_monitor.update_reward(env_id, reward)
         episode_reward = eval_monitor.get_episode_reward()
         eval_reward = np.mean(episode_reward)
         stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
