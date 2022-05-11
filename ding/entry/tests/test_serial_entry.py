@@ -7,8 +7,8 @@ from copy import deepcopy
 from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_offline
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
-from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, \
-    cartpole_ppo_offpolicy_create_config
+from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config, \
+    cartpole_offppo_create_config
 from dizoo.classic_control.cartpole.config.cartpole_impala_config import cartpole_impala_config, cartpole_impala_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_rainbow_config import cartpole_rainbow_config, cartpole_rainbow_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_iqn_config import cartpole_iqn_config, cartpole_iqn_create_config  # noqa
@@ -152,7 +152,7 @@ def test_qrdqn():
 
 @pytest.mark.unittest
 def test_ppo():
-    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
     config[0].policy.learn.update_per_collect = 1
     config[0].exp_name = 'ppo_offpolicy_unittest'
     try:
@@ -163,7 +163,7 @@ def test_ppo():
 
 @pytest.mark.unittest
 def test_ppo_nstep_return():
-    config = [deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)]
+    config = [deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)]
     config[0].policy.learn.update_per_collect = 1
     config[0].policy.nstep_return = True
     try:
@@ -460,13 +460,9 @@ def test_discrete_cql():
     # collect expert data
     import torch
     config = [deepcopy(cartpole_qrdqn_generation_data_config), deepcopy(cartpole_qrdqn_generation_data_create_config)]
-    collect_count = 1000
-    expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load('./cql_cartpole/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
-        collect_demo_data(
-            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
-        )
+        collect_demo_data(config, seed=0, collect_count=1000, state_dict=state_dict)
     except Exception as e:
         assert False, "pipeline fail"
         print(repr(e))
@@ -497,13 +493,9 @@ def test_td3_bc():
     # collect expert data
     import torch
     config = [deepcopy(pendulum_td3_generation_config), deepcopy(pendulum_td3_generation_create_config)]
-    collect_count = 1000
-    expert_data_path = config[0].policy.collect.save_path
     state_dict = torch.load('./td3/ckpt/iteration_0.pth.tar', map_location='cpu')
     try:
-        collect_demo_data(
-            config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict
-        )
+        collect_demo_data(config, seed=0, collect_count=1000, state_dict=state_dict)
     except Exception:
         assert False, "pipeline fail"
 

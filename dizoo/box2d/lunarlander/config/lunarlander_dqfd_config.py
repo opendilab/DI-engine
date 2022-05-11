@@ -1,14 +1,13 @@
 from easydict import EasyDict
 
 lunarlander_dqfd_config = dict(
-    exp_name='lunarlander_dqfd',
+    exp_name='lunarlander_dqfd_seed0',
     env=dict(
         # Whether to use shared memory. Only effective if "env_manager_type" is 'subprocess'
-        manager=dict(shared_memory=True, reset_inplace=True),
         collector_env_num=8,
-        evaluator_env_num=5,
+        evaluator_env_num=8,
         env_id='LunarLander-v2',
-        n_evaluator_episode=5,
+        n_evaluator_episode=8,
         stop_value=200,
     ),
     policy=dict(
@@ -32,8 +31,10 @@ lunarlander_dqfd_config = dict(
         ),
         collect=dict(
             n_sample=64,
-            # Users should add their own path here (path should lead to a well-trained model)
-            demonstration_info_path='path',
+            # Users should add their own model path here. Model path should lead to a model.
+            # Absolute path is recommended.
+            # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+            model_path='model_path_placeholder',
             # Cut trajectories into pieces with length "unroll_len".
             unroll_len=1,
         ),
@@ -61,3 +62,14 @@ lunarlander_dqfd_create_config = dict(
 )
 lunarlander_dqfd_create_config = EasyDict(lunarlander_dqfd_create_config)
 create_config = lunarlander_dqfd_create_config
+
+if __name__ == '__main__':
+    # or you can enter `ding -m serial_dqfd -c lunarlander_dqfd_config.py -s 0`
+    # then input ``lunarlander_dqfd_config.py`` upon the instructions.
+    # The reason we need to input the dqfd config is we have to borrow its ``_get_train_sample`` function
+    # in the collector part even though the expert model may be generated from other Q learning algos.
+    from ding.entry.serial_entry_dqfd import serial_pipeline_dqfd
+    from dizoo.box2d.lunarlander.config import lunarlander_dqfd_config, lunarlander_dqfd_create_config
+    expert_main_config = lunarlander_dqfd_config
+    expert_create_config = lunarlander_dqfd_create_config
+    serial_pipeline_dqfd([main_config, create_config], [expert_main_config, expert_create_config], seed=0)

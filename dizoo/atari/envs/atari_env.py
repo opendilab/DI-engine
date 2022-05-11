@@ -3,11 +3,11 @@ import copy
 import numpy as np
 import gym
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep, update_shape
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind, wrap_deepmind_mr
+from ding.envs import ObsPlusPrevActRewWrapper
 
 
 @ENV_REGISTRY.register("atari")
@@ -20,6 +20,8 @@ class AtariEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = self._make_env()
+            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
+                self._env = ObsPlusPrevActRewWrapper(self._env)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
@@ -53,7 +55,7 @@ class AtariEnv(BaseEnv):
         # self._env.render()
         self._final_eval_reward += rew
         obs = to_ndarray(obs)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a Tensor with shape (1,)
+        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transferred to a Tensor with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)

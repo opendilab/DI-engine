@@ -68,14 +68,13 @@ setup(
         'URLObject~=2.4.3',
         'urllib3>=1.26.5',
         'readerwriterlock',
-        'namedlist',
         'opencv-python',  # pypy incompatible
         'enum_tools',
         'scipy',
         'trueskill',
         'h5py',
         'rich',
-        'mpire>=2.3.4',
+        'mpire>=2.3.5',
         'pynng',
         'pettingzoo==1.12.0',
         'pyglet>=1.4.0',
@@ -136,6 +135,9 @@ setup(
         # ],
         'slimevolleygym_env': [
             'slimevolleygym',
+        ],
+        'smac_env': [
+            'pysc2',
         ],
         'k8s': [
             'kubernetes',

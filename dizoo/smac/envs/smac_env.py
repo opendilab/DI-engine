@@ -5,10 +5,12 @@ from operator import attrgetter
 
 import numpy as np
 import math
+import random
+import logging
 from easydict import EasyDict
-import ctools.pysc2.env.sc2_env as sc2_env
-from ctools.pysc2.env.sc2_env import SC2Env
-from ctools.pysc2.lib import protocol
+import pysc2.env.sc2_env as sc2_env
+from pysc2.env.sc2_env import SC2Env, Agent, MAX_STEP_COUNT, get_default, crop_and_deduplicate_names
+from pysc2.lib import protocol
 from s2clientprotocol import common_pb2 as sc_common
 from s2clientprotocol import debug_pb2 as d_pb
 from s2clientprotocol import sc2api_pb2 as sc_pb
@@ -203,7 +205,6 @@ class SMACEnv(SC2Env, BaseEnv):
         self._action_space = self.action_helper.info(),
         self._reward_space = self.reward_helper.info(),
 
-
     def seed(self, seed, dynamic_seed=False):
         self._seed = seed
 
@@ -215,7 +216,90 @@ class SMACEnv(SC2Env, BaseEnv):
                 assert map_path in SUPPORT_MAPS, "We only support the following maps: {}. Please move " \
                                                  "the maps in evaluate/sources/SMAC_Maps_two_player " \
                                                  "to the maps folder of SC2."
-        super(SMACEnv, self)._create_join(require_features=False)
+        # copy and overwrite original implementation
+        map_inst = random.choice(self._maps)
+        self._map_name = map_inst.name
+
+        self._step_mul = max(1, self._default_step_mul or map_inst.step_mul)
+        self._score_index = get_default(self._default_score_index,
+                                        map_inst.score_index)
+        self._score_multiplier = get_default(self._default_score_multiplier,
+                                             map_inst.score_multiplier)
+        self._episode_length = get_default(self._default_episode_length,
+                                           map_inst.game_steps_per_episode)
+        if self._episode_length <= 0 or self._episode_length > MAX_STEP_COUNT:
+            self._episode_length = MAX_STEP_COUNT
+
+        # Create the game. Set the first instance as the host.
+        create = sc_pb.RequestCreateGame(
+            disable_fog=self._disable_fog,
+            realtime=self._realtime)
+
+        if self._battle_net_map:
+            create.battlenet_map_name = map_inst.battle_net
+        else:
+            create.local_map.map_path = map_inst.path
+            map_data = map_inst.data(self._run_config)
+            if self._num_agents == 1:
+                create.local_map.map_data = map_data
+            else:
+                # Save the maps so they can access it. Don't do it in parallel since SC2
+                # doesn't respect tmpdir on windows, which leads to a race condition:
+                # https://github.com/Blizzard/s2client-proto/issues/102
+                for c in self._controllers:
+                    c.save_map(map_inst.path, map_data)
+        if self._random_seed is not None:
+            create.random_seed = self._random_seed
+        for p in self._players:
+            if isinstance(p, Agent):
+                create.player_setup.add(type=sc_pb.Participant)
+            else:
+                create.player_setup.add(
+                    type=sc_pb.Computer, race=random.choice(p.race),
+                    difficulty=p.difficulty, ai_build=random.choice(p.build))
+        if self._num_agents > 1:
+            self._controllers[1].create_game(create)
+        else:
+            self._controllers[0].create_game(create)
+
+        # Create the join requests.
+        agent_players = [p for p in self._players if isinstance(p, Agent)]
+        self.sanitized_names = crop_and_deduplicate_names(p.name for p in agent_players)
+        join_reqs = []
+        for p, name, interface in zip(agent_players, self.sanitized_names,
+                                      self._interface_options):
+            join = sc_pb.RequestJoinGame(options=interface)
+            join.race = random.choice(p.race)
+            join.player_name = name
+            if self._ports:
+                join.shared_port = 0  # unused
+                join.server_ports.game_port = self._ports[0]
+                join.server_ports.base_port = self._ports[1]
+                for i in range(self._num_agents - 1):
+                    join.client_ports.add(game_port=self._ports[i * 2 + 2],
+                                          base_port=self._ports[i * 2 + 3])
+            join_reqs.append(join)
+
+        # Join the game. This must be run in parallel because Join is a blocking
+        # call to the game that waits until all clients have joined.
+        self._parallel.run((c.join_game, join)
+                           for c, join in zip(self._controllers, join_reqs))
+
+        self._game_info = self._parallel.run(c.game_info for c in self._controllers)
+        for g, interface in zip(self._game_info, self._interface_options):
+            if g.options.render != interface.render:
+                logging.warning(
+                    "Actual interface options don't match requested options:\n"
+                    "Requested:\n%s\n\nActual:\n%s", interface, g.options)
+
+        # original pysc2 case
+        # if require_features:
+        #   self._features = [
+        #        features.features_from_game_info(
+        #            game_info=g, agent_interface_format=aif, map_name=self._map_name)
+        #        for g, aif in zip(self._game_info, self._interface_formats)]
+        # smac case
+        self._features = None
 
     def _get_players(self, game_type, player1_race, player2_race):
         if game_type == 'game_vs_bot':
@@ -233,7 +317,10 @@ class SMACEnv(SC2Env, BaseEnv):
 
         print("*****LAUNCH FUNCTION CALLED*****")
 
-        agent_interface_format = sc2_env.parse_agent_interface_format()  # Use all default setting
+        # necessary for compatibility with pysc2
+        from absl import flags
+        flags.FLAGS(['smac'])
+        agent_interface_format = sc2_env.parse_agent_interface_format(use_raw_units=True)
 
         SC2Env.__init__(
             self,
@@ -1632,7 +1719,6 @@ class SMACEnv(SC2Env, BaseEnv):
                     None,
                 )
         return obs_space
-
 
     @property
     def observation_space(self):

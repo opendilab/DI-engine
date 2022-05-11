@@ -82,7 +82,7 @@ def collect_demo_data(
         input_cfg: Union[str, dict],
         seed: int,
         collect_count: int,
-        expert_data_path: str,
+        expert_data_path: Optional[str] = None,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
         state_dict: Optional[dict] = None,
@@ -119,6 +119,8 @@ def collect_demo_data(
         save_cfg=True,
         save_path='collect_demo_data_config.py'
     )
+    if expert_data_path is None:
+        expert_data_path = cfg.policy.collect.save_path
 
     # Create components: env, policy, collector
     if env_setting is None:
@@ -225,7 +227,7 @@ def collect_episodic_demo_data(
     else:
         policy_kwargs = None
 
-    # Let's collect some expert demostrations
+    # Let's collect some expert demonstrations
     exp_data = collector.collect(n_episode=collect_count, policy_kwargs=policy_kwargs)
     if cfg.policy.cuda:
         exp_data = to_device(exp_data, 'cpu')

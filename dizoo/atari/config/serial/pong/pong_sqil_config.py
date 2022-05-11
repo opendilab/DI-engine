@@ -61,4 +61,4 @@ if __name__ == '__main__':
     from dizoo.atari.config.serial.pong import pong_dqn_config, pong_dqn_create_config
     expert_main_config = pong_dqn_config
     expert_create_config = pong_dqn_create_config
-    serial_pipeline_sqil([main_config, create_config], [expert_main_config, expert_create_config], seed=0)
+    serial_pipeline_sqil((main_config, create_config), (expert_main_config, expert_create_config), seed=0)

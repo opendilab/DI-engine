@@ -1,8 +1,7 @@
 from collections import namedtuple
 import numpy as np
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 
 FakeSMACEnvTimestep = namedtuple('FakeSMACEnvTimestep', ['obs', 'reward', 'done', 'info'])
@@ -42,23 +41,6 @@ class FakeSMACEnv(BaseEnv):
             info['final_eval_reward'] = 0.71
         self.step_count += 1
         return FakeSMACEnvTimestep(obs, reward, done, info)
-
-    def info(self):
-        T = EnvElementInfo
-        return FakeSMACEnvInfo(
-            agent_num=self.agent_num,
-            obs_space=T(
-                {
-                    'agent_state': (self.agent_num, self.obs_dim),
-                    'agent_alone_state': (self.agent_num, self.obs_alone_dim),
-                    'agent_alone_padding_state': (self.agent_num, self.obs_dim),
-                    'global_state': (self.global_obs_dim, ),
-                    'action_mask': (self.agent_num, self.action_dim)
-                }, None, None, None
-            ),
-            act_space=T((self.agent_num, self.action_dim), None, None, None),
-            rew_space=T((1, ), None, None, None)
-        )
 
     def close(self):
         pass

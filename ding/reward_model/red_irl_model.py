@@ -129,7 +129,7 @@ class RedRewardModel(BaseRewardModel):
                 self.tb_logger.add_scalar('reward_model/red_loss', loss, i)
             self.train_once_flag = True
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> List[Dict]:
         """
         Overview:
             Estimate reward by rewriting the reward key
@@ -139,9 +139,12 @@ class RedRewardModel(BaseRewardModel):
         Effects:
             - This is a side effect function which updates the reward values in place.
         """
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
         states_data = []
         actions_data = []
-        for item in data:
+        for item in train_data_augmented:
             states_data.append(item['obs'])
             actions_data.append(item['action'])
         states_tensor = torch.stack(states_data).float()
@@ -153,8 +156,9 @@ class RedRewardModel(BaseRewardModel):
             hat_2 = self.target_net(states_actions_tensor)
         c = ((hat_1 - hat_2) ** 2).mean(dim=1)
         r = torch.exp(-self.cfg.sigma * c)
-        for item, rew in zip(data, r):
+        for item, rew in zip(train_data_augmented, r):
             item['reward'] = rew
+        return train_data_augmented
 
     def collect_data(self, data) -> None:
         """

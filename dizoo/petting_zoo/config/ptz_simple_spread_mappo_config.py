@@ -2,8 +2,8 @@ from easydict import EasyDict
 
 n_agent = 5
 n_landmark = n_agent
-collector_env_num = 4
-evaluator_env_num = 5
+collector_env_num = 8
+evaluator_env_num = 8
 main_config = dict(
     exp_name='ptz_simple_spread_mappo_seed0',
     env=dict(
@@ -13,22 +13,22 @@ main_config = dict(
         n_landmark=n_landmark,
         max_cycles=100,
         agent_obs_only=False,
+        agent_specific_global_state=True,
         continuous_actions=False,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        manager=dict(shared_memory=False, ),
         n_evaluator_episode=evaluator_env_num,
         stop_value=0,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         multi_agent=True,
         action_space='discrete',
         model=dict(
             action_space='discrete',
             agent_num=n_agent,
             agent_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2,
-            global_obs_shape=n_agent * 4 + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
+            global_obs_shape=2 + 2 + n_landmark * 2 + (n_agent - 1) * 2 + (n_agent - 1) * 2 + n_agent * (2 + 2) + n_landmark * 2 + n_agent * (n_agent - 1) * 2,
             action_shape=5,
         ),
         learn=dict(

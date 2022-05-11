@@ -20,7 +20,7 @@ spec:
             # if code has been changed in the mount path, we have to reinstall  cli
             # pip install --no-cache-dir -e .;
             # pip install --no-cache-dir -e .[common_env]
-            
+
             ding -m dist --module learner_aggregator
           ports:
           - name: di-port

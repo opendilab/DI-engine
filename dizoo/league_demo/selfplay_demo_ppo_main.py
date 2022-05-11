@@ -13,7 +13,7 @@ from ding.model import VAC
 from ding.utils import set_pkg_seed
 from dizoo.league_demo.game_env import GameEnv
 from dizoo.league_demo.league_demo_collector import LeagueDemoCollector
-from dizoo.league_demo.league_demo_ppo_config import league_demo_ppo_config
+from dizoo.league_demo.selfplay_demo_ppo_config import selfplay_demo_ppo_config
 
 
 class EvalPolicy1:
@@ -40,7 +40,6 @@ class EvalPolicy2:
 
 
 def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
-    cfg.exp_name = 'selfplay_demo_ppo'
     cfg = compile_config(
         cfg,
         BaseEnvManager,
@@ -127,4 +126,4 @@ def main(cfg, seed=0, max_train_iter=int(1e8), max_env_step=int(1e8)):
 
 
 if __name__ == "__main__":
-    main(league_demo_ppo_config)
+    main(selfplay_demo_ppo_config)

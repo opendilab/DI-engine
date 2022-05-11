@@ -2,44 +2,12 @@ from typing import Any, List, Union, Sequence
 import copy
 import gym
 import numpy as np
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray, to_list
 from .atari_wrappers import wrap_deepmind
 
 from pprint import pprint
-
-POMDP_INFO_DICT = {
-    'Pong-ramNoFrameskip-v4': BaseEnvInfo(
-        agent_num=1,
-        obs_space=EnvElementInfo(
-            shape=(128, ),
-            value={
-                'min': 0,
-                'max': 255,
-                'dtype': np.float32
-            },
-        ),
-        act_space=EnvElementInfo(
-            shape=(6, ),
-            value={
-                'min': 0,
-                'max': 6,
-                'dtype': np.float32
-            },
-        ),
-        rew_space=EnvElementInfo(
-            shape=1,
-            value={
-                'min': -1,
-                'max': 1,
-                'dtype': np.float32
-            },
-        ),
-        use_wrappers=None,
-    ),
-}
 
 
 def PomdpEnv(cfg, only_info=False):
@@ -110,16 +78,6 @@ class PomdpAtariEnv(BaseEnv):
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
-
-    def info(self) -> BaseEnvInfo:
-        if self._cfg.env_id in POMDP_INFO_DICT:
-            info = copy.deepcopy(POMDP_INFO_DICT[self._cfg.env_id])
-            info.use_wrappers = self._make_env(only_info=True)
-            return info
-        else:
-            raise NotImplementedError(
-                '{} not found in POMDP_INFO_DICT [{}]'.format(self._cfg.env_id, POMDP_INFO_DICT.keys())
-            )  # noqa
 
     def _make_env(self, only_info=False):
         return wrap_deepmind(

@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import pickle
+from typing import List, Dict
 import scipy.stats as stats
 try:
     from sklearn.svm import SVC
@@ -120,7 +121,7 @@ class PdeilRewardModel(BaseRewardModel):
         """
         return np.asarray(stats.multivariate_normal.pdf(x, mean=mean, cov=cov, allow_singular=False), dtype=np.float32)
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> List[Dict]:
         """
         Overview:
             Estimate reward by rewriting the reward keys.
@@ -130,11 +131,14 @@ class PdeilRewardModel(BaseRewardModel):
         Effects:
             - This is a side effect function which updates the reward values in place.
         """
-        s = torch.stack([item['obs'] for item in data], dim=0)
-        a = torch.stack([item['action'] for item in data], dim=0)
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+        s = torch.stack([item['obs'] for item in train_data_augmented], dim=0)
+        a = torch.stack([item['action'] for item in train_data_augmented], dim=0)
         if self.p_u_s is None:
             print("you need to train you reward model first")
-            for item in data:
+            for item in train_data_augmented:
                 item['reward'].zero_()
         else:
             rho_1 = self._batch_mn_pdf(s.cpu().numpy(), self.e_u_s.cpu().numpy(), self.e_sigma_s.cpu().numpy())
@@ -158,13 +162,14 @@ class PdeilRewardModel(BaseRewardModel):
             den = rho_1 * rho_3
             frac = alpha * rho_1 + beta * rho_2
             if frac.abs().max() < 1e-4:
-                for item in data:
+                for item in train_data_augmented:
                     item['reward'].zero_()
             else:
                 reward = den / frac
                 reward = torch.chunk(reward, reward.shape[0], dim=0)
-                for item, rew in zip(data, reward):
+                for item, rew in zip(train_data_augmented, reward):
                     item['reward'] = rew
+        return train_data_augmented
 
     def collect_data(self, item: list):
         """
