@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class OffPolicyLearner:
     """
     Overview:
-        The middleware that executes the whole learning process, including data fetching and model training. 
+        The middleware that executes the whole learning process, including data fetching and model training.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be trained.
@@ -57,7 +57,7 @@ class OffPolicyLearner:
 class HERLearner:
     """
     Overview:
-        The middleware that executes the whole learning process with HER reward. 
+        The middleware that executes the whole learning process with HER reward.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be trained.
