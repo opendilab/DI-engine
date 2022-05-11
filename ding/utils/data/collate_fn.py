@@ -17,6 +17,14 @@ default_collate_err_msg_format = (
 )
 
 
+def ttorch_collate(x):
+    x = ttorch.stack(x)
+    for k in x.keys():
+        if len(x[k].shape) >= 2 and x[k].shape[-1] == 1:
+            x[k] = x[k].squeeze(-1)
+    return x
+
+
 def default_collate(batch: Sequence,
                     cat_1dim: bool = True,
                     ignore_prefix: list = ['collate_ignore']) -> Union[torch.Tensor, Mapping, Sequence]:
@@ -48,10 +56,7 @@ def default_collate(batch: Sequence,
         - ret (:obj:`Union[torch.Tensor, Mapping, Sequence]`): the collated data, with batch size into each data field.\
             the return dtype depends on the original element dtype, can be [torch.Tensor, Mapping, Sequence].
     """
-    try:
-        elem = batch[0]
-    except Exception as e:
-        print(e)
+    elem = batch[0]
 
     elem_type = type(elem)
     if isinstance(batch, ttorch.Tensor):
@@ -134,14 +139,22 @@ def timestep_collate(batch: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tenso
             return data
 
     elem = batch[0]
-    assert isinstance(elem, container_abcs.Mapping), type(elem)
-    prev_state = [b.pop('prev_state') for b in batch]
-    batch_data = default_collate(batch)  # -> {some_key: T lists}, each list is [B, some_dim]
-    batch_data = stack(batch_data)  # -> {some_key: [T, B, some_dim]}
-    batch_data['prev_state'] = list(zip(*prev_state))  # permute batch size dim with sequence len dim
-    # append back prev_state, avoiding multi batch share the same data bug
-    for i in range(len(batch)):
-        batch[i]['prev_state'] = prev_state[i]
+    assert isinstance(elem, (container_abcs.Mapping, list)), type(elem)
+    if isinstance(batch[0], list):  # new pipeline + treetensor
+        prev_state = [[b[i].get('prev_state') for b in batch] for i in range(len(batch[0]))]
+        batch_data = ttorch.stack([ttorch_collate(b) for b in batch])  # (B, T, *)
+        del batch_data.prev_state
+        batch_data = batch_data.transpose(1, 0)
+        batch_data.prev_state = prev_state
+    else:
+        prev_state = [b.pop('prev_state') for b in batch]
+        batch_data = default_collate(batch)  # -> {some_key: T lists}, each list is [B, some_dim]
+        batch_data = stack(batch_data)  # -> {some_key: [T, B, some_dim]}
+        transformed_prev_state = list(zip(*prev_state))
+        batch_data['prev_state'] = transformed_prev_state
+        # append back prev_state, avoiding multi batch share the same data bug
+        for i in range(len(batch)):
+            batch[i]['prev_state'] = prev_state[i]
     return batch_data
 
 

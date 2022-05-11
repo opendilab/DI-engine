@@ -95,6 +95,9 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
         - transitions (:obj:`TransitionList`): The transition information which will be filled in this process.
     """
 
+    env_episode_id = [_ for _ in range(env.env_num)]
+    current_id = env.env_num
+
     def _rollout(ctx: "OnlineRLContext"):
         """
         Input of ctx:
@@ -106,6 +109,7 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
             - env_episode (:obj:`int`): The count of env episode, which will increase by 1 if the trajectory stops.
         """
 
+        nonlocal current_id
         timesteps = env.step(ctx.action)
         ctx.env_step += len(timesteps)
         timesteps = [t.tensor() for t in timesteps]
@@ -114,9 +118,12 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
             transition = policy.process_transition(ctx.obs[i], ctx.inference_output[i], timestep)
             transition = ttorch.as_tensor(transition)  # TBD
             transition.collect_train_iter = ttorch.as_tensor([ctx.train_iter])
+            transition.env_data_id = ttorch.as_tensor([env_episode_id[timestep.env_id]])
             transitions.append(timestep.env_id, transition)
             if timestep.done:
                 policy.reset([timestep.env_id])
+                env_episode_id[timestep.env_id] = current_id
+                current_id += 1
                 ctx.env_episode += 1
         # TODO log
 

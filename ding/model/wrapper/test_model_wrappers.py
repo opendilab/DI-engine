@@ -212,7 +212,8 @@ class TestModelWrappers:
         data = {'f': torch.randn(2, 4, 36)}
         output = model.forward(data)
         assert output['output'].shape == (2, state_num, 32)
-        assert output['prev_state'] == [None for _ in range(4)]
+        assert len(output['prev_state']) == 4
+        assert output['prev_state'][0][0].shape == (2, 1, 32)
         for item in model._state.values():
             assert isinstance(item, tuple) and len(item) == 2
             assert all(t.shape == (2, 1, 32) for t in item)

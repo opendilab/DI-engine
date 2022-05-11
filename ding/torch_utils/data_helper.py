@@ -1,7 +1,8 @@
-from typing import Iterable, Any, Optional
+from typing import Iterable, Any, Optional, List
 from collections.abc import Sequence
 import numbers
 import time
+import copy
 from threading import Thread
 from queue import Queue
 
@@ -385,3 +386,14 @@ def unsqueeze(data: Any, dim: int = 0) -> Any:
         return {k: unsqueeze(v, 0) for k, v in data.items()}
     else:
         raise TypeError("not support type in unsqueeze: {}".format(type(data)))
+
+
+def get_null_data(template: Any, num: int) -> List[Any]:
+    ret = []
+    for _ in range(num):
+        data = copy.deepcopy(template)
+        data['null'] = True
+        data['done'] = True
+        data['reward'].zero_()
+        ret.append(data)
+    return ret
