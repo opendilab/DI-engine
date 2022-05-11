@@ -213,10 +213,10 @@ class TestModelWrappers:
         output = model.forward(data)
         assert output['output'].shape == (2, state_num, 32)
         assert len(output['prev_state']) == 4
-        assert output['prev_state'][0][0].shape == (2, 1, 32)
+        assert output['prev_state'][0]['h'].shape == (2, 1, 32)
         for item in model._state.values():
-            assert isinstance(item, tuple) and len(item) == 2
-            assert all(t.shape == (2, 1, 32) for t in item)
+            assert isinstance(item, dict) and len(item) == 2
+            assert all(t.shape == (2, 1, 32) for t in item.values())
 
         data = {'f': torch.randn(2, 3, 36)}
         data_id = [0, 1, 3]
@@ -224,15 +224,15 @@ class TestModelWrappers:
         assert output['output'].shape == (2, 3, 32)
         assert all([len(s) == 2 for s in output['prev_state']])
         for item in model._state.values():
-            assert isinstance(item, tuple) and len(item) == 2
-            assert all(t.shape == (2, 1, 32) for t in item)
+            assert isinstance(item, dict) and len(item) == 2
+            assert all(t.shape == (2, 1, 32) for t in item.values())
 
         data = {'f': torch.randn(2, 2, 36)}
         data_id = [0, 1]
         output = model.forward(data, data_id=data_id)
         assert output['output'].shape == (2, 2, 32)
 
-        assert all([isinstance(s, tuple) and len(s) == 2 for s in model._state.values()])
+        assert all([isinstance(s, dict) and len(s) == 2 for s in model._state.values()])
         model.reset()
         assert all([isinstance(s, type(None)) for s in model._state.values()])
 
