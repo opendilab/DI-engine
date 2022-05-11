@@ -96,7 +96,7 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
     """
     env_episode_id = [_ for _ in range(env.env_num)]
     current_id = env.env_num
-    
+
     def _rollout(ctx: "OnlineRLContext"):
         """
         Input of ctx:
@@ -107,7 +107,7 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
             - env_step (:obj:`int`): The count of env step, which will increase by 1 for a single transition call.
             - env_episode (:obj:`int`): The count of env episode, which will increase by 1 if the trajectory stops.
         """
-        
+
         nonlocal current_id
 
         timesteps = env.step(ctx.action)

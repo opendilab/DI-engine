@@ -28,7 +28,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
             - trajectories (:obj:`List[Dict]`): Trajectories.
             - episodes (:obj:`List[Dict]`): Episodes.
         """
-        
+
         if ctx.trajectories is not None:  # each data in buffer is a transition
             if group_by_env:
                 for i, t in enumerate(ctx.trajectories):
