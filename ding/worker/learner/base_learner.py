@@ -129,8 +129,6 @@ class BaseLearner(object):
         self._setup_wrapper()
         self._setup_hook()
 
-        self._logger.critical(f'{repr(self._logger.handlers)}')
-
     def _setup_hook(self) -> None:
         """
         Overview:
