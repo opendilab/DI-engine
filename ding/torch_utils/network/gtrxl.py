@@ -1,6 +1,4 @@
-from typing import Union, Optional, Dict, Callable, List
-from ding.torch_utils.network.nn_module import *
-from ding.utils import MODEL_REGISTRY
+from typing import Optional, Dict, List
 import warnings
 import numpy as np
 import torch
@@ -396,7 +394,8 @@ class GatedTransformerXLLayer(torch.nn.Module):
 class GTrXL(nn.Module):
     """
     Overview:
-        GTrXL Transformer
+        GTrXL Transformer implementation.
+
     .. note::
         For details refer to Stabilizing Transformer for Reinforcement Learning: https://arxiv.org/abs/1910.06764
     """
@@ -470,13 +469,12 @@ class GTrXL(nn.Module):
         self.pos_embedding_dict = {}  # create a pos embedding for each different seq_len
 
     def reset_memory(self, batch_size: Optional[int] = None, state: Optional[torch.Tensor] = None):
-        r"""
+        """
         Overview:
             Clear or set the memory of GTrXL.
-         Arguments:
+        Arguments:
             - batch_size (:obj:`Optional[int]`): batch size
-            - state (:obj:`Optional[torch.Tensor]`): input memory.
-            Shape is (layer_num, memory_len, bs, embedding_dim).
+            - state (:obj:`Optional[torch.Tensor]`): input memory. Shape is (layer_num, memory_len, bs, embedding_dim).
         """
         self.memory = Memory(memory_len=self.memory_len, layer_num=self.layer_num, embedding_dim=self.embedding_dim)
         if batch_size is not None:
@@ -485,12 +483,12 @@ class GTrXL(nn.Module):
             self.memory.init(state)
 
     def get_memory(self):
-        r"""
+        """
         Overview:
             Returns memory of GTrXL.
         Returns:
-            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized.
-            Shape is (layer_num, memory_len, bs, embedding_dim).
+            - memory: (:obj:`Optional[torch.Tensor]`): output memory or None if memory has not been initialized. \
+                Shape is (layer_num, memory_len, bs, embedding_dim).
         """
         if self.memory is None:
             return None
@@ -498,17 +496,17 @@ class GTrXL(nn.Module):
             return self.memory.get()
 
     def forward(self, x: torch.Tensor, batch_first: bool = False, return_mem: bool = True) -> Dict[str, torch.Tensor]:
-        r"""
+        """
         Overview:
             GTrXL forward pass.
         Arguments:
             - x (:obj:`torch.Tensor`): input tensor. Shape (seq_len, bs, input_size).
-            - batch_first (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to 'True'
-            in order to transpose along the first and second dimension and obtain shape (seq_len, bs, input_size). This
-            param doesn't affects the output memory
+            - batch_first (:obj:`bool`): if the input data has shape (bs, seq_len, input_size), set this param to \
+                ``True`` in order to transpose along the first and second dimension and obtain shape \
+                (seq_len, bs, input_size). This param doesn't affects the output memory.
             - return_mem (:obj:`bool`): if this param is False, return only the output tensor without dict.
         Returns:
-            - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape
+            - x (:obj:`Dict[str, torch.Tensor]`): dict containing transformer output of shape \
              (seq_len, bs, embedding_size) and memory of shape (layer_num, seq_len, bs, embedding_size)
         """
         if batch_first:

@@ -81,10 +81,10 @@ class R2D2Policy(Policy):
         nstep=5,
         # (int) the timestep of burnin operation, which is designed to RNN hidden state difference
         # caused by off-policy
-        burnin_step=2,
+        burnin_step=20,
         # (int) the trajectory length to unroll the RNN network minus
         # the timestep of burnin operation
-        unroll_len=80,
+        learn_unroll_len=80,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -102,8 +102,13 @@ class R2D2Policy(Policy):
             ignore_done=False,
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            # each_iter_n_sample=32,
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             # `env_num` is used in hidden state, should equal to that one in env config.
             # User should specify this value in user config.
             env_num=None,
@@ -129,13 +134,14 @@ class R2D2Policy(Policy):
         Overview:
             Init the learner model of R2D2Policy
         Arguments:
-            .. note::
-                The _init_learn method takes the argument from the self._cfg.learn in the config file
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - nstep (:obj:`int`): The num of n step return
             - value_rescale (:obj:`bool`): Whether to use value rescaled loss in algorithm
             - burnin_step (:obj:`int`): The num of step of burnin
+
+        .. note::
+            The _init_learn method takes the argument from the self._cfg.learn in the config file
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight
@@ -146,13 +152,6 @@ class R2D2Policy(Policy):
         self._value_rescale = self._cfg.learn.value_rescale
 
         self._target_model = copy.deepcopy(self._model)
-        # here we should not adopt the 'assign' mode of target network here because the reset bug
-        # self._target_model = model_wrap(
-        #     self._target_model,
-        #     wrapper_name='target',
-        #     update_type='assign',
-        #     update_kwargs={'freq': self._cfg.learn.target_update_freq}
-        # )
         self._target_model = model_wrap(
             self._target_model,
             wrapper_name='target',
@@ -200,25 +199,25 @@ class R2D2Policy(Policy):
         burnin_step = self._burnin_step
 
         # data['done'], data['weight'], data['value_gamma'] is used in def _forward_learn() to calculate
-        # the q_nstep_td_error, should be length of [self._unroll_len_add_burnin_step-self._burnin_step]
+        # the q_nstep_td_error, should be length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step]
         ignore_done = self._cfg.learn.ignore_done
         if ignore_done:
-            data['done'] = [None for _ in range(self._unroll_len_add_burnin_step - burnin_step)]
+            data['done'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - burnin_step)]
         else:
             data['done'] = data['done'][burnin_step:].float()  # for computation of online model self._learn_model
             # NOTE that after the proprocessing of  get_nstep_return_data() in _get_train_sample
             # the data['done'] [t] is already the n-step done
 
         # if the data don't include 'weight' or 'value_gamma' then fill in None in a list
-        # with length of [self._unroll_len_add_burnin_step-self._burnin_step],
+        # with length of [self._learn_unroll_len_plus_burnin_step-self._burnin_step],
         # below is two different implementation ways
         if 'value_gamma' not in data:
-            data['value_gamma'] = [None for _ in range(self._unroll_len_add_burnin_step - burnin_step)]
+            data['value_gamma'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - burnin_step)]
         else:
             data['value_gamma'] = data['value_gamma'][burnin_step:]
 
         if 'weight' not in data or data['weight'] is None:
-            data['weight'] = [None for _ in range(self._unroll_len_add_burnin_step - burnin_step)]
+            data['weight'] = [None for _ in range(self._learn_unroll_len_plus_burnin_step - burnin_step)]
         else:
             data['weight'] = data['weight'] * torch.ones_like(data['done'])
             # every timestep in sequence has same weight, which is the _priority_IS_weight in PER
@@ -234,7 +233,7 @@ class R2D2Policy(Policy):
         # these slicing are all done in the outermost layer, which is the seq_len dim
         data['burnin_nstep_obs'] = data['obs'][:burnin_step + self._nstep]
         # the main_obs is used to calculate the q_value, the [bs:-self._nstep] means using the data from
-        # [bs] timestep to [self._unroll_len_add_burnin_step-self._nstep] timestep
+        # [bs] timestep to [self._learn_unroll_len_plus_burnin_step-self._nstep] timestep
         data['main_obs'] = data['obs'][burnin_step:-self._nstep]
         # the target_obs is used to calculate the target_q_value
         data['target_obs'] = data['obs'][burnin_step + self._nstep:]
@@ -292,7 +291,7 @@ class R2D2Policy(Policy):
         reward = reward.permute(0, 2, 1).contiguous()
         loss = []
         td_error = []
-        for t in range(self._unroll_len_add_burnin_step - self._burnin_step - self._nstep):
+        for t in range(self._learn_unroll_len_plus_burnin_step - self._burnin_step - self._nstep):
             # here t=0 means timestep <self._burnin_step> in the original sample sequence, we minus self._nstep
             # because for the last <self._nstep> timestep in the sequence, we don't have their target obs
             td_data = q_nstep_td_data(
@@ -305,7 +304,8 @@ class R2D2Policy(Policy):
             else:
                 l, e = q_nstep_td_error(td_data, self._gamma, self._nstep, value_gamma=value_gamma[t])
                 loss.append(l)
-                # td will be a list of the length (self._unroll_len_add_burnin_step - self._burnin_step - self._nstep)
+                # td will be a list of the length
+                # <self._learn_unroll_len_plus_burnin_step - self._burnin_step - self._nstep>
                 # and each value is a tensor of the size batch_size
                 td_error.append(e.abs())
         loss = sum(loss) / (len(loss) + 1e-8)
@@ -315,7 +315,8 @@ class R2D2Policy(Policy):
             torch.stack(td_error), dim=0
         )[0] + (1 - 0.9) * (torch.sum(torch.stack(td_error), dim=0) / (len(td_error) + 1e-8))
         # torch.max(torch.stack(td_error), dim=0) will return tuple like thing, please refer to torch.max
-        # td_error shape list(<self._unroll_len_add_burnin_step-self._burnin_step-self._nstep>, B), for example, (75,64)
+        # td_error shape list(<self._learn_unroll_len_plus_burnin_step-self._burnin_step-self._nstep>, B),
+        # for example, (75,64)
         # torch.sum(torch.stack(td_error), dim=0) can also be replaced with sum(td_error)
 
         # update
@@ -362,8 +363,8 @@ class R2D2Policy(Policy):
         self._nstep = self._cfg.nstep
         self._burnin_step = self._cfg.burnin_step
         self._gamma = self._cfg.discount_factor
-        self._unroll_len_add_burnin_step = self._cfg.unroll_len + self._cfg.burnin_step
-        self._unroll_len = self._unroll_len_add_burnin_step  # for compatibility
+        self._learn_unroll_len_plus_burnin_step = self._cfg.learn_unroll_len + self._cfg.burnin_step
+        self._unroll_len = self._learn_unroll_len_plus_burnin_step
 
         # for r2d2, this hidden_state wrapper is to add the 'prev hidden state' for each transition.
         # Note that collect env forms a batch and the key is added for the batch simultaneously.
@@ -435,7 +436,7 @@ class R2D2Policy(Policy):
             - samples (:obj:`dict`): The training samples generated
         """
         data = get_nstep_return_data(data, self._nstep, gamma=self._gamma)
-        return get_train_sample(data, self._unroll_len_add_burnin_step)
+        return get_train_sample(data, self._unroll_len)
 
     def _init_eval(self) -> None:
         r"""

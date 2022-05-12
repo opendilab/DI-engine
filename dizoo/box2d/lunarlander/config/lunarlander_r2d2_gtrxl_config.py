@@ -39,8 +39,14 @@ lunarlander_r2d2_gtrxl_config = dict(
             value_rescale=True,
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),

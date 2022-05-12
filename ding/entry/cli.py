@@ -71,6 +71,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
             'serial_reward_model',
             'serial_gail',
             'serial_offline',
+            'serial_ngu',
         ]
     ),
     help='serial-train or parallel-train or dist-train or eval'
@@ -221,6 +222,9 @@ def cli(
         elif mode == 'serial_offline':
             from .serial_entry_offline import serial_pipeline_offline
             serial_pipeline_offline(config, seed, max_train_iter=train_iter)
+        elif mode == 'serial_ngu':
+            from .serial_entry_ngu import serial_pipeline_ngu
+            serial_pipeline_ngu(config, seed, max_train_iter=train_iter)
         elif mode == 'parallel':
             from .parallel_entry import parallel_pipeline
             parallel_pipeline(config, seed, enable_total_log, disable_flask_log)

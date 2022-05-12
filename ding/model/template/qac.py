@@ -160,6 +160,7 @@ class QAC(nn.Module):
                 - inputs (:obj:`Dict`): Input dict data, including obs and action tensor.
             Returns:
                 - output (:obj:`Dict`): Output dict data, including q_value tensor.
+
         .. note::
             For specific examples, one can refer to API doc of ``compute_actor`` and ``compute_critic`` respectively.
         """
