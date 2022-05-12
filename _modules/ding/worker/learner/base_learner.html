@@ -166,19 +166,18 @@
             
   <h1>Source code for ding.worker.learner.base_learner</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">CountVar</span><span class="p">,</span> <span class="n">auto_checkpoint</span><span class="p">,</span> <span class="n">build_log_buffer</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">build_logger</span><span class="p">,</span> <span class="n">EasyTimer</span><span class="p">,</span> <span class="n">import_module</span><span class="p">,</span> <span class="n">LEARNER_REGISTRY</span><span class="p">,</span> <span class="n">get_rank</span><span class="p">,</span> <span class="n">get_world_size</span>
 <span class="kn">from</span> <span class="nn">ding.utils.autolog</span> <span class="kn">import</span> <span class="n">LoggedValue</span><span class="p">,</span> <span class="n">LoggedModel</span><span class="p">,</span> <span class="n">TickTime</span>
 <span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">AsyncDataLoader</span>
 <span class="kn">from</span> <span class="nn">.learner_hook</span> <span class="kn">import</span> <span class="n">build_learner_hook_by_cfg</span><span class="p">,</span> <span class="n">add_learner_hook</span><span class="p">,</span> <span class="n">merge_hooks</span><span class="p">,</span> <span class="n">LearnerHook</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>  <span class="c1"># necessary</span>
 
 
 <div class="viewcode-block" id="BaseLearner"><a class="viewcode-back" href="../../../../api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner">[docs]</a><span class="nd">@LEARNER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;base&#39;</span><span class="p">)</span>
