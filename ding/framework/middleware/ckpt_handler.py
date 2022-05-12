@@ -14,17 +14,17 @@ if TYPE_CHECKING:
 class CkptSaver:
     """
         Overview:
-            The class to save checkpoint file.
+            The class used to save checkpoint data.
     """
 
     def __init__(self, cfg: EasyDict, policy: Policy, train_freq: Optional[int] = None):
         """
         Overview:
-            Initialize the CkptSaver.
+            Initialize the `CkptSaver`.
         Arguments:
-            - cfg (:obj:`EasyDict`): Config which should contain following keys: ['cfg.exp_name'].
-            - policy (:obj:`Policy`): Policy.
-            - train_freq (:obj:`int`): Number of training iterations every time saving checkpoint data.
+            - cfg (:obj:`EasyDict`): Config which should contain the following keys: ['cfg.exp_name'].
+            - policy (:obj:`Policy`): Policy used to save the checkpoint.
+            - train_freq (:obj:`int`): Number of training iterations between each saving checkpoint data.
         """
         self.policy = policy
         self.train_freq = train_freq
@@ -37,11 +37,11 @@ class CkptSaver:
     def __call__(self, ctx: Union["OnlineRLContext", "OfflineRLContext"]) -> None:
         """
         Overview:
-            The method to save checkpoint data. \
+            The method used to save checkpoint data. \
             The checkpoint data will be saved in a file in following 3 cases: \
-                - Every time when train self.train_freq iterations; \
-                - Every time when the eval reward is the best eval reward so far; \
-                - When task.finish is True. \
+                - When a multiple of `self.train_freq` iterations have elapsed since the beginning of training; \
+                - When the evaluation reward is the best eval reward so far; \
+                - When `task.finish` is True. \
         Input of ctx:
             - train_iter (:obj:`int`): Number of training iteration, i.e. the number of updating policy related network.
             - eval_value (:obj:`float`): The eval reward of current iteration.
