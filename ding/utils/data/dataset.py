@@ -34,7 +34,6 @@ class D4RLDataset(Dataset):
 
     def __init__(self, cfg: dict) -> None:
         import gym
-        from ditk import logging
         try:
             import d4rl  # register d4rl enviroments with open ai gym
         except ImportError:
