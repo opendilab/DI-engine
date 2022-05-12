@@ -37,7 +37,8 @@ def her_data_enhancer(cfg: EasyDict, buffer_: "Buffer", her_reward_model: "HerRe
         - cfg (:obj:`EasyDict`): Config which should contain the following keys \
             if her_reward_model.episode_size is None: ['cfg.policy.learn.batch_size'].
         - buffer_ (:obj:`Buffer`): Buffer to sample data from.
-        - her_reward_model (:obj:`HerRewardModel`): Hindsight Experience Replay (HER) model which is used to process episodes.
+        - her_reward_model (:obj:`HerRewardModel`): Hindsight Experience Replay (HER) \
+            model which is used to process episodes.
     """
 
     def _fetch_and_enhance(ctx: "OnlineRLContext"):
