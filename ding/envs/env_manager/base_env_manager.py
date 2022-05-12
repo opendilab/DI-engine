@@ -404,7 +404,7 @@ class BaseEnvManagerV2(BaseEnvManager):
     def ready_obs(self) -> tnp.array:
         """
         Overview:
-            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both aysnc/sync scenarios.
+            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.
         Return:
             - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.
         Example:
@@ -416,12 +416,12 @@ class BaseEnvManagerV2(BaseEnvManager):
         obs = [self._ready_obs[i] for i in active_env]
         return tnp.stack(obs)
 
-    def step(self, actions: tnp.ndarray) -> List[tnp.ndarray]:
+    def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:
         """
         Overview:
             Execute env step according to input actions. And reset an env if done.
         Arguments:
-            - actions (:obj:`tnp.ndarray`): actions came from outer caller like policy
+            - actions (:obj:`List[tnp.ndarray]`): actions came from outer caller like policy
         Returns:
             - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
                 info, env_id.
