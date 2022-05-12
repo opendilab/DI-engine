@@ -17,22 +17,6 @@ WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
-# Rerun command
-RERUN       ?=
-RERUN_DELAY ?=
-
-CI_DEFAULT_RERUN          := 5
-LOCAL_DEFAULT_RERUN       := 3
-DEFAULT_RERUN             ?= $(if ${CI},${CI_DEFAULT_RERUN},${LOCAL_DEFAULT_RERUN})
-ACTUAL_RERUN              := $(if ${RERUN},${RERUN},${DEFAULT_RERUN})
-
-CI_DEFAULT_RERUN_DELAY    := 10
-LOCAL_DEFAULT_RERUN_DELAY := 5
-DEFAULT_RERUN_DELAY       ?= $(if ${CI},${CI_DEFAULT_RERUN_DELAY},${LOCAL_DEFAULT_RERUN_DELAY})
-ACTUAL_RERUN_DELAY        := $(if ${RERUN_DELAY},${RERUN_DELAY},${DEFAULT_RERUN_DELAY})
-
-RERUN_COMMAND := $(if ${CI}${ACTUAL_RERUN},--reruns ${ACTUAL_RERUN} --reruns-delay ${ACTUAL_RERUN_DELAY},)
-
 docs:
 	$(MAKE) -C ${DING_DIR}/docs html
 
@@ -42,7 +26,6 @@ unittest:
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
 		${DURATIONS_COMMAND} \
-		${RERUN_COMMAND} \
 		${WORKERS_COMMAND} \
 		-sv -m unittest \
 
