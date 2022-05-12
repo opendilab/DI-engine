@@ -33,7 +33,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         Input of ctx:
             - trajectories (:obj:`List[treetensor.torch.Tensor]`): The data to be processed.\
                 Each element should contain the following keys: ['obs', 'next_obs', 'reward', 'done'].
-            - trajectory_end_idx: (:obj:`treetensor.torch.IntTensor`): 
+            - trajectory_end_idx: (:obj:`treetensor.torch.IntTensor`):
                 The indices that define the end of trajectories, \
                 which should be shorter than the length of `ctx.trajectories`.
         Output of ctx:
