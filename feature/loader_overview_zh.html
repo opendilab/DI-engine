@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Loader模块介绍 &mdash; DI-engine 0.1.0 documentation</title>
@@ -192,14 +193,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="loader">
+  <section id="loader">
 <span id="header-n50"></span><h1>Loader模块介绍<a class="headerlink" href="#loader" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="header-n52">
+<section id="header-n52">
 <span id="id1"></span><h2>概述<a class="headerlink" href="#header-n52" title="Permalink to this headline">¶</a></h2>
 <p>Loader为一个轻量化、自由、灵活的数据组合框架组件。</p>
 <p>Loader组件<strong>原计划用于配置数据的转化与验证</strong>，然而实际开发中探索出了其更多的用法以及更大的功能潜力，故作为一个独立模块存在。</p>
-</div>
-<div class="section" id="header-n55">
+</section>
+<section id="header-n55">
 <span id="id2"></span><h2>示例<a class="headerlink" href="#header-n55" title="Permalink to this headline">¶</a></h2>
 <p>Loader的基本设计思路是将一些常见的小规模转化与验证模块，通过逻辑组合等方式，形成复杂的验证转换结构。</p>
 <p>以下是一些具体的简单例子：</p>
@@ -372,10 +373,10 @@
 <span class="n">nf2</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">})</span>  <span class="c1"># 0.25</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="header-n98">
+</section>
+<section id="header-n98">
 <span id="id3"></span><h2>常见问题<a class="headerlink" href="#header-n98" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="q-loadernorm">
+<section id="q-loadernorm">
 <span id="header-n100"></span><h3>Q：loader和norm的区别和关系是什么？<a class="headerlink" href="#q-loadernorm" title="Permalink to this headline">¶</a></h3>
 <p>A：这两者的差异在于：</p>
 <ul class="simple">
@@ -383,8 +384,8 @@
 <li><p>norm专注于数学计算，尤其指数学计算逻辑的构建</p></li>
 </ul>
 <p>其中，通过<code class="docutils literal notranslate"><span class="pre">Loader</span></code>函数可以将任意类型（包括norm）转为loader，而<code class="docutils literal notranslate"><span class="pre">norm</span></code>函数可以将loader类型转为norm。请注意在实际使用的时候，为了避免歧义，<strong>当loader和norm放在一块使用的时候，请注意加上``norm``或者``Loader``函数以明确身份，以避免系统使用预期外的运算重载。</strong></p>
-</div>
-<div class="section" id="q-loader">
+</section>
+<section id="q-loader">
 <h3>Q：感觉loader有些时候写起来太长了，而且都是重复的，有没有更好的解决方案？<a class="headerlink" href="#q-loader" title="Permalink to this headline">¶</a></h3>
 <p>A：很简单，可以考虑重用。例如</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l1</span> <span class="o">=</span> <span class="n">dict_</span><span class="p">(</span>
@@ -403,9 +404,9 @@
 </div>
 <p><strong>loader进行逻辑组合的原理，是基于两个loader，计算得出一个新的loader</strong> ，故可以支持重用。</p>
 <p>实际上操作中，也更建议各位使用者充分利用这一特性，使得代码更加优美。</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

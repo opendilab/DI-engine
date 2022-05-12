@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>R2D3 &mdash; DI-engine 0.1.0 documentation</title>
@@ -223,16 +224,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="r2d3">
+  <section id="r2d3">
 <h1>R2D3<a class="headerlink" href="#r2d3" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>R2D3 (Recurrent Replay Distributed DQN from Demonstrations) 首次在论文
 <a class="reference external" href="https://arxiv.org/abs/1909.01387">Making Efficient Use of Demonstrations to Solve Hard Exploration Problems</a> 中提出, 它可以有效地利用专家演示轨迹来解决具有以下3个属性的问题：初始条件高度可变、部分可观察、困难探索。
 此外他们还介绍了一组结合这三个属性的八个任务，并表明R2D3可以解决像这些任务，值得注意的是，在类似这样的任务上，其他一些最先进的方法，无论有还是没有专家演示轨迹，在数百亿次的探索步骤之后甚至可能
 无法看到一条成功的轨迹。R2D3本质上是有效结合了R2D2算法的分布式框架和循环神经网络结构，以及DQfD中为从专家轨迹中学习而特别设计的损失函数。</p>
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>1.R2D3的基线强化学习算法是 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py">R2D2</a>, 可以参考我们的实现 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py">r2d2</a> ,
 它本质上是一个基于分布式框架，采用了双Q网络(Double Q Networks), 决斗Q结构(Dueling Architecture)，多步时间差分损失函数(n-step TD loss)的DQN算法。</p>
@@ -244,7 +245,7 @@
 <p>4.在训练Q网络时，采样的mini-batch中的每一条序列样本，有pho的概率是专家演示序列样本，有1-pho的概率是智能体与环境交互的经验序列样本。</p>
 <p>5.R2D3的提出是为了解决初始条件高度可变、部分可观察环境中的困难探索问题，其他探索相关的论文，读者可以参考 <a class="reference external" href="https://arxiv.org/abs/2002.06038">NGU</a> ，它是融合了
 <a class="reference external" href="https://arxiv.org/pdf/1705.05363.pdf">ICM</a> 和 <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">RND</a> 等多种探索方法的一个综合体。</p>
-<div class="section" id="id4">
+<section id="id4">
 <h3>关键方程或关键框图<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>R2D3算法的总体分布式训练流程如下：</p>
 <a class="reference internal image-reference" href="../_images/r2d3_overview.png"><img alt="../_images/r2d3_overview.png" class="align-center" src="../_images/r2d3_overview.png" style="width: 440.8px; height: 284.0px;" /></a>
@@ -284,16 +285,16 @@ n步return为：</p></li>
 </ul>
 <p>最终用于更新Q网络的整体损失是以上所有四种损失的线性组合：</p>
 <a class="reference internal image-reference" href="../_images/r2d3_loss.png"><img alt="../_images/r2d3_loss.png" class="align-center" src="../_images/r2d3_loss.png" style="width: 365.6px; height: 32.800000000000004px;" /></a>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h3>伪代码<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>下面是R2D3智能体learner和actor的伪代码。单个学习器进程(learner process)从专家演示缓冲区和智能体经验缓冲区中采样数据样本用于计算损失函数，更新其Q网络参数。
 A个并行的行动者进程(actor process)与不同的独立的A个环境实例交互以快速获得多样化的数据，然后将数据放入智能体经验缓冲区。
 A个actor会定期获取learner上最新的参数。</p>
 <a class="reference internal image-reference" href="../_images/r2d3_pseudo_code_actor.png"><img alt="../_images/r2d3_pseudo_code_actor.png" class="align-center" src="../_images/r2d3_pseudo_code_actor.png" style="width: 691.2px; height: 126.4px;" /></a>
 <a class="reference internal image-reference" href="../_images/r2d3_pseudo_code_learner.png"><img alt="../_images/r2d3_pseudo_code_learner.png" class="align-center" src="../_images/r2d3_pseudo_code_learner.png" style="width: 700.8000000000001px; height: 269.6px;" /></a>
-</div>
-<div class="section" id="id6">
+</section>
+<section id="id6">
 <h3>重要的实现细节<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>1. 用于计算损失函数的mini-batch是从专家演示缓冲区和智能体经验缓冲区采样得到的，mini-batch包含&lt;batch_size&gt;个序列样本，以pho的概率从专家演示缓冲区中采样，以1-pho的概率从智能体经验缓冲区中采样。
 其具体实现方式如下，通过从&lt;batch_size&gt;大小个的[0，1]均匀分布中采样，如果采样值大于pho则选择一个专家演示轨迹
@@ -369,8 +370,8 @@ A个actor会定期获取learner上最新的参数。</p>
         <span class="n">expert_buffer</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">learner</span><span class="o">.</span><span class="n">priority_info</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id7">
+</section>
+<section id="id7">
 <h3>实现<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <p>r2d3的策略 <code class="docutils literal notranslate"><span class="pre">R2D3Policy</span></code> 的接口定义如下：</p>
 <dl class="py class">
@@ -721,8 +722,8 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 <p class="admonition-title">Note</p>
 <p>我们目前的r2d3策略实现中网络的输入只是时刻t的状态观测，不包含时刻t-1的动作和奖励, 也不包括额外的信息向量 <span class="math notranslate nohighlight">\(f_{t}\)</span> .</p>
 </div>
-</div>
-<div class="section" id="id8">
+</section>
+<section id="id8">
 <h3>基准算法性能<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <p>我们在PongNoFrameskip-v4环境上，做了一系列对比实验，以验证：1.用于训练的一个mini-batch中专家样本的占比pho, 2.专家演示所占比例, 3.是否利用预训练与l2正则化等不同参数设置对r2d3算法最终性能的影响。</p>
 <div class="admonition note">
@@ -778,8 +779,8 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 <a class="reference internal image-reference" href="../_images/r2d3_pong_l2_pretrain.png"><img alt="../_images/r2d3_pong_l2_pretrain.png" class="align-center" src="../_images/r2d3_pong_l2_pretrain.png" style="width: 683.0px; height: 160.0px;" /></a>
 </li>
 </ul>
-</div>
-<div class="section" id="id10">
+</section>
+<section id="id10">
 <h3>参考资料<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Paine T L, Gulcehre C, Shahriari B, et al. Making efficient use of demonstrations to solve hard exploration problems[J]. arXiv preprint arXiv:1909.01387, 2019.</p></li>
@@ -789,9 +790,9 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 <li><p>Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration by self-supervised prediction[C]//International conference on machine learning. PMLR, 2017: 2778-2787.</p></li>
 <li><p>Piot, B.; Geist, M.; and Pietquin, O. 2014a. Boosted bellman residual minimization handling expert demonstrations. In European Conference on Machine Learning (ECML).</p></li>
 </ul>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

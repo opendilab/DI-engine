@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>BipedalWalker &mdash; DI-engine 0.1.0 documentation</title>
@@ -216,16 +217,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="bipedalwalker">
+  <section id="bipedalwalker">
 <h1>BipedalWalker<a class="headerlink" href="#bipedalwalker" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>在BipedalWalker 环境里，智能体需要输出4维的连续动作，控制2D的双足机器人在崎岖的地形上前进，在每一步应用电机扭矩会得到小的负的奖励，每前进一步会得到小的正的奖励，成功移动到最远端累计可以得到超过300分的奖励。如果机器人途中摔倒，会得到 -100的奖励，且游戏结束。 智能体的状态是24维连续向量，包括船体角速度(hull angle speed)、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及10次激光雷达测距仪的测量值。注意的是该状态向量中不包含机器人的坐标。</p>
 <img alt="../_images/bipedal_walker.gif" class="align-center" src="../_images/bipedal_walker.gif" />
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>安装gym和box2d两个库即可，可以通过pip一键安装或结合DI-engine安装</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
@@ -236,8 +237,8 @@ pip install box2d
 pip install <span class="s2">&quot;.[common_env]&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>安装完成后，可以通过在Python命令行中运行如下命令验证安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
@@ -246,41 +247,41 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (24,)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine的镜像包含自有框架和Atari环境，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code>获取. 如何获取更多镜像? 访问<a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a></p>
-</div>
-</div>
-<div class="section" id="id6">
+</section>
+</section>
+<section id="id6">
 <h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id7">
+<section id="id7">
 <h3>观察空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>智能体的状态是24维连续向量，包括船体角速度(hull angle speed)、角速度、水平速度、垂直速度、关节位置和关节角速度、腿与地面的接触标记以及10次激光雷达测距仪的测量值。注意的是该状态向量中不包含机器人的坐标。</p></li>
 </ul>
-</div>
-<div class="section" id="id8">
+</section>
+<section id="id8">
 <h3>动作空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境动作空间为4维的连续向量，每个维度的值在[-1,1]之间。</p></li>
 <li><p>这四维的连续向量分别控制机器人四个腿关节的扭矩。机器人共有2条腿，每条腿有两个关节(腰关节和膝关节), 一共4个关节需要控制。</p></li>
 </ul>
-</div>
-<div class="section" id="id9">
+</section>
+<section id="id9">
 <h3>奖励空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>机器人在每一步应用电机扭矩会得到小的负的奖励，每前进一步会得到小的正的奖励，成功移动到最远端累计可以得到超过300分的奖励。如果机器人途中摔倒，会得到 -100的奖励，且游戏结束。 奖励是一个float数值，范围是[-400, 300]。</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id10">
+</section>
+</section>
+<section id="id10">
 <h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="id11">
+</section>
+<section id="id11">
 <h2>其他<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id12">
+<section id="id12">
 <h3>随机种子<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
@@ -288,8 +289,8 @@ hub</a></p>
 <li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
 <li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
 </ul>
-</div>
-<div class="section" id="id13">
+</section>
+<section id="id13">
 <h3>存储录像<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -307,9 +308,9 @@ hub</a></p>
        <span class="k">break</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/box2d/bipedalwalker/config">github
 link</a>
@@ -380,8 +381,8 @@ link</a>
     <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id14">
+</section>
+<section id="id14">
 <h2>基准算法性能<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>平均奖励大于等于300视为较好的Agent</p>
@@ -393,8 +394,8 @@ link</a>
 </div></blockquote>
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

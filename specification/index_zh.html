@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>中间件（middleware）编写规范 &mdash; DI-engine 0.1.0 documentation</title>
@@ -174,9 +175,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="middleware">
+  <section id="middleware">
 <h1>中间件（middleware）编写规范<a class="headerlink" href="#middleware" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>文件目录与命名<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine 内的中间件可分为两类，一种我们称之为 <code class="docutils literal notranslate"><span class="pre">function</span></code>，是原子化的操作方法，用几行代码专注做一件事，例如 <code class="docutils literal notranslate"><span class="pre">train</span></code> 中间件执行模型的训练；另一种我们称之为 <code class="docutils literal notranslate"><span class="pre">module</span></code>，可能组合了多种 <code class="docutils literal notranslate"><span class="pre">function</span></code>，执行更复杂的逻辑。这种分类方式参考了 <a class="reference external" href="https://pytorch.org/docs/stable/nn.functional.html">pytorch 的 nn 和 nn.functional</a> 。</p>
 <p>本质上它们都属于中间件，用法完全一致。</p>
@@ -189,8 +190,8 @@
       <span class="n">collector</span><span class="o">.</span><span class="n">py</span>  <span class="c1"># Module</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>类，函数，参数<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>编写 <code class="docutils literal notranslate"><span class="pre">function</span></code> 时，由于代码简短，建议使用函数式风格代码；编写 <code class="docutils literal notranslate"><span class="pre">module</span></code> 时，建议使用类。例如：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Function 写法</span>
@@ -209,8 +210,8 @@
 </pre></div>
 </div>
 <p>所有函数建议传递明确命名参数，不推荐使用 dict 作为参数传递。</p>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>构造方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>大部分中间件都有两层方法，例如 <code class="docutils literal notranslate"><span class="pre">function</span></code> 的外层函数和 <code class="docutils literal notranslate"><span class="pre">module</span></code> 的 <code class="docutils literal notranslate"><span class="pre">__init__</span></code> 函数，是为了传递中间件运行时必须的参数和对象。</p>
 <p>而 <code class="docutils literal notranslate"><span class="pre">function</span></code> 的返回函数和 <code class="docutils literal notranslate"><span class="pre">module</span></code> 的 <code class="docutils literal notranslate"><span class="pre">__call__</span></code> 方法，则是运行时循环调用的过程，只支持 <code class="docutils literal notranslate"><span class="pre">ctx</span></code> 一个参数。</p>
@@ -234,8 +235,8 @@
 <span class="n">train</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>运行时方法<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>编写 <code class="docutils literal notranslate"><span class="pre">function</span></code> 的返回函数或 <code class="docutils literal notranslate"><span class="pre">module</span></code> 的 <code class="docutils literal notranslate"><span class="pre">__call__</span></code> 方法时，需要注意以下几点：</p>
 <ol class="arabic simple">
@@ -282,16 +283,16 @@
     <span class="n">p2</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h2>事件命名规范<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>在使用 DI-engine 内的事件机制时，我们约定事件按以下规范命名：</p>
 <ol class="arabic simple">
 <li><p>以传递数据为目的的事件，使用 <code class="docutils literal notranslate"><span class="pre">发出位置_数据名[_参数名_参数值]</span></code> 命名，例如：league_job_actor_0（由 league 发往 actor，传递 job 数据）</p></li>
 <li><p>以远程调用为目的的事件，使用 <code class="docutils literal notranslate"><span class="pre">接收位置_方法名</span></code> 命名，例如：league_get_job（由 actor 发往 league，获取 job）</p></li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

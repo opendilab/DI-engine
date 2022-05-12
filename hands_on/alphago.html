@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>AlphaGo &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="alphago">
+  <section id="alphago">
 <h1>AlphaGo<a class="headerlink" href="#alphago" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>AlphaGo and its variation AlphaGoZero can be said to be some of the most eye-catching achievements in the field of deep reinforcement learning in recent years.
 Google Deepmind’s AlphaGo defeated world champion Lee Sedol in 2016 and defeated Ke Jie in 2017.
@@ -186,8 +187,8 @@ including the PUCT algorithm proposed by <a class="reference external" href="htt
 AlphaGo trained value network to evaluate board positions,
 trained policy network to select actions, modified the algorithm to combine value and policy networks with MCTS,
 and continuously train neural networks through self-play.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick-Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>AlphaGo can also be viewed as a combination of MCTS and VPN algorithm (which we introduced in <a class="reference external" href="./vpn.html">VPN</a> ).</p></li>
@@ -195,8 +196,8 @@ and continuously train neural networks through self-play.</p>
 <li><p>AlphaGo contains two separated neural networks, policy network and value network.</p></li>
 <li><p>To solve the problem of low sample efficiency due to large search space, AlphaGo used supervised learning to learn from human expert games in the first stage of the pineline.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>AlphaGo’s neural network structure:</p>
 <img alt="policy network and value network demo" src="../_images/Go-network.jpg" />
@@ -216,29 +217,29 @@ The input features include the remaining “qi” of the chess game, some a prio
 <img alt="rollout and tree—policy's input-features" src="../_images/Go-tree-input.jpg" />
 <p>Although AlphaGo is performing well, there are still many problems to be improved.
 These problems were solved in 2017, as AlphaGoZero was born.</p>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>TBD</p></li>
 </ul>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>AlphaGoZero</p></li>
 </ul>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>TBD</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="alphagozero">
+</section>
+</section>
+<section id="alphagozero">
 <h1>AlphaGoZero<a class="headerlink" href="#alphagozero" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>Overview<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>AlphaGoZero’s paper <a class="reference external" href="https://www.nature.com/articles/nature24270.">Mastering the game of Go without human knowledge</a>
 was published by Google DeepMind on nature in 2016.</p>
@@ -251,8 +252,8 @@ but trains a purely self-play deep learning algorithm starting from zero.</p>
 <div><p>1.No longer separate value network and policy network, but a dueling network with dueling head (sep/dual).</p>
 <p>2.Improve the basic structure of neural network，from basic convolution network “ConvNet” updated to residual network “ResNet” (conv/res).</p>
 </div></blockquote>
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>Quick-Facts<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ol class="arabic simple">
@@ -261,8 +262,8 @@ but trains a purely self-play deep learning algorithm starting from zero.</p>
 <li><p>AlphaGoZero improved the basic structure of neural network，from convolution network to residual network, which results in a huge performance gain.</p></li>
 </ol>
 </div></blockquote>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>The ablation study comparing AlphaGo and AlphaGoZero in two aspects(sep/dual and conv/res):</p>
 <img alt="../_images/Zero-rating.jpg" class="align-center" src="../_images/Zero-rating.jpg" />
@@ -271,31 +272,31 @@ but trains a purely self-play deep learning algorithm starting from zero.</p>
 <p>The compare between reinforcement learning and supervised learning using AlphaGoZero’s network structure:</p>
 <img alt="../_images/Zero-RL-SL.jpg" src="../_images/Zero-RL-SL.jpg" />
 <p>We can see that AlphaGoZero based on reinforcement learning not only achieves better results than supervised learning, but the policy is also more different from the current experts.</p>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>Pseudo-code<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>TBD</p></li>
 </ul>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h2>Extensions<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>TBD</p></li>
 </ul>
-</div>
-<div class="section" id="id6">
+</section>
+<section id="id6">
 <h2>Implementations<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>TBD</p></li>
 </ul>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Silver, D., Schrittwieser, J., Simonyan, K. et al. Mastering the game of Go without human knowledge. Nature 550, 354–359 (2017). <a class="reference external" href="https://doi.org/10.1038/nature24270">https://doi.org/10.1038/nature24270</a></p>
 <p>Rosin, Christopher D. “Multi-Armed Bandits with Episode Context.” Annals of Mathematics and Artificial Intelligence, vol. 61, no. 3, 2011, pp. 203–230., doi:10.1007/s10472-011-9258-6. http://gauss.ececs.uc.edu/Workshops/isaim2010/papers/rosin.pdf</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

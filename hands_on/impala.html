@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>IMPALA &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,15 +172,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="impala">
+  <section id="impala">
 <h1>IMPALA<a class="headerlink" href="#impala" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>IMPALA, or the Importance Weighted Actor Learner Architecture, is an off-policy actor-critic framework that
 decouples data collecting from learning and optimizes policy from experience trajectories using off-policy correction V-trace. This method is firstly
 introduced in <a class="reference external" href="https://arxiv.org/abs/1802.01561">IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures</a>.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>IMPALA is a <strong>model-free</strong> and <strong>off-policy</strong> RL algorithm.</p></li>
@@ -189,8 +190,8 @@ introduced in <a class="reference external" href="https://arxiv.org/abs/1802.015
 <li><p>IMPALA decouples data collecting from learning. Collectors in IMPALA will not compute value or advantage.</p></li>
 <li><p>IMPALA is a <strong>distributed RL architecture</strong> with classic actor-learner paradigm.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations">
+</section>
+<section id="key-equations">
 <h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
 <p>Loss used in IMPALA is similar to that in PPO, A2C and other value function actor-critic models. All of them come from <code class="docutils literal notranslate"><span class="pre">policy_loss</span></code>,<code class="docutils literal notranslate"><span class="pre">value_loss</span></code> and <code class="docutils literal notranslate"><span class="pre">entropy_loss</span></code>, with respect to some carefully chosen weights, i.e.:</p>
 <div class="math notranslate nohighlight">
@@ -239,8 +240,8 @@ loss_{entropy} &amp;= -H(\pi_\phi) = \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\
 \[\begin{split}\Delta \phi &amp;= \rho_s \nabla_\phi \log \pi_\phi(a_s \vert x_s) \big(r_s + \gamma v_{s+1}- V_\theta(x_s)\big)\\
             &amp;- w_{entropy} \nabla_\phi \sum_a \pi_\phi(a\vert x_s)\log \pi_\phi(a\vert x_s)\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(r_s + \gamma v_{s+1}\)</span> is the v-trace advantage, which is estimated Q value subtracted by a state-dependent baseline <span class="math notranslate nohighlight">\(V_\theta(x_s)\)</span>.</p>
-</div>
-<div class="section" id="key-graphs">
+</section>
+<section id="key-graphs">
 <h2>Key Graphs<a class="headerlink" href="#key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The following graph describes the distributed architecture in IMPALA original paper. However, our implication is a little different from
 that in original paper.</p>
@@ -250,10 +251,10 @@ setting, we use one collector which has multiple environments to increase data d
 <p>For multiple learner, in original paper, different learners will have different actors with them. In other word, they
 will have different ReplayBuffer. While in our setting, all of the learners, will share the same ReplayBuffer, and will
 synchronize after each iteration.</p>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="config">
+<section id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>The default config is defined as follows:</p>
 <dl class="py class">
@@ -479,8 +480,8 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 </dd></dl>
 
 </div></blockquote>
-</div>
-<div class="section" id="data-processing">
+</section>
+<section id="data-processing">
 <h3>Data Processing<a class="headerlink" href="#data-processing" title="Permalink to this headline">¶</a></h3>
 <p>Usually, we hope to compute everything as a batch to improve efficiency. Especially, when computing vtrace, we
 need all training sample (sequences of training data) have the same length. This is done in <code class="docutils literal notranslate"><span class="pre">policy._get_train_sample</span></code>.
@@ -554,8 +555,8 @@ default and recommended.</p>
 <li><p>The last method <code class="docutils literal notranslate"><span class="pre">null_padding</span></code> is just zero padding, which is not vert efficient since many data will be <code class="docutils literal notranslate"><span class="pre">null</span></code>.</p></li>
 </ol>
 </div>
-</div>
-<div class="section" id="optimization">
+</section>
+<section id="optimization">
 <h3>Optimization<a class="headerlink" href="#optimization" title="Permalink to this headline">¶</a></h3>
 <p>Now, we introduce the computation of <code class="docutils literal notranslate"><span class="pre">vtrace-value</span></code>.
 First, we use the following functions to compute importance_weights.</p>
@@ -669,9 +670,9 @@ process is as follows.</p>
 <li><p>Here we introduce a parameter <code class="docutils literal notranslate"><span class="pre">rho_pg_clip_ratio</span></code>, following the implementation in AlphaStar. This parameter, can give a subtle control on vtrace advantage. Usually, we will choose this parameter just same as rho_clip_ratio.</p></li>
 </ol>
 </div>
-</div>
-</div>
-<div class="section" id="benchmark">
+</section>
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given docutils align-default" id="id1">
 <caption><span class="caption-text">Benchmark and comparison of IMPALA algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
@@ -740,19 +741,19 @@ process is as follows.</p>
 <li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
 <li><p>For the discrete action space algorithm like IMPALA, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>. For more details about Atari, please refer to <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
 </ol>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <p>Lasse Espeholt, Hubert Soyer, Remi Munos, Karen Simonyan, Volodymir Mnih, Tom Ward, Yotam Doron, Vlad Firoiu, Tim Harley, Iain Dunning, Shane Legg, Koray Kavukcuoglu: “IMPALA: Scalable Distributed Deep-RL with Importance Weighted Actor-Learner Architectures”, 2018; arXiv:1802.01561.  https://arxiv.org/abs/1802.01561</p>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>[Official](<a class="reference external" href="https://github.com/deepmind/scalable_agent">https://github.com/deepmind/scalable_agent</a>)</p></li>
 <li><p>[Facebook torchbeast](<a class="reference external" href="https://github.com/facebookresearch/torchbeast">https://github.com/facebookresearch/torchbeast</a>)</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

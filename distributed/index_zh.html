@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>分布式 &mdash; DI-engine 0.1.0 documentation</title>
@@ -176,12 +177,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="id1">
+  <section id="id1">
 <h1>分布式<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>当我们编写好一个 RL 训练任务时，下一个需要关心的问题就是让它跑的更快。除了依靠算法和编译优化来让代码运行的更快，DI-engine 还设计了一套独特的横向扩展方式，让你的代码可以无缝的扩展到更多的 CPU, GPU 或者多机上面。</p>
-<div class="section" id="task">
+<section id="task">
 <h2>Task 对象<a class="headerlink" href="#task" title="Permalink to this headline">¶</a></h2>
 <p>首先假设你已经有了这样一段代码（如果没有请回到 <a class="reference external" href="../quick_start/index_zh.html">快速开始</a>）：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
@@ -377,8 +378,8 @@
         <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">max_step</span><span class="o">=</span><span class="n">max_iteration</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>魔法时间<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>现在一切就绪，让我们进入 <code class="docutils literal notranslate"><span class="pre">task</span></code> 的魔法时间！我们可能想知道每个执行单元耗费了多长时间，DI-engine 提供了一个 <code class="docutils literal notranslate"><span class="pre">StepTimer</span></code> 装饰器，仅需一行代码，即可在显示每个执行单元的时间</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework.wrapper</span> <span class="kn">import</span> <span class="n">StepTimer</span>
@@ -401,8 +402,8 @@
 <p class="admonition-title">Note</p>
 <p>我们使用协程来实现代码之间的异步，关于协程的官方实现可参考 <a class="reference external" href="https://docs.python.org/3/library/asyncio.html">asyncio 文档</a></p>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>异步与并行<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>受限于 GIL，有时单进程的异步也不能最大化的利用系统资源，这时候我们就需要考虑将代码放到不同的进程上执行（甚至不同的机器上），在并行（或分布式）方面，DI-engine 的处理方式是一致的。这时要介绍一个新的对象 <code class="docutils literal notranslate"><span class="pre">Parallel</span></code>，它将负责将你的 <code class="docutils literal notranslate"><span class="pre">task</span></code> 执行单元分布到不同的进程上去执行：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">Task</span><span class="p">,</span> <span class="n">Parallel</span>
@@ -491,8 +492,8 @@
 <li class="toctree-l1"><a class="reference internal" href="gobigger_zh.html">异步并行在 GoBigger 中的应用</a></li>
 </ul>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

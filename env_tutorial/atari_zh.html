@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Atari &mdash; DI-engine 0.1.0 documentation</title>
@@ -226,16 +227,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="atari">
+  <section id="atari">
 <h1>Atari<a class="headerlink" href="#atari" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>Atari是最经典最常用的离散动作空间强化学习环境，常作为离散动作空间强化学习算法的基准测试环境。它是一个由57个子环境构成的集合，不同的子环境对应的游戏类型差别很大，常用的子环境有Pong，SpaceInvaders，QBert，Enduro，Breakout，MontezumaRevenge等等，下图所示为其中的SpaceInvaders游戏。</p>
 <img alt="../_images/atari.gif" class="align-center" src="../_images/atari.gif" />
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>安装gym和ale-py两个库即可，可以通过pip一键安装或结合DI-engine安装</p>
 <p>注：atari-py库目前已被开发者废弃，建议使用<a class="reference external" href="https://github.com/mgbellemare/Arcade-Learning-Environment">ale-py</a></p>
@@ -249,8 +250,8 @@ autorom --accept-license
 pip install <span class="s2">&quot;.[common_env]&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>安装完成后，运行如下Python程序，如果没有报错则证明安装成功。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
@@ -259,22 +260,22 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (210, 160, 3)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine准备好了配备有框架本身和Atari环境的镜像，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-atari</span></code>获取，或访问<a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a>获取更多镜像</p>
-</div>
-</div>
-<div class="section" id="id6">
+</section>
+</section>
+<section id="id6">
 <span id="id7"></span><h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id8">
+<section id="id8">
 <span id="id9"></span><h3>观察空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>实际的游戏画面，RGB三通道图片，具体尺寸为<code class="docutils literal notranslate"><span class="pre">(210,</span> <span class="pre">160,</span> <span class="pre">3)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">uint8</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id10">
+</section>
+<section id="id10">
 <span id="id11"></span><h3>动作空间<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏操作按键空间，一般是大小为N的离散动作空间（N随具体子环境变化），数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入python数值（或是0维np数组，例如动作3为<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）</p></li>
@@ -289,21 +290,21 @@ hub</a>获取更多镜像</p>
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="id12">
+</section>
+<section id="id12">
 <span id="id13"></span><h3>奖励空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏得分，根据具体游戏内容不同会有非常大的差异，一般是一个<code class="docutils literal notranslate"><span class="pre">float</span></code>数值，具体的数值可以参考最下方的基准算法性能部分。</p></li>
 </ul>
-</div>
-<div class="section" id="id14">
+</section>
+<section id="id14">
 <span id="id15"></span><h3>其他<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏结束即为当前环境episode结束</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id16">
+</section>
+</section>
+<section id="id16">
 <h2>关键事实<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>2D
@@ -312,23 +313,23 @@ RGB三通道图像输入，但单帧图像蕴含的信息不足（比如运动�
 <li><p>Atari环境集合中的奖励类型比较复杂，既有稠密奖励(SpaceInvaders)，又有稀疏奖励 (Pitfall，MontezumaRevenge)，需要的算法探索能力也不同</p></li>
 <li><p>奖励取值尺度变化较大</p></li>
 </ol>
-</div>
-<div class="section" id="rl">
+</section>
+<section id="rl">
 <span id="id17"></span><h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id18">
+<section id="id18">
 <span id="id19"></span><h3>观察空间<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：灰度图，空间尺寸缩放，最大最小值归一化，堆叠相邻N个游戏帧（N=4）</p></li>
 <li><p>变换结果：三维np数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(4,</span> <span class="pre">84,</span> <span class="pre">84)</span></code>，即为相邻的4帧灰度图，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，取值为 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id20">
+</section>
+<section id="id20">
 <span id="id21"></span><h3>动作空间<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换，依然是大小为N的离散动作空间，但一般为一维np数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id22">
+</section>
+<section id="id22">
 <span id="id23"></span><h3>奖励空间<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：奖励缩放和截断</p></li>
@@ -343,8 +344,8 @@ RGB三通道图像输入，但单帧图像蕴含的信息不足（比如运动�
 <span class="n">rew_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id24">
+</section>
+<section id="id24">
 <span id="id25"></span><h3>其他<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">epsiode_life</span></code>：训练时的环境使用<code class="docutils literal notranslate"><span class="pre">episode_life</span></code>选项，即环境拥有多条生命值（一般为5），原始环境游戏失败一次生命值减一，所有生命值耗尽才视为episode结束</p></li>
@@ -352,15 +353,15 @@ RGB三通道图像输入，但单帧图像蕴含的信息不足（比如运动�
 &lt;=30) 执行空动作（noop），以增加环境开局的随机性</p></li>
 <li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>键值对，表示整个episode的评测指标，在Atari中为整个episode的奖励累加和</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id26">
+</section>
+</section>
+<section id="id26">
 <span id="id27"></span><h2>其他<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id28">
+<section id="id28">
 <h3>惰性初始化<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
-</div>
-<div class="section" id="id29">
+</section>
+<section id="id29">
 <h3>随机种子<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
@@ -368,15 +369,15 @@ RGB三通道图像输入，但单帧图像蕴含的信息不足（比如运动�
 <li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
 <li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
 </ul>
-</div>
-<div class="section" id="id30">
+</section>
+<section id="id30">
 <h3>训练和测试环境的区别<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>训练环境使用动态随机种子，即每个episode的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个episode的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
 <li><p>训练环境和测试环境使用的环境预处理wrapper不同，<code class="docutils literal notranslate"><span class="pre">episode_life</span></code>和<code class="docutils literal notranslate"><span class="pre">clip_reward</span></code>在测试时不使用。</p></li>
 </ul>
-</div>
-<div class="section" id="id31">
+</section>
+<section id="id31">
 <h3>存储录像<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -394,9 +395,9 @@ RGB三通道图像输入，但单帧图像蕴含的信息不足（比如运动�
         <span class="k">break</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial">github
 link</a>
@@ -461,8 +462,8 @@ link</a>
 </div>
 <p>注：对于某些特殊的算法，比如PPG，需要使用专门的入口函数，示例可以参考
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/entry/atari_ppg_main.py">link</a></p>
-</div>
-<div class="section" id="id32">
+</section>
+<section id="id32">
 <h2>基准算法性能<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>Pong（平均奖励大于等于20视为较好的Agent）</p>
@@ -484,8 +485,8 @@ link</a>
 <img alt="../_images/spaceinvaders_dqn.png" class="align-center" src="../_images/spaceinvaders_dqn.png" />
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

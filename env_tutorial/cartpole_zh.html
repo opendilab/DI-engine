@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Cartpole &mdash; DI-engine 0.1.0 documentation</title>
@@ -216,23 +217,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="cartpole">
+  <section id="cartpole">
 <h1>Cartpole<a class="headerlink" href="#cartpole" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>倒立摆问题是强化学习中的经典控制问题。Cartpole是倒立摆问题中的一个离散控制任务。在游戏中有一个小车，上有竖着一根杆子。小车在一个光滑无摩擦的轨道上左右滑行，目的是使杆子保持竖直。如下图所示。</p>
 <img alt="../_images/cartpole.gif" class="align-center" src="../_images/cartpole.gif" />
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>Cartpole环境内置在gym中，直接安装gym即可。其环境id是<code class="docutils literal notranslate"><span class="pre">CartPole-v0</span></code> 。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install gym
 </pre></div>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>在Python命令行中运行如下命令验证安装成功。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>import gym
@@ -241,11 +242,11 @@
 print<span class="o">(</span>obs<span class="o">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="id5">
+</section>
+</section>
+<section id="id5">
 <h2>环境介绍<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id6">
+<section id="id6">
 <h3>动作空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>Cartpole 的动作空间属于离散动作空间，有2个离散动作，分别是左移和右移。</p>
 <ul class="simple">
@@ -256,8 +257,8 @@ print<span class="o">(</span>obs<span class="o">)</span>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">action_space</span> <span class="o">=</span> <span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id7">
+</section>
+<section id="id7">
 <h3>状态空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <p>Cartpole 的状态空间有4个元素，分别是：</p>
 <ul class="simple">
@@ -266,12 +267,12 @@ print<span class="o">(</span>obs<span class="o">)</span>
 <li><p><code class="docutils literal notranslate"><span class="pre">Pole</span> <span class="pre">Angle</span></code> ：杆的角度，范围是 <code class="docutils literal notranslate"><span class="pre">[-24</span> <span class="pre">deg,</span> <span class="pre">24</span> <span class="pre">deg]</span></code> 。</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Pole</span> <span class="pre">Angular</span> <span class="pre">Velocity</span></code> ：杆的角速度，范围是 <code class="docutils literal notranslate"><span class="pre">[-inf,</span> <span class="pre">inf]</span></code> 。</p></li>
 </ul>
-</div>
-<div class="section" id="id8">
+</section>
+<section id="id8">
 <h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <p>每一步操作，都将获得值为1的奖励，直到episode终止（终止状态也将获得值为1的奖励）。</p>
-</div>
-<div class="section" id="id9">
+</section>
+<section id="id9">
 <h3>终止条件<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>Cartpole 环境每个episode的终止条件是遇到以下任何一种情况：</p>
 <ul class="simple">
@@ -279,20 +280,20 @@ print<span class="o">(</span>obs<span class="o">)</span>
 <li><p>小车出界，通常把边界距离设置为2.4。</p></li>
 <li><p>达到episode的最大step，默认为200。</p></li>
 </ul>
-</div>
-<div class="section" id="id10">
+</section>
+<section id="id10">
 <h3>Cartpole任务在什么情况下视为胜利<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <p>当100次试验的平均episode奖励达到195以上时，视作游戏胜利。</p>
-</div>
-</div>
-<div class="section" id="id11">
+</section>
+</section>
+<section id="id11">
 <h2>其他<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id12">
+<section id="id12">
 <h3>存储录像<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <p>有些环境有自己的渲染插件，但是DI-engine不支持环境自带的渲染插件，而是通过保存训练时的log日志来生成视频录像。具体方式可参考DI-engine <a class="reference external" href="https://opendilab.github.io/DI-engine/quick_start/index.html">官方文档</a> Quick start 章节下的 Visualization &amp; Logging 部分。</p>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>下面提供一个完整的cartpole环境config，采用DQN算法作为policy。请在<code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/classic_control/cartpole/entry</span></code> 目录下运行<code class="docutils literal notranslate"><span class="pre">cartpole_dqn_main.py</span></code> 文件，如下。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
@@ -384,19 +385,19 @@ print<span class="o">(</span>obs<span class="o">)</span>
     <span class="n">main</span><span class="p">(</span><span class="n">cartpole_dqn_config</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id13">
+</section>
+<section id="id13">
 <h2>实验结果<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <p>使用DQN算法的实验结果如下。横坐标是<code class="docutils literal notranslate"><span class="pre">episode</span></code> ，纵坐标是<code class="docutils literal notranslate"><span class="pre">reward_mean</span></code> 。</p>
 <img alt="../_images/cartpole_dqn.png" class="align-center" src="../_images/cartpole_dqn.png" />
-</div>
-<div class="section" id="id14">
+</section>
+<section id="id14">
 <h2>参考资料<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Cartpole <a class="reference external" href="https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py">源码</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

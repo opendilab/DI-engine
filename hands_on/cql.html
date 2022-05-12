@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>CQL &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="cql">
+  <section id="cql">
 <h1>CQL<a class="headerlink" href="#cql" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Offline reinforcement learning (RL) is a re-emerging area of study that aims to learn behaviors using large, previously collected
 datasets, without further environment interaction. It has the potential to make tremendous progress in a number of real-world decision-making problems where active data collection is expensive (e.g., in robotics, drug discovery, dialogue generation, recommendation systems) or unsafe/dangerous (e.g., healthcare, autonomous driving, or education).
@@ -183,8 +184,8 @@ online are substantially lower than the offline datasets. Such a paradigm promis
 in poor performance, due to issues with bootstrapping from out-of-distribution actions and overfitting. Thus, many constrain techniques are added to basic online RL algorithms.
 Conservative Q-learning (CQL), first proposed in <a class="reference external" href="https://arxiv.org/abs/2006.04779">Conservative Q-Learning for Offline Reinforcement Learning</a>, is one of them which learns conservative Q functions of which the expected value is lower-bounded
 via a simple modification to standard value-based RL algorithms.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>CQL is an offline RL algorithm.</p></li>
@@ -192,8 +193,8 @@ via a simple modification to standard value-based RL algorithms.</p>
 number of standard, online RL algorithms</p></li>
 <li><p>CQL supports both <strong>discrete</strong> and <strong>continuous</strong> action spaces.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>CQL can be implemented with less than 20 lines of code on top of a
 number of standard, online RL algorithms, simply by adding the CQL regularization terms to
@@ -220,16 +221,16 @@ of the Q-values at any state s and gives rise to the following variant, called C
 <a class="reference internal image-reference" href="../_images/cql_equation_4.png"><img alt="../_images/cql_equation_4.png" class="align-center" src="../_images/cql_equation_4.png" style="width: 899.8000000000001px; height: 81.4px;" /></a>
 <p>Secondly, if <span class="math notranslate nohighlight">\(\rho(a|s)\)</span> is chosen to be the previous policy <span class="math notranslate nohighlight">\(\hat{\pi}^{k-1}\)</span>, the first term in Equation (4) above is replaced by
 an exponential weighted average of Q-values of actions from the chosen <span class="math notranslate nohighlight">\(\hat{\pi}^{k-1}(a|s)\)</span>.</p>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <p>The pseudo-code is shown in Algorithm 1, with differences from conventional actor critic algorithms (e.g., SAC) and deep Q-learning algorithms (e.g.,DQN) in red</p>
 <a class="reference internal image-reference" href="../_images/cql.png"><img alt="../_images/cql.png" class="align-center" src="../_images/cql.png" style="width: 547.8000000000001px; height: 276.1px;" /></a>
 <p>The equation (4) in above pseudo-code is:</p>
 <a class="reference internal image-reference" href="../_images/cql_equation_4.png"><img alt="../_images/cql_equation_4.png" class="align-center" src="../_images/cql_equation_4.png" style="width: 654.4000000000001px; height: 59.2px;" /></a>
 <p>Note that during implementation, the first term in the equation (4) will be computed under <cite>torch.logsumexp</cite>, which consumes lots of running time.</p>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config of CQLPolicy is defined as follows:</p>
 <dl class="py class">
@@ -609,8 +610,8 @@ ID Symbol               Type     Default Value  Description                     
 == ==================== ======== ============== ======================================== =======================</p>
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -735,21 +736,21 @@ The complete table is depicted below</p>
 </li>
 <li><p>The above Tensorboard results illustrate the unnormalized results</p></li>
 </ol>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Kumar, Aviral, et al. “Conservative q-learning for offline reinforcement learning.” arXiv preprint arXiv:2006.04779 (2020).</p></li>
 <li><p>Chenjia Bai, et al. “Pessimistic Bootstrapping for Uncertainty-Driven Offline Reinforcement Learning.”</p></li>
 </ul>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/aviralkumar2907/CQL">CQL release repo</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

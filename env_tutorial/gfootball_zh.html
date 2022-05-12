@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Google Research Football (Gfootball) &mdash; DI-engine 0.1.0 documentation</title>
@@ -202,19 +203,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="google-research-football-gfootball">
+  <section id="google-research-football-gfootball">
 <span id="header-n0"></span><h1>Google Research Football (Gfootball)<a class="headerlink" href="#google-research-football-gfootball" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="header-n12">
+<section id="header-n12">
 <span id="id1"></span><h2>概述<a class="headerlink" href="#header-n12" title="Permalink to this headline">¶</a></h2>
 <p>Google Research
 Football（以下简称Gfootball）是Google团队在开源足球游戏GamePlay
 Football的基础上创建的适用于强化学习研究的足球环境，兼容OpenAI Gym
 API，不仅可用于智能体训练，也允许玩家以键盘或手柄输入与内置AI或训练的智能体进行游戏。下图为渲染后的Gfootball游戏环境。</p>
-<div class="figure align-center">
+<figure class="align-center">
 <img alt="" src="../_images/gfootballenv.png" />
-</div>
-</div>
-<div class="section" id="header-n9">
+</figure>
+</section>
+<section id="header-n9">
 <span id="id2"></span><h2>安装<a class="headerlink" href="#header-n9" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>依赖包</p></li>
@@ -257,13 +258,13 @@ python3 -m pip install .
 </pre></div>
 </div>
 <p>进入如下游戏界面，证明安装成功。</p>
-<div class="figure align-center">
+<figure class="align-center">
 <img alt="" src="../_images/verify_gfootball.png" />
-</div>
+</figure>
 <p>更多安装环境相关的问题，可以参考<a class="reference external" href="https://github.com/google-research/football">Gfootball官网github</a>。此外，官方也提供了docker
 image用于在docker环境中部署环境，可以参考https://github.com/google-research/football/blob/master/gfootball/doc/docker.md。</p>
-</div>
-<div class="section" id="api">
+</section>
+<section id="api">
 <span id="header-n60"></span><h2>环境创建API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
 <p>在导入并创建环境成功后，可以通过与openAI gym相同的代码来与环境交互：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gfootball.env</span> <span class="k">as</span> <span class="nn">football_env</span>
@@ -308,8 +309,8 @@ image用于在docker环境中部署环境，可以参考https://github.com/googl
 <span class="n">env</span> <span class="o">=</span> <span class="n">GfootballEnv</span><span class="p">({})</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="header-n99">
+</section>
+<section id="header-n99">
 <span id="id3"></span><h2>状态空间<a class="headerlink" href="#header-n99" title="Permalink to this headline">¶</a></h2>
 <p><strong>一般使用raw输入信息</strong></p>
 <ul class="simple">
@@ -450,8 +451,8 @@ image用于在docker环境中部署环境，可以参考https://github.com/googl
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="header-n524">
+</section>
+<section id="header-n524">
 <span id="id4"></span><h2>动作空间<a class="headerlink" href="#header-n524" title="Permalink to this headline">¶</a></h2>
 <p>Gfootball的动作空间为19维离散动作：</p>
 <ul class="simple">
@@ -491,8 +492,8 @@ image用于在docker环境中部署环境，可以参考https://github.com/googl
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="di-zoo">
+</section>
+<section id="di-zoo">
 <span id="header-n614"></span><h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练入口见<a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/gfootball/entry">DI-zoo
 gfootball</a>。使用ppo-lstm进行self-play训练的配置文件如下。</p>
@@ -604,16 +605,16 @@ gfootball</a>。使用ppo-lstm进行self-play训练的配置文件如下。</p>
     <span class="n">parallel_pipeline</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="header-n282">
+</section>
+<section id="header-n282">
 <span id="id5"></span><h2>训练实例<a class="headerlink" href="#header-n282" title="Permalink to this headline">¶</a></h2>
 <p>在DI-engine的状态空间下，经过reward设计和动作空间约束，self
 play训练中对内置hard AI胜率曲线如下图所示：</p>
-<div class="figure align-center">
+<figure class="align-center">
 <img alt="" src="../_images/gfootball_train.png" />
-</div>
-</div>
-</div>
+</figure>
+</section>
+</section>
 
 
            </div>

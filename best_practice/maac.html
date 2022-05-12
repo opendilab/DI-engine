@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Multi-Agent Actor-Critic RL &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,15 +171,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="multi-agent-actor-critic-rl">
+  <section id="multi-agent-actor-critic-rl">
 <h1>Multi-Agent Actor-Critic RL<a class="headerlink" href="#multi-agent-actor-critic-rl" title="Permalink to this headline">¶</a></h1>
 <p>MARL algorithms can be divided into two broad categories: centralized learning and decentralized learning. Recent work has developed two lines of research to bridge the gap between these two frameworks: centralized training and decentralized execution(CTDE) and value decomposition(VD).
 VD such as Qmix typically represents the joint Q-function as a function of agents’ local Q-functions, which has been considered as the gold standard for many MARL benchmarks.
 CTDE methods such as MADDPG, MAPPO and COMA improve upon decentralized RL by adopting an actor-critic structure and learning a centralized critic.
 In DI-engine, we introduce the multi-agent actor-critic framework to quickly convert a single-agent algorithm into a multi-agent algorithm.</p>
-<div class="section" id="for-users">
+<section id="for-users">
 <h2>For Users<a class="headerlink" href="#for-users" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="environment">
+<section id="environment">
 <h3>Environment<a class="headerlink" href="#environment" title="Permalink to this headline">¶</a></h3>
 <p>Unlike single-agent environments that return a tensor-type observation, our multi-agent environments will return a dict-type observation, which includes <code class="docutils literal notranslate"><span class="pre">agent_state</span></code>, <code class="docutils literal notranslate"><span class="pre">global_state</span></code> and <code class="docutils literal notranslate"><span class="pre">action_mask</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">agent_num</span> <span class="o">=</span> <span class="mi">8</span>
@@ -205,8 +206,8 @@ In DI-engine, we introduce the multi-agent actor-critic framework to quickly con
 <li><p>collaq obs: It contains agent_alone_state and agent_alone_padding_state, you can use it in Collaq alg. Agents_obs_alone means the agent can’t observe the allies’ information, agent_alone_padding_state means the agent’s allies’ information is zero. If you want to use it, you have to set <code class="docutils literal notranslate"><span class="pre">obs_alone</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> in env config.</p></li>
 <li><p>independent obs: The global observation is as same as agent observation, we use it in independent PPO, independent SAC alg. If you want to use it, you have to set <code class="docutils literal notranslate"><span class="pre">independent_obs</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> in env config.</p></li>
 </ul>
-</div>
-<div class="section" id="model">
+</section>
+<section id="model">
 <h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Centralized training and decentralized executed: Unlike single-agent environments that feed the same observation information to actor and critic networks, in multi-agent environments, we feed agent_state and action_mask information to the actor network to get each actions’ logits and mask the invalid/inaccessible actions. At the same time, we feed global_state information to the critic network to gei the global critic value.</p></li>
@@ -228,13 +229,13 @@ In DI-engine, we introduce the multi-agent actor-critic framework to quickly con
     <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;pred&#39;</span><span class="p">]}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="policy">
+</section>
+<section id="policy">
 <h3>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h3>
 <p>When modifying the single-agent algorithm into a multi-agent algorithm, the policy part basically remains the same, the only thing to note is to add the multi_agent key in the config and it will call the multi-agent model when the multi_agent key is True.</p>
 <p>When you use the single-agent algorithm, <code class="docutils literal notranslate"><span class="pre">multi_agent</span></code> is default to <code class="docutils literal notranslate"><span class="pre">False</span></code>, you don’t need to do anything. And when you use the multi-agent algorithm, you have to add the <code class="docutils literal notranslate"><span class="pre">multi_agent</span></code> key and set it to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
-</div>
-<div class="section" id="config">
+</section>
+<section id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>Open the multi-agent key and just change the environment to the one you want to run.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">agent_num</span> <span class="o">=</span> <span class="mi">5</span>
@@ -448,15 +449,15 @@ In DI-engine, we introduce the multi-agent actor-critic framework to quickly con
 <img alt="../_images/3s5z_mappo.png" class="align-center" src="../_images/3s5z_mappo.png" />
 </li>
 </ul>
-</div>
-</div>
-<div class="section" id="for-developers">
+</section>
+</section>
+<section id="for-developers">
 <h2>For Developers<a class="headerlink" href="#for-developers" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id1">
+<section id="id1">
 <h3>Model<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <p>We need to change the single agent to the multi agent model. In single agent model, it only has a obs_shape key. In multi agent model, we need to divide the obs_shape key to agent_obs_shape and global_obs_shape, and in this way, we can train critic model by global obs and train actor model by agent obs.</p>
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h3>Policy<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>We need to call the multi agent model in the following way.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">MAPPO</span><span class="p">:</span>
@@ -476,8 +477,8 @@ In DI-engine, we introduce the multi-agent actor-critic framework to quickly con
         <span class="k">return</span> <span class="s1">&#39;qac&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.qac&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="rl-utils">
+</section>
+<section id="rl-utils">
 <h3>rl_utils<a class="headerlink" href="#rl-utils" title="Permalink to this headline">¶</a></h3>
 <p>In the single agent algorithm, the data dimension is (B, N), the B means batch_size, and the N means the action nums. But in the multi agent algorithm, the data dimension is (B, A, N), the A means action nums. So when we calculate the loss function, we need to change our codes.
 For example, when we calculate the PPO advantage, we need to modify the codes. For most time, we use unsqueeze to change the (B, N) to (B, 1, N), and it can operate with (B, A, N) data.</p>
@@ -551,9 +552,9 @@ You can just input (B, N) data to test single agent rl utils codes and input (B,
     <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value_new</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

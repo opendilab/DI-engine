@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Asynchronous Parallel in GoBigger &mdash; DI-engine 0.1.0 documentation</title>
@@ -178,7 +179,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="asynchronous-parallel-in-gobigger">
+  <section id="asynchronous-parallel-in-gobigger">
 <h1>Asynchronous Parallel in GoBigger<a class="headerlink" href="#asynchronous-parallel-in-gobigger" title="Permalink to this headline">¶</a></h1>
 <img alt="../_images/gobigger.gif" class="align-center" src="../_images/gobigger.gif" />
 <p><a class="reference external" href="https://github.com/opendilab/GoBigger">GoBigger</a> is a multi-agent confrontation game environment open sourced by OpenDILab. The player (AI) controls one or more round balls in the map, gains as much weight as possible by eating food balls and other units smaller than the player’s ball, and needs to avoid being eaten by a bigger ball.</p>
@@ -187,7 +188,7 @@
 <img alt="../_images/gobigger_async_parallel.png" class="align-center" src="../_images/gobigger_async_parallel.png" />
 <img alt="../_images/gobigger_tf.png" class="align-center" src="../_images/gobigger_tf.png" />
 <p>As long as the machine has resources remaining, the impact of the evaluation phase on training after the change to asynchronous parallel is almost negligible, and the steps of acquisition and training can be kept continuous without waiting for evaluation in the middle. It can also be seen from the tensorboard record that the asynchronous and parallel version has a great improvement in sample collection and training efficiency compared to the serial version.</p>
-</div>
+</section>
 
 
            </div>

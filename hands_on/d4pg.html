@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>D4PG &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="d4pg">
+  <section id="d4pg">
 <h1>D4PG<a class="headerlink" href="#d4pg" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>D4PG, proposed in the paper <a class="reference external" href="https://arxiv.org/abs/1804.08617v1">Distributed Distributional Deterministic Policy Gradients</a>,
 is an actor-critic, model-free policy gradient algorithm that extends upon <a class="reference external" href="https://arxiv.org/abs/1509.02971">DDPG</a>.
@@ -181,8 +182,8 @@ Improvements over DDPG include the use of N-step returns, prioritized experience
 Moreover, training is parallelized with multiple distributed workers all writing into the same replay table.
 The authors found that these simple modifications contribute to the overall performance of the algorithm with N-step
 returns brining the biggest performance gain and priority buffer being the less crucial one.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>D4PG is only used for environments with <strong>continuous action spaces</strong>.(i.e. MuJoCo)</p></li>
@@ -191,8 +192,8 @@ returns brining the biggest performance gain and priority buffer being the less 
 <li><p>D4PG is a <strong>model-free</strong> and <strong>actor-critic</strong> RL algorithm, which optimizes actor network and critic network, respectively.</p></li>
 <li><p>Usually, D4PG uses <strong>Ornstein-Uhlenbeck process</strong> or <strong>Gaussian process</strong> (default in our implementation) for exploration.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The D4PG algorithm maintains a distributional critic <span class="math notranslate nohighlight">\(Z_\pi(s, a)\)</span> which estimates the expected Q value as a
 random variable such that <span class="math notranslate nohighlight">\(Q(s, a)=\mathbb{E}Z_\pi(s, a)\)</span>. <span class="math notranslate nohighlight">\(Z\)</span> is usually a Categorical distribution over Q with 51 supports.</p>
@@ -221,15 +222,17 @@ This requires the use of importance sampling, implemented by weighting the criti
 <p>D4PG utilizes multiple <strong>parallel independent actors</strong>, gathering experience and feeding data into the same replay buffer.
 However, our implementation only makes use of a single actor.</p>
 </div>
-</div>
-<div class="section" id="pseudocode">
+</section>
+<section id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
-<div class="figure align-center" id="id1">
+<figure class="align-center" id="id1">
 <a class="reference internal image-reference" href="../_images/D4PG_algo.png"><img alt="../_images/D4PG_algo.png" src="../_images/D4PG_algo.png" style="width: 1048.5px; height: 810.0px;" /></a>
-<p class="caption"><span class="caption-text">source: <a class="reference external" href="https://lilianweng.github.io/posts/2018-04-08-policy-gradient/#d4pg">https://lilianweng.github.io/posts/2018-04-08-policy-gradient/#d4pg</a></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
-</div>
-</div>
-<div class="section" id="implementations">
+<figcaption>
+<p><span class="caption-text">source: <a class="reference external" href="https://lilianweng.github.io/posts/2018-04-08-policy-gradient/#d4pg">https://lilianweng.github.io/posts/2018-04-08-policy-gradient/#d4pg</a></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <dl class="py class">
@@ -562,7 +565,7 @@ However, our implementation only makes use of a single actor.</p>
 </dl>
 </dd></dl>
 
-<div class="section" id="model">
+<section id="model">
 <h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
 <p>Here we provide examples of <cite>QACDIST</cite> model as default model for <cite>D4PG</cite>.</p>
 <dl class="py class">
@@ -765,9 +768,9 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="benchmark">
+</section>
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -815,20 +818,20 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/schatty/d4pg-pytorch">D4PG Pytorch</a></p></li>
 </ul>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Gabriel Barth-Maron, Matthew W. Hoffman, David Budden, Will Dabney, Dan Horgan, Dhruva TB, Alistair Muldal, Nicolas Heess, Timothy Lillicrap: “Distributed Distributional Deterministic Policy Gradients”, 2018; [<a class="reference external" href="https://arxiv.org/abs/1804.08617v1">https://arxiv.org/abs/1804.08617v1</a> arXiv:1804.08617v1].</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

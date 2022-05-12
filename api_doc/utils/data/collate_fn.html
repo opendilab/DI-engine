@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>data.collate_fn &mdash; DI-engine 0.1.0 documentation</title>
@@ -214,11 +215,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="data-collate-fn">
+  <section id="data-collate-fn">
 <h1>data.collate_fn<a class="headerlink" href="#data-collate-fn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="collate-function">
+<section id="collate-function">
 <h2>collate function<a class="headerlink" href="#collate-function" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="module-ding.utils.data.collate_fn.default_collate">
+<section id="module-ding.utils.data.collate_fn.default_collate">
 <span id="default-collate"></span><h3>default_collate<a class="headerlink" href="#module-ding.utils.data.collate_fn.default_collate" title="Permalink to this headline">¶</a></h3>
 <dl>
 <dt>Overview:</dt><dd><p>Put each data field into a tensor with outer dimension batch size.</p>
@@ -253,8 +254,8 @@
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.data.collate_fn.timestep_collate">
+</section>
+<section id="module-ding.utils.data.collate_fn.timestep_collate">
 <span id="timestep-collate"></span><h3>timestep_collate<a class="headerlink" href="#module-ding.utils.data.collate_fn.timestep_collate" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Put each timestepped data field into a tensor with outer dimension batch size using <code class="docutils literal notranslate"><span class="pre">default_collate</span></code>.
@@ -270,8 +271,8 @@ For short, this process can be represented by:
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.data.collate_fn.diff_shape_collate">
+</section>
+<section id="module-ding.utils.data.collate_fn.diff_shape_collate">
 <span id="diff-shape-collate"></span><h3>diff_shape_collate<a class="headerlink" href="#module-ding.utils.data.collate_fn.diff_shape_collate" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Similar to <code class="docutils literal notranslate"><span class="pre">default_collate</span></code>, put each data field into a tensor with outer dimension batch size.
@@ -287,8 +288,8 @@ which is quite common StarCraft observation.</p>
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.data.collate_fn.default_decollate">
+</section>
+<section id="module-ding.utils.data.collate_fn.default_decollate">
 <span id="default-decollate"></span><h3>default_decollate<a class="headerlink" href="#module-ding.utils.data.collate_fn.default_decollate" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Drag out batch_size collated data’s batch size to decollate it,
@@ -304,9 +305,9 @@ which is the reverse operation of <code class="docutils literal notranslate"><sp
 </ul>
 </dd>
 </dl>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

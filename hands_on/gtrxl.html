@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>GTrXL &mdash; DI-engine 0.1.0 documentation</title>
@@ -221,9 +222,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="gtrxl">
+  <section id="gtrxl">
 <h1>GTrXL<a class="headerlink" href="#gtrxl" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Gated Transformer-XL, or GTrXL, first proposed in <a class="reference external" href="https://arxiv.org/pdf/1910.06764.pdf">Stabilizing Transformers for Reinforcement Learning</a>,
 is a novel framework for reinforcement learning adapted from the Transformer-XL architecture.
@@ -231,8 +232,8 @@ It mainly introduces two architectural modifications that improve the stability 
 placing the layer normalization on only the input stream of the submodules, and replacing residual connections with gating layers.
 The proposed architecture, surpasses LSTMs on challenging memory environments and achieves state-of-the-art
 results on the several memory benchmarks, exceeding the performance of an external memory architecture.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>GTrXL can serve as a <strong>backbone</strong> for many RL algorithms.</p></li>
@@ -240,8 +241,8 @@ results on the several memory benchmarks, exceeding the performance of an extern
 <li><p>GTrXL is based on <strong>Transformer-XL</strong> with <strong>Gating connections</strong>.</p></li>
 <li><p>The DI-engine implementation of GTrXL is based on the R2D2 algorithm. In the original paper, it is based on the algorithm <a class="reference external" href="https://arxiv.org/abs/1909.12238">V-MPO</a>.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p><strong>Transformer-XL</strong>: to address the context fragmentation problem, Transformer-XL introduces the notion of recurrence to the deep self-attention network.
 Instead of computing the hidden states from scratch for each new segment, Transformer-XL reuses the hidden states obtained in previous segments.
@@ -273,8 +274,8 @@ g^{(l)}(x, y) &amp;= (1-z)\odot x + z\odot \hat{h}
 <p><strong>Gated Identity Initialization</strong>: the authors claimed that the Identity Map Reordering aids policy optimization because it initializes the agent close to a Markovian policy or value function.
 If this is indeed the cause of improved stability, we can explicitly initialize the various gating mechanisms to be close to the identity map.
 This is the purpose of the bias <span class="math notranslate nohighlight">\(b_g^{(l)}\)</span> in the applicable gating layers. The authors demonstrate in an ablation that initially setting <span class="math notranslate nohighlight">\(b_g^{(l)}&gt;0\)</span> produces the best results.</p>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <p>GTrXL can be combined with:</p>
 <blockquote>
@@ -293,8 +294,8 @@ the recurrent agent state in the replay buffer, and “burning in” a portion o
 </li>
 </ul>
 </div></blockquote>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The network interface GTrXL used is defined as follows:</p>
 <dl class="py class">
@@ -750,8 +751,8 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -786,15 +787,15 @@ Acquire the data, calculate the loss and optimize learner model.</p>
 <li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
 <li><p>For the discrete action space algorithm like DQN, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>. For more details about Atari, please refer to <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
 </ol>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Parisotto, Emilio, et al. “Stabilizing Transformers for Reinforcement Learning.”, 2019; [<a class="reference external" href="http://arxiv.org/abs/1910.06764">http://arxiv.org/abs/1910.06764</a> arXiv:1910.06764]</p></li>
 <li><p>Dai, Zihang , et al. “Transformer-XL: Attentive Language Models Beyond a Fixed-Length Context.”, 2019; [<a class="reference external" href="http://arxiv.org/abs/1901.02860">http://arxiv.org/abs/1901.02860</a> arXiv:1901.02860]</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

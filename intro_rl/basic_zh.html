@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>基本概念 &mdash; DI-engine 0.1.0 documentation</title>
@@ -188,7 +189,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="id1">
+  <section id="id1">
 <h1>基本概念<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
 <p>强化学习 (RL) 方法被用于解决智能体与环境的交互问题。简单的描述交互 (interaction) 的过程，智能体从环境中接收观察到的信息 (observation)，根据接收到的信息选择动作 (action)，环境会因为智能体采取的动作发生改变，并给予智能体动作的反馈奖励 (reward)。这个过程循环发生，智能体的目标是最大化积累自己接收到的奖励。强化学习的目标也就是让智能体学会一种策略 (policy) ，使奖励最大化。</p>
 <p>为了更详细地介绍强化学习的理论细节与技术，我们会解释以下的基础概念：</p>
@@ -208,7 +209,7 @@
 <li><p>Model-based RL</p></li>
 </ul>
 <p>最后我们还解答了一些强化学习领域中常见的概念性问题，以供参考。</p>
-<div class="section" id="mdp">
+<section id="mdp">
 <h2>马尔可夫决策过程/MDP<a class="headerlink" href="#mdp" title="Permalink to this headline">¶</a></h2>
 <p><strong>马尔可夫决策过程 (Markov Decision Processes)</strong> 是强化学习在数学上的理想化形式，也是最常见的常见模型。</p>
 <ul class="simple">
@@ -235,41 +236,41 @@
 <li><p><strong>时序差分学习(TD)</strong>, TD loss的基本形式: <span class="math notranslate nohighlight">\(\delta_{t} = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)\)</span>
 TD与MC的对比: MC更新的目标是 <span class="math notranslate nohighlight">\(G_t\)</span> 即时刻t的真实回报， 而TD(此时讨论单步TD即TD(0))更新的目标是 <span class="math notranslate nohighlight">\(R_{t+1} + \gamma V(S_{t+1})\)</span> .</p></li>
 </ol>
-</div>
-<div class="section" id="state-spaces">
+</section>
+<section id="state-spaces">
 <h2>状态空间/State Spaces<a class="headerlink" href="#state-spaces" title="Permalink to this headline">¶</a></h2>
 <p>State <span class="math notranslate nohighlight">\(s\)</span> 是对环境的global性描述，observation <span class="math notranslate nohighlight">\(o\)</span> 是对环境的部分性描述。一般的环境会使用实值向量、矩阵或高阶张量来表示状态和观察的结果。例如，Atari游戏中使用RGB图片来表示游戏环境的信息，MuJoCo控制任务中使用向量来表示智能体的状态。</p>
 <p>当智能体能够接收到环境全部的状态信息 <span class="math notranslate nohighlight">\(s\)</span> 时，我们称智能体的学习过程为fully observable，当智能体只能接收部分环境信息 <span class="math notranslate nohighlight">\(o\)</span> .</p>
-</div>
-<div class="section" id="action-spaces">
+</section>
+<section id="action-spaces">
 <h2>动作空间/Action Spaces<a class="headerlink" href="#action-spaces" title="Permalink to this headline">¶</a></h2>
 <p>不同的环境所允许的动作空间不同。一般将环境中所有有效动作 <span class="math notranslate nohighlight">\(a\)</span> 的集合称之为动作空间 (Action Space)。其中，动作空间又分为离散 (discrete) 动作空间与连续 (continuous) 动作空间。</p>
 <p>如在Atari游戏与SMAC星际游戏中为离散的动作空间，只可以从有限数量的动作中进行选择，而MuJoCo等一些机器人连续控制任务中为连续动作空间，动作空间一般为实值向量区间。</p>
-</div>
-<div class="section" id="policy">
+</section>
+<section id="policy">
 <h2>策略/Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h2>
 <p><strong>策略 (policy)</strong> 决定了智能体面对不同的环境状态时采取的动作，当策略为确定的 (deterministic)，我们一般用 <span class="math notranslate nohighlight">\(a_t = \mu(s_t)\)</span> 来表示。
 当策略为随机的 (stochastic)，一般表示为 <span class="math notranslate nohighlight">\(a_t ~ \pi(·｜s_t')\)</span> .</p>
 <p>在强化学习中，策略梯度的方法需要学习参数化表示的策略 (Parameterized policy)，用参数拟合策略函数，经常使用 <span class="math notranslate nohighlight">\(\theta\)</span> 表示参数。另一种基于价值函数的方法则不一定需要策略函数。下面的章节我们会更详细地介绍强化学习中学习策略的方法。</p>
-</div>
-<div class="section" id="trajectory">
+</section>
+<section id="trajectory">
 <h2>轨迹/Trajectory<a class="headerlink" href="#trajectory" title="Permalink to this headline">¶</a></h2>
 <p>强化学习中将马尔可夫决策过程的一个序列称为 <strong>轨迹 (trajectory)</strong> <span class="math notranslate nohighlight">\((s_0, a_0, ..., s_n, a_n)\)</span> 。轨迹数据中包含了环境的transition方程，即 <span class="math notranslate nohighlight">\(s_{t+1} = f(s_t, a_t)\)</span> （transition可能是确定的也可能是随机的）以及智能体采取的策略。强化学习中包含了如何使用策略来采样轨迹数据，以及如何利用轨迹数据来更新学习目标两个部分。两个部分的不同也造成了强化学习方法的区别。</p>
 <p>由于轨迹中也包含了环境的dynamics模型的信息，因此利用策略数据也可以学习到环境的信息，用来帮助智能体的学习。</p>
-</div>
-<div class="section" id="return-and-reward">
+</section>
+<section id="return-and-reward">
 <h2>奖励/Return and reward<a class="headerlink" href="#return-and-reward" title="Permalink to this headline">¶</a></h2>
 <p><strong>奖励 (reward)</strong> 是智能体所处的环境给强化学习方法的一个学习信号 (signal)，当环境发生变化时，奖励函数也会发生变化。奖励函数由当前的状态与智能体的动作决定，表示为 <span class="math notranslate nohighlight">\(r_t = R(s_t, a_t)\)</span></p>
 <p><strong>累积奖励</strong>，Return的定义为在一个马尔可夫过程中上从t时刻开始往后所有的奖励的有衰减的收益总和。</p>
 <p><span class="math notranslate nohighlight">\(G_t = R_{t+1}+\gamma * R_{t+2}+{\gamma}^2 * R_{t+3}+ ...\)</span></p>
 <p><span class="math notranslate nohighlight">\(\gamma\)</span> 衰减因子体现的是未来的奖励在当前时刻的价值比例，接近0，则表明趋向于“近视”性评估，接近于1时表明更考虑远期的利益，对未来的信心。衰减因子的引入不但在数学表达上更方便，可以避免陷入无限循环，降低远期利益的不确定性。</p>
 <p>不同的环境中可能存在其他难以处理的奖励函数，如稀疏奖励，并不是每一个状态下环境都会给予反馈，只有在一段轨迹过后才会获取奖励。因此强化学习中，对奖励函数的设计与加工也是一个重要的方向，对强化学习方法的效果有很大的影响。</p>
-</div>
-<div class="section" id="rl-optimization-problem">
+</section>
+<section id="rl-optimization-problem">
 <h2>优化/RL optimization problem<a class="headerlink" href="#rl-optimization-problem" title="Permalink to this headline">¶</a></h2>
 <p>简单的来说，强化学习问题的优化目标就是找到一个策略，使得收益最大。那么，如果我们可以计算出每个状态或者采取某个行动之后收益，我们每次行动就只需要采取收益较大的行动或者采取能够到达收益较大状态的行动。因此，对期望收益 (expected return) 的估计也是强化学习方法的一个优化方向。另一种方法则是直接进行策略空间上的搜索。无论是哪一种方法，最终的优化目标都是return的最大化。</p>
-</div>
-<div class="section" id="value-functions">
+</section>
+<section id="value-functions">
 <h2>价值函数/Value functions<a class="headerlink" href="#value-functions" title="Permalink to this headline">¶</a></h2>
 <p><strong>状态价值函数 (state value function)</strong> 是指智能体采用策略 <span class="math notranslate nohighlight">\(\pi\)</span> 的收益return在状态 <span class="math notranslate nohighlight">\(s\)</span> 处的期望值。状态价值函数是评价策略函数优劣的标准之一</p>
 <p><span class="math notranslate nohighlight">\(V_{\pi}(s) = E_{\pi}[G_t|s_t=s]\)</span></p>
@@ -289,23 +290,23 @@ TD与MC的对比: MC更新的目标是 <span class="math notranslate nohighlight
 <p>基于价值函数 (value based) 的强化学习方法包括两个步骤：策略评估与策略优化。强化学习方法先估计策略的值函数，再根据值函数改进策略。若认为当值函数最优时，策略是最优的，此时最优策略是贪婪策略。</p>
 <p>对于模型已知的系统，值函数可以利用动态规划的方法得到；对于模型未知的系统，可以利用蒙特卡洛的方法或者时间差分的方法得到。</p>
 <p>对于表格型的强化学习方法，我们通过迭代更新值函数的表格即可完成对值函数的估计。而很多情况下，如状态空间或动作空间不为离散空间时，值函数无法用一张表格来表示。此时，我们需要利用函数逼近的方法对值函数进行表示。</p>
-</div>
-<div class="section" id="policy-gradients">
+</section>
+<section id="policy-gradients">
 <h2>策略梯度/Policy Gradients<a class="headerlink" href="#policy-gradients" title="Permalink to this headline">¶</a></h2>
 <p>在一些情况下，随机策略将会优于确定性的策略，那么基于值函数的强化学习方法无法学习到这样的策略。因此提出了基于策略的强化学习方法。</p>
 <p>与基于值函数的强化学习方法不同，policy based的强化学习方法是将策略进行参数化，利用线性或非线性函数对策略进行表示，寻找最优的参数使得强化学习的目标：累积回报的期望最大。</p>
 <p>在值函数的方法中，我们迭代计算的是值函数，然后根据值函数对策略进行改进；而在策略搜索方法中，我们直接使用 <strong>策略梯度 (policy gradient)</strong> 进行策略迭代的计算，也就是计算得到动作上策略梯度，沿着梯度方法，迭代更新策略参数值，直到累积回报的期望最大，此时的参数所对应的策略为最优策略。</p>
 <p>与值函数的方法相比，策略梯度的方法容易收敛到局部最小值，评估单个策略时并不充分，方差较大。</p>
 <p>更多的policy based的方法的详细理解参考我们文档中的具体算法。</p>
-</div>
-<div class="section" id="actor-critic">
+</section>
+<section id="actor-critic">
 <h2>演员-评论家/Actor Critic<a class="headerlink" href="#actor-critic" title="Permalink to this headline">¶</a></h2>
 <p><strong>Critic</strong>，参数化行为价值函数，进行策略的价值评估。</p>
 <p><strong>Actor</strong>，参数化的策略函数，按照Critic部分得到的价值，利用策略梯度进行策略函数参数的更新。</p>
 <p>总结来说，Actor Critic是一种既学习价值函数也学习策略函数的方法，结合了以上两种方法的优点。基于这个框架下的各种算法，既可以去适应不同的动作空间与状态空间的问题，也可以对不同的策略空间中找到最优策略。</p>
 <p>更多的Actor Critic算法如A2C, DDPG, TD3等参考我们文档中对算法的解释。</p>
-</div>
-<div class="section" id="model-based-rl">
+</section>
+<section id="model-based-rl">
 <h2>基于模型/Model-based RL<a class="headerlink" href="#model-based-rl" title="Permalink to this headline">¶</a></h2>
 <p>在以上的model-free的方法中，value-based方法先学习值函数（MC或TD）再更新策略，policy-based方法直接更新策略。而model-based方法的重点在于环境模型(environment dynamics)，通过采样先学习一个对环境的建模，再根据学习到的环境模型做值函数/策略优化。</p>
 <p>在完成了对环境的建模后，在model-based大类方法中同样有两种路径，一种是通过学到的model生成一些仿真轨迹，通过仿真轨迹估计值函数进而优化策略；另一种是通过学到的model直接优化策略，这也是目前model-based方法常走的路线。先学习一个环境模型，可以帮助我们解决强化学习方法中样本效率的问题 (sample efficiency)。</p>
@@ -313,8 +314,8 @@ TD与MC的对比: MC更新的目标是 <span class="math notranslate nohighlight
 <p><span class="math notranslate nohighlight">\(M=(P,R), s_{t+1}~P(s_{t+1}|s_t, a_t), r_{t+1}~R(r_{t+1}|s_t, a_t)\)</span></p>
 <p>Model的学习可以根据模型构造的不同，延伸出不同的算法。</p>
 <p>Model-based的策略优化：一种经典的方法是，先通过某种策略采样大量的数据，再学习一个模型来最小化误差，运用学到的模型来进行planning获取新的数据，循环上述的步骤。正是通过在learned model基础上做planning，model-based才提高了整个强化学习算法迭代的效率。</p>
-</div>
-<div class="section" id="q-a">
+</section>
+<section id="q-a">
 <h2>Q&amp;A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Q0: 强化学习 (Reinforcement Learning) 与监督学习 (Supervised Learning) 的本质区别在于？</dt><dd><ul class="simple">
@@ -359,8 +360,8 @@ off-policy则是可以使用之前过程中的策略进行训练，用于生成�
 </ul>
 </dd>
 </dl>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

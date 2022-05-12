@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>C51 &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,13 +172,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="c51">
+  <section id="c51">
 <h1>C51<a class="headerlink" href="#c51" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>C51 was first proposed in <a class="reference external" href="https://arxiv.org/abs/1707.06887">A Distributional Perspective on Reinforcement Learning</a>, different from previous works, C51 evaluates the complete distribution of a q-value rather than only the expectation. The authors designed a distributional Bellman operator, which preserves multimodality in value distributions and is believed to achieve more stable learning and mitigates the negative effects of learning from a non-stationary policy.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>C51 is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
@@ -186,22 +187,22 @@
 <li><p>Usually, C51 use <strong>eps-greedy</strong> or <strong>multinomial sample</strong> for exploration.</p></li>
 <li><p>C51 can be equipped with RNN.</p></li>
 </ol>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/C51.png"><img alt="../_images/C51.png" class="align-center" src="../_images/C51.png" style="width: 505.2px; height: 418.2px;" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>C51 models the value distribution using a discrete distribution, whose support set are N atoms: <span class="math notranslate nohighlight">\(z_i = V_\min + i * delta, i = 0,1,...,N-1\)</span> and <span class="math notranslate nohighlight">\(delta = (V_\max - V_\min) / N\)</span>. Each atom <span class="math notranslate nohighlight">\(z_i\)</span> has a parameterized probability <span class="math notranslate nohighlight">\(p_i\)</span>. The Bellman update of C51 projects the distribution of <span class="math notranslate nohighlight">\(r + \gamma * z_j^{\left(t+1\right)}\)</span> onto the distribution <span class="math notranslate nohighlight">\(z_i^t\)</span>.</p>
 </div>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The Bellman target of C51 is derived by projecting the returned distribution <span class="math notranslate nohighlight">\(r + \gamma * z_j\)</span> onto the current distribution <span class="math notranslate nohighlight">\(z_i\)</span>. Given a sample transition <span class="math notranslate nohighlight">\((x, a, r, x')\)</span>, we compute the Bellman update <span class="math notranslate nohighlight">\(Tˆz_j := r + \gamma z_j\)</span> for each atom <span class="math notranslate nohighlight">\(z_j\)</span>, then distribute its probability <span class="math notranslate nohighlight">\(p_{j}(x', \pi(x'))\)</span> to the immediate neighbors <span class="math notranslate nohighlight">\(p_{i}(x, \pi(x))\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[\left(\Phi \hat{T} Z_{\theta}(x, a)\right)_{i}=\sum_{j=0}^{N-1}\left[1-\frac{\left|\left[\hat{\mathcal{T}} z_{j}\right]_{V_{\mathrm{MIN}}}^{V_{\mathrm{MAX}}}-z_{i}\right|}{\Delta z}\right]_{0}^{1} p_{j}\left(x^{\prime}, \pi\left(x^{\prime}\right)\right)\]</div>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><dl class="simple">
@@ -216,8 +217,8 @@
 </dl>
 </li>
 </ul>
-</div>
-<div class="section" id="implementation">
+</section>
+<section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -477,8 +478,8 @@ Parameter updates with C51DQN’s MLPs forward setup.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given docutils align-default" id="id1">
 <caption><span class="caption-text">Benchmark and comparison of c51 algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
@@ -542,16 +543,16 @@ Parameter updates with C51DQN’s MLPs forward setup.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ul class="simple">
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/c51.py">Tianshou</a></p></li>
 </ul>
 </div></blockquote>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

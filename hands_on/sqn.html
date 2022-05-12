@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>SQN &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="sqn">
+  <section id="sqn">
 <h1>SQN<a class="headerlink" href="#sqn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Soft Q-learning is an extension from many previous work, including:
 Leverage the Average: an Analysis of KL Regularization in Reinforcement
@@ -181,8 +182,8 @@ Learning , Soft Actor-Critic Algorithms and Applications, Equivalence
 Between Policy Gradients and Soft Q-Learning and so on. It an off-policy
 Q-learning algorithm, but adopt the maximum entropy framework, make an
 connection between Policy Gradients and Q-learning.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SQN is implemented for environments with <strong>Discrete</strong> action
@@ -193,8 +194,8 @@ Boltzmann policy to do exploration.</p></li>
 Q-function and construct a policy from Q-function</p></li>
 <li><p>SQN is implemented for <strong>Multi-Discrete</strong> action space as well</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>An entropy-regularized version of RL objective could lead to better
 exploration and stability. The most general way to define
@@ -222,8 +223,8 @@ optimal policy additionally aims to maximize its entropy at each visited
 state and the TD-target becomes:</p>
 <div class="math notranslate nohighlight">
 \[y_t = r + \gamma\left[Q_{\bar{\theta}}\left(\mathbf{s}', \mathbf{a}'\right)-\tau \log \pi_{\phi}\left(\mathbf{a}' \mid \mathbf{s}')\right]\right.\]</div>
-</div>
-<div class="section" id="pseudocode">
+</section>
+<section id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/sqn.png" class="align-center" src="../_images/sqn.png" />
 <div class="highlight-tex notranslate"><div class="highlight"><pre><span></span><span class="k">\begin</span><span class="nb">{</span>algorithm<span class="nb">}</span>[tp]
@@ -270,8 +271,8 @@ state and the TD-target becomes:</p>
 <span class="k">\end</span><span class="nb">{</span>algorithm<span class="nb">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <p>SQN can be combined with:</p>
 <ul class="simple">
@@ -292,8 +293,8 @@ inference, like <a class="reference external" href="https://arxiv.org/abs/1806.0
 relationship to SQN, SAC and the max-entropy framework, it an
 activate area.</p></li>
 </ul>
-</div>
-<div class="section" id="implementation">
+</section>
+<section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p>Soft Q loss</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Target</span>
@@ -330,12 +331,12 @@ activate area.</p></li>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">alpha_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">entropy</span> <span class="o">-</span> <span class="n">expect_entropy</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="https://github.com/createamind/DRL/tree/master/spinup/algos/sqn">DRL</a></p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

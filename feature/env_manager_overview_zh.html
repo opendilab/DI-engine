@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Env Manager Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -188,9 +189,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="env-manager-overview">
+  <section id="env-manager-overview">
 <h1>Env Manager Overview<a class="headerlink" href="#env-manager-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="env-manager">
+<section id="env-manager">
 <h2>Env Manager<a class="headerlink" href="#env-manager" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>概述：</dt><dd><p>env manager 是一个环境管理器，可以管理多个相同类型不同配置的环境。env manager 可以实现多个 env 同时运行，同时获取环境中的信息，并且提供与 env 相似的接口，可以大大简化 code，加速运行。
@@ -344,8 +345,8 @@ observation，此举可以加快 SubprocessEnvManager 的运行效率。</p>
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="baseenvmanager-ding-envs-env-manager-base-env-manager-py">
+</section>
+<section id="baseenvmanager-ding-envs-env-manager-base-env-manager-py">
 <h2>BaseEnvManager (ding/envs/env_manager/base_env_manager.py)<a class="headerlink" href="#baseenvmanager-ding-envs-env-manager-base-env-manager-py" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>概述：</dt><dd><p>使用循环串行的方式运行多个环境的管理器。</p>
@@ -367,8 +368,8 @@ observation，此举可以加快 SubprocessEnvManager 的运行效率。</p>
 </ol>
 </dd>
 </dl>
-</div>
-<div class="section" id="subprocessenvmanager-ding-envs-env-manager-subprocess-env-manager-py">
+</section>
+<section id="subprocessenvmanager-ding-envs-env-manager-subprocess-env-manager-py">
 <h2>SubprocessEnvManager (ding/envs/env_manager/subprocess_env_manager.py)<a class="headerlink" href="#subprocessenvmanager-ding-envs-env-manager-subprocess-env-manager-py" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>概述：</dt><dd><p>继承了BaseEnvManager，通过 multiprocessing 模块为每个环境创建单独的进程，使用并行的方式运行多个环境的管理器。</p>
@@ -388,8 +389,8 @@ observation，此举可以加快 SubprocessEnvManager 的运行效率。</p>
 </ol>
 </dd>
 </dl>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

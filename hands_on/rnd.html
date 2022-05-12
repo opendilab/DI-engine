@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>RND &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="rnd">
+  <section id="rnd">
 <h1>RND<a class="headerlink" href="#rnd" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>RND (Random Network Distillation) was first proposed in
 <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">Exploration by Random Network Distillation</a> , which introduces
@@ -181,8 +182,8 @@ an exploration bonus for deep reinforcement learning methods that is easy to imp
 overhead to the computation performed. The exploration bonus is the error of a neural network predicting features
 of the observations given by a fixed randomly initialized neural network. RND claims that it is the first method that achieves
 better than average human performance on Montezuma’s Revenge without using demonstrations or having access to the underlying state of the game.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>The insight behind exploration approaches is that we first establish a method to measure the <strong>novelty of states</strong>, namely,
@@ -200,18 +201,18 @@ and a predictor network trained on data collected by the agent.</p></li>
 <li><p>In RND paper, the underlying base RL algorithm is off-policy PPO. Generally, RND intrinsic reward generation model can be combined with
 many different RL algorithms such as DDPG, TD3, SAC conveniently.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The following two graphs are from <a class="reference external" href="https://openai.com/blog/reinforcement-learning-with-prediction-based-rewards/">OpenAI’s blog</a>.
 The overall sketch of RND is as follows:</p>
-<div class="figure align-center">
+<figure class="align-center">
 <a class="reference internal image-reference" href="../_images/rnd.png"><img alt="" src="../_images/rnd.png" style="width: 443.5px; height: 229.0px;" /></a>
-</div>
+</figure>
 <p>The overall sketch of next_sate_prediction exploration method is as follows:</p>
-<div class="figure align-center">
+<figure class="align-center">
 <a class="reference internal image-reference" href="../_images/rnd_next_state_prediction.png"><img alt="" src="../_images/rnd_next_state_prediction.png" style="width: 442.5px; height: 230.0px;" /></a>
-</div>
+</figure>
 <p>In RND paper, the authors point out that prediction errors can be attributed to the following factors:</p>
 <ol class="arabic simple">
 <li><p><strong>Amount of training data</strong>. Prediction error is high where few similar examples were seen by the predictor.</p></li>
@@ -230,7 +231,7 @@ the prediction error as a measure of the novelty of visited states.</p>
 the predictor network can fit the output of the randomly initialized neural network better and better.
 Interested readers can refer to the follow-up improvement work <a class="reference external" href="https://arxiv.org/abs/2002.06038">Never Give Up: Learning Directed Exploration Strategies</a>
 and <a class="reference external" href="https://arxiv.org/abs/2003.13350">Agent57: Outperforming the Atari Human Benchmark</a>.</p>
-<div class="section" id="the-implementation-details-that-matters">
+<section id="the-implementation-details-that-matters">
 <h3>The implementation details that matters<a class="headerlink" href="#the-implementation-details-that-matters" title="Permalink to this headline">¶</a></h3>
 <p>1. <strong>intrinsic reward normalization and weight factors</strong>.
 Normalize the intrinsic reward by the min-max normalization method, i.e.,
@@ -254,15 +255,15 @@ while for intrinsic rewards it hurts exploration. So the rnd author recommend to
 <p>In our implementation, for simplicity, we don’t adopt the following tricks: non-episodic intrinsic reward, two value heads and different discount factors.</p>
 </div>
 <p>In order to understand the reasons behind these tricks more clearly, it is recommended to read the original <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">rnd paper</a> .</p>
-</div>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-Code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
-<div class="figure align-center">
+<figure class="align-center">
 <a class="reference internal image-reference" href="../_images/rnd_pseudo_code.png"><img alt="" src="../_images/rnd_pseudo_code.png" style="width: 500.4px; height: 449.4px;" /></a>
-</div>
-</div>
-<div class="section" id="code-implementation">
+</figure>
+</section>
+<section id="code-implementation">
 <h2>Code Implementation<a class="headerlink" href="#code-implementation" title="Permalink to this headline">¶</a></h2>
 <p>The interface of RND reward model is defined as follows:</p>
 <dl class="py class">
@@ -288,7 +289,7 @@ while for intrinsic rewards it hurts exploration. So the rnd author recommend to
 
 <p>Note: <code class="docutils literal notranslate"><span class="pre">...</span></code> indicates the omitted code snippet. For the complete code, please refer to our
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/reward_model/rnd_reward_model.py">implementation</a> in DI-engine.</p>
-<div class="section" id="rndnetwork">
+<section id="rndnetwork">
 <h3>RndNetwork<a class="headerlink" href="#rndnetwork" title="Permalink to this headline">¶</a></h3>
 <p>First, we define the class <code class="docutils literal notranslate"><span class="pre">RndNetwork</span></code> involves two neural networks: the fixed and randomly initialized target network <code class="docutils literal notranslate"><span class="pre">self.target</span></code>,
 and the predictor network <code class="docutils literal notranslate"><span class="pre">self.predictor</span></code> trained on data collected by the agent.</p>
@@ -319,8 +320,8 @@ and the predictor network <code class="docutils literal notranslate"><span class
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="rndrewardmodel">
+</section>
+<section id="rndrewardmodel">
 <h3>RndRewardModel<a class="headerlink" href="#rndrewardmodel" title="Permalink to this headline">¶</a></h3>
 <p>Then, we initialize reward model, optimizer and self._running_mean_std_rnd in <code class="docutils literal notranslate"><span class="pre">_init_</span></code> of class <code class="docutils literal notranslate"><span class="pre">RndRewardModel</span></code>.</p>
 <blockquote>
@@ -336,8 +337,8 @@ and the predictor network <code class="docutils literal notranslate"><span class
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="train-rndrewardmodel">
+</section>
+<section id="train-rndrewardmodel">
 <h3>Train RndRewardModel<a class="headerlink" href="#train-rndrewardmodel" title="Permalink to this headline">¶</a></h3>
 <p>Afterwards, we calculate the reward model loss and update the RND predictor network: <code class="docutils literal notranslate"><span class="pre">self.reward_model.predictor</span></code>.  Note that, according to the
 original paper, we adopt the observation normalization trick that is transforming the original observations to mean 0, std 1, and clip the normalized observations
@@ -360,8 +361,8 @@ to be between -5 and 5, which is empirically important especially when using a r
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="calculate-rnd-reward">
+</section>
+<section id="calculate-rnd-reward">
 <h3>Calculate RND Reward<a class="headerlink" href="#calculate-rnd-reward" title="Permalink to this headline">¶</a></h3>
 <p>Finally, we calculate MSE loss according to the RND reward model and do the necessary subsequent processing
 and rewrite the reward key in the data in <code class="docutils literal notranslate"><span class="pre">estimate</span></code> method of class <code class="docutils literal notranslate"><span class="pre">RndRewardModel</span></code>. And note that
@@ -411,9 +412,9 @@ the proportion of exploration is too large.</p>
 </div>
 </div></blockquote>
 </div></blockquote>
-</div>
-</div>
-<div class="section" id="benchmark-results">
+</section>
+</section>
+<section id="benchmark-results">
 <h2>Benchmark Results<a class="headerlink" href="#benchmark-results" title="Permalink to this headline">¶</a></h2>
 <p>Because in collection phase, we use multinomial_sample to increase the diversity of collected data,
 in evaluation phase, we use the argmax action to interact with env, and we run 5 different seeds and report the mean reward.
@@ -457,22 +458,22 @@ should be related to the total time-steps of solving the game.</p>
 <p class="admonition-title">Note</p>
 <p>How to determine the relative weight between the intrinsic reward and the original extrinsic reward can be valuable work in the future.</p>
 </div>
-</div>
-<div class="section" id="author-s-tensorflow-implementation">
+</section>
+<section id="author-s-tensorflow-implementation">
 <h2>Author’s Tensorflow Implementation<a class="headerlink" href="#author-s-tensorflow-implementation" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/openai/random-network-distillation.">RND</a></p></li>
 </ul>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Burda Y, Edwards H, Storkey A, et al. Exploration by random network distillation[J]. <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">https://arxiv.org/abs/1810.12894v1</a>. arXiv:1810.12894, 2018.</p></li>
 <li><p><a class="reference external" href="https://openai.com/blog/reinforcement-learning-with-prediction-based-rewards/">https://openai.com/blog/reinforcement-learning-with-prediction-based-rewards/</a></p></li>
 <li><p><a class="reference external" href="https://lilianweng.github.io/lil-log/2020/06/07/exploration-strategies-in-deep-reinforcement-learning.html#prediction-based-exploration">https://lilianweng.github.io/lil-log/2020/06/07/exploration-strategies-in-deep-reinforcement-learning.html#prediction-based-exploration</a></p></li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

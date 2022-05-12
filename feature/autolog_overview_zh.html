@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Autolog模块介绍 &mdash; DI-engine 0.1.0 documentation</title>
@@ -187,7 +188,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="autolog">
+  <section id="autolog">
 <h1>Autolog模块介绍<a class="headerlink" href="#autolog" title="Permalink to this headline">¶</a></h1>
 <dl>
 <dt>概述：</dt><dd><p>Autolog模块的主要用途为解决在模型训练等数据动态场景下，数据在有效时间窗口内的自动记录与分析。</p>
@@ -201,7 +202,7 @@
 </div></blockquote>
 </dd>
 </dl>
-<div class="section" id="time">
+<section id="time">
 <h2>Time<a class="headerlink" href="#time" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>概述：</dt><dd><p>时间系统是Autolog系统的关键要素。其用来支撑一个日志模型的记录方式。</p>
@@ -216,8 +217,8 @@
 <p>此外，如有需要，可以自己定义Time类，只需要继承BaseTime并实现time()方法即可用于LoggedModel。</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="loggedmodel">
+</section>
+<section id="loggedmodel">
 <h2>LoggedModel<a class="headerlink" href="#loggedmodel" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>概述：</dt><dd><p>日志模型系统是Autolog的核心，也是关键所在。其基本用法为继承LoggedModel类，在内部定义LoggedValue的descriptor，并注册一些统计方法，来实现方便易用的统计功能。</p>
@@ -278,8 +279,8 @@
 </div>
 </dd>
 </dl>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

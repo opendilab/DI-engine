@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Overcooked &mdash; DI-engine 0.1.0 documentation</title>
@@ -198,9 +199,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="overcooked">
+  <section id="overcooked">
 <h1>Overcooked<a class="headerlink" href="#overcooked" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="https://github.com/HumanCompatibleAI/overcooked_ai">Overcooked-AI</a> is a benchmark environment for fully cooperative human-AI task performance, based on the wildly popular video game <a class="reference external" href="http://www.ghosttowngames.com/overcooked/">Overcooked</a> .</p>
 <p>The goal of the game is to deliver soups as fast as possible.
@@ -210,10 +211,10 @@ Each soup requires placing up to 3 ingredients in a pot, waiting for the soup to
 <p>The original overcooked-ai repo contained 5 available layout, as shown below:</p>
 <img alt="../_images/overcooked_layouts.gif" class="align-center" src="../_images/overcooked_layouts.gif" />
 <p>New layouts are easy to hardcode or generate programmatically.</p>
-</div>
-<div class="section" id="installation">
+</section>
+<section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="installation-methods">
+<section id="installation-methods">
 <h3>Installation Methods<a class="headerlink" href="#installation-methods" title="Permalink to this headline">¶</a></h3>
 <p>Install <code class="docutils literal notranslate"><span class="pre">overcooked-ai</span></code>. You can install by command <code class="docutils literal notranslate"><span class="pre">pip</span></code> or build from source.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
@@ -223,19 +224,19 @@ git clone https://github.com/HumanCompatibleAI/overcooked_ai.git
 pip install -e overcooked_ai/
 </pre></div>
 </div>
-</div>
-<div class="section" id="installation-check">
+</section>
+<section id="installation-check">
 <h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this headline">¶</a></h3>
 <p>After completing installation, you can check whether it is succesful by the following commands:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> DI-engine
 pytest -sv dizoo<span class="se">\o</span>vercooked<span class="se">\e</span>nvs<span class="se">\t</span>est_overcooked_env.py
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="rl-environment-space">
+</section>
+</section>
+<section id="rl-environment-space">
 <h2>RL Environment Space<a class="headerlink" href="#rl-environment-space" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="observation-space">
+<section id="observation-space">
 <h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Right now we use cramped_room setting to describe the observation space of overcooked env. The layout of the cramped_room is of shape``(5, 4)``.</p></li>
@@ -244,8 +245,8 @@ pytest -sv dizoo<span class="se">\o</span>vercooked<span class="se">\e</span>nvs
 <li><p>If use <code class="docutils literal notranslate"><span class="pre">concat_obs</span></code> in environment, then the obs shape will be <code class="docutils literal notranslate"><span class="pre">(2*layout_width,</span> <span class="pre">layout_height,</span> <span class="pre">26)</span></code>, otherwise the obs shape will be <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">(layout_width,</span> <span class="pre">layout_height,</span> <span class="pre">26))</span></code> .</p></li>
 <li><p>If the <code class="docutils literal notranslate"><span class="pre">action_mask</span></code> is enabled, the observation will also return an action_mask, which mask the unavailable action to zero (and one means action is available). The action_mask is of shape <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">6)</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="action-space">
+</section>
+<section id="action-space">
 <h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The action space is also containing 2 agents.</p></li>
@@ -261,38 +262,38 @@ pytest -sv dizoo<span class="se">\o</span>vercooked<span class="se">\e</span>nvs
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="reward-space">
+</section>
+<section id="reward-space">
 <h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Game score of overcooked.</p></li>
 <li><p>Note that we used reward shapingin order to ease the training process. You can turn up/down shape reward by setting <code class="docutils literal notranslate"><span class="pre">use_shaped_reward</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> .</p></li>
 </ul>
-</div>
-<div class="section" id="others">
+</section>
+<section id="others">
 <h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The game end after a fixed number of steps (default set to 400 steps).</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="key-facts">
+</section>
+</section>
+<section id="key-facts">
 <h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>The environment contains two agent.</p></li>
 <li><p>Discrete action space.</p></li>
 <li><p>The reward can be sparse if we set <code class="docutils literal notranslate"><span class="pre">use_shaped_reward</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> .</p></li>
 </ol>
-</div>
-<div class="section" id="other">
+</section>
+<section id="other">
 <h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="different-layouts">
+<section id="different-layouts">
 <h3>Different layouts<a class="headerlink" href="#different-layouts" title="Permalink to this headline">¶</a></h3>
 <p>You can change the layout used by changing <code class="docutils literal notranslate"><span class="pre">env_name</span></code> in environment config. However, the overcooked env is still under development, so not all layout is supported.</p>
 <p>You can also hand code your own layout, referencing this link for layouts <a class="reference external" href="https://github.com/HumanCompatibleAI/overcooked_ai/tree/master/src/overcooked_ai_py/data/layouts">files</a>.</p>
-</div>
-</div>
-<div class="section" id="di-zoo-code-example">
+</section>
+</section>
+<section id="di-zoo-code-example">
 <h2>DI-zoo code example<a class="headerlink" href="#di-zoo-code-example" title="Permalink to this headline">¶</a></h2>
 <p>Complete training configuration is at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/overcooked/entry/overcooked_selfplay_ppo_main.py">github
 link</a>.
@@ -394,14 +395,14 @@ You can run the demo as shown below:</p>
     <span class="n">main</span><span class="p">(</span><span class="n">overcooked_demo_ppo_config</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="algorithm-benchmark">
+</section>
+<section id="algorithm-benchmark">
 <h2>Algorithm Benchmark<a class="headerlink" href="#algorithm-benchmark" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>TODO</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

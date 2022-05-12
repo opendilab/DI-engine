@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>TD3 &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="td3">
+  <section id="td3">
 <h1>TD3<a class="headerlink" href="#td3" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Twin Delayed DDPG (TD3), proposed in the 2018 paper <a class="reference external" href="https://arxiv.org/abs/1802.09477">Addressing Function Approximation Error in Actor-Critic Methods</a>, is an algorithm which considers the interplay between function approximation error in both policy and value updates.
 TD3 is an actor-critic, model-free algorithm based on the <a class="reference external" href="https://arxiv.org/abs/1509.02971">deep deterministic policy gradient (DDPG)</a> that can address overestimation bias, the accumulation of error in temporal difference methods and high sensitivity to hyper-parameters in continuous action spaces. Specifically, TD3 addresses the issue by introducing the following three critical tricks:</p>
@@ -182,16 +183,16 @@ TD3 is an actor-critic, model-free algorithm based on the <a class="reference ex
 <li><p>Delayed Policy Updates:  TD3 updates the policy (and target networks) less frequently than the Q-function. In the paper, the author recommends one policy update for two Q-function updates. In our implementation, TD3 only updates the policy and target networks after a ﬁxed number of updates <span class="math notranslate nohighlight">\(d\)</span> to the critic. We implement Policy Updates Delay through configuring <code class="docutils literal notranslate"><span class="pre">learn.actor_update_freq</span></code>.</p></li>
 <li><p>Target Policy Smoothing:  By smoothing out Q along changes in action, TD3 provides noise to the target action, making it more difficult for the policy to exploit Q-function faults.</p></li>
 </ol>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>TD3 is only used for environments with <strong>continuous action spaces</strong> (e.g., MuJoCo).</p></li>
 <li><p>TD3 is an <strong>off-policy</strong> algorithm.</p></li>
 <li><p>TD3 is a <strong>model-free</strong> and <strong>actor-critic</strong> RL algorithm, which optimizes actor network and critic network respectively.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>TD3 proposes a clipped Double Q-learning variant which leverages the notion that a value estimate suffering from overestimation bias can be used as an approximate upper-bound to the true value estimate. TD3 shows that target networks, a common approach in deep Q-learning methods, are critical for variance reduction by reducing the accumulation of errors.</p>
 <p>Firstly, to address the coupling of value and policy, TD3 proposes delaying policy updates until the value estimate is as small as possible. Therefore, TD3 only updates the policy and target networks after a ﬁxed number of updates <span class="math notranslate nohighlight">\(d\)</span> to the critic.
@@ -208,8 +209,8 @@ y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\pri
 \epsilon \sim \operatorname{clip}(\mathcal{N}(0, \sigma),-c, c)
 \end{array}\end{split}\]</div>
 <p>we implement Target Policy Smoothing through configuring <code class="docutils literal notranslate"><span class="pre">learn.noise</span></code>, <code class="docutils literal notranslate"><span class="pre">learn.noise_sigma</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.noise_range</span></code>.</p>
-</div>
-<div class="section" id="pseudocode">
+</section>
+<section id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}:nowrap:\\\begin{split}\begin{algorithm}[H]
@@ -256,8 +257,8 @@ y=r+\gamma Q_{\theta^{\prime}}\left(s^{\prime}, \pi_{\phi^{\prime}}\left(s^{\pri
 \end{algorithmic}
 \end{algorithm}\end{split}\end{aligned}\end{align} \]</div>
 <a class="reference internal image-reference" href="../_images/TD3.png"><img alt="../_images/TD3.png" class="align-center" src="../_images/TD3.png" style="width: 526.4px; height: 603.2px;" /></a>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <p>TD3 is combined with:</p>
 <blockquote>
@@ -271,8 +272,8 @@ We configure <code class="docutils literal notranslate"><span class="pre">random
 </li>
 </ul>
 </div></blockquote>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <dl class="py class">
@@ -890,8 +891,8 @@ We configure <code class="docutils literal notranslate"><span class="pre">learn.
 </div></blockquote>
 </li>
 </ol>
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -951,12 +952,12 @@ Walker2d-v2)</p></td>
 <ol class="arabic simple">
 <li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
 </ol>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Scott Fujimoto, Herke van Hoof, David Meger: “Addressing Function Approximation Error in Actor-Critic Methods”, 2018; [<a class="reference external" href="http://arxiv.org/abs/1802.09477">http://arxiv.org/abs/1802.09477</a> arXiv:1802.09477].</p>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/tree/master/stable_baselines3/td3">sb3</a></p></li>
@@ -965,8 +966,8 @@ Walker2d-v2)</p></td>
 <li><p><a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/td3">Spinningup</a></p></li>
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/td3.py">tianshou</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

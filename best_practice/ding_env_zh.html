@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>如何将自己的环境迁移到DI-engine中 &mdash; DI-engine 0.1.0 documentation</title>
@@ -197,11 +198,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="di-engine">
+  <section id="di-engine">
 <h1>如何将自己的环境迁移到DI-engine中<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h1>
 <p>虽然已经在 <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> 中提供了大量的强化学习常用环境（ <a class="reference external" href="https://github.com/opendilab/DI-engine#environment-versatility">已支持的环境</a> ），但用户还是会需要将自己的环境迁移到 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 中。因此在本节中，将会介绍如何一步步进行上述迁移，以满足 <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 的基础环境基类 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的规范，从而轻松应用在训练的 pipeline 中。</p>
 <p>下面的介绍将分为 <strong>基础</strong> 和 <strong>进阶</strong> 两部分。 <strong>基础</strong> 表明如果想跑通 pipeline 必须实现的功能和注意的细节； <strong>进阶</strong> 则表示一些拓展的功能。</p>
-<div class="section" id="id2">
+<section id="id2">
 <h2>基础<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>本节将介绍迁移环境时，用户必须满足的规范约束、以及必须实现的功能。</p>
 <p>如果要在 DI-engine 中使用环境，需要实现一个继承自 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的子类环境，例如 <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> 。 <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> 和你自己的环境之间是 <a class="reference external" href="https://en.wikipedia.org/wiki/Object_composition">组合</a> 关系，即在一个 <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> 实例中，会持有一个你自己的环境的实例。</p>
@@ -304,8 +305,8 @@
 </div></blockquote>
 </li>
 </ol>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>进阶<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>环境预处理wrapper</p>
@@ -442,13 +443,13 @@
 </div>
 </li>
 </ol>
-</div>
-<div class="section" id="dingenvwrapper">
+</section>
+<section id="dingenvwrapper">
 <h2>DingEnvWrapper<a class="headerlink" href="#dingenvwrapper" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 可以快速将 ClassicControl, Box2d, Atari, Mujoco, GymHybrid 等简单环境转换为符合 <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> 的环境。</p>
 <p>注：<code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 的具体实现可以在 <code class="docutils literal notranslate"><span class="pre">ding/envs/env/ding_env_wrapper.py</span></code> 中找到，另外，可以查看 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/envs/env/tests/test_ding_env_wrapper.py">使用实例</a> 获取更多信息。</p>
-</div>
-<div class="section" id="q-a">
+</section>
+<section id="q-a">
 <h2>Q &amp; A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>MARL 环境应当如何迁移？</p>
@@ -466,8 +467,8 @@
 </ul>
 </li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

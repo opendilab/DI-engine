@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Replay Buffer Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -201,9 +202,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="replay-buffer-overview">
+  <section id="replay-buffer-overview">
 <h1>Replay Buffer Overview<a class="headerlink" href="#replay-buffer-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="ibuffer">
+<section id="ibuffer">
 <h2>IBuffer<a class="headerlink" href="#ibuffer" title="Permalink to this headline">¶</a></h2>
 <p>(ding/worker/replay_buffer/base_buffer.py)</p>
 <dl class="simple">
@@ -223,8 +224,8 @@
 </ol>
 </dd>
 </dl>
-</div>
-<div class="section" id="naivereplaybuffer">
+</section>
+<section id="naivereplaybuffer">
 <h2>NaiveReplayBuffer<a class="headerlink" href="#naivereplaybuffer" title="Permalink to this headline">¶</a></h2>
 <p>(ding/worker/replay_buffer/naive_buffer.py)</p>
 <dl class="simple">
@@ -246,16 +247,16 @@
 </ol>
 </dd>
 </dl>
-<div class="section" id="full-data-meta-data">
+<section id="full-data-meta-data">
 <h3>Full data &amp; Meta data<a class="headerlink" href="#full-data-meta-data" title="Permalink to this headline">¶</a></h3>
 <p>In DI-engine, we define <strong>full data</strong> and <strong>meta data</strong>.</p>
 <p><strong>Full data</strong> is often a dict, with keys <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> and some optional keys like <code class="docutils literal notranslate"><span class="pre">['priority',</span> <span class="pre">'use_count',</span> <span class="pre">'collect_iter',</span> <span class="pre">...]</span></code>. However, in some complex environments(Usually we run them in parallel mode), full data can be too big to store in memory. Therefore, we divide full data into <strong>file data</strong> and <strong>meta data</strong>.</p>
 <p><strong>File data</strong> is usually too big to store in memory, therefore is stored in file system. <strong>meta data</strong> includes <code class="docutils literal notranslate"><span class="pre">'file_path'</span></code> and some keys which can be used in sampling. <strong>meta data</strong> is usually small, so it can easily be stored in replay buffer(in memory).</p>
 <p>Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory, but also remove corresponding file data in the file system as well. DI-engine uses <code class="docutils literal notranslate"><span class="pre">UsedDataRemover</span></code> (ding/worker/replay_buffer/utils.py) to track and remove used file data.</p>
 <p>This mechanism is adopted in <strong>all buffers</strong>.</p>
-</div>
-</div>
-<div class="section" id="advancedreplaybuffer">
+</section>
+</section>
+<section id="advancedreplaybuffer">
 <h2>AdvancedReplayBuffer<a class="headerlink" href="#advancedreplaybuffer" title="Permalink to this headline">¶</a></h2>
 <p>(ding/worker/replay_buffer/advanced_buffer.py)</p>
 <dl class="simple">
@@ -279,7 +280,7 @@
 </dl>
 <p>Here is an image demonstrating “push”, “remove”, “sample” procedures of <code class="docutils literal notranslate"><span class="pre">AdvancedReplayBuffer</span></code>, including all advance features. Then we will introduce these features one by one.</p>
 <a class="reference internal image-reference" href="../_images/advanced_buffer.png"><img alt="../_images/advanced_buffer.png" class="align-center" src="../_images/advanced_buffer.png" style="width: 767.0px; height: 441.35px;" /></a>
-<div class="section" id="feature1-prioritized-sampling">
+<section id="feature1-prioritized-sampling">
 <h3>Feature1: Prioritized Sampling<a class="headerlink" href="#feature1-prioritized-sampling" title="Permalink to this headline">¶</a></h3>
 <p>Implement <a class="reference external" href="https://arxiv.org/abs/1511.05952">Prioritized Experience Replay</a>.
 Use segment tree to</p>
@@ -291,25 +292,25 @@ Use segment tree to</p>
 </ul>
 </div></blockquote>
 <p>DI-engine also uses <strong>numba</strong> to optimize profile.</p>
-</div>
-<div class="section" id="feature2-data-quality-monitor">
+</section>
+<section id="feature2-data-quality-monitor">
 <h3>Feature2: Data Quality Monitor<a class="headerlink" href="#feature2-data-quality-monitor" title="Permalink to this headline">¶</a></h3>
 <p>Monitor two data quality attributes: staleness and use_count. They both function during sampling to control sampled data quality.</p>
 <p><strong>staleness</strong> measures model iteration gap between the time when it is collected and the time when it is sampled. If the gap is too big, it means the data is too stale to use, so the data will be removed in <code class="docutils literal notranslate"><span class="pre">sample_check</span></code>.</p>
 <p><strong>use_count</strong> count how many times a piece of data is sampled. If when a data is sampled and this time it reaches the max limit, the data will be removed so it will not be sampled again, but this time it can be used. This mechanism affects “UsedDataRemover”: This time it can be sampled and used, but after that it should be removed out of buffer. However, if we remove it at once, learner might not be able to find the file data when training. As a result, we set its priority to 0 instead, and it will be removed when the circular queue’s head points to it.</p>
-</div>
-<div class="section" id="feature3-throughput-control">
+</section>
+<section id="feature3-throughput-control">
 <h3>Feature3: Throughput Control<a class="headerlink" href="#feature3-throughput-control" title="Permalink to this headline">¶</a></h3>
 <p>In serial mode, we can modify <code class="docutils literal notranslate"><span class="pre">n_sample</span></code> or <code class="docutils literal notranslate"><span class="pre">n_episode</span></code> to control how many samples or episodes to collect in collector’s turn; And modify <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">update_per_collect</span></code> to control how many samples are used in learner’s turn.</p>
 <p>However, in parallel mode, it is more complicated to balance the data speed in collector end and learner end. Therefore, we use <code class="docutils literal notranslate"><span class="pre">ThruputController</span></code> (ding/worker/replay_buffer/utils.py) to limit the “push” / “sample” rate in a [min, max] range.</p>
 <p>Also, user can set parameter <code class="docutils literal notranslate"><span class="pre">sample_min_limit_ratio</span></code> to control the min ratio of “valid count” / “batch_size”. If there are not enough valid datas, buffer can refuse to sample.</p>
-</div>
-<div class="section" id="feature4-logger">
+</section>
+<section id="feature4-logger">
 <h3>Feature4: Logger<a class="headerlink" href="#feature4-logger" title="Permalink to this headline">¶</a></h3>
 <p>Create tensorboard logger and text logger, to record data quality attributes(Feature2) and throughput statistics(Feature3). This feature is very useful in debugging and tuning.</p>
-</div>
-</div>
-<div class="section" id="episodereplaybuffer">
+</section>
+</section>
+<section id="episodereplaybuffer">
 <h2>EpisodeReplayBuffer<a class="headerlink" href="#episodereplaybuffer" title="Permalink to this headline">¶</a></h2>
 <p>(ding/worker/replay_buffer/episode_buffer.py)</p>
 <p>In some scenarios, a whole episode is of bigger use than separated samples, such as chess, card games or some specific algorithms like <a class="reference external" href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a>. Therefore, we need a buffer, where each element is no longer a training sample, but an episode. Currently, DI-engine <code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code> is derived from <code class="docutils literal notranslate"><span class="pre">NaiveReplayBuffer</span></code>, because they two share so many common features.
@@ -317,8 +318,8 @@ However, they two have two main differences.</p>
 <p>The <strong>first</strong> one is: Each element is a whole episode, rather than a sample.</p>
 <p>In addition, when sampling out episodes, sometimes an algorithm does not require a whole episode, but a fixed length within several episodes. As a result:</p>
 <p>The <strong>second</strong> one is: (Maybe) Do not sample <cite>batch_size</cite> elements(episodes). Instead, first do some operations, then return some chruncated train samples.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>TD3BC &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,29 +172,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="td3bc">
+  <section id="td3bc">
 <h1>TD3BC<a class="headerlink" href="#td3bc" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>TD3BC, proposed in the 2021 paper <a class="reference external" href="https://arxiv.org/abs/2106.06860">A Minimalist Approach to Offline Reinforcement Learning</a>,
 is a simple approach to offline RL where <strong>only two changes</strong> are made to TD3: a weighted behavior cloning loss is added to the policy update and the states are normalized.
 Unlike competing methods there are no changes to architecture or underlying hyperparameters.
 The resulting algorithm is a simple baseline that is easy to implement and tune, while more than halving the overall run time by removing the additional computational overhead of previous methods.</p>
-<div class="figure align-center" id="id1">
+<figure class="align-center" id="id1">
 <img alt="../_images/td3bc_paper_table1.png" src="../_images/td3bc_paper_table1.png" />
-<p class="caption"><span class="caption-text">Implementation changes offline RL algorithms make to the underlying base RL algorithm. † corresponds
+<figcaption>
+<p><span class="caption-text">Implementation changes offline RL algorithms make to the underlying base RL algorithm. † corresponds
 to details that add additional hyperparameter(s), and ‡ corresponds to ones that add a computational cost.
 <a class="reference external" href="https://arxiv.org/abs/2106.06860">Ref</a></span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
-</div>
-</div>
-<div class="section" id="quick-facts">
+</figcaption>
+</figure>
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>TD3BC is an <strong>offline</strong> RL algorithm.</p></li>
 <li><p>TD3BC is based on <strong>TD3</strong> and <strong>behavior cloning</strong>.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>TD3BC simply consists to add a behavior cloning term to TD3 in order to regularize the policy:</p>
 <div class="math notranslate nohighlight">
@@ -214,8 +217,8 @@ also the benefit of normalizing the learning rate across tasks since it is depen
 value for <span class="math notranslate nohighlight">\(\alpha\)</span> is 2.5.</p>
 <p>Additionally, all the states in each mini-batch are normalized, such that they have mean 0 and standard deviation 1.
 This normalization improves the stability of the learned policy.</p>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <dl class="py class">
@@ -521,7 +524,7 @@ class from DDPG class by changing <code class="docutils literal notranslate"><sp
 </table>
 </dd></dl>
 
-<div class="section" id="model">
+<section id="model">
 <h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
 <p>Here we provide examples of <cite>td3_bc</cite> model as default model for <cite>TD3BC</cite>.</p>
 <dl class="py class">
@@ -687,9 +690,9 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="benchmark">
+</section>
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -780,22 +783,22 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
 </tbody>
 </table>
 <p><strong>Note</strong>: the D4RL environment used in this benchmark can be found <a class="reference external" href="https://github.com/rail-berkeley/d4rl">here</a>.</p>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Scott Fujimoto, Shixiang Shane Gu: “A Minimalist Approach to Offline Reinforcement Learning”, 2021; [<a class="reference external" href="https://arxiv.org/abs/2106.06860">https://arxiv.org/abs/2106.06860</a> arXiv:2106.06860].</p></li>
 <li><p>Scott Fujimoto, Herke van Hoof, David Meger: “Addressing Function Approximation Error in Actor-Critic Methods”, 2018; [<a class="reference external" href="http://arxiv.org/abs/1802.09477">http://arxiv.org/abs/1802.09477</a> arXiv:1802.09477].</p></li>
 </ul>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/sfujim/TD3_BC">Official implementation</a></p></li>
 <li><p><a class="reference external" href="https://github.com/takuseno/d3rlpy">d3rlpy</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

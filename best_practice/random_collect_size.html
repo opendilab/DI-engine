@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>How to randomly collect some data sample at the beginning? &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,14 +171,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-randomly-collect-some-data-sample-at-the-beginning">
+  <section id="how-to-randomly-collect-some-data-sample-at-the-beginning">
 <h1>How to randomly collect some data sample at the beginning?<a class="headerlink" href="#how-to-randomly-collect-some-data-sample-at-the-beginning" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="guideline">
+<section id="guideline">
 <h2>Guideline<a class="headerlink" href="#guideline" title="Permalink to this headline">¶</a></h2>
 <p>For some policies and environments, it is better to collect some data samples at the very beginning, with a completely random policy.
 So in this section, we will introduce how to write config and env info, and how serial_pipeline randomly collect data.</p>
-</div>
-<div class="section" id="how-to-write-config-and-env-info-user-view">
+</section>
+<section id="how-to-write-config-and-env-info-user-view">
 <h2>How to write config and env info. (User View)<a class="headerlink" href="#how-to-write-config-and-env-info-user-view" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>Config</p>
@@ -226,8 +227,8 @@ So in this section, we will introduce how to write config and env info, and how 
 </div></blockquote>
 </li>
 </ol>
-</div>
-<div class="section" id="how-di-engine-randomly-collect-developer-view">
+</section>
+<section id="how-di-engine-randomly-collect-developer-view">
 <h2>How DI-engine randomly collect? (Developer View)<a class="headerlink" href="#how-di-engine-randomly-collect-developer-view" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><p>We will take DI-engine <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code> as an example, to demonstrate how to use random_policy(<code class="docutils literal notranslate"><span class="pre">ding/ding/policy/policy_factory.py</span></code>) to collect random data if <code class="docutils literal notranslate"><span class="pre">random_collect_size</span></code> is set in config.</p>
@@ -249,8 +250,8 @@ So in this section, we will introduce how to write config and env info, and how 
 <p>DI-engine use different methods to generate different types of actions (discrete and continuous, whether has upper or lower bound, etc.).</p>
 <p>You can refer to <code class="docutils literal notranslate"><span class="pre">ding/ding/policy/policy_factory.py</span></code>, see <code class="docutils literal notranslate"><span class="pre">PolicyFactory</span></code>’s <code class="docutils literal notranslate"><span class="pre">get_random_policy</span></code>’s <code class="docutils literal notranslate"><span class="pre">forward</span></code> for more details.</p>
 </div></blockquote>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

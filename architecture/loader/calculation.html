@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Loader Calculation Process &mdash; DI-engine 0.1.0 documentation</title>
@@ -187,10 +188,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="loader-calculation-process">
+  <section id="loader-calculation-process">
 <h1>Loader Calculation Process<a class="headerlink" href="#loader-calculation-process" title="Permalink to this headline">¶</a></h1>
 <p>In this part, the calculation process of the common loaders will be introduced according to several samples and diagrams.</p>
-<div class="section" id="is-type-to-type">
+<section id="is-type-to-type">
 <h2>is_type &amp; to_type<a class="headerlink" href="#is-type-to-type" title="Permalink to this headline">¶</a></h2>
 <p><cite>is_type</cite> and <cite>to_type</cite> are 2 visual-similar loader functions, but actually they are different. By showing their difference, some design logic can be shown.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">itype</span> <span class="o">=</span> <span class="n">is_type</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -219,8 +220,8 @@
 </pre></div>
 </div>
 <p>This is the core logic of the loader framework, it is function-liked, whatever you want to do are included in loaders like <cite>itype</cite> and <cite>otype</cite>.</p>
-</div>
-<div class="section" id="or-and-pipe">
+</section>
+<section id="or-and-pipe">
 <h2>or &amp; and &amp; pipe<a class="headerlink" href="#or-and-pipe" title="Permalink to this headline">¶</a></h2>
 <p>Another core usage of the loader framework is the <cite>or</cite>, <cite>and</cite> and <cite>pipe</cite> operations, which can form complex load logic by compositing several single loaders.</p>
 <ul class="simple">
@@ -264,8 +265,8 @@
 <span class="n">l</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># ValueError, because (5 + 1) * 2 = 12 &gt; 10</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="turn-common-function-to-loader">
+</section>
+<section id="turn-common-function-to-loader">
 <h2>Turn common function to loader<a class="headerlink" href="#turn-common-function-to-loader" title="Permalink to this headline">¶</a></h2>
 <p>It is easy to define your own calculation. You can just define a function and wrap it by <cite>Loader</cite>. For example,</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -299,8 +300,8 @@
 </pre></div>
 </div>
 <p>The loader <cite>l</cite> has exactly the same logic.</p>
-</div>
-<div class="section" id="collection-support">
+</section>
+<section id="collection-support">
 <h2>Collection support<a class="headerlink" href="#collection-support" title="Permalink to this headline">¶</a></h2>
 <p>Loader provides support for collection (such as list and dict) as well. For example,</p>
 <ul class="simple">
@@ -333,8 +334,8 @@
 <span class="n">l</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">})</span>  <span class="c1"># DictError, &#39;a&#39;, &#39;b&#39; has ValueError</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="norm-math-and-function-support">
+</section>
+<section id="norm-math-and-function-support">
 <h2>Norm math and function support<a class="headerlink" href="#norm-math-and-function-support" title="Permalink to this headline">¶</a></h2>
 <p>Sometimes we need to do some complex math calculation, so the functions like <cite>plus</cite>, <cite>minus</cite>, <cite>multi`are not so convenient. `norm</cite> can be used at this time.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l1</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">((</span><span class="n">norm</span><span class="p">(</span><span class="n">keep</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">interval</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
@@ -367,8 +368,8 @@
 </div>
 <p><cite>l</cite> has exactly the same logic.</p>
 <p><strong>ATTENTION: PLEASE clearly differ the usage `Loader` and `norm` when they are both used in order to avoid the misuses</strong>.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

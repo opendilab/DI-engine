@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Advantages &mdash; DI-engine 0.1.0 documentation</title>
@@ -184,11 +185,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="advantages">
+  <section id="advantages">
 <h1>Advantages<a class="headerlink" href="#advantages" title="Permalink to this headline">¶</a></h1>
 <p>In the introduction part, we can see the convenience of compositing the logic together.</p>
 <p>So based on these features, some more advanced practice can be developed.</p>
-<div class="section" id="transform-and-validation-once">
+<section id="transform-and-validation-once">
 <h2>Transform and validation once<a class="headerlink" href="#transform-and-validation-once" title="Permalink to this headline">¶</a></h2>
 <p>Loader can be used in data validation, especially configuration data. For example,</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
@@ -226,8 +227,8 @@
 <span class="n">sl</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>  <span class="c1"># ValueError, 1 + 2 != 4</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="support-for-equivalent-forms">
+</section>
+<section id="support-for-equivalent-forms">
 <h2>Support for equivalent forms<a class="headerlink" href="#support-for-equivalent-forms" title="Permalink to this headline">¶</a></h2>
 <p>Base on <cite>or</cite> feature, equivalent forms of the configuration can be easily supported. For example, this is form 1</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
@@ -327,8 +328,8 @@
 <span class="n">new_loader_v0</span><span class="p">(</span><span class="s1">&#39;1,2&#39;</span><span class="p">)</span>                   <span class="c1"># {&#39;first&#39;: 1, &#39;second&#39;: 2}</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

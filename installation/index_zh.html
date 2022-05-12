@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>安装说明 &mdash; DI-engine 0.1.0 documentation</title>
@@ -174,11 +175,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="id1">
+  <section id="id1">
 <h1>安装说明<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="id2">
+<section id="id2">
 <h2>前置条件<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><p>系统版本:</p>
@@ -197,8 +198,8 @@
 <p>如果您需要使用GPU，建议您使用带有CUDA的PyTorch。否则，您只需要安装cpu版本的PyTorch。</p>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>发布版本<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>您可以从PyPI使用以下命令安装DI-engine：</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install DI-engine
@@ -241,8 +242,8 @@ Successfully installed DI-engine
 <p class="admonition-title">Note</p>
 <p>整个安装过程通常持续30秒左右（取决于软件包的下载速度），如果有一些失败的软件包，也可以参考 <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> 安装特定的软件包手动安装。</p>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>开发版本<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>为了对DI-engine有所贡献，并支持运行测试，您需要找到合适的发布标签或主分支</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># source r0.3.2  # maybe you need activate virtual environment first</span>
@@ -251,8 +252,8 @@ git clone https://github.com/opendilab/DI-engine.git <span class="o">&amp;&amp;<
 pip install -e .<span class="o">[</span>test, common_env<span class="o">]</span> --user
 </pre></div>
 </div>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h2>检查安装情况<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>安装之后，可以打开python控制台并运行以下代码</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ding</span>
@@ -265,8 +266,8 @@ pip install -e .<span class="o">[</span>test, common_env<span class="o">]</span>
 </pre></div>
 </div>
 <p>如果终端返回正确的信息，您可以使用这个CLI工具进行常见的训练和评估，您可以键入 <code class="docutils literal notranslate"><span class="pre">ding</span> <span class="pre">-h</span></code> 查看更多帮助。</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

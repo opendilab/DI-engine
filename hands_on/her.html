@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>HER &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,14 +171,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="her">
+  <section id="her">
 <h1>HER<a class="headerlink" href="#her" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>HER(Hindsight Experience Replay) was first proposed in <a class="reference external" href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a> to deal with the challenge caused by sparse reward. HER can be easily combined with any off-policy RL algorithm, allowing sample-efficient learning from rewards which are sparse and binary and therefore avoid the need for complicated reward engineering.</p>
 <p>HER’s core is to <strong>learn from failures</strong>. HER proposes that even if a task’s final goal is not achieved, the episode is still of use, because other goals might be achieved by the way. So HER creates a new episode from the original episode, labeling the new one with new rewards by changing the desired task goal.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>HER is not a seperate algorithm, it can be <strong>combined with any off-policy</strong> algorithm.</p></li>
@@ -191,8 +192,8 @@
 </ul>
 </li>
 </ol>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/HER_psuedo_code.png"><img alt="../_images/HER_psuedo_code.png" class="align-center" src="../_images/HER_psuedo_code.png" style="width: 741.4000000000001px; height: 602.8000000000001px;" /></a>
 <div class="admonition note">
@@ -200,8 +201,8 @@
 <p>Compared with psuedo code proposed in the original paper, DI-engine adopts a slightly different way to implement HER. In original paper, before the transition is pushed into buffer, it will be used to create several transitions with different goals. However there are two disadvantages: 1) Memory waste. All transitions(Original one and virtual ones) are all stored in the buffer. 2) Fixed dataset. Once the transitions are pushed into buffer, they will not be changed.</p>
 <p>Thus, in DI-engine, we first push original transitions(in whole episode format) in the buffer. After episodes are sampled out, we will start to create more transitions based on virtual goals. Goals are randomly created at every sampling, so even if the same episode is sampled out several times, the created new training data will not be the same.</p>
 </div>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The implementation in DI-engine is not in <code class="docutils literal notranslate"><span class="pre">ding.policy</span></code> as many other algorithms, but in <code class="docutils literal notranslate"><span class="pre">ding.reward_model.her_reward_model</span></code>:</p>
 <dl class="py class">
@@ -229,8 +230,8 @@ Therefore, in one iteration, <code class="docutils literal notranslate"><span cl
 </div>
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given docutils align-default" id="id2">
 <caption><span class="caption-text">Benchmark and comparison of c51 algorithm</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
@@ -264,20 +265,20 @@ Therefore, in one iteration, <code class="docutils literal notranslate"><span cl
 </table>
 <p>P.S.</p>
 <p>The above results are obtained by running the same configuration on 3 different random seeds (0, 1, 2)</p>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Andrychowicz M, Wolski F, Ray A, et al. Hindsight experience replay[J]. arXiv preprint arXiv:1707.01495, 2017.</p></li>
 </ul>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/tree/master/stable_baselines3/her">StableBaselines3</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

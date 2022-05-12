@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>QTRAN &mdash; DI-engine 0.1.0 documentation</title>
@@ -167,14 +168,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="qtran">
+  <section id="qtran">
 <h1>QTRAN<a class="headerlink" href="#qtran" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>QTRAN is proposed by Kyunghwan et al.(2019). QTRAN is a factorization method for MARL, which is free from such structural constraints and takes on a new approach to transform the original joint action-value function into an easily factorizable one, with the same optimal actions.</p>
 <p>Compared to VDN(Sunehag et al. 2017), QMIX(Rashid et al. 2018), QTRAN guarantees more general factorization than VDN or QMIX, thus covering a much wider class of MARL tasks than does previous methods, and it performs better than QMIX in 5m_vs_6m and MMM2 maps.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>QTRAN uses the paradigm of <strong>centralized training with decentralized execution</strong>.</p></li>
@@ -185,8 +186,8 @@
 <li><p>QTRAN accepts <strong>DRQN</strong> as individual value network.</p></li>
 <li><p>QTRAN learns the <strong>joint value function</strong> through <strong>Individual action-value network</strong>, <strong>Joint action-value network</strong> and <strong>State-value network</strong>.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The overall QTRAN architecture including individual agent networks and the mixing network structure:</p>
 <a class="reference internal image-reference" href="../_images/Qtran_net.png"><img alt="../_images/Qtran_net.png" class="align-center" src="../_images/Qtran_net.png" style="width: 600px;" /></a>
@@ -199,19 +200,19 @@
 \[L_{\mathrm{nopt}}(; \boldsymbol{\theta}) =\left(\min \left[Q_{\mathrm{jt}}^{\prime}(\boldsymbol{\tau}, \boldsymbol{u})-\hat{Q}_{\mathrm{jt}}(\boldsymbol{\tau}, \boldsymbol{u})+V_{\mathrm{jt}}(\boldsymbol{\tau}), 0\right]\right)^{2}\]</div>
 <div class="math notranslate nohighlight">
 \[L\left(\boldsymbol{\tau}, \boldsymbol{u}, r, \boldsymbol{\tau}^{\prime} ; \boldsymbol{\theta}\right)=L_{\mathrm{td}}+\lambda_{\mathrm{opt}} L_{\mathrm{opt}}+\lambda_{\mathrm{nopt}} L_{\mathrm{nopt}},\]</div>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <p>The following flow charts show how QTRAN trains.</p>
 <a class="reference internal image-reference" href="../_images/QTRAN.png"><img alt="../_images/QTRAN.png" class="align-center" src="../_images/QTRAN.png" style="width: 600px;" /></a>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>QTRAN++ (Son et al. 2019), as an extension of QTRAN, successfully bridges the gap between empirical performance and theoretical guarantee, and newly achieves state-of-the-art performance in the SMAC environment.</p></li>
 </ul>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <dl>
@@ -264,18 +265,18 @@
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. ICML, 2019.</p>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/oxwhirl/pymarl">Pymarl</a>.</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

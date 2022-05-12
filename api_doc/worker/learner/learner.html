@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>worker.learner &mdash; DI-engine 0.1.0 documentation</title>
@@ -198,12 +199,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="worker-learner">
+  <section id="worker-learner">
 <h1>worker.learner<a class="headerlink" href="#worker-learner" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="learner-hook">
+<section id="learner-hook">
 <h2>learner_hook<a class="headerlink" href="#learner-hook" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/worker/learner/learner_hook.py for usage</p>
-<div class="section" id="hook">
+<section id="hook">
 <h3>Hook<a class="headerlink" href="#hook" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.Hook">
@@ -232,8 +233,8 @@
 
 </dd></dl>
 
-</div>
-<div class="section" id="learnerhook">
+</section>
+<section id="learnerhook">
 <h3>LearnerHook<a class="headerlink" href="#learnerhook" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.LearnerHook">
@@ -265,8 +266,8 @@
 
 </dd></dl>
 
-</div>
-<div class="section" id="loadckpthook">
+</section>
+<section id="loadckpthook">
 <h3>LoadCkptHook<a class="headerlink" href="#loadckpthook" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.LoadCkptHook">
@@ -307,8 +308,8 @@
 
 </dd></dl>
 
-</div>
-<div class="section" id="saveckpthook">
+</section>
+<section id="saveckpthook">
 <h3>SaveCkptHook<a class="headerlink" href="#saveckpthook" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.SaveCkptHook">
@@ -350,8 +351,8 @@ Checkpoint info includes policy state_dict and iter num.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="logshowhook">
+</section>
+<section id="logshowhook">
 <h3>LogShowHook<a class="headerlink" href="#logshowhook" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.LogShowHook">
@@ -393,8 +394,8 @@ clear the log buffer for all learners regardless of rank</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="logreducehook">
+</section>
+<section id="logreducehook">
 <h3>LogReduceHook<a class="headerlink" href="#logreducehook" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.learner.learner_hook.LogReduceHook">
@@ -435,8 +436,8 @@ clear the log buffer for all learners regardless of rank</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-ding.worker.learner.learner_hook.register_learner_hook">
+</section>
+<section id="module-ding.worker.learner.learner_hook.register_learner_hook">
 <span id="register-learner-hook"></span><h3>register_learner_hook<a class="headerlink" href="#module-ding.worker.learner.learner_hook.register_learner_hook" title="Permalink to this headline">¶</a></h3>
 <dl>
 <dt>Overview:</dt><dd><p>Add a new LearnerHook class to hook_mapping, so you can build one instance with <cite>build_learner_hook_by_cfg</cite>.</p>
@@ -461,8 +462,8 @@ clear the log buffer for all learners regardless of rank</p>
 </div>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.worker.learner.learner_hook.build_learner_hook_by_cfg">
+</section>
+<section id="module-ding.worker.learner.learner_hook.build_learner_hook_by_cfg">
 <span id="build-learner-hook-by-cfg"></span><h3>build_learner_hook_by_cfg<a class="headerlink" href="#module-ding.worker.learner.learner_hook.build_learner_hook_by_cfg" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Build the learner hooks in hook_mapping by config.
@@ -480,8 +481,8 @@ while add_learner_hook() is often used to add an existing LearnerHook to <cite>h
 <dt>Note:</dt><dd><p>Lower value means higher priority.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.worker.learner.learner_hook.merge_hooks">
+</section>
+<section id="module-ding.worker.learner.learner_hook.merge_hooks">
 <span id="merge-hooks"></span><h3>merge_hooks<a class="headerlink" href="#module-ding.worker.learner.learner_hook.merge_hooks" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Merge two hooks dict, which have the same keys, and each value is sorted by hook priority with stable method.</p>
@@ -498,12 +499,12 @@ while add_learner_hook() is often used to add an existing LearnerHook to <cite>h
 <dt>Note:</dt><dd><p>This merge function uses stable sort method without disturbing the same priority hook.</p>
 </dd>
 </dl>
-</div>
-</div>
-<div class="section" id="base-learner">
+</section>
+</section>
+<section id="base-learner">
 <h2>base_learner<a class="headerlink" href="#base-learner" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/worker/learner/base_learner.py for usage</p>
-<div class="section" id="baselearner">
+<section id="baselearner">
 <h3>BaseLearner<a class="headerlink" href="#baselearner" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.learner.base_learner.BaseLearner">
@@ -654,8 +655,8 @@ parameter update.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-ding.worker.learner.base_learner.create_learner">
+</section>
+<section id="module-ding.worker.learner.base_learner.create_learner">
 <span id="create-learner"></span><h3>create_learner<a class="headerlink" href="#module-ding.worker.learner.base_learner.create_learner" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Given the key(learner_name), create a new learner instance if in learner_mapping’s values,
@@ -671,9 +672,9 @@ to get the instance.</p>
 </ul>
 </dd>
 </dl>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

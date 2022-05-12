@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>D4RL (Mujoco) &mdash; DI-engine 0.1.0 documentation</title>
@@ -224,9 +225,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="d4rl-mujoco">
+  <section id="d4rl-mujoco">
 <h1>D4RL (Mujoco)<a class="headerlink" href="#d4rl-mujoco" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>D4RL是离线强化学习(offline Reinforcement Learning)的开源benchmark，它为训练和基准算法提供标准化的环境和数据集。数据集的收集策略包含</p>
 <ol class="arabic simple">
@@ -256,10 +257,10 @@
 </ul>
 <p>下图所示为其中Hopper游戏。</p>
 <img alt="../_images/d4rl.gif" class="align-center" src="../_images/d4rl.gif" />
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>安装d4rl,gym和mujoco-py库即可，其中d4rl可以通过pip一键安装或通过clone安装</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># pip install</span>
@@ -321,8 +322,8 @@ pip install gym
 pip install -U <span class="s1">&#39;mujoco-py&lt;2.1&#39;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>安装完成后，可以通过在Python命令行中运行如下命令验证安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
@@ -345,43 +346,43 @@ pip install -U <span class="s1">&#39;mujoco-py&lt;2.1&#39;</span>
 <span class="n">dataset</span> <span class="o">=</span> <span class="n">d4rl</span><span class="o">.</span><span class="n">qlearning_dataset</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine准备好了配备有框架本身的镜像，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-mujoco</span></code>获取，或访问<a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a>获取更多镜像</p>
-</div>
-</div>
-<div class="section" id="gym-mujoco">
+</section>
+</section>
+<section id="gym-mujoco">
 <span id="id6"></span><h2>Gym-MuJoco变换前的空间（原始环境）<a class="headerlink" href="#gym-mujoco" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id7">
+<section id="id7">
 <span id="id8"></span><h3>观察空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>物理信息组成的向量(3D position, orientation, and joint angles etc. )，具体尺寸为<code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">)</span></code>，其中<code class="docutils literal notranslate"><span class="pre">N</span></code>根据环境决定，数据类型为<code class="docutils literal notranslate"><span class="pre">float64</span></code></p></li>
 <li><p><a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/entry/d4rl_cql_main.py">Fujimoto</a> 提到，对于d4rl数据集做obs norm会提升offline的训练稳定性</p></li>
 </ul>
-</div>
-<div class="section" id="id9">
+</section>
+<section id="id9">
 <span id="id10"></span><h3>动作空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>物理信息组成的向量(torque etc.)，一般是大小为N的连续动作空间（N随具体子环境变化），数据类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>，需要传入np数组（例如动作为<code class="docutils literal notranslate"><span class="pre">array([-0.9266078</span> <span class="pre">,</span> <span class="pre">-0.4958926</span> <span class="pre">,</span>&#160; <span class="pre">0.46242517],</span> <span class="pre">dtype=float32)</span></code>）</p></li>
 <li><p>如在Hopper环境中，N的大小为3，动作在<code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>中取值</p></li>
 </ul>
-</div>
-<div class="section" id="id11">
+</section>
+<section id="id11">
 <span id="id12"></span><h3>奖励空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>根据具体游戏内容不同，游戏得分会有非常大的差异，通常是一个float数值，具体的数值可以参考最下方的基准算法性能部分。</p></li>
 </ul>
-</div>
-<div class="section" id="id13">
+</section>
+<section id="id13">
 <span id="id14"></span><h3>其他<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏结束即为当前环境episode结束</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id15">
+</section>
+</section>
+<section id="id15">
 <h2>关键事实<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Vector物理信息输入，经验上做norm中不宜减去均值</p></li>
@@ -389,22 +390,22 @@ hub</a>获取更多镜像</p>
 <li><p>稠密奖励</p></li>
 <li><p>奖励取值尺度变化较大</p></li>
 </ol>
-</div>
-<div class="section" id="rl">
+</section>
+<section id="rl">
 <span id="id16"></span><h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id17">
+<section id="id17">
 <span id="id18"></span><h3>观察空间<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换</p></li>
 </ul>
-</div>
-<div class="section" id="id19">
+</section>
+<section id="id19">
 <span id="id20"></span><h3>动作空间<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换，依然是大小为N的连续动作空间，取值范围<code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">1]</span></code>，尺寸为<code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id21">
+</section>
+<section id="id21">
 <span id="id22"></span><h3>奖励空间<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换</p></li>
@@ -418,21 +419,21 @@ hub</a>获取更多镜像</p>
 <span class="n">rew_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id23">
+</section>
+<section id="id23">
 <span id="id24"></span><h3>其他<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>键值对，表示整个episode的评测指标，在Mujoco中为整个episode的奖励累加和</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id25">
+</section>
+</section>
+<section id="id25">
 <span id="id26"></span><h2>其他<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id27">
+<section id="id27">
 <h3>惰性初始化<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
-</div>
-<div class="section" id="id28">
+</section>
+<section id="id28">
 <h3>存储录像<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -450,9 +451,9 @@ hub</a>获取更多镜像</p>
         <span class="k">break</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/d4rl/config">github link</a>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/config/hopper_medium_cql_default_config.py</span></code>，使用如下的demo即可运行：</p>
@@ -529,8 +530,8 @@ hub</a>获取更多镜像</p>
 </div>
 <p>注：对于offline RL的算法，比如TD3_bc，CQL，需要使用专门的入口函数，示例可以参考
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/d4rl/entry/d4rl_cql_main.py">link</a></p>
-</div>
-<div class="section" id="id29">
+</section>
+<section id="id29">
 <h2>基准算法性能<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>Walker2d</p>
@@ -543,8 +544,8 @@ hub</a>获取更多镜像</p>
 </ul>
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

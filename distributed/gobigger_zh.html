@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>异步并行在 GoBigger 中的应用 &mdash; DI-engine 0.1.0 documentation</title>
@@ -178,7 +179,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="gobigger">
+  <section id="gobigger">
 <h1>异步并行在 GoBigger 中的应用<a class="headerlink" href="#gobigger" title="Permalink to this headline">¶</a></h1>
 <img alt="../_images/gobigger.gif" class="align-center" src="../_images/gobigger.gif" />
 <p><a class="reference external" href="https://github.com/opendilab/GoBigger">GoBigger</a> 是由 OpenDILab 开源的一款多智能体对抗竞技游戏环境。玩家（AI）控制地图中的一个或多个圆形球，通过吃食物球和其他比玩家球小的单位来尽可能获得更多重量，并需避免被更大的球吃掉。</p>
@@ -187,7 +188,7 @@
 <img alt="../_images/gobigger_async_parallel.png" class="align-center" src="../_images/gobigger_async_parallel.png" />
 <img alt="../_images/gobigger_tf.png" class="align-center" src="../_images/gobigger_tf.png" />
 <p>只要机器还有资源剩余，在改为异步并行后评估阶段对训练的影响几乎可以忽略不计，采集和训练的步骤可以保持连续，而不用在中间等待评估。从 tensorboard 的记录上也可以看到，异步并行的版本相对于串行版本，在样本采集和训练效率上都有很大的提升。</p>
-</div>
+</section>
 
 
            </div>

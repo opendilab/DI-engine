@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Bsuite &mdash; DI-engine 0.1.0 documentation</title>
@@ -198,9 +199,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="bsuite">
+  <section id="bsuite">
 <h1>Bsuite<a class="headerlink" href="#bsuite" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="description">
+<section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">bsuite</span></code> is a collection of carefully-designed experiments that investigate core capabilities of a reinforcement learning (RL) agent with two main objectives:</p>
 <blockquote>
@@ -209,14 +210,16 @@
 <li><p>To study agent behavior through their performance on these shared benchmarks.</p></li>
 </ol>
 </div></blockquote>
-<div class="figure align-center" id="id2">
+<figure class="align-center" id="id2">
 <img alt="../_images/bsuite.png" src="../_images/bsuite.png" />
-<p class="caption"><span class="caption-text">Imahge taken from: <a class="reference external" href="https://github.com/deepmind/bsuite">https://github.com/deepmind/bsuite</a></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</div>
-</div>
-<div class="section" id="installation">
+<figcaption>
+<p><span class="caption-text">Imahge taken from: <a class="reference external" href="https://github.com/deepmind/bsuite">https://github.com/deepmind/bsuite</a></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="how-to-install">
+<section id="how-to-install">
 <h3>How to install<a class="headerlink" href="#how-to-install" title="Permalink to this headline">¶</a></h3>
 <p>You just need to use the command <code class="docutils literal notranslate"><span class="pre">pip</span></code> to install bsuite, however it will be automatically installed when installing DI-engine.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
@@ -226,8 +229,8 @@ pip install bsuite
 pip install <span class="s2">&quot;.[common_env]&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="verify-installation">
+</section>
+<section id="verify-installation">
 <h3>Verify installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
 <p>Once installed, you can verify whether the installation is successful by running the following command on the Python command line.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
@@ -236,17 +239,17 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="original-environment-space">
+</section>
+</section>
+<section id="original-environment-space">
 <h2>Original environment space<a class="headerlink" href="#original-environment-space" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="observations-space">
+<section id="observations-space">
 <h3>Observations space<a class="headerlink" href="#observations-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Array representing the state of the environment, dimensions and size can vary according to the specific environment. Its datatype is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="actions-space">
+</section>
+<section id="actions-space">
 <span id="actions-space-1"></span><h3>Actions space<a class="headerlink" href="#actions-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The action space is a discrete space of size N which varies according to the environment. This datatype is <code class="docutils literal notranslate"><span class="pre">int</span></code>and input is a python integer value（or a np array of dimension 0 such as <code class="docutils literal notranslate"><span class="pre">np.array(1)</span></code>to input action 1）.</p></li>
@@ -257,21 +260,21 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="rewards-space">
+</section>
+<section id="rewards-space">
 <h3>Rewards space<a class="headerlink" href="#rewards-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Rewards are assigned according to the rules of the environments. Rewards are usually a <code class="docutils literal notranslate"><span class="pre">float</span></code>value.</p></li>
 </ul>
-</div>
-<div class="section" id="others">
+</section>
+<section id="others">
 <h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Environments terminate once they have reached their maximum number of steps or encountered a failure state. All environments have the fixed number of maximum steps, but not all environments have a failure state.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="key-facts">
+</section>
+</section>
+<section id="key-facts">
 <h2>Key facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Each environment contains several configurations to make it gradually more challenging.</p></li>
@@ -279,10 +282,10 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <li><p>Each environment is designed to test a particular propriety of RL policies, including: generalization, exploration, credit assignment, scaling, noise, memory.</p></li>
 <li><p>The scale of rewards can vary significantly.</p></li>
 </ol>
-</div>
-<div class="section" id="id1">
+</section>
+<section id="id1">
 <h2>Others<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="using-bsuite-in-openai-gym-format">
+<section id="using-bsuite-in-openai-gym-format">
 <h3>Using bsuite in ‘OpenAI Gym’ format<a class="headerlink" href="#using-bsuite-in-openai-gym-format" title="Permalink to this headline">¶</a></h3>
 <p>Our implementation uses the bsuite Gym wrapper to make the bsuite codebase run under the OpenAI Gym interface. Hence, <code class="docutils literal notranslate"><span class="pre">gym</span></code> needs to be installed to make bsuite work properly.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">bsuite</span>
@@ -291,8 +294,8 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <span class="n">gym_env</span> <span class="o">=</span> <span class="n">gym_wrapper</span><span class="o">.</span><span class="n">GymFromDMEnv</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="about-configurations">
+</section>
+<section id="about-configurations">
 <h3>About configurations<a class="headerlink" href="#about-configurations" title="Permalink to this headline">¶</a></h3>
 <p>Configurations are designed to increase the level of difficulty of an environment. For example, in a 5-armed bandit environment, configurations are used to regulate the level of noise to perturb the rewards.
 Given a specific environment, all possible configurations can be visualized with the following code snippet.</p>
@@ -311,9 +314,9 @@ Given a specific environment, all possible configurations can be visualized with
 <span class="n">memory_len_env</span> <span class="o">=</span> <span class="n">BSuiteEnv</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo-runnable-code">
+</section>
+</section>
+<section id="di-zoo-runnable-code">
 <h2>DI-zoo runnable code<a class="headerlink" href="#di-zoo-runnable-code" title="Permalink to this headline">¶</a></h2>
 <p>The full training configuration can be found on <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/bsuite/config/serial">github
 link</a>
@@ -375,8 +378,8 @@ link</a>
     <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

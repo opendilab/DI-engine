@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Inverse RL &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,7 +171,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="inverse-rl">
+  <section id="inverse-rl">
 <h1>Inverse RL<a class="headerlink" href="#inverse-rl" title="Permalink to this headline">¶</a></h1>
 <p>Generally, an IRL training process alternates between three stages. In
 each round:</p>
@@ -190,7 +191,7 @@ propcess of RL. Specifically:</p>
 <li><p>Update the rewards of each batch with the reward model before each step of RL training.</p></li>
 </ol>
 </div></blockquote>
-<div class="section" id="example-gail">
+<section id="example-gail">
 <h2>Example(GAIL)<a class="headerlink" href="#example-gail" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="../../../entry/tests/test_serial_entry_reward_model.py">link</a>:</p>
 <p>The key code of training a DQN policy with GAIL on CartPole is provided
@@ -251,8 +252,8 @@ reward model.</p>
     <span class="n">learner</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">collector</span><span class="o">.</span><span class="n">envstep</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

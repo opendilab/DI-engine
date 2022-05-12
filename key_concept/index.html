@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Key Concept &mdash; DI-engine 0.1.0 documentation</title>
@@ -216,7 +217,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="key-concept">
+  <section id="key-concept">
 <h1>Key Concept<a class="headerlink" href="#key-concept" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
@@ -224,7 +225,7 @@
 One of the basic control flows(serial pipeline) can be described as:</p>
 <img alt="../_images/serial_pipeline.svg" class="align-center" src="../_images/serial_pipeline.svg" /><p>In the following sections, DI-engine first introduces key concepts/components separately, then combines them like building
 a special “Evolution Graph” to offer different computation patterns(serial, parallel, dist).</p>
-<div class="section" id="concept">
+<section id="concept">
 <h2>Concept<a class="headerlink" href="#concept" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Environment</span></code> and <code class="docutils literal notranslate"><span class="pre">policy</span></code> are the most two important concepts in the total design scheme, which can also be called description modules, in most cases, the users of DI-engine only need to pay
 attention to these two components.</p>
@@ -235,7 +236,7 @@ modules are general in many RL algorithms, but the users can also override their
 <p class="admonition-title">Tip</p>
 <p>Environment and policy are partially extended from the original definition in other RL papers and frameworks.</p>
 </div>
-<div class="section" id="environment">
+<section id="environment">
 <h3>Environment<a class="headerlink" href="#environment" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine environment is a superset of <code class="docutils literal notranslate"><span class="pre">gym.Env</span></code>, it is compatible with gym env interfaces and offers some optional interfaces, e.g.: dynamic seed, collect/evaluate setting, <a class="reference external" href="../feature/env_overview.html">Env Overview</a></p>
 <p><code class="docutils literal notranslate"><span class="pre">EnvManager</span></code>, usually called Vectorized Environments in other frameworks, aims to implement parallel environment simulation to speed up data collection. Instead of interacting with 1 environment per collect step, it allows the collector to interact with N homogeneous environments per step, which means that <code class="docutils literal notranslate"><span class="pre">action</span></code> passed to <code class="docutils literal notranslate"><span class="pre">env.step</span></code> is a vector with a length of N, and the return value of <code class="docutils literal notranslate"><span class="pre">env.step</span></code> (obs, reward, done) is the same as it.</p>
@@ -275,12 +276,12 @@ modules are general in many RL algorithms, but the users can also override their
 </div>
 <p>Besides, for robustness in practical usage, like IPC error(broken pipe, EOF) and environment runtime error, DI-engine also provides a series of <strong>Error Tolerance</strong> tools, e.g.: watchdog and auto-retry.</p>
 <p>For all the mentioned features, the users can refer to <a class="reference external" href="../feature/env_manager_overview.html">EnvManager Overview</a> for more details.</p>
-</div>
-<div class="section" id="policy">
+</section>
+<section id="policy">
 <h3>Policy<a class="headerlink" href="#policy" title="Permalink to this headline">¶</a></h3>
 <p>To unify the design pattern and modularization of RL and other machine learning algorithms, DI-engine abstracts and defines the general policy interfaces with multi-mode design.
 With these abstractions, plenty of the AI decision algorithms can be summarized in only one python file, i.e.: corresponding policy class. And the user’s customized algorithms only need to inherit and extend <code class="xref py py-class docutils literal notranslate"><span class="pre">Policy</span></code> or just have the same interface definition with it.</p>
-<div class="section" id="the-multi-mode-of-policy">
+<section id="the-multi-mode-of-policy">
 <h4>The Multi-Mode of Policy<a class="headerlink" href="#the-multi-mode-of-policy" title="Permalink to this headline">¶</a></h4>
 <p>In most cases, RL policy needs to execute different algorithm procedures for different usages, e.g.: for DQN, the model forward and calculating TD error in training,
 the model forward without gradient computation and use epsilon-greedy to select actions for exploration in collecting. Therefore, DI-engine policy unifies all the algorithm content in only one python file,
@@ -292,8 +293,8 @@ the users can refer to <a class="reference external" href="../feature/policy_ove
 <p class="admonition-title">Note</p>
 <p><code class="docutils literal notranslate"><span class="pre">policy.learn_mode</span></code> is not the instance of <code class="xref py py-class docutils literal notranslate"><span class="pre">Policy</span></code> but a pure interface collection(implemented by namedtuple), which means the users can implement their policy class just ensuring the same method names and input/output arguments as the corresponding modes.</p>
 </div>
-</div>
-<div class="section" id="shared-model-model-wrapper">
+</section>
+<section id="shared-model-model-wrapper">
 <h4>Shared Model + Model Wrapper<a class="headerlink" href="#shared-model-model-wrapper" title="Permalink to this headline">¶</a></h4>
 <p>Neural network, often called model, is one of the most important components in the whole algorithm. For serial pipeline, the model is usually created in the public common constructor method(<code class="docutils literal notranslate"><span class="pre">__init__</span></code>) or out of policy and passed to the policy as arguments. Therefore, the model is shared among different modes for convenience. And DI-engine extends the model with more runtime function by <code class="docutils literal notranslate"><span class="pre">Model</span> <span class="pre">Wrapper</span></code> , which makes the shared model can exhibit different behaviors in different modes, such as sampling action by multinomial distribution in collect mode while <span class="math notranslate nohighlight">\(argmax\)</span> in evaluating mode. Here are some concrete code examples:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span><span class="p">,</span> <span class="n">DQN</span>
@@ -307,8 +308,8 @@ the users can refer to <a class="reference external" href="../feature/policy_ove
 </div>
 <p>If you want to know more about pre-defined models for each algorithms and customize you model, please refer to <a class="reference external" href="../feature/model_overview.html">Model Overview</a>.</p>
 <p>If you want to know about the detailed information of the pre-defined model wrapper or customize your model wrapper, <a class="reference external" href="../feature/wrapper_hook_overview.html">Wrapper Overview</a> can help you a lot.</p>
-</div>
-<div class="section" id="processing-function">
+</section>
+<section id="processing-function">
 <h4>Processing Function<a class="headerlink" href="#processing-function" title="Permalink to this headline">¶</a></h4>
 <p>In practical algorithm implementations, the users often need too many data processing operations, like stacking several samples into a batch, data transformation between torch.Tensor and np.ndarray. As for RL
 algorithms themselves, there are a great number of different styles of data pre-processing and aggregation, such as calculating N-step return and GAE(Generalized Advantage Estimation), split trajectories or unroll segments, and so on. Since then, DI-engine has provided some common processing functions, which can be called a pure function. And the users can utilize these functions both in collect mode and in learning mode.</p>
@@ -354,15 +355,15 @@ than restricting some fixed pipelines. The following table shows some existing p
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="scale-up-to-parallel-training">
+</section>
+<section id="scale-up-to-parallel-training">
 <h4>Scale Up to Parallel Training<a class="headerlink" href="#scale-up-to-parallel-training" title="Permalink to this headline">¶</a></h4>
 <p>TBD</p>
-</div>
-</div>
-<div class="section" id="config">
+</section>
+</section>
+<section id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id1">
+<section id="id1">
 <h4>key concept<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
 <p>Config module is a component for users to determine what kind of parameters they want to use.
 The overall design is as follows:</p>
@@ -395,8 +396,8 @@ policy and env, and then pass configs to each execution modules.</p>
 <span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="config-overview">
+</section>
+<section id="config-overview">
 <h4>config overview<a class="headerlink" href="#config-overview" title="Permalink to this headline">¶</a></h4>
 <p>In the following table, we list some commonly-used keys as well as their meanings.
 For policy-related keys, please refer to the document <a class="reference external" href="../hands_on/index.html">Hands On
@@ -464,8 +465,8 @@ the predefined one when conflict occurs.</p></li>
 <code class="docutils literal notranslate"><span class="pre">policy.collect.n_sample</span></code> or <code class="docutils literal notranslate"><span class="pre">policy.collect.n_episode</span></code>  must be specific.</p></li>
 <li><p>The merged entire config will be saved to <code class="docutils literal notranslate"><span class="pre">total_config.py</span></code> and <code class="docutils literal notranslate"><span class="pre">formatted_total_config.py</span></code>  by default.</p></li>
 </ul>
-</div>
-<div class="section" id="how-to-customize">
+</section>
+<section id="how-to-customize">
 <span id="header-n125"></span><h4>How to customize?<a class="headerlink" href="#how-to-customize" title="Permalink to this headline">¶</a></h4>
 <p>Suppose we need to set key <code class="docutils literal notranslate"><span class="pre">nstep</span></code> mentioned above to 3, how to do it?</p>
 <p>If the file name of user config is <code class="docutils literal notranslate"><span class="pre">dqn_user_config.py</span></code>, just add the following code into User config.</p>
@@ -480,9 +481,9 @@ the predefined one when conflict occurs.</p></li>
 </div>
 <p>After writing the user config, we can run our DQN experiment according
 to <a class="reference external" href="../quick_start/index.html">Quick Start</a>.</p>
-</div>
-</div>
-<div class="section" id="worker-collector">
+</section>
+</section>
+<section id="worker-collector">
 <h3>Worker-Collector<a class="headerlink" href="#worker-collector" title="Permalink to this headline">¶</a></h3>
 <p>Collector is one of the most important components among all the workers, which is often called <code class="docutils literal notranslate"><span class="pre">actor</span></code> in other frameworks and DI-engine renames it to distinguish with actor-critic. It aims to offer sufficient
 quantity and quality data for policy training (learner). And collector is only responsible for data collection but decoupled with data management, that is to say, it returns collected trajectories directly and
@@ -490,7 +491,7 @@ these data can be used for training directly or pushed into replay buffer.</p>
 <p>There are 3 core parts for a collector——env manager, policy(collect_mode), collector controller, and these parts can be implemented in a
 single process or located in several machines. Usually, DI-engine uses a multi-process env_manager and another main loop controller process with policy to construct a collector, which may be extended in the future.</p>
 <p>Due to different send/receive data logic, the collector now is divided into two patterns——serial and parallel, we will introduce them separately.</p>
-<div class="section" id="serial-collector">
+<section id="serial-collector">
 <h4>Serial Collector<a class="headerlink" href="#serial-collector" title="Permalink to this headline">¶</a></h4>
 <p>From the viewpoint of the basic unit of collecting data, sample(step) and episode are two mainly used types. Therefore, DI-engine defines the abstract interfaces <code class="docutils literal notranslate"><span class="pre">ISerialCollector</span></code> for a serial collector and
 implements <code class="docutils literal notranslate"><span class="pre">SampleCollector</span></code> and <code class="docutils literal notranslate"><span class="pre">EpisodeCollector</span></code>, which covers almost RL usages but the users can also easily customize when encountering some special demands.</p>
@@ -556,13 +557,13 @@ expert policy. And all the demands can be implemented by <code class="docutils l
 <p>Besides, serial collector shows less difference between on-policy and off-policy algorithms, the only thing is to reset some statistics and temporal buffers, which can be automatically executed by collector, the
 users just need to ensure the correct value of <code class="docutils literal notranslate"><span class="pre">config.policy.on_policy</span></code>.</p>
 <p>Last, there are some other features such as collecting data with asynchronous env_manager, dealing with abnormal env steps, please refer to <a class="reference external" href="../feature/collector_overview.html">Collector Overview</a>.</p>
-</div>
-<div class="section" id="parallel-collector">
+</section>
+<section id="parallel-collector">
 <h4>Parallel Collector<a class="headerlink" href="#parallel-collector" title="Permalink to this headline">¶</a></h4>
 <p>TBD</p>
-</div>
-</div>
-<div class="section" id="worker-buffer">
+</section>
+</section>
+<section id="worker-buffer">
 <h3>Worker-Buffer<a class="headerlink" href="#worker-buffer" title="Permalink to this headline">¶</a></h3>
 <p>Replay buffer is a component to store data collected by collector or generated by a fixed policy(usually expert policy), then provide data for the learner to optimize policy. In DI-engine, there are <strong>three types of replay buffers</strong>:</p>
 <blockquote>
@@ -606,8 +607,8 @@ users just need to ensure the correct value of <code class="docutils literal not
 <p><code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code> is designed for some special cases where they need a whole episode rather than separated samples. For example: In chess, go or card games, players get a reward only when the game is over; In some algorithms like <a class="reference external" href="https://arxiv.org/abs/1707.01495">Hindsight Experience Replay</a>, must sample out a whole episode and operate on it. Therefore, in <code class="docutils literal notranslate"><span class="pre">EpisodeReplayBuffer</span></code>, each element is no longer a training sample, but an episode.</p>
 <p>In DI-engine, we define <strong>full data</strong> and <strong>meta data</strong>. <strong>Full data</strong> is often a dict, with keys <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> and some optional keys like <code class="docutils literal notranslate"><span class="pre">['priority',</span> <span class="pre">'use_count',</span> <span class="pre">'collect_iter',</span> <span class="pre">...]</span></code>. However, in some complex environments(Usually we run them in parallel mode), <code class="docutils literal notranslate"><span class="pre">['obs',</span> <span class="pre">'action',</span> <span class="pre">'next_obs',</span> <span class="pre">'reward',</span> <span class="pre">'info']</span></code> can be too big to store in memory. Therefore, we store them in the file system, and only store <strong>meta data</strong> including <code class="docutils literal notranslate"><span class="pre">'file_path'</span></code> and optional keys in memory. Therefore, in parallel mode, when removing the data out of buffer, we must not only remove meta data in memory but also remove that in the file system as well.</p>
 <p>If you want to know more details about the three types of replay buffers, or the remove mechanism in parallel mode, please refer to <a class="reference external" href="../feature/replay_buffer_overview.html">Replay Buffer Overview</a></p>
-</div>
-<div class="section" id="worker-evaluator">
+</section>
+<section id="worker-evaluator">
 <h3>Worker-Evaluator<a class="headerlink" href="#worker-evaluator" title="Permalink to this headline">¶</a></h3>
 <p>Evaluator, another key execution component of DI-engine, is used to determine whether the training model is convergent
 or not. Similar to collector, evaluator consists of three key components ——env manager, policy(eval_mode), evaluator
@@ -620,7 +621,7 @@ in different subprocesses, which will greatly increase the efficiency of collect
 <span class="pre">Evaluator</span></code>, <code class="docutils literal notranslate"><span class="pre">n_evaluator_episode</span></code> is an argument to determine how many episodes we want to collect and evaluate. Once
 we collect these number of episodes, evaluator will stop collecting and start to compute the average reward. If the average
 is larger than <code class="docutils literal notranslate"><span class="pre">stop_value</span></code>, <code class="docutils literal notranslate"><span class="pre">stop_flag</span></code> will be True, and we will know our model is already convergent.</p>
-<div class="section" id="serial-evaluator">
+<section id="serial-evaluator">
 <h4>Serial Evaluator<a class="headerlink" href="#serial-evaluator" title="Permalink to this headline">¶</a></h4>
 <p>Serial evaluator is used in serial pipeline. Key concepts are <code class="docutils literal notranslate"><span class="pre">n_evaluator_episode</span></code> and <code class="docutils literal notranslate"><span class="pre">stop_value</span></code>, which has been
 explained above.</p>
@@ -695,9 +696,9 @@ environments but only two for each of the remaining environments.</p>
 <p>Besides, we use <code class="docutils literal notranslate"><span class="pre">get_episode_reward</span></code> to get the sum of the rewards of k episodes in each environment, and
 <code class="docutils literal notranslate"><span class="pre">get_current_episode</span></code> to get the episode num k in each environment.</p>
 </div>
-</div>
-</div>
-<div class="section" id="worker-learner">
+</section>
+</section>
+<section id="worker-learner">
 <h3>Worker-Learner<a class="headerlink" href="#worker-learner" title="Permalink to this headline">¶</a></h3>
 <p>Learner is one of the most important components among all the workers, who is responsible for optimizing the policy by training data. Unlike another important component <code class="docutils literal notranslate"><span class="pre">Collector</span></code>, learner is not divided into serial and parallel modes, i.e. There is only one learner class, serial and parallel entry can call different methods for training.</p>
 <p><strong>Serial pipeline</strong> would call learner’s <code class="docutils literal notranslate"><span class="pre">train</span></code> method for training. <code class="docutils literal notranslate"><span class="pre">train</span></code> method receives a batch of data, and call learn_mode policy’s <code class="docutils literal notranslate"><span class="pre">_forward_learn</span></code> to train for one iteration.</p>
@@ -706,11 +707,11 @@ environments but only two for each of the remaining environments.</p>
 <p>In learner, there is a special concept called <code class="docutils literal notranslate"><span class="pre">Hook</span></code>. Hook is responsible for doing some fixed jobs at specific timings, including “before_run”(at the beginning of <code class="docutils literal notranslate"><span class="pre">start</span></code> ), “after_run”(at the ending of <code class="docutils literal notranslate"><span class="pre">start</span></code> ), “before_iter”(at the beginning of <code class="docutils literal notranslate"><span class="pre">train</span></code> ), “after_iter”(at the ending of <code class="docutils literal notranslate"><span class="pre">train</span></code> ).</p>
 <p>Hook has many different types. DI-engine now has hooks to save checkpoint( <code class="docutils literal notranslate"><span class="pre">save_checkpoint</span></code> also uses this hook), load checkpoint, print log(text &amp; tb), reduce log from multiple learners. Users can also implement their own hooks easily. If you want to know more about hook mechanism, you can refer to <a class="reference external" href="../feature/wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a>.</p>
 <p>For more details about learner, please refer to <a class="reference external" href="../feature/learner_overview.html">Learner Overview</a>.</p>
-</div>
-<div class="section" id="entry">
+</section>
+<section id="entry">
 <h3>Entry<a class="headerlink" href="#entry" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine offers 3 training entries for different usage, users can choose any one they like:</p>
-<div class="section" id="serial-pipeline">
+<section id="serial-pipeline">
 <h4>Serial Pipeline<a class="headerlink" href="#serial-pipeline" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>There 3 types entries, and users can select anyone they like in practice. Different entries are designed for various demand.</p>
@@ -756,8 +757,8 @@ ding -m serial -c cartpole_dqn_config.py -s <span class="m">0</span>
 </li>
 </ol>
 </div></blockquote>
-</div>
-<div class="section" id="parallel-pipeline">
+</section>
+<section id="parallel-pipeline">
 <h4>Parallel Pipeline<a class="headerlink" href="#parallel-pipeline" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><ol class="arabic simple">
@@ -776,8 +777,8 @@ ding -m parallel -c cartpole_dqn_config.py -s <span class="m">0</span>
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="dist-pipeline">
+</section>
+<section id="dist-pipeline">
 <h4>Dist Pipeline<a class="headerlink" href="#dist-pipeline" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><ol class="arabic simple">
@@ -820,36 +821,36 @@ ding -m dist --module coordinator -p slurm -c cartpole_dqn_config.py.pkl -s <spa
 <p class="admonition-title">Tip</p>
 <p>If you want to know more details about algorithm implementation, framework design, and efficiency optimization, we also provide the documentation of <a class="reference external" href="../feature/index.html">Feature</a>,</p>
 </div>
-</div>
-</div>
-</div>
-<div class="section" id="computation-pattern">
+</section>
+</section>
+</section>
+<section id="computation-pattern">
 <h2>Computation Pattern<a class="headerlink" href="#computation-pattern" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id2">
+<section id="id2">
 <h3>Serial Pipeline<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="off-policy-drl-dqn-impala-sac">
+<section id="off-policy-drl-dqn-impala-sac">
 <h4>Off-Policy DRL: DQN, IMPALA, SAC<a class="headerlink" href="#off-policy-drl-dqn-impala-sac" title="Permalink to this headline">¶</a></h4>
 <img alt="../_images/serial_pipeline.svg" class="align-center" src="../_images/serial_pipeline.svg" /><p>Users can easily implement various DRL algorithms by combining and utilizing different description and execution modules in DI-engine, here are some demostration designs:</p>
-</div>
-<div class="section" id="on-policy-drl-ppo">
+</section>
+<section id="on-policy-drl-ppo">
 <h4>On-Policy DRL: PPO<a class="headerlink" href="#on-policy-drl-ppo" title="Permalink to this headline">¶</a></h4>
 <p><strong>Changes</strong>: Remove buffer</p>
-<img alt="../_images/serial_pipeline_on_policy.svg" class="align-center" src="../_images/serial_pipeline_on_policy.svg" /></div>
-<div class="section" id="drl-rewardmodel-gail-her-rnd">
+<img alt="../_images/serial_pipeline_on_policy.svg" class="align-center" src="../_images/serial_pipeline_on_policy.svg" /></section>
+<section id="drl-rewardmodel-gail-her-rnd">
 <h4><strong>DRL + RewardModel: GAIL, HER, RND</strong><a class="headerlink" href="#drl-rewardmodel-gail-her-rnd" title="Permalink to this headline">¶</a></h4>
 <p><strong>Changes</strong>: Add reward model and related data transformation</p>
-<img alt="../_images/serial_pipeline_reward_model.svg" class="align-center" src="../_images/serial_pipeline_reward_model.svg" /></div>
-<div class="section" id="drl-demostration-data-policy-r2d3-sqil-rbc">
+<img alt="../_images/serial_pipeline_reward_model.svg" class="align-center" src="../_images/serial_pipeline_reward_model.svg" /></section>
+<section id="drl-demostration-data-policy-r2d3-sqil-rbc">
 <h4><strong>DRL + Demostration Data/Policy: R2D3, SQIL, RBC</strong><a class="headerlink" href="#drl-demostration-data-policy-r2d3-sqil-rbc" title="Permalink to this headline">¶</a></h4>
 <p><strong>Changes</strong>: Add expert data buffer(demo buffer) or collector described by expert policy</p>
-<img alt="../_images/serial_pipeline_r2d3.svg" class="align-center" src="../_images/serial_pipeline_r2d3.svg" /></div>
-</div>
-<div class="section" id="parallel-dist-pipeline">
+<img alt="../_images/serial_pipeline_r2d3.svg" class="align-center" src="../_images/serial_pipeline_r2d3.svg" /></section>
+</section>
+<section id="parallel-dist-pipeline">
 <h3>Parallel/Dist Pipeline<a class="headerlink" href="#parallel-dist-pipeline" title="Permalink to this headline">¶</a></h3>
 <p><strong>Changes</strong>: Coordinator and objstore, policy flow, data flow(meta and step) and task flow</p>
-<img alt="../_images/parallel_pipeline.svg" class="align-center" src="../_images/parallel_pipeline.svg" /></div>
-</div>
-</div>
+<img alt="../_images/parallel_pipeline.svg" class="align-center" src="../_images/parallel_pipeline.svg" /></section>
+</section>
+</section>
 
 
            </div>

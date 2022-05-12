@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>COMA &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,13 +172,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="coma">
+  <section id="coma">
 <h1>COMA<a class="headerlink" href="#coma" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>COMA (Foerster et al. 2018), <a class="reference external" href="https://arxiv.org/abs/1705.08926">counterfactual multi-agent policy gradients</a>, is a multi-agent actor critic based approach to learn a fully centralized state action function and use it to guide the optimization of decentralized policies. COMA uses a centralized critic to train decentralized actors for individual agents, estimating a counterfactual advantage function for each agent in order to address multi-agent credit assignment. A counterfactual baseline is used in COMA to marginalizes out a single agent’s action, while keeping the other agents’ actions fixed, and the centralized critic representation allows the counterfactual baseline to be computed efficiently.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>COMA uses the paradigm of <strong>centralized training with decentralized execution</strong>.</p></li>
@@ -189,8 +190,8 @@
 <li><p>COMA accepts <strong>Independent Actor-Critic</strong> as individual value network and speeds learning by sharing parameters among the agents.</p></li>
 <li><p>Since learning is centralized, the centralized critic in COMA estimates Q-values for the <strong>joint action</strong> conditioned on the <strong>central state</strong>.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The overall information flow between the decentralized actors, the environment and the centralized critic in COMA:</p>
 <img alt="../_images/coma.png" src="../_images/coma.png" />
@@ -208,8 +209,8 @@
 <p class="admonition-title">Note</p>
 <p>COMA uses a counterfactual baseline. Each agent learns from a shaped reward that compares the global reward to the reward received when that agent’s action is replaced with a default action.</p>
 </div>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>COMA takes the advantage of learning a centralized critic to train decentralized actors. Similarly, Gupta et al. (2017) present a centralized actor-critic algorithm learning per-agent critics to opt for better scalability at the cost of diluted benefits of centralization.</p></li>
@@ -218,8 +219,8 @@
 </ul>
 <div class="math notranslate nohighlight">
 \[Q(s_{t},\textbf{u}_{t}) \approx Q_{\phi}(s_{t}, z^{1}_{t}, \cdots, z^{n}_{t}, \textbf{u}_{t-1}, \textbf{u}_{t})\]</div>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <blockquote>
@@ -514,22 +515,22 @@
 </tbody>
 </table>
 <p>We did not show the performance curve of COMA at 5m_vs_6m map because COMA can’t converge under this map, and the original author’s COMA algorithm also can’t converge under this map.</p>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Jakob Foerster, Gregory Farquhar, Triantafyllos Afouras, Nantas Nardelli, Shimon Whiteson. Counterfactual Multi-Agent Policy Gradients. In Proceedings of the Thirty-Second AAAI Conference on Artificial Intelligence, 2018.</p>
 <p>Jayesh K. Gupta, Maxim Egorov, Mykel Kochenderfer. Cooperative multi-agent control using deep reinforcement learning. International Conference on Autonomous Agents and Multiagent Systems, 2017.</p>
 <p>Ryan Lowe, Yi Wu, Aviv Tamar, Jean Harb, Pieter Abbeel, Igor Mordatch. Multi-agent actor-critic for mixed cooperative-competitive environments. arXiv preprint arXiv:1706.02275, 2017.</p>
 <p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
 <p>Bozhidar Vasilev, Tarun Gupta, Bei Peng, Shimon Whiteson. Semi-On-Policy Training for Sample Efficient Multi-Agent Policy Gradients. arXiv preprint arXiv:2104.13446, 2021.</p>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/oxwhirl/pymarl">Pymarl</a>.</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

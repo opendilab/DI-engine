@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Atari &mdash; DI-engine 0.1.0 documentation</title>
@@ -209,16 +210,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="atari">
+  <section id="atari">
 <h1>Atari<a class="headerlink" href="#atari" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Atari is the most classical and commonly used environment in reinnforcement learning. It is often used as a benchmark environment for discrete action spaced RL algorithms. Atari is a collection of (Precisely 57) sub environments. The most commonly used are Pong，Space Invaders，QBert，Enduro，Breakout，MontezumaRevenge etc. Game “Space Invaders” is shown below.</p>
 <img alt="../_images/atari.gif" class="align-center" src="../_images/atari.gif" />
-</div>
-<div class="section" id="installation">
+</section>
+<section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="installation-methods">
+<section id="installation-methods">
 <h3>Installation Methods<a class="headerlink" href="#installation-methods" title="Permalink to this headline">¶</a></h3>
 <p>Install <code class="docutils literal notranslate"><span class="pre">gym</span></code> and <code class="docutils literal notranslate"><span class="pre">ale-py</span></code>. You can install by command``pip`` or through <strong>DI-engine</strong>.</p>
 <p>Note：atari-py is now aborted by developer. It is recommended to use <a class="reference external" href="https://github.com/mgbellemare/Arcade-Learning-Environment">ale-py</a></p>
@@ -232,8 +233,8 @@ autorom --accept-license
 pip install <span class="s2">&quot;.[common_env]&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="installation-check">
+</section>
+<section id="installation-check">
 <h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this headline">¶</a></h3>
 <p>After completing installation, you can check whether it is succesful by the following commands:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
@@ -242,22 +243,22 @@ pip install <span class="s2">&quot;.[common_env]&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (210, 160, 3)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="di-engine-mirror">
+</section>
+<section id="di-engine-mirror">
 <h3>DI-engine Mirror<a class="headerlink" href="#di-engine-mirror" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine has a mirror including the system itself and Atari environment. You can acquire through command <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-atari</span></code> , or visit <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a>.</p>
-</div>
-</div>
-<div class="section" id="space-before-transformation-original-environment">
+</section>
+</section>
+<section id="space-before-transformation-original-environment">
 <span id="id1"></span><h2>Space before transformation (Original environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="observation-space">
+<section id="observation-space">
 <h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Real game screen. RGB 3-channel image. Shape is <code class="docutils literal notranslate"><span class="pre">(210,</span> <span class="pre">160,</span> <span class="pre">3)</span></code>. Data type is <code class="docutils literal notranslate"><span class="pre">uint8</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="action-space">
+</section>
+<section id="action-space">
 <span id="id2"></span><h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Buttons used in the game. In general N discrete action (N is different in different sub environments). Data type is <code class="docutils literal notranslate"><span class="pre">int</span></code>. Users should pass python integer (Or 0-dim np.nndarray, e.g. action 3 is <code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）</p></li>
@@ -272,21 +273,21 @@ hub</a>.</p>
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="reward-space">
+</section>
+<section id="reward-space">
 <h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Game score. Different massively in different sub environments. In general a <code class="docutils literal notranslate"><span class="pre">float</span></code>. Detailed number can be found in <cite>Algorithm Benchmark</cite> at the bottom of this page.</p></li>
 </ul>
-</div>
-<div class="section" id="others">
+</section>
+<section id="others">
 <h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>A game ending is an episode ending.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="key-facts">
+</section>
+</section>
+<section id="key-facts">
 <h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>2D RGB 3-channel input. However, single frame does not have enought information (e.g. moving direction). Many stacks of images should be stacked.</p></li>
@@ -294,23 +295,23 @@ hub</a>.</p>
 <li><p>Includes not only dense reward (e.g. Space Invaders), but also sparse reward (e.g. Pitfall，MontezumaRevenge).</p></li>
 <li><p>Reward has a large range scale.</p></li>
 </ol>
-</div>
-<div class="section" id="space-after-transformation-rl-environment">
+</section>
+<section id="space-after-transformation-rl-environment">
 <h2>Space after transformation (RL environment)<a class="headerlink" href="#space-after-transformation-rl-environment" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>Observation Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Method: Greyscale image, space zoom, min-max scaling, frame stack(N=4)</p></li>
 <li><p>Result: 3-dim <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code>. Shape is <code class="docutils literal notranslate"><span class="pre">(4,</span> <span class="pre">84,</span> <span class="pre">84)</span></code>. 4 stands for 4 continuous frame. Data type is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>. Data range is <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3>Action Space<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Basically no transformation. Still N discrete action, but in general 1-dim <code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code>. Shape is <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>. Data type is <code class="docutils literal notranslate"><span class="pre">np.int64</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h3>Reward Space<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Method: Reward zoom and truncate</p></li>
@@ -325,8 +326,8 @@ hub</a>.</p>
 <span class="n">rew_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="other">
+</section>
+<section id="other">
 <h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">epsiode_life</span></code>: Use <code class="docutils literal notranslate"><span class="pre">episode_life</span></code> during training, i.e. Player has several lives (In general 5). One fail cause one minus in lives. Only after lives equals to 0, the episode is regarded to an ending.</p></li>
@@ -334,15 +335,15 @@ hub</a>.</p>
 &lt;= 30), the player would perform an empty action (i.e. NOOP). This is aimed to increase the randomness of the environment’s at the beginning.</p></li>
 <li><p>Environment <code class="docutils literal notranslate"><span class="pre">step</span></code> method returned <code class="docutils literal notranslate"><span class="pre">info</span></code> s must contain <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code> key-value pair, indicating the entire episode’s performance. In Atari, it is the cumulative episode reward.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id6">
+</section>
+</section>
+<section id="id6">
 <h2>Other<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="lazy-initialization">
+<section id="lazy-initialization">
 <h3>Lazy initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
 <p>In order to support environment vetorization, an environment instance is oftern initialized lazily. In this way, method <code class="docutils literal notranslate"><span class="pre">__init__</span></code> does not really initialize the real original environment, but only set corresponding parameters and configurations. The real original environment is initialized when first calling mdthod <code class="docutils literal notranslate"><span class="pre">reset</span></code>.</p>
-</div>
-<div class="section" id="random-seed">
+</section>
+<section id="random-seed">
 <h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>There are two random seeds in the environment. One is orignal environment’s random seed; The other is the random seed which is required in many environment space transformations. (e.g. <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
@@ -350,15 +351,15 @@ hub</a>.</p>
 <li><p>Implementation details: For orignal environment’s random seed, within RL env’s <code class="docutils literal notranslate"><span class="pre">reset</span></code> method; Before orginal env’s <code class="docutils literal notranslate"><span class="pre">reset</span></code> method.</p></li>
 <li><p>Implementation details: For the seed for <code class="docutils literal notranslate"><span class="pre">random</span></code> / <code class="docutils literal notranslate"><span class="pre">np.random</span></code>, within env’s <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
 </ul>
-</div>
-<div class="section" id="difference-between-training-env-and-evaluation-env">
+</section>
+<section id="difference-between-training-env-and-evaluation-env">
 <h3>Difference between training env and evaluation env<a class="headerlink" href="#difference-between-training-env-and-evaluation-env" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Training env uses dynamic random seed, i.e. Every episode has different random seeds generated by one random generator. However, this random generator’s random seed is set by env’s <code class="docutils literal notranslate"><span class="pre">seed</span></code> method, and is fixed throughout an experiment. Evaluation env uses static random seed, i.e. Every episode has the same random seed, which is set directly by <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
 <li><p>Training env and evaluation env use different pre-process wrappers. <code class="docutils literal notranslate"><span class="pre">episode_life</span></code> and <code class="docutils literal notranslate"><span class="pre">clip_reward</span></code> are not used in evaluation env.</p></li>
 </ul>
-</div>
-<div class="section" id="save-the-replay-video">
+</section>
+<section id="save-the-replay-video">
 <h3>Save the replay video<a class="headerlink" href="#save-the-replay-video" title="Permalink to this headline">¶</a></h3>
 <p>After env is initiated, and before it is reset, call <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method to set where the replay video will be saved. Environment will automatically save the replay video after each episode is completed. (The default call is <code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>, depending on <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>). The code shown below will run an environment episode and save the replay viedo in a file like <code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -376,9 +377,9 @@ hub</a>.</p>
         <span class="k">break</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo-code-example">
+</section>
+</section>
+<section id="di-zoo-code-example">
 <h2>DI-zoo code example<a class="headerlink" href="#di-zoo-code-example" title="Permalink to this headline">¶</a></h2>
 <p>Complete training configuration is at <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial">github
 link</a>.
@@ -443,8 +444,8 @@ For specific configuration file, e.g. <code class="docutils literal notranslate"
 </div>
 <p>Note: For some specific algorithm, e.g. PPG, you use specific entry function. You can refer to
 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/atari/entry/atari_ppg_main.py">link</a>.</p>
-</div>
-<div class="section" id="algorithm-benchmark">
+</section>
+<section id="algorithm-benchmark">
 <h2>Algorithm Benchmark<a class="headerlink" href="#algorithm-benchmark" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>Pong (Average reward &gt;= 20 is regarded as a good agent)</p>
@@ -466,8 +467,8 @@ For specific configuration file, e.g. <code class="docutils literal notranslate"
 <img alt="../_images/spaceinvaders_dqn.png" class="align-center" src="../_images/spaceinvaders_dqn.png" />
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

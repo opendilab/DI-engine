@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Learner Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -192,7 +193,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="learner-overview">
+  <section id="learner-overview">
 <h1>Learner Overview<a class="headerlink" href="#learner-overview" title="Permalink to this headline">¶</a></h1>
 <p>Learner code can be mainly divided into three parts：</p>
 <blockquote>
@@ -202,7 +203,7 @@
 <li><p>comm: Used in parallel mode to communicate with coordinator.</p></li>
 </ol>
 </div></blockquote>
-<div class="section" id="base-learner">
+<section id="base-learner">
 <h2>Base Learner<a class="headerlink" href="#base-learner" title="Permalink to this headline">¶</a></h2>
 <p>(ding/worker/learner/base_learner.py)</p>
 <dl class="simple">
@@ -227,8 +228,8 @@ tick_time, monitor, log_buffer, logger, tb_logger</p>
 <p>In <strong>serial pipeline</strong>, learner and collector one by one, i.e. synchronous. So <code class="docutils literal notranslate"><span class="pre">train</span></code> method gets training data from outside(Usually sample from replay buffer).</p>
 <p>While in <strong>parallel pipeline</strong> , learner and collector are both working at the same time, i.e. asynchronous. So <code class="docutils literal notranslate"><span class="pre">start</span></code> method can start the training process. In which process, learner fetches data from dataloader(From here we can see that dataloader only exists in parallel mode, not in serial mode) and training for many iterations, until reaches max_iteration or evaluation reaches stop_value. In each iteration, <code class="docutils literal notranslate"><span class="pre">start</span></code> actually call <code class="docutils literal notranslate"><span class="pre">train</span></code> to do a one-iteration training.</p>
 </div>
-</div>
-<div class="section" id="learnerhook">
+</section>
+<section id="learnerhook">
 <h2>LearnerHook<a class="headerlink" href="#learnerhook" title="Permalink to this headline">¶</a></h2>
 <p>(ding/worker/learner/learner_hook.py)</p>
 <dl class="simple">
@@ -242,8 +243,8 @@ tick_time, monitor, log_buffer, logger, tb_logger</p>
 </ol>
 </dd>
 </dl>
-</div>
-<div class="section" id="basecommlearner">
+</section>
+<section id="basecommlearner">
 <h2>BaseCommLearner<a class="headerlink" href="#basecommlearner" title="Permalink to this headline">¶</a></h2>
 <p>(ding/worker/learner/base_comm_learner.py)</p>
 <dl>
@@ -271,8 +272,8 @@ tick_time, monitor, log_buffer, logger, tb_logger</p>
 </ol>
 </dd>
 </dl>
-</div>
-<div class="section" id="analysis-of-training-process-in-parallel-mode">
+</section>
+<section id="analysis-of-training-process-in-parallel-mode">
 <h2>Analysis of Training Process in Parallel Mode<a class="headerlink" href="#analysis-of-training-process-in-parallel-mode" title="Permalink to this headline">¶</a></h2>
 <p>Compared with the simple and easily understood serial mode, the parallel mode is more obscure due to the communication problems between the asynchronously running learner and collectors. Therefore, in this part, we will use the <code class="docutils literal notranslate"><span class="pre">FlaskFileSystemLearner</span></code> (<code class="docutils literal notranslate"><span class="pre">ding/worker/learner/comm/flask_fs_learner.py</span></code>), a derived comm learner that uses <strong>flask and file system to communicate</strong>, as an example to introduce the parallel mode. The mode analysis includes those procedures:</p>
 <blockquote>
@@ -332,8 +333,8 @@ tick_time, monitor, log_buffer, logger, tb_logger</p>
 </div></blockquote>
 </li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>How to Customize Model Wrapper &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,9 +171,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-customize-model-wrapper">
+  <section id="how-to-customize-model-wrapper">
 <h1>How to Customize Model Wrapper<a class="headerlink" href="#how-to-customize-model-wrapper" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="function-of-model-wrapper">
+<section id="function-of-model-wrapper">
 <h2>Function of Model Wrapper<a class="headerlink" href="#function-of-model-wrapper" title="Permalink to this headline">¶</a></h2>
 <p>Usually the output of a reinforcement learning model is value, Q or
 action logits. DI-engine also requires customized model to output part
@@ -195,8 +196,8 @@ continuous action space environment.</p></li>
 <li><p>TargetNetworkWrapper. Add a target network for base model, used in DQN
 and many other RL algorithms.</p></li>
 </ul>
-</div>
-<div class="section" id="example">
+</section>
+<section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>Users should follow the following steps to customize a model wrapper:</p>
 <ol class="arabic simple">
@@ -290,8 +291,8 @@ is ‘prev_state’</p></li>
 <p>Other examples of model wrapper can be found in
 <code class="docutils literal notranslate"><span class="pre">ding/model/wrappers/model_wrappers.py</span></code>, you can find more details
 there.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

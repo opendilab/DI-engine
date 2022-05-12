@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>R2D2 &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,17 +172,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="r2d2">
+  <section id="r2d2">
 <h1>R2D2<a class="headerlink" href="#r2d2" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>R2D2 was first proposed in <a class="reference external" href="https://openreview.net/pdf?id=r1lyTjAqYX">Recurrent experience replay in distributed reinforcement learning</a>.
 In RNN training with experience replay, the RL algorithms usually face the problem of representational drift and recurrent state staleness.
 R2D2 utilizes two approaches: stored states and burn-in to mitigate the aforementioned effects.
 R2D2 agent integrates these findings to achieve significant advances in the state of the art on Atari-57 and matches the state of the art on DMLab-30.
 The authors claim that, Recurrent Replay Distributed DQN (R2D2) is the first agent to achieve this using a single network architecture and fixed set of hyper-parameters.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>R2D2 is an <strong>off-policy</strong>, <strong>model-free</strong> and <strong>value-based</strong> RL algorithm,</p></li>
@@ -190,8 +191,8 @@ The authors claim that, Recurrent Replay Distributed DQN (R2D2) is the first age
 <li><p>R2D2 uses the <strong>stored state</strong> and <strong>burn_in</strong> techniques to mitigate the effects of representational drift and recurrent state staleness.</p></li>
 <li><p>The DI-engine implementation of R2D2 provides <strong>res_link</strong> key to support residual link in recurrent Q network.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>R2D2 agent is most similar to Ape-X, built upon prioritized distributed replay and n-step double Q-learning (with n = 5),
 generating experience by a large number of actors (typically 256) and learning from batches of
@@ -212,8 +213,8 @@ as prioritization metrics for prioritized experience replay over the sequence:</
 <p>For more details about how to use RNN in DI-engine, users can refer to <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/best_practice/rnn.html">How to use RNN</a>,
 for data arrangement process in R2D2, users can refer to the section <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/best_practice/rnn.html#data-arrangement">data-arrangement</a>,
 for the burn-in technique in R2D2, users can refer to the section <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/latest/best_practice/rnn.html#burn-in-in-r2d2">burn-in-in-r2d2</a>.</p>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <p>R2D2 can be combined with:</p>
 <blockquote>
@@ -228,8 +229,8 @@ Users can refer to <a class="reference external" href="https://arxiv.org/abs/191
 </li>
 </ul>
 </div></blockquote>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config of <code class="docutils literal notranslate"><span class="pre">R2D2Policy</span></code> is defined as follows:</p>
 <dl class="py class">
@@ -593,8 +594,8 @@ that are listed in list saved_hidden_state_timesteps.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given docutils align-default" id="id2">
 <caption><span class="caption-text">Benchmark and comparison of R2D2 algorithm</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
@@ -658,8 +659,8 @@ that are listed in list saved_hidden_state_timesteps.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience replay in distributed reinforcement learning[C]//International conference on learning representations. 2018.</p></li>
@@ -669,13 +670,13 @@ that are listed in list saved_hidden_state_timesteps.</p>
 <li><p>Wang, Z., Schaul, T., Hessel, M., Hasselt, H., Lanctot, M., &amp; Freitas, N. (2016, June). Dueling network architectures for deep reinforcement learning. In International conference on machine learning (pp. 1995-2003). PMLR.</p></li>
 <li><p>Horgan D, Quan J, Budden D, et al. Distributed prioritized experience replay[J]. arXiv preprint arXiv:1803.00933, 2018.</p></li>
 </ul>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="https://github.com/google-research/seed_rl/tree/master/agents/r2d2">seed_rl</a></p>
 <p><a class="reference external" href="https://github.com/ray-project/ray/blob/master/rllib/agents/dqn/r2d2.py">ray</a></p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

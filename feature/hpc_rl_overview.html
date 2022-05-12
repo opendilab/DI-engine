@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>DI-hpc Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -193,13 +194,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="di-hpc-overview">
+  <section id="di-hpc-overview">
 <h1>DI-hpc Overview<a class="headerlink" href="#di-hpc-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The HPC_RL component (High Performance Computation) is an acceleration operator component for general algorithm modules in reinforcement learning algorithms, such as <code class="docutils literal notranslate"><span class="pre">GAE</span></code>, <code class="docutils literal notranslate"><span class="pre">n-step</span> <span class="pre">TD</span></code> and <code class="docutils literal notranslate"><span class="pre">LSTM</span></code>, etc., mainly for the operators in ding <code class="docutils literal notranslate"><span class="pre">rl_utils</span></code>, <code class="docutils literal notranslate"><span class="pre">torch_utils/network</span></code> and <code class="docutils literal notranslate"><span class="pre">torch_utils/loss</span></code>. The operators support forward and backward propagation, and can be used in training, data collection, and test modules. For all types of operators, there are 10- A speed increase of 100 times.</p>
-</div>
-<div class="section" id="how-to-use">
+</section>
+<section id="how-to-use">
 <h2>How to use<a class="headerlink" href="#how-to-use" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ol class="arabic">
@@ -312,15 +313,15 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 </li>
 </ol>
 </div></blockquote>
-</div>
-<div class="section" id="currently-supported-operators">
+</section>
+<section id="currently-supported-operators">
 <h2>Currently supported operators<a class="headerlink" href="#currently-supported-operators" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">rl_utils</span></code> : GAE, PPO, q_value n-step TD, dist n_step TD(C51), q_value n-step TD with rescale(R2D2)，TD-lambda, vtrace, UPGO</p>
 <p><code class="docutils literal notranslate"><span class="pre">torch_utils/network</span></code> : LSTM，scatter_connection</p>
 </div></blockquote>
-</div>
-<div class="section" id="performance-comparison">
+</section>
+<section id="performance-comparison">
 <h2>Performance comparison<a class="headerlink" href="#performance-comparison" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><table class="colwidths-given docutils align-default" id="id1">
@@ -680,8 +681,8 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 </tbody>
 </table>
 </div></blockquote>
-</div>
-<div class="section" id="others">
+</section>
+<section id="others">
 <h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>In order to improve performance, HPC_RL will pre-allocate the memory required by the operator internally by default, so you need to know the specific size of the data. The relevant wrapper of ding will automatically adjust according to the data size, but note that if it is a variable input size , Repeated reallocation of memory will cause a certain amount of time loss, thereby reducing the speedup.</p></li>
@@ -694,8 +695,8 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 </ul>
 </li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

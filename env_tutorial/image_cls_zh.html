@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Image Classification &mdash; DI-engine 0.1.0 documentation</title>
@@ -215,9 +216,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="image-classification">
+  <section id="image-classification">
 <h1>Image Classification<a class="headerlink" href="#image-classification" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>ImageNet是一个按照 WordNet 层次结构（目前只有名词）组织的图像数据库，其中层次结构的每个节点都由成百上千的图像来描绘。 其在推进计算机视觉和深度学习研究方面发挥了重要作用。
 该数据集已手动注释了1400多万张图像，以指出图片中的对象，并在至少100万张图像中提供了边框。
@@ -229,15 +230,15 @@
 <li><p>测试集:100,000张图片</p></li>
 </ul>
 <img alt="../_images/imagenet.png" class="align-center" src="../_images/imagenet.png" />
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>下载及使用<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>下载方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>下载链接 <a class="reference external" href="http://www.image-net.org/">ImageNet Datasets</a>
 将用于验证的valid数据集移动到相应的子文件夹，<a class="reference external" href="https://raw.githubusercontent.com/jkjung-avt/jkjung-avt.github.io/master/assets/2017-12-01-ilsvrc2012-in-digits/valprep.sh">数据集预处理shell脚本</a>。</p>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3>加载数据集<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>下载完成后，可以通过在Python命令行中运行如下命令对数据集进行加载和测试:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
@@ -254,12 +255,12 @@
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">eval_dataloader</span><span class="p">)</span> <span class="o">==</span> <span class="mi">50000</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="id5">
+</section>
+</section>
+<section id="id5">
 <h2>数据集信息<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>数据集中图片信息主要包括两个部分，图片和标签。图片即RGB二维信息，标签是图片的类别。</p>
-<div class="section" id="id6">
+<section id="id6">
 <h3>图片信息<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>RGB三通道图片，具体尺寸为<code class="docutils literal notranslate"><span class="pre">(224,</span> <span class="pre">224,</span> <span class="pre">3)</span></code>，经过Dataloader后数据类型为<code class="docutils literal notranslate"><span class="pre">torch.float32</span></code>。
 在DI-engine中，ImageNet采用的数据转换方式有Resize, Normalize, Totensor, CenterCrop等等。
@@ -267,8 +268,8 @@ Resize将输入图像调整为给定的大小。
 Normalize使用均值和标准差对张量图像进行归一化。
 CenterCrop将在中心裁剪给定的图像。
 ToTensor将变量转换为张量。</p>
-</div>
-<div class="section" id="id7">
+</section>
+<section id="id7">
 <h3>标签信息<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>图片共有1000个标签，每个标签代表一种类别，在这里列出其前5种标签，</p>
@@ -282,9 +283,9 @@ ToTensor将变量转换为张量。</p>
 </li>
 <li><p>全部标签信息请查看 <a class="reference external" href="https://gist.github.com/yrevar/942d3a0ac09ec9e5eb3a/">ImageNet Label</a></p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="di-engineimagenet">
+</section>
+</section>
+<section id="di-engineimagenet">
 <h2>使用DI-engine完成ImageNet上的监督学习训练<a class="headerlink" href="#di-engineimagenet" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>将监督学习适配于强化学习框架DI-engine中。</p></li>
@@ -294,11 +295,11 @@ ToTensor将变量转换为张量。</p>
 <li><p>基于强化学习框架中的Learner模块，负责训练网络的基本pipeline。</p></li>
 <li><p>基于强化学习框架中的LearnerHook模块,设计适用于监督学习的log信息记录的ImageClsLogShowHook。</p></li>
 </ol>
-</div>
-<div class="section" id="id8">
+</section>
+<section id="id8">
 <h2>其他<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <p>为了加快训练，pytorch中有两种常用的数据并行的方式，DataParallal（DP）以及DistributedDataParalle（DDP）。</p>
-<div class="section" id="dpddp">
+<section id="dpddp">
 <h3>DP以及DDP<a class="headerlink" href="#dpddp" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>DataParallal(DP)</p></li>
@@ -321,16 +322,16 @@ DDP最佳推荐使用方法是每个进程一张卡，每张卡复制一份模�
 DP将训练数据切分到不同的卡，但对于多机来说，多机之间直接进行数据传输会严重影响效率。
 于是利用 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/image_classification/data/sampler.py">DistributedSampler</a>
 确保每一个子进程划分出一部分数据集，以避免不同进程之间数据重复。</p>
-</div>
-<div class="section" id="id9">
+</section>
+<section id="id9">
 <h3>训练集、测试集以及验证集的使用场景<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>训练集，用于训练模型参数。</p></li>
 <li><p>验证集，用于调整分类器的参数，例如分类器中隐藏单元的数量。</p></li>
 <li><p>测试集，仅用于评估分类器的性能以及泛化能力。</p></li>
 </ul>
-</div>
-<div class="section" id="id10">
+</section>
+<section id="id10">
 <h3>评估方法<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <p>对于imagenet图像分类任务，有一个重要的指标是`` Top-K `` 。
 `` Top-K `` 准确率就是用来计算预测结果中概率最大的前K个结果包含正确标签的占比。
@@ -345,9 +346,9 @@ DP将训练数据切分到不同的卡，但对于多机来说，多机之间直
     <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;acc</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">correct</span><span class="p">[:</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span> <span class="o">/</span> <span class="n">batch_size</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">topk</span><span class="p">}</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/image_classification/entry/">github
 link</a>
@@ -526,15 +527,15 @@ link</a>
     <span class="n">main</span><span class="p">(</span><span class="n">imagenet_res18_config</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id11">
+</section>
+<section id="id11">
 <h2>基准算法性能<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <p>图中为近些年在Imagenet数据集中的Top-K识别精度对比，</p>
 <img alt="../_images/imagenet-topk.png" class="align-center" src="../_images/imagenet-topk.png" />
 <p>精度对比节选 <a class="reference external" href="https://openaccess.thecvf.com/content/CVPR2021/html/Pham_Meta_Pseudo_Labels_CVPR_2021_paper.html">Meta pseudo labels</a>
 中Figure 4。</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

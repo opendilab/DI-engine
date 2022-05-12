@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>QRDQN &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,13 +172,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="qrdqn">
+  <section id="qrdqn">
 <h1>QRDQN<a class="headerlink" href="#qrdqn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>QR (Quantile Regression) DQN was proposed in <a class="reference external" href="https://arxiv.org/pdf/1710.10044">Distributional Reinforcement Learning with Quantile Regression</a> and inherits the idea of learning the distribution of a q-value. Instead of approximate the distribution density function with discrete atoms, QRDQN, directly regresses a <strong>discrete set of quantiles</strong> of a q-value.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>QRDQN is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
@@ -186,8 +187,8 @@
 <li><p>Usually, QRDQN use <strong>eps-greedy</strong> or <strong>multinomial sample</strong> for exploration.</p></li>
 <li><p>QRDQN can be equipped with RNN.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>C51 uses N fixed locations for its approximation distribution and adjusts their probabilities, while QRDQN assigns fixed, uniform probabilities to N adjustable locations. Based on this, QRDQN uses quantile regression to stochastically adjust the distributions’ locations so as to minimize
 the Wasserstein distance to a target distribution.</p>
@@ -212,12 +213,12 @@ the Wasserstein distance to a target distribution.</p>
 </ol>
 </div></blockquote>
 </div>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/QRDQN.png"><img alt="../_images/QRDQN.png" class="align-center" src="../_images/QRDQN.png" style="width: 645.0px; height: 308.5px;" /></a>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <p>QRDQN can be combined with:</p>
 <blockquote>
@@ -228,8 +229,8 @@ the Wasserstein distance to a target distribution.</p>
 <li><p>RNN</p></li>
 </ul>
 </div></blockquote>
-</div>
-<div class="section" id="implementation">
+</section>
+<section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -469,8 +470,8 @@ Parameter updates with QRDQN’s MLPs forward setup.</p>
 </dd></dl>
 
 <p>The bellman updates of QRDQN is implemented in the function <code class="docutils literal notranslate"><span class="pre">qrdqn_nstep_td_error</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/rl_utils/td.py</span></code>.</p>
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given docutils align-default" id="id1">
 <caption><span class="caption-text">Benchmark and comparison of QRDQN algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
@@ -539,18 +540,18 @@ Parameter updates with QRDQN’s MLPs forward setup.</p>
 <li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
 <li><p>For the discrete action space algorithm like QRDQN, the Atari environment set is generally used for testing (including sub-environments Pong), and Atari environment is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>. For more details about Atari, please refer to <a class="reference external" href="../env_tutorial/atari.html">Atari Env Tutorial</a> .</p></li>
 </ol>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>(QRDQN) Will Dabney, Mark Rowland, Marc G. Bellemare, Rémi Munos: “Distributional Reinforcement Learning with Quantile Regression”, 2017; arXiv:1710.10044. https://arxiv.org/pdf/1710.10044</p>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/qrdqn.py">Tianshou</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

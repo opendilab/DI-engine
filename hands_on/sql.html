@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>SQL &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="sql">
+  <section id="sql">
 <h1>SQL<a class="headerlink" href="#sql" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Soft Q Learning (SQL) is an off-policy maximum entropy Q learning algorithm that first proposed in <a class="reference external" href="https://arxiv.org/abs/1702.08165">Reinforcement Learning with Deep Energy-Based Policies</a>.
 The energy based model is used in Soft Q-Learning, where the optimal policy expressed via a Boltzmann distribution is learned through maximizing the expectation of the cumulative reward added by an entropy term.
@@ -184,8 +185,8 @@ samples from this distribution. The features of
 the algorithm include improved exploration via the maximum entropy formulation
 and compositionality that allows transferring
 skills between tasks.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SQL is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
@@ -193,8 +194,8 @@ skills between tasks.</p>
 <li><p>SQL supports both <strong>discrete</strong> and <strong>continuous</strong> action spaces.</p></li>
 <li><p>SVGD has been adopted for sampling from the soft Q-function for environments with <strong>continuous</strong> action spaces.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>SQL considers a more general maximum entropy policy, such that the optimal policy aims to maximize its entropy at each visited state:</p>
 <img alt="../_images/sql_policy.png" src="../_images/sql_policy.png" />
@@ -238,14 +239,14 @@ KL divergence.</p>
 <p>Practically, we optimise the policy by the following two equations:</p>
 <img alt="../_images/SQL_sto_pi13.png" src="../_images/SQL_sto_pi13.png" />
 <img alt="../_images/SQL_sto_pi14.png" src="../_images/SQL_sto_pi14.png" />
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <p>The pseudo code is as follows:</p>
 <img alt="../_images/SQL.png" src="../_images/SQL.png" />
 <p>Where the equation 10, 11, 13, 14 can be referred from the above section.</p>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <p>SQL can be combined with:</p>
 <blockquote>
@@ -257,8 +258,8 @@ Soft Q-Learning</a>.</p></li>
 <li><p>SQL can be combined with demonstration data to propose an imitation learning algorithm: SQIL proposed in <a class="reference external" href="https://arxiv.org/abs/1905.11108">SQIL: Imitation Learning via Reinforcement Learning with Sparse Rewards</a>.  Please also refer to <cite>SQIL code &lt;https://github.com/opendilab/DI-engine/blob/main/ding/policy/sql.py&gt;</cite> for a DI-engine implementation.</p></li>
 </ul>
 </div></blockquote>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <dl class="py class">
@@ -270,8 +271,8 @@ Soft Q-Learning</a>.</p></li>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <p>The table below shows a benchmark of the performance of DQN, SQL (in discrete action spaces), and SQIL in Lunarlander and Pong environments.</p>
 <table class="docutils align-default">
@@ -316,8 +317,8 @@ Soft Q-Learning</a>.</p></li>
 <li><p>both off：cuda = False； base env manager = base</p></li>
 </ul>
 </div>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Haarnoja, Tuomas, et al. “Reinforcement learning with deep energy-based policies.” International Conference on Machine Learning. PMLR, 2017.</p></li>
@@ -332,14 +333,14 @@ arXiv:1509.02971, 2015.</p></li>
 the principle of maximum causal entropy. PhD thesis,
 2010.</p></li>
 </ul>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/rail-berkeley/softlearning">SQL release repo</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

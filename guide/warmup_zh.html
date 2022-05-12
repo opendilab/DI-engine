@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>DI-engine入门 &mdash; DI-engine 0.1.0 documentation</title>
@@ -194,19 +195,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="di-engine">
+  <section id="di-engine">
 <h1>DI-engine入门<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="rl">
+<section id="rl">
 <h2>RL入门<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="quick-start-demo">
+<section id="quick-start-demo">
 <span id="id1"></span><h3>1. Quick Start Demo<a class="headerlink" href="#quick-start-demo" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id2">
+<section id="id2">
 <span id="id3"></span><h4>1.1 安装DI-engine<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
 <p>根据文档安装：<a class="reference external" href="https://opendilab.github.io/DI-engine/installation/index.html">英文</a>、<a class="reference external" href="https://di-engine-docs.readthedocs.io/en/main-zh/installation/index_zh.html">中文</a></p>
 <p><strong>提示</strong>：如果是在服务器上，记得将
 <code class="docutils literal notranslate"><span class="pre">~/.local/bin</span></code>加入环境变量<code class="docutils literal notranslate"><span class="pre">$PATH</span></code>，否则会无法使用命令行<code class="docutils literal notranslate"><span class="pre">ding</span></code>。Linux上配置环境变量的方法可以参考这份<a class="reference external" href="https://www.cnblogs.com/youyoui/p/10680329.html">教程</a>，重点关注方法一（临时性）和方法二（永久性）即可。</p>
-</div>
-<div class="section" id="cartpole-dqn-demo">
+</section>
+<section id="cartpole-dqn-demo">
 <span id="id4"></span><h4>1.2 cartpole DQN demo<a class="headerlink" href="#cartpole-dqn-demo" title="Permalink to this headline">¶</a></h4>
 <p>根据文档教程（<a class="reference external" href="https://opendilab.github.io/DI-engine/quick_start/index.html#">英文</a>、<a class="reference external" href="https://di-engine-docs.readthedocs.io/en/main-zh/quick_start/index_zh.html">中文</a>）跑通cartpole
 DQN demo</p>
@@ -214,8 +215,8 @@ DQN demo</p>
 buffer),
 pipeline几个部分。<strong>config</strong>是整个实验的配置文件，<strong>env</strong>是根据config建立起来的环境（分为collect环境和evaluate环境），<strong>policy</strong>也是根据config建立起来的算法策略，<strong>model</strong>为其中使用的神经网络；<strong>四个worker</strong>根据policy建立起来，它们分别会使用policy中不同的方法（对应不同的模式mode）。最后，将上述所有组件连接在一起，就可以得到一个完整的RL训练和验证的<strong>pipeline</strong>。</p>
 <p>在demo成功跑起来并收敛后，尝试按照教程添加可视化功能，保存evaluate录像。</p>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <span id="id6"></span><h4>1.3 理解环境<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
 <a class="reference internal image-reference" href="../_images/cartpole-ui.png"><img alt="../_images/cartpole-ui.png" class="align-center" src="../_images/cartpole-ui.png" style="width: 419.76000000000005px; height: 146.52px;" /></a>
 <p>上述demo中用到的<strong>cartpole</strong>环境，是RL中最基础常用的离散动作环境。cartpole的目标是利用cart（小车）左右移动来平衡画面中pole（竖杆），竖杆保持平衡的时间越长，得分reward越高。竖杆起初是竖直的。</p>
@@ -244,17 +245,17 @@ pipeline几个部分。<strong>config</strong>是整个实验的配置文件，<
 <p><strong>收敛判断条件</strong></p>
 <p>判断n个episode（n可自定义）的累积reward的平均值是否到达设定值<code class="docutils literal notranslate"><span class="pre">stop_val</span></code>，我们设定cartpole-v0该值为195。</p>
 <p>目前常用的cartpole环境已经集成在OpenAI Gym中，如果想了解如何通过gym的API使用环境，可以参考这个<a class="reference external" href="https://blog.csdn.net/qq_32892383/article/details/89576003">链接</a>。</p>
-</div>
-</div>
-<div class="section" id="id7">
+</section>
+</section>
+<section id="id7">
 <span id="id8"></span><h3>2. 尝试新算法<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <p>在离散与连续环境中调试新的算法，在serial
 pipeline下调收敛，并进行可视化。</p>
 <p>离散环境使用<a class="reference external" href="https://gym.openai.com/envs/LunarLander-v2/">box2d/lunarlander</a>，连续环境使用<a class="reference external" href="https://gym.openai.com/envs/BipedalWalker-v2/">box2d/bipedalwalker</a>。</p>
 <p>算法采用DI-engine中已经实现的算法，故只需要写一个新的config，使用<code class="docutils literal notranslate"><span class="pre">ding</span></code>命令行启动运行，调试至收敛即可，例如<code class="docutils literal notranslate"><span class="pre">ding</span> <span class="pre">-m</span> <span class="pre">serial</span> <span class="pre">-c</span> <span class="pre">NEW-CONFIG</span> <span class="pre">-s</span> <span class="pre">0</span></code>。</p>
 <p><strong>提示</strong>：进行本步骤时，需要对离散型与连续型的动作空间、对应环境和常用算法有一个基本的了解。在具体尝试某种算法的时候，需要通读其论文和代码实现，对算法原理和涉及到的超参数有一个基本的认识</p>
-</div>
-<div class="section" id="id9">
+</section>
+<section id="id9">
 <span id="id10"></span><h3>3. 经典算法精读<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>精读一些经典算法，如DQN, C51, IQN, Rainbow, A2C, PPO, IMPALA, DDPG, TD3,
 SAC, QMIX, COMA, MAPPO……横向对比，纵向深入探究。</p>
@@ -265,8 +266,8 @@ SAC, QMIX, COMA, MAPPO……横向对比，纵向深入探究。</p>
 <li><p>priority在不同的算法中该如何定义，DQN，R2D2，TD3</p></li>
 <li><p>哪些算法在收集训练数据时必须保持整个episode的时序关系</p></li>
 </ul>
-</div>
-<div class="section" id="id11">
+</section>
+<section id="id11">
 <span id="id12"></span><h3>4. 复现<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <p>复现某个DI-engine中尚未实现的RL算法</p>
 <p><strong>paper list</strong>：</p>
@@ -281,14 +282,14 @@ SAC, QMIX, COMA, MAPPO……横向对比，纵向深入探究。</p>
 <li><p>Decision Transformer</p></li>
 <li><p>LICA (MARL)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id13">
+</section>
+</section>
+<section id="id13">
 <h2>工程协作入门<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="git">
+<section id="git">
 <span id="id14"></span><h3>1. git使用<a class="headerlink" href="#git" title="Permalink to this headline">¶</a></h3>
 <p>如果对git几乎不了解，那么推荐看一下<a class="reference external" href="https://www.liaoxuefeng.com/wiki/896043488029600">廖雪峰git教程</a>，号称一小时上手git命令，会对相关概念和命令有一个正确且充分的认识。下面罗列一下实际开发中常用的知识。</p>
-<div class="section" id="id15">
+<section id="id15">
 <span id="id16"></span><h4>1.1 基础概念和命令<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
 <p>原始代码
 、工作区、暂存区、本地仓库、远程仓库的<strong>概念</strong>，和它们之间<strong>互相转换的命令</strong>：</p>
@@ -302,8 +303,8 @@ log命令</strong>：可以显示提交commit的信息，可参考<a class="refe
 <p><strong>git cherry-pick命令</strong>：可以将某个commit应用到其它的分支上，其和git
 merge的区别是，git merge会将整个分支合并进其它分支，而git
 cherry-pick只会将某个commit应用在其它分支，可参考<a class="reference external" href="https://ruanyifeng.com/blog/2020/04/git-cherry-pick.html">教程</a></p>
-</div>
-<div class="section" id="git-commit">
+</section>
+<section id="git-commit">
 <span id="id17"></span><h4>1.2 git commit规范<a class="headerlink" href="#git-commit" title="Permalink to this headline">¶</a></h4>
 <p>我们对commit进行了一些规定：</p>
 <ol class="arabic">
@@ -315,8 +316,8 @@ commit message</div>
 </div>
 </li>
 </ol>
-</div>
-<div class="section" id="id18">
+</section>
+<section id="id18">
 <span id="id19"></span><h4>1.3 举例<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h4>
 <p>下面以一次实际开发过程为例，讲解最基本的可能用到的git命令。</p>
 <ol class="arabic simple">
@@ -327,8 +328,8 @@ commit message</div>
 <li><p>分支合并命令：<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">BRANCH-NAME</span></code>。在我们的开发中，如果单独切出分支并提了pull
 request，则必须保证该分支可以无冲突地合并进master。故merge命令常常使用在以下场景：A同学与B同学分别从master分支切出C分支和D分支进行开发，A同学完成了C分支并将其merge进了master分支，B同学在开发的最后，需要<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">master</span></code>并解决全部冲突。</p></li>
 </ol>
-</div>
-<div class="section" id="gitignore">
+</section>
+<section id="gitignore">
 <span id="id20"></span><h4>1.4 .gitignore文件<a class="headerlink" href="#gitignore" title="Permalink to this headline">¶</a></h4>
 <p>我们本地的开发路径下，有很多不想提交到远程仓库的文件，比如项目的本地配置信息、pycache、log文件、checkpoint等等。这时，使用.gitignore文件可以通过字符匹配的方式忽略掉这些文件
 ，就可以更加愉快地使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">.</span></code>或<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">-u</span></code>命令了（当然，此时还是需要先<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span></code>查看一下都增加/删除/修改了哪些文件）。</p>
@@ -349,11 +350,11 @@ __pycache__/
 </div>
 <p>由于DI-engine的.gitignore文件中禁止了图片类型文件（.jpg, .jpeg,
 .png文件等），而文档部分又必须上传图片，此时可以使用<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">-f</span> <span class="pre">PICTURE-FILE</span></code>来上传图片。同理，如果有其它被禁止的文件，也可以利用这个命令上传。</p>
-</div>
-</div>
-<div class="section" id="github">
+</section>
+</section>
+<section id="github">
 <span id="id21"></span><h3>2. github使用<a class="headerlink" href="#github" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="pr">
+<section id="pr">
 <span id="id22"></span><h4>2.1 PR工作流程<a class="headerlink" href="#pr" title="Permalink to this headline">¶</a></h4>
 <ol class="arabic simple">
 <li><p>在discussion中进行讨论，某人总结并提了issue，开发者现在需要针对issue进行开发</p></li>
@@ -362,8 +363,8 @@ __pycache__/
 <li><p>保证通过github CI</p></li>
 <li><p>merge最新main分支，解决冲突，根据code review结果进行迭代，最终被合并</p></li>
 </ol>
-</div>
-<div class="section" id="github-actions">
+</section>
+<section id="github-actions">
 <span id="id23"></span><h4>2.2 github actions<a class="headerlink" href="#github-actions" title="Permalink to this headline">¶</a></h4>
 <a class="reference internal image-reference" href="../_images/github_actions_all.png"><img alt="../_images/github_actions_all.png" class="align-center" src="../_images/github_actions_all.png" style="width: 701.5px; height: 274.0px;" /></a>
 <p>GitHub
@@ -372,8 +373,8 @@ repo中主要使用actions进行各种测试（算法测试、平台测试、风
 <a class="reference internal image-reference" href="../_images/github_actions_all.png"><img alt="../_images/github_actions_all.png" class="align-center" src="../_images/github_actions_all.png" style="width: 701.5px; height: 274.0px;" /></a>
 <p>此时就需要点击Details进入查看具体失败原因。如果本地可以通过测试，但CI不通过，可以尝试rerun：</p>
 <a class="reference internal image-reference" href="../_images/github_actions_rerun.png"><img alt="../_images/github_actions_rerun.png" class="align-center" src="../_images/github_actions_rerun.png" style="width: 711.5px; height: 239.5px;" /></a>
-</div>
-<div class="section" id="issue-pull-request">
+</section>
+<section id="issue-pull-request">
 <span id="id24"></span><h4>2.3 issue &amp; pull request<a class="headerlink" href="#issue-pull-request" title="Permalink to this headline">¶</a></h4>
 <p><strong>模板</strong></p>
 <p>issue和pr都有自己的模板。</p>
@@ -434,11 +435,11 @@ In Progess的缩写。</p>
 <p>二是针对具体某行或某段代码进行评论，可以在Files
 Changed中点击加号新建评论，如下图：</p>
 <a class="reference internal image-reference" href="../_images/github_review2.png"><img alt="../_images/github_review2.png" class="align-center" src="../_images/github_review2.png" style="width: 854.0400000000001px; height: 382.8px;" /></a>
-</div>
-</div>
-<div class="section" id="id25">
+</section>
+</section>
+<section id="id25">
 <span id="id26"></span><h3>3. 代码风格<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id27">
+<section id="id27">
 <span id="id28"></span><h4>3.1 命名规范<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h4>
 <p><strong>文件名</strong>：全小写，可使用下划线，如<code class="docutils literal notranslate"><span class="pre">my_policy.py</span></code></p>
 <p><strong>类</strong>：首字母大写单词串，如<code class="docutils literal notranslate"><span class="pre">MyClass</span></code>；内部类可使用额外的前导下划线</p>
@@ -451,8 +452,8 @@ Changed中点击加号新建评论，如下图：</p>
 <code class="docutils literal notranslate"><span class="pre">__my_private_function</span></code>。</p>
 <p>在实际命名中，如果名称和保留的关键字冲突，可以后加下划线，比如<code class="docutils literal notranslate"><span class="pre">type_</span></code>。</p>
 <p><strong>分支</strong>：一般使用2-4个英文单词，中间以<code class="docutils literal notranslate"><span class="pre">-</span></code>分割，表明这个分支主要内容的类别（如dev/test/doc/fix等）+简单描述具体内容。</p>
-</div>
-<div class="section" id="id29">
+</section>
+<section id="id29">
 <span id="id30"></span><h4>3.2 自动化检查工具<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h4>
 <p><strong>Format</strong></p>
 <ul class="simple">
@@ -472,11 +473,11 @@ Changed中点击加号新建评论，如下图：</p>
 <p><strong>常见的代码风格错误</strong></p>
 <p>注释行的最后不能有空格</p>
 <p>文件的最后要有换行（即要有一个空行）</p>
-</div>
-</div>
-<div class="section" id="pytest">
+</section>
+</section>
+<section id="pytest">
 <span id="id31"></span><h3>4. pytest单元测试<a class="headerlink" href="#pytest" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="id32">
+<section id="id32">
 <span id="id33"></span><h4>4.1 如何写<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h4>
 <p>可参考很多目录下的<code class="docutils literal notranslate"><span class="pre">tests</span></code>文件夹，例如<code class="docutils literal notranslate"><span class="pre">ding/envs/env_manager/tests</span></code>。</p>
 <p><strong>命名要求</strong></p>
@@ -518,8 +519,8 @@ test的缩写。在测试文件中不需要显示地import，pytest会自动寻�
 <p>例如，若<code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.paramtrize('data',</span> <span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3])</span></code>，则会为<code class="docutils literal notranslate"><span class="pre">data</span></code>变量分别赋值为1、2、3进行测试；若<code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.paramtrize('var1,</span> <span class="pre">var2',</span> <span class="pre">[[1,</span> <span class="pre">2],</span> <span class="pre">[2,</span> <span class="pre">3],</span> <span class="pre">[3,</span> <span class="pre">4]])</span></code>，则会为<code class="docutils literal notranslate"><span class="pre">(var1,</span> <span class="pre">var2)</span></code>变量分别赋值为(1,
 2)、(2, 3)、(3, 4)进行测试。</p>
 <p>可以参考<code class="docutils literal notranslate"><span class="pre">ding/utils/data/tests/test_dataloader.py</span></code>中的写法。</p>
-</div>
-<div class="section" id="id34">
+</section>
+<section id="id34">
 <span id="id35"></span><h4>4.2 如何测<a class="headerlink" href="#id34" title="Permalink to this headline">¶</a></h4>
 <p>如果是单纯的测试，可以直接使用命令<code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">-sv</span> <span class="pre">TEST-PATH</span></code></p>
 <p>但有时，我们希望可以知道测试的覆盖率是多少，就需要用到如下命令：</p>
@@ -534,11 +535,11 @@ test的缩写。在测试文件中不需要显示地import，pytest会自动寻�
 <p>命令执行完成后，会得到<code class="docutils literal notranslate"><span class="pre">.coverage</span></code>文件，执行命令
 <code class="docutils literal notranslate"><span class="pre">coverage</span> <span class="pre">html</span></code>后，得到 <code class="docutils literal notranslate"><span class="pre">htmlcov</span></code>文件夹，打开其路径下的
 <code class="docutils literal notranslate"><span class="pre">index.html</span></code>文件，就可以看到对应文件的测试覆盖率了。</p>
-</div>
-</div>
-<div class="section" id="id36">
+</section>
+</section>
+<section id="id36">
 <span id="id37"></span><h3>5. 画图<a class="headerlink" href="#id36" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="uml">
+<section id="uml">
 <span id="id38"></span><h4>5.1 UML图<a class="headerlink" href="#uml" title="Permalink to this headline">¶</a></h4>
 <p>UML（Unified Modeling
 Language）是一种统一建模语言，为面向对象开发系统的产品进行说明、可视化、和编制文档的一种标准语言。不了解的同学可以移步<a class="reference external" href="https://www.cnblogs.com/jiangds/p/6596595.html">链接</a>。比较常用的有<strong>类图，活动图，顺序图</strong>等，比如</p>
@@ -546,8 +547,8 @@ Language）是一种统一建模语言，为面向对象开发系统的产品进
 <a class="reference internal image-reference" href="../_images/uml_serial_learner_activity.png"><img alt="../_images/uml_serial_learner_activity.png" class="align-center" src="../_images/uml_serial_learner_activity.png" style="width: 475.03000000000003px; height: 363.14000000000004px;" /></a>
 <p>串行模式下整个pipeline的顺序图：</p>
 <a class="reference internal image-reference" href="../_images/uml_serial_main_sequence.png"><img alt="../_images/uml_serial_main_sequence.png" class="align-center" src="../_images/uml_serial_main_sequence.png" style="width: 747.0px; height: 643.0px;" /></a>
-</div>
-<div class="section" id="id39">
+</section>
+<section id="id39">
 <span id="id40"></span><h4>5.2 画图工具<a class="headerlink" href="#id39" title="Permalink to this headline">¶</a></h4>
 <p><strong>PlantUML</strong></p>
 <p>特点：代码式，不需要关心排版，好维护</p>
@@ -558,10 +559,10 @@ Language）是一种统一建模语言，为面向对象开发系统的产品进
 <p><strong>draw.io/ProcessOn</strong></p>
 <p>拖动式作图，所见即所得</p>
 <p>官网：<a class="reference external" href="https://drawio-app.com/">draw.io</a>、<a class="reference external" href="https://www.processon.com/">ProcessOn</a></p>
-</div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
+</section>
 
 
            </div>

@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>League Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -195,7 +196,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="league-overview">
+  <section id="league-overview">
 <h1>League Overview<a class="headerlink" href="#league-overview" title="Permalink to this headline">¶</a></h1>
 <p>Abstract:</p>
 <p>The concept of League training is from <a class="reference external" href="../rl_warmup/algorithm/large-scale-rl.html#alphastar">AlphaStar</a>.
@@ -208,7 +209,7 @@ Different players can fight each other and generate very rich game data to updat
 components to make AlphaStar successfully.</p>
 <p>In the following paragraphs, We’ll first introduce the training pipline of League, then there will be a brief summary of the implementation
 of <code class="docutils literal notranslate"><span class="pre">league</span></code> module in ding.</p>
-<div class="section" id="league-intro">
+<section id="league-intro">
 <h2>League Intro<a class="headerlink" href="#league-intro" title="Permalink to this headline">¶</a></h2>
 <p>In 1v1 competitive games, we always hope to find two players with similar levels. In this way the trajectory generated is more meaningful
 for strategy optimization. The navie implementation is self-play, which means agents plays with itself to upate its strategy.</p>
@@ -234,8 +235,8 @@ and parameters, or it is the strategies periodically frozen from the best parame
 <p>AlphaStar uses a more complicated league training algorithm than self-play, and designs more types of players differ in the distribution of opponent
 they train against. The “Rock-paper-scissors” problem can be alleviated in this way, also the strategy will be more diverse. More details can be found
 in the AlphaStar paper’s “Methods - MultiAgent Learning” part.</p>
-</div>
-<div class="section" id="di-engine-implementation">
+</section>
+<section id="di-engine-implementation">
 <h2>DI-engine Implementation<a class="headerlink" href="#di-engine-implementation" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine’s implementation of league consists of three parts:</p>
 <blockquote>
@@ -245,7 +246,7 @@ in the AlphaStar paper’s “Methods - MultiAgent Learning” part.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">League</span></code>：league holds all of the players and payoff records, responsible for maintaining payoff and player status, and assigning opponents to players based on payoff.</p></li>
 </ul>
 </div></blockquote>
-<div class="section" id="player">
+<section id="player">
 <h3>Player<a class="headerlink" href="#player" title="Permalink to this headline">¶</a></h3>
 <dl>
 <dt>Abstract:</dt><dd><p>Player is the member of the league, also the participant of the competitive games. Each player holds a share of parameters or rules, which means it act in an unique strategy.</p>
@@ -361,8 +362,8 @@ or <code class="docutils literal notranslate"><span class="pre">mutate</span></c
 </div></blockquote>
 </dd>
 </dl>
-</div>
-<div class="section" id="payoff">
+</section>
+<section id="payoff">
 <h3>Payoff<a class="headerlink" href="#payoff" title="Permalink to this headline">¶</a></h3>
 <p>Abstract:</p>
 <blockquote>
@@ -379,8 +380,8 @@ calculate the winrate between two players.</p>
 </ol>
 </div></blockquote>
 </div></blockquote>
-</div>
-<div class="section" id="league">
+</section>
+<section id="league">
 <h3>League<a class="headerlink" href="#league" title="Permalink to this headline">¶</a></h3>
 <p>Abstract:</p>
 <blockquote>
@@ -423,9 +424,9 @@ to collect task for two players to play a round of game.</p>
 </ol>
 </dd>
 </dl>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

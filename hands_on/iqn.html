@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>IQN &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,13 +172,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="iqn">
+  <section id="iqn">
 <h1>IQN<a class="headerlink" href="#iqn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>IQN was proposed in <a class="reference external" href="https://arxiv.org/pdf/1806.06923">Implicit Quantile Networks for Distributional Reinforcement Learning</a>. The key difference between IQN and QRDQN is that IQN introduces the implicit quantile network (IQN), a deterministic parametric function trained to re-parameterize samples from a base distribution, e.g. tau in U([0, 1]), to the respective quantile values of a target distribution, while QRDQN direct learns a fixed set of pre-defined quantiles.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>IQN is a <strong>model-free</strong> and <strong>value-based</strong> RL algorithm.</p></li>
@@ -186,8 +187,8 @@
 <li><p>Usually, IQN use <strong>eps-greedy</strong> or <strong>multinomial sample</strong> for exploration.</p></li>
 <li><p>IQN can be equipped with RNN.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations">
+</section>
+<section id="key-equations">
 <h2>Key Equations<a class="headerlink" href="#key-equations" title="Permalink to this headline">¶</a></h2>
 <p>In implicit quantile networks, a sampled quantile tau is first encoded into an embedding vector via:</p>
 <blockquote>
@@ -195,13 +196,13 @@
 \[\phi_{j}(\tau):=\operatorname{ReLU}\left(\sum_{i=0}^{n-1} \cos (\pi i \tau) w_{i j}+b_{j}\right)\]</div>
 </div></blockquote>
 <p>Then the quantile embedding is element-wise multiplied by the embedding of the observation of the environment, and the subsequent fully-connected layers map the resulted product vector to the respective quantile value.</p>
-</div>
-<div class="section" id="key-graphs">
+</section>
+<section id="key-graphs">
 <h2>Key Graphs<a class="headerlink" href="#key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The comparison among DQN, C51, QRDQN and IQN is shown as follows:</p>
 <a class="reference internal image-reference" href="../_images/dis_reg_compare.png"><img alt="../_images/dis_reg_compare.png" class="align-center" src="../_images/dis_reg_compare.png" style="width: 800px;" /></a>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>IQN can be combined with:</dt><dd><ul>
@@ -217,8 +218,8 @@
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="implementation">
+</section>
+<section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
@@ -459,8 +460,8 @@ Parameter updates with IQN’s MLPs forward setup.</p>
 </dd></dl>
 
 <p>The bellman updates of IQN used is defined in the function <code class="docutils literal notranslate"><span class="pre">iqn_nstep_td_error</span></code> of <code class="docutils literal notranslate"><span class="pre">ding/rl_utils/td.py</span></code>.</p>
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -515,20 +516,20 @@ skip-v4)</p>
 </ol>
 </dd>
 </dl>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>(IQN) Will Dabney, Georg Ostrovski, David Silver, Rémi Munos: “Implicit Quantile Networks for Distributional Reinforcement Learning”, 2018; arXiv:1806.06923. https://arxiv.org/pdf/1806.06923</p>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ul class="simple">
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/iqn.py">Tianshou</a></p></li>
 </ul>
 </div></blockquote>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>GAIL &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="gail">
+  <section id="gail">
 <h1>GAIL<a class="headerlink" href="#gail" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>GAIL (Generative Adversarial Imitation Learning) was first proposed in
 <a class="reference external" href="https://arxiv.org/abs/1606.03476">Generative Adversarial Imitation
@@ -188,8 +189,8 @@ expensively learn the inter-mediate reward function as in inverse
 reinforcement learning. But similar to other methods, GAIL is also
 exposed to “the curse of dimensionality”, which makes the scalability
 much valuable in high-dimension-space problems.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>GAIL consists of a generator and a discriminator, trained in an
@@ -200,27 +201,27 @@ methods, like TRPO, for its sampling nature.</p></li>
 <li><p>The discriminator can be simply optimized by typical gradient descent
 methods, like Adam, to distinguish expert and generated data.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The objective function in GAIL’s adversarial training is as below:</p>
-<div class="figure align-center">
+<figure class="align-center">
 <img alt="../_images/gail_loss.png" src="../_images/gail_loss.png" />
-</div>
+</figure>
 <p>where pi is the generator policy, D is the discriminator policy,
 while <span class="math notranslate nohighlight">\(H(\pi)\)</span> is the causal entropy of policy pi. This is a
 min-max optimization process, and the objective is optimized in an
 iterative adversarial manner. During training, D has to
 maximize the objective, while pi has to counter D by minimizing the
 objective.</p>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-Code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
-<div class="figure align-default">
+<figure class="align-default">
 <img alt="" src="../_images/GAIL.png" />
-</div>
-</div>
-<div class="section" id="extensions">
+</figure>
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>MAGAIL (Multi-Agent Generative Adversarial Imitation Learning)</p>
@@ -233,9 +234,9 @@ controlling all agents in a distributed manner, while the
 discriminator is distinguishing expert and generates behavior for
 each agent.</p>
 <p>The Pseudo-Code is as following:</p>
-<div class="figure align-default">
+<figure class="align-default">
 <a class="reference internal image-reference" href="../_images/MAGAIL.png"><img alt="" src="../_images/MAGAIL.png" style="width: 1036.1499999999999px; height: 852.55px;" /></a>
-</div>
+</figure>
 </li>
 <li><p>Other perspectives to understand GAIL</p>
 <p>GAIL is closely related to other learning methods, and thus can be
@@ -247,8 +248,8 @@ implicit connection to GAN, IRL, and energy-based probability
 estimation.</p>
 </li>
 </ul>
-</div>
-<div class="section" id="implementation">
+</section>
+<section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <dl class="py class">
@@ -427,8 +428,8 @@ estimation.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -476,23 +477,23 @@ estimation.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Ho, Jonathan, and Stefano Ermon. Making efficient use of demonstrations to solve hard exploration problems. [<a class="reference external" href="https://arxiv.org/abs/1606.03476">https://arxiv.org/abs/1606.03476</a> arXiv:1606.03476], 2019.</p></li>
 <li><p>Song, Jiaming, et al. Multi-agent generative adversarial imitation learning. [<a class="reference external" href="https://arxiv.org/abs/1807.09936">https://arxiv.org/abs/1807.09936</a> arXiv:1807.09936], 2018.</p></li>
 <li><p>Finn, Chelsea, et al. A connection between generative adversarial networks, inverse reinforcement learning, and energy-based models. [<a class="reference external" href="https://arxiv.org/abs/1611.03852">https://arxiv.org/abs/1611.03852</a> arXiv:1611.03852], 2016.</p></li>
 </ul>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://stable-baselines.readthedocs.io/en/master/modules/gail.html">Baselines</a></p></li>
 <li><p><a class="reference external" href="https://github.com/Khrylx/PyTorch-RL">PyTorch-RL</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

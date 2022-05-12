@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>DI-orchestrator Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -197,12 +198,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="di-orchestrator-overview">
+  <section id="di-orchestrator-overview">
 <h1>DI-orchestrator Overview<a class="headerlink" href="#di-orchestrator-overview" title="Permalink to this headline">¶</a></h1>
 <p>In order to provide running support for DI-engine in Kubernetes (K8s), we designed DI-orchestrator, which aims to manager all the modules in the distributed training of DI-engine. DI-orchestrator offers many micro
 services for more stable and efficient training. The detailed architecture design is shown in <a class="reference external" href="https://github.com/opendilab/DI-orchestrator/blob/master/docs/architecture.md">DI-orchestrator Guide</a>. And here is a
 specific example about how to launch a DI-engine training job(<code class="docutils literal notranslate"><span class="pre">DIJob</span></code>), and first you should deploy a k8s cluster first:</p>
-<div class="section" id="submit-view-modify-and-delete-dijob">
+<section id="submit-view-modify-and-delete-dijob">
 <span id="id1"></span><h2>1. Submit, View, Modify and Delete DIJob<a class="headerlink" href="#submit-view-modify-and-delete-dijob" title="Permalink to this headline">¶</a></h2>
 <p>A simple example is stored in
 <code class="docutils literal notranslate"><span class="pre">{DING_ROOT}/ding/scripts/dijob-qbert.yaml</span></code>, you can use this example
@@ -239,8 +240,8 @@ $ kubectl delete dijob qbert-dqn
 $ kubectl delete -f qbert-dqn.yaml
 </pre></div>
 </div>
-</div>
-<div class="section" id="check-the-status-of-dijob">
+</section>
+<section id="check-the-status-of-dijob">
 <span id="id2"></span><h2>2. Check the status of DIJob<a class="headerlink" href="#check-the-status-of-dijob" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># get the dijob qbert-dqn to display</span>
 $ kubectl get dijob dijob-example
@@ -265,13 +266,13 @@ Labels:       &lt;none&gt;
 Events:           &lt;none&gt;
 </pre></div>
 </div>
-</div>
-<div class="section" id="set-storage-middleware">
+</section>
+<section id="set-storage-middleware">
 <span id="id3"></span><h2>3. Set storage middleware<a class="headerlink" href="#set-storage-middleware" title="Permalink to this headline">¶</a></h2>
 <p>As <code class="docutils literal notranslate"><span class="pre">DIJob</span></code> needs storage middleware during training, it must be
 provided in <code class="docutils literal notranslate"><span class="pre">.yaml</span></code>. Here’s an example that shows the required fields
 for setting a storage middleware.</p>
-<div class="section" id="hostpath-configuration-example">
+<section id="hostpath-configuration-example">
 <h3>hostPath configuration example<a class="headerlink" href="#hostpath-configuration-example" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic simple">
 <li><p>Supply a directory from the host node’s filesystem in the field
@@ -305,9 +306,9 @@ must be the same as the name defined in <code class="docutils literal notranslat
 <span class="nn">...</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="insert-experimental-config-in-dijob-config">
+</section>
+</section>
+<section id="insert-experimental-config-in-dijob-config">
 <span id="id4"></span><h2>4. Insert experimental config in DIJob config<a class="headerlink" href="#insert-experimental-config-in-dijob-config" title="Permalink to this headline">¶</a></h2>
 <p>Generally, the experimental config (e.g. <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.py</span></code>) and
 <code class="docutils literal notranslate"><span class="pre">DIJob</span></code> config are stored in two different files. You can use the
@@ -354,8 +355,8 @@ config:</p>
 <span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="define-environment-variables-for-a-worker">
+</section>
+<section id="define-environment-variables-for-a-worker">
 <span id="id5"></span><h2>5. Define environment variables for a worker<a class="headerlink" href="#define-environment-variables-for-a-worker" title="Permalink to this headline">¶</a></h2>
 <p>To set environment variables, include the <code class="docutils literal notranslate"><span class="pre">env</span></code> field in the
 configuration file. Here’s an example of defining an environment
@@ -375,8 +376,8 @@ variable with name <code class="docutils literal notranslate"><span class="pre">
 <span class="w w-Error"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="assign-cpu-memory-and-gpu-resources-to-workers">
+</section>
+<section id="assign-cpu-memory-and-gpu-resources-to-workers">
 <span id="id6"></span><h2>6. Assign CPU, memory, and GPU resources to workers<a class="headerlink" href="#assign-cpu-memory-and-gpu-resources-to-workers" title="Permalink to this headline">¶</a></h2>
 <p>The CPU, memory, and GPU required by each worker may be different. You
 need to specify requests in the field <code class="docutils literal notranslate"><span class="pre">resources:requests</span></code> of each
@@ -403,8 +404,8 @@ memory:</p>
 <span class="w">              </span><span class="nt">memory</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10Gi&quot;</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

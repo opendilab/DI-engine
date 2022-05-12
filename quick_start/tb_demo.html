@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Tensorboard and Logging demo &mdash; DI-engine 0.1.0 documentation</title>
@@ -166,20 +167,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="tensorboard-and-logging-demo">
+  <section id="tensorboard-and-logging-demo">
 <h1>Tensorboard and Logging demo<a class="headerlink" href="#tensorboard-and-logging-demo" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>In this page, the default tensorboard and logging information is described in detail.
 A <code class="docutils literal notranslate"><span class="pre">CartPole</span> <span class="pre">DQN</span></code> experiment is used as example.</p>
-<div class="section" id="tensorboard-info">
+<section id="tensorboard-info">
 <h2>Tensorboard info<a class="headerlink" href="#tensorboard-info" title="Permalink to this headline">¶</a></h2>
 <p>There are 4 main parts in tensorboard: buffer, collector, learner and evaluator, corresponding to 4 modules.
 Buffer tensorboard records useful information about sampled data in replay buffer, collector and evaluator tensorboard
 records interactive information between them and environments, learner tensorboard records parameters during updating models.</p>
 <p>The most essential information during training may be the reward of evaluator and collector. they are showed in <code class="docutils literal notranslate"><span class="pre">collector_iter</span></code>,
 <code class="docutils literal notranslate"><span class="pre">collector_step</span></code> and <code class="docutils literal notranslate"><span class="pre">evaluator_iter</span></code>, <code class="docutils literal notranslate"><span class="pre">evaluator_step</span></code>, named <code class="docutils literal notranslate"><span class="pre">reward_mean</span></code>.</p>
-<div class="section" id="buffer">
+<section id="buffer">
 <h3>Buffer<a class="headerlink" href="#buffer" title="Permalink to this headline">¶</a></h3>
 <p>Buffer tensorboard has 3 recorded horizontal axis quantities: env steps, learner iterations and time.
 The first two record priority, staleness and use counts of all data, the last records the amount of data and the I/O amount
@@ -188,8 +189,8 @@ per time period.</p>
 <img alt="../_images/tb_buffer_agent_iter.png" src="../_images/tb_buffer_agent_iter.png" />
 <img alt="../_images/tb_buffer_agent_step.png" src="../_images/tb_buffer_agent_step.png" />
 <img alt="../_images/tb_buffer_agent_sec.png" src="../_images/tb_buffer_agent_sec.png" />
-</div>
-<div class="section" id="collector-evaluator">
+</section>
+<section id="collector-evaluator">
 <h3>Collector &amp; Evaluator<a class="headerlink" href="#collector-evaluator" title="Permalink to this headline">¶</a></h3>
 <p>Collector and evaluator have similar recording information. They have 2 recorded horizontal axis quantities: env steps and
 learner iterations. They record env steps per episode and per seconds, episodes per second, training samples per episode and
@@ -201,17 +202,17 @@ per second, each collecting time, amount of env steps and episodes in time perio
 <img alt="../_images/tb_collector_step_2.png" src="../_images/tb_collector_step_2.png" />
 <img alt="../_images/tb_evaluator_iter.png" src="../_images/tb_evaluator_iter.png" />
 <img alt="../_images/tb_evaluator_step.png" src="../_images/tb_evaluator_step.png" />
-</div>
-<div class="section" id="learner">
+</section>
+<section id="learner">
 <h3>Learner<a class="headerlink" href="#learner" title="Permalink to this headline">¶</a></h3>
 <p>Learner has 2 recorded horizontal axis quantities: env steps and learner iterations. Learner information may be different due to policy.
 In short it may records learning rate, training loss, training time, Q value or action values, etc.</p>
 <p>If everything works well, the tensorboard will look like below.</p>
 <img alt="../_images/tb_learner_iter.png" src="../_images/tb_learner_iter.png" />
 <img alt="../_images/tb_learner_step.png" src="../_images/tb_learner_step.png" />
-</div>
-</div>
-<div class="section" id="logging-info">
+</section>
+</section>
+<section id="logging-info">
 <h2>Logging info<a class="headerlink" href="#logging-info" title="Permalink to this headline">¶</a></h2>
 <p>All the above information is recorded in logging files. Each module has a folder named by themselves to save logging files. The
 showed</p>
@@ -219,8 +220,8 @@ showed</p>
 only print after collection, evaluation and updating models.</p>
 <p>An example of logging printed in shell is shown below.</p>
 <img alt="../_images/shell_logging.png" src="../_images/shell_logging.png" />
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

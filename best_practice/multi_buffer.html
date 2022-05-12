@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>How to use multiple buffers? &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,14 +171,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-use-multiple-buffers">
+  <section id="how-to-use-multiple-buffers">
 <h1>How to use multiple buffers?<a class="headerlink" href="#how-to-use-multiple-buffers" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="guideline">
+<section id="guideline">
 <h2>Guideline<a class="headerlink" href="#guideline" title="Permalink to this headline">¶</a></h2>
 <p>In some algorithms, it is required to use multiple buffers. For example, in <a class="reference external" href="https://arxiv.org/pdf/1909.01387.pdf">R2D3</a>, there is a demonstration buffer full of expert data and an agent buffer collected during training; In <a class="reference external" href="https://arxiv.org/pdf/2009.04416.pdf">Phasic Policy Gradient</a>, there is a value buffer and a policy buffer respectively designed for critic optimization and actor optimization.</p>
 <p>However, DI-engine <cite>serial_pipeline</cite> only supports single buffer. So in this section, we will teach you how to write the configuration file and your own multi-buffer pipeline. We will take <cite>PPG</cite> algorithm as an example.</p>
-</div>
-<div class="section" id="config">
+</section>
+<section id="config">
 <h2>1. Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><p>We show core part of <cite>ding/dizoo/classic_control/cartpole/config/cartpole_ppg_config.py</cite> as follows:</p>
@@ -217,8 +218,8 @@
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="pipeline">
+</section>
+<section id="pipeline">
 <h2>2. Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><p>After finishing the config file, you can write your own pipeline. Here is an example from <cite>dizoo/classic_control/cartpole/entry/cartpole_ppg_main.py</cite>.</p>
@@ -250,8 +251,8 @@
 </ul>
 </div></blockquote>
 </div></blockquote>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

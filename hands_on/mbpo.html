@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>MBPO &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,17 +172,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="mbpo">
+  <section id="mbpo">
 <h1>MBPO<a class="headerlink" href="#mbpo" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Model-based policy optimization (MBPO) was first proposed in <a class="reference external" href="https://arxiv.org/abs/1906.08253">When to Trust Your Model: Model-Based Policy Optimization</a>.
 MBPO utilizes short model-generated rollouts and provides a guarantee of monotonic improvement at each step.
 In details, MBPO trains an ensemble of models to fit the transitions of the true environment and uses it to generate short trajectories starting from real environment states to do policy improvement.
 For the choice of RL policy, MBPO use SAC as its RL component.</p>
 <p>See this repo <a class="reference external" href="https://github.com/opendilab/awesome-model-based-RL">awesome-model-based-RL</a> for more model-based rl papers.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>MBPO is a <strong>model-based</strong> RL algorithm.</p></li>
@@ -189,10 +190,10 @@ For the choice of RL policy, MBPO use SAC as its RL component.</p>
 <li><p>MBPO only supports <strong>continuous</strong> action spaces.</p></li>
 <li><p>MBPO uses <strong>model-ensemble</strong>.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="predictive-model">
+<section id="predictive-model">
 <h3>Predictive Model<a class="headerlink" href="#predictive-model" title="Permalink to this headline">¶</a></h3>
 <p>MBPO utilizes an ensemble of gaussian neural network, each member of the ensemble is:</p>
 <div class="math notranslate nohighlight">
@@ -200,8 +201,8 @@ For the choice of RL policy, MBPO use SAC as its RL component.</p>
 <p>The maximum likelihood loss used in model training is:</p>
 <div class="math notranslate nohighlight">
 \[L(\theta)=\mathbb{E}\left[log(p_\theta(\boldsymbol{s}_{t+1}|\boldsymbol{s}_t,\boldsymbol{a}_t))\right]\]</div>
-</div>
-<div class="section" id="policy-optimization">
+</section>
+<section id="policy-optimization">
 <h3>Policy Optimization<a class="headerlink" href="#policy-optimization" title="Permalink to this headline">¶</a></h3>
 <p>Policy evaluation step:</p>
 <div class="math notranslate nohighlight">
@@ -212,17 +213,17 @@ For the choice of RL policy, MBPO use SAC as its RL component.</p>
 <p>Note: This update guarantees that
 <span class="math notranslate nohighlight">\(Q^{\pi_{new}}(\boldsymbol{s}_t,\boldsymbol{a}_t) \geq Q^{\pi_{old}}(\boldsymbol{s}_t,\boldsymbol{a}_t)\)</span>,
 please check the proof on this Lemma2 in the Appendix B.2 in the original <a class="reference external" href="https://arxiv.org/abs/1801.01290">paper</a>.</p>
-</div>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/MBPO.png"><img alt="../_images/MBPO.png" class="align-center" src="../_images/MBPO.png" style="width: 1689.6000000000001px; height: 555.5px;" /></a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The initial implementation of MBPO only give the hyper-parameters of applying it on SAC, which does not fit DDPG and TD3 well.</p>
 </div>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config of mbpo model is defined as follows:</p>
 <dl class="py class">
@@ -253,8 +254,8 @@ please check the proof on this Lemma2 in the Appendix B.2 in the original <a cla
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given docutils align-default" id="id1">
 <caption><span class="caption-text">Benchmark of MBPO algorithm</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
@@ -291,20 +292,20 @@ please check the proof on this Lemma2 in the Appendix B.2 in the original <a cla
 <ol class="arabic simple">
 <li><p>The above results are obtained by running the same configuration on three different random seeds (0, 1, 2).</p></li>
 </ol>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/facebookresearch/mbrl-lib/blob/main/mbrl/algorithms/mbpo.py">mbrl-lib</a></p></li>
 </ul>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Michael Janner, Justin Fu, Marvin Zhang, Sergey Levine: “When to Trust Your Model: Model-Based Policy Optimization”, 2019; arXiv:1906.08253.</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

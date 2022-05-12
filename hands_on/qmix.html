@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>QMIX &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="qmix">
+  <section id="qmix">
 <h1>QMIX<a class="headerlink" href="#qmix" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>QMIX is proposed by <a class="reference external" href="https://arxiv.org/abs/1803.11485">Rashid et al.(2018)</a> for learning joint action value function conditioned on global state information in multi-agent centralized training,
 and extracting decentralized policies from the centralized end-to-end framework.
@@ -181,8 +182,8 @@ QMIX employs a centralized neural network to estimate joint action values as a c
 which provides a novel representation of centralized action-value functions and guarantees consistency between the centralized and decentralized policies.</p>
 <p>QMIX is a non-linear extension of <a class="reference external" href="https://arxiv.org/abs/1706.05296">VDN (Sunehag et al. 2017)</a>.
 Compared to VDN, QMIX can represent more extra state information during training and a much richer class of action-value functions.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>QMIX uses the paradigm of <strong>centralized training with decentralized execution</strong>.</p></li>
@@ -194,8 +195,8 @@ Compared to VDN, QMIX can represent more extra state information during training
 The mixing network is a feed-forward neural network that takes the agent network outputs as input and mixes them monotonically, producing joint action values.
 The weights of the mixing network are produced by a separate hypernetwork.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>VDN and QMIX are representative methods that use the idea of factorization of the joint action-value function <span class="math notranslate nohighlight">\(Q_{tot}\)</span> into individual ones <span class="math notranslate nohighlight">\(Q_a\)</span> for decentralized execution.</p>
 <p>In order to achieve centralized training with decentralized execution (CTDE), we need to ensure that a global <span class="math notranslate nohighlight">\(argmax\)</span> performed on <span class="math notranslate nohighlight">\(Q_{tot}\)</span> yields the same result as a set of individual <span class="math notranslate nohighlight">\(argmax\)</span> operations performed on each <span class="math notranslate nohighlight">\(Q_a\)</span>:</p>
@@ -216,8 +217,8 @@ The weights of the mixing network are produced by a separate hypernetwork.</p></
 <p>VDN and QMIX are methods that attempt to factorize  <span class="math notranslate nohighlight">\(Q_tot\)</span> assuming additivity and monotonicity, respectively. Thus, joint action value functions satisfying those conditions would be well factorized by VDN and QMIX. However, there exist tasks
 whose joint action-value functions do not meet the said conditions. <a class="reference external" href="https://arxiv.org/abs/1905.05408">QTRAN (Son et al. 2019)</a>, proposes a factorization method, which is free from such structural constraints via transforming the original joint action-value function into an easily factorizable one.
 QTRAN guarantees more general factorization than VDN or QMIX.</p>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <blockquote>
@@ -442,8 +443,8 @@ QTRAN guarantees more general factorization than VDN or QMIX.</p>
 </dd></dl>
 
 </div></blockquote>
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given docutils align-default" id="id2">
 <caption><span class="caption-text">Benchmark and comparison of qmix algorithm</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
@@ -542,21 +543,21 @@ QTRAN guarantees more general factorization than VDN or QMIX.</p>
 and is generally evaluated by the highest mean reward training 10M <code class="docutils literal notranslate"><span class="pre">env_step</span></code>.
 For more details about SMAC, please refer to <a class="reference external" href="../env_tutorial/smac_zh.html">SMAC Env Tutorial</a> .</p></li>
 </ol>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Tabish Rashid, Mikayel Samvelyan, Christian Schroeder de Witt, Gregory Farquhar, Jakob Foerster, Shimon Whiteson. Qmix: Monotonic value function factorisation for deep multi-agent reinforcement learning. International Conference on Machine Learning. PMLR, 2018.</p>
 <p>Peter Sunehag, Guy Lever, Audrunas Gruslys, Wojciech Marian Czarnecki, Vinicius Zambaldi, Max Jaderberg, Marc Lanctot, Nicolas Sonnerat, Joel Z. Leibo, Karl Tuyls, Thore Graepel. Value-decomposition networks for cooperative multi-agent learning. arXiv preprint arXiv:1706.05296, 2017.</p>
 <p>Kyunghwan Son, Daewoo Kim, Wan Ju Kang, David Earl Hostallero, Yung Yi. QTRAN: Learning to Factorize with Transformation for Cooperative Multi-Agent Reinforcement Learning. International Conference on Machine Learning. PMLR, 2019.</p>
 <p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/oxwhirl/pymarl/blob/master/src/config/algs/qmix.yaml">pymarl</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

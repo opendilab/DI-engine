@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>VPN &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="vpn">
+  <section id="vpn">
 <h1>VPN<a class="headerlink" href="#vpn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Value Prediction Network(VPN) was first proposed in <a class="reference external" href="https://arxiv.org/abs/1707.03497">Value Prediction Network</a> from NeurIPS 2017.
 Value prediction network is an improvement upon the traditional model-based reinforcement learning algorithm
@@ -184,8 +185,8 @@ without predicting future observations.</p>
 VPN performs lookahead planning to choose actions and compute bootstrapped target Q-values.</p>
 <p>(i.e., learning the dynamics of an abstract state space
 sufficient for computing future rewards and values)</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>VPN can be viewed as combination of model-based RL and model-free RL.</p></li>
@@ -211,8 +212,8 @@ This kind of model is called an observation-prediction model.
 In a relatively complex environment, observation usually has a higher dimension and is highly stochastic,
 which makes it difficult for model-based algorithms to learn the observation-prediction model corresponding to the environment.</p>
 </div>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>Value Prediction Network mainly consists of 4 parts:</p>
 <p>The VPN consists of the following modules parameterized by <span class="math notranslate nohighlight">\(\theta=\left\{\theta^{\text {enc }}, \theta^{\text {value }}, \theta^{\text {out }}, \theta^{\text {trans }}\right\}\)</span>:</p>
@@ -250,12 +251,12 @@ f_{\theta}^{\text {trans }}\left(\mathbf{s}_{t-1}^{k-1}, \mathbf{o}_{t-1}\right)
 </div></blockquote>
 <p>The entire update flow chart is as follows:</p>
 <img alt="../_images/vpn-learning.png" class="align-center" src="../_images/vpn-learning.png" />
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/vpn-code.png" src="../_images/vpn-code.png" />
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>VPN can be combined with:</p>
@@ -272,8 +273,8 @@ replaces the simple rollout with MCTS, and achieves superhuman performance in a 
 </div></blockquote>
 </li>
 </ul>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <blockquote>
@@ -287,13 +288,13 @@ replaces the simple rollout with MCTS, and achieves superhuman performance in a 
 <li><p>TBD</p></li>
 </ul>
 </div></blockquote>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <p>Junhyuk Oh, Satinder Singh, Honglak Lee: “Value Prediction Network”, 2017; [<a class="reference external" href="http://arxiv.org/abs/1707.03497">http://arxiv.org/abs/1707.03497</a> arXiv:1707.03497].</p>
 <p>Julian Schrittwieser, Ioannis Antonoglou, Thomas Hubert, Karen Simonyan, Laurent Sifre, Simon Schmitt, Arthur Guez, Edward Lockhart, Demis Hassabis, Thore Graepel, Timothy Lillicrap, David Silver: “Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model”, 2019; [<a class="reference external" href="http://arxiv.org/abs/1911.08265">http://arxiv.org/abs/1911.08265</a> arXiv:1911.08265]. DOI: [https://dx.doi.org/10.1038/s41586-020-03051-4 10.1038/s41586-020-03051-4].</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

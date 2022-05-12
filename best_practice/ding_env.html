@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>How to migrate your environment to DI-engine &mdash; DI-engine 0.1.0 documentation</title>
@@ -197,7 +198,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-migrate-your-environment-to-di-engine">
+  <section id="how-to-migrate-your-environment-to-di-engine">
 <h1>How to migrate your environment to DI-engine<a class="headerlink" href="#how-to-migrate-your-environment-to-di-engine" title="Permalink to this headline">¶</a></h1>
 <p>Although a large number of commonly used Reinforcement Learning environments have been provided in <code class="docutils literal notranslate"><span class="pre">DI-zoo</span></code> (<a class="reference external" href="https://github.com/opendilab/DI-engine#environment-versatility">DI-engine supported environments</a> ), you may still need to migrate your environment to <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code>. Therefore, in this section, we will introduce how to perform the above migration step by step to meet the specifications of the <code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> basic environment base class <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code>, so that it can be easily applied in the training pipeline.</p>
 <p>The following introduction will be divided into two parts: <strong>Basic</strong> and <strong>Advanced</strong>.</p>
@@ -207,7 +208,7 @@
 <li><p><strong>Advanced</strong> indicates some expanded functions.</p></li>
 </ul>
 </div></blockquote>
-<div class="section" id="basic">
+<section id="basic">
 <h2>Basic<a class="headerlink" href="#basic" title="Permalink to this headline">¶</a></h2>
 <p>This section will introduce the specification constraints that users must obey and the functions that must be implemented when migrating the environment.</p>
 <p>If you want to use the environment in DI-engine, you need to implement a subclass environment derived from <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code>, such as <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code>. The relationship between <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> and your own environment is a <a class="reference external" href="https://en.wikipedia.org/wiki/Object_composition">object composition</a> relationship, that is, a <code class="docutils literal notranslate"><span class="pre">YourEnv</span></code> instance will hold an instance of your own original environment.</p>
@@ -312,8 +313,8 @@
 </div></blockquote>
 </li>
 </ol>
-</div>
-<div class="section" id="advanced">
+</section>
+<section id="advanced">
 <h2>Advanced<a class="headerlink" href="#advanced" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>Environment preprocessing wrapper</p>
@@ -452,13 +453,13 @@ to <code class="docutils literal notranslate"><span class="pre">gym.spaces.Dict<
 </div>
 </li>
 </ol>
-</div>
-<div class="section" id="dingenvwrapper">
+</section>
+<section id="dingenvwrapper">
 <h2>DingEnvWrapper<a class="headerlink" href="#dingenvwrapper" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> can quickly convert simple environments such as cartpole, pendulum, etc. into environments that conform to <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code>. However, more complex environments are not supported for the time being.</p>
 <p>P.S. DingEnvWrapper is located in <code class="docutils literal notranslate"><span class="pre">ding/envs/env/ding_env_wrapper.py</span></code></p>
-</div>
-<div class="section" id="q-a">
+</section>
+<section id="q-a">
 <h2>Q &amp; A<a class="headerlink" href="#q-a" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>How should the MARL environment be migrated?</p>
@@ -476,8 +477,8 @@ to <code class="docutils literal notranslate"><span class="pre">gym.spaces.Dict<
 </ul>
 </li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

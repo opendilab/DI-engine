@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>PettingZoo &mdash; DI-engine 0.1.0 documentation</title>
@@ -225,9 +226,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="pettingzoo">
+  <section id="pettingzoo">
 <h1>PettingZoo<a class="headerlink" href="#pettingzoo" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="https://www.pettingzoo.ml/">PettingZoo</a> 是一个用于研究多智能体强化学习的 Python 库，可以认为是多智能体版本的 <a class="reference external" href="https://gym.openai.com/">Gym</a>。它包含以下几个环境家族：</p>
 <ul class="simple">
@@ -244,10 +245,10 @@
 <p class="admonition-title">Note</p>
 <p>需要注意的是，PettingZoo 出于可重复的考虑，保持严格的版本管理。所有环境都以<code class="docutils literal notranslate"><span class="pre">_v0</span></code> 这样的后缀结尾。当环境发生变化而可能影响学习结果时，数字会增加一个（例如<code class="docutils literal notranslate"><span class="pre">_v0</span></code>-&gt;<code class="docutils literal notranslate"><span class="pre">_v1</span></code>），以防止潜在的混淆。</p>
 </div>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>安装<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id4">
+<section id="id4">
 <h3>安装方法<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>目前 PettingZoo 官方支持 Linux 和 macOS 上的 Python 3.7~3.9。</p>
 <p>可以通过 pip 直接安装；此外，由于 DI-engine 中有单元测试用到了 PettingZoo，因此安装 DI-engine 也会默认安装 PettingZoo：</p>
@@ -264,8 +265,8 @@ pip install pettingzoo<span class="o">[</span>atari<span class="o">]</span>
 pip install pettingzoo<span class="o">[</span>all<span class="o">]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h3>验证安装<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>安装完成后，运行如下 Python 程序，如果没有报错则证明安装成功。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pettingzoo.mpe</span> <span class="kn">import</span> <span class="n">simple_spread_v2</span>
@@ -274,21 +275,21 @@ pip install pettingzoo<span class="o">[</span>all<span class="o">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>  <span class="c1"># (18,)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id6">
+</section>
+<section id="id6">
 <h3>镜像<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine 准备好了配备有框架本身和 PettingZoo 环境的镜像，可通过 <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code> 获取，或访问 <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a> 获取更多镜像</p>
-</div>
-</div>
-<div class="section" id="id7">
+</section>
+</section>
+<section id="id7">
 <span id="id8"></span><h2>变换前的空间（原始环境）<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <p>由于 PettingZoo 包含很多环境家族，每个的情况各不相同，难以顾全所有内容。这里以 <code class="docutils literal notranslate"><span class="pre">MPE</span></code> 中的 <code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Spread</span></code> 环境为例进行说明。</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Spread</span></code> 的游戏目标是希望智能体覆盖所有的地标的同时，避免彼此之间发生碰撞。</p>
 </div>
-<div class="section" id="id9">
+<section id="id9">
 <span id="id10"></span><h3>观察空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>智能体的观测由</p>
@@ -303,8 +304,8 @@ hub</a> 获取更多镜像</p>
 </ul>
 <p>组成，具体维度为 (2 + 2 + n_landmarks*2 + (n_agents-1)*2 + (n_agents-1)*2)，数据类型为 float32。
 例如，当你生成一个具有 5 个智能体（n_agents=5）与 5 个地标（n_landmarks=5）的 simple spread 环境时，每个智能体的观测维度为 (30,)。</p>
-</div>
-<div class="section" id="id11">
+</section>
+<section id="id11">
 <span id="id12"></span><h3>动作空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>无法手动控制</p></li>
@@ -326,32 +327,32 @@ hub</a> 获取更多镜像</p>
 <p class="admonition-title">Hint</p>
 <p>注意这里我们使用的是 <code class="docutils literal notranslate"><span class="pre">parallel_env()</span></code> 来生成环境，该函数与普通的 <code class="docutils literal notranslate"><span class="pre">env()</span></code> 区别在于，在 <code class="docutils literal notranslate"><span class="pre">paralle_env</span></code> 环境下，所有 agent 的动作同时输入；相反，在 <code class="docutils literal notranslate"><span class="pre">env</span></code> 环境下，每个 agent 的动作是依次输入的。由于 <code class="docutils literal notranslate"><span class="pre">paralle_env</span></code> 更为方便，所以我们更为推崇，在<code class="docutils literal notranslate"><span class="pre">DI-engine</span></code> 封装的环境中，我们也是这么做的。</p>
 </div>
-</div>
-<div class="section" id="id13">
+</section>
+<section id="id13">
 <span id="id14"></span><h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>所有的智能体贡献一个全局奖励，依据距离每个地标的最近的智能体来判定，一个 <code class="docutils literal notranslate"><span class="pre">float</span></code>数值</p></li>
 <li><p>具体而言，所有的智能体都根据最近的智能体离每个地标的距离（最小距离的总和）来获得全局奖励。此外，如果智能体与其它智能体发生碰撞，他们将受到惩罚。</p></li>
 </ul>
-</div>
-<div class="section" id="id15">
+</section>
+<section id="id15">
 <span id="id16"></span><h3>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏在执行完环境参数 <code class="docutils literal notranslate"><span class="pre">max_cycles</span></code> 所指定的周期数后就会终止。所有环境的默认值是 25 个周期。</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id17">
+</section>
+</section>
+<section id="id17">
 <h2>关键事实<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>输入为 state 而非 raw pixel；</p></li>
 <li><p>既可以选择离散动作空间，也可以选择连续动作空间；</p></li>
 <li><p>既有合作 (cooperation) 环境，例如 <code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Spread</span></code>、<code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Speaker</span> <span class="pre">Listener</span></code> 等；也有竞争 (competitive) 环境，例如 <code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Adversary</span></code>、<code class="docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Crypto</span></code> 等。</p></li>
 </ol>
-</div>
-<div class="section" id="rl">
+</section>
+<section id="rl">
 <span id="id18"></span><h2>变换后的空间（RL 环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id19">
+<section id="id19">
 <span id="id20"></span><h3>观察空间<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
 <ul>
 <li><p>针对多智能体算法，根据变换前的 state，分别生成了局部的 agent_state 和全局的 global_state：</p>
@@ -378,28 +379,28 @@ hub</a> 获取更多镜像</p>
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="id21">
+</section>
+<section id="id21">
 <span id="id22"></span><h3>动作空间<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>离散动作空间无变换</p></li>
 <li><p>连续动作空间，若环境变量<code class="docutils literal notranslate"><span class="pre">act_scale=True</span></code>，则对动作值进行 affine 变换</p></li>
 </ul>
-</div>
-<div class="section" id="id23">
+</section>
+<section id="id23">
 <span id="id24"></span><h3>奖励空间<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>无变化，为<code class="docutils literal notranslate"><span class="pre">gym.spaces.Box(low=float(&quot;-inf&quot;),</span> <span class="pre">high=float(&quot;inf&quot;),</span> <span class="pre">shape=(1,</span> <span class="pre">),</span> <span class="pre">dtype=np.float32)</span></code></p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id25">
+</section>
+</section>
+<section id="id25">
 <span id="id26"></span><h2>其他<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id27">
+<section id="id27">
 <h3>惰性初始化<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
-</div>
-<div class="section" id="id28">
+</section>
+<section id="id28">
 <h3>随机种子<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
@@ -407,19 +408,19 @@ hub</a> 获取更多镜像</p>
 <li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
 <li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
 </ul>
-</div>
-<div class="section" id="id29">
+</section>
+<section id="id29">
 <h3>训练和测试环境的区别<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
 </ul>
-</div>
-<div class="section" id="id30">
+</section>
+<section id="id30">
 <h3>存储录像<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>）</p>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/config/">github link</a>
 内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">ptz_simple_spread_mappo_config.py</span></code>，使用如下的 demo 即可运行：</p>
@@ -514,12 +515,12 @@ hub</a> 获取更多镜像</p>
     <span class="n">serial_pipeline_onpolicy</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id31">
+</section>
+<section id="id31">
 <h2>基准算法性能<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h2>
 <p>TODO</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Slime Volleyball &mdash; DI-engine 0.1.0 documentation</title>
@@ -209,24 +210,24 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="slime-volleyball">
+  <section id="slime-volleyball">
 <h1>Slime Volleyball<a class="headerlink" href="#slime-volleyball" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Slime Volleyball is a two-player match-based environment with two types of observation spaces, vector and picture forms. The action space is often simplified to a discrete action space, used as the basic environment for testing <code class="docutils literal notranslate"><span class="pre">self-play</span></code>-related algorithms. It is a collection of environments (there are 3 sub-environments, namely <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code>, <code class="docutils literal notranslate"><span class="pre">SlimeVolleyPixel-v0</span></code>, <code class="docutils literal notranslate"><span class="pre">SlimeVolleyNoFrameskip-v0</span></code>), of which the <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> game is shown in the figure below.</p>
 <img alt="../_images/slime_volleyball.gif" class="align-center" src="../_images/slime_volleyball.gif" />
-</div>
-<div class="section" id="installation">
+</section>
+<section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="installation-methods">
+<section id="installation-methods">
 <h3>Installation Methods<a class="headerlink" href="#installation-methods" title="Permalink to this headline">¶</a></h3>
 <p>Install <code class="docutils literal notranslate"><span class="pre">slimevolleygym</span></code>. You can install by command <code class="docutils literal notranslate"><span class="pre">pip</span></code> or through <strong>DI-engine</strong>.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
 pip install slimevolleygym
 </pre></div>
 </div>
-</div>
-<div class="section" id="installation-check">
+</section>
+<section id="installation-check">
 <h3>Installation Check<a class="headerlink" href="#installation-check" title="Permalink to this headline">¶</a></h3>
 <p>After completing installation, you can check whether it is succesful by the following commands:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
@@ -236,24 +237,24 @@ pip install slimevolleygym
 <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>  <span class="c1"># (12, )</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="di-engine-mirrors">
+</section>
+<section id="di-engine-mirrors">
 <h3>DI-engine Mirrors<a class="headerlink" href="#di-engine-mirrors" title="Permalink to this headline">¶</a></h3>
 <p>Due to Slime Volleyball is easy to install, DI-engine does not have Mirror specifically for it. You can customize your build with the benchmark Mirror <code class="docutils literal notranslate"><span class="pre">opendilab/ding:nightly</span></code>, or visit the <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a> for more mirrors.</p>
-</div>
-</div>
-<div class="section" id="original-environment">
+</section>
+</section>
+<section id="original-environment">
 <span id="original-environment-space"></span><h2>Original Environment<a class="headerlink" href="#original-environment" title="Permalink to this headline">¶</a></h2>
 <p>Note: <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> is used here as an example, because benchmarking the <code class="docutils literal notranslate"><span class="pre">self-play</span></code> series of algorithms naturally gives priority to simplicity. If you want to use the other two environments, you can check the original repository and adapt the environment according to the <a class="reference external" href="https://di-engine-docs.readthedocs.io/en/main-zh/feature/env_overview.html">DI-engine的API</a>.</p>
-<div class="section" id="observation-space">
+<section id="observation-space">
 <span id="observation-space-1"></span><h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The observation space is a vector of size <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code> containing the absolute coordinates of self, opponent, and ball with two consecutive frames stitched togerther. The data type is <code class="docutils literal notranslate"><span class="pre">float64</span></code>
 i.e. (x_agent, y_agent, x_agent_next, y_agent_next, x_ball, y_ball, x_ball_next, y_ball_next, x_opponent, y_opponent, x_opponent_next, y_opponent_next)</p></li>
 </ul>
-</div>
-<div class="section" id="action-space">
+</section>
+<section id="action-space">
 <span id="action-space-1"></span><h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
 <ul>
 <li><p>The original action space of <code class="docutils literal notranslate"><span class="pre">SlimeVolley-v0</span></code> is defined as <code class="docutils literal notranslate"><span class="pre">MultiBinary(3)</span></code> with three kinds of actions. More than one actions can be performed at the same time. Each action is corresponding to two cases: 0 (not executed) and 1 (executed).
@@ -281,14 +282,14 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 </div></blockquote>
 </li>
 </ul>
-</div>
-<div class="section" id="reward-space">
+</section>
+<section id="reward-space">
 <h3>Reward Space<a class="headerlink" href="#reward-space" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The reward is the score of the game. If the ball lands on the ground of your field, -1 is given. If it lands on the ground of the opponent‘s field, +1 is given. If the game is still in progress, 0 is given.</p></li>
 </ul>
-</div>
-<div class="section" id="other">
+</section>
+<section id="other">
 <span id="other-1"></span><h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The end of the game is represented as the end of episode. There are two ending conditions</p>
@@ -307,31 +308,31 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 <li><p>The built-in bot is a very simple RNN-trained smartbody <a class="reference external" href="https://blog.otoro.net/2015/03/28/neural-slime-volleyball/">bot_link</a></p></li>
 <li><p>Only one side’s obs are returned by default. The other side’s obs, and information can be found in the <code class="docutils literal notranslate"><span class="pre">info</span></code> field/</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="key-facts">
+</section>
+</section>
+<section id="key-facts">
 <h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>1-dimensional vector observation space (of size (12, )) with information in absolute coordinates</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">MultiBinary</span></code> action space</p></li>
 <li><p>sparser rewards (maximum life value of 5, maximum number of steps of 3,000, the reward can be gain only when the life value is deducted)</p></li>
 </ol>
-</div>
-<div class="section" id="rl-environment-space">
+</section>
+<section id="rl-environment-space">
 <span id="id1"></span><h2>RL Environment Space<a class="headerlink" href="#rl-environment-space" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="observation-space-2">
+<section id="observation-space-2">
 <span id="id2"></span><h3>Observation Space<a class="headerlink" href="#observation-space-2" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Transform the space vector into a one-dimensional np array of size <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code>. The data type is <code class="docutils literal notranslate"><span class="pre">np.float32</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h3>Action Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Transform the <code class="docutils literal notranslate"><span class="pre">MultiBinary</span></code> action space into a discrete action space of size 6 (a simple Cartesian product is sufficient). The final result is a one-dimensional np array of size <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>. The data type is <code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="reward-space-2">
+</section>
+<section id="reward-space-2">
 <span id="id4"></span><h3>Reward Space<a class="headerlink" href="#reward-space-2" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Transform the reward vector into a one-dimensional np array of size<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>. The data type is<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>values in <code class="docutils literal notranslate"><span class="pre">[-1,</span> <span class="pre">0,</span> <span class="pre">1]</span></code>.</p></li>
@@ -344,23 +345,23 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 <span class="n">rew_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="other-2">
+</section>
+<section id="other-2">
 <span id="id5"></span><h3>Other<a class="headerlink" href="#other-2" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>The<cite>info`</cite>returned form the environment<code class="docutils literal notranslate"><span class="pre">step</span></code>must contain the<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>key-value pair, which represents the evaluation metrics for the entire episode, containing the rewards for the episode (life value difference between two players).</p></li>
 <li><p>The above spatial definitions are all descriptions of single intelligences. The multi-intelligence space splices the corresponding obs/action/reward information.</p></li>
 </ul>
 <p>i.e. The observation space changes from <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">)</span></code> to <code class="docutils literal notranslate"><span class="pre">(2,</span> <span class="pre">12)</span></code>, thar represents the observation information of both sides.</p>
-</div>
-</div>
-<div class="section" id="other-3">
+</section>
+</section>
+<section id="other-3">
 <span id="id6"></span><h2>Other<a class="headerlink" href="#other-3" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="lazy-initialization">
+<section id="lazy-initialization">
 <h3>Lazy initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
 <p>In order to support environment vetorization, an environment instance is oftern initialized lazily. In this way, method <code class="docutils literal notranslate"><span class="pre">__init__</span></code> does not really initialize the real original environment, but only set corresponding parameters and configurations. The real original environment is initialized when first calling mdthod <code class="docutils literal notranslate"><span class="pre">reset</span></code>.</p>
-</div>
-<div class="section" id="random-seed">
+</section>
+<section id="random-seed">
 <h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>There are two random seeds in the environment. One is orignal environment’s random seed; The other is the random seed which is required in many environment space transformations. (e.g. <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
@@ -368,15 +369,15 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
 <li><p>Implementation details: For orignal environment’s random seed, within RL env’s <code class="docutils literal notranslate"><span class="pre">reset</span></code> method; Before orginal env’s <code class="docutils literal notranslate"><span class="pre">reset</span></code> method.</p></li>
 <li><p>Implementation details: For the seed for <code class="docutils literal notranslate"><span class="pre">random</span></code> / <code class="docutils literal notranslate"><span class="pre">np.random</span></code>, within env’s <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
 </ul>
-</div>
-<div class="section" id="difference-between-training-env-and-evaluation-env">
+</section>
+<section id="difference-between-training-env-and-evaluation-env">
 <h3>Difference between training env and evaluation env<a class="headerlink" href="#difference-between-training-env-and-evaluation-env" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Training env uses dynamic random seed, i.e. Every episode has different random seeds generated by one random generator. However, this random generator’s random seed is set by env’s <code class="docutils literal notranslate"><span class="pre">seed</span></code> method, and is fixed throughout an experiment. Evaluation env uses static random seed, i.e. Every episode has the same random seed, which is set directly by <code class="docutils literal notranslate"><span class="pre">seed</span></code> method.</p></li>
 <li><p>Training env and evaluation env use different pre-process wrappers. <code class="docutils literal notranslate"><span class="pre">episode_life</span></code> and <code class="docutils literal notranslate"><span class="pre">clip_reward</span></code> are not used in evaluation env.</p></li>
 </ul>
-</div>
-<div class="section" id="save-the-replay-video">
+</section>
+<section id="save-the-replay-video">
 <h3>Save the replay video<a class="headerlink" href="#save-the-replay-video" title="Permalink to this headline">¶</a></h3>
 <p>After env is initiated, and before it is reset, call <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code> method to set where the replay video will be saved. Environment will automatically save the replay video after each episode is completed. (The default call is <code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>, depending on <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>). The code shown below will run an environment episode and save the replay viedo in a file like <code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -394,9 +395,9 @@ i.e. <code class="docutils literal notranslate"><span class="pre">(1,</span> <sp
         <span class="k">break</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo-runnable-code">
+</section>
+</section>
+<section id="di-zoo-runnable-code">
 <h2>DI-zoo runnable code<a class="headerlink" href="#di-zoo-runnable-code" title="Permalink to this headline">¶</a></h2>
 <p>Complete training configuration can be found on <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/slime_volley/entry">github
 link</a>.
@@ -488,8 +489,8 @@ For specific configuration file, e.g. <code class="docutils literal notranslate"
 </div>
 <p>Note: To run the intelligent body against built-in bot mode, python <code class="docutils literal notranslate"><span class="pre">slime_volley_ppo_config.py</span></code>.</p>
 <p>Note: For some specific algorithm, use the corresponding specific entry function.</p>
-</div>
-<div class="section" id="algorithm-benchmark">
+</section>
+<section id="algorithm-benchmark">
 <h2>Algorithm Benchmark<a class="headerlink" href="#algorithm-benchmark" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>SlimeVolley-v0（Average reward greater than 1 is considered as good agent with the build-in bot）</p>
@@ -503,8 +504,8 @@ For specific configuration file, e.g. <code class="docutils literal notranslate"
 <a class="reference internal image-reference" href="../_images/slime_volleyball_ppo_selfplay.png"><img alt="../_images/slime_volleyball_ppo_selfplay.png" class="align-center" src="../_images/slime_volleyball_ppo_selfplay.png" style="width: 478.79999999999995px; height: 347.2px;" /></a>
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

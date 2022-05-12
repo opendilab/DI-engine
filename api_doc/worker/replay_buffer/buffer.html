@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>worker.replay_buffer &mdash; DI-engine 0.1.0 documentation</title>
@@ -197,11 +198,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="worker-replay-buffer">
+  <section id="worker-replay-buffer">
 <h1>worker.replay_buffer<a class="headerlink" href="#worker-replay-buffer" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="replay-buffer">
+<section id="replay-buffer">
 <h2>replay buffer<a class="headerlink" href="#replay-buffer" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="ibuffer">
+<section id="ibuffer">
 <h3>IBuffer<a class="headerlink" href="#ibuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.replay_buffer.base_buffer.IBuffer">
@@ -324,8 +325,8 @@
 
 </dd></dl>
 
-</div>
-<div class="section" id="naivereplaybuffer">
+</section>
+<section id="naivereplaybuffer">
 <h3>NaiveReplayBuffer<a class="headerlink" href="#naivereplaybuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.replay_buffer.naive_buffer.NaiveReplayBuffer">
@@ -473,8 +474,8 @@ This buffer refers to multi-thread/multi-process and guarantees thread-safe, whi
 
 </dd></dl>
 
-</div>
-<div class="section" id="advancedreplaybuffer">
+</section>
+<section id="advancedreplaybuffer">
 <h3>AdvancedReplayBuffer<a class="headerlink" href="#advancedreplaybuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.replay_buffer.advanced_buffer.AdvancedReplayBuffer">
@@ -637,8 +638,8 @@ Join periodic throughtput monitor, flush tensorboard logger.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="episodereplaybuffer">
+</section>
+<section id="episodereplaybuffer">
 <h3>EpisodeReplayBuffer<a class="headerlink" href="#episodereplaybuffer" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.replay_buffer.episode_buffer.EpisodeReplayBuffer">
@@ -799,8 +800,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-ding.worker.replay_buffer.base_buffer.create_buffer">
+</section>
+<section id="module-ding.worker.replay_buffer.base_buffer.create_buffer">
 <span id="create-buffer"></span><h3>create_buffer<a class="headerlink" href="#module-ding.worker.replay_buffer.base_buffer.create_buffer" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Create a buffer according to cfg and other arguments.</p>
@@ -814,8 +815,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.worker.replay_buffer.base_buffer.get_buffer_cls">
+</section>
+<section id="module-ding.worker.replay_buffer.base_buffer.get_buffer_cls">
 <span id="get-buffer-cls"></span><h3>get_buffer_cls<a class="headerlink" href="#module-ding.worker.replay_buffer.base_buffer.get_buffer_cls" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Get a buffer class according to cfg.</p>
@@ -829,11 +830,11 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 </ul>
 </dd>
 </dl>
-</div>
-</div>
-<div class="section" id="utils">
+</section>
+</section>
+<section id="utils">
 <h2>utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="useddataremover">
+<section id="useddataremover">
 <h3>UsedDataRemover<a class="headerlink" href="#useddataremover" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.UsedDataRemover">
@@ -877,8 +878,8 @@ some fixed length. As a result, <code class="docutils literal notranslate"><span
 
 </dd></dl>
 
-</div>
-<div class="section" id="sampleddataattrmonitor">
+</section>
+<section id="sampleddataattrmonitor">
 <h3>SampledDataAttrMonitor<a class="headerlink" href="#sampleddataattrmonitor" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.SampledDataAttrMonitor">
@@ -895,8 +896,8 @@ read out data items’ priorityl; average and max of staleness.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="periodicthruputmonitor">
+</section>
+<section id="periodicthruputmonitor">
 <h3>PeriodicThruputMonitor<a class="headerlink" href="#periodicthruputmonitor" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.worker.replay_buffer.utils.PeriodicThruputMonitor">
@@ -917,9 +918,9 @@ one signle interface <cite>close</cite></p>
 </div>
 </dd></dl>
 
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

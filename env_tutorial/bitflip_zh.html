@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Bit-flip &mdash; DI-engine 0.1.0 documentation</title>
@@ -202,22 +203,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="bit-flip">
+  <section id="bit-flip">
 <h1>Bit-flip<a class="headerlink" href="#bit-flip" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>BitFlip (翻硬币）是一个非常简单的小游戏。假设有n个硬币，每个硬币具有正面和反面两个状态，正面记为0，反面记为1。动作空间是一个长度为n的向量，执行第n个动作类型表示将第n个硬币翻转。
 对于每一个epsode，我们随机初始化硬币状态和目标状态。如果硬币状态和目标状态不一样，reward为-1，否则为1。</p>
 <img alt="../_images/bitflip.gif" class="align-center" src="../_images/bitflip.gif" />
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>BitFlip环境无需安装，内置在DI-engine中。</p>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>下面提供一个完整的bit-flip环境config，采用DQN算法作为policy。请在<code class="docutils literal notranslate"><span class="pre">DI-engine/dizoo/classic_control/bitflip/entry</span></code> 目录下运行<code class="docutils literal notranslate"><span class="pre">bitflip_dqn_main.py</span></code> 文件，如下。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
@@ -322,14 +323,14 @@
     <span class="n">main</span><span class="p">(</span><span class="n">bitflip_her_dqn_config</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>参考资料<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>BitFlip <a class="reference external" href="https://github.com/NervanaSystems/gym-bit-flip/blob/master/gym_bit_flip/bit_flip.py">源码</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

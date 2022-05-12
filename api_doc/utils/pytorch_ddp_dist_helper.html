@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>utils.pytorch_ddp_dist_helper &mdash; DI-engine 0.1.0 documentation</title>
@@ -209,12 +210,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="utils-pytorch-ddp-dist-helper">
+  <section id="utils-pytorch-ddp-dist-helper">
 <h1>utils.pytorch_ddp_dist_helper<a class="headerlink" href="#utils-pytorch-ddp-dist-helper" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="pytorch-ddp-dist-helper">
+<section id="pytorch-ddp-dist-helper">
 <h2>pytorch_ddp_dist_helper<a class="headerlink" href="#pytorch-ddp-dist-helper" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/ding/utils/disk_helper.py for usage.</p>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.error_wrapper">
+<section id="module-ding.utils.pytorch_ddp_dist_helper.error_wrapper">
 <span id="errro-wrapper"></span><h3>errro_wrapper<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.error_wrapper" title="Permalink to this headline">¶</a></h3>
 <dl>
 <dt>Overview:</dt><dd><p>wrap the function, so that any Exception in the function will be catched and return the default_ret</p>
@@ -237,22 +238,22 @@
 </div>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.get_rank">
+</section>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.get_rank">
 <span id="get-rank"></span><h3>get_rank<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.get_rank" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Get the rank of current process in total world_size</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.get_world_size">
+</section>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.get_world_size">
 <span id="get-world-size"></span><h3>get_world_size<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.get_world_size" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Get the world_size(total process number in data parallel training)</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.broadcast">
+</section>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.broadcast">
 <span id="broadcast"></span><h3>broadcast<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.broadcast" title="Permalink to this headline">¶</a></h3>
 <p>Broadcasts the tensor to the whole group.</p>
 <p><code class="docutils literal notranslate"><span class="pre">tensor</span></code> must have the same number of elements in all processes
@@ -273,11 +274,11 @@ group (ProcessGroup, optional): The process group to work on. If None,</p>
 None, if not async_op or if not part of the group</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.allreduce">
+</section>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.allreduce">
 <span id="allreduce"></span><h3>allreduce<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.allreduce" title="Permalink to this headline">¶</a></h3>
-</div>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.get_group">
+</section>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.get_group">
 <span id="get-group"></span><h3>get_group<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.get_group" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Get the group segmentation of <code class="docutils literal notranslate"><span class="pre">group_size</span></code> each group</p>
@@ -287,30 +288,30 @@ None, if not async_op or if not part of the group</p>
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.dist_mode">
+</section>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.dist_mode">
 <span id="dist-mode"></span><h3>dist_mode<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.dist_mode" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Wrap the function so that in can init and finalize automatically before each call</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.dist_init">
+</section>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.dist_init">
 <span id="dist-init"></span><h3>dist_init<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.dist_init" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Init the distributed training setting</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.utils.pytorch_ddp_dist_helper.dist_finalize">
+</section>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.dist_finalize">
 <span id="dist-finalize"></span><h3>dist_finalize<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.dist_finalize" title="Permalink to this headline">¶</a></h3>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Finalize distributed training resources</p>
 </dd>
 </dl>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

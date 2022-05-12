@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>How to use RNN &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-use-rnn">
+  <section id="how-to-use-rnn">
 <h1>How to use RNN<a class="headerlink" href="#how-to-use-rnn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="introduction-to-rnn">
+<section id="introduction-to-rnn">
 <h2>Introduction to RNN<a class="headerlink" href="#introduction-to-rnn" title="Permalink to this headline">¶</a></h2>
 <p>Recurrent neural network (RNN) is a class of neural network where
 connections between nodes form a directed graph along a temporal
@@ -194,8 +195,8 @@ requires RNN agent to hold previous observations and maintain RNN hidden
 states.</p>
 <p>DI-engine supports for RNN , and provides easy to use API to allow users to
 implement variants of RNN.</p>
-</div>
-<div class="section" id="related-components-in-di-engine">
+</section>
+<section id="related-components-in-di-engine">
 <h2>Related Components in DI-engine<a class="headerlink" href="#related-components-in-di-engine" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">ding/model/wrapper/model_wrappers.py:</span> <span class="pre">HiddenStateWrapper</span></code> :
@@ -204,8 +205,8 @@ Used to maintain hidden states</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ding/rl_utils/adder.py:</span> <span class="pre">Adder:</span></code>: Used to arrange origin data into
 time sequence data(by calling <code class="docutils literal notranslate"><span class="pre">ding/utils/default_helper.py:</span> <span class="pre">list_split()</span></code> function)</p></li>
 </ol>
-</div>
-<div class="section" id="rnn-example-in-di-engine">
+</section>
+<section id="rnn-example-in-di-engine">
 <h2>RNN example in DI-engine<a class="headerlink" href="#rnn-example-in-di-engine" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -282,7 +283,7 @@ time sequence data(by calling <code class="docutils literal notranslate"><span c
 <li><p>Initialize hidden state</p></li>
 <li><p>Burn-in(Optional)</p></li>
 </ul>
-<div class="section" id="build-a-model-with-rnn">
+<section id="build-a-model-with-rnn">
 <h3>Build a Model with RNN<a class="headerlink" href="#build-a-model-with-rnn" title="Permalink to this headline">¶</a></h3>
 <p>You can use either DI-engine’s built-in recurrent model or your own RNN
 model.</p>
@@ -331,8 +332,8 @@ the output dict of model should contain <code class="docutils literal notranslat
 <p class="admonition-title">Note</p>
 <p>DI-engine also provide RNN module. You can use <code class="docutils literal notranslate"><span class="pre">get_lstm()</span></code> function by <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">ding.torch_utils</span> <span class="pre">import</span> <span class="pre">get_lstm</span></code>. This function allows users to build LSTM implemented by ding/pytorch/HPC.</p>
 </div>
-</div>
-<div class="section" id="use-model-wrapper-to-wrap-your-rnn-model-in-policy">
+</section>
+<section id="use-model-wrapper-to-wrap-your-rnn-model-in-policy">
 <span id="id1"></span><h3>Use model wrapper to wrap your RNN model in policy<a class="headerlink" href="#use-model-wrapper-to-wrap-your-rnn-model-in-policy" title="Permalink to this headline">¶</a></h3>
 <p>As RNN model need to maintain hidden state of data, DI-engine provide
 <code class="docutils literal notranslate"><span class="pre">HiddenStateWrapper</span></code> for it. Users only need to add a wrapper in
@@ -367,8 +368,8 @@ the following figure:</p>
 <blockquote>
 <div><a class="reference internal image-reference" href="../_images/model_hiddenwrapper_img.png"><img alt="../_images/model_hiddenwrapper_img.png" class="align-center" src="../_images/model_hiddenwrapper_img.png" style="width: 456.59999999999997px; height: 649.8px;" /></a>
 </div></blockquote>
-</div>
-<div class="section" id="data-arrangement">
+</section>
+<section id="data-arrangement">
 <h3>Data Arrangement<a class="headerlink" href="#data-arrangement" title="Permalink to this headline">¶</a></h3>
 <p>The mini-batch data used for RNN is different from usual RL data, it
 should be arranged in time series. For DI-engine, this process happens in
@@ -401,8 +402,8 @@ the following figure:</p>
 <blockquote>
 <div><img alt="../_images/r2d2_sequence.png" class="align-center" src="../_images/r2d2_sequence.png" />
 </div></blockquote>
-</div>
-<div class="section" id="initialize-hidden-state">
+</section>
+<section id="initialize-hidden-state">
 <h3>Initialize Hidden State<a class="headerlink" href="#initialize-hidden-state" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> of policy needs to initialize RNN. These hidden states comes from <code class="docutils literal notranslate"><span class="pre">prev_state</span></code> saved by <code class="docutils literal notranslate"><span class="pre">_collect_model</span></code>.
 Users need to add these states to <code class="docutils literal notranslate"><span class="pre">_learn_model</span></code> input data dict by <code class="docutils literal notranslate"><span class="pre">_process_transition</span></code> function.</p>
@@ -427,8 +428,8 @@ Users need to add these states to <code class="docutils literal notranslate"><sp
      <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">data_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;prev_state&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="burn-in-in-r2d2">
+</section>
+<section id="burn-in-in-r2d2">
 <h3>Burn-in(in R2D2)<a class="headerlink" href="#burn-in-in-r2d2" title="Permalink to this headline">¶</a></h3>
 <p>This concept comes from R2D2 (Recurrent Experience Replay in Distributed
 Reinforcement Learning). When using LSTM, the most naive way is:</p>
@@ -508,9 +509,9 @@ using the <code class="docutils literal notranslate"><span class="pre">burnin_ou
 </pre></div>
 </div>
 <p>For more details of RNN and burn-in, you can refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py">ding/policy/r2d2.py</a>.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

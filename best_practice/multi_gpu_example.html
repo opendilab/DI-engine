@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>How to Use Multi-GPUs to Train Your Model &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,14 +171,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-use-multi-gpus-to-train-your-model">
+  <section id="how-to-use-multi-gpus-to-train-your-model">
 <h1>How to Use Multi-GPUs to Train Your Model<a class="headerlink" href="#how-to-use-multi-gpus-to-train-your-model" title="Permalink to this headline">¶</a></h1>
 <p>DI-engine supports data-parallel training with multi-GPUs.</p>
 <p>During data-parallel training, each device handles a portion of total input.
 Large training batch significantly accelerate the training process.</p>
 <p>About data-parallel training in DI-engine, we support two types which are DataParallel(DP) and DataDistributedParallel(DDP).</p>
 <p>The experimental environment referred to here is a single machine with multi-GPUs.</p>
-<div class="section" id="dataparallel-dp-mode">
+<section id="dataparallel-dp-mode">
 <h2>DataParallel(DP) Mode<a class="headerlink" href="#dataparallel-dp-mode" title="Permalink to this headline">¶</a></h2>
 <p>DP is mainly used for single-machine multi-GPUs, single-process control multi-GPUs.
 There is 1 master node, the default is device[0].
@@ -218,13 +219,13 @@ and then the parameters are synchronized with other GPUs.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun -p PARTITION_NAME --mpi<span class="o">=</span>pmi2 --gres<span class="o">=</span>gpu:2 -n1 --ntasks-per-node<span class="o">=</span><span class="m">1</span> python -u spaceinvaders_dqn_config_multi_gpu_ddp.py
 </pre></div>
 </div>
-</div>
-<div class="section" id="datadistributedparallel-ddp-mode">
+</section>
+<section id="datadistributedparallel-ddp-mode">
 <h2>DataDistributedParallel(DDP) Mode<a class="headerlink" href="#datadistributedparallel-ddp-mode" title="Permalink to this headline">¶</a></h2>
 <p>DataDistributedParallel(DDP) is mainly used for single-machine multi-GPUs and multi-machine multi-GPUs.
 It adopts multi-process to control multi-GPUs and adopts ring allreduce to synchronize gradient.</p>
 <p>In DataDistributedParallel(DDP) Mode, we should simply set <code class="docutils literal notranslate"><span class="pre">config.policy.learn.multi_gpu</span></code> as <code class="docutils literal notranslate"><span class="pre">True</span></code> in the config file under <code class="docutils literal notranslate"><span class="pre">dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config_multi_gpu_ddp.py</span></code>.</p>
-<div class="section" id="principle">
+<section id="principle">
 <h3>Principle<a class="headerlink" href="#principle" title="Permalink to this headline">¶</a></h3>
 <p>We re-implement the data-parallel training module with APIs in <code class="docutils literal notranslate"><span class="pre">torch.distributed</span></code> for high scalability. The detailed principle is shonw as follows:</p>
 <ol class="arabic simple">
@@ -257,8 +258,8 @@ It adopts multi-process to control multi-GPUs and adopts ring allreduce to synch
 <p>3. Information including loss and reward should be aggregated among devices when applying data-parallel training.
 DI-engine achieves this with allreduce operator in learner and evaluator, and only saves log files on process with rank 0.</p>
 <p>For more related functions, please refer to <code class="docutils literal notranslate"><span class="pre">ding/utils/pytorch_ddp_dist_helper.py</span></code></p>
-</div>
-<div class="section" id="usage">
+</section>
+<section id="usage">
 <h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
 <p>To enable DDP training in DI-engine existing codes, you just need to add modifications by following steps:</p>
 <ol class="arabic simple">
@@ -293,9 +294,9 @@ DI-engine achieves this with allreduce operator in learner and evaluator, and on
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>srun -p PARTITION_NAME --mpi<span class="o">=</span>pmi2 --gres<span class="o">=</span>gpu:2 -n2 --ntasks-per-node<span class="o">=</span><span class="m">2</span> python -u spaceinvaders_dqn_config_multi_gpu_ddp.py
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

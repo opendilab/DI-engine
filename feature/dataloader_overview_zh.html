@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>DataLoader Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -187,9 +188,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="dataloader-overview">
+  <section id="dataloader-overview">
 <h1>DataLoader Overview<a class="headerlink" href="#dataloader-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="introduction">
+<section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>概述：</dt><dd><p>参照 PyTorch 中的 DataLoader ，我们结合 <strong>从硬盘读取训练数据至内存</strong> 的实际需求，设计了 <strong>异步式数据加载器</strong> 。</p>
@@ -218,8 +219,8 @@
 </ol>
 </dd>
 </dl>
-</div>
-<div class="section" id="profile-experiment">
+</section>
+<section id="profile-experiment">
 <h2>Profile Experiment 测速实验<a class="headerlink" href="#profile-experiment" title="Permalink to this headline">¶</a></h2>
 <p>我们将 AsyncDataLoader 与 PyTorch 中的 DataLoader （以下简称 TorchDataLoader ）进行了速度上的对比。结果表明，在各种规模的环境下、以及各种数据流压力下， AsyncDataLoader 都比 TorchDataLoader 有较明显的效率优势，且随着环境规模与数据流压力的增大，优势更加明显。</p>
 <ul>
@@ -457,8 +458,8 @@
 </div></blockquote>
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

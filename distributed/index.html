@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Distributed &mdash; DI-engine 0.1.0 documentation</title>
@@ -176,12 +177,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="distributed">
+  <section id="distributed">
 <h1>Distributed<a class="headerlink" href="#distributed" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>When we have written an RL training task, the next concern may be to make it run faster. In addition to relying on algorithms and compilation optimizations to make the code run faster, DI-engine designed a unique set of horizontal scaling methods that allow your code to seamlessly scale to more CPUs, GPUs or multiple machines.</p>
-<div class="section" id="task">
+<section id="task">
 <h2>Task<a class="headerlink" href="#task" title="Permalink to this headline">¶</a></h2>
 <p>First assume you already have a piece of code like this (if not please go back to <a class="reference external" href="../quick_start/index.html">Quick Start</a>):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
@@ -379,8 +380,8 @@
         <span class="n">task</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">max_step</span><span class="o">=</span><span class="n">max_iteration</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="magic-time">
+</section>
+<section id="magic-time">
 <h2>Magic time<a class="headerlink" href="#magic-time" title="Permalink to this headline">¶</a></h2>
 <p>Now that everything is ready, let’s enter the magic time of <code class="docutils literal notranslate"><span class="pre">task</span></code>! We may want to know how long each execution unit takes. DI-engine provides a <code class="docutils literal notranslate"><span class="pre">StepTimer</span></code> decorator, which only needs one line of code to display the time of each execution unit.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework.wrapper</span> <span class="kn">import</span> <span class="n">StepTimer</span>
@@ -403,8 +404,8 @@
 <p class="admonition-title">Note</p>
 <p>We use coroutines to achieve asynchrony between codes. For the official implementation of coroutines, please refer to <a class="reference external" href="https://docs.python.org/3/library/asyncio.html">asyncio</a></p>
 </div>
-</div>
-<div class="section" id="async-and-parallel">
+</section>
+<section id="async-and-parallel">
 <h2>Async and parallel<a class="headerlink" href="#async-and-parallel" title="Permalink to this headline">¶</a></h2>
 <p>Limited by the GIL, sometimes the single-process asynchronous can not maximize the use of system resources. At this time, we need to consider placing the code for execution on different processes (even on different machines), in terms of parallel (or distributed), DI-engine’s processing method is the same. At this time, a new object, <code class="docutils literal notranslate"><span class="pre">Parallel</span></code>, will be introduced, which will be responsible for distributing your <code class="docutils literal notranslate"><span class="pre">task</span></code> execution units to different processes for execution:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ding.framework</span> <span class="kn">import</span> <span class="n">Task</span><span class="p">,</span> <span class="n">Parallel</span>
@@ -495,8 +496,8 @@ This connection will make your next optimization work extremely simple.</p>
 <li class="toctree-l1"><a class="reference internal" href="gobigger.html">Asynchronous Parallel in GoBigger</a></li>
 </ul>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Model Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -186,7 +187,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="model-overview">
+  <section id="model-overview">
 <h1>Model Overview<a class="headerlink" href="#model-overview" title="Permalink to this headline">¶</a></h1>
 <p>Neural network, which is often called <code class="docutils literal notranslate"><span class="pre">model</span></code> in DI-engine, is one of the most important modules in the whole pipelines. It is usually a part of RL policy or reward model. Generally, DI-engine recommands to pack up all
 the trainable neural network parameters in <code class="docutils literal notranslate"><span class="pre">model</span></code> and other parameter-free operations like calculating loss and selecting action are placed in <code class="docutils literal notranslate"><span class="pre">policy</span></code> .</p>
@@ -218,7 +219,7 @@ serveral template models for different algorithms in <code class="docutils liter
 <li><p>For some RL specific networks, such as DuelingHead, it shoule be implemented in <code class="docutils literal notranslate"><span class="pre">ding/model/commom</span></code>.</p></li>
 </ol>
 </div>
-</div>
+</section>
 
 
            </div>

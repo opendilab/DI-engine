@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>network.activation &mdash; DI-engine 0.1.0 documentation</title>
@@ -253,9 +254,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="network-activation">
+  <section id="network-activation">
 <h1>network.activation<a class="headerlink" href="#network-activation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="glu">
+<section id="glu">
 <h2>GLU<a class="headerlink" href="#glu" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.activation.GLU">
@@ -300,8 +301,8 @@ This class does a thing like this:</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-ding.torch_utils.network.activation.build_activation">
+</section>
+<section id="module-ding.torch_utils.network.activation.build_activation">
 <span id="build-activation"></span><h2>build_activation<a class="headerlink" href="#module-ding.torch_utils.network.activation.build_activation" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Return the activation module according to the given type.</p>
@@ -316,11 +317,11 @@ This class does a thing like this:</p>
 </ul>
 </dd>
 </dl>
-</div>
-</div>
-<div class="section" id="network-nn-module">
+</section>
+</section>
+<section id="network-nn-module">
 <h1>network.nn_module<a class="headerlink" href="#network-nn-module" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-ding.torch_utils.network.nn_module.weight_init_">
+<section id="module-ding.torch_utils.network.nn_module.weight_init_">
 <span id="weight-init"></span><h2>weight_init<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.weight_init_" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Init weight according to the specified type.</p>
@@ -336,8 +337,8 @@ This class does a thing like this:</p>
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.sequential_pack">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.sequential_pack">
 <span id="sequential-pack"></span><h2>sequential_pack<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.sequential_pack" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Pack the layers in the input list to a <cite>nn.Sequential</cite> module.
@@ -353,8 +354,8 @@ to the module and set to the out_channel of the conv layer.</p>
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.conv1d_block">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.conv1d_block">
 <span id="conv1d-block"></span><h2>conv1d_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.conv1d_block" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Create a 1-dim convlution layer with activation and normalization.</p>
@@ -380,8 +381,8 @@ to the module and set to the out_channel of the conv layer.</p>
 <p class="admonition-title">Note</p>
 <p>Conv1d (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d">https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d</a>)</p>
 </div>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.conv2d_block">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.conv2d_block">
 <span id="conv2d-block"></span><h2>conv2d_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.conv2d_block" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Create a 2-dim convlution layer with activation and normalization.</p>
@@ -408,8 +409,8 @@ to the module and set to the out_channel of the conv layer.</p>
 <p class="admonition-title">Note</p>
 <p>Conv2d (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d">https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d</a>)</p>
 </div>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.deconv2d_block">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.deconv2d_block">
 <span id="deconv2d-block"></span><h2>deconv2d_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.deconv2d_block" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Create a 2-dim transopse convlution layer with activation and normalization</p>
@@ -438,8 +439,8 @@ to the module and set to the out_channel of the conv layer.</p>
 <p class="admonition-title">Note</p>
 <p>ConvTranspose2d (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html">https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html</a>)</p>
 </div>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.fc_block">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.fc_block">
 <span id="fc-block"></span><h2>fc_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.fc_block" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Create a fully-connected block with activation, normalization and dropout.
@@ -464,8 +465,8 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <p class="admonition-title">Note</p>
 <p>you can refer to nn.linear (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Linear.html">https://pytorch.org/docs/master/generated/torch.nn.Linear.html</a>)</p>
 </div>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.MLP">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.MLP">
 <span id="mlp"></span><h2>MLP<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.MLP" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>create a multi-layer perceptron using fully-connected blocks with activation, normalization and dropout,
@@ -493,8 +494,8 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <p class="admonition-title">Note</p>
 <p>you can refer to nn.linear (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Linear.html">https://pytorch.org/docs/master/generated/torch.nn.Linear.html</a>)</p>
 </div>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.one_hot">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.one_hot">
 <span id="one-hot"></span><h2>one_hot<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.one_hot" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>Overview:</dt><dd><p>Convert a <code class="docutils literal notranslate"><span class="pre">torch.LongTensor</span></code> to one hot encoding.
@@ -527,8 +528,8 @@ This implementation can be slightly faster than <code class="docutils literal no
 </div>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.binary_encode">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.binary_encode">
 <span id="binary-encode"></span><h2>binary_encode<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.binary_encode" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>Overview:</dt><dd><p>Convert elements in a tensor to its binary representation</p>
@@ -548,8 +549,8 @@ This implementation can be slightly faster than <code class="docutils literal no
 </div>
 </dd>
 </dl>
-</div>
-<div class="section" id="module-ding.torch_utils.network.nn_module.noise_block">
+</section>
+<section id="module-ding.torch_utils.network.nn_module.noise_block">
 <span id="noise-block"></span><h2>noise_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.noise_block" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Create a fully-connected block with activation, normalization and dropout
@@ -575,8 +576,8 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <p class="admonition-title">Note</p>
 <p>you can refer to nn.linear (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Linear.html">https://pytorch.org/docs/master/generated/torch.nn.Linear.html</a>)</p>
 </div>
-</div>
-<div class="section" id="channelshuffle">
+</section>
+<section id="channelshuffle">
 <h2>ChannelShuffle<a class="headerlink" href="#channelshuffle" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.ChannelShuffle">
@@ -610,8 +611,8 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="nearestupsample">
+</section>
+<section id="nearestupsample">
 <h2>NearestUpsample<a class="headerlink" href="#nearestupsample" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NearestUpsample">
@@ -641,8 +642,8 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="bilinearupsample">
+</section>
+<section id="bilinearupsample">
 <h2>BilinearUpsample<a class="headerlink" href="#bilinearupsample" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.BilinearUpsample">
@@ -672,8 +673,8 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="noiselinearlayer">
+</section>
+<section id="noiselinearlayer">
 <h2>NoiseLinearLayer<a class="headerlink" href="#noiselinearlayer" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NoiseLinearLayer">
@@ -721,11 +722,11 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="network-normalization">
+</section>
+</section>
+<section id="network-normalization">
 <h1>network.normalization<a class="headerlink" href="#network-normalization" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-ding.torch_utils.network.normalization.build_normalization">
+<section id="module-ding.torch_utils.network.normalization.build_normalization">
 <span id="build-normalization"></span><h2>build_normalization<a class="headerlink" href="#module-ding.torch_utils.network.normalization.build_normalization" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Build the corresponding normalization module</p>
@@ -744,11 +745,11 @@ x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
 <p class="admonition-title">Note</p>
 <p>For beginers, you can refer to &lt;<a class="reference external" href="https://zhuanlan.zhihu.com/p/34879333">https://zhuanlan.zhihu.com/p/34879333</a>&gt; to learn more about batch normalization.</p>
 </div>
-</div>
-</div>
-<div class="section" id="network-res-block">
+</section>
+</section>
+<section id="network-res-block">
 <h1>network.res_block<a class="headerlink" href="#network-res-block" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="resblock">
+<section id="resblock">
 <h2>ResBlock<a class="headerlink" href="#resblock" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResBlock">
@@ -789,8 +790,8 @@ _____________________________________________________________________________/+<
 
 </dd></dl>
 
-</div>
-<div class="section" id="resfcblock">
+</section>
+<section id="resfcblock">
 <h2>ResFCBlock<a class="headerlink" href="#resfcblock" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResFCBlock">
@@ -822,11 +823,11 @@ _____________________________________/+</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="network-rnn">
+</section>
+</section>
+<section id="network-rnn">
 <h1>network.rnn<a class="headerlink" href="#network-rnn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="lstmforwardwrapper">
+<section id="lstmforwardwrapper">
 <h2>LSTMForwardWrapper<a class="headerlink" href="#lstmforwardwrapper" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTMForwardWrapper">
@@ -879,8 +880,8 @@ _____________________________________/+</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="lstm">
+</section>
+<section id="lstm">
 <h2>LSTM<a class="headerlink" href="#lstm" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTM">
@@ -917,8 +918,8 @@ _____________________________________/+</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="pytorchlstm">
+</section>
+<section id="pytorchlstm">
 <h2>PytorchLSTM<a class="headerlink" href="#pytorchlstm" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.rnn.PytorchLSTM">
@@ -963,8 +964,8 @@ _____________________________________/+</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="module-ding.torch_utils.network.rnn.get_lstm">
+</section>
+<section id="module-ding.torch_utils.network.rnn.get_lstm">
 <span id="get-lstm"></span><h2>get_lstm<a class="headerlink" href="#module-ding.torch_utils.network.rnn.get_lstm" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Overview:</dt><dd><p>Build and return the corresponding LSTM cell</p>
@@ -985,11 +986,11 @@ _____________________________________/+</p>
 </ul>
 </dd>
 </dl>
-</div>
-</div>
-<div class="section" id="network-scatter-connection">
+</section>
+</section>
+<section id="network-scatter-connection">
 <h1>network.scatter_connection<a class="headerlink" href="#network-scatter-connection" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="scatterconnection">
+<section id="scatterconnection">
 <h2>ScatterConnection<a class="headerlink" href="#scatterconnection" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.scatter_connection.ScatterConnection">
@@ -1033,11 +1034,11 @@ use the addition as temporal substitute.</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="network-soft-argmax">
+</section>
+</section>
+<section id="network-soft-argmax">
 <h1>network.soft_argmax<a class="headerlink" href="#network-soft-argmax" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="softargmax">
+<section id="softargmax">
 <h2>SoftArgmax<a class="headerlink" href="#softargmax" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.soft_argmax.SoftArgmax">
@@ -1076,11 +1077,11 @@ use the addition as temporal substitute.</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="network-transformer">
+</section>
+</section>
+<section id="network-transformer">
 <h1>network.transformer<a class="headerlink" href="#network-transformer" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="attention">
+<section id="attention">
 <h2>Attention<a class="headerlink" href="#attention" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.transformer.Attention">
@@ -1129,8 +1130,8 @@ use the addition as temporal substitute.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="transformerlayer">
+</section>
+<section id="transformerlayer">
 <h2>TransformerLayer<a class="headerlink" href="#transformerlayer" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.transformer.TransformerLayer">
@@ -1158,8 +1159,8 @@ use the addition as temporal substitute.</p>
 
 </dd></dl>
 
-</div>
-<div class="section" id="transformer">
+</section>
+<section id="transformer">
 <h2>Transformer<a class="headerlink" href="#transformer" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="ding.torch_utils.network.transformer.Transformer">
@@ -1200,8 +1201,8 @@ use the addition as temporal substitute.</p>
 
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

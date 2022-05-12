@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Wrapper &amp; Hook Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -187,9 +188,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="wrapper-hook-overview">
+  <section id="wrapper-hook-overview">
 <h1>Wrapper &amp; Hook Overview<a class="headerlink" href="#wrapper-hook-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="wrapper">
+<section id="wrapper">
 <h2>Wrapper<a class="headerlink" href="#wrapper" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>概述：</dt><dd><p>Wrapper，即装饰器。一般来说，当我们希望在某个函数执行的时候额外执行一些自定义的操作时，Wrapper 就可以被派上用场。用 Wrapper 对函数进行包装，可以方便地对函数的输入输出进行操作，或者是计算函数相关的一些状态。对于 model 方面的操作，例如 <code class="docutils literal notranslate"><span class="pre">.cuda()</span></code> 或者 train/eval 模式切换以及不同 mode 下是否共享模型本身，交给用户在 policy 中直接对 model 进行操作。</p>
@@ -333,8 +334,8 @@
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="hook">
+</section>
+<section id="hook">
 <h2>Hook<a class="headerlink" href="#hook" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>概述：</dt><dd><p>Hook，钩子，可以通过在钩子内使得外部函数在被调用的时候，自动调用钩子内定义好的函数。在程序中，对于一段封装得较好的代码，如果需要修改的话，也许要花费相当的精力。Hook 函数就是由此被创造出来的。代码作者可以在一段代码中的任意位置暴露出钩子，而用户可以在钩子中实现自己所需要的功能，这样当代码运行到指定位置的时候，钩子会被触发，钩子中定义好的函数会被自动调用，从而实现快速修改代码的功能。</p>
@@ -521,8 +522,8 @@
 </ul>
 <img alt="../_images/wrapper_hook_call.jpg" src="../_images/wrapper_hook_call.jpg" />
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

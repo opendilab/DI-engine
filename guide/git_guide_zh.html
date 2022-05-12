@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Git 协作指南 &mdash; DI-engine 0.1.0 documentation</title>
@@ -180,10 +181,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="git">
+  <section id="git">
 <h1>Git 协作指南<a class="headerlink" href="#git" title="Permalink to this headline">¶</a></h1>
 <p>这份文档旨在给了解 git 基本使用方法的小伙伴们一些规范 git 协作开发流程的建议。如果你还不熟悉 git ，可以 <strong>依次</strong> 阅读 <a class="reference external" href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/">廖雪峰的 git 教程</a> 和 <a class="reference external" href="https://git-scm.com/book/zh/v2">Pro Git v2</a> 。廖的教程方便一小时入门，pro git 讲得足够深入，是 git 官方的推荐教程。</p>
-<div class="section" id="id2">
+<section id="id2">
 <h2>协作流程<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>1.初始化你的代码仓库。这里主要分两种情况：从新开始创建一个仓库（比如自己造轮子），或是打算修改现有代码。</p>
 <blockquote>
@@ -215,8 +216,8 @@ git checkout -b base-master base/master  <span class="c1"># use `base-master` to
 <li><p>完成本地开发之后, 同步上游代码，整合自己的本地 commits，处理 conflicts。简单在conflicts可以直接在 <code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">request</span></code> 对应的 GitHub 网页上直接进行操作，较为复杂的需要在本地fetch目标分支的改动之后，手动进行merge，一些较复杂的情形可以使用 <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">rebase</span></code> 来完成，（具体细节可以参考 <a class="reference external" href="https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%8F%98%E5%9F%BA">Pro Git-分支-变基</a> 一节</p></li>
 <li><p>冲突解决后，在MR或Issue里描述代码改动对应的工作内容，由项目负责人或指定相关同事进行 code review。代码合并成功后，关闭相应的 GitHub Issue。</p></li>
 </ol>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>git规范<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>这一节主要列一些在使用 git 时，应该特别注意的点:</p>
 <blockquote>
@@ -228,8 +229,8 @@ git checkout -b base-master base/master  <span class="c1"># use `base-master` to
 <li><p>除非必要， <strong>绝对不要把大容量二进制文件嵌入git repo中</strong> ，例如训练的模型文件、二进制库文件等，这些文件可能会带来多种多样的问题。 如果要引入这些文件，可使用 <code class="docutils literal notranslate"><span class="pre">gif</span> <span class="pre">lfs</span></code></p></li>
 </ul>
 </div></blockquote>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

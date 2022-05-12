@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Tutorial-Developer &mdash; DI-engine 0.1.0 documentation</title>
@@ -176,13 +177,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="tutorial-developer">
+  <section id="tutorial-developer">
 <h1>Tutorial-Developer<a class="headerlink" href="#tutorial-developer" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="code-structure">
+<section id="code-structure">
 <h2>Code Structure<a class="headerlink" href="#code-structure" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="di-engine">
+<section id="di-engine">
 <h3>DI-engine<a class="headerlink" href="#di-engine" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding
 ├── config <span class="o">(</span>Configuration files and utils<span class="o">)</span>
@@ -351,8 +352,8 @@
 <p class="admonition-title">Note</p>
 <p>This file tree omits files like <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> and <code class="docutils literal notranslate"><span class="pre">test</span></code> (including CI test files)</p>
 </div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+<section id="di-zoo">
 <h3>DI-zoo<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dizoo
 ├── atari
@@ -376,16 +377,16 @@
 <p class="admonition-title">Note</p>
 <p>Each env may contain folders: <code class="docutils literal notranslate"><span class="pre">config</span></code> (Confg file), <code class="docutils literal notranslate"><span class="pre">Entry</span></code> (Customized entry), <code class="docutils literal notranslate"><span class="pre">envs</span></code> (Env that derived from DI-engine base env)</p>
 </div>
-</div>
-</div>
-<div class="section" id="data-flow">
+</section>
+</section>
+<section id="data-flow">
 <h2>Data Flow<a class="headerlink" href="#data-flow" title="Permalink to this headline">¶</a></h2>
 <p>Each training instance of DI-engine can mainly divides 3 parts——Coordinator, Learner, Collector, and some support Middleware, which is shown as follows:</p>
 <img alt="../_images/dataflow.png" src="../_images/dataflow.png" />
 <p>And the sequence relation of them can be described in the next image:</p>
 <img alt="../_images/parallel_main-sequence.png" src="../_images/parallel_main-sequence.png" />
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

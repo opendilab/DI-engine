@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>DDPG &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,15 +172,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="ddpg">
+  <section id="ddpg">
 <h1>DDPG<a class="headerlink" href="#ddpg" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Deep Deterministic Policy Gradient (DDPG), proposed in the 2015 paper <a class="reference external" href="https://arxiv.org/abs/1509.02971">Continuous control with deep reinforcement learning</a>, is an algorithm which learns a Q-function and a policy simultaneously.
 DDPG is an actor-critic, model-free algorithm based on the deterministic policy gradient(DPG) that can operate over high-dimensional, continuous action spaces.
 DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver14.pdf">Deterministic policy gradient algorithms</a> algorithm is similar to NFQCA.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>DDPG is only used for environments with <strong>continuous action spaces</strong> (e.g. MuJoCo).</p></li>
@@ -187,8 +188,8 @@ DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver1
 <li><p>DDPG is a <strong>model-free</strong> and <strong>actor-critic</strong> RL algorithm, which optimizes the actor network and the critic network, respectively.</p></li>
 <li><p>Usually, DDPG use <strong>Ornstein-Uhlenbeck process</strong> or <strong>Gaussian process</strong> (default in our implementation) for exploration.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>The DDPG algorithm maintains a parameterized actor function <span class="math notranslate nohighlight">\(\mu\left(s \mid \theta^{\mu}\right)\)</span> which specifies the current policy by deterministically mapping states to a specific action. The critic <span class="math notranslate nohighlight">\(Q(s, a)\)</span> is learned using the Bellman equation as in Q-learning. The actor is updated by following the applying the chain rule to the expected return from the start distribution <span class="math notranslate nohighlight">\(J\)</span> with respect to the actor parameters:</p>
 <div class="math notranslate nohighlight">
@@ -204,8 +205,8 @@ DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver1
 <p>A major challenge of learning in continuous action spaces is exploration. However, it is an advantage for off-policies algorithms such as DDPG that the problem of exploration could be treated independently from the learning algorithm. Specifically, we constructed an exploration policy by adding noise sampled from a noise process N to actor policy:</p>
 <div class="math notranslate nohighlight">
 \[\mu^{\prime}\left(s_{t}\right)=\mu\left(s_{t} \mid \theta_{t}^{\mu}\right)+\mathcal{N}\]</div>
-</div>
-<div class="section" id="pseudocode">
+</section>
+<section id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}:nowrap:\\\begin{split}\begin{algorithm}[H]
@@ -246,8 +247,8 @@ DPG <a class="reference external" href="http://proceedings.mlr.press/v32/silver1
 \end{algorithmic}
 \end{algorithm}\end{split}\end{aligned}\end{align} \]</div>
 <a class="reference internal image-reference" href="../_images/DDPG.jpg"><img alt="../_images/DDPG.jpg" class="align-center" src="../_images/DDPG.jpg" style="width: 751.5px; height: 556.5px;" /></a>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>DDPG can be combined with:</dt><dd><ul>
@@ -275,8 +276,8 @@ We configure <code class="docutils literal notranslate"><span class="pre">collec
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <dl class="py class">
@@ -560,7 +561,7 @@ We configure <code class="docutils literal notranslate"><span class="pre">collec
 </div></blockquote>
 </dd></dl>
 
-<div class="section" id="model">
+<section id="model">
 <h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
 <p>Here we provide examples of <cite>QAC</cite> model as default model for <cite>DDPG</cite>.</p>
 <dl class="py class">
@@ -726,8 +727,8 @@ output, such as <code class="docutils literal notranslate"><span class="pre">q_v
 
 </dd></dl>
 
-</div>
-<div class="section" id="train-actor-critic-model">
+</section>
+<section id="train-actor-critic-model">
 <h3>Train actor-critic model<a class="headerlink" href="#train-actor-critic-model" title="Permalink to this headline">¶</a></h3>
 <p>First, we initialize actor and critic optimizer in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>, respectively.
 Setting up two separate optimizers can guarantee that we <strong>only update</strong> actor network parameters and not critic network when we compute actor loss, vice versa.</p>
@@ -824,8 +825,8 @@ Setting up two separate optimizers can guarantee that we <strong>only update</st
 </div>
 </dd>
 </dl>
-</div>
-<div class="section" id="target-network">
+</section>
+<section id="target-network">
 <h3>Target Network<a class="headerlink" href="#target-network" title="Permalink to this headline">¶</a></h3>
 <p>We implement Target Network trough target model initialization in <code class="docutils literal notranslate"><span class="pre">_init_learn</span></code>.
 We configure <code class="docutils literal notranslate"><span class="pre">learn.target_theta</span></code> to control the interpolation factor in averaging.</p>
@@ -839,9 +840,9 @@ We configure <code class="docutils literal notranslate"><span class="pre">learn.
 <span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="benchmark">
+</section>
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -896,12 +897,12 @@ Spinning-up(1950)</p></td>
 <ol class="arabic simple">
 <li><p>The above results are obtained by running the same configuration on five different random seeds (0, 1, 2, 3, 4)</p></li>
 </ol>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Timothy P. Lillicrap, Jonathan J. Hunt, Alexander Pritzel, Nicolas Heess, Tom Erez, Yuval Tassa, David Silver, Daan Wierstra: “Continuous control with deep reinforcement learning”, 2015; [<a class="reference external" href="http://arxiv.org/abs/1509.02971">http://arxiv.org/abs/1509.02971</a> arXiv:1509.02971].</p>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/openai/baselines/tree/master/baselines/ddpg">Baselines</a></p></li>
@@ -912,8 +913,8 @@ Spinning-up(1950)</p></td>
 <li><p><a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/ddpg">Spinningup</a></p></li>
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/ddpg.py">tianshou</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

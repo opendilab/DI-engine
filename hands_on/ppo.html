@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>PPO &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="ppo">
+  <section id="ppo">
 <h1>PPO<a class="headerlink" href="#ppo" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>PPO (Proximal Policy Optimization) was proposed in <a class="reference external" href="https://arxiv.org/pdf/1707.06347.pdf">Proximal Policy Optimization Algorithms</a>.
 The key question to answer is that how can we utilize the existing data to take the most possible improvement step for the policy
@@ -182,8 +183,8 @@ PPO follows the idea of TRPO (which restricts the step of policy update by expli
 but doesn’t have a KL-divergence term in the objective,
 instead utilizing a specialized clipped objective to remove incentives for the new policy to get far from the old policy.
 PPO avoids the calculation of the Hessian matrix in TRPO, thus is simpler to implement and empirically performs at least as well as TRPO.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>PPO is a <strong>model-free</strong> and <strong>policy-gradient</strong> RL algorithm.</p></li>
@@ -192,8 +193,8 @@ PPO avoids the calculation of the Hessian matrix in TRPO, thus is simpler to imp
 <li><p>PPO can be equipped with RNN.</p></li>
 <li><p>PPO is a first-order gradient method that use a few tricks to keep new policies close to old.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>PPO use clipped probability ratios in the policy gradient to prevent the policy from too rapid changes, specifically the
 optimizing objective is:</p>
@@ -229,8 +230,8 @@ To ensure adequate exploration, PPO further enhances the objective by adding a p
 <p class="admonition-title">Note</p>
 <p>The standard implementation of PPO contains the many additional optimizations which are not described in the paper. Further details can be found in <a class="reference external" href="https://arxiv.org/abs/2005.12729">IMPLEMENTATION MATTERS IN DEEP POLICY GRADIENTS: A CASE STUDY ON PPO AND TRPO</a>.</p>
 </div>
-</div>
-<div class="section" id="pseudo-code">
+</section>
+<section id="pseudo-code">
 <h2>Pseudo-code<a class="headerlink" href="#pseudo-code" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/PPO_onpolicy.png"><img alt="../_images/PPO_onpolicy.png" class="align-center" src="../_images/PPO_onpolicy.png" style="width: 406.0px; height: 533.0px;" /></a>
 <div class="admonition note">
@@ -240,8 +241,8 @@ we maintain a replay buffer that stored the recent experience,
 and the data used to calculate the PPO loss is sampled from the replay buffer not the recently collected batch,
 so off-policy PPO are able to reuse old data very efficiently, but potentially brittle and unstable.</p>
 </div>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>PPO can be combined with:</dt><dd><ul class="simple">
@@ -250,8 +251,8 @@ so off-policy PPO are able to reuse old data very efficiently, but potentially b
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="implementation">
+</section>
+<section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <blockquote>
@@ -512,8 +513,8 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 <dd></dd></dl>
 
 </div></blockquote>
-</div>
-<div class="section" id="implementation-tricks">
+</section>
+<section id="implementation-tricks">
 <h2>Implementation Tricks<a class="headerlink" href="#implementation-tricks" title="Permalink to this headline">¶</a></h2>
 <table class="colwidths-given docutils align-default" id="id7">
 <caption><span class="caption-text">Some Implementation Tricks that Matter</span><a class="headerlink" href="#id7" title="Permalink to this table">¶</a></caption>
@@ -590,8 +591,8 @@ Whether <code class="docutils literal notranslate"><span class="pre">actor_head_
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <p>off-policy PPO Benchmark:</p>
 <table class="docutils align-default">
@@ -760,8 +761,8 @@ skip-v4)</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, Oleg Klimov: “Proximal Policy Optimization Algorithms”, 2017; [<a class="reference external" href="http://arxiv.org/abs/1707.06347">http://arxiv.org/abs/1707.06347</a> arXiv:1707.06347].</p></li>
@@ -770,8 +771,8 @@ skip-v4)</p>
 <li><p>Ye D, Liu Z, Sun M, et al. Mastering complex control in moba games with deep reinforcement learning[C]//Proceedings of the AAAI Conference on Artificial Intelligence. 2020, 34(04): 6672-6679.</p></li>
 <li><p><a class="reference external" href="https://spinningup.openai.com/en/latest/algorithms/ppo.html">https://spinningup.openai.com/en/latest/algorithms/ppo.html</a></p></li>
 </ul>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/openai/spinningup/blob/master/spinup/algos/pytorch/ppo/ppo.py">spinningup</a></p></li>
@@ -779,8 +780,8 @@ skip-v4)</p>
 <li><p><a class="reference external" href="https://github.com/DLR-RM/stable-baselines3/blob/master/stable_baselines3/ppo/ppo.py">SB3 (StableBaselines3)</a></p></li>
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/ppo.py">Tianshou</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

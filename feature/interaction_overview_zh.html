@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Interaction模块介绍 &mdash; DI-engine 0.1.0 documentation</title>
@@ -195,14 +196,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="interaction">
+  <section id="interaction">
 <span id="header-n0"></span><h1>Interaction模块介绍<a class="headerlink" href="#interaction" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="header-n2">
+<section id="header-n2">
 <span id="id1"></span><h2>概述<a class="headerlink" href="#header-n2" title="Permalink to this headline">¶</a></h2>
 <p>Interaction为一个独立于任何具体业务的交互式服务框架，用于支持简单非阻塞单线程任务。在DI-engine中为分布式环境下的多机多卡训练提供支持。</p>
 <p>Interaction分为两个端，是Master端和Slave端，分别为任务下达端和任务执行端。</p>
-</div>
-<div class="section" id="slave">
+</section>
+<section id="slave">
 <span id="header-n9"></span><h2>Slave端<a class="headerlink" href="#slave" title="Permalink to this headline">¶</a></h2>
 <p>Slave端的任务是从Master端接收任务信息，通过重写<code class="docutils literal notranslate"><span class="pre">_process_task</span></code>方法来执行任务，并通过返回值以及异常抛出来进行消息回传。</p>
 <p>一个简单的例子，可以通过如下的方式来构建属于自己的<code class="docutils literal notranslate"><span class="pre">Slave</span></code>类：</p>
@@ -241,8 +242,8 @@
 <li><p>为了方便对任务逻辑的实现，<strong>请继承Slave类并实现``_task_process``方法</strong>，不要直接使用Slave类创建Slave端。</p></li>
 <li><p>关于channel，可以视为对不同具体业务的一种标识，其概念类似于无线电频道、网络端口等。<strong>建议对于特定的业务设定特定的channel值</strong>，不要直接使用0或缺省等容易碰撞的值，以确保当发生误连的时候可以立刻得到反馈。</p></li>
 </ul>
-</div>
-<div class="section" id="master">
+</section>
+<section id="master">
 <span id="header-n57"></span><h2>Master端<a class="headerlink" href="#master" title="Permalink to this headline">¶</a></h2>
 <p>Master端的主要任务是对Slave端进行连接，并通过建立的连接对Slave进行任务的下达和接收。</p>
 <p>一个简单的例子，可以通过如下方式来构建属于自己的<code class="docutils literal notranslate"><span class="pre">Master</span></code>类：</p>
@@ -313,10 +314,10 @@
 <li><p>为了方便对功能的扩展，<strong>请继承Master类，且在需要的时候实现诸如``_before_new_task``等的一系列方法</strong>，不要直接使用Master类创建Master端。</p></li>
 <li><p><strong>Master和Slave端的channel务必设置为同一个整数</strong>，否则将导致无法正常建立连接。</p></li>
 </ul>
-</div>
-<div class="section" id="header-n54">
+</section>
+<section id="header-n54">
 <span id="id2"></span><h2>常见问题<a class="headerlink" href="#header-n54" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="q">
+<section id="q">
 <span id="header-n13"></span><h3>Q：何为非阻塞单线程任务？以及何故作此设计？<a class="headerlink" href="#q" title="Permalink to this headline">¶</a></h3>
 <p>A：即为<strong>当Master端下达任务时，如果Slave端空闲，则执行任务；若果Slave端已经有一个任务正在运行，则拒绝该任务请求</strong>。</p>
 <p>与之类似的也有类似几个任务模式，定义如下：</p>
@@ -326,8 +327,8 @@
 <li><p>阻塞多线程任务：Slave端设有最大任务数量，当Master下达任务时，如果正在执行的任务已经达到最大数量，则将新任务加入任务队列，等待之前的任务完成后再执行。</p></li>
 </ul>
 <p>考虑到<strong>强化学习训练并发计算量大，不宜在节点上分散算力</strong>，且需要方便业务层调度管理的实际需求，故此处设计为非阻塞单线程任务模式。</p>
-</div>
-<div class="section" id="q-interaction">
+</section>
+<section id="q-interaction">
 <span id="header-n122"></span><h3>Q：Interaction模块适合使用的问题有哪些？<a class="headerlink" href="#q-interaction" title="Permalink to this headline">¶</a></h3>
 <p>A：实际上根据目前的初步调研，训练任务会分为如下几种情况：</p>
 <ul class="simple">
@@ -337,12 +338,12 @@
 </ul>
 <p>实际上对于单机轻型来说，一般的运行即可完成；而<strong>对于单机分布式而言，Interaction是完全不必要的</strong>，因为单机分布式环境下完全可以通过fork开启子进程的方式启动各端，并通过进程锁（Lock）和事件（Event）进行阻塞控制，其传输性能和稳定性必然超过基于http服务的Interaction。</p>
 <p>因此<strong>对于Interaction而言，真正的优势环境为多机规模化分布式环境</strong>，具体来说，因为在多机环境下开启fork或者基于远程启动来启动训练任务是不现实的，因而必须基于Interaction构建服务体系。并且实际上在这样的环境下，<strong>最佳实践为预先开启全部的服务节点（即Slave节点），保持长期待机状态，并有专人对这些算力进行维护（类比对slurm集群的维护），当有使用者有训练任务时，会对现有大量节点进行连接，安排并运行训练任务</strong>。</p>
-</div>
-<div class="section" id="q-masterslave">
+</section>
+<section id="q-masterslave">
 <span id="header-n120"></span><h3>Q：Master和Slave在发送网络请求时出现错误，抛出异常，应该如何处理？<a class="headerlink" href="#q-masterslave" title="Permalink to this headline">¶</a></h3>
 <p>A：抛出的网络请求异常在Interaction框架中，基于错误代码（非HTTP状态码）进行了异常类的归类。在实际使用的时候请<strong>注意不要直接使用HTTPError进行异常的捕捉</strong>，该异常只能捕捉非业务异常（例如DNS故障、连接超时等），而对于业务异常，请使用对应的异常类已经捕捉，并且<strong>建议根据不同的业务异常类型使用对应的异常类</strong>，以实现精确捕捉和处理问题。</p>
-</div>
-<div class="section" id="header-n110">
+</section>
+<section id="header-n110">
 <span id="id3"></span><h3>Q：如何正确将Master和Slave整合进现有业务服务中？<a class="headerlink" href="#header-n110" title="Permalink to this headline">¶</a></h3>
 <p>A：比较推荐的一种方式——<strong>将Master/Slave作为类的一个私有属性，整合进类内部</strong>，并且<strong>建议类本身也对生命周期进行妥善管理</strong>（例如设立start、shutdown、join等生命周期管理方法），且建议实现<code class="docutils literal notranslate"><span class="pre">__enter__</span></code>、<code class="docutils literal notranslate"><span class="pre">__exit__</span></code>方法，使得类可以通过<code class="docutils literal notranslate"><span class="pre">with</span></code>进行快速创建和资源回收。</p>
 <p>此处<strong>强烈不建议直接对Master和Slave类进行二次继承</strong>，因为这会导致Master/Slave本身的结构和生命周期受到干扰，并且影响其内部的逻辑与数据约束，从而造成不可预期的结果。</p>
@@ -350,9 +351,9 @@
 <p class="admonition-title">Tip</p>
 <p>这里说的二次继承是指: MyMaster –&gt; Master, Controller –&gt; MyMaster. Controller作为业务逻辑相关的类应和MyMaster是组合关系，切忌滥用继承。如果要为Master做更多功能拓展的话，也可定义相应的功能类，然后MyMaster多重继承Master和新的功能类。</p>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

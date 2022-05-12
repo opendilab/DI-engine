@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Guided Cost Learning &mdash; DI-engine 0.1.0 documentation</title>
@@ -221,14 +222,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="guided-cost-learning">
+  <section id="guided-cost-learning">
 <h1>Guided Cost Learning<a class="headerlink" href="#guided-cost-learning" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>综述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>Guided Cost Learning(GCL)是一种逆强化学习算法，在 <a class="reference external" href="https://arxiv.org/abs/1603.00448">Guided Cost Learning: Deep Inverse Optimal Control via Policy Optimization</a> 中被提出。
 Inverse Reinforcement Learning的一个基本思路就是，在给定的专家数据下，学习一个奖励函数，使得这个专家策略在这个奖励函数下是最优的，但这个奖励函数却并不是唯一的。在 <a class="reference external" href="https://www.aaai.org/Papers/AAAI/2008/AAAI08-227.pdf">Maximum Entropy Inverse Reinforcement Learning</a> 和 <a class="reference external" href="https://arxiv.org/abs/1507.04888">Maximum Entropy Deep Inverse Reinforcement Learning</a> 中提出了利用最大熵原理的方法来求奖励函数。GCL算法实在这些算法的基础上，利用最大熵原理，使用神经网络来表征一个非线性的奖励函数。GCL算法在训练过程中可以同时学习一个奖励函数reward function和策略policy。 GCL算法主要应用于控制领域，如机械臂控制等场合。</p>
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>GCL 是可以同时学习 <strong>reward function</strong> （奖励函数） 和 <strong>policy</strong> （策略） 的逆强化学习算法。</p></li>
@@ -236,8 +237,8 @@ Inverse Reinforcement Learning的一个基本思路就是，在给定的专家�
 <li><p>GCL 算法可与 <strong>PPO</strong> 或者 <strong>SAC</strong> 等 <strong>policy-based</strong> 或 <strong>Actor-Critic</strong> 算法结合，同时学习reward function和与GCL相结合的policy。</p></li>
 <li><p>GCL 学到的reward function的输入为 <strong>state</strong> 和 <strong>action</strong>，输出为估计的 <strong>reward</strong> 值。</p></li>
 </ol>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>重要公示/重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>GCL算法基于最大熵原理的一个基本公式：</p>
 <div class="math notranslate nohighlight">
@@ -251,13 +252,13 @@ Z=\int exp(-c_\theta (\tau))d\tau\]</div>
 <div class="math notranslate nohighlight">
 \[\frac{d \mathcal{L}_{\mathrm{IOC}}}{d \theta}=\frac{1}{N} \sum_{\tau_{i} \in \mathcal{D}_{\text {demo }}} \frac{d c_{\theta}}{d \theta}\left(\tau_{i}\right)-\frac{1}{Z} \sum_{\tau_{j} \in \mathcal{D}_{\text {samp }}} w_{j} \frac{d c_{\theta}}{d \theta}\left(\tau_{j}\right)\]</div>
 <p>使用该Loss函数来训练GCL算法的reward模型。</p>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <a class="reference internal image-reference" href="../_images/GCL_1.png"><img alt="../_images/GCL_1.png" class="align-center" src="../_images/GCL_1.png" style="width: 447.15000000000003px; height: 255.20000000000002px;" /></a>
 <a class="reference internal image-reference" href="../_images/GCL_2.png"><img alt="../_images/GCL_2.png" class="align-center" src="../_images/GCL_2.png" style="width: 445.50000000000006px; height: 221.10000000000002px;" /></a>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h2>扩展<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>GCL 可以和以下方法相结合：</p>
 <blockquote>
@@ -267,8 +268,8 @@ Z=\int exp(-c_\theta (\tau))d\tau\]</div>
 </ul>
 <p>使用PPO或SAC算法中Actor网络算出的概率值作为训练reward function时的轨迹概率 <span class="math notranslate nohighlight">\(q(\tau )\)</span>, 使用GCL reward function算出的reward值作为训练PPO或SAC算法时的reward值。</p>
 </div></blockquote>
-</div>
-<div class="section" id="id6">
+</section>
+<section id="id6">
 <h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <p>其中使用的奖励模型接口如下所示：</p>
 <dl class="py class">
@@ -316,8 +317,8 @@ Z=\int exp(-c_\theta (\tau))d\tau\]</div>
 
 </dd></dl>
 
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -354,14 +355,14 @@ reward 2950</p></td>
 <ol class="arabic simple">
 <li><p>以上结果对比了生成专家模型的PPO算法和使用专家模型的GCL算法，对比了best mean reward和达到best mean reward所用的env_step</p></li>
 </ol>
-</div>
-<div class="section" id="id7">
+</section>
+<section id="id7">
 <h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Chelsea Finn, Sergey Levine, Pieter Abbeel: “Guided Cost Learning: Deep Inverse Optimal Control via Policy Optimization”, 2016; arXiv:1603.00448.</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

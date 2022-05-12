@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>MiniGrid &mdash; DI-engine 0.1.0 documentation</title>
@@ -224,9 +225,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="minigrid">
+  <section id="minigrid">
 <h1>MiniGrid<a class="headerlink" href="#minigrid" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>MiniGrid, 即最小化的格子世界环境，是经典的稀疏奖励的离散动作空间强化学习环境，常作为离散动作空间条件下稀疏强化学习算法的基准测试环境。
 在该游戏中，智能体需要学习在一个离散动作集合中选择合适的动作，在方格世界中完成移动，获取钥匙，开门等一系列序列决策以到达目标的位置。
@@ -235,10 +236,10 @@
 它包括MiniGrid-Empty-8x8-v0, MiniGrid-FourRooms-v0, MiniGrid-DoorKey-16x16-v0, MiniGrid-KeyCorridorS3R3-v0,
 MiniGrid-ObstructedMaze-2Dlh-v0, MiniGrid-ObstructedMaze-Full-v0等一系列环境, 下图所示为其中的MiniGrid-DoorKey-16x16-v0游戏。</p>
 <a class="reference internal image-reference" href="../_images/MiniGrid-DoorKey-16x16-v0.png"><img alt="../_images/MiniGrid-DoorKey-16x16-v0.png" class="align-center" src="../_images/MiniGrid-DoorKey-16x16-v0.png" style="width: 240.6px; height: 249.6px;" /></a>
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>用户可以选择通过pip一键安装或git clone代码库后pip本地安装.</p>
 <p>注：如果用户没有root权限，请在install的命令后面加上–user</p>
@@ -250,19 +251,19 @@ git clone https://github.com/maximecb/gym-minigrid.git
 pip install -e .
 </pre></div>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>安装完成后，可以在Python命令行中运行如下命令, 如果显示出游戏的交互界面，则证明安装成功：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="n">cd</span> <span class="n">gym</span><span class="o">-</span><span class="n">minigrid</span>
 <span class="o">./</span><span class="n">manual_control</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">env</span> <span class="n">MiniGrid</span><span class="o">-</span><span class="n">Empty</span><span class="o">-</span><span class="mi">8</span><span class="n">x8</span><span class="o">-</span><span class="n">v0</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="id5">
+</section>
+</section>
+<section id="id5">
 <span id="id6"></span><h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id7">
+<section id="id7">
 <span id="id8"></span><h3>观察空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>以MiniGrid-Empty-8x8-v0为例，</p></li>
@@ -290,8 +291,8 @@ pip install -e .
 <li><p>我们的代码库使用第4种<code class="docutils literal notranslate"><span class="pre">FlatObsWrapper</span></code> 方式，这种方式将<code class="docutils literal notranslate"><span class="pre">mission</span></code>字段中的任务字符串用one-hot的方式编码，
 并将其与<code class="docutils literal notranslate"><span class="pre">image</span></code>字段内容拼接成一个<code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>obs4，其shape为(2739，)，数据类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id9">
+</section>
+<section id="id9">
 <span id="id10"></span><h3>动作空间<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <ul>
 <li><p>游戏操作按键空间，一般是大小为7的离散动作空间，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入python数值（或是0维np数组，例如动作3为<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）</p></li>
@@ -322,45 +323,45 @@ pip install -e .
 </div></blockquote>
 </li>
 </ul>
-</div>
-<div class="section" id="id11">
+</section>
+<section id="id11">
 <span id="id12"></span><h3>奖励空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏得分，不同的minigrid子环境奖励幅度差异较小，其最大值为1，一般是一个<code class="docutils literal notranslate"><span class="pre">float</span></code>数值，由于是稀疏奖励环境，只有在agent(显示为红色的点)到达goal
 (显示为绿色的点)时才有一个大于零的奖励，具体的数值由不同环境和达到goal所用的总步数决定，没有达到goal之前的奖励都是0。</p></li>
 </ul>
-</div>
-<div class="section" id="id13">
+</section>
+<section id="id13">
 <span id="id14"></span><h3>其他<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>当智能体到达绿色的goal或者达到环境的最大步数限制时，游戏结束。</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id15">
+</section>
+</section>
+<section id="id15">
 <h2>关键事实<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>观测输入可以选择像素形式的图像或者含有具体语义的”图像”, 还可以选用描述智能体应该达到何种目标以获得奖励的文本形式的字符串。</p></li>
 <li><p>离散动作空间。</p></li>
 <li><p>稀疏奖励，奖励取值尺度变化较小，最大为1，最小为0。</p></li>
 </ol>
-</div>
-<div class="section" id="rl">
+</section>
+<section id="rl">
 <span id="id16"></span><h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id17">
+<section id="id17">
 <span id="id18"></span><h3>观察空间<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：我们的代码库使用第4种<code class="docutils literal notranslate"><span class="pre">FlatObsWrapper</span></code>方式，这种方式将<code class="docutils literal notranslate"><span class="pre">mission</span></code>字段中的任务字符串以one-hot的方式编码，并将其与<code class="docutils literal notranslate"><span class="pre">image</span></code>字段内容拼接成一个长数组</p></li>
 <li><p>变换结果：一维np数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(2739，)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，取值为 <code class="docutils literal notranslate"><span class="pre">[0.,</span> <span class="pre">7.]</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id19">
+</section>
+<section id="id19">
 <span id="id20"></span><h3>动作空间<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换，依然是大小为N=7的离散动作空间，一般为一维np数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id21">
+</section>
+<section id="id21">
 <span id="id22"></span><h3>奖励空间<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：基本无变换</p></li>
@@ -373,17 +374,17 @@ pip install -e .
 <span class="n">rew_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id23">
+</section>
+<section id="id23">
 <span id="id24"></span><h3>其他<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>键值对，表示整个episode的评测指标，在minigrid中为整个episode的奖励累加和</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id25">
+</section>
+</section>
+<section id="id25">
 <span id="id26"></span><h2>其他<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id27">
+<section id="id27">
 <h3>随机种子<a class="headerlink" href="#id27" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
@@ -391,14 +392,14 @@ pip install -e .
 <li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值; 对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置为seed + np_seed, 其中seed为前述的随机库种子的值,
 np_seed = 100 * np.random.randint(1, 1000)。</p></li>
 </ul>
-</div>
-<div class="section" id="id28">
+</section>
+<section id="id28">
 <h3>训练和测试环境的区别<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>训练环境使用动态随机种子，即每个episode的随机种子都不同，由一个随机数发生器产生，而这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个episode的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
 </ul>
-</div>
-<div class="section" id="id29">
+</section>
+<section id="id29">
 <h3>存储录像<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
 <p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个episode结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境episode，并将这个episode的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
@@ -419,9 +420,9 @@ np_seed = 100 * np.random.randint(1, 1000)。</p></li>
         <span class="k">break</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/config">github
 link</a>
@@ -509,8 +510,8 @@ link</a>
     <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id30">
+</section>
+<section id="id30">
 <h2>基准算法性能<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>MiniGrid-Empty-8x8-v0（0.5M env step下，平均奖励大于0.95）</p>
@@ -532,8 +533,8 @@ link</a>
 <a class="reference internal image-reference" href="../_images/doorkey_r2d2.png"><img alt="../_images/doorkey_r2d2.png" class="align-center" src="../_images/doorkey_r2d2.png" style="width: 338.0px; height: 236.0px;" /></a>
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

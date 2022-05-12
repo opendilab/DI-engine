@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>How to Customize an Env Wrapper &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,7 +171,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-customize-an-env-wrapper">
+  <section id="how-to-customize-an-env-wrapper">
 <h1>How to Customize an Env Wrapper<a class="headerlink" href="#how-to-customize-an-env-wrapper" title="Permalink to this headline">¶</a></h1>
 <p>Env module is one of the most important modules in the domain of reinforcement learnig.
 In some common reinforcement learning tasks, for instance, atari, mujoco, we train our agents
@@ -200,12 +201,12 @@ recent raw observations (for max pooling across time steps).</p></li>
 <li><p>update_shape. This is a function that helps recognise the shape of observations, actiions
 and reward after applying env wrappers.</p></li>
 </ul>
-<div class="section" id="the-reason-we-need-to-customize-an-env-wrapper">
+<section id="the-reason-we-need-to-customize-an-env-wrapper">
 <h2>The reason we need to customize an env wrapper<a class="headerlink" href="#the-reason-we-need-to-customize-an-env-wrapper" title="Permalink to this headline">¶</a></h2>
 <p>We often need to change different environments based on our needs. For instance, normalizing observations is usually very common for different environments so that the training stage is stabler and faster. Therefore, we extract this common part and put this feature in env_wrapper so that repeated developments are avoided and we only need to make a change here instead of every piece of codes if we want to modify the ways of normalistion of observations in the future. The reason that we use running mean and std instead of fixed mean and std is due to the fact that the distribution of samples will be different if different policies are applied, i.e., the distribution of sampled data are highly correlated with a policy.</p>
 <p>We show an implementation of ObsNormEnv below in DI-engine to explainhow to customize an env wrapper.</p>
-</div>
-<div class="section" id="to-customize-an-env-wrapper">
+</section>
+<section id="to-customize-an-env-wrapper">
 <h2>To customize an env wrapper<a class="headerlink" href="#to-customize-an-env-wrapper" title="Permalink to this headline">¶</a></h2>
 <p>Take the ObsNormEnv wrapper as an example. In order to normalize observations, we merely need to change the two functions in the original environment – the step function and the reset function while keeping the rest functions almost the same. Note that sometimes, info is also needed to be modified as the boundaries of observations have been changed. Note also that the nature of ObsNormEnv wrapper is to add additional features to the original environment and this is exactly what a wrapper means. </p>
 <p>The structure of ObsNormEnv are as follows:</p>
@@ -243,8 +244,8 @@ once after integrating with the input <code class="docutils literal notranslate"
 <li><p><code class="docutils literal notranslate"><span class="pre">reset</span></code>: Resets the state of the environment and reset <code class="docutils literal notranslate"><span class="pre">count</span> <span class="pre">of</span> <span class="pre">episodes</span></code>, <code class="docutils literal notranslate"><span class="pre">running</span> <span class="pre">mean/std</span></code>.</p></li>
 </ul>
 <p>In general, an env wrapper can be customized as follows:</p>
-</div>
-<div class="section" id="to-customize-an-general-env-wrapper">
+</section>
+<section id="to-customize-an-general-env-wrapper">
 <h2>To customize an general env wrapper<a class="headerlink" href="#to-customize-an-general-env-wrapper" title="Permalink to this headline">¶</a></h2>
 <p>Users should follow the following steps to customize a model wrapper:</p>
 <ol class="arabic simple">
@@ -255,16 +256,16 @@ once after integrating with the input <code class="docutils literal notranslate"
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">wrapped_env</span> <span class="o">=</span> <span class="n">env_wrap</span><span class="p">(</span><span class="n">origin_env</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="examples">
+</section>
+<section id="examples">
 <h2>Examples: <a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <p>env = gym.make(evn_id) </p>
 <p>env.NoopResetEnv(env, noop_max = 30) </p>
 <p>env = MaxAndSkipEnv(env, skip = 4) </p>
 <p>More details of env wrappers can be found in
 <code class="docutils literal notranslate"><span class="pre">ding/envs/env_wrappers/env_wrappers.py</span></code></p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

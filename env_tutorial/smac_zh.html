@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>SMAC &mdash; DI-engine 0.1.0 documentation</title>
@@ -226,17 +227,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="smac">
+  <section id="smac">
 <h1>SMAC<a class="headerlink" href="#smac" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>SMAC是一个用于在暴雪星际争霸2上进行多智能体协同强化学习（MARL）的环境。SMAC用了暴雪星际争霸2的机器学习API和DeepMind的PySC2为智能体与星际争霸2的交互提供了友好的接口，方便开发者观察和执行行动。
 与PySC2相比，SMAC专注于分散的微观操作方案，其中游戏的每个智能体均由单独的RL agent控制。</p>
 <img alt="../_images/smac.gif" class="align-center" src="../_images/smac.gif" />
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id3">
+<section id="id3">
 <h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <p>需要安装星际争霸2游戏和PySC2库，安装方法可以参考<a class="reference external" href="https://github.com/opendilab/DI-star">DI-star安装</a></p>
 <p>安装主要包括两部分：</p>
@@ -249,26 +250,26 @@
 pip install -e .
 </pre></div>
 </div>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <p>安装完成后，可以通过安装成功后 <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">$SC2PATH</span></code> 确认环境变量设置成功</p>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h3>镜像<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <p>DI-engine的镜像配备有框架本身和Smac环境，可通过<code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly-smac</span></code>获取，或访问<a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
 hub</a>获取更多镜像</p>
-</div>
-</div>
-<div class="section" id="id6">
+</section>
+</section>
+<section id="id6">
 <span id="id7"></span><h2>变换前的空间（原始环境）<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id8">
+<section id="id8">
 <span id="id9"></span><h3>观察空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>可以获取各个智能体是否存活，各个智能体剩余血量，各个智能体视野范围内的盟友或敌人等零碎的信息。</p></li>
 </ul>
-</div>
-<div class="section" id="id10">
+</section>
+<section id="id10">
 <span id="id11"></span><h3>动作空间<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏操作按键空间，一般是大小为N的离散动作空间（N随具体子环境变化），数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入python数值（或是0维np数组，例如动作3为<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）</p></li>
@@ -284,51 +285,51 @@ hub</a>获取更多镜像</p>
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="id12">
+</section>
+<section id="id12">
 <span id="id13"></span><h3>奖励空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏胜负，胜利为1，失败为0，一般是一个<code class="docutils literal notranslate"><span class="pre">int</span></code>数值。</p></li>
 </ul>
-</div>
-<div class="section" id="id14">
+</section>
+<section id="id14">
 <span id="id15"></span><h3>其他<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>游戏结束即为当前环境episode结束</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id16">
+</section>
+</section>
+<section id="id16">
 <h2>关键事实<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>输入为将离散信息综合后的信息</p></li>
 <li><p>离散动作空间</p></li>
 <li><p>奖励为稀疏奖励，我们设置fake_reward，使得训练时所用的奖励为稠密奖励。</p></li>
 </ol>
-</div>
-<div class="section" id="rl">
+</section>
+<section id="rl">
 <span id="id17"></span><h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id18">
+<section id="id18">
 <span id="id19"></span><h3>观察空间<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：拼接各个agent看到的各类离散信息，将拼接后的信息作为各个agent看到的agent_state和全局的global_state</p></li>
 <li><p>变换结果：一个dict型数据，其中包含agent_state，global_state和action_mask，均为一个一维Tensor型数组</p></li>
 </ul>
-</div>
-<div class="section" id="id20">
+</section>
+<section id="id20">
 <span id="id21"></span><h3>动作空间<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>基本无变换，依然是大小为N的离散动作空间</p></li>
 </ul>
-</div>
-<div class="section" id="id22">
+</section>
+<section id="id22">
 <span id="id23"></span><h3>奖励空间<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>变换内容：设置fake_reward，使得智能体在作出一些动作后就可以获得奖励，我们设置每一步的fake_reward为’打掉的敌人血量-损失的己方血量‘，且消灭一个敌人奖励20分，获取全局的胜利获得200分</p></li>
 <li><p>变换结果：一个一维且只包含一个float32类型数据的Tensor</p></li>
 </ul>
-</div>
-<div class="section" id="id24">
+</section>
+<section id="id24">
 <span id="id25"></span><h3>其他<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>开启<code class="docutils literal notranslate"><span class="pre">special_global_state</span></code>返回的global_state则为各个全局信息+各个agent特殊信息拼接成的信息，若不开启，则仅返回全局信息</p></li>
@@ -336,15 +337,15 @@ hub</a>获取更多镜像</p>
 <li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>键值对，表示整个episode的评测指标，在SMAC中为整个episode的fake_reward累加和</p></li>
 <li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法最终返回的<code class="docutils literal notranslate"><span class="pre">reward</span></code>为胜利与否</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id26">
+</section>
+</section>
+<section id="id26">
 <span id="id27"></span><h2>其他<a class="headerlink" href="#id26" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id28">
+<section id="id28">
 <h3>惰性初始化<a class="headerlink" href="#id28" title="Permalink to this headline">¶</a></h3>
 <p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
-</div>
-<div class="section" id="id29">
+</section>
+<section id="id29">
 <h3>随机种子<a class="headerlink" href="#id29" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
@@ -352,14 +353,14 @@ hub</a>获取更多镜像</p>
 <li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
 <li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
 </ul>
-</div>
-<div class="section" id="id30">
+</section>
+<section id="id30">
 <h3>训练和测试环境的区别<a class="headerlink" href="#id30" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>训练环境使用动态随机种子，即每个episode的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个episode的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
 </ul>
-</div>
-<div class="section" id="id31">
+</section>
+<section id="id31">
 <h3>存储录像<a class="headerlink" href="#id31" title="Permalink to this headline">¶</a></h3>
 <p>调用<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/smac/utils/eval.py">https://github.com/opendilab/DI-engine/blob/main/dizoo/smac/utils/eval.py</a> 所提供的方法存储视频，并在星际争霸2游戏中播放存储的视频。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span>
@@ -420,9 +421,9 @@ hub</a>获取更多镜像</p>
     <span class="nb">eval</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">state_dict</span><span class="o">=</span><span class="n">state_dict</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="di-zoo">
+</section>
+</section>
+<section id="di-zoo">
 <h2>DI-zoo可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
 <p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/config">github
 link</a>
@@ -525,8 +526,8 @@ link</a>
 </pre></div>
 </div>
 <p>注：对于On policy算法，使用serial_pipeline_onpolicy进入，对于Off policy算法，使用serial_pipeline进入</p>
-</div>
-<div class="section" id="id32">
+</section>
+<section id="id32">
 <h2>基准算法性能<a class="headerlink" href="#id32" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p>MMM（2M env step下胜率为1视为较好性能）</p>
@@ -554,8 +555,8 @@ link</a>
 <img alt="../_images/MMM2_mappo.png" class="align-center" src="../_images/MMM2_mappo.png" />
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

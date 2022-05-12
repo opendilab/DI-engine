@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>快速上手 &mdash; DI-engine 0.1.0 documentation</title>
@@ -179,14 +180,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="id1">
+  <section id="id1">
 <h1>快速上手<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <img alt="../_images/cartpole_cmp.gif" class="align-center" src="../_images/cartpole_cmp.gif" />
 <p>首先，我们将说明如何使用 DI-engine 在简单的 <code class="docutils literal notranslate"><span class="pre">CartPole</span></code> 环境（如图所示）上运行 RL 实验。</p>
 <p>具体来说，我们将在单个 python 文件中定义一整套训练逻辑，指定超参数、环境，神经网络和强化学习策略，以及主循环训练流程。</p>
-<div class="section" id="id2">
+<section id="id2">
 <h2>构建运行时配置<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>构建训练工作流的第一步是指定训练配置。 DI-engine 推荐使用嵌套的 <cite>dict</cite> 对象来表示 RL 实验的所有参数和配置（<code class="docutils literal notranslate"><span class="pre">...</span></code> 表示省略的配置内容，完整的配置文件可以参考下面的路径），例如：</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cartpole_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -246,8 +247,8 @@
 </pre></div>
 </div>
 <p>有关更多设计细节，请参阅 <a class="reference external" href="../key_concept/index.html#config">配置</a> 以及 <a class="reference external" href="../key_concept/index.html#entry">入口</a> 模块</p>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h2>初始化环境<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>RL策略与环境交互以收集训练数据或测试其性能。DI-engine 继承广泛使用的 <a class="reference external" href="https://github.com/openai/gym">OpenAI Gym</a> RL 环境接口，并扩展了部分功能。您可以使用 <code class="docutils literal notranslate"><span class="pre">DingEnvWrapper</span></code> 将部分简单的 <code class="docutils literal notranslate"><span class="pre">gym</span></code> 环境
 直接转化为DI-engine所需的格式。对于较复杂的环境，建议按照 <a class="reference external" href="../key_concept/index.html#env">环境</a> 部分中的指南构建具体的环境类。</p>
@@ -271,8 +272,8 @@
 <span class="n">set_pkg_seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">use_cuda</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">cuda</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id7">
+</section>
+<section id="id7">
 <h2>设置策略和神经网络模型<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine 支持 RL 训练中使用的大多数常用策略。每个都定义为一个 <code class="docutils literal notranslate"><span class="pre">Policy</span></code> class.</p>
 <p>优化算法、数据预处理和后处理、神经网络的使用等细节都封装在 <code class="docutils literal notranslate"><span class="pre">Policy</span></code> 类之中。用户只需要构建一个 <a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Module.html">PyTorch 网络</a> （即继承于
@@ -283,8 +284,8 @@
 <span class="n">policy</span> <span class="o">=</span> <span class="n">DQNPolicy</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="id8">
+</section>
+<section id="id8">
 <h2>定义执行模块<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine 需要构建一些执行组件来实际运行 RL 训练过程。<code class="docutils literal notranslate"><span class="pre">Collector</span></code> 用于收集训练所需的数据。<code class="docutils literal notranslate"><span class="pre">Learner</span></code> 用于接收数据并进行训练。<code class="docutils literal notranslate"><span class="pre">Evaluator</span></code> 用于在需要的时候对策略进行评估。<code class="docutils literal notranslate"><span class="pre">Replay</span> <span class="pre">Buffer</span></code>
 是一个存放数据的队列。对于不同算法，整个训练过程还可能需要其他组件。所有上述模块都可以通过配置自定义或由用户重写。</p>
@@ -304,8 +305,8 @@
 </pre></div>
 </div>
 <p>这只是一组执行模块示例的具体设定。用户应根据需求自行选择需要的模块。</p>
-</div>
-<div class="section" id="id9">
+</section>
+<section id="id9">
 <h2>训练主循环<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine 中的训练循环可以任意定制。通常训练过程可能包括收集数据、更新策略和相关模块，评估策略性能。</p>
 <p>在这里，我们提供了 <code class="docutils literal notranslate"><span class="pre">DQN</span></code> 针对 <code class="docutils literal notranslate"><span class="pre">CartPole</span></code> 环境的异策略训练示例。更多算法可以参考 <code class="docutils literal notranslate"><span class="pre">dizoo</span></code> 。</p>
@@ -333,11 +334,11 @@
 <p class="admonition-title">Note</p>
 <p>您也可以参考完整的训练入口： dizoo/classic_control/cartpole/entry/cartpole_dqn_main.py。</p>
 </div>
-</div>
-<div class="section" id="id10">
+</section>
+<section id="id10">
 <h2>其他工具<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 <p>DI-engine 支持常见 RL 训练中的各种工具，如下所示。</p>
-<div class="section" id="id11">
+<section id="id11">
 <h3>可视化和日志<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
 <p>某些环境具有渲染或可视化功能，DI-engine 没有使用渲染接口，而是添加了存储可视化结果 (replay) 的开关接口。如果想开启该功能，用户只需在入口函数训练主循环收敛后添加如下几行代码。如果一切正常，您可以在 <code class="docutils literal notranslate"><span class="pre">replay_path</span></code> 指定的文件夹中找到一些以 <code class="docutils literal notranslate"><span class="pre">.mp4</span></code> 为后缀的视频。</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">evaluator_env</span> <span class="o">=</span> <span class="n">BaseEnvManager</span><span class="p">(</span><span class="n">env_fn</span><span class="o">=</span><span class="p">[</span><span class="n">wrapped_cartpole_env</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">evaluator_env_num</span><span class="p">)],</span> <span class="n">cfg</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
@@ -376,9 +377,9 @@
 </pre></div>
 </div>
 <p>如果你想了解DI-engine默认记录的参数信息的含义，可以参考DQN训练实验的 <a class="reference external" href="./tb_demo.html">tensorboard和日志demo</a> 。</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

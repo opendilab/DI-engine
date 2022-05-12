@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>ATOC &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,13 +172,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="atoc">
+  <section id="atoc">
 <h1>ATOC<a class="headerlink" href="#atoc" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>ATOC (Jiang et al. 2018) is a communication model proposed to exploit inter-agent communication in execution for multi-agent tasks. ATOC operates operates in the paradigm of learning a communication protocol and uses an attentional communication mechanism to decide when communication is needed and how to cooperatively integrate shared information, which makes it possible for agents to learn coordinated strategies in dynamic communication environments.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>ATOC uses the paradigm of <strong>decentralized execution without centralized training</strong>. Each agent receives local observations.</p></li>
@@ -188,8 +189,8 @@
 <li><p>ATOC use an attention unit that receives encoded local observation and action intention of an agent, which determines whether communication is helpful in terms of cooperation.</p></li>
 <li><p>A bidirectional LSTM unit in ATOC is set as the communication channel to connect each agent within a communication group.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>ATOC overall architecture for one single agent:</p>
 <a class="reference internal image-reference" href="../_images/atoc.png"><img alt="../_images/atoc.png" class="align-center" src="../_images/atoc.png" style="width: 438.0px; height: 616.0px;" /></a>
@@ -219,15 +220,15 @@ parameters.</p>
 \[\mathcal{L}(\theta^{p}) = -\nabla \hat{Q}_{i}
 \log(p(h^{i}|\theta^{p}))- (1-\Delta
 \hat{Q}_{i}) \log(1 - p(h^{i}|\theta^{p}))\]</div>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Different from ATOC, TarMAC (Das et al. 2019) uses attention in communication to decide who to communicate with. TarMAC is interpretable through predicted attention probabilities that allow for inspection of which agent is communicating what message and to whom. Additionally, TarMAC proposes multi-round communication where agents coordinate via multiple rounds of communication before taking actions in the environment.</p></li>
 <li><p>Emergent communication protocols are various in solving multi-agent collaboration tasks. If you want to know more about this direction, you can find in Zhang et al. (2019).</p></li>
 </ul>
-</div>
-<div class="section" id="implementations">
+</section>
+<section id="implementations">
 <h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <blockquote>
@@ -249,15 +250,15 @@ parameters.</p>
 <blockquote>
 <div><p>TBD</p>
 </div></blockquote>
-</div>
-<div class="section" id="references">
+</section>
+<section id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>Jiechuan Jiang, Zongqing Lu. Learning attentional communication for multi-agent cooperation. arXiv preprint arXiv:1805.07733, 2018.</p>
 <p>Abhishek Das, Théophile Gervet, Joshua Romoff, Dhruv Batra, Devi Parikh, Mike Rabbat, Joelle Pineau. Tarmac: Targeted multi-agent communication. International Conference on Machine Learning. PMLR, 2019.</p>
 <p>Mikayel Samvelyan, Tabish Rashid, Christian Schroeder de Witt, Gregory Farquhar, Nantas Nardelli, Tim G. J. Rudner, Chia-Man Hung, Philip H. S. Torr, Jakob Foerster, Shimon Whiteson. The StarCraft Multi-Agent Challenge. arXiv preprint arXiv:1902.04043, 2019.</p>
 <p>Kaiqing Zhang, Zhuoran Yang, Tamer Başar. Multi-Agent Reinforcement Learning: A Selective Overview of Theories and Algorithms. arXiv preprint arXiv:1911.10635, 2019.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

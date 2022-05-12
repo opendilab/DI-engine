@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>HPC_RL Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -190,13 +191,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="hpc-rl-overview">
+  <section id="hpc-rl-overview">
 <h1>HPC_RL Overview<a class="headerlink" href="#hpc-rl-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
+<section id="id1">
 <h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>HPC_RL 组件是一个加速算子组件，全称是 High Performance Computation。针对强化学习算法中较通用的算法模块，例如 <code class="docutils literal notranslate"><span class="pre">GAE</span></code> ，<code class="docutils literal notranslate"><span class="pre">n-step</span> <span class="pre">TD</span></code> 以及 <code class="docutils literal notranslate"><span class="pre">LSTM</span></code> 等，主要是针对DI-engine rl_utils，torch_utils/network, torch_utils/loss下的算子进行优化，算子支持前向+反向传播，训练，数据收集，测试模块中均可使用，对于各类算子，在不同输入尺寸下均有10-100倍的速度提升。</p>
-</div>
-<div class="section" id="id2">
+</section>
+<section id="id2">
 <h2>如何使用<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><ol class="arabic">
@@ -307,15 +308,15 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 </li>
 </ol>
 </div></blockquote>
-</div>
-<div class="section" id="id3">
+</section>
+<section id="id3">
 <h2>目前支持的算子<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">rl_utils</span></code> : GAE, PPO, q_value n-step TD, dist n_step TD(C51), q_value n-step TD with rescale(R2D2)，TD-lambda, vtrace, UPGO</p>
 <p><code class="docutils literal notranslate"><span class="pre">torch_utils/network</span></code> : LSTM，scatter_connection</p>
 </div></blockquote>
-</div>
-<div class="section" id="id4">
+</section>
+<section id="id4">
 <h2>性能对比<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><table class="colwidths-given docutils align-default" id="id6">
@@ -675,8 +676,8 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 </tbody>
 </table>
 </div></blockquote>
-</div>
-<div class="section" id="id5">
+</section>
+<section id="id5">
 <h2>其他<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>为了提升性能，HPC_RL在内部默认会预先分配算子所需要的内存，因此需要知道数据的具体尺寸，DI-engine的相关wrapper会自动根据数据尺寸进行调整，但要注意，如果是可变输入尺寸，反复重新分配内存会造成一定的时间损耗，从而降低加速比。</p></li>
@@ -690,8 +691,8 @@ epoch: <span class="m">5</span>, hpc gae cost time: <span class="m">0</span>.002
 <li><p>LSTM中的normalization仅支持LN</p></li>
 </ul>
 </div></blockquote>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

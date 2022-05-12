@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>SAC &mdash; DI-engine 0.1.0 documentation</title>
@@ -171,9 +172,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="sac">
+  <section id="sac">
 <h1>SAC<a class="headerlink" href="#sac" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Soft actor-critic (SAC) is a stable and efficient model-free off-policy maximum entropy actor-critic algorithm for
 continuous state and action spaces, which is proposed in the 2018 paper <a class="reference external" href="https://arxiv.org/abs/1801.01290">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a>.
@@ -182,8 +183,8 @@ advantages including a more powerful exploration and the ability of the policy t
 behavior. The authors also showed that this method by combining off-policy
 updates with a stable stochastic actor-critic formulation, achieves state-of-the-art performance on a range of continuous control benchmark tasks, outperforming prior on-policy and
 off-policy methods.</p>
-</div>
-<div class="section" id="quick-facts">
+</section>
+<section id="quick-facts">
 <h2>Quick Facts<a class="headerlink" href="#quick-facts" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>SAC is implemented for environments with <strong>continuous</strong> action spaces.(i.e. MuJoCo, Pendulum, and LunarLander)</p></li>
@@ -191,8 +192,8 @@ off-policy methods.</p>
 <li><p>SAC is a <strong>actor-critic</strong> RL algorithm, which optimizes actor network and critic network, respectively,</p></li>
 <li><p>SAC is also implemented for <strong>multi-continuous</strong> action space.</p></li>
 </ol>
-</div>
-<div class="section" id="key-equations-or-key-graphs">
+</section>
+<section id="key-equations-or-key-graphs">
 <h2>Key Equations or Key Graphs<a class="headerlink" href="#key-equations-or-key-graphs" title="Permalink to this headline">¶</a></h2>
 <p>SAC considers a more general maximum entropy objective, which favors stochastic policies by augmenting the objective with the expected entropy of the policy:</p>
 <div class="math notranslate nohighlight">
@@ -214,8 +215,8 @@ In particular, SAC applies the reparameterization trick instead of directly mini
 Our implementation contains two versions. One is modeling state value function and soft Q-function, the other is only modeling soft Q-function through double network.
 We configure <code class="docutils literal notranslate"><span class="pre">model.value_network</span></code>, <code class="docutils literal notranslate"><span class="pre">model.twin_q</span></code>, and <code class="docutils literal notranslate"><span class="pre">learn.learning_rate_value</span></code> to switch implementation version.</p>
 </div>
-</div>
-<div class="section" id="pseudocode">
+</section>
+<section id="pseudocode">
 <h2>Pseudocode<a class="headerlink" href="#pseudocode" title="Permalink to this headline">¶</a></h2>
 <img alt="../_images/SAC-algorithm.png" class="align-center" src="../_images/SAC-algorithm.png" />
 <div class="math notranslate nohighlight">
@@ -260,8 +261,8 @@ We configure <code class="docutils literal notranslate"><span class="pre">model.
 <p class="admonition-title">Note</p>
 <p>Compared with the vanilla version, we only optimize q network and actor network in our second implementation version.</p>
 </div>
-</div>
-<div class="section" id="extensions">
+</section>
+<section id="extensions">
 <h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
 <dl>
 <dt>SAC can be combined with:</dt><dd><ul>
@@ -275,8 +276,8 @@ Since we implement auto alpha strategy depending on maximum entropy through conf
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="implementation">
+</section>
+<section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
 <p>The default config is defined as follows:</p>
 <dl class="py class">
@@ -754,8 +755,8 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="benchmark">
+</section>
+<section id="benchmark">
 <h2>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
 <table class="docutils align-default">
 <colgroup>
@@ -812,15 +813,15 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="reference">
+</section>
+<section id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Haarnoja, et al. Soft Actor-Critic Algorithms and Applications. [<a class="reference external" href="https://arxiv.org/abs/1812.05905">https://arxiv.org/abs/1812.05905</a> arXiv:1812.05905], 2019.</p></li>
 <li><p>Haarnoja, et al. Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor. [<a class="reference external" href="https://arxiv.org/abs/1801.01290">https://arxiv.org/abs/1801.01290</a> arXiv:1801.01290], 2018.</p></li>
 </ul>
-</div>
-<div class="section" id="other-public-implementations">
+</section>
+<section id="other-public-implementations">
 <h2>Other Public Implementations<a class="headerlink" href="#other-public-implementations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/openai/baselines/tree/master/baselines/sac">Baselines</a></p></li>
@@ -829,8 +830,8 @@ In particular, the <code class="docutils literal notranslate"><span class="pre">
 <li><p><a class="reference external" href="https://github.com/openai/spinningup/tree/master/spinup/algos/pytorch/sac">Spinningup</a></p></li>
 <li><p><a class="reference external" href="https://github.com/thu-ml/tianshou/blob/master/tianshou/policy/modelfree/sac.py">tianshou</a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

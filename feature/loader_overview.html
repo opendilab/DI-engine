@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Loader Overview &mdash; DI-engine 0.1.0 documentation</title>
@@ -195,14 +196,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="loader-overview">
+  <section id="loader-overview">
 <span id="header-n50"></span><h1>Loader Overview<a class="headerlink" href="#loader-overview" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
+<section id="overview">
 <span id="header-n52"></span><h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>Loader is a light, independent, and flexible data assembling module in our framework.</p>
 <p>Loader Module <strong>though is originally for data configurations, conversions, and verifications</strong>, had been found to have more potential for features and usages. Therefore Loader Module have been set to be an independent module.</p>
-</div>
-<div class="section" id="examples">
+</section>
+<section id="examples">
 <span id="header-n55"></span><h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <p>Loader’s basic design idea is to operate common, small-scaled conversions and verifications. It uses methods such as assembly of logic units to form complex verifiable conversion structures.</p>
 <p>Followings are some specific simple cases：</p>
@@ -375,10 +376,10 @@
 <span class="n">nf2</span><span class="p">({</span><span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">})</span>  <span class="c1"># 0.25</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="faq">
+</section>
+<section id="faq">
 <span id="header-n98"></span><h2>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="q-what-is-the-difference-and-relationship-between-loader-and-norm">
+<section id="q-what-is-the-difference-and-relationship-between-loader-and-norm">
 <span id="header-n100"></span><h3>Q：What is the difference and relationship between loader and norm?<a class="headerlink" href="#q-what-is-the-difference-and-relationship-between-loader-and-norm" title="Permalink to this headline">¶</a></h3>
 <p>A：The difference between the two is:</p>
 <ul class="simple">
@@ -386,8 +387,8 @@
 <li><p>Norm focuses on mathematical calculations, especially the construction of math calculation logic</p></li>
 </ul>
 <p><code class="docutils literal notranslate"><span class="pre">Loader</span></code> can convert any type (including norm) to loader, <code class="docutils literal notranslate"><span class="pre">norm</span></code>can convert the loader type to norm. Please note that in usage practices, in order to avoid ambiguity，<strong>when loader and norm are used together, please pay attention to adding</strong><code class="docutils literal notranslate"><span class="pre">norm</span></code> or <code class="docutils literal notranslate"><span class="pre">Loader</span></code><strong>fn to identify, to prevent the system from using unexpected computing overloads.</strong></p>
-</div>
-<div class="section" id="q-loader-sometimes-feels-too-long-to-write-and-it-is-all-repetitive-is-there-a-better-format">
+</section>
+<section id="q-loader-sometimes-feels-too-long-to-write-and-it-is-all-repetitive-is-there-a-better-format">
 <h3>Q：Loader sometimes feels too long to write, and it is all repetitive. Is there a better format?<a class="headerlink" href="#q-loader-sometimes-feels-too-long-to-write-and-it-is-all-repetitive-is-there-a-better-format" title="Permalink to this headline">¶</a></h3>
 <p>A：Simply, you can consider reuse. E.g</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l1</span> <span class="o">=</span> <span class="n">dict_</span><span class="p">(</span>
@@ -406,9 +407,9 @@
 </div>
 <p><strong>The principle of logical combination of loader is computing a new loader based on the two old loaders.</strong> Therefore reusing is appropriate.</p>
 <p>In operations, it is also recommended that users make full use of this feature to implement more elegant codes.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>

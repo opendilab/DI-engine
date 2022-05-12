@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>How to Use PER(Prioritized Experience Replay) &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,9 +171,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-use-per-prioritized-experience-replay">
+  <section id="how-to-use-per-prioritized-experience-replay">
 <h1>How to Use PER(Prioritized Experience Replay)<a class="headerlink" href="#how-to-use-per-prioritized-experience-replay" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="guideline">
+<section id="guideline">
 <h2>Guideline<a class="headerlink" href="#guideline" title="Permalink to this headline">¶</a></h2>
 <p>Prioritized Sample is an important mechanism in some algorithms, for example, Rainbow.
 It inclues:</p>
@@ -183,8 +184,8 @@ It inclues:</p>
 <li><p>After a train iteration, update priority in buffer</p></li>
 </ol>
 </div></blockquote>
-</div>
-<div class="section" id="procedures">
+</section>
+<section id="procedures">
 <h2>Procedures<a class="headerlink" href="#procedures" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>Open priority mechanism and set corresponding hyper-parameters in config</p>
@@ -239,8 +240,8 @@ It inclues:</p>
 </div>
 </li>
 </ol>
-</div>
-<div class="section" id="others">
+</section>
+<section id="others">
 <h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>Calculate initial priority in collectors</p>
@@ -271,8 +272,8 @@ It inclues:</p>
 and override <code class="docutils literal notranslate"><span class="pre">policy._forward_colleect</span></code> method to receive control arguments and execute the corresponding strategy. In parallel entry, you should set different parameters in commander for different collectors.</p>
 </li>
 </ol>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

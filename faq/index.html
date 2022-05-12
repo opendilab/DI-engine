@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>FAQ &mdash; DI-engine 0.1.0 documentation</title>
@@ -175,19 +176,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="faq">
+  <section id="faq">
 <h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="q1-import-packages-warning">
+<section id="q1-import-packages-warning">
 <h2>Q1: Import packages warning<a class="headerlink" href="#q1-import-packages-warning" title="Permalink to this headline">¶</a></h2>
 <dl class="field-list simple">
 <dt class="field-odd">A1</dt>
 <dd class="field-odd"><p></p></dd>
 </dl>
 <p>Regarding import linlink, ceph, memcache, redis related warnings displayed on the command line when running DI-engine, generally users can ignore it, and DI-engine will automatically search for corresponding alternative libraries or code implementations during import.</p>
-</div>
-<div class="section" id="q2-cannot-use-di-engine-command-line-tool-cli-after-installation">
+</section>
+<section id="q2-cannot-use-di-engine-command-line-tool-cli-after-installation">
 <h2>Q2: Cannot use DI-engine command line tool (CLI) after installation<a class="headerlink" href="#q2-cannot-use-di-engine-command-line-tool-cli-after-installation" title="Permalink to this headline">¶</a></h2>
 <dl class="field-list simple">
 <dt class="field-odd">A2</dt>
@@ -197,8 +198,8 @@
 <li><p>pip with <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag might sometimes make CLI not available. Generally, non-developers do not need to install with <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag, removing the flag and reinstall is sufficient.</p></li>
 <li><p>Part of the operating environment will install the CLI in the user directory, you need to verify whether the CLI installation directory is in the user’s environment variable (such as <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> in Linux).</p></li>
 </ul>
-</div>
-<div class="section" id="q3-no-permission-error-occurred-during-installation">
+</section>
+<section id="q3-no-permission-error-occurred-during-installation">
 <h2>Q3: “No permission” error occurred during installation<a class="headerlink" href="#q3-no-permission-error-occurred-during-installation" title="Permalink to this headline">¶</a></h2>
 <dl class="field-list simple">
 <dt class="field-odd">A3</dt>
@@ -211,8 +212,8 @@
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">
+</section>
+<section id="q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">
 <h2>Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code><a class="headerlink" href="#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager" title="Permalink to this headline">¶</a></h2>
 <dl class="field-list simple">
 <dt class="field-odd">A4</dt>
@@ -226,8 +227,8 @@
 <span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="q5-how-to-adjust-the-learning-rate">
+</section>
+<section id="q5-how-to-adjust-the-learning-rate">
 <h2>Q5: How to adjust the learning rate<a class="headerlink" href="#q5-how-to-adjust-the-learning-rate" title="Permalink to this headline">¶</a></h2>
 <dl class="field-list simple">
 <dt class="field-odd">A5</dt>
@@ -259,8 +260,8 @@ The following code provides a simple example. For more detail, see demo: <a clas
 </div>
 <p>The curve of learning rate is shown in the figure below</p>
 <a class="reference internal image-reference" href="../_images/Q5_lr_scheduler.png"><img alt="../_images/Q5_lr_scheduler.png" class="align-center" src="../_images/Q5_lr_scheduler.png" style="height: 250px;" /></a>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

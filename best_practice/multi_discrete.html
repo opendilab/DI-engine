@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Multi-Discrete Example &mdash; DI-engine 0.1.0 documentation</title>
@@ -170,7 +171,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="multi-discrete-example">
+  <section id="multi-discrete-example">
 <h1>Multi-Discrete Example<a class="headerlink" href="#multi-discrete-example" title="Permalink to this headline">¶</a></h1>
 <p>gym uses <code class="docutils literal notranslate"><span class="pre">multi-discrete</span></code> to refer to describe environments which have multiple discrete action spaces, a simple example is shown as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
@@ -191,7 +192,7 @@
 </pre></div>
 </div>
 <p>In this page, a simple case of multi-discrete environment along with the multi-discrete implementation of DQN is provided.</p>
-<div class="section" id="example">
+<section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>Here we provide a toy case of multi-discrete environment, which is derived by factorizing the single action space of Atari games in to the Cartesian product of multiple action spaces, e.g. 6=2*3.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MultiDiscreteEnv</span><span class="p">(</span><span class="n">gym</span><span class="o">.</span><span class="n">Wrapper</span><span class="p">):</span>
@@ -253,8 +254,8 @@
 </pre></div>
 </div>
 <p>For the complete code, you can refer to <code class="docutils literal notranslate"><span class="pre">dizoo/common/policy/md_dqn.py</span></code></p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

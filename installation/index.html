@@ -5,7 +5,8 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Installation &mdash; DI-engine 0.1.0 documentation</title>
@@ -174,11 +175,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="installation">
+  <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<div class="section" id="prerequisites">
+<section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><p>System version:</p>
@@ -197,8 +198,8 @@
 <p>If there is a GPU in your setting, PyTorch with CUDA runtime is recommended. Otherwise, you just need to install cpu version PyTorch.</p>
 </div>
 </div></blockquote>
-</div>
-<div class="section" id="stable-release-version">
+</section>
+<section id="stable-release-version">
 <h2>Stable Release Version<a class="headerlink" href="#stable-release-version" title="Permalink to this headline">¶</a></h2>
 <p>You can simply install DI-engine from PyPI with the following command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install DI-engine
@@ -243,8 +244,8 @@ Successfully installed DI-engine
 <p>The whole installation procedure often lasts about 30 seconds(depending on the download speed of packages), if there are some failed packages, you can also refer to <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> and install the specific
 package manually.</p>
 </div>
-</div>
-<div class="section" id="development-version">
+</section>
+<section id="development-version">
 <h2>Development Version<a class="headerlink" href="#development-version" title="Permalink to this headline">¶</a></h2>
 <p>To contribute to DI-engine, with support for running tests and building the documentation, you need to find proper release tag or master branch.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># source r0.3.2  # maybe you need activate virtual environment first</span>
@@ -254,8 +255,8 @@ pip install -e .<span class="o">[</span>doc,test,common_env<span class="o">]</sp
 </pre></div>
 </div>
 <p>If you encounter problems related to <code class="docutils literal notranslate"><span class="pre">swig</span></code>, please install it through <a class="reference external" href="http://www.swig.org/">the official website</a> manual and make sure that <code class="docutils literal notranslate"><span class="pre">swig</span></code> is in your PATH.</p>
-</div>
-<div class="section" id="check-install">
+</section>
+<section id="check-install">
 <h2>Check install<a class="headerlink" href="#check-install" title="Permalink to this headline">¶</a></h2>
 <p>After installation, you can open your python console and run the following codes</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ding</span>
@@ -268,8 +269,8 @@ pip install -e .<span class="o">[</span>doc,test,common_env<span class="o">]</sp
 </pre></div>
 </div>
 <p>If the terminal returns the correct information, you can use this CLI tool for the common training and evaluation, and you can type <code class="docutils literal notranslate"><span class="pre">ding</span> <span class="pre">-h</span></code> for further usage</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
