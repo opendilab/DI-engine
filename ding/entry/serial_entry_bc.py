@@ -50,7 +50,9 @@ def serial_pipeline_bc(
     # Main components
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     dataset = NaiveRLDataset(data_path)
-    dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+    print('Dataset length' + str(len(dataset)))
+    dataloader = DataLoader(dataset[- len(dataset) // 10: ], cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+    eval_loader = DataLoader(dataset[:- len(dataset) // 10], cfg.policy.learn.batch_size, collate_fn=lambda x: x)
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
@@ -60,11 +62,17 @@ def serial_pipeline_bc(
     # ==========
     learner.call_hook('before_run')
     stop = False
-
+    cnt = 0
     for epoch in range(cfg.policy.learn.train_epoch):
         # Evaluate policy performance
         for i, train_data in enumerate(dataloader):
             if evaluator.should_eval(learner.train_iter):
+                loss_list = []
+                for _, bat in enumerate(dataloader):
+                    res = policy._forward_eval(bat)
+                    loss_list.append(torch.sum(torch.nn.MSELoss(res)).item())
+                cnt += 1
+                tb_logger.add_scalar("validation loss", sum(loss_list) / len(loss_list), cnt)
                 stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
                 if stop:
                     break
