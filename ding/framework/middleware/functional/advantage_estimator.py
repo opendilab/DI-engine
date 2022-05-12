@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = None) -> Callable:
     """
     Overview:
-        Calculate value using observation of input data, then call function gae to get advantage. \
+        Calculate value using observation of input data, then call function `gae` to get advantage. \
         The processed data will be pushed into buffer_ if buffer_ is not None, \
         otherwise it will be assigned to ctx.train_data.
     Arguments:

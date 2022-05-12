@@ -43,8 +43,8 @@ class CkptSaver:
                 - Every time when the eval reward is the best eval reward so far; \
                 - When task.finish is True. \
         Input of ctx:
-            - train_iter (:obj:`int`): Number of train_iter.
-            - eval_value (:obj:`int`): The eval reward of current iteration.
+            - train_iter (:obj:`int`): Number of training iteration, i.e. the number of updating policy related network.
+            - eval_value (:obj:`float`): The eval reward of current iteration.
         """
         # train enough iteration
         if self.train_freq and ctx.train_iter - self.last_save_iter >= self.train_freq:
