@@ -1,7 +1,7 @@
 from typing import Any, Union, Tuple
 from abc import ABC, abstractmethod
 import sys
-import logging
+from ditk import logging
 import copy
 from collections import namedtuple
 from functools import partial

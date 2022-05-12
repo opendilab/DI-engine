@@ -1,7 +1,7 @@
 import itertools
 import random
 import uuid
-import logging
+from ditk import logging
 from typing import Any, Iterable, List, Optional, Tuple, Union
 from collections import defaultdict, deque, OrderedDict
 

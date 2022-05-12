@@ -1,7 +1,7 @@
 from typing import Optional, Union, Tuple
 import time
 import pickle
-import logging
+from ditk import logging
 from multiprocessing import Process, Event
 import threading
 from easydict import EasyDict

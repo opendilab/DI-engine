@@ -6,7 +6,7 @@ from operator import attrgetter
 import numpy as np
 import math
 import random
-import logging
+from ditk import logging
 from easydict import EasyDict
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env, Agent, MAX_STEP_COUNT, get_default, crop_and_deduplicate_names

@@ -1,5 +1,5 @@
 from collections import deque, defaultdict
-import logging
+from ditk import logging
 from types import GeneratorType
 from typing import Callable
 import numpy as np

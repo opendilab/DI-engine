@@ -1,5 +1,5 @@
 from typing import Any, Union, List, Tuple, Dict, Callable, Optional
-import logging
+from ditk import logging
 import numpy as np
 from easydict import EasyDict
 from collections import namedtuple

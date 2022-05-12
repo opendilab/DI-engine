@@ -1,4 +1,4 @@
-import logging
+from ditk import logging
 from time import sleep
 from typing import Tuple
 

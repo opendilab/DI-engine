@@ -3,7 +3,7 @@ import sys
 import subprocess
 import signal
 import pickle
-import logging
+from ditk import logging
 import time
 from threading import Thread
 from easydict import EasyDict

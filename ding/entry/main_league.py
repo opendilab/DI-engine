@@ -1,5 +1,5 @@
 from ding.framework import Task
-import logging
+from ditk import logging
 import os
 import torch
 

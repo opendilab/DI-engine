@@ -2,7 +2,7 @@ from typing import Union, Optional, List, Any, Tuple
 import os
 import copy
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
