@@ -18,7 +18,9 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
         train_output = policy.forward(ctx.train_data)
         if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
             logging.info(
-                'Current Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, train_output['total_loss'])
+                'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(
+                    ctx.train_iter, ctx.env_step, train_output['total_loss']
+                )
             )
         ctx.train_iter += 1
         ctx.train_output = train_output
@@ -35,7 +37,9 @@ def multistep_trainer(cfg: EasyDict, policy: Policy) -> Callable:
         train_output = policy.forward(ctx.train_data)
         if ctx.train_iter % cfg.policy.learn.learner.hook.log_show_after_iter == 0:
             loss = np.mean([o['total_loss'] for o in train_output])
-            logging.info('Current Training: Train Iter({})\tLoss({:.3f})'.format(ctx.train_iter, loss))
+            logging.info(
+                'Training: Train Iter({})\tEnv Step({})\tLoss({:.3f})'.format(ctx.train_iter, ctx.env_step, loss)
+            )
         ctx.train_iter += len(train_output)
         ctx.train_output = train_output
 

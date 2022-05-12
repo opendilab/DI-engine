@@ -176,7 +176,11 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
         episode_reward = eval_monitor.get_episode_reward()
         eval_reward = np.mean(episode_reward)
         stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
-        logging.info('Current Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
+        logging.info(
+            'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
+                ctx.train_iter, ctx.env_step, eval_reward
+            )
+        )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
 
@@ -205,7 +209,11 @@ def metric_evaluator(cfg: EasyDict, policy: Policy, dataset: Dataset, metric: IM
         # TODO reduce avg_eval_output among different gpus
         avg_eval_output = metric.reduce_mean(eval_output)
         stop_flag = metric.gt(avg_eval_output, cfg.env.stop_value) and ctx.train_iter > 0
-        logging.info('Current Evaluation: Train Iter({})\tEval Metric({:.3f})'.format(ctx.train_iter, avg_eval_output))
+        logging.info(
+            'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
+                ctx.train_iter, ctx.env_step, avg_eval_output
+            )
+        )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = avg_eval_output
 
