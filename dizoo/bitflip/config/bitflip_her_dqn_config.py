@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-n_bits = 20
+n_bits = 5  # 15 or 20 n_bits can show differences between pure DQN and HER DQN, 5 n_bits for unittest
 bitflip_her_dqn_config = dict(
     exp_name='bitflip_{}bit_herdqn_seed0'.format(n_bits),
     env=dict(

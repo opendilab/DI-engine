@@ -60,9 +60,8 @@ class CartPoleEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1, ):
+    def step(self, action: Union[int, np.ndarray]) -> BaseEnvTimestep:
+        if isinstance(action, np.ndarray) and action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew

@@ -12,7 +12,7 @@ from ding.config import compile_config
 from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.entry.utils import random_collect, mark_not_expert, mark_warm_up
-from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
+from dizoo.classic_control.cartpole.config.cartpole_c51_config import cartpole_c51_config, cartpole_c51_create_config
 
 
 @pytest.mark.unittest
@@ -35,8 +35,8 @@ def test_random_collect(collector_type, transition_with_policy_data, data_postpr
         return ori_data
 
     RANDOM_COLLECT_SIZE = 8
-    cartpole_dqn_config.exp_name = 'test_cartpole_dqn_seed0'
-    cfg, create_cfg = deepcopy(cartpole_dqn_config), deepcopy(cartpole_dqn_create_config)
+    cfg, create_cfg = deepcopy(cartpole_c51_config), deepcopy(cartpole_c51_create_config)
+    cfg.exp_name = "test_cartpole_c51_seed0"
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg.policy.random_collect_size = RANDOM_COLLECT_SIZE
     cfg.policy.transition_with_policy_data = transition_with_policy_data
