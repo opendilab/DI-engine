@@ -89,11 +89,12 @@ class VectorEvalMonitor(object):
         assert n_episode >= env_num, "n_episode < env_num, please decrease the number of eval env"
         self._env_num = env_num
         self._n_episode = n_episode
-        each_env_episode = [n_episode // env_num for _ in range(env_num)]
+        self._each_env_episode = [n_episode // env_num for _ in range(env_num)]
         for i in range(n_episode % env_num):
-            each_env_episode[i] += 1
-        self._reward = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
-        self._info = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(each_env_episode)}
+            self._each_env_episode[i] += 1
+        self._video = {env_id: [] for env_id, maxlen in enumerate(self._each_env_episode)}
+        self._reward = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(self._each_env_episode)}
+        self._info = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(self._each_env_episode)}
 
     def is_finished(self) -> bool:
         """
@@ -126,6 +127,39 @@ class VectorEvalMonitor(object):
         if isinstance(reward, torch.Tensor):
             reward = reward.item()
         self._reward[env_id].append(reward)
+
+    def update_video(self, imgs):
+        for env_id, img in imgs.items():
+            if len(self._reward[env_id]) == len(self._video[env_id]):
+                self._video[env_id].append([])
+            self._video[env_id][-1].append(img)
+
+    def get_video(self):
+        """
+        Overview:
+            Convert list of videos into [N, T, C, H, W] tensor, containing
+            worst, median, best evaluation trajectories for video logging.
+        """
+        videos = sum([list(v)[:e] for e, v in zip(self._each_env_episode, self._video.values())], [])
+        videos = [np.transpose(np.stack(video, 0), [0,3,1,2]) for video in videos]
+        sortarg = np.argsort(self.get_episode_reward())
+        # worst, median, best
+        if len(sortarg) == 1:
+            idxs = [sortarg[0]]
+        elif len(sortarg) == 2:
+            idxs = [sortarg[0], sortarg[-1]]
+        else:
+            idxs = [sortarg[0], sortarg[len(sortarg)//2], sortarg[-1]]
+        videos = [videos[idx] for idx in idxs]
+        # pad videos to the same length
+        max_length = max(video.shape[0] for video in videos)
+        for i in range(len(videos)):
+            if videos[i].shape[0] < max_length:
+                padding = np.tile([videos[i][-1]], (max_length-videos[i].shape[0],1,1,1))
+                videos[i] = np.concatenate([videos[i], padding], 0)
+        videos = np.stack(videos, 0)
+        assert len(videos.shape) == 5, 'Need [N, T, C, H, W] input tensor for video logging!'
+        return videos
 
     def get_episode_reward(self) -> list:
         """

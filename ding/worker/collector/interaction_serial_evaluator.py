@@ -23,6 +23,12 @@ class InteractionSerialEvaluator(ISerialEvaluator):
     config = dict(
         # Evaluate every "eval_freq" training iterations.
         eval_freq=1000,
+
+        render=dict(
+            # TODO: set to -1
+            render_freq=3000,
+            mode='train_iter',
+        )
     )
 
     def __init__(
@@ -58,6 +64,9 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         self._timer = EasyTimer()
         self._default_n_episode = cfg.n_episode
         self._stop_value = cfg.stop_value
+        # only one freq
+        self._render = cfg.render
+        assert self._render.mode in ('envstep', 'train_iter'), 'mode should be envstep or train_iter'
 
     def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
         """
@@ -114,6 +123,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         self._max_eval_reward = float("-inf")
         self._last_eval_iter = -1
         self._end_flag = False
+        self._last_render_iter = -1
 
     def close(self) -> None:
         """
@@ -148,13 +158,23 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             return False
         self._last_eval_iter = train_iter
         return True
+    
+    def _should_render(self, envstep, train_iter):
+        if self._render.render_freq == -1:
+            return False
+        iter = envstep if self._render.mode == 'envstep' else train_iter
+        if (iter - self._last_render_iter) < self._render.render_freq:
+            return False
+        self._last_render_iter = iter
+        return True
 
     def eval(
             self,
             save_ckpt_fn: Callable = None,
             train_iter: int = -1,
             envstep: int = -1,
-            n_episode: Optional[int] = None
+            n_episode: Optional[int] = None,
+            force_render: bool = False,
     ) -> Tuple[bool, dict]:
         '''
         Overview:
@@ -178,10 +198,17 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         self._env.reset()
         self._policy.reset()
 
+        # force_render overwrite frequency constraint
+        render = force_render or self._should_render(envstep, train_iter)
+
         with self._timer:
             while not eval_monitor.is_finished():
                 obs = self._env.ready_obs
                 obs = to_tensor(obs, dtype=torch.float32)
+
+                if render:
+                    eval_monitor.update_video(self._env.ready_imgs)
+
                 policy_output = self._policy.forward(obs)
                 actions = {i: a['action'] for i, a in policy_output.items()}
                 actions = to_ndarray(actions)
@@ -235,6 +262,15 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 continue
             self._tb_logger.add_scalar('{}_iter/'.format(self._instance_name) + k, v, train_iter)
             self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
+
+        if render:
+            videos = eval_monitor.get_video()
+            breakpoint()
+            video_title = '{}_{}/'.format(self._instance_name, self._render.mode)
+            render_iter = envstep if self._render.mode == 'envstep' else train_iter
+            # TODO: change fps
+            self._tb_logger.add_video(video_title, videos, render_iter, fps=30)
+
         eval_reward = np.mean(episode_reward)
         if eval_reward > self._max_eval_reward:
             if save_ckpt_fn:
@@ -248,3 +284,4 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
         return stop_flag, return_info
+

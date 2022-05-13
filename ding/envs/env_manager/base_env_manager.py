@@ -153,6 +153,21 @@ class BaseEnvManager(object):
         return {i: self._ready_obs[i] for i in active_env}
 
     @property
+    def ready_imgs(self, render_mode=('rgb_array')) -> Dict[int, Any]:
+        """
+        Overview:
+            Get the next observations(in ``np.ndarray`` type) and corresponding env id.
+        """
+        # TODO: do not use private member env._env
+        def render(env):
+            if hasattr(env._env, 'sim'):
+                return env._env.sim.render(camera_name='track', height=128, width=128)[::-1]
+            else:
+                return env._env.render(mode=render_mode)
+        active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
+        return {i: render(self._envs[i]) for i in active_env}
+
+    @property
     def done(self) -> bool:
         return all([s == EnvState.DONE for s in self._env_states.values()])
 
