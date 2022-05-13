@@ -14,7 +14,7 @@ class OffPolicyLearner:
     """
     Overview:
         The class of the off-policy learner, including data fetching and model training. Use \
-            the `__call__` method to execute the whole learning process. 
+            the `__call__` method to execute the whole learning process.
     """
 
     def __init__(
@@ -62,7 +62,7 @@ class HERLearner:
     Overview:
         The class of the learner with the Hindsight Experience Replay (HER) model processing \
             episodes. Use the `__call__` method to execute the data featching and training \
-            process. 
+            process.
     """
 
     def __init__(
