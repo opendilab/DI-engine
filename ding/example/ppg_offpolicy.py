@@ -1,5 +1,5 @@
 import gym
-import logging
+from ditk import logging
 from ding.model import PPG
 from ding.policy import PPGPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2

@@ -1,7 +1,7 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
-import logging
+from ditk import logging
 import copy
 from functools import partial
 from tensorboardX import SummaryWriter

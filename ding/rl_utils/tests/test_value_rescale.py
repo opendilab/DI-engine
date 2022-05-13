@@ -22,5 +22,5 @@ class TestValueRescale:
         for _ in range(10):
             t = torch.rand((4, 16))
             diff = value_inv_transform(value_transform(t)) - t
-            assert pytest.approx(diff.abs().max().item(), 0)
-            assert pytest.approx(diff.abs().max().item(), 0)
+            assert pytest.approx(diff.abs().max().item(), abs=2e-5) == 0
+            assert pytest.approx(diff.abs().max().item(), abs=2e-5) == 0

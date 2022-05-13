@@ -5,7 +5,7 @@ from easydict import EasyDict
 import copy
 import platform
 import numbers
-import logging
+from ditk import logging
 import enum
 import time
 import treetensor.numpy as tnp

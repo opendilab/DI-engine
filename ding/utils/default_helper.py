@@ -1,6 +1,6 @@
 from typing import Union, Mapping, List, NamedTuple, Tuple, Callable, Optional, Any, Dict
 import copy
-import logging
+from ditk import logging
 import random
 from functools import lru_cache  # in python3.9, we can change to cache
 import numpy as np

@@ -1,7 +1,7 @@
 from typing import Any, Union, List, Tuple, Dict, Callable, Optional
 from multiprocessing import Pipe, connection, get_context, Array
 from collections import namedtuple
-import logging
+from ditk import logging
 import platform
 import time
 import copy

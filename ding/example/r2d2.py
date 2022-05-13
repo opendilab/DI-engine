@@ -1,5 +1,5 @@
 import gym
-import logging
+from ditk import logging
 from ding.model import DRQN
 from ding.policy import R2D2Policy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2

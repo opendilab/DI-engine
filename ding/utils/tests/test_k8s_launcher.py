@@ -1,10 +1,18 @@
-import pytest
 import os
+
+import pytest
+
 from ding.utils import K8sLauncher, OrchestratorLauncher
-from kubernetes import config, client, watch
+
+try:
+    from kubernetes import config, client, watch
+except ImportError:
+    _test_mark = pytest.mark.ignore
+else:
+    _test_mark = pytest.mark.unittest
 
 
-@pytest.mark.unittest
+@_test_mark
 def test_operate_k8s_cluster():
     cluster_name = 'test-k8s-launcher'
     config_path = os.path.join(os.path.dirname(__file__), 'config', 'k8s-config.yaml')

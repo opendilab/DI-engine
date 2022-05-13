@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Callable, List, Union, Tuple, Dict, Optional
 from easydict import EasyDict
 from collections import deque
-import logging
+from ditk import logging
 import torch
 from ding.data import Buffer, Dataset, DataLoader, offline_data_save_type
 from ding.data.buffer.middleware import PriorityExperienceReplay

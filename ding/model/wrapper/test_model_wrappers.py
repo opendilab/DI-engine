@@ -5,7 +5,7 @@ from collections import OrderedDict
 import pytest
 import torch
 import torch.nn as nn
-import logging
+from ditk import logging
 
 from ding.torch_utils import get_lstm
 from ding.torch_utils.network.gtrxl import GTrXL

@@ -1,17 +1,16 @@
 from typing import Any, Union, Callable, List, Dict, Optional, Tuple
-import time
-import copy
-import logging
+from ditk import logging
+from collections import namedtuple
 from functools import partial
 from easydict import EasyDict
-from collections import namedtuple
+
+import copy
 
 from ding.torch_utils import CountVar, auto_checkpoint, build_log_buffer
 from ding.utils import build_logger, EasyTimer, import_module, LEARNER_REGISTRY, get_rank, get_world_size
 from ding.utils.autolog import LoggedValue, LoggedModel, TickTime
 from ding.utils.data import AsyncDataLoader
 from .learner_hook import build_learner_hook_by_cfg, add_learner_hook, merge_hooks, LearnerHook
-logging.info('')  # necessary
 
 
 @LEARNER_REGISTRY.register('base')

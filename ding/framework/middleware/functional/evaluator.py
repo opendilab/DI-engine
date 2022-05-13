@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Callable, Any, List, Union
 from abc import ABC, abstractmethod
 from collections import deque
-import logging
+from ditk import logging
 import numpy as np
 import torch
 import treetensor.torch as ttorch

@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Callable
 from easydict import EasyDict
-import logging
+from ditk import logging
 import torch
 from ding.policy import Policy
 if TYPE_CHECKING:

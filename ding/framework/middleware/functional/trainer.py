@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Callable, Union
 from easydict import EasyDict
-import logging
+from ditk import logging
 import numpy as np
 from ding.policy import Policy
 from ding.framework import task

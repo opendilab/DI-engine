@@ -1,10 +1,10 @@
 from collections import deque, defaultdict
 from functools import wraps
-import logging
 from types import GeneratorType
 from typing import Callable
 import numpy as np
 import time
+from ditk import logging
 
 
 class StepTimer:

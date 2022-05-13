@@ -1,5 +1,5 @@
-import logging
 from copy import deepcopy
+from ditk import logging
 from ding.model import DQN
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2

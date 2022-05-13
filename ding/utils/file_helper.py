@@ -1,5 +1,5 @@
 import io
-import logging
+from ditk import logging
 import os
 import pickle
 import time

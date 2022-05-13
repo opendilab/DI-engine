@@ -1,5 +1,5 @@
 import gym
-import logging
+from ditk import logging
 import torch
 from ding.model import QAC
 from ding.policy import SACPolicy

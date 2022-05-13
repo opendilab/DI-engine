@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Callable, Optional
 from easydict import EasyDict
-import logging
+from ditk import logging
 import torch
 import treetensor.torch as ttorch
 from ding.policy import Policy
