@@ -40,7 +40,7 @@ class R2D2GTrXLPolicy(Policy):
            | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env
         7  | ``nstep``          int      5,             | N-step reward discount sum for target
                                          [3, 5]         | q_value estimation
-        8  |``burnin_step``     int      1              | The timestep of burnin operation,
+        8  | ``burnin_step``    int      1              | The timestep of burnin operation,
                                                         | which is designed to warm-up GTrXL
                                                         | memory difference caused by off-policy
         9  | ``learn.update``   int      1              | How many updates(iterations) to train  | This args can be vary
@@ -60,7 +60,8 @@ class R2D2GTrXLPolicy(Policy):
                                                         | call of collector.                     | different envs
         16 | ``collect.unroll`` int      25             | unroll length of an iteration          | unroll_len>1
            | ``_len``
-        17 | ``collect.seq_len`` int     20             | Training sequence length               | unroll_len>=seq_len>1
+        17 | ``collect.seq``    int      20             | Training sequence length               | unroll_len>=seq_len>1
+           | ``_len``
         18 | ``learn.init_``    str      zero           | 'zero' or 'old', how to initialize the |
            | ``memory``                                 | memory before each training iteration. |
         == ==================== ======== ============== ======================================== =======================
@@ -131,16 +132,13 @@ class R2D2GTrXLPolicy(Policy):
     )
 
     def _init_learn(self) -> None:
-        r"""
+        """
         Overview:
-            Init the learner model of GTrXLR2D2Policy.
-            Target model has 2 wrappers: 'target' for weights update and 'transformer_segment' to split trajectories
-             in segments.
-            Learn model has 2 wrappers: 'argmax' to select the best action and 'transformer_segment'.
+            Init the learner model of GTrXLR2D2Policy. \
+            Target model has 2 wrappers: 'target' for weights update and 'transformer_segment' to split trajectories \
+            in segments. Learn model has 2 wrappers: 'argmax' to select the best action and 'transformer_segment'.
 
         Arguments:
-            .. note::
-                The _init_learn method takes the argument from the self._cfg.learn in the config file
             - learning_rate (:obj:`float`): The learning rate fo the optimizer
             - gamma (:obj:`float`): The discount factor
             - nstep (:obj:`int`): The num of n step return
@@ -148,6 +146,9 @@ class R2D2GTrXLPolicy(Policy):
             - burnin_step (:obj:`int`): The num of step of burnin
             - seq_len (:obj:`int`): Training sequence length
             - init_memory (:obj:`str`): 'zero' or 'old', how to initialize the memory before each training iteration.
+
+        .. note::
+            The ``_init_learn`` method takes the argument from the self._cfg.learn in the config file
         """
         self._priority = self._cfg.priority
         self._priority_IS_weight = self._cfg.priority_IS_weight

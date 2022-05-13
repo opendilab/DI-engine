@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 def reward_estimator(cfg: EasyDict, reward_model: "BaseRewardModel") -> Callable:
     """
     Overview:
-        Estimate reward of train_data using reward_model.
+        Estimate the reward of `train_data` using `reward_model`.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
         - reward_model (:obj:`BaseRewardModel`): Reward model.
@@ -31,13 +31,14 @@ def reward_estimator(cfg: EasyDict, reward_model: "BaseRewardModel") -> Callable
 def her_data_enhancer(cfg: EasyDict, buffer_: "Buffer", her_reward_model: "HerRewardModel") -> Callable:
     """
     Overview:
-        Fetch a batch of data/a episode from buffer_, \
-        then use her_reward_model to get HER processed episodes from original episodes.
+        Fetch a batch of data/episode from `buffer_`, \
+        then use `her_reward_model` to get HER processed episodes from original episodes.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config which should contain following keys \
-            if her_reward_model.episode_size is None: ['cfg.policy.learn.batch_size'].
+        - cfg (:obj:`EasyDict`): Config which should contain the following keys \
+            if her_reward_model.episode_size is None: `cfg.policy.learn.batch_size`.
         - buffer_ (:obj:`Buffer`): Buffer to sample data from.
-        - her_reward_model (:obj:`HerRewardModel`): Hindsight Experience Replay model which is used to process episodes.
+        - her_reward_model (:obj:`HerRewardModel`): Hindsight Experience Replay (HER) model \
+            which is used to process episodes.
     """
 
     def _fetch_and_enhance(ctx: "OnlineRLContext"):

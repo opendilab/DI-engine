@@ -213,10 +213,10 @@ class TestModelWrappers:
         output = model.forward(data)
         assert output['output'].shape == (2, state_num, 32)
         assert len(output['prev_state']) == 4
-        assert output['prev_state'][0][0].shape == (2, 1, 32)
+        assert output['prev_state'][0]['h'].shape == (2, 1, 32)
         for item in model._state.values():
-            assert isinstance(item, tuple) and len(item) == 2
-            assert all(t.shape == (2, 1, 32) for t in item)
+            assert isinstance(item, dict) and len(item) == 2
+            assert all(t.shape == (2, 1, 32) for t in item.values())
 
         data = {'f': torch.randn(2, 3, 36)}
         data_id = [0, 1, 3]
@@ -224,15 +224,15 @@ class TestModelWrappers:
         assert output['output'].shape == (2, 3, 32)
         assert all([len(s) == 2 for s in output['prev_state']])
         for item in model._state.values():
-            assert isinstance(item, tuple) and len(item) == 2
-            assert all(t.shape == (2, 1, 32) for t in item)
+            assert isinstance(item, dict) and len(item) == 2
+            assert all(t.shape == (2, 1, 32) for t in item.values())
 
         data = {'f': torch.randn(2, 2, 36)}
         data_id = [0, 1]
         output = model.forward(data, data_id=data_id)
         assert output['output'].shape == (2, 2, 32)
 
-        assert all([isinstance(s, tuple) and len(s) == 2 for s in model._state.values()])
+        assert all([isinstance(s, dict) and len(s) == 2 for s in model._state.values()])
         model.reset()
         assert all([isinstance(s, type(None)) for s in model._state.values()])
 
@@ -446,11 +446,11 @@ class TestModelWrappers:
                 output = model.forward(data, tmp=1)
             assert isinstance(output, dict)
 
-    def test_eps_greedy_ngu_wrapper(self):
+    def test_eps_greedy_wrapper_with_list_eps(self):
         model = ActorMLP()
-        model = model_wrap(model, wrapper_name='eps_greedy_sample_ngu')
+        model = model_wrap(model, wrapper_name='eps_greedy_sample')
         model.eval()
-        eps_threshold = 0.5
+        eps_threshold = {i: 0.5 for i in range(4)}  # for NGU
         data = {'obs': torch.randn(4, 3), 'mask': torch.randint(0, 2, size=(4, 6))}
         with torch.no_grad():
             output = model.forward(data, eps=eps_threshold)

@@ -1,4 +1,4 @@
-from ctools.pysc2.maps import lib
+from pysc2.maps import lib
 import os
 
 

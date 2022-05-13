@@ -333,9 +333,9 @@ def test_cql():
     # collect expert data
     import torch
     config = [deepcopy(pendulum_sac_data_genearation_config), deepcopy(pendulum_sac_data_genearation_create_config)]
-    collect_count = config[0].policy.other.replay_buffer.replay_buffer_size
+    collect_count = config[0].policy.collect.n_sample
     expert_data_path = config[0].policy.collect.save_path
-    state_dict = torch.load(config[0].policy.learn.learner.load_path, map_location='cpu')
+    state_dict = torch.load('./sac/ckpt/ckpt_best.pth.tar', map_location='cpu')
     try:
         collect_demo_data(
             config, seed=0, collect_count=collect_count, expert_data_path=expert_data_path, state_dict=state_dict

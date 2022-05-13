@@ -95,6 +95,9 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
         - transitions (:obj:`TransitionList`): The transition information which will be filled \
             in this process, including `obs`, `next_obs`, `action`, `logit`, `value`, `reward` \
             and `done`.
+            'value': 2.0,
+            'reward': 0.1,
+            'done': True,
     """
 
     env_episode_id = [_ for _ in range(env.env_num)]

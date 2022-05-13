@@ -478,7 +478,10 @@ class MultinomialSampleWrapper(IModelWrapper):
 class EpsGreedySampleWrapper(IModelWrapper):
     r"""
     Overview:
-        Epsilon greedy sampler used in collector_model to help balance exploration and exploitation.
+        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
+        The type of eps can vary from different algorithms, such as:
+        - float (i.e. python native scalar): for almost normal case
+        - Dict[str, float]: for algorithm NGU
     Interfaces:
         register
     """
@@ -499,16 +502,31 @@ class EpsGreedySampleWrapper(IModelWrapper):
         else:
             mask = None
         action = []
-        for i, l in enumerate(logit):
-            if np.random.random() > eps:
-                action.append(l.argmax(dim=-1))
-            else:
-                if mask:
-                    action.append(sample_action(prob=mask[i].float()))
+        if isinstance(eps, dict):
+            # for NGU policy, eps is a dict, each collect env has a different eps
+            for i, l in enumerate(logit[0]):
+                eps_tmp = eps[i]
+                if np.random.random() > eps_tmp:
+                    action.append(l.argmax(dim=-1))
                 else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
-        if len(action) == 1:
-            action, logit = action[0], logit[0]
+                    if mask is not None:
+                        action.append(
+                            sample_action(prob=mask[0][i].float().unsqueeze(0)).to(logit[0].device).squeeze(0)
+                        )
+                    else:
+                        action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]).to(logit[0].device))
+            action = torch.stack(action, dim=-1)  # shape torch.size([env_num])
+        else:
+            for i, l in enumerate(logit):
+                if np.random.random() > eps:
+                    action.append(l.argmax(dim=-1))
+                else:
+                    if mask is not None:
+                        action.append(sample_action(prob=mask[i].float()))
+                    else:
+                        action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+            if len(action) == 1:
+                action, logit = action[0], logit[0]
         output['action'] = action
         return output
 
@@ -727,46 +745,6 @@ class ReparamSample(IModelWrapper):
         return output
 
 
-class EpsGreedySampleNGUWrapper(IModelWrapper):
-    r"""
-    Overview:
-        eps is a dict n_env
-        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
-    Interfaces:
-        register
-    """
-
-    def forward(self, *args, **kwargs):
-        kwargs.pop('eps')
-        eps = {i: 0.4 ** (1 + 8 * i / (args[0]['obs'].shape[0] - 1)) for i in range(args[0]['obs'].shape[0])}
-        output = self._model.forward(*args, **kwargs)
-        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-        logit = output['logit']
-        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
-        if isinstance(logit, torch.Tensor):
-            logit = [logit]
-        if 'action_mask' in output:
-            mask = output['action_mask']
-            if isinstance(mask, torch.Tensor):
-                mask = [mask]
-            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
-        else:
-            mask = None
-        action = []
-        for i, l in enumerate(logit):
-            if np.random.random() > eps[i]:
-                action.append(l.argmax(dim=-1))
-            else:
-                if mask:
-                    action.append(sample_action(prob=mask[i].float()))
-                else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
-        if len(action) == 1:
-            action, logit = action[0], logit[0]
-        output['action'] = action
-        return output
-
-
 class ActionNoiseWrapper(IModelWrapper):
     r"""
     Overview:
@@ -909,7 +887,6 @@ wrapper_name_map = {
     'argmax_sample': ArgmaxSampleWrapper,
     'hybrid_argmax_sample': HybridArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
-    'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
     'eps_greedy_multinomial_sample': EpsGreedyMultinomialSampleWrapper,
     'deterministic_sample': DeterministicSample,
     'reparam_sample': ReparamSample,
