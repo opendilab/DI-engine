@@ -53,7 +53,7 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be inferred.
-        - env (:obj:`BaseEnvManager`): The env where the inference process is performed.
+        - env (:obj:`BaseEnvManager`): The env where the inference process is performed. \
             The env.ready_obs (:obj:`tnp.array`) will be used as model input.
     """
 
@@ -95,9 +95,6 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
         - transitions (:obj:`TransitionList`): The transition information which will be filled \
             in this process, including `obs`, `next_obs`, `action`, `logit`, `value`, `reward` \
             and `done`.
-            'value': 2.0,
-            'reward': 0.1,
-            'done': True,
     """
 
     env_episode_id = [_ for _ in range(env.env_num)]
