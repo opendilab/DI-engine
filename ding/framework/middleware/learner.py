@@ -29,7 +29,7 @@ class OffPolicyLearner:
             - cfg (:obj:`EasyDict`): Config.
             - policy (:obj:`Policy`): The policy to be trained.
             - buffer_ (:obj:`Buffer`): The replay buffer to store the data for training.
-            - reward_model (:obj:`nn.Module`): The reward estimator in model-based setting, \
+            - reward_model (:obj:`nn.Module`): Additional reward estimator likes RND, ICM, etc. \
                 default to None.
         """
         self.cfg = cfg
@@ -60,8 +60,8 @@ class OffPolicyLearner:
 class HERLearner:
     """
     Overview:
-        The class of the learner with the Hindsight Experience Replay (HER) model processing \
-            episodes. Use the `__call__` method to execute the data featching and training \
+        The class of the learner with the Hindsight Experience Replay (HER). \
+            Use the `__call__` method to execute the data featching and training \
             process.
     """
 
