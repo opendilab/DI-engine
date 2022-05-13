@@ -17,7 +17,7 @@ def data_pusher(cfg: EasyDict, buffer_: Buffer, group_by_env: Optional[bool] = N
         Push episodes or trajectories into the buffer.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
-        - buffer_ (:obj:`Buffer`): Buffer to push the data in.
+        - buffer\_ (:obj:`Buffer`): Buffer to push the data in.
     """
 
     def _push(ctx: "OnlineRLContext"):
@@ -56,7 +56,7 @@ def offpolicy_data_fetcher(
         a list of buffers, or a dict of buffers.
     Arguments:
         - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.
-        - buffer_ (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \
+        - buffer\_ (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \
             The buffer where the data is fetched from. \
             ``Buffer`` type means a buffer.\
             ``List[Tuple[Buffer, float]]`` type means a list of tuple. In each tuple there is a buffer and a float. \
@@ -201,7 +201,7 @@ def sqil_data_pusher(cfg: EasyDict, buffer_: Buffer, expert: bool) -> Callable:
         Push trajectories into the buffer in sqil learning pipeline.
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
-        - buffer_ (:obj:`Buffer`): Buffer to push the data in.
+        - buffer\_ (:obj:`Buffer`): Buffer to push the data in.
         - expert (:obj:`bool`): Whether the pushed data is expert data or not. \
             In each element of the pushed data, the reward will be set to 1 if this attribute is `True`, otherwise 0.
     """
