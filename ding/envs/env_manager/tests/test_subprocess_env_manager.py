@@ -133,8 +133,7 @@ class TestSubprocessEnvManager:
         with pytest.raises(AssertionError):  # Assert env manager is not closed
             env_manager.step([])
 
-    #@pytest.mark.tmp  # gitlab ci and local test pass, github always fail
-    @pytest.mark.unittest
+    @pytest.mark.tmp  # gitlab ci and local test pass, github always fail
     @pytest.mark.timeout(100)
     def test_block(self, setup_async_manager_cfg, setup_model_type):
         env_fn = setup_async_manager_cfg.pop('env_fn')

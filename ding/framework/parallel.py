@@ -5,7 +5,7 @@ import time
 import traceback
 from mpire.pool import WorkerPool
 import pickle
-import logging
+from ditk import logging
 import tempfile
 import socket
 from os import path

@@ -6,7 +6,7 @@ import copy
 import platform
 from collections import namedtuple
 import numbers
-import logging
+from ditk import logging
 import enum
 import time
 

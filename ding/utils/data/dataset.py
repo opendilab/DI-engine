@@ -2,7 +2,7 @@ from typing import List, Dict
 import pickle
 import torch
 import numpy as np
-import logging
+from ditk import logging
 
 from easydict import EasyDict
 from torch.utils.data import Dataset
@@ -34,7 +34,6 @@ class D4RLDataset(Dataset):
 
     def __init__(self, cfg: dict) -> None:
         import gym
-        import logging
         try:
             import d4rl  # register d4rl enviroments with open ai gym
         except ImportError:

@@ -92,7 +92,7 @@ def test_q_1step_compatible():
     onestep_data = q_1step_td_data(q, next_q, action, next_action, reward, done, None)
     nstep_loss, _ = q_nstep_td_error(nstep_data, 0.99, nstep=1)
     onestep_loss = q_1step_td_error(onestep_data, 0.99)
-    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
+    assert pytest.approx(nstep_loss.item()) == onestep_loss.item()
 
 
 @pytest.mark.unittest
@@ -205,7 +205,7 @@ def test_dist_1step_compatible():
     nstep_data = dist_nstep_td_data(dist, next_dist, action, next_action, reward.unsqueeze(0), done, None)
     onestep_loss = dist_1step_td_error(onestep_data, 0.95, v_min, v_max, n_atom)
     nstep_loss, _ = dist_nstep_td_error(nstep_data, 0.95, v_min, v_max, n_atom, nstep=1)
-    assert pytest.approx(nstep_loss.item(), onestep_loss.item())
+    assert pytest.approx(nstep_loss.item()) == onestep_loss.item()
 
 
 @pytest.mark.unittest

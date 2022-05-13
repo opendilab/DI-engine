@@ -1,6 +1,6 @@
 import pytest
 import os
-import logging
+from ditk import logging
 from easydict import EasyDict
 from copy import deepcopy
 

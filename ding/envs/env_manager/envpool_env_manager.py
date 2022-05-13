@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 from collections import namedtuple
 from typing import Any, Union, List, Tuple, Dict, Callable, Optional
-import logging
+from ditk import logging
 try:
     import envpool
 except ImportError:

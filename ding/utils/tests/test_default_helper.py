@@ -1,7 +1,8 @@
-import pytest
-import numpy as np
-import torch
 from collections import namedtuple
+
+import numpy as np
+import pytest
+import torch
 
 from ding.utils.default_helper import lists_to_dicts, dicts_to_lists, squeeze, default_get, override, error_wrapper, \
     list_split, LimitedSpaceContainer, set_pkg_seed, deep_merge_dicts, deep_update, flatten_dict, RunningMeanStd, \
@@ -230,7 +231,7 @@ class TestDict:
         assert running.std == pytest.approx(2.629981, abs=1e-6)
         running.reset()
         running.update(np.arange(1, 10))
-        assert pytest.approx(running.mean, 5)
+        assert pytest.approx(running.mean, abs=1e-4) == 5
         assert running.mean == pytest.approx(5, abs=1e-4)
         assert running.std == pytest.approx(2.582030, abs=1e-6)
         new_shape = running.new_shape((2, 4), (3, ), (1, ))

@@ -1,7 +1,7 @@
 import sys
 import os
 import time
-import logging
+from ditk import logging
 import argparse
 import tempfile
 

@@ -1,6 +1,6 @@
-import random
-import numpy as np
 import os
+
+import numpy as np
 import pytest
 
 from ding.utils.plot_helper import plot
