@@ -28,7 +28,7 @@ class OffPolicyLearner:
         Arguments:
             - cfg (:obj:`EasyDict`): Config.
             - policy (:obj:`Policy`): The policy to be trained.
-            - buffer_ (:obj:`Buffer`): The replay buffer to store the data for training.
+            - buffer\_ (:obj:`Buffer`): The replay buffer to store the data for training.
             - reward_model (:obj:`nn.Module`): Additional reward estimator likes RND, ICM, etc. \
                 default to None.
         """
