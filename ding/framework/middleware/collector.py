@@ -13,17 +13,20 @@ if TYPE_CHECKING:
 class StepCollector:
     """
     Overview:
-        The middleware that executes the collection by steps, including model inference and transition process.
-    Arguments:
-        - cfg (:obj:`EasyDict`): Config.
-        - policy (:obj:`Policy`): The policy to be collected.
-        - env (:obj:`BaseEnvManager`): The env for the collection.
-            BaseEnvManager object or its derivatives are supported.
-        - random_collect_size (:obj:`int`): The num of samples that will be collected randomly.
-            Typically used in initial runs.
+        The class of the collector running by steps, including model inference and transition \
+            process. Use the `__call__` method to execute the whole collection process.
     """
 
     def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager, random_collect_size: int = 0) -> None:
+        """
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config.
+            - policy (:obj:`Policy`): The policy to be collected.
+            - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+            - random_collect_size (:obj:`int`): The count of samples that will be collected randomly, \
+                typically used in initial runs.
+        """
         self.cfg = cfg
         self.env = env
         self.policy = policy
@@ -35,7 +38,8 @@ class StepCollector:
     def __call__(self, ctx: "OnlineRLContext") -> None:
         """
         Overview:
-            - An encapsulation of inference and rollout middleware. Stop when completing the target num of steps.
+            An encapsulation of inference and rollout middleware. Stop when completing \
+                the target number of steps.
         Input of ctx:
             - env_step (:obj:`int`): The env steps which will increase during collection.
         """
@@ -61,17 +65,20 @@ class StepCollector:
 class EpisodeCollector:
     """
     Overview:
-        The middleware that executes the collection by episodes, including model inference and transition process.
-    Arguments:
-        - cfg (:obj:`EasyDict`): Config.
-        - policy (:obj:`Policy`): The policy to be collected.
-        - env (:obj:`BaseEnvManager`): The env for the collection.
-            BaseEnvManager object or its derivatives are supported.
-        - random_collect_size (:obj:`int`): The num of samples that will be collected randomly.
-            Typically used in initial runs.
+        The class of the collector running by episodes, including model inference and transition \
+            process. Use the `__call__` method to execute the whole collection process.
     """
 
     def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager, random_collect_size: int = 0) -> None:
+        """
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config.
+            - policy (:obj:`Policy`): The policy to be collected.
+            - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+            - random_collect_size (:obj:`int`): The count of samples that will be collected randomly, \
+                typically used in initial runs.
+        """
         self.cfg = cfg
         self.env = env
         self.policy = policy
@@ -83,7 +90,8 @@ class EpisodeCollector:
     def __call__(self, ctx: "OnlineRLContext") -> None:
         """
         Overview:
-            - An encapsulation of inference and rollout middleware. Stop when completing the target num of episodes.
+            An encapsulation of inference and rollout middleware. Stop when completing the \
+                target number of episodes.
         Input of ctx:
             - env_episode (:obj:`int`): The env env_episode which will increase during collection.
         """

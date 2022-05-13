@@ -21,10 +21,10 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
     def _train(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
         Input of ctx:
-            - train_data (:obj:`Dict`): The data used to update the network.
-                It will trains only if the data is not empty.
-            - train_iter: (:obj:`int`): The training iteration count.
-                The log will be printed if it reachs certain values.
+            - train_data (:obj:`Dict`): The data used to update the network. It will train only if \
+                the data is not empty.
+            - train_iter: (:obj:`int`): The training iteration count. The log will be printed once \
+                it reachs certain values.
         Output of ctx:
             - train_output (:obj:`Dict`): The training output in the Dict format, including loss info.
         """

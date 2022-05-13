@@ -64,7 +64,7 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
         Output of ctx:
             - obs (:obj:`Dict[Tensor]`): The input states fed into the model.
             - action: (:obj:`List[np.ndarray]`): The inferred actions listed by env_id.
-            - inference_output (:obj:`Dict[int, Dict]`): The dict that contains env_id (int)
+            - inference_output (:obj:`Dict[int, Dict]`): The dict that contains env_id (int) \
                 and inference result (Dict).
         """
 
@@ -90,9 +90,11 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
     Arguments:
         - cfg (:obj:`EasyDict`): Config.
         - policy (:obj:`Policy`): The policy to be used during transition.
-        - env (:obj:`BaseEnvManager`): The env where the transition process is performed.
-            BaseEnvManager object or its derivatives are supported.
-        - transitions (:obj:`TransitionList`): The transition information which will be filled in this process.
+        - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+        - transitions (:obj:`TransitionList`): The transition information which will be filled \
+            in this process, including `obs`, `next_obs`, `action`, `logit`, `value`, `reward` \
+            and `done`.
     """
 
     env_episode_id = [_ for _ in range(env.env_num)]
@@ -103,10 +105,13 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
         Input of ctx:
             - action: (:obj:`List[np.ndarray]`): The inferred actions from previous inference process.
             - obs (:obj:`Dict[Tensor]`): The states fed into the transition dict.
-            - inference_output (:obj:`Dict[int, Dict]`): The inference results to be fed into the transition dict.
+            - inference_output (:obj:`Dict[int, Dict]`): The inference results to be fed into the \
+                transition dict.
             - train_iter (:obj:`int`): The train iteration count to be fed into the transition dict.
-            - env_step (:obj:`int`): The count of env step, which will increase by 1 for a single transition call.
-            - env_episode (:obj:`int`): The count of env episode, which will increase by 1 if the trajectory stops.
+            - env_step (:obj:`int`): The count of env step, which will increase by 1 for a single \
+                transition call.
+            - env_episode (:obj:`int`): The count of env episode, which will increase by 1 if the \
+                trajectory stops.
         """
 
         nonlocal current_id
