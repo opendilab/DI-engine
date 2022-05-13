@@ -10,6 +10,7 @@ def eval_ckpt(args):
 
 
 def generate(args):
+    print('start generate data')
     config = copy.deepcopy([main_config, create_config])
     state_dict = torch.load(main_config.policy.learn.learner.load_path, map_location='cpu')
     collect_episodic_demo_data(
