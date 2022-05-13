@@ -41,7 +41,7 @@ class CkptSaver:
             The checkpoint data will be saved in a file in following 3 cases: \
                 - When a multiple of `self.train_freq` iterations have elapsed since the beginning of training; \
                 - When the evaluation reward is the best eval reward so far; \
-                - When `task.finish` is True. 
+                - When `task.finish` is True.
         Input of ctx:
             - train_iter (:obj:`int`): Number of training iteration, i.e. the number of updating policy related network.
             - eval_value (:obj:`float`): The eval reward of current iteration.
