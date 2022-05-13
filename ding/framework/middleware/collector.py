@@ -11,8 +11,22 @@ if TYPE_CHECKING:
 
 
 class StepCollector:
+    """
+    Overview:
+        The class of the collector running by steps, including model inference and transition \
+            process. Use the `__call__` method to execute the whole collection process.
+    """
 
     def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager, random_collect_size: int = 0) -> None:
+        """
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config.
+            - policy (:obj:`Policy`): The policy to be collected.
+            - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+            - random_collect_size (:obj:`int`): The count of samples that will be collected randomly, \
+                typically used in initial runs.
+        """
         self.cfg = cfg
         self.env = env
         self.policy = policy
@@ -22,6 +36,13 @@ class StepCollector:
         self._rolloutor = task.wrap(rolloutor(cfg, policy, env, self._transitions))
 
     def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Overview:
+            An encapsulation of inference and rollout middleware. Stop when completing \
+                the target number of steps.
+        Input of ctx:
+            - env_step (:obj:`int`): The env steps which will increase during collection.
+        """
         old = ctx.env_step
         if self.random_collect_size > 0 and old < self.random_collect_size:
             target_size = self.random_collect_size - old
@@ -42,8 +63,22 @@ class StepCollector:
 
 
 class EpisodeCollector:
+    """
+    Overview:
+        The class of the collector running by episodes, including model inference and transition \
+            process. Use the `__call__` method to execute the whole collection process.
+    """
 
     def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager, random_collect_size: int = 0) -> None:
+        """
+        Arguments:
+            - cfg (:obj:`EasyDict`): Config.
+            - policy (:obj:`Policy`): The policy to be collected.
+            - env (:obj:`BaseEnvManager`): The env for the collection, the BaseEnvManager object or \
+                its derivatives are supported.
+            - random_collect_size (:obj:`int`): The count of samples that will be collected randomly, \
+                typically used in initial runs.
+        """
         self.cfg = cfg
         self.env = env
         self.policy = policy
@@ -53,6 +88,13 @@ class EpisodeCollector:
         self._rolloutor = task.wrap(rolloutor(cfg, policy, env, self._transitions))
 
     def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Overview:
+            An encapsulation of inference and rollout middleware. Stop when completing the \
+                target number of episodes.
+        Input of ctx:
+            - env_episode (:obj:`int`): The env env_episode which will increase during collection.
+        """
         old = ctx.env_episode
         if self.random_collect_size > 0 and old < self.random_collect_size:
             target_size = self.random_collect_size - old
