@@ -21,7 +21,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         otherwise it will be assigned to `ctx.train_data`.
     Arguments:
         - cfg (:obj:`EasyDict`): Config which should contain the following keys: \
-            ['cfg.policy.collect.discount_factor', 'cfg.policy.collect.gae_lambda'].
+            `cfg.policy.collect.discount_factor`, `cfg.policy.collect.gae_lambda`.
         - policy (:obj:`Policy`): Policy in `policy.collect_mode`, used to get model to calculate value.
         - buffer_ (:obj:`Optional[Buffer]`): The `buffer_` to push the processed data in if `buffer_` is not None.
     """
@@ -32,7 +32,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         """
         Input of ctx:
             - trajectories (:obj:`List[treetensor.torch.Tensor]`): The data to be processed.\
-                Each element should contain the following keys: ['obs', 'next_obs', 'reward', 'done'].
+                Each element should contain the following keys: `obs`, `next_obs`, `reward`, `done`.
             - trajectory_end_idx: (:obj:`treetensor.torch.IntTensor`):
                 The indices that define the end of trajectories, \
                 which should be shorter than the length of `ctx.trajectories`.

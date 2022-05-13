@@ -22,7 +22,7 @@ class CkptSaver:
         Overview:
             Initialize the `CkptSaver`.
         Arguments:
-            - cfg (:obj:`EasyDict`): Config which should contain the following keys: ['cfg.exp_name'].
+            - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.exp_name`.
             - policy (:obj:`Policy`): Policy used to save the checkpoint.
             - train_freq (:obj:`int`): Number of training iterations between each saving checkpoint data.
         """

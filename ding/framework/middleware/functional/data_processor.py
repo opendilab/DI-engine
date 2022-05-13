@@ -55,7 +55,7 @@ def offpolicy_data_fetcher(
         The return function is a generator which meanly fetch a batch of data from a buffer, \
         a list of buffers, or a dict of buffers.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config which should contain the following keys: ['cfg.policy.learn.batch_size'].
+        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.
         - buffer_ (:obj:`Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]]`): \
             The buffer where the data is fetched from. \
             ``Buffer`` type means a buffer.\
@@ -145,7 +145,7 @@ def offline_data_fetcher(cfg: EasyDict, dataset: Dataset) -> Callable:
         Please refer to the link https://pytorch.org/tutorials/beginner/basics/data_tutorial.html \
         and https://pytorch.org/docs/stable/data.html for more details.
     Arguments:
-        - cfg (:obj:`EasyDict`): Config which should contain the following keys: ['cfg.policy.learn.batch_size'].
+        - cfg (:obj:`EasyDict`): Config which should contain the following keys: `cfg.policy.learn.batch_size`.
         - dataset (:obj:`Dataset`): The dataset of type `torch.utils.data.Dataset` which stores the data.
     """
     # collate_fn is executed in policy now
