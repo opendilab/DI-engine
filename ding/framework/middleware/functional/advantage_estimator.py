@@ -23,7 +23,7 @@ def gae_estimator(cfg: EasyDict, policy: Policy, buffer_: Optional[Buffer] = Non
         - cfg (:obj:`EasyDict`): Config which should contain the following keys: \
             `cfg.policy.collect.discount_factor`, `cfg.policy.collect.gae_lambda`.
         - policy (:obj:`Policy`): Policy in `policy.collect_mode`, used to get model to calculate value.
-        - buffer_ (:obj:`Optional[Buffer]`): The `buffer_` to push the processed data in if `buffer_` is not None.
+        - buffer\_ (:obj:`Optional[Buffer]`): The `buffer_` to push the processed data in if `buffer_` is not None.
     """
 
     model = policy.get_attribute('model')

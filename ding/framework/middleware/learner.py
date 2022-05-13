@@ -76,7 +76,7 @@ class HERLearner:
         Arguments:
             - cfg (:obj:`EasyDict`): Config.
             - policy (:obj:`Policy`): The policy to be trained.
-            - buffer_ (:obj:`Buffer`): The replay buffer to store the data for training.
+            - buffer\_ (:obj:`Buffer`): The replay buffer to store the data for training.
             - her_reward_model (:obj:`HerRewardModel`): HER reward model.
         """
         self.cfg = cfg
