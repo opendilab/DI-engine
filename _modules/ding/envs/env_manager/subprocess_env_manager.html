@@ -172,19 +172,20 @@
 <span class="kn">import</span> <span class="nn">platform</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">gym</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">ctypes</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">cloudpickle</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">treetensor.numpy</span> <span class="k">as</span> <span class="nn">tnp</span>
 <span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
 <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
 
-<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">PropagatingThread</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">ENV_MANAGER_REGISTRY</span>
+<span class="kn">from</span> <span class="nn">ding.envs.env</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">PropagatingThread</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="p">,</span> <span class="n">make_key_as_identifier</span>
 <span class="kn">from</span> <span class="nn">.base_env_manager</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">EnvState</span><span class="p">,</span> <span class="n">timeout_wrapper</span>
-<span class="kn">from</span> <span class="nn">ding.envs.env.base_env</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
-<span class="kn">import</span> <span class="nn">gym</span>
 
 <span class="n">_NTYPE_TO_CTYPE</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">,</span>
@@ -1049,6 +1050,59 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span>
         <span class="k">return</span> <span class="n">timesteps</span></div></div>
+
+
+<span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;subprocess_v2&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">SubprocessEnvManagerV2</span><span class="p">(</span><span class="n">SyncSubprocessEnvManager</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        SyncSubprocessEnvManager for new task pipeline and interfaces coupled with treetensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ready_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.</span>
+<span class="sd">        Return:</span>
+<span class="sd">            - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; obs = env_manager.ready_obs</span>
+<span class="sd">            &gt;&gt;&gt; action = model(obs)  # model input np obs and output np action</span>
+<span class="sd">            &gt;&gt;&gt; timesteps = env_manager.step(action)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">no_done_env_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">DONE</span><span class="p">]</span>
+        <span class="n">sleep_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">no_done_env_idx</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">sleep_count</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;VEC_ENV_MANAGER: all the not done envs are resetting, sleep </span><span class="si">{}</span><span class="s1"> times&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sleep_count</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+            <span class="n">sleep_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ready_env</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">tnp</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">tnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Execute env step according to input actions. And reset an env if done.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - actions (:obj:`List[tnp.ndarray]`): actions came from outer caller like policy</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \</span>
+<span class="sd">                info, env_id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">a</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ready_obs_id</span><span class="p">,</span> <span class="n">actions</span><span class="p">)}</span>
+        <span class="n">timesteps</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">timestep</span>
+            <span class="c1"># make the type and content of key as similar as identifier,</span>
+            <span class="c1"># in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">make_key_as_identifier</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">({</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">reward</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">,</span> <span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="n">env_id</span><span class="p">}))</span>
+        <span class="k">return</span> <span class="n">new_data</span>
 </pre></div>
 
            </div>

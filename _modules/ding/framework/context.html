@@ -165,7 +165,10 @@
            <div itemprop="articleBody">
             
   <h1>Source code for ding.framework.context</h1><div class="highlight"><pre>
-<div class="viewcode-block" id="Context"><a class="viewcode-back" href="../../../api_doc/framework/context.html#ding.framework.context.Context">[docs]</a><span></span><span class="k">class</span> <span class="nc">Context</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="Context"><a class="viewcode-back" href="../../../api_doc/framework/context.html#ding.framework.context.Context">[docs]</a><span class="k">class</span> <span class="nc">Context</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
 <span class="sd">        Context is an object that pass contextual data between middlewares, whose life cycle</span>
@@ -173,21 +176,23 @@
 <span class="sd">        any properties as you wish.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="n">total_step</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kept_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="Context.renew"><a class="viewcode-back" href="../../../api_doc/framework/context.html#ding.framework.context.Context.renew">[docs]</a>    <span class="k">def</span> <span class="nf">renew</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Context&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Renew context from self, add total_step and shift kept properties to the new instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ctx</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
+        <span class="n">total_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_step</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)()</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kept_keys</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
                 <span class="n">ctx</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="n">total_step</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">ctx</span></div>
 
 <div class="viewcode-block" id="Context.keep"><a class="viewcode-back" href="../../../api_doc/framework/context.html#ding.framework.context.Context.keep">[docs]</a>    <span class="k">def</span> <span class="nf">keep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">keys</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -197,6 +202,46 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_kept_keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">OnlineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="c1"># common</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_episode</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># collect</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">collect_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectories</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">episodes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_end_idx</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># eval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_value</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_eval_iter</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;env_step&#39;</span><span class="p">,</span> <span class="s1">&#39;env_episode&#39;</span><span class="p">,</span> <span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">OfflineRLContext</span><span class="p">(</span><span class="n">Context</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="c1"># common</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_epoch</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_iter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># eval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_value</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_eval_iter</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">keep</span><span class="p">(</span><span class="s1">&#39;train_iter&#39;</span><span class="p">,</span> <span class="s1">&#39;last_eval_iter&#39;</span><span class="p">)</span>
 </pre></div>
 
            </div>

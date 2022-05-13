@@ -840,17 +840,17 @@ _____________________________________/+</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTMForwardWrapper._after_forward">
-<span class="sig-name descname"><span class="pre">_after_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTMForwardWrapper._after_forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTMForwardWrapper._after_forward" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_after_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTMForwardWrapper._after_forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTMForwardWrapper._after_forward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Post-process the next_state, return list or tensor type next_states</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[Tuple[torch.Tensor]]</span></code>): List of tuple which contains the next (h, c)</p></li>
-<li><p>list_next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether return next_state with list format, default set to False</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[torch.Tensor]</span></code>): Tuple which contains next state (h, c).</p></li>
+<li><p>list_next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to return next_state with list format, default set to False</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
-<li><p>next_state(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">list]</span></code>): the formatted next_state</p></li>
+<li><p>next_state(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[List[Dict],</span> <span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]]</span></code>): The formatted next_state.</p></li>
 </ul>
 </dd>
 </dl>
@@ -858,17 +858,13 @@ _____________________________________/+</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTMForwardWrapper._before_forward">
-<span class="sig-name descname"><span class="pre">_before_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTMForwardWrapper._before_forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTMForwardWrapper._before_forward" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_before_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTMForwardWrapper._before_forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTMForwardWrapper._before_forward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Overview:</dt><dd><p>Preprocess the inputs and previous states</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input vector of cell, tensor of size [seq_len, batch_size, input_size]</p></li>
-<li><dl class="simple">
-<dt>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">list]</span></code>): None or tensor of size </dt><dd><p>[num_directions*num_layers, batch_size, hidden_size]. If None then prv_state will be initialized to all zeros.</p>
-</dd>
-</dl>
-</li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[None,</span> <span class="pre">List[Dict]]</span></code>): None or tensor of size                 [num_directions*num_layers, batch_size, hidden_size].                 If None then prv_state will be initialized to all zeros.</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -938,19 +934,11 @@ _____________________________________/+</p>
 <dt class="sig sig-object py" id="ding.torch_utils.network.rnn.PytorchLSTM.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#PytorchLSTM.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.PytorchLSTM.forward" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Wrapped nn.LSTM.forward</p>
+<dt>Overview:</dt><dd><p>Wrapped nn.LSTM.forward.</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input vector of cell, tensor of size </dt><dd><p>[seq_len, batch_size, input_size]</p>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): None or tensor of size </dt><dd><p>[num_directions*num_layers, batch_size, hidden_size]</p>
-</dd>
-</dl>
-</li>
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input vector of cell, tensor of size                 [seq_len, batch_size, input_size]</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): None or tensor of size                 [num_directions*num_layers, batch_size, hidden_size]</p></li>
 <li><p>list_next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether return next_state with list format, default set to False</p></li>
 </ul>
 </dd>

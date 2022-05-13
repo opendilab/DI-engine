@@ -437,8 +437,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_aux_memories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_train_iteration</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">total_loss</span> <span class="o">=</span> <span class="n">policy_loss</span> <span class="o">+</span> <span class="n">value_loss</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_train_iteration</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">aux_freq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">aux_loss</span><span class="p">,</span> <span class="n">bc_loss</span><span class="p">,</span> <span class="n">aux_value_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learn_aux</span><span class="p">()</span>
+            <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">aux_loss</span> <span class="o">+</span> <span class="n">bc_loss</span> <span class="o">+</span> <span class="n">aux_value_loss</span>
             <span class="k">return</span> <span class="p">{</span>
                 <span class="s1">&#39;policy_cur_lr&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_ac</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
                 <span class="s1">&#39;value_cur_lr&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer_aux_critic</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
@@ -451,6 +453,7 @@
                 <span class="s1">&#39;aux_value_loss&#39;</span><span class="p">:</span> <span class="n">aux_value_loss</span><span class="p">,</span>
                 <span class="s1">&#39;auxiliary_loss&#39;</span><span class="p">:</span> <span class="n">aux_loss</span><span class="p">,</span>
                 <span class="s1">&#39;behavioral_cloning_loss&#39;</span><span class="p">:</span> <span class="n">bc_loss</span><span class="p">,</span>
+                <span class="s1">&#39;total_loss&#39;</span><span class="p">:</span> <span class="n">total_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span>
@@ -462,6 +465,7 @@
                 <span class="s1">&#39;policy_adv_abs_max&#39;</span><span class="p">:</span> <span class="n">policy_adv</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
                 <span class="s1">&#39;approx_kl&#39;</span><span class="p">:</span> <span class="n">ppo_info</span><span class="o">.</span><span class="n">approx_kl</span><span class="p">,</span>
                 <span class="s1">&#39;clipfrac&#39;</span><span class="p">:</span> <span class="n">ppo_info</span><span class="o">.</span><span class="n">clipfrac</span><span class="p">,</span>
+                <span class="s1">&#39;total_loss&#39;</span><span class="p">:</span> <span class="n">total_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
             <span class="p">}</span></div>
 
 <div class="viewcode-block" id="PPGPolicy._state_dict_learn"><a class="viewcode-back" href="../../../api_doc/policy/ppg.html#ding.policy.ppg.PPGPolicy._state_dict_learn">[docs]</a>    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -547,6 +551,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">transition</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span>
+            <span class="s1">&#39;next_obs&#39;</span><span class="p">:</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span>
             <span class="s1">&#39;logit&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">],</span>
             <span class="s1">&#39;action&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span>
             <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="n">model_output</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span>

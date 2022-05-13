@@ -167,13 +167,15 @@
   <h1>Source code for ding.framework.task</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">asyncio</span> <span class="kn">import</span> <span class="n">InvalidStateError</span>
 <span class="kn">from</span> <span class="nn">asyncio.tasks</span> <span class="kn">import</span> <span class="n">FIRST_EXCEPTION</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Lock</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">concurrent.futures</span>
 <span class="kn">import</span> <span class="nn">fnmatch</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">GeneratorType</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">ding.framework.context</span> <span class="kn">import</span> <span class="n">Context</span>
 <span class="kn">from</span> <span class="nn">ding.framework.parallel</span> <span class="kn">import</span> <span class="n">Parallel</span>
 <span class="kn">from</span> <span class="nn">ding.framework.event_loop</span> <span class="kn">import</span> <span class="n">EventLoop</span>
@@ -205,6 +207,7 @@
         <span class="k">if</span> <span class="n">async_mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">async_mode</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">async_mode</span>
         <span class="k">if</span> <span class="n">async_mode</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="p">,</span> <span class="s2">&quot;Should not use kwargs in async_mode, use position parameters, kwargs: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">_async_loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">_thread_pool</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">task</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">task</span><span class="o">.</span><span class="n">_async_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">task</span>
@@ -220,21 +223,21 @@
 <span class="sd">    and generate new context objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Task.__init__"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">async_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">n_async_workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-            <span class="n">middleware</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">step_wrappers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">_</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Context</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Task&quot;</span><span class="p">:</span>
+        <span class="c1"># This flag can be modified by external or associated processes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_finish</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">middleware</span> <span class="o">=</span> <span class="n">middleware</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">step_wrappers</span> <span class="o">=</span> <span class="n">step_wrappers</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parallel_ctx</span> <span class="o">=</span> <span class="n">Context</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># This flag can only be modified inside the class, it will be set to False in the end of stop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_middleware</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wrappers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">ctx</span> <span class="ow">or</span> <span class="n">Context</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="c1"># Bind event loop functions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span> <span class="o">=</span> <span class="n">EventLoop</span><span class="p">(</span><span class="s2">&quot;task_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
 
@@ -245,13 +248,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_thread_pool</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_exception</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thread_lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span> <span class="ow">or</span> <span class="nb">set</span><span class="p">()</span>
 
         <span class="c1"># Parallel segment</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">router</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">async_mode</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_thread_pool</span> <span class="o">=</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">n_async_workers</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_activate_async</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">is_active</span><span class="p">:</span>
 
@@ -260,7 +263,8 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s2">&quot;finish&quot;</span><span class="p">,</span> <span class="n">sync_finish</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">init_labels</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_labels</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">def</span> <span class="nf">init_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_mode</span><span class="p">:</span>
@@ -273,27 +277,36 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;standalone&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Task.use"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.use">[docs]</a>    <span class="k">def</span> <span class="nf">use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">filter_labels</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
+<div class="viewcode-block" id="Task.use"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.use">[docs]</a>    <span class="k">def</span> <span class="nf">use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">lock</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Lock</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Register middleware to task. The middleware will be executed by it&#39;s registry order.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - fn (:obj:`Callable`): A middleware is a function with only one argument: ctx.</span>
+<span class="sd">            - lock (:obj:`Union[bool, Lock]`): There can only be one middleware execution under lock at any one time.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - task (:obj:`Task`): The task.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">filter_labels</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">match_labels</span><span class="p">(</span><span class="n">filter_labels</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">wrapper</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wrappers</span><span class="p">:</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="n">wrapper</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_middleware</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">lock</span><span class="o">=</span><span class="n">lock</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
-<div class="viewcode-block" id="Task.use_step_wrapper"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.use_step_wrapper">[docs]</a>    <span class="k">def</span> <span class="nf">use_step_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">use_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Register wrappers to task. A wrapper works like a decorator, but task will apply this \</span>
 <span class="sd">            decorator on top of each middleware.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - fn (:obj:`Callable`): A wrapper is a decorator, so the first argument is a callable function.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - task (:obj:`Task`): The task.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">step_wrappers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+        <span class="c1"># Wrap exist middlewares</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">middleware</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_middleware</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_middleware</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">middleware</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wrappers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">def</span> <span class="nf">match_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patterns</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -306,7 +319,7 @@
             <span class="n">patterns</span> <span class="o">=</span> <span class="p">[</span><span class="n">patterns</span><span class="p">]</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">([</span><span class="n">fnmatch</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">patterns</span><span class="p">])</span>
 
-<div class="viewcode-block" id="Task.run"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e10</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Task.run"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e12</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute the iterations, when reach the max_step or task.finish is true,</span>
@@ -314,10 +327,11 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - max_step (:obj:`int`): Max step of iterations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">middleware</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">,</span> <span class="s2">&quot;Please make sure the task is running before calling the this method, see the task.start&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_middleware</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_step</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">middleware</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_middleware</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
             <span class="c1"># Sync should be called before backward, otherwise it is possible</span>
             <span class="c1"># that some generators have not been pushed to backward_stack.</span>
@@ -330,77 +344,146 @@
                 <span class="k">break</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">renew</span><span class="p">()</span></div>
 
+    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">lock</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Lock</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Wrap the middleware, make it can be called directly in other middleware.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - fn (:obj:`Callable`): The middleware.</span>
+<span class="sd">            - lock (:obj:`Union[bool, Lock]`): There can only be one middleware execution under lock at any one time.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - fn_back (:obj:`Callable`): It will return a backward function, which will call the rest part of</span>
+<span class="sd">                the middleware after yield. If this backward function was not called, the rest part of the middleware</span>
+<span class="sd">                will be called in the global backward step.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lock</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">lock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread_lock</span>
+
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">lock</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+                    <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">backward</span><span class="p">():</span>
+                <span class="n">backward_stack</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">id</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+                <span class="n">backward_stack</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">lock</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">backward_stack</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">backward_stack</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">backward</span>
+
+        <span class="k">return</span> <span class="n">forward</span>
+
 <div class="viewcode-block" id="Task.forward"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.forward">[docs]</a>    <span class="nd">@enable_async</span>
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">backward_stack</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Generator</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Context</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Generator</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            This function will execute the middleware until the first yield statment,</span>
 <span class="sd">            or the end of the middleware.</span>
 <span class="sd">        Arguments:</span>
 <span class="sd">            - fn (:obj:`Callable`): Function with contain the ctx argument in middleware.</span>
+<span class="sd">            - ctx (:obj:`Optional[Context]`): Replace global ctx with a customized ctx.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - g (:obj:`Optional[Generator]`): The generator if the return value of fn is a generator.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">backward_stack</span><span class="p">:</span>
-            <span class="n">backward_stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">,</span> <span class="s2">&quot;Please make sure the task is running before calling the this method, see the task.start&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="p">:</span>
             <span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
-        <span class="k">for</span> <span class="n">wrapper</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_wrappers</span><span class="p">:</span>
-            <span class="n">fn</span> <span class="o">=</span> <span class="n">wrapper</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">GeneratorType</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-                <span class="n">backward_stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">g</span><span class="p">)]</span> <span class="o">=</span> <span class="n">g</span>
+                <span class="k">return</span> <span class="n">g</span>
             <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+                <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Task.backward"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.backward">[docs]</a>    <span class="nd">@enable_async</span>
-    <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backward_stack</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Generator</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backward_stack</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Generator</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Execute the rest part of middleware, by the reversed order of registry.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - backward_stack (:obj:`Optional[Dict[str, Generator]]`): Replace global backward_stack with a customized \</span>
+<span class="sd">                stack.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">,</span> <span class="s2">&quot;Please make sure the task is running before calling the this method, see the task.start&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">backward_stack</span><span class="p">:</span>
             <span class="n">backward_stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span>
         <span class="k">while</span> <span class="n">backward_stack</span><span class="p">:</span>
             <span class="c1"># FILO</span>
-            <span class="n">g</span> <span class="o">=</span> <span class="n">backward_stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">g</span> <span class="o">=</span> <span class="n">backward_stack</span><span class="o">.</span><span class="n">popitem</span><span class="p">()</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
-                <span class="k">continue</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+                <span class="k">continue</span></div>
 
-<div class="viewcode-block" id="Task.sequence"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.sequence">[docs]</a>    <span class="k">def</span> <span class="nf">sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">serial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Wrap functions and keep them run in sequence, Usually in order to avoid the confusion</span>
+<span class="sd">            Wrap functions and keep them run in serial, Usually in order to avoid the confusion</span>
 <span class="sd">            of dependencies in async mode.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - fn (:obj:`Callable`): Chain a sequence of middleware, wrap them into one middleware function.</span>
+<span class="sd">            - fn (:obj:`Callable`): Chain a serial of middleware, wrap them into one middleware function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">_sequence</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
-            <span class="n">backward_stack</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">def</span> <span class="nf">_serial</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+            <span class="n">backward_keys</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span> <span class="n">backward_stack</span><span class="o">=</span><span class="n">backward_stack</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">GeneratorType</span><span class="p">):</span>
+                    <span class="n">backward_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>
             <span class="k">yield</span>
+            <span class="n">backward_stack</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">backward_keys</span><span class="p">:</span>
+                <span class="n">backward_stack</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">backward_stack</span><span class="o">=</span><span class="n">backward_stack</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">fn</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">])</span>
-        <span class="n">_sequence</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s2">&quot;sequence&lt;</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">_sequence</span></div>
+        <span class="n">_serial</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s2">&quot;serial&lt;</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_serial</span>
+
+    <span class="k">def</span> <span class="nf">parallel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">fns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Wrap functions and keep them run in parallel, should not use this funciton in async mode.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - fn (:obj:`Callable`): Parallelized middleware, wrap them into one middleware function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_activate_async</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">_parallel</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+            <span class="n">backward_keys</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">:</span>
+                <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">GeneratorType</span><span class="p">):</span>
+                    <span class="n">backward_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="n">g</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+            <span class="k">yield</span>
+            <span class="n">backward_stack</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">backward_keys</span><span class="p">:</span>
+                <span class="n">backward_stack</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">backward_stack</span><span class="p">,</span> <span class="n">async_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">fn</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">fns</span><span class="p">])</span>
+        <span class="n">_parallel</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s2">&quot;parallel&lt;</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_parallel</span>
 
 <div class="viewcode-block" id="Task.renew"><a class="viewcode-back" href="../../../api_doc/framework/task.html#ding.framework.task.Task.renew">[docs]</a>    <span class="k">def</span> <span class="nf">renew</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Renew the context instance, this function should be called after backward in the end of iteration.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Renew context</span>
-        <span class="n">old_ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span>
-        <span class="n">new_ctx</span> <span class="o">=</span> <span class="n">old_ctx</span><span class="o">.</span><span class="n">renew</span><span class="p">()</span>
-        <span class="n">new_ctx</span><span class="o">.</span><span class="n">total_step</span> <span class="o">=</span> <span class="n">old_ctx</span><span class="o">.</span><span class="n">total_step</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="n">new_ctx</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">,</span> <span class="s2">&quot;Please make sure the task is running before calling the this method, see the task.start&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctx</span><span class="o">.</span><span class="n">renew</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Task&quot;</span><span class="p">:</span>
@@ -417,15 +500,17 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread_pool</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_thread_pool</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">off</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wrap_event_name</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="c1"># The middleware and listeners may contain some methods that reference to task,</span>
         <span class="c1"># If we do not clear them after the task exits, we may find that gc will not clean up the task object.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">middleware</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">step_wrappers</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_middleware</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wrappers</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_backward_stack</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_async_stack</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_async_stack</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running</span> <span class="o">=</span> <span class="kc">False</span></div>
 
     <span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Task&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span><span class="p">:</span>
@@ -469,6 +554,7 @@
 <span class="sd">            - args (:obj:`any`): Rest arguments for listeners.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Check if need to broadcast event to connected nodes, default is True</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">,</span> <span class="s2">&quot;Please make sure the task is running before calling the this method, see the task.start&quot;</span>
         <span class="k">if</span> <span class="n">only_local</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_event_loop</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">only_remote</span><span class="p">:</span>
@@ -524,6 +610,7 @@
 <span class="sd">            - timeout (:obj:`float`): Timeout in seconds.</span>
 <span class="sd">            - ignore_timeout_exception (:obj:`bool`): If this is False, an exception will occur when meeting timeout.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running</span><span class="p">,</span> <span class="s2">&quot;Please make sure the task is running before calling the this method, see the task.start&quot;</span>
         <span class="n">received</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -545,9 +632,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TimeoutError</span><span class="p">(</span><span class="s2">&quot;Timeout when waiting for event: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Task</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finish</span>
@@ -565,7 +649,16 @@
 <span class="sd">        Arguments:</span>
 <span class="sd">            - event (:obj:`str`): Event name</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;task.</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s2">&quot;task.</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_activate_async</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread_pool</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_thread_pool</span> <span class="o">=</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_async_workers</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_async_loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">new_event_loop</span><span class="p">()</span></div>
+
+
+<span class="n">task</span> <span class="o">=</span> <span class="n">Task</span><span class="p">()</span>
 </pre></div>
 
            </div>
