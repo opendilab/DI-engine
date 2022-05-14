@@ -323,14 +323,11 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
     def ready_imgs(self, render_mode=('rgb_array')) -> Dict[int, Any]:
         """
         Overview:
-            Get the next observations.
+            Get the next renderd frames.
         Return:
-            A dictionary with observations and their environment IDs.
+            A dictionary with rendered frames and their environment IDs.
         Note:
-            The observations are returned in np.ndarray.
-        Example:
-            >>>     obs_dict = env_manager.ready_obs
-            >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+            The rendered frames are returned in np.ndarray.
         """
         for i in self.ready_env:
             self._pipe_parents[i].send(['render', None, {'render_mode':render_mode}])

@@ -25,8 +25,8 @@ class InteractionSerialEvaluator(ISerialEvaluator):
         eval_freq=1000,
 
         render=dict(
-            # TODO: set to -1
-            render_freq=3000,
+            # tensorboard video render is disabled by default
+            render_freq=-1,
             mode='train_iter',
         )
     )
@@ -206,6 +206,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 obs = self._env.ready_obs
                 obs = to_tensor(obs, dtype=torch.float32)
 
+                # update videos
                 if render:
                     eval_monitor.update_video(self._env.ready_imgs)
 
@@ -264,11 +265,11 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             self._tb_logger.add_scalar('{}_step/'.format(self._instance_name) + k, v, envstep)
 
         if render:
-            videos = eval_monitor.get_video()
             video_title = '{}_{}/'.format(self._instance_name, self._render.mode)
+            videos = eval_monitor.get_video()
             render_iter = envstep if self._render.mode == 'envstep' else train_iter
-            # TODO: change fps
-            self._tb_logger.add_video(video_title, videos, render_iter, fps=30)
+            from ding.utils import fps
+            self._tb_logger.add_video(video_title, videos, render_iter, fps(self._env))
 
         eval_reward = np.mean(episode_reward)
         if eval_reward > self._max_eval_reward:

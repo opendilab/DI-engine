@@ -156,10 +156,12 @@ class BaseEnvManager(object):
     def ready_imgs(self, render_mode=('rgb_array')) -> Dict[int, Any]:
         """
         Overview:
-            Get the next observations(in ``np.ndarray`` type) and corresponding env id.
+            Get the next renderd frames(in ``np.ndarray`` type) and corresponding env id.
+        Return:
+            A dictionary with rendered frames and their environment IDs.
         """
         from ding.utils import render
-        return {i: render(self._envs[i]) for i in self.ready_obs.keys()}
+        return {i: render(self._envs[i], render_mode) for i in self.ready_obs.keys()}
 
     @property
     def done(self) -> bool:
