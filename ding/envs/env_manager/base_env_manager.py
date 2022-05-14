@@ -158,14 +158,8 @@ class BaseEnvManager(object):
         Overview:
             Get the next observations(in ``np.ndarray`` type) and corresponding env id.
         """
-        # TODO: do not use private member env._env
-        def render(env):
-            if hasattr(env._env, 'sim'):
-                return env._env.sim.render(camera_name='track', height=128, width=128)[::-1]
-            else:
-                return env._env.render(mode=render_mode)
-        active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
-        return {i: render(self._envs[i]) for i in active_env}
+        from ding.utils import render
+        return {i: render(self._envs[i]) for i in self.ready_obs.keys()}
 
     @property
     def done(self) -> bool:
@@ -173,7 +167,7 @@ class BaseEnvManager(object):
 
     @property
     def method_name_list(self) -> list:
-        return ['reset', 'step', 'seed', 'close', 'enable_save_replay']
+        return ['reset', 'step', 'seed', 'close', 'enable_save_replay', 'render']
 
     def env_state_done(self, env_id: int) -> bool:
         return self._env_states[env_id] == EnvState.DONE

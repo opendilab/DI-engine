@@ -319,6 +319,26 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             sleep_count += 1
         return {i: self._ready_obs[i] for i in self.ready_env}
 
+    @property
+    def ready_imgs(self, render_mode=('rgb_array')) -> Dict[int, Any]:
+        """
+        Overview:
+            Get the next observations.
+        Return:
+            A dictionary with observations and their environment IDs.
+        Note:
+            The observations are returned in np.ndarray.
+        Example:
+            >>>     obs_dict = env_manager.ready_obs
+            >>>     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}
+        """
+        for i in self.ready_env:
+            self._pipe_parents[i].send(['render', None, {'render_mode':render_mode}])
+        data = {i: self._pipe_parents[i].recv() for i in self.ready_env}
+        self._check_data(data)
+        return data
+    
+
     def launch(self, reset_param: Optional[Dict] = None) -> None:
         """
         Overview:
@@ -672,6 +692,9 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
                         if kwargs is None:
                             kwargs = {}
                         ret = reset_fn(*args, **kwargs)
+                    elif cmd == 'render':
+                        from ding.utils import render
+                        ret = render(env, **kwargs)
                     elif args is None and kwargs is None:
                         ret = getattr(env, cmd)()
                     else:

@@ -265,7 +265,6 @@ class InteractionSerialEvaluator(ISerialEvaluator):
 
         if render:
             videos = eval_monitor.get_video()
-            breakpoint()
             video_title = '{}_{}/'.format(self._instance_name, self._render.mode)
             render_iter = envstep if self._render.mode == 'envstep' else train_iter
             # TODO: change fps
