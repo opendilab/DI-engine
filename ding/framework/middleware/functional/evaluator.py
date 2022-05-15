@@ -156,6 +156,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
     """
 
     env.seed(cfg.seed, dynamic_seed=False)
+    from tensorboardX import SummaryWriter
+    tb_logger = SummaryWriter(cfg.exp_name)
 
     def _evaluate(ctx: "OnlineRLContext"):
         """
@@ -194,6 +196,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
                     eval_monitor.update_reward(env_id, reward)
         episode_reward = eval_monitor.get_episode_reward()
         eval_reward = np.mean(episode_reward)
+        tb_logger.add_scalar('basic/eval_episode_reward_mean-env_step', eval_reward, ctx.env_step)
+        tb_logger.add_scalar('basic/eval_episode_reward_mean-train_iter', eval_reward, ctx.train_iter)
         stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
         logging.info(
             'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
