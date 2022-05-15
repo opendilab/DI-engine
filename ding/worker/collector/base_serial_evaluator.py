@@ -143,13 +143,15 @@ class VectorEvalMonitor(object):
         videos = sum([list(v)[:e] for e, v in zip(self._each_env_episode, self._video.values())], [])
         videos = [np.transpose(np.stack(video, 0), [0,3,1,2]) for video in videos]
         sortarg = np.argsort(self.get_episode_reward())
-        # worst, median, best
+        # worst, median(s), best
         if len(sortarg) == 1:
             idxs = [sortarg[0]]
         elif len(sortarg) == 2:
             idxs = [sortarg[0], sortarg[-1]]
-        else:
+        elif len(sortarg) == 3:
             idxs = [sortarg[0], sortarg[len(sortarg)//2], sortarg[-1]]
+        else:
+            idxs = [sortarg[0], sortarg[len(sortarg)//2-1], sortarg[len(sortarg)//2], sortarg[-1]]
         videos = [videos[idx] for idx in idxs]
         # pad videos to the same length
         max_length = max(video.shape[0] for video in videos)
