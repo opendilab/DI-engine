@@ -104,3 +104,8 @@ ready_to_parallel_fns = [
 for fn_name in ready_to_parallel_fns:
     if hasattr(DistributedWriter, fn_name):
         setattr(DistributedWriter, fn_name, enable_parallel(fn_name, getattr(DistributedWriter, fn_name)))
+
+# Examples:
+#     In main, `distributed_writer.plugin(task.router, is_writer=True)`,
+#     In middleware, `distributed_writer.record()`
+distributed_writer = DistributedWriter()
