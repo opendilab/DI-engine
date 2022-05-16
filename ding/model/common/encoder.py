@@ -10,8 +10,8 @@ class ConvEncoder(nn.Module):
     """
     Overview:
         The ``Convolution Encoder`` used to encode raw 2-dim observations.
-    Interface:
-        ``__init__``, ``_get_flatten_size``, ``forward``
+    Interfaces:
+        ``__init__``, ``_get_flatten_size``, ``forward``.
     """
 
     def __init__(
@@ -26,19 +26,19 @@ class ConvEncoder(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the Convolution Encoder according to arguments.
+            Init the ``Convolution Encoder`` according to the provided arguments.
         Arguments:
             - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, plus one or more ``input size``.
             - hidden_size_list (:obj:`SequenceType`): Sequence of ``hidden_size`` of subsequent conv layers \
                 and the final dense layer.
-            - activation (:obj:`nn.Module`): Type of activation to use in the conv ``layers`` and ``ResBlock``, \
-                if ``None`` then default set to ``nn.ReLU()``.
+            - activation (:obj:`nn.Module`): Type of activation to use in the conv ``layers`` and ``ResBlock``. \
+                Default is ``nn.ReLU()``.
             - kernel_size (:obj:`SequenceType`): Sequence of ``kernel_size`` of subsequent conv layers.
             - stride (:obj:`SequenceType`): Sequence of ``stride`` of subsequent conv layers.
             - padding (:obj:`SequenceType`): Padding added to all four sides of the input for each conv layer. \
-                See ``nn.Conv2d`` for more details.
+                See ``nn.Conv2d`` for more details. Default is ``None``.
             - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResBlock`` \
-                for more details.
+                for more details. Default is ``None``.
         """
         super(ConvEncoder, self).__init__()
         self.obs_shape = obs_shape
@@ -68,6 +68,8 @@ class ConvEncoder(nn.Module):
             Get the encoding size after ``self.main`` to get the number of ``in-features`` to feed to ``nn.Linear``.
         Returns:
             - outputs (:obj:`torch.Tensor`): Size ``int`` Tensor representing the number of ``in-features``.
+        Shapes:
+            - outputs: :math:`(1,)`.
         """
         test_data = torch.randn(1, *self.obs_shape)
         with torch.no_grad():
@@ -82,6 +84,8 @@ class ConvEncoder(nn.Module):
             - x (:obj:`torch.Tensor`): Env raw observation.
         Returns:
             - outputs (:obj:`torch.Tensor`): Output embedding tensor.
+        Shapes:
+            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]``.
         """
         x = self.main(x)
         x = self.mid(x)
@@ -110,11 +114,10 @@ class FCEncoder(nn.Module):
         Arguments:
             - obs_shape (:obj:`int`): Observation shape.
             - hidden_size_list (:obj:`SequenceType`): Sequence of ``hidden_size`` of subsequent FC layers.
-            - res_block (:obj:`bool`): Whether use ``res_block``.
-            - activation (:obj:`nn.Module`): Type of activation to use in ``ResFCBlock``, \
-                if ``None`` then default set to ``nn.ReLU()``.
+            - res_block (:obj:`bool`): Whether use ``res_block``. Default is ``False``.
+            - activation (:obj:`nn.Module`): Type of activation to use in ``ResFCBlock``. Default is ``nn.ReLU()``.
             - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResFCBlock`` \
-                for more details.
+                for more details. Default is ``None``.
         """
         super(FCEncoder, self).__init__()
         self.obs_shape = obs_shape
@@ -145,6 +148,8 @@ class FCEncoder(nn.Module):
             - x (:obj:`torch.Tensor`): Env raw observation.
         Returns:
             - outputs (:obj:`torch.Tensor`): Output embedding tensor.
+        Shapes:
+            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]``.
         """
         x = self.act(self.init(x))
         x = self.main(x)

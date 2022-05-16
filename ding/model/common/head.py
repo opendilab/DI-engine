@@ -14,33 +14,35 @@ from ding.utils import lists_to_dicts, SequenceType
 class DiscreteHead(nn.Module):
     """
         Overview:
-            The ``Discrete Head`` used to output discrete actions logits.
+            The ``DiscreteHead`` used to output discrete actions logit. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``logit``.
         Interfaces:
             ``__init__``, ``forward``.
     """
 
     def __init__(
-        self,
-        hidden_size: int,
-        output_size: int,
-        layer_num: int = 1,
-        activation: Optional[nn.Module] = nn.ReLU(),
-        norm_type: Optional[str] = None,
-        noise: Optional[bool] = False,
+            self,
+            hidden_size: int,
+            output_size: int,
+            layer_num: int = 1,
+            activation: Optional[nn.Module] = nn.ReLU(),
+            norm_type: Optional[str] = None,
+            noise: Optional[bool] = False,
     ) -> None:
         """
         Overview:
-            Init the Head according to arguments.
+            Init the ``DiscreteHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``DiscreteHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``DiscreteHead``.
             - output_size (:obj:`int`): The number of outputs.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``, \
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
-            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
         """
         super(DiscreteHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
@@ -58,18 +60,16 @@ class DiscreteHead(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict discrete output.
+            Use encoded embedding tensor to run MLP with ``DiscreteHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``DiscreteHead`` setups and return the result prediction dictionary.
-
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
+            - outputs (:obj:`Dict`): Dict containing keyword ``logit`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
 
         Examples:
             >>> head = DiscreteHead(64, 64)
@@ -84,7 +84,10 @@ class DiscreteHead(nn.Module):
 class DistributionHead(nn.Module):
     """
         Overview:
-            The ``Distribution Head`` used to output Q-value distribution.
+            The ``DistributionHead`` used to output Q-value distribution. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+        outputs ``logit`` and ``distribution``.
+
         Interfaces:
             ``__init__``, ``forward``.
     """
@@ -102,22 +105,22 @@ class DistributionHead(nn.Module):
         noise: Optional[bool] = False,
         eps: Optional[float] = 1e-6,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the Head according to arguments.
+            Init the ``DistributionHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``DistributionHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``DistributionHead``.
             - output_size (:obj:`int`): The number of outputs.
-            - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
-            - n_atom (:obj:`int`): The number of atoms (discrete supports).
-            - v_min (:obj:`int`): Min value of atoms.
-            - v_max (:obj:`int`): Max value of atoms.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
-            - noise (:obj:`bool`): Whether use noisy ``fc_block``.
+            - layer_num (:obj:`int`): The number of layers used in the network to compute Q value distribution.
+            - n_atom (:obj:`int`): The number of atoms (discrete supports). Default is ``51``.
+            - v_min (:obj:`int`): Min value of atoms. Default is ``-10``.
+            - v_max (:obj:`int`): Max value of atoms. Default is ``10``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
             - eps (:obj:`float`): Small constant used for numerical stability.
         """
         super(DistributionHead, self).__init__()
@@ -141,19 +144,19 @@ class DistributionHead(nn.Module):
         self.eps = eps  # for numerical stability
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict Distribution output.
+            Use encoded embedding tensor to run MLP with ``DistributionHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``DistributionHead`` setups and return the result prediction dictionary.
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`) and \
+                ``distribution`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
+            - distribution: :math:`(B, M, n_atom)`.
 
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-                    - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``.
         Examples:
             >>> head = DistributionHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -174,7 +177,9 @@ class DistributionHead(nn.Module):
 class RainbowHead(nn.Module):
     """
         Overview:
-            The ``Rainbow Head`` used to output Q-value distribution.
+            The ``RainbowHead`` used to output Q-value distribution. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            outputs ``logit`` and ``distribution``.
         Interfaces:
             ``__init__``, ``forward``.
     """
@@ -192,22 +197,22 @@ class RainbowHead(nn.Module):
         noise: Optional[bool] = True,
         eps: Optional[float] = 1e-6,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the Head according to arguments.
+            Init the ``RainbowHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``RainbowHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``RainbowHead``.
             - output_size (:obj:`int`): The number of outputs.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
-            - n_atom (:obj:`int`): The number of atoms (discrete supports).
-            - v_min (:obj:`int`): Min value of atoms.
-            - v_max (:obj:`int`): Max value of atoms.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
-            - noise (:obj:`bool`): Whether use noisy ``fc_block``.
+            - n_atom (:obj:`int`): The number of atoms (discrete supports). Default is ``51``.
+            - v_min (:obj:`int`): Min value of atoms. Default is ``-10``.
+            - v_max (:obj:`int`): Max value of atoms. Default is ``10``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
             - eps (:obj:`float`): Small constant used for numerical stability.
         """
         super(RainbowHead, self).__init__()
@@ -242,19 +247,19 @@ class RainbowHead(nn.Module):
         self.eps = eps
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict Rainbow output.
+            Use encoded embedding tensor to run MLP with ``RainbowHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``RainbowHead`` setups and return the result prediction dictionary.
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`) and \
+                ``distribution`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
+            - distribution: :math:`(B, M, n_atom)`.
 
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-                    - distribution (:obj:`torch.Tensor`): Distribution tensor of size ``(B, N, n_atom)``
         Examples:
             >>> head = RainbowHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -278,7 +283,9 @@ class RainbowHead(nn.Module):
 class QRDQNHead(nn.Module):
     """
         Overview:
-            The ``QRDQN Head`` used to output Q-value distribution.
+            The ``QRDQNHead`` (Quantile Regression DQN) used to output action quantiles. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``logit``, ``q``, and ``tau``.
         Interfaces:
             ``__init__``, ``forward``.
     """
@@ -293,20 +300,20 @@ class QRDQNHead(nn.Module):
         norm_type: Optional[str] = None,
         noise: Optional[bool] = False,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the Head according to arguments.
+            Init the ``QRDQNHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``QRDQNHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``QRDQNHead``.
             - output_size (:obj:`int`): The number of outputs.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
-            - num_quantiles (:obj:`int`): The number of quantiles.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
-            - noise (:obj:`bool`): Whether use noisy ``fc_block``.
+            - num_quantiles (:obj:`int`): The number of quantiles. Default is ``32``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
         """
         super(QRDQNHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
@@ -326,20 +333,20 @@ class QRDQNHead(nn.Module):
         self.output_size = output_size
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict QRDQN output.
+            Use encoded embedding tensor to run MLP with ``QRDQNHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``QRDQNHead`` setups and return the result prediction dictionary.
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \
+                ``q`` (:obj:`torch.Tensor`), and ``tau`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
+            - q: :math:`(B, M, num_quantiles)`.
+            - tau: :math:`(B, M, 1)`.
 
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-                    - q (:obj:`torch.Tensor`): Q valye tensor tensor of size ``(B, N, num_quantiles)``
-                    - tau (:obj:`torch.Tensor`): tau tensor of size ``(B, N, 1)``
         Examples:
             >>> head = QRDQNHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -362,7 +369,9 @@ class QRDQNHead(nn.Module):
 class QuantileHead(nn.Module):
     """
         Overview:
-            The ``Quantile Head`` used to output Q-value distribution.
+            The ``QuantileHead`` used to output action quantiles. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``logit``, ``q``, and ``quantiles``.
         Interfaces:
             ``__init__``, ``forward``, ``quantile_net``.
     """
@@ -379,23 +388,23 @@ class QuantileHead(nn.Module):
         norm_type: Optional[str] = None,
         noise: Optional[bool] = False,
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the Head according to arguments.
+            Init the ``QuantileHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``QuantileHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``QuantileHead``.
             - output_size (:obj:`int`): The number of outputs.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
             - num_quantiles (:obj:`int`): The number of quantiles.
             - quantile_embedding_size (:obj:`int`): The embedding size of a quantile.
             - beta_function_type (:obj:`str`): Type of beta function. See ``ding.rl_utils.beta_function.py`` \
-                for more details.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
-            - noise (:obj:`bool`): Whether use noisy ``fc_block``.
+                for more details. Default is ``uniform``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
         """
         super(QuantileHead, self).__init__()
         layer = NoiseLinearLayer if noise else nn.Linear
@@ -420,13 +429,14 @@ class QuantileHead(nn.Module):
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
         """
         Overview:
-           Deterministic parametric function trained to reparameterize samples from a base distribution.
+           Deterministic parametric function trained to reparameterize samples from a base distribution. \
            By repeated Bellman update iterations of Q-learning, the optimal action-value function is estimated.
         Arguments:
             - x (:obj:`torch.Tensor`): The encoded embedding tensor of parametric sample.
         Returns:
-            - (:obj:`torch.Tensor`):
-                QN output tensor after reparameterization of shape ``(quantile_embedding_size, output_size)``.
+            - quantile_net (:obj:`torch.Tensor`): Quantile network output tensor after reparameterization.
+        Shapes:
+            - quantile_net :math:`(quantile_embedding_size, M)`, where ``M = output_size``.
         Examples:
             >>> head = QuantileHead(64, 64)
             >>> quantiles = torch.randn(128,1)
@@ -444,21 +454,20 @@ class QuantileHead(nn.Module):
         return quantile_net
 
     def forward(self, x: torch.Tensor, num_quantiles: Optional[int] = None) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict Quantile output.
+            Use encoded embedding tensor to run MLP with ``QuantileHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
-            - num_quantiles (:obj:`int`): Number of quantiles.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``QuantileHead`` setups and return the result prediction dictionary.
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`), \
+                ``q`` (:obj:`torch.Tensor`), and ``quantiles`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
+            - q: :math:`(num_quantiles, B, M)`.
+            - quantiles: :math:`(quantile_embedding_size, 1)`.
 
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
-                    - q (:obj:`torch.Tensor`): Q-value tensor tensor of size ``(num_quantiles, B, N)``.
-                    - quantiles (:obj:`torch.Tensor`): Quantiles tensor of size ``(quantile_embedding_size, 1)``.
         Examples:
             >>> head = QuantileHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -493,7 +502,9 @@ class QuantileHead(nn.Module):
 class DuelingHead(nn.Module):
     """
         Overview:
-            The ``Dueling Head`` used to output actions logits.
+            The ``DuelingHead`` used to output discrete actions logit. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``logit``.
         Interfaces:
             ``__init__``, ``forward``.
     """
@@ -511,18 +522,18 @@ class DuelingHead(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the Head according to arguments.
+            Init the ``DuelingHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``DuelingHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``DuelingHead``.
             - output_size (:obj:`int`): The number of outputs.
             - a_layer_num (:obj:`int`): The number of layers used in the network to compute action output.
             - v_layer_num (:obj:`int`): The number of layers used in the network to compute value output.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
-            - noise (:obj:`bool`): Whether use noisy ``fc_block``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
         """
         super(DuelingHead, self).__init__()
         if a_layer_num is None:
@@ -555,18 +566,17 @@ class DuelingHead(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict Dueling output.
+            Use encoded embedding tensor to run MLP with ``DuelingHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``DuelingHead`` setups and return the result prediction dictionary.
+            - outputs (:obj:`Dict`): Dict containing keyword ``logit`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, M)`, where ``M = output_size``.
 
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`): Logit tensor with same size as input ``x``.
         Examples:
             >>> head = DuelingHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -583,8 +593,10 @@ class DuelingHead(nn.Module):
 class StochasticDuelingHead(nn.Module):
     """
         Overview:
-            The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224), \
-            dueling network architecture in continuous action space.
+            The ``Stochastic Dueling Network`` proposed in paper ACER (arxiv 1611.01224). \
+            Dueling network architecture in continuous action space. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            outputs ``q_value`` and ``v_value``.
         Interfaces:
             ``__init__``, ``forward``.
     """
@@ -603,19 +615,23 @@ class StochasticDuelingHead(nn.Module):
     ) -> None:
         """
         Overview:
-            Initialize the head according to input arguments.
+             Init the ``Stochastic DuelingHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``StochasticDuelingHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``StochasticDuelingHead``.
             - action_shape (:obj:`int`): The number of continuous action shape, usually integer value.
-            - a_layer_num (:obj:`int`): The number of layers used in the network to compute action output.
-            - v_layer_num (:obj:`int`): The number of layers used in the network to compute value output.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
-            - noise (:obj:`bool`): Whether use noisy ``fc_block``.
-            - last_tanh (:obj:`bool`): Apply ``tanh`` to actions.
+            - layer_num (:obj:`int`): The number of default layers used in the network to compute action and value \
+                output.
+            - a_layer_num (:obj:`int`): The number of layers used in the network to compute action output. Default is \
+                ``layer_num``.
+            - v_layer_num (:obj:`int`): The number of layers used in the network to compute value output. Default is \
+                ``layer_num``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - noise (:obj:`bool`): Whether use ``NoiseLinearLayer`` as ``layer_fn`` in Q networks' MLP. \
+                Default ``False``.
+            - last_tanh (:obj:`bool`): If ``True`` Apply ``tanh`` to actions. Default ``True``.
         """
         super(StochasticDuelingHead, self).__init__()
         if a_layer_num is None:
@@ -661,21 +677,25 @@ class StochasticDuelingHead(nn.Module):
     ) -> Dict[str, torch.Tensor]:
         """
         Overview:
-            Use encoded observation, behaviour action and sampled actions with (mu, sigma) output by actor head \
-            at current timestep to get dueling Q-value, i.e. continuous dueling head.
+            Use encoded embedding tensor to run MLP with ``StochasticDuelingHead`` and return the prediction dictionary.
         Arguments:
-            - s (:obj:`torch.Tensor`): The encoded embedding state tensor, determined with given ``hidden_size``, \
-                i.e. shape is ``(B, N=hidden_size)``.
-            - a (:obj:`torch.Tensor`): The original continuous behaviour action, determined with ``action_size`` \
-                i.e. shape is ``(B, N=action_size)``.
+            - s (:obj:`torch.Tensor`): Tensor containing input embedding.
+            - a (:obj:`torch.Tensor`): The original continuous behaviour action.
             - mu (:obj:`torch.Tensor`): The ``mu`` gaussian reparameterization output of actor head at current \
-                timestep, size (B, action_size).
+                timestep.
             - sigma (:obj:`torch.Tensor`): The ``sigma`` gaussian reparameterization output of actor head at \
-                current timestep, size (B, action_size).
+                current timestep.
             - sample_size (:obj:`int`): The number of samples for continuous action when computing the Q value.
         Returns:
-            - outputs (:obj:`Dict[str, torch.Tensor]`): Output dict data, including q_value and v_value tensor, \
-                and their shape is ``(B, 1)``.
+            - outputs (:obj:`Dict`): Dict containing keywords \
+                ``q_value`` (:obj:`torch.Tensor`) and ``v_value`` (:obj:`torch.Tensor`).
+        Shapes:
+            - s: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - a: :math:`(B, A)`, where ``A = action_size``.
+            - mu: :math:`(B, A)`.
+            - sigma: :math:`(B, A)`.
+            - q_value: :math:`(B, 1)`.
+            - v_value: :math:`(B, 1)`.
         """
 
         batch_size = s.shape[0]  # batch_size or batch_size * T
@@ -706,7 +726,9 @@ class StochasticDuelingHead(nn.Module):
 class RegressionHead(nn.Module):
     """
         Overview:
-            The ``Regression Head`` used to output Q-value.
+            The ``RegressionHead`` used to output actions Q-value.
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``pred``.
         Interfaces:
             ``__init__``, ``forward``.
     """
@@ -720,19 +742,18 @@ class RegressionHead(nn.Module):
             activation: Optional[nn.Module] = nn.ReLU(),
             norm_type: Optional[str] = None
     ) -> None:
-        r"""
+        """
         Overview:
-            Init the Head according to arguments.
+            Init the ``RegressionHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``RegressionHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``RegressionHead``.
             - output_size (:obj:`int`): The number of outputs.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
-            - final_tanh (:obj:`bool`): Apply ``tanh`` to output.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
+            - final_tanh (:obj:`bool`): If ``True`` apply ``tanh`` to output. Default ``False``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
         """
         super(RegressionHead, self).__init__()
         self.main = MLP(hidden_size, hidden_size, hidden_size, layer_num, activation=activation, norm_type=norm_type)
@@ -744,16 +765,15 @@ class RegressionHead(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         """
         Overview:
-            Use encoded embedding tensor to predict Regression output.
+            Use encoded embedding tensor to run MLP with ``RegressionHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``RegressionHead`` setups and return the result prediction dictionary.
+            - outputs (:obj:`Dict`): Dict containing keyword ``pred`` (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - pred: :math:`(B, M)`, where ``M = output_size``.
 
-                Necessary Keys:
-                     - pred (:obj:`torch.Tensor`): Tensor with prediction value cells, with same size as input ``x``.
         Examples:
             >>> head = RegressionHead(64, 64)
             >>> inputs = torch.randn(4, 64)
@@ -773,7 +793,9 @@ class RegressionHead(nn.Module):
 class ReparameterizationHead(nn.Module):
     """
         Overview:
-            The ``Reparameterization Head`` used to output action ``mu`` and ``sigma``.
+            The ``ReparameterizationHead`` used to output action ``mu`` and ``sigma``.
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            outputs ``mu`` and ``sigma``.
         Interfaces:
             ``__init__``, ``forward``.
     """
@@ -794,19 +816,21 @@ class ReparameterizationHead(nn.Module):
     ) -> None:
         """
         Overview:
-            Init the Head according to arguments.
+            Init the ``ReparameterizationHead`` layers according to the provided arguments.
         Arguments:
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to ``ReparameterizationHead``.
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to ``ReparameterizationHead``.
             - output_size (:obj:`int`): The number of outputs.
             - layer_num (:obj:`int`): The number of layers used in the network to compute Q value output.
-            - sigma_type (:obj:`Optional[str]`): Sigma type used in ``['fixed', 'independent', 'conditioned']``.
-            - fixed_sigma_value(:obj:`Optional[float]`):
-                When choosing ``fixed`` type, the tensor ``output['sigma']`` is filled with this input value.
-            - activation (:obj:`nn.Module`):
-                The type of activation function to use in ``MLP`` the after ``layer_fn``,
-                if ``None`` then default set to ``nn.ReLU()``.
-            - norm_type (:obj:`str`):
-                The type of normalization to use. See ``ding.torch_utils.network.fc_block`` for more details.
+            - sigma_type (:obj:`str`): Sigma type used. Choose among \
+                ``['fixed', 'independent', 'conditioned']``. Default is ``None``.
+            - fixed_sigma_value (:obj:`float`): When choosing ``fixed`` type, the tensor ``output['sigma']`` \
+                is filled with this input value. Default is ``None``.
+            - activation (:obj:`nn.Module`): The type of activation function to use in MLP. \
+                If ``None``, then default set activation to ``nn.ReLU()``. Default ``None``.
+            - norm_type (:obj:`str`): The type of normalization to use. See ``ding.torch_utils.network.fc_block`` \
+                for more details. Default ``None``.
+            - bound_type (:obj:`str`): Bound type to apply to output ``mu``. Choose among ``['tanh', None]``. \
+                Default is ``None``.
         """
         super(ReparameterizationHead, self).__init__()
         self.sigma_type = sigma_type
@@ -827,19 +851,20 @@ class ReparameterizationHead(nn.Module):
             self.log_sigma_layer = nn.Linear(hidden_size, output_size)
 
     def forward(self, x: torch.Tensor) -> Dict:
-        r"""
+        """
         Overview:
-            Use encoded embedding tensor to predict Reparameterization output.
+            Use encoded embedding tensor to run MLP with ``ReparameterizationHead`` and return the prediction \
+            dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`):
-                The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Run ``MLP`` with ``ReparameterizationHead`` setups and return the result prediction dictionary.
-
-                Necessary Keys:
-                    - mu (:obj:`torch.Tensor`) Tensor of cells of updated mu values of size ``(B, action_size)``.
-                    - sigma (:obj:`torch.Tensor`) Tensor of cells of updated sigma values of size ``(B, action_size)``.
+            - outputs (:obj:`Dict`): Dict containing keywords ``mu`` (:obj:`torch.Tensor`) and ``sigma`` \
+                (:obj:`torch.Tensor`).
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - mu: :math:`(B, M)`, where ``M = output_size``.
+            - sigma: :math:`(B, M)`.
+        
         Examples:
             >>> head =  ReparameterizationHead(64, 64, sigma_type='fixed')
             >>> inputs = torch.randn(4, 64)
@@ -866,7 +891,9 @@ class ReparameterizationHead(nn.Module):
 class MultiHead(nn.Module):
     """
         Overview:
-            The ``MultiHead Head`` used to output actions logits.
+            The ``MultiHead`` used to output actions logit. \
+            Input is a (:obj:`torch.Tensor`) of shape ``(B, N)`` and returns a (:obj:`Dict`) containing \
+            output ``logit``.
         Interfaces:
             ``__init__``, ``forward``.
     """
@@ -874,13 +901,13 @@ class MultiHead(nn.Module):
     def __init__(self, head_cls: type, hidden_size: int, output_size_list: SequenceType, **head_kwargs) -> None:
         """
         Overview:
-            Init the MultiHead according to arguments.
+            Init the ``MultiHead`` layers according to the provided arguments.
         Arguments:
-            - head_cls (:obj:`type`): The class of head, like ``DuelingHead``, ``DistributionHead``, ``QuatileHead``, \
-                etc.
-            - hidden_size (:obj:`int`): The ``hidden_size`` of the ``MLP`` connected to the ``Head``.
+            - head_cls (:obj:`type`): The class of head, choose among [``DuelingHead``, ``DistributionHead``, \
+                ''QuatileHead'', ...].
+            - hidden_size (:obj:`int`): The ``hidden_size`` of the MLP connected to the ``Head``.
             - output_size_list (:obj:`int`): Sequence of ``output_size`` for multi discrete action, e.g. ``[2, 3, 5]``.
-            - head_kwargs: (:obj:`dict`): Class-specific arguments.
+            - head_kwargs: (:obj:`dict`): Dict containing class-specific arguments.
         """
         super(MultiHead, self).__init__()
         self.pred = nn.ModuleList()
@@ -890,17 +917,15 @@ class MultiHead(nn.Module):
     def forward(self, x: torch.Tensor) -> Dict:
         """
         Overview:
-            Use encoded embedding tensor to predict multi discrete output.
+            Use encoded embedding tensor to run MLP with ``MultiHead`` and return the prediction dictionary.
         Arguments:
-            - x (:obj:`torch.Tensor`): The encoded embedding tensor, usually with shape ``(B, N)``.
+            - x (:obj:`torch.Tensor`): Tensor containing input embedding.
         Returns:
-            - outputs (:obj:`Dict`):
-                Prediction output dict.
-
-                Necessary Keys:
-                    - logit (:obj:`torch.Tensor`):
-                        Logit tensor with logit tensors indexed by ``output`` each accessed at ``['logit'][i]``. \
-                        Given that ``output_size_list==[o1,o2,o3,...]`` , ``['logit'][i]`` is of size ``(B,Ni)``.
+            - outputs (:obj:`Dict`): Dict containing keywords ``logit`` (:obj:`torch.Tensor`) \
+                corresponding to the logit of each ``output`` each accessed at ``['logit'][i]``.
+        Shapes:
+            - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
+            - logit: :math:`(B, Mi)`, where ``Mi = output_size`` corresponding to output ``i``.
 
         Examples:
             >>> head = MultiHead(DuelingHead, 64, [2, 3, 5], v_layer_num=2)
