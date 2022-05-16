@@ -22,13 +22,13 @@ class DiscreteHead(nn.Module):
     """
 
     def __init__(
-            self,
-            hidden_size: int,
-            output_size: int,
-            layer_num: int = 1,
-            activation: Optional[nn.Module] = nn.ReLU(),
-            norm_type: Optional[str] = None,
-            noise: Optional[bool] = False,
+        self,
+        hidden_size: int,
+        output_size: int,
+        layer_num: int = 1,
+        activation: Optional[nn.Module] = nn.ReLU(),
+        norm_type: Optional[str] = None,
+        noise: Optional[bool] = False,
     ) -> None:
         """
         Overview:
@@ -864,7 +864,7 @@ class ReparameterizationHead(nn.Module):
             - x: :math:`(B, N)`, where ``B = batch_size`` and ``N = hidden_size``.
             - mu: :math:`(B, M)`, where ``M = output_size``.
             - sigma: :math:`(B, M)`.
-        
+
         Examples:
             >>> head =  ReparameterizationHead(64, 64, sigma_type='fixed')
             >>> inputs = torch.randn(4, 64)
