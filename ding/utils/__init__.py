@@ -13,7 +13,7 @@ from .k8s_helper import get_operator_server_kwargs, exist_operator_server, DEFAU
     K8sLauncher
 from .lock_helper import LockContext, LockContextType, get_file_lock, get_rw_file_lock
 from .log_helper import build_logger, pretty_print, LoggerFactory
-from .log_writer_helper import DistributedWriter, distributed_writer
+from .log_writer_helper import DistributedWriter
 from .orchestrator_launcher import OrchestratorLauncher
 from .profiler_helper import Profiler, register_profiler
 from .registry_factory import registries, POLICY_REGISTRY, ENV_REGISTRY, LEARNER_REGISTRY, COMM_LEARNER_REGISTRY, \
