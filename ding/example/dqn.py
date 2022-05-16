@@ -8,7 +8,7 @@ from ding.config import compile_config
 from ding.framework import task
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver
+    eps_greedy_handler, CkptSaver, traffic_server
 from ding.utils import set_pkg_seed
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
 
@@ -32,6 +32,19 @@ def main():
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         policy = DQNPolicy(cfg.policy, model=model)
 
+        task.use(
+            traffic_server(
+                cfg,
+                process_dict={
+                    "cur_lr": ["mean"],
+                    "total_loss": ["mean"],
+                    "q_value": ["mean"],
+                    "last_eval_iter": ["last"],
+                    "eval_reward": ["mean", "std", "max", "min"]
+                },
+                online_analyse=True
+            )
+        )
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))

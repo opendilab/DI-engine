@@ -27,6 +27,7 @@ from .system_helper import get_ip, get_pid, get_task_uid, PropagatingThread, fin
 from .time_helper import build_time_helper, EasyTimer, WatchDog
 from .type_helper import SequenceType
 from .fast_copy import fastcopy
+from .traffic_helper import traffic
 
 if ding.enable_linklink:
     from .linklink_dist_helper import get_rank, get_world_size, dist_mode, dist_init, dist_finalize, \
