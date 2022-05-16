@@ -48,13 +48,14 @@ class OnlineRLContext(Context):
         self.env_episode = 0
         self.train_iter = 0
         self.train_data = None
+        self.train_output = None
         # collect
         self.collect_kwargs = {}
         self.trajectories = None
         self.episodes = None
         self.trajectory_end_idx = []
         # eval
-        self.eval_value = -np.inf
+        self.eval_value = None
         self.last_eval_iter = -1
 
         self.keep('env_step', 'env_episode', 'train_iter', 'last_eval_iter')
@@ -70,8 +71,9 @@ class OfflineRLContext(Context):
         self.train_epoch = 0
         self.train_iter = 0
         self.train_data = None
+        self.train_output = None
         # eval
-        self.eval_value = -np.inf
+        self.eval_value = None
         self.last_eval_iter = -1
 
         self.keep('train_iter', 'last_eval_iter')
