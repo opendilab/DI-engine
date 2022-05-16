@@ -52,7 +52,7 @@ def eval(
 
     # Create components: env, policy, evaluator
     if env_setting is None:
-        env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+        env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env, collect=False)
     else:
         env_fn, _, evaluator_env_cfg = env_setting
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
@@ -124,7 +124,7 @@ def collect_demo_data(
 
     # Create components: env, policy, collector
     if env_setting is None:
-        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env)
+        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env, eval_=False)
     else:
         env_fn, collector_env_cfg, _ = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
@@ -208,7 +208,7 @@ def collect_episodic_demo_data(
 
     # Create components: env, policy, collector
     if env_setting is None:
-        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env)
+        env_fn, collector_env_cfg, _ = get_vec_env_setting(cfg.env, eval_=False)
     else:
         env_fn, collector_env_cfg, _ = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
