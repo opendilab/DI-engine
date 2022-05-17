@@ -33,14 +33,13 @@ class EnvSupervisor(Supervisor):
     Manage multiple envs with supervisor.
 
     New features (compared to env manager):
-    1. Consistent interface in multi-process and multi-threaded mode.
-    2. Add asynchronous features and recommend using asynchronous methods.
-    3. Automatic recovery of error-prone environments.
+    - Consistent interface in multi-process and multi-threaded mode.
+    - Add asynchronous features and recommend using asynchronous methods.
+    - Automatic recovery of error-prone environments.
 
     Breaking changes (compared to env manager):
-    1. Without properties from __getattr__.
-    2. Without some states.
-    3. Change auto_reset to a step feature instead of a global config.
+    - Without some states.
+    - Change auto_reset to a step feature instead of a global config.
     """
 
     def __init__(
@@ -183,7 +182,10 @@ class EnvSupervisor(Supervisor):
         req_seqs = {}
 
         def reset_fn(env_id, kw_param, max_try):
-            for _ in range(max_try):
+            yield self._reset(env_id, kw_param)
+            for _ in range(1, max_try):
+                if self._retry_type == EnvRetryType.RENEW:
+                    self._children[env_id].restart()
                 yield self._reset(env_id, kw_param)
 
         for env_id, kw_param in reset_param.items():

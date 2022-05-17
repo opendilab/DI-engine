@@ -1,3 +1,4 @@
+from copy import copy
 import multiprocessing as mp
 import threading
 import queue
@@ -30,6 +31,7 @@ class RecvPayload:
 
 class ReserveMethod(Enum):
     SHUTDOWN = "_shutdown"
+    GETATTR = "_getattr"
 
 
 class ChildType(Enum):
@@ -71,7 +73,10 @@ class Child:
                 send_payload: SendPayload = send_queue.get()
                 if send_payload.reserve_method == ReserveMethod.SHUTDOWN:
                     break
-                data = getattr(child_ins, send_payload.method)(*send_payload.args, **send_payload.kwargs)
+                if send_payload.reserve_method == ReserveMethod.GETATTR:
+                    data = getattr(child_ins, send_payload.args[0])
+                else:
+                    data = getattr(child_ins, send_payload.method)(*send_payload.args, **send_payload.kwargs)
                 recv_queue.put(
                     RecvPayload(proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, data=data)
                 )
@@ -209,12 +214,13 @@ class Supervisor:
         Returns:
             - recv_payload (:obj:`RecvPayload`): Recv payload.
         """
-        return_payloads = []
-        while req_ids:
+        return_payloads = {}
+        req_ids_copy = copy(req_ids)
+        while req_ids_copy:
             recv_payload: RecvPayload = self._recv_queue.get()
-            if recv_payload.req_id in req_ids:
-                req_ids.remove(recv_payload.req_id)
-                return_payloads.append(recv_payload)
+            if recv_payload.req_id in req_ids_copy:
+                req_ids_copy.remove(recv_payload.req_id)
+                return_payloads[recv_payload.req_id] = recv_payload
                 if recv_payload.err:
                     if ignore_err:
                         self._children[recv_payload.proc_id].restart()
@@ -223,13 +229,22 @@ class Supervisor:
             else:
                 # Put back the unrelated payload.
                 self._recv_queue.put(recv_payload)
-        return return_payloads
+        # Keep the original order of requests.
+        return [return_payloads[req_id] for req_id in req_ids]
 
     def shutdown(self) -> None:
         for child in self._children:
             child.shutdown()
         while not self._recv_queue.empty():
             self._recv_queue.get()
+
+    def __getattr__(self, key: str) -> List[Any]:
+        req_ids = []
+        for i, child in enumerate(self._children):
+            payload = SendPayload(proc_id=i, reserve_method=ReserveMethod.GETATTR, args=[key])
+            req_ids.append(payload.req_id)
+            child.send(payload)
+        return [payload.data for payload in self.recv_all(req_ids)]
 
     def __del__(self) -> None:
         self.shutdown()

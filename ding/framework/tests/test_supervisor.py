@@ -12,6 +12,10 @@ class MockEnv():
         self._counter += 1
         return self._counter
 
+    @property
+    def action_space(self):
+        return 3
+
 
 @pytest.mark.unittest
 def test_supervisor():
@@ -46,8 +50,14 @@ def test_supervisor():
         ## Only wait for last two messages, keep the first one in the queue.
         recv_payloads = sv.recv_all(req_ids=req_ids[1:])
         assert len(recv_payloads) == 2
+        for req_id, payload in zip(req_ids[1:], recv_payloads):
+            assert req_id == payload.req_id
+
         recv_payload = sv.recv()
         assert recv_payload.req_id == req_ids[0]
+
+        assert len(sv.action_space) == 3
+        assert all(a == 3 for a in sv.action_space)
 
         sv.shutdown()
 

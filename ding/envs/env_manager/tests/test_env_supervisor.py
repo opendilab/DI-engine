@@ -90,18 +90,19 @@ class TestEnvSupervisorCompatible:
             # assert env_supervisor.time_id[0] == env_id_0
             assert all([state == EnvState.RUN for state in env_supervisor.env_states.values()])
 
-            return
-            env_manager._retry_type = 'renew'
-            env_id_0 = env_manager.time_id[0]
-            reset_param[0] = {'stat': 'error_once'}
-            env_manager.reset(reset_param)
-            assert not env_manager._closed
-            assert env_manager.time_id[0] != env_id_0
+            env_supervisor._retry_type = 'renew'
+            env_id_0 = env_supervisor.time_id[0]
 
+            reset_param[0] = {'stat': 'error_once'}
+            env_supervisor.reset(reset_param)
+            assert not env_supervisor._closed
+            assert env_supervisor.time_id[0] != env_id_0
+
+            return
             # Test step catched error
-            action = [np.random.randn(4) for i in range(env_manager.env_num)]
+            action = [np.random.randn(4) for i in range(env_supervisor.env_num)]
             action[0] = 'catched_error'
-            timestep = env_manager.step(action)
+            timestep = env_supervisor.step(action)
             assert timestep[0].info.abnormal
             assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
             assert all([env_manager._env_states[i] == EnvState.RUN for i in range(env_manager.env_num)])
