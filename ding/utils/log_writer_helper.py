@@ -17,6 +17,7 @@ class DistributedWriter(SummaryWriter):
         The best way is to use it in conjunction with the ``router`` to take advantage of the message \
             and event components of the router (see ``writer.plugin``).
     """
+    root = None
 
     def __init__(self, *args, **kwargs):
         self._default_writer_to_disk = kwargs.get("write_to_disk") if "write_to_disk" in kwargs else True
@@ -29,6 +30,21 @@ class DistributedWriter(SummaryWriter):
         self._router = None
         self._is_writer = False
         self._lazy_initialized = False
+
+    @classmethod
+    def get_instance(cls, *args, **kwargs) -> "DistributedWriter":
+        """
+        Overview:
+            Get instance and set the root level instance on the first called. If args and kwargs is none,
+            this method will return root instance.
+        """
+        if args or kwargs:
+            ins = cls(*args, **kwargs)
+            if cls.root is None:
+                cls.root = ins
+            return ins
+        else:
+            return cls.root
 
     def plugin(self, router: "Parallel", is_writer: bool = False) -> "DistributedWriter":
         """
