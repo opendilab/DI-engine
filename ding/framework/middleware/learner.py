@@ -19,11 +19,11 @@ class OffPolicyLearner:
     """
 
     def __init__(
-        self,
-        cfg: EasyDict,
-        policy,
-        buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
-        reward_model=None
+            self,
+            cfg: EasyDict,
+            policy,
+            buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
+            reward_model=None
     ) -> None:
         """
         Arguments:
@@ -55,7 +55,13 @@ class OffPolicyLearner:
                 self._reward_estimator(ctx)
             self._trainer(ctx)
             train_output_queue.append(ctx.train_output)
-            traffic.record(info=ctx.train_output, __train_iter=ctx.train_iter, __label="learner")
+            traffic.record(
+                info=ctx.train_output,
+                #cur_lr=ctx.train_output["cur_lr"],
+                #total_loss=ctx.train_output["total_loss"],
+                train_iter=ctx.train_iter,
+                __label="learner"
+            )
         ctx.train_output = train_output_queue
 
 
@@ -68,11 +74,11 @@ class HERLearner:
     """
 
     def __init__(
-        self,
-        cfg: EasyDict,
-        policy,
-        buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
-        her_reward_model,
+            self,
+            cfg: EasyDict,
+            policy,
+            buffer_: Union[Buffer, List[Tuple[Buffer, float]], Dict[str, Buffer]],
+            her_reward_model,
     ) -> None:
         """
         Arguments:

@@ -6,6 +6,7 @@ import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
 from ding.framework import task
+from ding.utils import traffic
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext

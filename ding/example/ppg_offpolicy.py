@@ -7,10 +7,12 @@ from ding.data import DequeBuffer
 from ding.data.buffer.middleware import use_time_check, sample_range_view
 from ding.config import compile_config
 from ding.framework import task
+from ding.framework.parallel import Parallel
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    CkptSaver, gae_estimator
+    CkptSaver, gae_estimator, traffic_server
 from ding.utils import set_pkg_seed
+from ding.utils import traffic
 from dizoo.classic_control.cartpole.config.cartpole_ppg_config import main_config, create_config
 
 
@@ -40,7 +42,9 @@ def main():
         value_buffer.use(use_time_check(value_buffer, max_use=buffer_cfg.value.max_use))
         value_buffer.use(sample_range_view(value_buffer, start=-buffer_cfg.value.replay_buffer_size))
         policy = PPGPolicy(cfg.policy, model=model)
+        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
 
+        task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))
         task.use(gae_estimator(cfg, policy.collect_mode, buffer_))

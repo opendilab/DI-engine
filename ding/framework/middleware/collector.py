@@ -5,6 +5,7 @@ from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task
 from .functional import inferencer, rolloutor, TransitionList
+from ding.utils import traffic
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
@@ -61,6 +62,10 @@ class StepCollector:
                 self._transitions.clear()
                 break
 
+        traffic.record(
+            total_step=ctx.total_step, env_step=ctx.env_step, env_episode=ctx.env_episode, __label="StepCollector"
+        )
+
 
 class EpisodeCollector:
     """
@@ -111,6 +116,10 @@ class EpisodeCollector:
                 ctx.episodes = self._transitions.to_episodes()
                 self._transitions.clear()
                 break
+
+        traffic.record(
+            total_step=ctx.total_step, env_step=ctx.env_step, env_episode=ctx.env_episode, __label="EpisodeCollector"
+        )
 
 
 # TODO battle collector

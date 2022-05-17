@@ -7,10 +7,12 @@ from ding.envs import BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
+from ding.framework.parallel import Parallel
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import HERLearner, EpisodeCollector, interaction_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver
+    eps_greedy_handler, CkptSaver, traffic_server
 from ding.utils import set_pkg_seed
+from ding.utils import traffic
 from dizoo.bitflip.envs import BitFlipEnv
 from dizoo.bitflip.config.bitflip_her_dqn_config import main_config, create_config
 
@@ -32,7 +34,9 @@ def main():
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         policy = DQNPolicy(cfg.policy, model=model)
         her_reward_model = HerRewardModel(cfg.policy.other.her, cfg.policy.cuda)
+        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
 
+        task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(EpisodeCollector(cfg, policy.collect_mode, collector_env))

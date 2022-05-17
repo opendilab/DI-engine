@@ -7,10 +7,12 @@ from ding.data import DequeBuffer
 from ding.data.buffer.middleware import PriorityExperienceReplay
 from ding.config import compile_config
 from ding.framework import task
+from ding.framework.parallel import Parallel
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver
+    eps_greedy_handler, CkptSaver, traffic_server
 from ding.utils import set_pkg_seed
+from ding.utils import traffic
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
 
 
@@ -36,7 +38,9 @@ def main():
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         buffer_.use(PriorityExperienceReplay(buffer_, IS_weight=True))
         policy = DQNPolicy(cfg.policy, model=model)
+        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
 
+        task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))

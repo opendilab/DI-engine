@@ -6,9 +6,11 @@ from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import create_dataset
 from ding.config import compile_config
 from ding.framework import task
+from ding.framework.parallel import Parallel
 from ding.framework.context import OfflineRLContext
-from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher
+from ding.framework.middleware import interaction_evaluator, trainer, CkptSaver, offline_data_fetcher, traffic_server
 from ding.utils import set_pkg_seed
+from ding.utils import traffic
 from dizoo.classic_control.pendulum.envs.pendulum_env import PendulumEnv
 from dizoo.classic_control.pendulum.config.pendulum_cql_config import main_config, create_config
 
@@ -28,7 +30,9 @@ def main():
         dataset = create_dataset(cfg)
         model = QAC(**cfg.policy.model)
         policy = CQLPolicy(cfg.policy, model=model)
+        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
 
+        task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(offline_data_fetcher(cfg, dataset))
         task.use(trainer(cfg, policy.learn_mode))

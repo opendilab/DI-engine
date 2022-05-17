@@ -40,6 +40,7 @@ def fn_record_something() -> Callable:
             time.sleep(0.01)
             if task.finish:
                 time.sleep(0.01)
+                assert len(traffic._data) == 10
                 assertIsFile(file_path)
                 clean_up(dir)
                 traffic.close()
@@ -55,7 +56,7 @@ def fn_send_something() -> Callable:
     def _fn(ctx: "Context") -> None:
         nonlocal i
         i += 1
-        traffic.record(train_iter=i, train_reward=random.random())
+        traffic.record(train_iter=i, train_reward=i)
         traffic.record(eval_iter=i, eval_reward=random.random())
 
     return _fn
@@ -85,6 +86,7 @@ class TestTrafficModule:
         for eval_iter in range(10):
             traffic.record(eval_iter=eval_iter, eval_reward=random.random())
         assertIsFile(file_path)
+        assert len(traffic._data) == 20
         assert traffic.df.size == 100
         clean_up(dir)
 
@@ -98,33 +100,6 @@ repeats = 100
 def get_mean_std(res):
     # return the total time per 1000 ops
     return np.mean(res) * 1000.0 / repeats, np.std(res) * 1000.0 / repeats
-
-
-def last(x):
-    if x.last_valid_index() is None:
-        return np.nan
-    else:
-        return x[x.last_valid_index()]
-
-
-def min(x):
-    #return x.iloc[-100:].min()
-    return x.min()
-
-
-def max(x):
-    #return x.iloc[-100:].max()
-    return x.max()
-
-
-def mean(x):
-    #return x.iloc[-100:].mean()
-    return x.mean()
-
-
-def std(x):
-    #return x.iloc[-100:].std()
-    return x.std()
 
 
 class TrafficBenchmark:
@@ -142,9 +117,11 @@ class TrafficBenchmark:
         L = self._traffic.df.replace('', np.nan).ffill().iloc[-1].tolist()
 
     def extract_df(self):
+        self._traffic._cache.clear()
         L = self._traffic.df.ffill().iloc[-1].tolist()
 
     def aggregate(self):
+        self._traffic._cache.clear()
         df_gb = self._traffic.df.groupby('__label')
         L = df_gb.agg(
             {
@@ -158,9 +135,10 @@ class TrafficBenchmark:
         )
 
 
+@pytest.mark.benchmark
 def test_benchmark():
 
-    test_traffic = TrafficBenchmark(file_path="./test_traffic_benchmark.txt")
+    test_traffic = TrafficBenchmark(file_path="./tmp_test/test_traffic_benchmark.txt")
 
     mean, std = get_mean_std(timeit.repeat(test_traffic.record_info, number=repeats))
     print("Record Test:  mean {:.4f} s, std {:.4f} s".format(mean, std))
@@ -168,9 +146,10 @@ def test_benchmark():
     for i in range(5000):
         test_traffic.record_info()
 
+    mean, std = get_mean_std(timeit.repeat(test_traffic.extract_df, number=repeats))
+    print("Process extract df Test:  mean {:.4f} s, std {:.4f} s".format(mean, std))
+
     mean, std = get_mean_std(timeit.repeat(test_traffic.aggregate, number=repeats))
-    print("Process Test:  mean {:.4f} s, std {:.4f} s".format(mean, std))
+    print("Process aggregate df Test:  mean {:.4f} s, std {:.4f} s".format(mean, std))
 
-
-if __name__ == "__main__":
-    test_benchmark()
+    clean_up("./tmp_test/")

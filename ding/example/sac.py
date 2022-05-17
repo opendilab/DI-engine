@@ -6,10 +6,12 @@ from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
+from ding.framework.parallel import Parallel
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import data_pusher, StepCollector, interaction_evaluator, \
-    CkptSaver, OffPolicyLearner, termination_checker
+    CkptSaver, OffPolicyLearner, termination_checker, traffic_server
 from ding.utils import set_pkg_seed
+from ding.utils import traffic
 from dizoo.classic_control.pendulum.envs.pendulum_env import PendulumEnv
 from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
 
@@ -26,7 +28,9 @@ def main():
         model = QAC(**cfg.policy.model)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         policy = SACPolicy(cfg.policy, model=model)
+        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
 
+        task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(
             StepCollector(cfg, policy.collect_mode, collector_env, random_collect_size=cfg.policy.random_collect_size)

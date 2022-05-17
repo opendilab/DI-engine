@@ -7,10 +7,12 @@ from ding.envs import DingEnvWrapper, BaseEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
+from ding.framework.parallel import Parallel
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, \
-    eps_greedy_handler, CkptSaver, eps_greedy_masker, sqil_data_pusher
+    eps_greedy_handler, CkptSaver, eps_greedy_masker, sqil_data_pusher, traffic_server
 from ding.utils import set_pkg_seed
+from ding.utils import traffic
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import main_config as ex_main_config
 from dizoo.classic_control.cartpole.config.cartpole_sql_config import create_config as ex_create_config
 from dizoo.classic_control.cartpole.config.cartpole_sqil_config import main_config, create_config
@@ -48,7 +50,9 @@ def main():
         expert_policy = SQLPolicy(expert_cfg.policy, model=expert_model)
         state_dict = torch.load(cfg.policy.collect.model_path, map_location='cpu')
         expert_policy.collect_mode.load_state_dict(state_dict)
+        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
 
+        task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))  # agent data collector
