@@ -8,7 +8,8 @@ from ding.config import compile_config
 from ding.framework import task
 from ding.framework.parallel import Parallel
 from ding.framework.context import OnlineRLContext
-from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, gae_estimator, traffic_server
+from ding.framework.middleware import multistep_trainer, StepCollector, interaction_evaluator, CkptSaver, gae_estimator, \
+    traffic_server
 from ding.utils import set_pkg_seed
 from ding.utils import traffic
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import main_config, create_config
