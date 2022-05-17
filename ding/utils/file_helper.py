@@ -4,7 +4,7 @@ import os
 import pickle
 import time
 from functools import lru_cache
-from typing import NoReturn, Union
+from typing import Union
 
 import torch
 
@@ -295,7 +295,7 @@ def read_file(path: str, fs_type: Union[None, str] = None, use_lock: bool = Fals
     return data
 
 
-def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_lock: bool = False) -> NoReturn:
+def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_lock: bool = False) -> None:
     r"""
     Overview:
         Save data to file of path
@@ -326,7 +326,7 @@ def save_file(path: str, data: object, fs_type: Union[None, str] = None, use_loc
         read_from_mc(path, flush=True)
 
 
-def remove_file(path: str, fs_type: Union[None, str] = None) -> NoReturn:
+def remove_file(path: str, fs_type: Union[None, str] = None) -> None:
     r"""
     Overview:
         Remove file

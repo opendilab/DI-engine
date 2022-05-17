@@ -19,7 +19,7 @@ cartpole_r2d2_config = dict(
             action_shape=2,
             encoder_hidden_size_list=[128, 128, 64],
         ),
-        discount_factor=0.997,
+        discount_factor=0.995,
         nstep=5,
         burnin_step=2,
         # (int) the whole sequence length to unroll the RNN network minus
@@ -32,7 +32,7 @@ cartpole_r2d2_config = dict(
             # samples, the length of each sample sequence is <burnin_step> + <unroll_len>,
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
-            update_per_collect=8,
+            update_per_collect=5,
             batch_size=64,
             learning_rate=0.0005,
             target_update_theta=0.001,
@@ -44,6 +44,7 @@ cartpole_r2d2_config = dict(
             # unless the episode enters the 'done' state.
             # In each collect phase, we collect a total of <n_sample> sequence samples.
             n_sample=32,
+            unroll_len=2 + 40,
             traj_len_inf=True,
             env_num=collector_env_num,
         ),
