@@ -1,9 +1,4 @@
-
-from ding.envs.env import BaseEnv
-from ding.envs.env_manager import BaseEnvManager
-
-
-def render(env: BaseEnv, render_mode=('rgb_array')):
+def render(env, render_mode=('rgb_array')):
     '''
     Overview:
         Render the environment's current frame.
@@ -21,7 +16,7 @@ def render(env: BaseEnv, render_mode=('rgb_array')):
         # other
         return env._env.render(mode=render_mode)
 
-def fps(env_manager: BaseEnvManager):
+def fps(env_manager):
     '''
     Overview:
         Render the environment's fps.
