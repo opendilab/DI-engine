@@ -32,7 +32,7 @@ def ddp_termination_checker(max_env_step=None, max_train_iter=None, rank=0):
             elif ctx.train_iter > max_train_iter:
                 finish = torch.ones(1).long().cuda()
             else:
-                finish = torch.zeros(1).long().cuda()
+                finish = torch.LongTensor([task.finish]).cuda()
         else:
             finish = torch.zeros(1).long().cuda()
         broadcast(finish, 0)
@@ -75,7 +75,7 @@ def main():
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
             if rank == 0:
                 task.use(CkptSaver(cfg, policy, train_freq=1000))
-            task.use(ddp_termination_checker(max_train_iter=int(1e7), rank=rank))
+            task.use(ddp_termination_checker(max_env_step=int(1e7), rank=rank))
             task.run()
 
 
