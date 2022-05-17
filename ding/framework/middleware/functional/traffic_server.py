@@ -28,7 +28,7 @@ def traffic_server(execution_period: int = 1) -> Callable:
         """
         Overview:
             Make online analysis if needed. \
-                Listen and record data and save it offline. 
+                Listen and record data and save it offline.
         Arguments:
             - ctx (:obj:`Context`): Context of task object.
         """
@@ -38,7 +38,6 @@ def traffic_server(execution_period: int = 1) -> Callable:
         else:
             ctx.traffic_step = 0
 
-        #if traffic.df.index.size > 10 and traffic.df.groupby("__label").ngroups >= 2 and ctx.traffic_step % execution_rate == 0:
         if traffic.df.index.size > 10 and ctx.traffic_step % execution_period == 0:
             L = traffic.df.drop(["__label", "__time"],
                                 axis=1).replace('', np.nan).ffill().iloc[-1].to_frame(name="values").T
