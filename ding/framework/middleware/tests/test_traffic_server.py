@@ -5,6 +5,11 @@ from ding.framework import Parallel
 from ding.framework.middleware import traffic_server
 
 
+def clean_up(dir):
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+
+
 def fn_record_something():
 
     def _fn(ctx: "Context"):
@@ -22,6 +27,7 @@ def parallel_main():
             traffic.set_config(router=Parallel())
             task.use(fn_record_something())
         task.run(max_step=10)
+    clean_up("./traffic_test/log.txt")
 
 
 def main():
@@ -30,6 +36,7 @@ def main():
         task.use(traffic_server())
         task.use(fn_record_something())
         task.run(max_step=10)
+    clean_up("./traffic_test/log.txt")
 
 
 @pytest.mark.unittest

@@ -27,7 +27,7 @@ def traffic_server(execution_period: int = 1) -> Callable:
     def _traffic_server_main(ctx: "Context") -> None:
         """
         Overview:
-            Analysing traffic data. 
+            Analysing traffic data.
         Arguments:
             - ctx (:obj:`Context`): Context of task object.
         """
