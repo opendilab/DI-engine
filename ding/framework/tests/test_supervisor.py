@@ -93,7 +93,10 @@ def test_crash_supervisor():
         # Find the error mesasge
         recv_states: List[RecvPayload] = []
         for _ in range(6):
-            recv_states.append(sv.recv(ignore_err=True))
+            recv_payload = sv.recv(ignore_err=True)
+            if recv_payload.err:
+                sv._children[recv_payload.proc_id].restart()
+            recv_states.append(recv_payload)
         assert any([isinstance(payload.err, Exception) for payload in recv_states])
 
         # Resume
@@ -114,3 +117,43 @@ def test_crash_supervisor():
 
     _test_crash_supervisor(ChildType.PROCESS)
     _test_crash_supervisor(ChildType.THREAD)
+
+
+@pytest.mark.unittest
+def test_recv_all():
+
+    def _test_recv_all(type_):
+        sv = Supervisor(type_=type_)
+        for _ in range(3):
+            sv.register(MockEnv, "AnyArgs")
+        sv.start_link()
+
+        # Test recv_all
+        req_ids = []
+        for env_id in range(len(sv._children)):
+            payload = SendPayload(
+                proc_id=env_id,
+                method="step",
+                args=["any action"],
+            )
+            req_ids.append(payload.req_id)
+            sv.send(payload)
+
+        retry_times = {env_id: 0 for env_id in range(len(sv._children))}
+
+        def recv_callback(recv_payload: RecvPayload, req_ids: List[str]):
+            if retry_times[recv_payload.proc_id] == 2:
+                return
+            retry_times[recv_payload.proc_id] += 1
+            payload = SendPayload(proc_id=recv_payload.proc_id, method="step", args={"action"})
+            sv.send(payload)
+            req_ids.append(payload.req_id)
+
+        recv_payloads = sv.recv_all(req_ids=req_ids, callback=recv_callback)
+        assert len(recv_payloads) == 3
+        assert all([v == 2 for v in retry_times.values()])
+
+        sv.shutdown()
+
+    _test_recv_all(ChildType.PROCESS)
+    _test_recv_all(ChildType.THREAD)

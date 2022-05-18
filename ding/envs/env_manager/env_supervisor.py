@@ -2,10 +2,10 @@ from ding.framework import Supervisor
 from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
 from ding.framework.supervisor import ChildType, RecvPayload, SendPayload
 from ding.utils import make_key_as_identifier
+from ditk import logging
 import enum
 import treetensor.numpy as tnp
 import numbers
-import logging
 if TYPE_CHECKING:
     from gym.spaces import Space
 
@@ -35,11 +35,10 @@ class EnvSupervisor(Supervisor):
     New features (compared to env manager):
     - Consistent interface in multi-process and multi-threaded mode.
     - Add asynchronous features and recommend using asynchronous methods.
-    - Automatic recovery of error-prone environments.
+    - Reset is performed after an error is encountered in the step method.
 
     Breaking changes (compared to env manager):
     - Without some states.
-    - Change auto_reset to a step feature instead of a global config.
     """
 
     def __init__(
@@ -49,25 +48,30 @@ class EnvSupervisor(Supervisor):
             retry_type: EnvRetryType = EnvRetryType.RESET,
             max_try: int = None,
             max_retry: int = None,
+            auto_reset: bool = True,
             **kwargs
     ) -> None:
         super().__init__(type_=type_)
         if env_fn:
             for env_init in env_fn:
                 self.register(env_init)
-        self._closed = True
         self._env_seed = {}
         self._env_dynamic_seed = None
         self._env_replay_path = None
         self._env_states = {}
         self._retry_type = retry_type
         self._reset_param = {}
+        self._auto_reset = auto_reset
+        self._ready_obs = {}
         if max_retry:
             logging.warning("The `max_retry` is going to be deprecated, use `max_try` instead!")
         self._max_try = max_try or max_retry or 1
 
-    def step(self, actions: Dict[int, Any], block: bool = True, auto_reset: bool = True) -> Optional[List[tnp.ndarray]]:
+    def step(self, actions: Optional[Dict[int, List[Any]]], block: bool = True) -> Optional[List[tnp.ndarray]]:
         assert not self.closed, "Env supervisor has closed."
+        if isinstance(actions, List):
+            actions = {i: p for i, p in enumerate(actions)}
+        assert actions, "Action is empty!"
 
         req_ids = []
 
@@ -80,37 +84,49 @@ class EnvSupervisor(Supervisor):
             # Retrieve the data for these steps from the recv method
             return
 
-        recv_payloads = self.recv_all(req_ids, ignore_err=True)
+        # Wait for all steps returns
+        recv_payloads = self.recv_all(req_ids, ignore_err=True, callback=self._recv_step_callback())
+        return [payload.data for payload in recv_payloads]
 
-        new_data = []
-        for payload in recv_payloads:
+    def _recv_step_callback(self) -> Callable:
+        reset_callback = self._recv_reset_callback()
+
+        def step_callback(payload: RecvPayload, req_ids: List[str]):
             self.change_state(payload)
+            reset_callback(payload, req_ids)
+            if payload.method != "step":
+                return
             if payload.err:
+                req_ids += self._reset(payload.proc_id)
                 info = {"abnormal": True, "err": payload.err}
-                new_data.append(
-                    {tnp.array({
+                payload.data = tnp.array(
+                    {
                         'obs': None,
                         'reward': None,
                         'done': None,
                         'info': info,
                         'env_id': payload.proc_id
-                    })}
+                    }
                 )
             else:
                 obs, reward, done, info = payload.data
+                if done and self._auto_reset:
+                    req_ids += self._reset(payload.proc_id)
                 # make the type and content of key as similar as identifier,
                 # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
                 info = make_key_as_identifier(info)
-                new_data.append(
-                    tnp.array({
+                payload.data = tnp.array(
+                    {
                         'obs': obs,
                         'reward': reward,
                         'done': done,
                         'info': info,
                         'env_id': payload.proc_id
-                    })
+                    }
                 )
-        return new_data
+                self._ready_obs[payload.proc_id] = obs
+
+        return step_callback
 
     @property
     def env_num(self) -> int:
@@ -130,7 +146,19 @@ class EnvSupervisor(Supervisor):
 
     @property
     def ready_obs(self) -> tnp.array:
-        pass
+        """
+        Overview:
+            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.
+        Return:
+            - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.
+        Example:
+            >>> obs = env_manager.ready_obs
+            >>> action = model(obs)  # model input np obs and output np action
+            >>> timesteps = env_manager.step(action)
+        """
+        active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
+        obs = [self._ready_obs.get(i) for i in active_env]
+        return tnp.stack(obs)
 
     @property
     def ready_obs_id(self) -> List[int]:
@@ -177,46 +205,48 @@ class EnvSupervisor(Supervisor):
         """
         if not reset_param:
             reset_param = {i: {} for i in range(self.env_num)}
+        elif isinstance(reset_param, List):
+            reset_param = {i: p for i, p in enumerate(reset_param)}
 
         req_ids = []
-        req_seqs = {}
-
-        def reset_fn(env_id, kw_param, max_try):
-            yield self._reset(env_id, kw_param)
-            for _ in range(1, max_try):
-                if self._retry_type == EnvRetryType.RENEW:
-                    self._children[env_id].restart()
-                yield self._reset(env_id, kw_param)
 
         for env_id, kw_param in reset_param.items():
             self._reset_param[env_id] = kw_param  # For auto reset
-            g = reset_fn(env_id, kw_param, max_try=self._max_try)
-            req_seqs[env_id] = g
-            req_ids += next(g)
+            req_ids += self._reset(env_id, kw_param=kw_param)
 
-        # Try max_try times in blocking mode
-        if block:
-            while req_ids:
-                payload = self.recv(ignore_err=True)
-                if payload.req_id not in req_ids:
-                    self._recv_queue.put(payload)
-                    continue
-                self.change_state(payload)
-                req_ids.remove(payload.req_id)
-                if payload.method == "reset" and payload.err:
-                    try:
-                        req_ids += next(req_seqs[payload.proc_id])
-                    except StopIteration:
-                        raise RuntimeError(
-                            "Env {} reset has exceeded max retries({}), and the latest exception is: {}".format(
-                                payload.proc_id, self._max_try, payload.err
-                            )
+        if not block:
+            return
+
+        self.recv_all(req_ids=req_ids, ignore_err=True, callback=self._recv_reset_callback())
+
+    def _recv_reset_callback(self) -> Callable:
+        retry_times = {env_id: 0 for env_id in range(self.env_num)}
+
+        def reset_callback(payload: RecvPayload, req_ids: List[str]):
+            self.change_state(payload)
+            if payload.method != "reset":
+                return
+            env_id = payload.proc_id
+            if payload.err:
+                retry_times[env_id] += 1
+                if retry_times[env_id] > self._max_try - 1:
+                    raise RuntimeError(
+                        "Env {} reset has exceeded max_try({}), and the latest exception is: {}".format(
+                            env_id, self._max_try, payload.err
                         )
+                    )
+                if self._retry_type == EnvRetryType.RENEW:
+                    self._children[env_id].restart()
+                req_ids += self._reset(env_id)
+            else:
+                self._ready_obs[env_id] = payload.data
+
+        return reset_callback
 
     def _reset(self, env_id: int, kw_param: Optional[Dict[str, Any]] = None) -> List[str]:
         """
         Overview:
-            Reset an environment.
+            Reset an environment. This method does not wait for the result to be returned.
         Arguments:
             - env_id (:obj:`int`): Environment id.
             - kw_param (:obj:`Optional[Dict[str, Any]]`): Reset parameters for the environment.
@@ -225,7 +255,7 @@ class EnvSupervisor(Supervisor):
         """
         assert not self.closed, "Env supervisor has closed."
         req_ids = []
-        kw_param = kw_param or {}
+        kw_param = kw_param or self._reset_param[env_id]
 
         if self._env_replay_path is not None and self.env_states[env_id] == EnvState.RUN:
             logging.warning("Please don't reset an unfinished env when you enable save replay, we just skip it")
@@ -293,18 +323,12 @@ class EnvSupervisor(Supervisor):
         self.shutdown()
 
     def shutdown(self) -> None:
-        if not self._closed:
+        if self._running:
             for env_id in range(self.env_num):
                 self.send(SendPayload(proc_id=env_id, method="close"))
             super().shutdown()
-            self._closed = True
             self._env_states = {}
-
-    def start_link(self) -> None:
-        if self._closed:
-            super().start_link()
-            self._closed = False
 
     @property
     def closed(self) -> bool:
-        return self._closed
+        return not self._running

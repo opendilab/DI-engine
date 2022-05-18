@@ -1,3 +1,4 @@
+import logging
 import gym
 import time
 import pytest
@@ -25,7 +26,11 @@ class TestEnvSupervisorCompatible:
         }
         """
         env_fn = setup_base_manager_cfg.pop('env_fn')
-        env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+        env_supervisor = EnvSupervisor(
+            type_=ChildType.THREAD, env_fn=env_fn, **{
+                **setup_base_manager_cfg, "auto_reset": False
+            }
+        )
         try:
             env_supervisor.seed([314 for _ in range(env_supervisor.env_num)])
             assert env_supervisor.closed
@@ -51,13 +56,12 @@ class TestEnvSupervisorCompatible:
             print('total step time: {}'.format(end_time - start_time))
 
             assert all([env_supervisor.env_states[env_id] == EnvState.DONE for env_id in range(env_supervisor.env_num)])
-            # assert all([c == setup_base_manager_cfg.episode_num for c in env_supervisor._env_episode_count.values()])
 
         finally:
             # Test close
             env_supervisor.close()
 
-            assert env_supervisor._closed
+            assert env_supervisor.closed
             assert all([env_supervisor.env_states[env_id] == EnvState.VOID for env_id in range(env_supervisor.env_num)])
             with pytest.raises(AssertionError):
                 env_supervisor.reset([])
@@ -66,18 +70,22 @@ class TestEnvSupervisorCompatible:
 
     def test_error(self, setup_base_manager_cfg):
         env_fn = setup_base_manager_cfg.pop('env_fn')
-        env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
-        try:
+
+        def test_reset_error():
+            env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
             # Test reset error
             with pytest.raises(RuntimeError):
                 reset_param = {i: {'stat': 'error'} for i in range(env_supervisor.env_num)}
                 env_supervisor.launch(reset_param=reset_param)
             assert all([state == EnvState.ERROR for state in env_supervisor.env_states.values()])
-            env_supervisor.close()
 
+        def test_reset_error_once():
+            env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
             # Normal launch
             reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
             env_supervisor.launch(reset_param=reset_param)
+
+            env_id_0 = env_supervisor.time_id[0]
             # Normal step
             timestep = env_supervisor.step({i: np.random.randn(4) for i in range(env_supervisor.env_num)})
             assert len(timestep) == env_supervisor.env_num
@@ -87,36 +95,66 @@ class TestEnvSupervisorCompatible:
             assert env_supervisor._retry_type == 'reset'
             reset_param[0] = {'stat': 'error_once'}
             env_supervisor.reset(reset_param)
-            # assert env_supervisor.time_id[0] == env_id_0
+            env_supervisor.reset(reset_param)
+
+            # If retry type is reset, time id should be equal
+            assert env_supervisor.time_id[0] == env_id_0
             assert all([state == EnvState.RUN for state in env_supervisor.env_states.values()])
 
-            env_supervisor._retry_type = 'renew'
+        def test_renew_error():
+            env_supervisor = EnvSupervisor(
+                type_=ChildType.THREAD, env_fn=env_fn, **{
+                    **setup_base_manager_cfg, "retry_type": "renew"
+                }
+            )
+            reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+            env_supervisor.launch(reset_param=reset_param)
+
+            assert env_supervisor._retry_type == "renew"
             env_id_0 = env_supervisor.time_id[0]
 
             reset_param[0] = {'stat': 'error_once'}
             env_supervisor.reset(reset_param)
-            assert not env_supervisor._closed
+            env_supervisor.reset(reset_param)
+            assert not env_supervisor.closed
+            # If retry type is renew, time id should not be equal
             assert env_supervisor.time_id[0] != env_id_0
+            assert len(env_supervisor.ready_obs) == 4
 
-            return
             # Test step catched error
             action = [np.random.randn(4) for i in range(env_supervisor.env_num)]
             action[0] = 'catched_error'
             timestep = env_supervisor.step(action)
             assert timestep[0].info.abnormal
-            assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
-            assert all([env_manager._env_states[i] == EnvState.RUN for i in range(env_manager.env_num)])
-            assert len(env_manager.ready_obs) == 4
-            timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
-            # Test step error
-            action[0] = 'error'
-            with pytest.raises(RuntimeError):
-                timestep = env_manager.step(action)
-            assert env_manager._env_states[0] == EnvState.ERROR
-            assert all([env_manager._env_states[i] == EnvState.RUN for i in range(1, env_manager.env_num)])
-            obs = env_manager.reset(reset_param)
-            assert all([env_manager._env_states[i] == EnvState.RUN for i in range(env_manager.env_num)])
-            assert len(env_manager.ready_obs) == 4
-            timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
-        finally:
-            env_supervisor.close()
+
+            assert all(['abnormal' not in timestep[i].info for i in range(1, env_supervisor.env_num)])
+            # With auto_reset, abnormal timestep with done==True will be auto reset.
+            assert all([env_supervisor.env_states[i] == EnvState.RUN for i in range(env_supervisor.env_num)])
+            assert len(env_supervisor.ready_obs) == 4
+
+        test_reset_error()
+        test_reset_error_once()
+        test_renew_error()
+
+    @pytest.mark.timeout(60)
+    def test_block(self, setup_base_manager_cfg):
+        pass
+
+
+@pytest.mark.unittest
+class TestEnvSupervisor:
+    """
+    Test async apis
+    """
+
+    def test_naive(self, setup_base_manager_cfg):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+
+        env_supervisor.seed([314 for _ in range(env_supervisor.env_num)])
+        assert env_supervisor.closed
+        env_supervisor.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)})
+
+        while True:
+            timestep = env_supervisor.recv()
+            env_supervisor.step()

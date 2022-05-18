@@ -3,8 +3,10 @@ import multiprocessing as mp
 import threading
 import queue
 import platform
-import logging
+from time import sleep
+import traceback
 import uuid
+from ditk import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Union
 from enum import Enum
@@ -15,7 +17,6 @@ class SendPayload:
     proc_id: int
     req_id: str = field(default_factory=lambda: uuid.uuid1().hex)
     method: str = None
-    reserve_method: str = None
     args: List = field(default_factory=list)
     kwargs: Dict = field(default_factory=dict)
 
@@ -67,23 +68,26 @@ class Child:
         recv_queue: Union[mp.Queue, queue.Queue]
     ):
         send_payload = SendPayload(proc_id=proc_id)
-        try:
-            child_ins = init(*args)
-            while True:
+        child_ins = init(*args)
+        while True:
+            try:
                 send_payload: SendPayload = send_queue.get()
-                if send_payload.reserve_method == ReserveMethod.SHUTDOWN:
+                if send_payload.method == ReserveMethod.SHUTDOWN:
                     break
-                if send_payload.reserve_method == ReserveMethod.GETATTR:
+                if send_payload.method == ReserveMethod.GETATTR:
                     data = getattr(child_ins, send_payload.args[0])
                 else:
                     data = getattr(child_ins, send_payload.method)(*send_payload.args, **send_payload.kwargs)
                 recv_queue.put(
                     RecvPayload(proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, data=data)
                 )
-        except Exception as e:
-            logging.error("Error in child process! id: {}, error: {}".format(self._proc_id, e))
-            recv_payload = RecvPayload(proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, err=e)
-            recv_queue.put(recv_payload)
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                logging.error("Error in child process! id: {}, error: {}".format(self._proc_id, e))
+                recv_payload = RecvPayload(
+                    proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, err=e
+                )
+                recv_queue.put(recv_payload)
 
     def __del__(self):
         self.shutdown()
@@ -147,7 +151,7 @@ class ChildThread(Child):
 
     def shutdown(self):
         if self._thread:
-            self._send_queue.put(SendPayload(proc_id=self._proc_id, reserve_method=ReserveMethod.SHUTDOWN))
+            self._send_queue.put(SendPayload(proc_id=self._proc_id, method=ReserveMethod.SHUTDOWN))
             self._thread.join()
             self._thread = None
             self._send_queue = queue.Queue()
@@ -167,14 +171,17 @@ class Supervisor:
         self._type = type_
         self._child_class = self.TYPE_MAPPING[self._type]
         self._recv_queue: queue.Queue = self.QUEUE_MAPPING[self._type]()
+        self._running = False
 
     def register(self, init: Callable, *args) -> None:
         proc_id = len(self._children)
         self._children.append(self._child_class(proc_id, init=init, args=args, recv_queue=self._recv_queue))
 
     def start_link(self) -> None:
-        for child in self._children:
-            child.start()
+        if not self._running:
+            for child in self._children:
+                child.start()
+            self._running = True
 
     def send(self, payload: SendPayload) -> None:
         """
@@ -196,14 +203,11 @@ class Supervisor:
             - recv_payload (:obj:`RecvPayload`): Recv payload.
         """
         recv_payload: RecvPayload = self._recv_queue.get()
-        if recv_payload.err:
-            if ignore_err:
-                self._children[recv_payload.proc_id].restart()
-            else:
-                raise recv_payload.err
+        if recv_payload.err and not ignore_err:
+            raise recv_payload.err
         return recv_payload
 
-    def recv_all(self, req_ids: List[str], ignore_err: bool = False) -> List[RecvPayload]:
+    def recv_all(self, req_ids: List[str], ignore_err: bool = False, callback: Callable = None) -> List[RecvPayload]:
         """
         Overview:
             Wait for messages with specific req ids until all ids are fulfilled.
@@ -211,37 +215,42 @@ class Supervisor:
             - req_ids (:obj:`List[str]`): Request ids.
             - ignore_err (:obj:`bool`): If ignore_err is True, the child process will automatically restart, \
                 and put the err in the property of recv_payload. Otherwise, an exception will be raised.
+            - callback (:obj:`Callable`): Callback for each recv payload.
         Returns:
             - recv_payload (:obj:`RecvPayload`): Recv payload.
         """
+        assert req_ids, "Req ids is empty!"
         return_payloads = {}
-        req_ids_copy = copy(req_ids)
-        while req_ids_copy:
+        orig_req_ids = req_ids
+        req_ids = copy(req_ids)
+        while req_ids:
             recv_payload: RecvPayload = self._recv_queue.get()
-            if recv_payload.req_id in req_ids_copy:
-                req_ids_copy.remove(recv_payload.req_id)
+            if recv_payload.req_id in req_ids:
+                req_ids.remove(recv_payload.req_id)
                 return_payloads[recv_payload.req_id] = recv_payload
-                if recv_payload.err:
-                    if ignore_err:
-                        self._children[recv_payload.proc_id].restart()
-                    else:
-                        raise recv_payload.err
+                if recv_payload.err and not ignore_err:
+                    raise recv_payload.err
+                if callback:
+                    callback(recv_payload, req_ids)
             else:
                 # Put back the unrelated payload.
                 self._recv_queue.put(recv_payload)
         # Keep the original order of requests.
-        return [return_payloads[req_id] for req_id in req_ids]
+        return [return_payloads[req_id] for req_id in orig_req_ids]
 
     def shutdown(self) -> None:
-        for child in self._children:
-            child.shutdown()
-        while not self._recv_queue.empty():
-            self._recv_queue.get()
+        if self._running:
+            for child in self._children:
+                child.shutdown()
+            while not self._recv_queue.empty():
+                self._recv_queue.get()
+        self._running = False
 
     def __getattr__(self, key: str) -> List[Any]:
+        assert self._running, "Supervisor is not running, please call start_link first!"
         req_ids = []
         for i, child in enumerate(self._children):
-            payload = SendPayload(proc_id=i, reserve_method=ReserveMethod.GETATTR, args=[key])
+            payload = SendPayload(proc_id=i, method=ReserveMethod.GETATTR, args=[key])
             req_ids.append(payload.req_id)
             child.send(payload)
         return [payload.data for payload in self.recv_all(req_ids)]
