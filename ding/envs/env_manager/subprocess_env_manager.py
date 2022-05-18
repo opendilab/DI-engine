@@ -331,11 +331,10 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
             The rendered frames are returned in np.ndarray.
         """
         for i in self.ready_env:
-            self._pipe_parents[i].send(['render', None, {'render_mode':render_mode}])
+            self._pipe_parents[i].send(['render', None, {'render_mode': render_mode}])
         data = {i: self._pipe_parents[i].recv() for i in self.ready_env}
         self._check_data(data)
         return data
-    
 
     def launch(self, reset_param: Optional[Dict] = None) -> None:
         """

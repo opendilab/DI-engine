@@ -23,7 +23,6 @@ class InteractionSerialEvaluator(ISerialEvaluator):
     config = dict(
         # Evaluate every "eval_freq" training iterations.
         eval_freq=1000,
-
         render=dict(
             # tensorboard video render is disabled by default
             render_freq=-1,
@@ -158,7 +157,7 @@ class InteractionSerialEvaluator(ISerialEvaluator):
             return False
         self._last_eval_iter = train_iter
         return True
-    
+
     def _should_render(self, envstep, train_iter):
         if self._render.render_freq == -1:
             return False
@@ -284,4 +283,3 @@ class InteractionSerialEvaluator(ISerialEvaluator):
                 ", so your RL agent is converged, you can refer to 'log/evaluator/evaluator_logger.txt' for details."
             )
         return stop_flag, return_info
-

@@ -1,5 +1,6 @@
 from numpy import ndarray
 
+
 def render(env, render_mode=('rgb_array')) -> ndarray:
     '''
     Overview:
@@ -14,8 +15,7 @@ def render(env, render_mode=('rgb_array')) -> ndarray:
     gym_env = env._env
     if hasattr(gym_env, 'sim'):
         # mujoco: mujoco frame is unside-down by default
-        return gym_env.sim.render(
-            camera_name='track', height=128, width=128)[::-1]
+        return gym_env.sim.render(camera_name='track', height=128, width=128)[::-1]
     else:
         # other
         return gym_env.render(mode=render_mode)

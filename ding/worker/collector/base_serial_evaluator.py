@@ -93,7 +93,10 @@ class VectorEvalMonitor(object):
         for i in range(n_episode % env_num):
             self._each_env_episode[i] += 1
         # self._video = {env_id: [] for env_id, maxlen in enumerate(self._each_env_episode)}
-        self._video = {env_id: deque([[] for _ in range(maxlen)], maxlen=maxlen) for env_id, maxlen in enumerate(self._each_env_episode)}
+        self._video = {
+            env_id: deque([[] for _ in range(maxlen)], maxlen=maxlen)
+            for env_id, maxlen in enumerate(self._each_env_episode)
+        }
         self._reward = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(self._each_env_episode)}
         self._info = {env_id: deque(maxlen=maxlen) for env_id, maxlen in enumerate(self._each_env_episode)}
 
@@ -145,7 +148,7 @@ class VectorEvalMonitor(object):
             worst, median, best evaluation trajectories for video logging.
         """
         videos = sum([list(v) for v in self._video.values()], [])
-        videos = [np.transpose(np.stack(video, 0), [0,3,1,2]) for video in videos]
+        videos = [np.transpose(np.stack(video, 0), [0, 3, 1, 2]) for video in videos]
         sortarg = np.argsort(self.get_episode_reward())
         # worst, median(s), best
         if len(sortarg) == 1:
@@ -153,15 +156,15 @@ class VectorEvalMonitor(object):
         elif len(sortarg) == 2:
             idxs = [sortarg[0], sortarg[-1]]
         elif len(sortarg) == 3:
-            idxs = [sortarg[0], sortarg[len(sortarg)//2], sortarg[-1]]
+            idxs = [sortarg[0], sortarg[len(sortarg) // 2], sortarg[-1]]
         else:
-            idxs = [sortarg[0], sortarg[len(sortarg)//2-1], sortarg[len(sortarg)//2], sortarg[-1]]
+            idxs = [sortarg[0], sortarg[len(sortarg) // 2 - 1], sortarg[len(sortarg) // 2], sortarg[-1]]
         videos = [videos[idx] for idx in idxs]
         # pad videos to the same length with last frames
         max_length = max(video.shape[0] for video in videos)
         for i in range(len(videos)):
             if videos[i].shape[0] < max_length:
-                padding = np.tile([videos[i][-1]], (max_length-videos[i].shape[0],1,1,1))
+                padding = np.tile([videos[i][-1]], (max_length - videos[i].shape[0], 1, 1, 1))
                 videos[i] = np.concatenate([videos[i], padding], 0)
         videos = np.stack(videos, 0)
         assert len(videos.shape) == 5, 'Need [N, T, C, H, W] input tensor for video logging!'
