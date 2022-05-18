@@ -1,4 +1,6 @@
 import pytest
+import os
+import shutil
 from ding.utils import traffic
 from ding.framework import task, Context
 from ding.framework import Parallel
