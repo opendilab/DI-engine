@@ -43,10 +43,10 @@ class Traffic:
 
         if self._file:
             logging.warn("Configuration failure: file handle existed.")
-        else:
+        elif file_path:
             if not is_writer:
                 logging.warn("The traffic is not set as writer.")
-            elif file_path:
+            else:
                 try:
                     if not os.path.exists(os.path.dirname(file_path)):
                         os.makedirs(os.path.dirname(file_path))
