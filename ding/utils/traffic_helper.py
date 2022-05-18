@@ -30,10 +30,10 @@ class Traffic:
         Overview:
             Enable and change the configuration of a Traffic instance.
         Arguments:
+            - is_writer (:obj:`bool`): To enable permisson for file writing with data in memory.
             - file_path (:obj:`str`): File path that offline data are to be saved at. \
                 In local mode, it must be set sucessfully for at least once. \
                 In remote mode, no need to set it for worker, but is necessary for master. \
-            - is_writer (:obj:`bool`): To enable permisson for file writing with data in memory.
             - maxlen (:obj:`int`): Max data size in memory.
             - router (:obj:`Parallel`): To enable remote mode.
         """
@@ -76,7 +76,8 @@ class Traffic:
         """
         Overview:
             Record information message of a dictionary form, and may save it in local file, or emit it to master, \
-                or save it in memory for online analysis.
+                or save it in memory for online analysis. \
+                Only basic string or numeric data type is allowed to be saved.
         Arguments:
             - info (:obj:`dict`): information message of dictionary form.
             - kwargs (:obj:`any`): any information needed to be recorded.

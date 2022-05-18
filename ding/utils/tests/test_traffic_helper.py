@@ -32,8 +32,8 @@ def fn_record_something() -> Callable:
     if not os.path.exists(dir):
         os.makedirs(dir)
     clean_up(dir)
-    file_path = "./tmp_test/traffic_log.txt"
-    traffic.set_config(file_path=file_path, is_writer=True, router=Parallel())
+    file_path = dir + "traffic_log.txt"
+    traffic.set_config(is_writer=True, file_path=file_path, router=Parallel())
 
     def _fn(ctx: "Context") -> None:
         while True:
@@ -42,8 +42,8 @@ def fn_record_something() -> Callable:
                 time.sleep(0.01)
                 assert len(traffic._data) == 10
                 assertIsFile(file_path)
-                clean_up(dir)
                 traffic.close()
+                clean_up(dir)
                 break
 
     return _fn
@@ -79,8 +79,8 @@ class TestTrafficModule:
         if not os.path.exists(dir):
             os.makedirs(dir)
         clean_up(dir)
-        file_path = "./tmp_test/traffic_log.txt"
-        traffic.set_config(file_path=file_path, is_writer=True)
+        file_path = dir + "traffic_log.txt"
+        traffic.set_config(is_writer=True, file_path=file_path)
         for train_iter in range(10):
             traffic.record(train_iter=train_iter, train_reward=random.random())
         for eval_iter in range(10):
@@ -88,6 +88,7 @@ class TestTrafficModule:
         assertIsFile(file_path)
         assert len(traffic._data) == 20
         assert traffic.df.size == 100
+        traffic.close()
         clean_up(dir)
 
     def test_remote_mode(self):
@@ -105,7 +106,7 @@ def get_mean_std(res):
 class TrafficBenchmark:
 
     def __init__(self, file_path: str) -> None:
-        self._traffic = traffic.set_config(file_path=file_path, is_writer=True)
+        self._traffic = traffic.set_config(is_writer=True, file_path=file_path)
 
     def record_info(self):
         self._traffic.record(other_iter=random.random(), other_reward=random.random(), __label="other")
@@ -152,4 +153,5 @@ def test_benchmark():
     mean, std = get_mean_std(timeit.repeat(test_traffic.aggregate, number=repeats))
     print("Process aggregate df Test:  mean {:.4f} s, std {:.4f} s".format(mean, std))
 
+    traffic.close()
     clean_up("./tmp_test/")
