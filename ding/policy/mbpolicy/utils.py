@@ -1,7 +1,7 @@
-from typing import Tuple
+from typing import Tuple, Union
 
 import torch
-from torch import Tensor, Union, Size
+from torch import Tensor, Size
 
 def flatten_batch(x: Tensor, nonbatch_dims=1) -> Tuple[Tensor, Size]:
     # (b1,b2,..., X) => (B, X)
