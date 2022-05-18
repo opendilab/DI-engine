@@ -1090,9 +1090,6 @@ def generalized_lambda_returns(
         gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
         lambda_ = lambda_ * torch.ones_like(rewards)
-    # when T_traj == 0
-    if bootstrap_values.shape[0] == 1:
-        return bootstrap_values
     bootstrap_values_tp1 = bootstrap_values[1:, :]
     return multistep_forward_view(bootstrap_values_tp1, rewards, gammas, lambda_, done)
 
