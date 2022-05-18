@@ -1066,7 +1066,8 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
 
 
 def generalized_lambda_returns(
-        bootstrap_values: torch.Tensor, rewards: torch.Tensor, gammas: float, lambda_: float
+        bootstrap_values: torch.Tensor, rewards: torch.Tensor, gammas: float, lambda_: float,
+        done: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     r"""
     Overview:
@@ -1089,12 +1090,16 @@ def generalized_lambda_returns(
         gammas = gammas * torch.ones_like(rewards)
     if not isinstance(lambda_, torch.Tensor):
         lambda_ = lambda_ * torch.ones_like(rewards)
+    # when T_traj == 0
+    if bootstrap_values.shape[0] == 1:
+        return bootstrap_values
     bootstrap_values_tp1 = bootstrap_values[1:, :]
-    return multistep_forward_view(bootstrap_values_tp1, rewards, gammas, lambda_)
+    return multistep_forward_view(bootstrap_values_tp1, rewards, gammas, lambda_, done)
 
 
 def multistep_forward_view(
-        bootstrap_values: torch.Tensor, rewards: torch.Tensor, gammas: float, lambda_: float
+        bootstrap_values: torch.Tensor, rewards: torch.Tensor, gammas: float, lambda_: float, 
+        done: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     r"""
     Overview:
@@ -1126,9 +1131,13 @@ def multistep_forward_view(
     # Forced cutoff at the last one
     result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
+    if not done:
+        done = torch.zeros_like(rewards)
     for t in reversed(range(rewards.size()[0] - 1)):
-        result[t, :] = rewards[t, :] \
-                       + discounts[t, :] * result[t + 1, :] \
-                       + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+        result[t, :] = rewards[t, :] + (1 - done[t, :]) \
+                       * ( \
+                            discounts[t, :] * result[t + 1, :] \
+                         + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :] \
+                       )
 
     return result

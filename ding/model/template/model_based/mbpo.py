@@ -391,6 +391,7 @@ class EnsembleDynamicsModel(nn.Module):
     def batch_predict(self, obs, action):
         # to predict a batch
         # norm and repeat for ensemble
+        self.requires_grad_(False)
         if len(action.shape) == 1:
             action = action.unsqueeze(1)
         inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
@@ -405,6 +406,7 @@ class EnsembleDynamicsModel(nn.Module):
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
         sample = ensemble_sample[model_idxes, batch_idxes]
         rewards, next_obs = sample[:, 0], sample[:, 1:]
+        self.requires_grad_(True)
 
         return rewards, next_obs + obs
 
