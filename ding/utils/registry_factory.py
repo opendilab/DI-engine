@@ -18,6 +18,7 @@ REWARD_MODEL_REGISTRY = Registry()
 DATASET_REGISTRY = Registry()
 SERIAL_EVALUATOR_REGISTRY = Registry()
 MQ_REGISTRY = Registry()
+WORLD_MODEL_REGISTRY = Registry()
 
 registries = {
     'policy': POLICY_REGISTRY,
@@ -38,4 +39,5 @@ registries = {
     'dataset': DATASET_REGISTRY,
     'serial_evaluator': SERIAL_EVALUATOR_REGISTRY,
     'message_queue': MQ_REGISTRY,
+    'world_model': WORLD_MODEL_REGISTRY,
 }

@@ -1018,7 +1018,7 @@ def multistep_forward_view(
     # Forced cutoff at the last one
     result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
-    if not done:
+    if done is None:
         done = torch.zeros_like(rewards)
     for t in reversed(range(rewards.size()[0] - 1)):
         result[t, :] = rewards[t, :] + (1 - done[t, :]) \
