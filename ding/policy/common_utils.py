@@ -19,7 +19,10 @@ def default_preprocess_learn(
     if use_priority_IS_weight:
         assert use_priority, "Use IS Weight correction, but Priority is not used."
     if use_priority and use_priority_IS_weight:
-        data['weight'] = data['IS']
+        if 'priority_IS' in data:
+            data['weight'] = data['priority_IS']
+        else:  # for compability
+            data['weight'] = data['IS']
     else:
         data['weight'] = data.get('weight', None)
     if use_nstep:

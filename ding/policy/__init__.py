@@ -35,5 +35,7 @@ from .r2d3 import R2D3Policy
 
 from .command_mode_policy_instance import *
 
-from .policy_factory import PolicyFactory
+from .policy_factory import PolicyFactory, get_random_policy
 from .pdqn import PDQNPolicy
+
+from .bc import DiscreteBehaviourCloningPolicy

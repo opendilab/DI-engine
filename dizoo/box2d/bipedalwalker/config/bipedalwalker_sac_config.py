@@ -1,8 +1,7 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline
 
 bipedalwalker_sac_config = dict(
-    exp_name='bipedalwalker_sac',
+    exp_name='bipedalwalker_sac_seed0',
     env=dict(
         env_id='BipedalWalker-v3',
         collector_env_num=8,
@@ -12,6 +11,7 @@ bipedalwalker_sac_config = dict(
         n_evaluator_episode=5,
         stop_value=300,
         rew_clip=True,
+        # The path to save the game replay
         replay_path=None,
     ),
     policy=dict(
@@ -52,7 +52,7 @@ bipedalwalker_sac_create_config = dict(
         type='bipedalwalker',
         import_names=['dizoo.box2d.bipedalwalker.envs.bipedalwalker_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(
         type='sac',
         import_names=['ding.policy.sac'],
@@ -63,4 +63,6 @@ bipedalwalker_sac_create_config = EasyDict(bipedalwalker_sac_create_config)
 create_config = bipedalwalker_sac_create_config
 
 if __name__ == "__main__":
+    # or you can enter `ding -m serial -c bipedalwalker_sac_config.py -s 0`
+    from ding.entry import serial_pipeline
     serial_pipeline([main_config, create_config], seed=0)

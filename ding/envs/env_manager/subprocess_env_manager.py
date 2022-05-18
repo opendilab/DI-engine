@@ -1,23 +1,24 @@
 from typing import Any, Union, List, Tuple, Dict, Callable, Optional
 from multiprocessing import Pipe, connection, get_context, Array
 from collections import namedtuple
-import logging
+from ditk import logging
 import platform
 import time
 import copy
+import gym
 import traceback
-import numpy as np
 import torch
 import ctypes
 import pickle
 import cloudpickle
+import numpy as np
+import treetensor.numpy as tnp
 from easydict import EasyDict
 from types import MethodType
 
-from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY
+from ding.envs.env import BaseEnvTimestep
+from ding.utils import PropagatingThread, LockContextType, LockContext, ENV_MANAGER_REGISTRY, make_key_as_identifier
 from .base_env_manager import BaseEnvManager, EnvState, timeout_wrapper
-from ding.envs.env.base_env import BaseEnvTimestep
-import gym
 
 _NTYPE_TO_CTYPE = {
     np.bool_: ctypes.c_bool,
@@ -100,7 +101,7 @@ class ShmBufferContainer(object):
 
     def __init__(
             self,
-            dtype: Union[type, np.dtype],
+            dtype: Union[Dict[Any, type], type, np.dtype],
             shape: Union[Dict[Any, tuple], tuple],
             copy_on_get: bool = True
     ) -> None:
@@ -114,7 +115,7 @@ class ShmBufferContainer(object):
             - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.
         """
         if isinstance(shape, dict):
-            self._data = {k: ShmBufferContainer(dtype, v, copy_on_get) for k, v in shape.items()}
+            self._data = {k: ShmBufferContainer(dtype[k], v, copy_on_get) for k, v in shape.items()}
         elif isinstance(shape, (tuple, list)):
             self._data = ShmBuffer(dtype, shape, copy_on_get)
         else:
@@ -240,14 +241,12 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         self._reset_param = {i: {} for i in range(self.env_num)}
         if self._shared_memory:
             obs_space = self._observation_space
-            if isinstance(obs_space, list):
-                # for multi_agent case
-                if isinstance(obs_space[0], gym.spaces.Dict):
-                    shape = {k: (len(obs_space), ) + v.shape for k, v in obs_space[0].items()}
-                    dtype = list(obs_space[0].values())[0].dtype
-                else:
-                    shape = (len(obs_space), ) + obs_space[0].shape
-                    dtype = obs_space[0].dtype
+            if isinstance(obs_space, gym.spaces.Dict):
+                # For multi_agent case, such as multiagent_mujoco and petting_zoo mpe.
+                # Now only for the case that each agent in the team have the same obs structure
+                # and corresponding shape.
+                shape = {k: v.shape for k, v in obs_space.spaces.items()}
+                dtype = {k: v.dtype for k, v in obs_space.spaces.items()}
             else:
                 shape = obs_space.shape
                 dtype = obs_space.dtype
@@ -884,3 +883,56 @@ class SyncSubprocessEnvManager(AsyncSubprocessEnvManager):
             else:
                 self._ready_obs[env_id] = timestep.obs
         return timesteps
+
+
+@ENV_MANAGER_REGISTRY.register('subprocess_v2')
+class SubprocessEnvManagerV2(SyncSubprocessEnvManager):
+    """
+    Overview:
+        SyncSubprocessEnvManager for new task pipeline and interfaces coupled with treetensor.
+    """
+
+    @property
+    def ready_obs(self) -> tnp.array:
+        """
+        Overview:
+            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.
+        Return:
+            - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.
+        Example:
+            >>> obs = env_manager.ready_obs
+            >>> action = model(obs)  # model input np obs and output np action
+            >>> timesteps = env_manager.step(action)
+        """
+        no_done_env_idx = [i for i, s in self._env_states.items() if s != EnvState.DONE]
+        sleep_count = 0
+        while not any([self._env_states[i] == EnvState.RUN for i in no_done_env_idx]):
+            if sleep_count % 1000 == 0:
+                logging.warning(
+                    'VEC_ENV_MANAGER: all the not done envs are resetting, sleep {} times'.format(sleep_count)
+                )
+            time.sleep(0.001)
+            sleep_count += 1
+        obs = [self._ready_obs[i] for i in self.ready_env]
+        return tnp.stack(obs)
+
+    def step(self, actions: List[tnp.ndarray]) -> List[tnp.ndarray]:
+        """
+        Overview:
+            Execute env step according to input actions. And reset an env if done.
+        Arguments:
+            - actions (:obj:`List[tnp.ndarray]`): actions came from outer caller like policy
+        Returns:
+            - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
+                info, env_id.
+        """
+        actions = {env_id: a for env_id, a in zip(self.ready_obs_id, actions)}
+        timesteps = super().step(actions)
+        new_data = []
+        for env_id, timestep in timesteps.items():
+            obs, reward, done, info = timestep
+            # make the type and content of key as similar as identifier,
+            # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
+            info = make_key_as_identifier(info)
+            new_data.append(tnp.array({'obs': obs, 'reward': reward, 'done': done, 'info': info, 'env_id': env_id}))
+        return new_data

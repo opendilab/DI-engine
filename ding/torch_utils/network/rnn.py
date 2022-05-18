@@ -1,7 +1,8 @@
+from typing import Optional, Union, List, Tuple, Dict
 import math
 import torch
 import torch.nn as nn
-from typing import Optional, Union, List, Tuple
+import treetensor.torch as ttorch
 
 import ding
 from ding.torch_utils.network.normalization import build_normalization
@@ -48,13 +49,13 @@ class LSTMForwardWrapper(object):
         _before_forward, _after_forward
     """
 
-    def _before_forward(self, inputs: torch.Tensor, prev_state: Union[torch.Tensor, list]) -> torch.Tensor:
-        r"""
+    def _before_forward(self, inputs: torch.Tensor, prev_state: Union[None, List[Dict]]) -> torch.Tensor:
+        """
         Overview:
             Preprocess the inputs and previous states
         Arguments:
             - inputs (:obj:`torch.Tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
-            - prev_state (:obj:`Union[torch.Tensor, list]`): None or tensor of size \
+            - prev_state (:obj:`Union[None, List[Dict]]`): None or tensor of size \
                 [num_directions*num_layers, batch_size, hidden_size]. \
                 If None then prv_state will be initialized to all zeros.
         Returns:
@@ -74,48 +75,51 @@ class LSTMForwardWrapper(object):
             )
             prev_state = (zeros, zeros)
         elif is_sequence(prev_state):
-            if len(prev_state) == 2 and isinstance(prev_state[0], torch.Tensor):
-                pass
-            else:
-                if len(prev_state) != batch_size:
-                    raise RuntimeError(
-                        "prev_state number is not equal to batch_size: {}/{}".format(len(prev_state), batch_size)
-                    )
-                num_directions = 1
-                zeros = torch.zeros(
-                    num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
+            if len(prev_state) != batch_size:
+                raise RuntimeError(
+                    "prev_state number is not equal to batch_size: {}/{}".format(len(prev_state), batch_size)
                 )
-                state = []
-                for prev in prev_state:
-                    if prev is None:
-                        state.append([zeros, zeros])
+            num_directions = 1
+            zeros = torch.zeros(
+                num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
+            )
+            state = []
+            for prev in prev_state:
+                if prev is None:
+                    state.append([zeros, zeros])
+                else:
+                    if isinstance(prev, (Dict, ttorch.Tensor)):
+                        state.append([v for v in prev.values()])
                     else:
                         state.append(prev)
-                state = list(zip(*state))
-                prev_state = [torch.cat(t, dim=1) for t in state]
+            state = list(zip(*state))
+            prev_state = [torch.cat(t, dim=1) for t in state]
+        elif isinstance(prev_state, dict):
+            prev_state = list(prev_state.values())
         else:
             raise TypeError("not support prev_state type: {}".format(type(prev_state)))
         return prev_state
 
     def _after_forward(self,
-                       next_state: List[Tuple[torch.Tensor]],
-                       list_next_state: bool = False) -> Union[torch.Tensor, list]:
+                       next_state: Tuple[torch.Tensor],
+                       list_next_state: bool = False) -> Union[List[Dict], Dict[str, torch.Tensor]]:
         r"""
         Overview:
             Post-process the next_state, return list or tensor type next_states
         Arguments:
-            - next_state (:obj:`List[Tuple[torch.Tensor]]`): List of tuple which contains the next (h, c)
-            - list_next_state (:obj:`bool`): whether return next_state with list format, default set to False
+            - next_state (:obj:`Tuple[torch.Tensor]`): Tuple which contains next state (h, c).
+            - list_next_state (:obj:`bool`): Whether to return next_state with list format, default set to False
         Returns:
-            - next_state(:obj:`Union[torch.Tensor, list]`): the formatted next_state
+            - next_state(:obj:`Union[List[Dict], Dict[str, torch.Tensor]]`): The formatted next_state.
         """
         if list_next_state:
-            h, c = [torch.stack(t, dim=0) for t in zip(*next_state)]
+            h, c = next_state
             batch_size = h.shape[1]
             next_state = [torch.chunk(h, batch_size, dim=1), torch.chunk(c, batch_size, dim=1)]
             next_state = list(zip(*next_state))
+            next_state = [{k: v for k, v in zip(['h', 'c'], item)} for item in next_state]
         else:
-            next_state = [torch.stack(t, dim=0) for t in zip(*next_state)]
+            next_state = {k: v for k, v in zip(['h', 'c'], next_state)}
         return next_state
 
 
@@ -219,6 +223,7 @@ class LSTM(nn.Module, LSTMForwardWrapper):
             x = torch.stack(new_x, dim=0)
             if self.use_dropout and l != self.num_layers - 1:
                 x = self.dropout(x)
+        next_state = [torch.stack(t, dim=0) for t in zip(*next_state)]
 
         next_state = self._after_forward(next_state, list_next_state)
         return x, next_state
@@ -240,9 +245,9 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
                 inputs: torch.Tensor,
                 prev_state: torch.Tensor,
                 list_next_state: bool = True) -> Tuple[torch.Tensor, Union[torch.Tensor, list]]:
-        r"""
+        """
         Overview:
-            Wrapped nn.LSTM.forward
+            Wrapped nn.LSTM.forward.
         Arguments:
             - inputs (:obj:`torch.Tensor`): input vector of cell, tensor of size \
                 [seq_len, batch_size, input_size]
@@ -258,20 +263,11 @@ class PytorchLSTM(nn.LSTM, LSTMForwardWrapper):
         next_state = self._after_forward(next_state, list_next_state)
         return output, next_state
 
-    def _after_forward(self, next_state, list_next_state=False):
-        if list_next_state:
-            h, c = next_state
-            batch_size = h.shape[1]
-            next_state = [torch.chunk(h, batch_size, dim=1), torch.chunk(c, batch_size, dim=1)]
-            return list(zip(*next_state))
-        else:
-            return next_state
 
-
-class GRU(nn.GRUCell):
+class GRU(nn.GRUCell, LSTMForwardWrapper):
     r"""
     Overview:
-        Wrap the nn.GRU , format the input and output
+        Wrap the torch.nn.GRUCell, format the input and output
     Interface:
         forward
 
@@ -284,59 +280,10 @@ class GRU(nn.GRUCell):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
 
-    def _before_forward(self, inputs, prev_state):
-        r"""
-        Overview:
-            preprocess the inputs and previous states
-        Arguments:
-            - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
-            - prev_state (:obj:`tensor` or :obj:`list`):
-                None or tensor of size [num_directions*num_layers, batch_size, hidden_size], if None then prv_state
-                will be initialized to all zeros.
-        Returns:
-            - prev_state (:obj:`tensor`): batch previous state in GRU
-        """
-        assert hasattr(self, 'num_layers')
-        assert hasattr(self, 'hidden_size')
-        seq_len, batch_size = inputs.shape[:2]
-        if prev_state is None:
-            num_directions = 1
-            zeros = torch.zeros(
-                num_directions * self.num_layers,
-                batch_size,
-                self.hidden_size,
-                dtype=inputs.dtype,
-                device=inputs.device
-            )
-            prev_state = (zeros, zeros)
-        elif is_sequence(prev_state):
-            if len(prev_state) == 2 and isinstance(prev_state[0], torch.Tensor):
-                pass
-            else:
-                if len(prev_state) != batch_size:
-                    raise RuntimeError(
-                        "prev_state number is not equal to batch_size: {}/{}".format(len(prev_state), batch_size)
-                    )
-                num_directions = 1
-                zeros = torch.zeros(
-                    num_directions * self.num_layers, 1, self.hidden_size, dtype=inputs.dtype, device=inputs.device
-                )
-                state = []
-                for prev in prev_state:
-                    if prev is None:
-                        state.append([zeros, zeros])
-                    else:
-                        state.append(prev)
-                state = list(zip(*state))
-                prev_state = [torch.cat(t, dim=1) for t in state]
-        else:
-            raise TypeError("not support prev_state type: {}".format(type(prev_state)))
-        return prev_state
-
     def forward(self, inputs, prev_state, list_next_state=True):
         r"""
         Overview:
-            wrapped nn.GRU.forward
+            Wrapped nn.GRU.forward.
         Arguments:
             - inputs (:obj:`tensor`): input vector of cell, tensor of size [seq_len, batch_size, input_size]
             - prev_state (:obj:`tensor`): None or tensor of size [num_directions*num_layers, batch_size, hidden_size]
@@ -345,31 +292,15 @@ class GRU(nn.GRUCell):
             - output (:obj:`tensor`): output from GRU
             - next_state (:obj:`tensor` or :obj:`list`): hidden state from GRU
         """
-        prev_state = self._before_forward(inputs, prev_state)[0]
-        next_state = nn.GRUCell.forward(self, inputs.squeeze(0), prev_state.squeeze(0))
-        next_state.unsqueeze_(0)
-        x = next_state
-        next_state = self._after_forward([next_state, next_state.clone()], list_next_state)
         # for compatibility
+        prev_state, _ = self._before_forward(inputs, prev_state)
+        inputs, prev_state = inputs.squeeze(0), prev_state.squeeze(0)
+        next_state = nn.GRUCell.forward(self, inputs, prev_state)
+        next_state = next_state.unsqueeze(0)
+        x = next_state
+        # for compatibility
+        next_state = self._after_forward([next_state, next_state.clone()], list_next_state)
         return x, next_state
-
-    def _after_forward(self, next_state, list_next_state=False):
-        r"""
-        Overview:
-            process hidden state after GRU, make it list or remains tensor
-        Arguments:
-            - nex_state (:obj:`tensor`): hidden state from GRU
-            - list_nex_state (:obj:`bool`): whether return next_state with list format, default set to False
-        Returns:
-            - next_state (:obj:`tensor` or :obj:`list`): hidden state from GRU
-        """
-        if list_next_state:
-            h, c = next_state
-            batch_size = h.shape[1]
-            next_state = [torch.chunk(h, batch_size, dim=1), torch.chunk(c, batch_size, dim=1)]
-            return list(zip(*next_state))
-        else:
-            return next_state
 
 
 def get_lstm(

@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, List, Dict, Any
 from easydict import EasyDict
 
 import random
@@ -12,6 +12,7 @@ from ding.model import FCEncoder, ConvEncoder
 from .base_reward_model import BaseRewardModel
 from ding.utils import RunningMeanStd
 from ding.torch_utils.data_helper import to_tensor
+import copy
 
 
 def collect_states(iterator):
@@ -53,22 +54,30 @@ class RndRewardModel(BaseRewardModel):
         type='rnd',
         intrinsic_reward_type='add',
         learning_rate=1e-3,
-        # obs_shape=6,
         batch_size=64,
         hidden_size_list=[64, 64, 128],
         update_per_collect=100,
         obs_norm=True,
         obs_norm_clamp_min=-1,
         obs_norm_clamp_max=1,
-        extrinsic_reward_scale=1,
-        extrinsic_reward_weight=1,
+        intrinsic_reward_weight=None,
+        # means the relative weight of RND intrinsic_reward.
+        # If intrinsic_reward_weight=None, we will automatically set it based on
+        # the absolute value of the difference between max and min extrinsic reward in the sampled mini-batch
+        # please refer to  estimate() method for details.
+        intrinsic_reward_rescale=0.01,
+        # means the rescale value of RND intrinsic_reward only used when intrinsic_reward_weight is None
     )
 
-    def __init__(self, config: EasyDict, device: str, tb_logger: 'SummaryWriter') -> None:  # noqa
+    def __init__(self, config: EasyDict, device: str = 'cpu', tb_logger: 'SummaryWriter' = None) -> None:  # noqa
         super(RndRewardModel, self).__init__()
         self.cfg = config
+        self.intrinsic_reward_rescale = self.cfg.intrinsic_reward_rescale
         assert device == "cpu" or device.startswith("cuda")
         self.device = device
+        if tb_logger is None:  # TODO
+            from tensorboardX import SummaryWriter
+            tb_logger = SummaryWriter('rnd_reward_model')
         self.tb_logger = tb_logger
         self.reward_model = RndNetwork(config.obs_shape, config.hidden_size_list)
         self.reward_model.to(self.device)
@@ -78,13 +87,13 @@ class RndRewardModel(BaseRewardModel):
         self.opt = optim.Adam(self.reward_model.predictor.parameters(), config.learning_rate)
         self._running_mean_std_rnd_reward = RunningMeanStd(epsilon=1e-4)
         self.estimate_cnt_rnd = 0
-        self._running_mean_std_rnd_obs = RunningMeanStd(epsilon=1e-4)  # TODO(pu)
+        self._running_mean_std_rnd_obs = RunningMeanStd(epsilon=1e-4)
 
     def _train(self) -> None:
         train_data: list = random.sample(self.train_obs, self.cfg.batch_size)
         train_data: torch.Tensor = torch.stack(train_data).to(self.device)
         if self.cfg.obs_norm:
-            # TODO(pu): observation normalization:  transform to mean 0, std 1
+            # Note: observation normalization: transform obs to mean 0, std 1
             self._running_mean_std_rnd_obs.update(train_data.cpu().numpy())
             train_data = (train_data - to_tensor(self._running_mean_std_rnd_obs.mean).to(self.device)) / to_tensor(
                 self._running_mean_std_rnd_obs.std
@@ -100,56 +109,70 @@ class RndRewardModel(BaseRewardModel):
     def train(self) -> None:
         for _ in range(self.cfg.update_per_collect):
             self._train()
-        # self.clear_data()
 
-    def estimate(self, data: list) -> None:
+    def estimate(self, data: list) -> List[Dict]:
         """
         Rewrite the reward key in each row of the data.
         """
-        obs = collect_states(data)
+        # NOTE: deepcopy reward part of data is very important,
+        # otherwise the reward of data in the replay buffer will be incorrectly modified.
+        train_data_augmented = self.reward_deepcopy(data)
+
+        obs = collect_states(train_data_augmented)
         obs = torch.stack(obs).to(self.device)
         if self.cfg.obs_norm:
-            # TODO(pu): observation normalization:  transform to mean 0, std 1
+            # Note: observation normalization: transform obs to mean 0, std 1
             obs = (obs - to_tensor(self._running_mean_std_rnd_obs.mean
                                    ).to(self.device)) / to_tensor(self._running_mean_std_rnd_obs.std).to(self.device)
             obs = torch.clamp(obs, min=self.cfg.obs_norm_clamp_min, max=self.cfg.obs_norm_clamp_max)
 
         with torch.no_grad():
             predict_feature, target_feature = self.reward_model(obs)
-            reward = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
-            # TODO(pu): transform to [0,1], for episodic reward normalization in NGU
-            # reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-11)
+            mse = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=1)
+            self._running_mean_std_rnd_reward.update(mse.cpu().numpy())
 
-            self._running_mean_std_rnd_reward.update(reward.cpu().numpy())
-
-            # TODO(pu): reward normalization: transform to (mean 0, std 1), lm0std1
-            # empirically we found this normalization way works well
-            # than only dividing the self._running_mean_std_rnd_reward.std
-            # reward = (reward - self._running_mean_std_rnd_reward.mean)
-            # / (self._running_mean_std_rnd_reward.std + 1e-11)
-
-            # TODO(pu): transform to [0,1]: b01
-            rnd_reward = (reward - reward.min()) / (reward.max() - reward.min() + 1e-11)
+            # Note: according to the min-max normalization, transform rnd reward to [0,1]
+            rnd_reward = (mse - mse.min()) / (mse.max() - mse.min() + 1e-11)
 
             self.estimate_cnt_rnd += 1
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_max', rnd_reward.max(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_mean', rnd_reward.mean(), self.estimate_cnt_rnd)
             self.tb_logger.add_scalar('rnd_reward/rnd_reward_min', rnd_reward.min(), self.estimate_cnt_rnd)
 
-            rnd_reward = rnd_reward.to(data[0]['reward'].device)
+            rnd_reward = rnd_reward.to(train_data_augmented[0]['reward'].device)
             rnd_reward = torch.chunk(rnd_reward, rnd_reward.shape[0], dim=0)
-        for item, rnd_rew in zip(data, rnd_reward):
+        """
+        NOTE: Following normalization approach to extrinsic reward seems be not reasonable,
+        because this approach compresses the extrinsic reward magnitude, resulting in less informative reward signals.
+        """
+        # rewards = torch.stack([data[i]['reward'] for i in range(len(data))])
+        # rewards = (rewards - torch.min(rewards)) / (torch.max(rewards) - torch.min(rewards))
+
+        # TODO(pu): how to set intrinsic_reward_rescale automatically?
+        if self.cfg.intrinsic_reward_weight is None:
+            """
+            NOTE: the following way of setting self.cfg.intrinsic_reward_weight is only suitable for the dense
+            reward env like lunarlander, not suitable for the dense reward env.
+            In sparse reward env, e.g. minigrid, if the agent reaches the goal, it obtain reward ~1, otherwise 0.
+            Thus, in sparse reward env, it's reasonable to set the intrinsic_reward_weight approximately equal to
+             the inverse of max_episode_steps.
+            """
+            self.cfg.intrinsic_reward_weight = self.intrinsic_reward_rescale * max(
+                1,
+                abs(
+                    max([train_data_augmented[i]['reward'] for i in range(len(train_data_augmented))]) -
+                    min([train_data_augmented[i]['reward'] for i in range(len(train_data_augmented))])
+                )
+            )
+        for item, rnd_rew in zip(train_data_augmented, rnd_reward):
             if self.intrinsic_reward_type == 'add':
-                if item['reward'] > 0 and item['reward'] <= self.cfg.extrinsic_reward_scale:
-                    item['reward'] = self.cfg.extrinsic_reward_weight * item[
-                        'reward'] + rnd_rew  # TODO(pu) avarage episode length
-                    # item['reward'] = item['reward'] + rnd_rew
-                else:
-                    item['reward'] += rnd_rew
+                item['reward'] = item['reward'] + rnd_rew * self.cfg.intrinsic_reward_weight
             elif self.intrinsic_reward_type == 'new':
                 item['intrinsic_reward'] = rnd_rew
             elif self.intrinsic_reward_type == 'assign':
                 item['reward'] = rnd_rew
+
+        return train_data_augmented
 
     def collect_data(self, data: list) -> None:
         self.train_obs.extend(collect_states(data))

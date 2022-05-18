@@ -32,22 +32,15 @@ class Adder(object):
             - data (:obj:`list`): transitions list like input one, but each element owns extra advantage key 'adv'
         """
         value = torch.stack([d['value'] for d in data])
-        if last_value.shape[0] == 1:
-            next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
-        else:
-            next_value = last_value  # pass the whole next_value, not only the last value in the last timesteps
-            traj_flag = torch.stack([torch.tensor(int(d['traj_flag'])) for d in data])
+        next_value = torch.stack([d['value'] for d in data][1:] + [last_value])
         reward = torch.stack([d['reward'] for d in data])
         if cuda:
             value = value.cuda()
             next_value = next_value.cuda()
             reward = reward.cuda()
-        if last_value.shape[0] == 1:
-            adv = gae(gae_data(value, next_value, reward, None, None), gamma, gae_lambda)
-        else:
-            # done is None, we distinguish if done according to the next_value,
-            # if next_value is zero, then it's real done, otherwise, it's not done
-            adv = gae(gae_data(value, next_value, reward, None, traj_flag), gamma, gae_lambda)
+
+        adv = gae(gae_data(value, next_value, reward, None, None), gamma, gae_lambda)
+
         if cuda:
             adv = adv.cpu()
         for i in range(len(data)):
@@ -161,10 +154,13 @@ class Adder(object):
 
             def null_padding():
                 template = copy.deepcopy(residual[0])
-                template['null'] = True  # TODO(pu)
-                template['obs'] = torch.zeros_like(template['obs'])
-                # template['action'] = -1 * torch.ones_like(template['action']) # TODO(pu)
-                template['action'] = torch.zeros_like(template['action'])
+                template['null'] = True
+                if isinstance(template['obs'], dict):
+                    template['obs'] = {k: torch.zeros_like(v) for k, v in template['obs'].items()}
+                else:
+                    template['obs'] = torch.zeros_like(template['obs'])
+                if 'action' in template:
+                    template['action'] = torch.zeros_like(template['action'])
                 template['done'] = True
                 template['reward'] = torch.zeros_like(template['reward'])
                 if 'value_gamma' in template:

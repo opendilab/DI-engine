@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_dqn_gail_config = dict(
-    exp_name='cartpole_dqn_gail',
+    exp_name='cartpole_dqn_gail_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -15,13 +15,15 @@ cartpole_dqn_gail_config = dict(
         batch_size=64,
         learning_rate=1e-3,
         update_per_collect=100,
-        expert_data_path='cartpole_dqn/expert_data_train.pkl',
-        expert_load_path='cartpole_dqn/ckpt/ckpt_best.pth.tar',  # path to the expert state_dict
-        load_path='cartpole_dqn_gail/reward_model/ckpt/ckpt_last.pth.tar',  # state_dict of the reward model
+        # Users should add their own model path here. Model path should lead to a model.
+        # Absolute path is recommended.
+        # In DI-engine, it is ``exp_name/ckpt/ckpt_best.pth.tar``.
+        # If collect_data is True, we will use this expert_model_path to collect expert data first, rather than we
+        # will load data directly from user-defined data_path
+        expert_model_path='model_path_placeholder',
         collect_count=1000,
     ),
     policy=dict(
-        load_path='cartpole_dqn_gail/ckpt/ckpt_best.pth.tar',  # state_dict of the policy
         cuda=False,
         model=dict(
             obs_shape=4,
@@ -61,3 +63,18 @@ cartpole_dqn_gail_create_config = dict(
 )
 cartpole_dqn_gail_create_config = EasyDict(cartpole_dqn_gail_create_config)
 create_config = cartpole_dqn_gail_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial_gail -c cartpole_dqn_gail_config.py -s 0`
+    # then input the config you used to generate your expert model in the path mentioned above
+    # e.g. cartpole_dqn_config.py
+    from ding.entry import serial_pipeline_gail
+    from dizoo.classic_control.cartpole.config import cartpole_dqn_config, cartpole_dqn_create_config
+    expert_main_config = cartpole_dqn_config
+    expert_create_config = cartpole_dqn_create_config
+    serial_pipeline_gail(
+        (main_config, create_config), (expert_main_config, expert_create_config),
+        max_env_step=1000000,
+        seed=0,
+        collect_data=True
+    )

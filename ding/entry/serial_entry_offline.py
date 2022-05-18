@@ -1,7 +1,7 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader
@@ -47,7 +47,7 @@ def serial_pipeline_offline(
     dataset = create_dataset(cfg)
     dataloader = DataLoader(dataset, cfg.policy.learn.batch_size, shuffle=True, collate_fn=lambda x: x)
     # Env, Policy
-    env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env)
+    env_fn, _, evaluator_env_cfg = get_vec_env_setting(cfg.env, collect=False)
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
     # Random seed
     evaluator_env.seed(cfg.seed, dynamic_seed=False)

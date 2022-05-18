@@ -69,6 +69,17 @@ class BaseModelWrapper(IModelWrapper):
         pass
 
 
+def zeros_like(h):
+    if isinstance(h, torch.Tensor):
+        return torch.zeros_like(h)
+    elif isinstance(h, (list, tuple)):
+        return [zeros_like(t) for t in h]
+    elif isinstance(h, dict):
+        return {k: zeros_like(v) for k, v in h.items()}
+    else:
+        raise TypeError("not support type: {}".format(h))
+
+
 class HiddenStateWrapper(IModelWrapper):
 
     def __init__(
@@ -111,6 +122,10 @@ class HiddenStateWrapper(IModelWrapper):
             self.after_forward(h, state_info, valid_id)  # this is to store the 'next hidden state' for each time step
         if self._save_prev_state:
             prev_state = get_tensor_data(data['prev_state'])
+            # for compatibility, because of the incompatibility between None and torch.Tensor
+            for i in range(len(prev_state)):
+                if prev_state[i] is None:
+                    prev_state[i] = zeros_like(h[0])
             output['prev_state'] = prev_state
         return output
 
@@ -175,32 +190,41 @@ class TransformerInputWrapper(IModelWrapper):
         self.bs = None
         self.memory_idx = []  # len bs, index of where to put the next element in the sequence for each batch
 
-    def forward(self, input_obs: torch.Tensor, only_last_logit: bool = True, **kwargs) -> Dict[str, torch.Tensor]:
+    def forward(self,
+                input_obs: torch.Tensor,
+                only_last_logit: bool = True,
+                data_id: List = None,
+                **kwargs) -> Dict[str, torch.Tensor]:
         """
         Arguments:
             - input_obs (:obj:`torch.Tensor`): Input observation without sequence shape: (bs, *obs_shape)
             - only_last_logit (:obj:`bool`): if True 'logit' only contains the output corresponding to the current
-            observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)
+                observation (shape: bs, embedding_dim), otherwise logit has shape (seq_len, bs, embedding_dim)
+            - data_id (:obj:`List`): id of the envs that are currently running. Memory update and logits return has only
+                effect for those environments. If `None` it is considered that all envs are running.
         Returns:
             - Dictionary containing the input_sequence 'input_seq' stored in memory and the transformer output 'logit'.
         """
         if self.obs_memory is None:
             self.reset_input(torch.zeros_like(input_obs))  # init the memory with the size of the input observation
+        if data_id is None:
+            data_id = list(range(self.bs))
         assert self.obs_memory.shape[0] == self.seq_len
         # implements a fifo queue, self.memory_idx is index where to put the last element
-        for b in range(self.bs):
+        for i, b in enumerate(data_id):
             if self.memory_idx[b] == self.seq_len:
                 # roll back of 1 position along dim 1 (sequence dim)
                 self.obs_memory[:, b] = torch.roll(self.obs_memory[:, b], -1, 0)
-                self.obs_memory[self.memory_idx[b] - 1, b] = input_obs[b]
+                self.obs_memory[self.memory_idx[b] - 1, b] = input_obs[i]
             if self.memory_idx[b] < self.seq_len:
-                self.obs_memory[self.memory_idx[b], b] = input_obs[b]
+                self.obs_memory[self.memory_idx[b], b] = input_obs[i]
                 if self.memory_idx != self.seq_len:
                     self.memory_idx[b] += 1
         out = self._model.forward(self.obs_memory, **kwargs)
         out['input_seq'] = self.obs_memory
         if only_last_logit:
-            out['logit'] = [out['logit'][self.memory_idx[b] - 1][b] for b in range(self.bs)]
+            # return only the logits for running environments
+            out['logit'] = [out['logit'][self.memory_idx[b] - 1][b] for b in range(self.bs) if b in data_id]
             out['logit'] = default_collate(out['logit'])
         return out
 
@@ -454,7 +478,10 @@ class MultinomialSampleWrapper(IModelWrapper):
 class EpsGreedySampleWrapper(IModelWrapper):
     r"""
     Overview:
-        Epsilon greedy sampler used in collector_model to help balance exploration and exploitation.
+        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
+        The type of eps can vary from different algorithms, such as:
+        - float (i.e. python native scalar): for almost normal case
+        - Dict[str, float]: for algorithm NGU
     Interfaces:
         register
     """
@@ -475,16 +502,31 @@ class EpsGreedySampleWrapper(IModelWrapper):
         else:
             mask = None
         action = []
-        for i, l in enumerate(logit):
-            if np.random.random() > eps:
-                action.append(l.argmax(dim=-1))
-            else:
-                if mask:
-                    action.append(sample_action(prob=mask[i].float()))
+        if isinstance(eps, dict):
+            # for NGU policy, eps is a dict, each collect env has a different eps
+            for i, l in enumerate(logit[0]):
+                eps_tmp = eps[i]
+                if np.random.random() > eps_tmp:
+                    action.append(l.argmax(dim=-1))
                 else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
-        if len(action) == 1:
-            action, logit = action[0], logit[0]
+                    if mask is not None:
+                        action.append(
+                            sample_action(prob=mask[0][i].float().unsqueeze(0)).to(logit[0].device).squeeze(0)
+                        )
+                    else:
+                        action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]).to(logit[0].device))
+            action = torch.stack(action, dim=-1)  # shape torch.size([env_num])
+        else:
+            for i, l in enumerate(logit):
+                if np.random.random() > eps:
+                    action.append(l.argmax(dim=-1))
+                else:
+                    if mask is not None:
+                        action.append(sample_action(prob=mask[i].float()))
+                    else:
+                        action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
+            if len(action) == 1:
+                action, logit = action[0], logit[0]
         output['action'] = action
         return output
 
@@ -703,46 +745,6 @@ class ReparamSample(IModelWrapper):
         return output
 
 
-class EpsGreedySampleNGUWrapper(IModelWrapper):
-    r"""
-    Overview:
-        eps is a dict n_env
-        Epsilon greedy sampler used in collector_model to help balance exploratin and exploitation.
-    Interfaces:
-        register
-    """
-
-    def forward(self, *args, **kwargs):
-        kwargs.pop('eps')
-        eps = {i: 0.4 ** (1 + 8 * i / (args[0]['obs'].shape[0] - 1)) for i in range(args[0]['obs'].shape[0])}
-        output = self._model.forward(*args, **kwargs)
-        assert isinstance(output, dict), "model output must be dict, but find {}".format(type(output))
-        logit = output['logit']
-        assert isinstance(logit, torch.Tensor) or isinstance(logit, list)
-        if isinstance(logit, torch.Tensor):
-            logit = [logit]
-        if 'action_mask' in output:
-            mask = output['action_mask']
-            if isinstance(mask, torch.Tensor):
-                mask = [mask]
-            logit = [l.sub_(1e8 * (1 - m)) for l, m in zip(logit, mask)]
-        else:
-            mask = None
-        action = []
-        for i, l in enumerate(logit):
-            if np.random.random() > eps[i]:
-                action.append(l.argmax(dim=-1))
-            else:
-                if mask:
-                    action.append(sample_action(prob=mask[i].float()))
-                else:
-                    action.append(torch.randint(0, l.shape[-1], size=l.shape[:-1]))
-        if len(action) == 1:
-            action, logit = action[0], logit[0]
-        output['action'] = action
-        return output
-
-
 class ActionNoiseWrapper(IModelWrapper):
     r"""
     Overview:
@@ -885,7 +887,6 @@ wrapper_name_map = {
     'argmax_sample': ArgmaxSampleWrapper,
     'hybrid_argmax_sample': HybridArgmaxSampleWrapper,
     'eps_greedy_sample': EpsGreedySampleWrapper,
-    'eps_greedy_sample_ngu': EpsGreedySampleNGUWrapper,
     'eps_greedy_multinomial_sample': EpsGreedyMultinomialSampleWrapper,
     'deterministic_sample': DeterministicSample,
     'reparam_sample': ReparamSample,

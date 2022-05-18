@@ -1,8 +1,7 @@
 from typing import Any, Union, Optional
 import gym
 import numpy as np
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.common_function import affine_transform
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray, to_list
@@ -29,8 +28,11 @@ class PendulumEnv(BaseEnv):
         if not self._init_flag:
             self._env = gym.make('Pendulum-v0')
             if self._replay_path is not None:
-                self._env = gym.wrappers.Monitor(
-                    self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+                self._env = gym.wrappers.RecordVideo(
+                    self._env,
+                    video_folder=self._replay_path,
+                    episode_trigger=lambda episode_id: True,
+                    name_prefix='rl-video-{}'.format(id(self))
                 )
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
@@ -60,7 +62,7 @@ class PendulumEnv(BaseEnv):
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         obs = to_ndarray(obs).astype(np.float32)
-        rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         if done:
             info['final_eval_reward'] = self._final_eval_reward
         return BaseEnvTimestep(obs, rew, done, info)
@@ -71,7 +73,7 @@ class PendulumEnv(BaseEnv):
         self._replay_path = replay_path
 
     def random_action(self) -> np.ndarray:
-        return self.action_space.sample()
+        return self.action_space.sample().astype(np.float32)
 
     @property
     def observation_space(self) -> gym.spaces.Space:

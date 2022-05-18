@@ -1,7 +1,7 @@
 from typing import Any, Union, List
 import copy
 import numpy as np
-import logging
+from ditk import logging
 
 from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
 from ding.envs.common.env_element import EnvElement, EnvElementInfo

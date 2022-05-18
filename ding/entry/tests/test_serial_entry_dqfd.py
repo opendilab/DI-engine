@@ -15,7 +15,7 @@ def test_dqfd():
     torch.save(expert_policy.collect_mode.state_dict(), expert_policy_state_dict_path)
 
     config = [deepcopy(cartpole_dqfd_config), deepcopy(cartpole_dqfd_create_config)]
-    config[0].policy.collect.demonstration_info_path = expert_policy_state_dict_path
+    config[0].policy.collect.model_path = expert_policy_state_dict_path
     config[0].policy.learn.update_per_collect = 1
     try:
         serial_pipeline_dqfd(config, [cartpole_dqfd_config, cartpole_dqfd_create_config], seed=0, max_train_iter=1)

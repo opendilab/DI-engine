@@ -199,7 +199,7 @@ class EpisodeSerialCollector(ISerialCollector):
                 raise RuntimeError("Please specify collect n_episode")
             else:
                 n_episode = self._default_n_episode
-        assert n_episode >= self._env_num, "Please make sure n_episode >= env_num"
+        assert n_episode >= self._env_num, "Please make sure n_episode >= env_num{}/{}".format(n_episode, self._env_num)
         if policy_kwargs is None:
             policy_kwargs = {}
         collected_episode = 0

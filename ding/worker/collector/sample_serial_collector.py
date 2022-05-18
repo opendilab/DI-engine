@@ -94,9 +94,10 @@ class SampleSerialCollector(ISerialCollector):
         if _policy is not None:
             self._policy = _policy
             self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+            self._traj_len_inf = _policy.get_attribute('cfg').collect.get('traj_len_inf', False)
             self._unroll_len = _policy.get_attribute('unroll_len')
             self._on_policy = _policy.get_attribute('on_policy')
-            if self._default_n_sample is not None:
+            if self._default_n_sample is not None and not self._traj_len_inf:
                 self._traj_len = max(
                     self._unroll_len,
                     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
@@ -189,17 +190,21 @@ class SampleSerialCollector(ISerialCollector):
         """
         self.close()
 
-    def collect(self,
-                n_sample: Optional[int] = None,
-                train_iter: int = 0,
-                policy_kwargs: Optional[dict] = None) -> List[Any]:
+    def collect(
+            self,
+            n_sample: Optional[int] = None,
+            train_iter: int = 0,
+            drop_extra: bool = True,
+            policy_kwargs: Optional[dict] = None
+    ) -> List[Any]:
         """
         Overview:
-            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations
+            Collect `n_sample` data with policy_kwargs, which is already trained `train_iter` iterations.
         Arguments:
-            - n_sample (:obj:`int`): the number of collecting data sample
-            - train_iter (:obj:`int`): the number of training iteration
-            - policy_kwargs (:obj:`dict`): the keyword args for policy forward
+            - n_sample (:obj:`int`): The number of collecting data sample.
+            - train_iter (:obj:`int`): The number of training iteration when calling collect method.
+            - drop_extra (:obj:`bool`): Whether to drop extra return_data more than `n_sample`.
+            - policy_kwargs (:obj:`dict`): The keyword args for policy forward.
         Returns:
             - return_data (:obj:`List`): A list containing training samples.
         """
@@ -210,8 +215,8 @@ class SampleSerialCollector(ISerialCollector):
                 n_sample = self._default_n_sample
         if n_sample % self._env_num != 0:
             one_time_warning(
-                "Please make sure env_num is divisible by n_sample: {}/{}, which may cause convergence \
-                problems in a few algorithms".format(n_sample, self._env_num)
+                "Please make sure env_num is divisible by n_sample: {}/{}, ".format(n_sample, self._env_num) +
+                "which may cause convergence problems in a few algorithms"
             )
         if policy_kwargs is None:
             policy_kwargs = {}
@@ -247,23 +252,32 @@ class SampleSerialCollector(ISerialCollector):
                         self._reset_stat(env_id)
                         self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
-                    transition = self._policy.process_transition(
-                        self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
-                    )
+                    if 'type' in self._policy.get_attribute('cfg') and \
+                            self._policy.get_attribute('cfg').type == 'ngu_command':
+                        # for NGU policy
+                        transition = self._policy.process_transition(
+                            self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, env_id
+                        )
+                    else:
+                        transition = self._policy.process_transition(
+                            self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
+                        )
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
-                    self._traj_buffer[env_id].append(transition)  # NOTE
+                    self._traj_buffer[env_id].append(transition)
                     self._env_info[env_id]['step'] += 1
                     self._total_envstep_count += 1
                     # prepare data
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
-                        # for r2d2:
-                        # 1. for each collect_env, we want to collect data of the length self._traj_len
-                        # except when it comes to a done.
-                        # 2. however, even if timestep is done and assume we only collected 9 transitions,
-                        # by going through self._policy.get_train_sample, it will be padded automatically.
-                        # 3. so, a unit of train transition for r2d2 will have seq len
-                        # (burnin + nstep) (collected_sample=1), and we need to collect n_sample.
+                        # If policy is r2d2:
+                        # 1. For each collect_env, we want to collect data of length self._traj_len=INF
+                        # unless the episode enters the 'done' state.
+                        # 2. The length of a train (sequence) sample in r2d2 is <burnin + learn_unroll_length>
+                        # (please refer to r2d2.py) and in each collect phase,
+                        # we collect a total of <n_sample> (sequence) samples.
+                        # 3. When timestep is done and we only collected very few transitions in self._traj_buffer,
+                        # by going through self._policy.get_train_sample, it will be padded automatically to get the
+                        # sequence sample of length <burnin + learn_unroll_len> (please refer to r2d2.py).
 
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])
@@ -297,7 +311,10 @@ class SampleSerialCollector(ISerialCollector):
             for env_id in range(self._env_num):
                 self._reset_stat(env_id)
 
-        return return_data[:n_sample]
+        if drop_extra:
+            return return_data[:n_sample]
+        else:
+            return return_data
 
     def _output_log(self, train_iter: int) -> None:
         """

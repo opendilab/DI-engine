@@ -4,8 +4,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo, update_shape
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.common_function import affine_transform
 from ding.torch_utils import to_tensor, to_ndarray, to_list
 from .mujoco_wrappers import wrap_mujoco
@@ -59,6 +58,18 @@ class MujocoModelEnv(object):
         elif self.env_id == "HalfCheetah-v3":
             done = torch.zeros_like(next_obs.sum(-1)).bool()
             return done
+        elif self.env_id in ['Ant-v2', 'AntTruncatedObs-v2']:
+            x = next_obs[:, 0]
+            not_done = 	np.isfinite(next_obs).all(axis=-1) \
+                        * (x >= 0.2) \
+                        * (x <= 1.0)
+            done = ~not_done
+            return done
+        elif self.env_id in ['Humanoid-v2', 'HumanoidTruncatedObs-v2']:
+            z = next_obs[:,0]
+            done = (z < 1.0) + (z > 2.0)
+            return done
+
 
     def rollout(
             self,

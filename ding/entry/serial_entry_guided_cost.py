@@ -2,7 +2,7 @@ from typing import Union, Optional, List, Any, Tuple
 import os
 import copy
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
@@ -68,9 +68,7 @@ def serial_pipeline_guided_cost(
     expert_policy = create_policy(cfg.policy, model=expert_model, enable_field=['learn', 'collect'])
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
     policy = create_policy(cfg.policy, model=model, enable_field=['learn', 'collect', 'eval', 'command'])
-    expert_policy.collect_mode.load_state_dict(
-        torch.load(cfg.policy.collect.demonstration_info_path, map_location='cpu')
-    )
+    expert_policy.collect_mode.load_state_dict(torch.load(cfg.policy.collect.model_path, map_location='cpu'))
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
@@ -122,6 +120,9 @@ def serial_pipeline_guided_cost(
                 break
         # Collect data by default config n_sample/n_episode
         new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        # NOTE: deepcopy data is very important,
+        # otherwise the data in the replay buffer will be incorrectly modified.
+        # NOTE: this line cannot move to line130, because in line134 the data may be modified in-place.
         train_data = copy.deepcopy(new_data)
         expert_data = expert_collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
@@ -133,9 +134,7 @@ def serial_pipeline_guided_cost(
             reward_model.train(expert_demo, samp, learner.train_iter, collector.envstep)
         for i in range(cfg.policy.learn.update_per_collect):
             # Learner will train ``update_per_collect`` times in one iteration.
-            #train_data = replay_buffer.sample(learner.policy.get_attribute('batch_size'), learner.train_iter)
-            train_data = train_data
-            reward_model.estimate(train_data)
+            _ = reward_model.estimate(train_data)
             if train_data is None:
                 # It is possible that replay buffer's data count is too few to train ``update_per_collect`` times
                 logging.warning(

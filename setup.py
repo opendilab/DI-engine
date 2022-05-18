@@ -68,23 +68,31 @@ setup(
         'URLObject~=2.4.3',
         'urllib3>=1.26.5',
         'readerwriterlock',
-        'namedlist',
         'opencv-python',  # pypy incompatible
         'enum_tools',
         'scipy',
         'trueskill',
         'h5py',
         'rich',
-        'mpire>=2.3.4',
+        'mpire>=2.3.5',
         'pynng',
         'pettingzoo==1.12.0',
         'pyglet>=1.4.0',
-        'redis'
+        'redis',
+        'DI-treetensor>=0.2.1',
+        'DI-toolkit>=0.0.2',
+        'hbutils>=0.5.0',
     ],
     extras_require={
         'test': [
-            'pytest==5.1.1', 'pytest-xdist==1.31.0', 'pytest-cov==2.8.1', 'pytest-forked~=1.3.0', 'pytest-mock~=3.3.1',
-            'pytest-rerunfailures~=9.1.1', 'pytest-timeouts~=1.2.1'
+            'coverage>=5',
+            'mock>=4.0.3',
+            'pytest~=6.2.5',
+            'pytest-cov~=3.0.0',
+            'pytest-mock~=3.6.1',
+            'pytest-xdist>=1.34.0',
+            'pytest-rerunfailures~=10.2',
+            'pytest-timeout~=2.0.2',
         ],
         'style': [
             'yapf==0.29.0',
@@ -100,6 +108,7 @@ setup(
         ],
         'common_env': [
             'ale-py==0.7.0',  # atari
+            'autorom',
             'box2d-py',
             'cmake>=3.18.4',
             'opencv-python',  # pypy incompatible
@@ -135,6 +144,9 @@ setup(
         # ],
         'slimevolleygym_env': [
             'slimevolleygym',
+        ],
+        'smac_env': [
+            'pysc2',
         ],
         'k8s': [
             'kubernetes',

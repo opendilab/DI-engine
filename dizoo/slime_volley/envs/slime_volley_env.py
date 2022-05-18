@@ -1,12 +1,10 @@
-from namedlist import namedlist
 import numpy as np
 import gym
 from typing import Any, Union, List, Optional
 import copy
 import slimevolleygym
 
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
-from ding.envs.common.env_element import EnvElement, EnvElementInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.utils import ENV_REGISTRY
 from ding.torch_utils import to_ndarray
 
@@ -110,10 +108,11 @@ class SlimeVolleyEnv(BaseEnv):
                 self._env = GymSelfPlayMonitor(
                     self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
                 )
+            ori_shape = self._env.observation_space.shape
             self._observation_space = gym.spaces.Box(
                 low=float("-inf"),
                 high=float("inf"),
-                shape=(len(self.agents), ) + self._env.observation_space.shape,
+                shape=(len(self.agents), ) + ori_shape if len(self.agents) >= 2 else ori_shape,
                 dtype=np.float32
             )
             self._action_space = gym.spaces.Discrete(6)
