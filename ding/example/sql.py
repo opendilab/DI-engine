@@ -33,7 +33,9 @@ def main():
         model = DQN(**cfg.policy.model)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         policy = SQLPolicy(cfg.policy, model=model)
+        traffic.set_config(is_writer=True, file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", router=Parallel())
 
+        task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
         task.use(eps_greedy_handler(cfg))
         task.use(StepCollector(cfg, policy.collect_mode, collector_env))

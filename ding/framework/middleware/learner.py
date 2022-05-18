@@ -55,13 +55,7 @@ class OffPolicyLearner:
                 self._reward_estimator(ctx)
             self._trainer(ctx)
             train_output_queue.append(ctx.train_output)
-            traffic.record(
-                info=ctx.train_output,
-                #cur_lr=ctx.train_output["cur_lr"],
-                #total_loss=ctx.train_output["total_loss"],
-                train_iter=ctx.train_iter,
-                __label="learner"
-            )
+            traffic.record(info=ctx.train_output, train_iter=ctx.train_iter, __label=self.__class__.__name__)
         ctx.train_output = train_output_queue
 
 
@@ -103,4 +97,5 @@ class HERLearner:
                 break
             self._trainer(ctx)
             train_output_queue.append(ctx.train_output)
+            traffic.record(info=ctx.train_output, train_iter=ctx.train_iter, __label=self.__class__.__name__)
         ctx.train_output = train_output_queue

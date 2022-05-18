@@ -50,7 +50,7 @@ def main():
         expert_policy = SQLPolicy(expert_cfg.policy, model=expert_model)
         state_dict = torch.load(cfg.policy.collect.model_path, map_location='cpu')
         expert_policy.collect_mode.load_state_dict(state_dict)
-        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
+        traffic.set_config(is_writer=True, file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", router=Parallel())
 
         task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))

@@ -205,7 +205,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
             last_eval_iter=ctx.train_iter,
             last_env_step=ctx.env_step,
             eval_value=eval_reward.item(),
-            __label="interaction_evaluator"
+            __label=interaction_evaluator.__name__
         )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
@@ -244,7 +244,7 @@ def metric_evaluator(cfg: EasyDict, policy: Policy, dataset: Dataset, metric: IM
             last_eval_iter=ctx.train_iter,
             last_env_step=ctx.env_step,
             avg_eval_output=avg_eval_output,
-            __label="metric_evaluator"
+            __label=metric_evaluator.__name__
         )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = avg_eval_output

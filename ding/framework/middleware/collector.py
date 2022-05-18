@@ -63,7 +63,10 @@ class StepCollector:
                 break
 
         traffic.record(
-            total_step=ctx.total_step, env_step=ctx.env_step, env_episode=ctx.env_episode, __label="StepCollector"
+            total_step=ctx.total_step,
+            env_step=ctx.env_step,
+            env_episode=ctx.env_episode,
+            __label=self.__class__.__name__
         )
 
 
@@ -118,7 +121,10 @@ class EpisodeCollector:
                 break
 
         traffic.record(
-            total_step=ctx.total_step, env_step=ctx.env_step, env_episode=ctx.env_episode, __label="EpisodeCollector"
+            total_step=ctx.total_step,
+            env_step=ctx.env_step,
+            env_episode=ctx.env_episode,
+            __label=self.__class__.__name__
         )
 
 

@@ -42,7 +42,7 @@ def main():
         value_buffer.use(use_time_check(value_buffer, max_use=buffer_cfg.value.max_use))
         value_buffer.use(sample_range_view(value_buffer, start=-buffer_cfg.value.replay_buffer_size))
         policy = PPGPolicy(cfg.policy, model=model)
-        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
+        traffic.set_config(is_writer=True, file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", router=Parallel())
 
         task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))

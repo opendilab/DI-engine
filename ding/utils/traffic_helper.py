@@ -1,5 +1,5 @@
 from collections import deque
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 import time
 import os
 import json
@@ -21,8 +21,8 @@ class Traffic:
 
     def set_config(
             self,
+            is_writer: bool = False,
             file_path: str = None,
-            online: bool = False,
             maxlen: int = 10000,
             router: "Parallel" = None
     ) -> "Traffic":
@@ -33,18 +33,20 @@ class Traffic:
             - file_path (:obj:`str`): File path that offline data are to be saved at. \
                 In local mode, it must be set sucessfully for at least once. \
                 In remote mode, no need to set it for worker, but is necessary for master. \
-            - online (:obj:`bool`): To enable online analysis and maintain data in memory.
+            - is_writer (:obj:`bool`): To enable permisson for file writing with data in memory.
             - maxlen (:obj:`int`): Max data size in memory.
             - router (:obj:`Parallel`): To enable remote mode.
         """
 
-        if online:
+        if is_writer:
             assert maxlen > 0
 
         if self._file:
             logging.warn("Configuration failure: file handle existed.")
         else:
-            if file_path:
+            if not is_writer:
+                logging.warn("The traffic is not set as writer.")
+            elif file_path:
                 try:
                     if not os.path.exists(os.path.dirname(file_path)):
                         os.makedirs(os.path.dirname(file_path))
@@ -56,19 +58,17 @@ class Traffic:
 
         if self._router and self._router.is_active:
             logging.warn("Configuration failure: parallel router existed.")
-        else:
-            if router and router.is_active:
-                self._router = router
-                if self._file:
-                    router.on("_Traffic_", self._on_msg)
+        elif router and router.is_active:
+            self._router = router
+            if self._file:
+                router.on("_Traffic_", self._on_msg)
 
         if self._data is not None:
             logging.warn("Configuration failure: data existed.")
-        else:
-            if online:
-                self._data = deque(maxlen=maxlen)
-                self._max_records = 0
-                self._cache = {}
+        elif is_writer:
+            self._data = deque(maxlen=maxlen)
+            self._max_records = 0
+            self._cache = {}
 
         return self
 
@@ -95,6 +95,13 @@ class Traffic:
 
         if "__time" not in dict_to_record:
             dict_to_record.update({"__time": time.time()})
+
+        illegel_keys = []
+        for key in dict_to_record:
+            if type(dict_to_record[key]) not in [str, int, float, complex]:
+                illegel_keys.append(key)
+        for key in illegel_keys:
+            dict_to_record.pop(key, None)
 
         msg = json.dumps(dict_to_record)
         if self._file:

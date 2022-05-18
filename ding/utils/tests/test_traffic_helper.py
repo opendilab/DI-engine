@@ -33,7 +33,7 @@ def fn_record_something() -> Callable:
         os.makedirs(dir)
     clean_up(dir)
     file_path = "./tmp_test/traffic_log.txt"
-    traffic.set_config(file_path=file_path, online=True, router=Parallel())
+    traffic.set_config(file_path=file_path, is_writer=True, router=Parallel())
 
     def _fn(ctx: "Context") -> None:
         while True:
@@ -80,7 +80,7 @@ class TestTrafficModule:
             os.makedirs(dir)
         clean_up(dir)
         file_path = "./tmp_test/traffic_log.txt"
-        traffic.set_config(file_path=file_path, online=True)
+        traffic.set_config(file_path=file_path, is_writer=True)
         for train_iter in range(10):
             traffic.record(train_iter=train_iter, train_reward=random.random())
         for eval_iter in range(10):
@@ -105,7 +105,7 @@ def get_mean_std(res):
 class TrafficBenchmark:
 
     def __init__(self, file_path: str) -> None:
-        self._traffic = traffic.set_config(file_path=file_path, online=True)
+        self._traffic = traffic.set_config(file_path=file_path, is_writer=True)
 
     def record_info(self):
         self._traffic.record(other_iter=random.random(), other_reward=random.random(), __label="other")

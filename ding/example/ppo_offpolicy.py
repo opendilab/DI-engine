@@ -34,7 +34,7 @@ def main():
         model = VAC(**cfg.policy.model)
         buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
         policy = PPOOffPolicy(cfg.policy, model=model)
-        traffic.set_config(file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", online=True, router=Parallel())
+        traffic.set_config(is_writer=True, file_path="./" + str(cfg.exp_name) + "/traffic/log.txt", router=Parallel())
 
         task.use(traffic_server())
         task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))

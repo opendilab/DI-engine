@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 def traffic_server(execution_period: int = 1) -> Callable:
     """
     Overview:
-        Middleware for data analyser server as a master node that is both effective in local or remote mode. \
+        Middleware for traffic data printing as a master node that is both effective in local or remote mode. \
     Arguments:
         - execution_period (:obj:`int`): Adjust the rate of execution.
     Returns:
@@ -27,20 +27,14 @@ def traffic_server(execution_period: int = 1) -> Callable:
     def _traffic_server_main(ctx: "Context") -> None:
         """
         Overview:
-            Make online analysis if needed. \
-                Listen and record data and save it offline.
+            Analysing traffic data. 
         Arguments:
             - ctx (:obj:`Context`): Context of task object.
         """
 
-        if "traffic_step" in ctx:
-            ctx.traffic_step += 1
-        else:
-            ctx.traffic_step = 0
-
-        if traffic.df.index.size > 10 and ctx.traffic_step % execution_period == 0:
-            L = traffic.df.drop(["__label", "__time"],
-                                axis=1).replace('', np.nan).ffill().iloc[-1].to_frame(name="values").T
+        if traffic.df.index.size > 1 and ctx.total_step % execution_period == 0:
+            L = traffic.df.drop(["__label", "__time"], axis=1,
+                                errors="ignore").replace('', np.nan).ffill().iloc[-1].to_frame(name="values").T
             L = L[~L.applymap(pd.api.types.is_list_like)].dropna(axis=1, how="all")
             len = L.shape[1]
             for col in range(0, len, 5):
