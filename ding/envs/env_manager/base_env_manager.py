@@ -1,5 +1,5 @@
 from types import MethodType
-from typing import Union, Any, List, Callable, Dict, Optional
+from typing import Union, Any, List, Callable, Dict, Optional, Tuple
 from functools import partial, wraps
 from easydict import EasyDict
 import copy
@@ -163,7 +163,7 @@ class BaseEnvManager(object):
         return [i for i, s in self._env_states.items() if s == EnvState.RUN]
 
     @property
-    def ready_imgs(self, render_mode=('rgb_array')) -> Dict[int, Any]:
+    def ready_imgs(self, render_mode: Optional[Tuple[str]] = ('rgb_array')) -> Dict[int, Any]:
         """
         Overview:
             Get the next ready renderd frame and corresponding env id.
@@ -171,6 +171,7 @@ class BaseEnvManager(object):
             - ready_imgs (:obj:`Dict[int, np.ndarray]:`): Dict with env_id keys and rendered frames.
         """
         from ding.utils import render
+        assert render_mode[0] in ['rgb_array', 'depth_array']
         return {i: render(self._envs[i], render_mode) for i in self.ready_obs.keys()}
 
     @property

@@ -6,12 +6,11 @@ def render(env, render_mode=('rgb_array')) -> ndarray:
     Overview:
         Render the environment's current frame.
     Arguments:
-        - env (:obj:`BaseEnv`): the ding env.
-        - render_mode (:obj:`str`): render mode.
+        - env (:obj:`BaseEnv`): DI-engine env instance.
+        - render_mode (:obj:`str`): Render mode.
     Returns:
         - frame (:obj:`numpy.ndarray`): [H * W * C]
     '''
-    # TODO: do not use private member _env
     gym_env = env._env
     if hasattr(gym_env, 'sim'):
         # mujoco: mujoco frame is unside-down by default
@@ -26,7 +25,7 @@ def fps(env_manager) -> int:
     Overview:
         Render the environment's fps.
     Arguments:
-        - env (:obj:`BaseEnvManager`): the ding env manager.
+        - env (:obj:`BaseEnvManager`): DI-engine env manager instance.
     Returns:
         - fps (:obj:`int`).
     '''
