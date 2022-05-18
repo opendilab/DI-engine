@@ -125,6 +125,10 @@ class BaseEnvManager(object):
         return self._env_num
 
     @property
+    def env_ref(self) -> int:
+        return self._env_ref
+
+    @property
     def observation_space(self) -> 'gym.spaces.Space':  # noqa
         return self._observation_space
 
@@ -162,9 +166,9 @@ class BaseEnvManager(object):
     def ready_imgs(self, render_mode=('rgb_array')) -> Dict[int, Any]:
         """
         Overview:
-            Get the next renderd frames(in ``np.ndarray`` type) and corresponding env id.
+            Get the next ready renderd frame and corresponding env id.
         Return:
-            A dictionary with rendered frames and their environment IDs.
+            - ready_imgs (:obj:`Dict[int, np.ndarray]:`): Dict with env_id keys and rendered frames.
         """
         from ding.utils import render
         return {i: render(self._envs[i], render_mode) for i in self.ready_obs.keys()}
