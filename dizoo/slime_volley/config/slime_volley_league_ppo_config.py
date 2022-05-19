@@ -40,14 +40,26 @@ league_demo_ppo_config = dict(
                 # path to save policy of league player, user can specify this field, such as:
                 # path_policy="slime_volley_league_ppo_seed0/policy"
                 path_policy="policy_path_placeholer",
-                active_players=dict(main_player=1, ),
+                active_players=dict(main_player=5, main_exploiter=10, league_exploiter=5, ),
                 main_player=dict(
                     one_phase_step=20000,
-                    branch_probs=dict(pfsp=0.2, sp=0.8),
+                    branch_probs=dict(pfsp=0.8, sp=0.2),
                     strong_win_rate=0.7,
                 ),
-                use_pretrain=False,
-                use_pretrain_init_historical=False,
+                main_exploiter=dict(
+                    one_phase_step=40000,
+                    branch_probs=dict(main_players=1.0),
+                    strong_win_rate=0.7,
+                    min_valid_win_rate=0.6,
+                ),
+                league_exploiter=dict(
+                    one_phase_step=20000,
+                    branch_probs=dict(pfsp=1.0),
+                    strong_win_rate=0.7,
+                    mutate_prob=0.25,
+                ),
+                use_pretrain=True,
+                use_pretrain_init_historical=True,
                 payoff=dict(
                     type='battle',
                     decay=0.99,
