@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Tuple
 from numpy import ndarray
 
 if TYPE_CHECKING:
     from ding.envs import BaseEnv, BaseEnvManager
 
 
-def render(env: "BaseEnv", render_mode: Optional[tuple[str]] = ('rgb_array')) -> "ndarray":
+def render(env: "BaseEnv", render_mode: Optional[Tuple[str]] = ('rgb_array')) -> "ndarray":
     '''
     Overview:
         Render the environment's current frame.
