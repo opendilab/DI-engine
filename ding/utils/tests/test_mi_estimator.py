@@ -3,15 +3,15 @@ import numpy as np
 import torch
 from ding.utils.mi_estimator import ContrastiveLoss
 from torch.utils.data import TensorDataset, DataLoader
-# from torch.utils.tensorboard import SummaryWriter
 
 
-@pytest.mark.benchmark
+@pytest.mark.unittest
 @pytest.mark.parametrize('noise', [0.1, 1.0, 3.0])
-def test_infonce_loss(noise):
-    batch_size = 64
-    N_batch = 100
-    x_dim = [batch_size * N_batch, 16]
+@pytest.mark.parametrize('dims', [[16], [1, 16, 16]])
+def test_infonce_loss(noise, dims):
+    batch_size = 128
+    N_batch = 10
+    x_dim = [batch_size * N_batch] + dims
 
     embed_dim = 16
     x = np.random.normal(0, 1, size=x_dim)
@@ -21,8 +21,8 @@ def test_infonce_loss(noise):
     dataset = TensorDataset(torch.Tensor(x), torch.Tensor(y))
     dataloader = DataLoader(dataset, batch_size=batch_size)
     optimizer = torch.optim.Adam(estimator.parameters(), lr=3e-4)
-    # writer = SummaryWriter()
-    for epoch in range(10):
+
+    for epoch in range(3):
         train_loss = 0.
         test_loss = 0.
         for inputs in dataloader:
@@ -37,10 +37,4 @@ def test_infonce_loss(noise):
             for inputs in dataloader:
                 x, y = inputs
                 outputs = estimator.forward(x, y)
-                test_loss += outputs
-
-        # writer.add_scalar('Loss/train', train_loss / N_batch, epoch)
-        # writer.add_scalar('Loss/train', test_loss / N_batch, epoch)
-        # print('epoch {}: train loss {:.4f}, test_loss {:.4f}'.format(epoch, \
-        # train_loss / N_batch, test_loss / N_batch))
-    # writer.close()
+                test_loss += outputs.item()

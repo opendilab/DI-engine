@@ -10,6 +10,8 @@ class ContrastiveLoss(nn.Module):
     """
         The class for contrastive learning losses.
         Only InfoNCE loss supported currently.
+        Code Reference: https://github.com/rdevon/DIM.
+        paper: https://arxiv.org/abs/1808.06670.
     """
 
     def __init__(
@@ -23,8 +25,8 @@ class ContrastiveLoss(nn.Module):
     ) -> None:
         """
         Args:
-            x_dim: input dimensions for x, both obs shape and encoding shape are supported.
-            y_dim: input dimensions for y, both obs shape and encoding shape are supported.
+            x_dim: input dimensions for x, both the obs shape and the encoding shape are supported.
+            y_dim: input dimensions for y, both the obs shape and the encoding shape are supported.
             heads: a list of 2 int elems, heads[0] for x and head[1] for y.
                 Used in multi-head, global-local, local-local MI maximization process.
             loss_type: only InfoNCE loss supported currently.
@@ -51,7 +53,10 @@ class ContrastiveLoss(nn.Module):
             encoder = FCEncoder(obs[0], hidden_size_list)
         else:
             hidden_size_list = [32, 64, 64, self._embed_dim * heads]
-            encoder = ConvEncoder(obs, hidden_size_list)
+            if obs[-1] >= 36:
+                encoder = ConvEncoder(obs, hidden_size_list)
+            else:
+                encoder = ConvEncoder(obs, hidden_size_list, kernel_size=[4, 3, 2], stride=[2, 1, 1])
         return encoder
 
     def forward(self, x: torch.Tensor, y: torch.Tensor):
