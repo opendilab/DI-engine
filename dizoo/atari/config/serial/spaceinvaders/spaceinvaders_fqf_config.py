@@ -62,4 +62,12 @@ create_config = spaceinvaders_fqf_create_config
 if __name__ == '__main__':
     # or you can enter ding -m serial -c spaceinvaders_fqf_config.py -s 0
     from ding.entry import serial_pipeline
-    serial_pipeline((main_config, create_config), seed=0)
+    import argparse
+    import copy
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--seed', type=int, default=0)
+    args = parser.parse_args()
+    #params = vars(args)
+    #seed = params['seed']
+    main_config.exp_name = f'spaceinvaders_fqf_seed{args.seed}'
+    serial_pipeline((copy.deepcopy(main_config), copy.deepcopy(create_config)), seed=args.seed, max_env_step=10000000)
