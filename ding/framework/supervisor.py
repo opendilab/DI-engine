@@ -8,7 +8,7 @@ import traceback
 import uuid
 from ditk import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 from enum import Enum
 
 
@@ -57,7 +57,7 @@ class Child:
     def restart(self):
         raise NotImplementedError
 
-    def shutdown(self):
+    def shutdown(self, timeout: Optional[float] = None):
         raise NotImplementedError
 
     def send(self, payload: SendPayload):
@@ -82,8 +82,8 @@ class Child:
                     RecvPayload(proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, data=data)
                 )
             except Exception as e:
-                logging.error(traceback.format_exc())
-                logging.error("Error in child process! id: {}, error: {}".format(self._proc_id, e))
+                logging.warning(traceback.format_exc())
+                logging.warning("Error in child process! id: {}, error: {}".format(self._proc_id, e))
                 recv_payload = RecvPayload(
                     proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, err=e
                 )
@@ -115,11 +115,11 @@ class ChildProcess(Child):
         self.shutdown()
         self.start()
 
-    def shutdown(self):
+    def shutdown(self, timeout: Optional[float] = None):
         if self._proc:
             self._send_queue.put(SendPayload(proc_id=self._proc_id, method=ReserveMethod.SHUTDOWN))
             self._proc.terminate()
-            self._proc.join()
+            self._proc.join(timeout=timeout)
             self._proc.close()
             self._proc = None
             self._send_queue.close()
@@ -149,10 +149,10 @@ class ChildThread(Child):
         self.shutdown()
         self.start()
 
-    def shutdown(self):
+    def shutdown(self, timeout: Optional[float] = None):
         if self._thread:
             self._send_queue.put(SendPayload(proc_id=self._proc_id, method=ReserveMethod.SHUTDOWN))
-            self._thread.join()
+            self._thread.join(timeout=timeout)
             self._thread = None
             self._send_queue = queue.Queue()
 
@@ -197,8 +197,8 @@ class Supervisor:
         Overview:
             Wait for message from child process
         Arguments:
-            - ignore_err (:obj:`bool`): If ignore_err is True, the child process will automatically restart, \
-                and put the err in the property of recv_payload. Otherwise, an exception will be raised.
+            - ignore_err (:obj:`bool`): If ignore_err is True, put the err in the property of recv_payload. \
+                Otherwise, an exception will be raised.
         Returns:
             - recv_payload (:obj:`RecvPayload`): Recv payload.
         """
@@ -207,14 +207,20 @@ class Supervisor:
             raise recv_payload.err
         return recv_payload
 
-    def recv_all(self, req_ids: List[str], ignore_err: bool = False, callback: Callable = None) -> List[RecvPayload]:
+    def recv_all(
+            self,
+            req_ids: List[str],
+            ignore_err: bool = False,
+            callback: Callable = None,
+            timeout: Optional[int] = None
+    ) -> List[RecvPayload]:
         """
         Overview:
             Wait for messages with specific req ids until all ids are fulfilled.
         Arguments:
             - req_ids (:obj:`List[str]`): Request ids.
-            - ignore_err (:obj:`bool`): If ignore_err is True, the child process will automatically restart, \
-                and put the err in the property of recv_payload. Otherwise, an exception will be raised.
+            - ignore_err (:obj:`bool`): If ignore_err is True, \
+                put the err in the property of recv_payload. Otherwise, an exception will be raised.
             - callback (:obj:`Callable`): Callback for each recv payload.
         Returns:
             - recv_payload (:obj:`RecvPayload`): Recv payload.
@@ -223,8 +229,18 @@ class Supervisor:
         return_payloads = {}
         orig_req_ids = req_ids
         req_ids = copy(req_ids)
+        unrelated_payloads = []
+
         while req_ids:
-            recv_payload: RecvPayload = self._recv_queue.get()
+            try:
+                recv_payload: RecvPayload = self._recv_queue.get(block=True, timeout=timeout)
+            except queue.Empty:
+                if ignore_err:
+                    logging.warning("Timeout ({}s) when receving payloads!".format(timeout))
+                    break
+                else:
+                    raise TimeoutError("Timeout ({}s) when receving payloads!".format(timeout))
+
             if recv_payload.req_id in req_ids:
                 req_ids.remove(recv_payload.req_id)
                 return_payloads[recv_payload.req_id] = recv_payload
@@ -233,15 +249,22 @@ class Supervisor:
                 if callback:
                     callback(recv_payload, req_ids)
             else:
-                # Put back the unrelated payload.
-                self._recv_queue.put(recv_payload)
-        # Keep the original order of requests.
-        return [return_payloads[req_id] for req_id in orig_req_ids]
+                unrelated_payloads.append(recv_payload)
 
-    def shutdown(self) -> None:
+        # Put back the unrelated payload.
+        for payload in unrelated_payloads:
+            self._recv_queue.put(payload)
+
+        # Keep the original order of requests.
+        return [
+            return_payloads.get(req_id) or TimeoutError("Timeout on req_id ({})".format(req_id))
+            for req_id in orig_req_ids
+        ]
+
+    def shutdown(self, timeout: Optional[float] = None) -> None:
         if self._running:
             for child in self._children:
-                child.shutdown()
+                child.shutdown(timeout=timeout)
             while not self._recv_queue.empty():
                 self._recv_queue.get()
         self._running = False
@@ -256,5 +279,5 @@ class Supervisor:
         return [payload.data for payload in self.recv_all(req_ids)]
 
     def __del__(self) -> None:
-        self.shutdown()
+        self.shutdown(timeout=5)
         self._children.clear()

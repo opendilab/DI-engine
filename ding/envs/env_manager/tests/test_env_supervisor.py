@@ -138,7 +138,14 @@ class TestEnvSupervisorCompatible:
 
     @pytest.mark.timeout(60)
     def test_block(self, setup_base_manager_cfg):
-        pass
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        setup_base_manager_cfg['max_retry'] = 1
+        print(setup_base_manager_cfg)
+        env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+        with pytest.raises(RuntimeError):
+            reset_param = {i: {'stat': 'block'} for i in range(env_supervisor.env_num)}
+            obs = env_supervisor.launch(reset_param=reset_param)
+        assert env_supervisor.closed
 
 
 @pytest.mark.unittest

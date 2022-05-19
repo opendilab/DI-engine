@@ -46,9 +46,11 @@ class EnvSupervisor(Supervisor):
             type_: ChildType = ChildType.PROCESS,
             env_fn: List[Callable] = None,
             retry_type: EnvRetryType = EnvRetryType.RESET,
-            max_try: int = None,
-            max_retry: int = None,
+            max_try: Optional[int] = None,
+            max_retry: Optional[int] = None,
             auto_reset: bool = True,
+            reset_timeout: Optional[int] = None,
+            step_timeout: Optional[int] = None,
             **kwargs
     ) -> None:
         super().__init__(type_=type_)
@@ -66,6 +68,8 @@ class EnvSupervisor(Supervisor):
         if max_retry:
             logging.warning("The `max_retry` is going to be deprecated, use `max_try` instead!")
         self._max_try = max_try or max_retry or 1
+        self._reset_timeout = reset_timeout
+        self._step_timeout = step_timeout
 
     def step(self, actions: Optional[Dict[int, List[Any]]], block: bool = True) -> Optional[List[tnp.ndarray]]:
         assert not self.closed, "Env supervisor has closed."
