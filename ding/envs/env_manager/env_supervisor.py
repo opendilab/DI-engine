@@ -36,6 +36,10 @@ class EnvSupervisor(Supervisor):
     - Consistent interface in multi-process and multi-threaded mode.
     - Add asynchronous features and recommend using asynchronous methods.
     - Reset is performed after an error is encountered in the step method.
+    - Add an auto_recover option, when an environment goes fatally error, it will be automatically restarted \
+        if auto_recover is true, otherwise a runtime error will be raised.
+    - Reset timeout and step timeout will be fatal errors and not be auto retried, use auto_recover to restart \
+        the environment.
 
     Breaking changes (compared to env manager):
     - Without some states.
@@ -51,6 +55,7 @@ class EnvSupervisor(Supervisor):
             auto_reset: bool = True,
             reset_timeout: Optional[int] = None,
             step_timeout: Optional[int] = None,
+            auto_recover: bool = True,
             **kwargs
     ) -> None:
         super().__init__(type_=type_)
@@ -70,6 +75,7 @@ class EnvSupervisor(Supervisor):
         self._max_try = max_try or max_retry or 1
         self._reset_timeout = reset_timeout
         self._step_timeout = step_timeout
+        self._auto_recover = auto_recover
 
     def step(self, actions: Optional[Dict[int, List[Any]]], block: bool = True) -> Optional[List[tnp.ndarray]]:
         assert not self.closed, "Env supervisor has closed."
@@ -89,7 +95,9 @@ class EnvSupervisor(Supervisor):
             return
 
         # Wait for all steps returns
-        recv_payloads = self.recv_all(req_ids, ignore_err=True, callback=self._recv_step_callback())
+        recv_payloads = self.recv_all(
+            req_ids, ignore_err=True, callback=self._recv_step_callback(), timeout=self._step_timeout
+        )
         return [payload.data for payload in recv_payloads]
 
     def _recv_step_callback(self) -> Callable:

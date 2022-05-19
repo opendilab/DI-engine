@@ -40,18 +40,19 @@ def test_supervisor(type_):
     assert all([payload.data == 1 for payload in recv_states])
 
     # Test recv_all
-    req_ids = []
+    send_payloads = []
     for env_id in range(len(sv._children)):
         payload = SendPayload(
             proc_id=env_id,
             method="step",
             args=["any action"],
         )
-        req_ids.append(payload.req_id)
+        send_payloads.append(payload)
         sv.send(payload)
 
+    req_ids = [payload.req_id for payload in send_payloads]
     ## Only wait for last two messages, keep the first one in the queue.
-    recv_payloads = sv.recv_all(req_ids=req_ids[1:])
+    recv_payloads = sv.recv_all(send_payloads[1:])
     assert len(recv_payloads) == 2
     for req_id, payload in zip(req_ids[1:], recv_payloads):
         assert req_id == payload.req_id
@@ -124,14 +125,14 @@ def test_recv_all(type_):
     sv.start_link()
 
     # Test recv_all
-    req_ids = []
+    send_payloads = []
     for env_id in range(len(sv._children)):
         payload = SendPayload(
             proc_id=env_id,
             method="step",
             args=["any action"],
         )
-        req_ids.append(payload.req_id)
+        send_payloads.append(payload)
         sv.send(payload)
 
     retry_times = {env_id: 0 for env_id in range(len(sv._children))}
@@ -144,7 +145,7 @@ def test_recv_all(type_):
         sv.send(payload)
         req_ids.append(payload.req_id)
 
-    recv_payloads = sv.recv_all(req_ids=req_ids, callback=recv_callback)
+    recv_payloads = sv.recv_all(send_payloads=send_payloads, callback=recv_callback)
     assert len(recv_payloads) == 3
     assert all([v == 2 for v in retry_times.values()])
 
@@ -159,34 +160,38 @@ def test_timeout(type_):
         sv.register(MockEnv, "AnyArgs")
     sv.start_link()
 
-    req_ids = []
+    send_payloads = []
     for env_id in range(len(sv._children)):
         payload = SendPayload(proc_id=env_id, method="block")
-        req_ids.append(payload.req_id)
+        send_payloads.append(payload)
         sv.send(payload)
 
     # Test timeout exception
     with pytest.raises(TimeoutError):
-        sv.recv_all(req_ids=req_ids, timeout=1)
+        sv.recv_all(send_payloads=send_payloads, timeout=1)
     sv.shutdown(timeout=1)
 
     # Test timeout with ignore error
     sv.start_link()
-    req_ids = []
+    send_payloads = []
 
     ## 0 is block
     payload = SendPayload(proc_id=0, method="block")
-    req_ids.append(payload.req_id)
+    send_payloads.append(payload)
     sv.send(payload)
 
     ## 1 is step
     payload = SendPayload(proc_id=1, method="step", args=[""])
-    req_ids.append(payload.req_id)
+    send_payloads.append(payload)
     sv.send(payload)
 
-    # Will receiving a payload and an timeout error object
-    payloads = sv.recv_all(req_ids=req_ids, timeout=1, ignore_err=True)
-    assert isinstance(payloads[0], TimeoutError)
-    assert isinstance(payloads[1], RecvPayload)
+    # Will receiving a normal payload and a payload with a timeout error
+    def recv_callback(recv_payload: RecvPayload, req_ids: List[str]):
+        # Ignore further errors
+        pass
+
+    payloads = sv.recv_all(send_payloads=send_payloads, timeout=1, ignore_err=True, callback=recv_callback)
+    assert isinstance(payloads[0].err, TimeoutError)
+    assert payloads[1].err is None
 
     sv.shutdown(timeout=1)

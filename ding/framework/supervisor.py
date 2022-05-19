@@ -209,57 +209,68 @@ class Supervisor:
 
     def recv_all(
             self,
-            req_ids: List[str],
+            send_payloads: List[SendPayload],
             ignore_err: bool = False,
             callback: Callable = None,
-            timeout: Optional[int] = None
+            timeout: Optional[float] = None
     ) -> List[RecvPayload]:
         """
         Overview:
             Wait for messages with specific req ids until all ids are fulfilled.
         Arguments:
-            - req_ids (:obj:`List[str]`): Request ids.
+            - send_payloads (:obj:`List[SendPayload]`): Request payloads.
             - ignore_err (:obj:`bool`): If ignore_err is True, \
-                put the err in the property of recv_payload. Otherwise, an exception will be raised.
+                put the err in the property of recv_payload. Otherwise, an exception will be raised. \
+                This option will also ignore timeout error.
             - callback (:obj:`Callable`): Callback for each recv payload.
+            - timeout (:obj:`Optional[float]`): Timeout when wait for responses.
         Returns:
-            - recv_payload (:obj:`RecvPayload`): Recv payload.
+            - recv_payload (:obj:`List[RecvPayload]`): Recv payload, may contain timeout error.
         """
-        assert req_ids, "Req ids is empty!"
+        assert send_payloads, "Req payload is empty!"
         return_payloads = {}
-        orig_req_ids = req_ids
-        req_ids = copy(req_ids)
+        indexed_payloads = {payload.req_id: payload for payload in send_payloads}
+
+        req_ids = list(indexed_payloads.keys())
         unrelated_payloads = []
 
-        while req_ids:
-            try:
-                recv_payload: RecvPayload = self._recv_queue.get(block=True, timeout=timeout)
-            except queue.Empty:
-                if ignore_err:
-                    logging.warning("Timeout ({}s) when receving payloads!".format(timeout))
-                    break
-                else:
-                    raise TimeoutError("Timeout ({}s) when receving payloads!".format(timeout))
-
-            if recv_payload.req_id in req_ids:
-                req_ids.remove(recv_payload.req_id)
-                return_payloads[recv_payload.req_id] = recv_payload
-                if recv_payload.err and not ignore_err:
-                    raise recv_payload.err
-                if callback:
-                    callback(recv_payload, req_ids)
-            else:
-                unrelated_payloads.append(recv_payload)
-
-        # Put back the unrelated payload.
-        for payload in unrelated_payloads:
-            self._recv_queue.put(payload)
+        try:
+            while req_ids:
+                try:
+                    recv_payload: RecvPayload = self._recv_queue.get(block=True, timeout=timeout)
+                    if recv_payload.req_id in req_ids:
+                        req_ids.remove(recv_payload.req_id)
+                        return_payloads[recv_payload.req_id] = recv_payload
+                        if recv_payload.err and not ignore_err:
+                            raise recv_payload.err
+                        if callback:
+                            callback(recv_payload, req_ids)
+                    else:
+                        unrelated_payloads.append(recv_payload)
+                except queue.Empty:
+                    if ignore_err:
+                        logging.warning("Timeout ({}s) when receving payloads!".format(timeout))
+                        for req_id in copy(req_ids):
+                            send_payload = indexed_payloads[req_id]
+                            recv_payload = RecvPayload(
+                                proc_id=send_payload.proc_id,
+                                req_id=send_payload.req_id,
+                                method=send_payload.method,
+                                err=TimeoutError("Timeout on req_id ({})".format(req_id))
+                            )
+                            req_ids.remove(recv_payload.req_id)
+                            return_payloads[req_id] = recv_payload
+                            if callback:
+                                callback(recv_payload, req_ids)
+                    else:
+                        raise TimeoutError("Timeout ({}s) when receving payloads!".format(timeout))
+        finally:
+            # Put back the unrelated payload.
+            for payload in unrelated_payloads:
+                self._recv_queue.put(payload)
 
         # Keep the original order of requests.
-        return [
-            return_payloads.get(req_id) or TimeoutError("Timeout on req_id ({})".format(req_id))
-            for req_id in orig_req_ids
-        ]
+        return [return_payloads[send_payload.req_id] for send_payload in send_payloads]
 
     def shutdown(self, timeout: Optional[float] = None) -> None:
         if self._running:
@@ -271,12 +282,12 @@ class Supervisor:
 
     def __getattr__(self, key: str) -> List[Any]:
         assert self._running, "Supervisor is not running, please call start_link first!"
-        req_ids = []
+        send_payloads = []
         for i, child in enumerate(self._children):
             payload = SendPayload(proc_id=i, method=ReserveMethod.GETATTR, args=[key])
-            req_ids.append(payload.req_id)
+            send_payloads.append(payload)
             child.send(payload)
-        return [payload.data for payload in self.recv_all(req_ids)]
+        return [payload.data for payload in self.recv_all(send_payloads)]
 
     def __del__(self) -> None:
         self.shutdown(timeout=5)
