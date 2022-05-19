@@ -324,7 +324,7 @@ class DTPolicy(DQNPolicy):
         )
 
         self.max_d4rl_score = -1.0
-        self.max_cartpole_score = -1.0
+        self.max_env_score = -1.0
 
         self.total_updates = 0
 
@@ -354,14 +354,13 @@ class DTPolicy(DQNPolicy):
             timesteps = timesteps.to(self.device)  # B x T
             states = states.to(self.device)  # B x T x state_dim
             actions = actions.to(self.device)  # B x T x act_dim
-            returns_to_go = returns_to_go.to(self.device).unsqueeze(dim=-1)  # B x T x 1
+            returns_to_go = returns_to_go.to(self.device)  # B x T x 1
             traj_mask = traj_mask.to(self.device)  # B x T
             action_target = torch.clone(actions).detach().to(self.device)
 
             # if discrete
             if not self._cfg.model.continuous:
                 actions = one_hot(actions.squeeze(-1), num=self.act_dim)
-                returns_to_go = returns_to_go.to(self.device).squeeze(dim=-1)  # B x T x 1
 
             returns_to_go = returns_to_go.float()
             state_preds, action_preds, return_preds = self._learn_model.forward(
@@ -536,17 +535,17 @@ class DTPolicy(DQNPolicy):
 
         # save model
         print("eval_avg_reward: " + format(eval_avg_reward, ".5f"))
-        eval_cartpole_score = eval_avg_reward
-        if eval_cartpole_score >= self.max_cartpole_score:
-            print("saving max cartpole score model at: " + self.save_best_model_path)
+        eval_env_score = eval_avg_reward
+        if eval_env_score >= self.max_env_score:
+            print("saving max env score model at: " + self.save_best_model_path)
             torch.save(self._learn_model.state_dict(), self.save_best_model_path)
-            self.max_cartpole_score = eval_cartpole_score
+            self.max_env_score = eval_env_score
 
         print("saving current model at: " + self.save_model_path)
         torch.save(self._learn_model.state_dict(), self.save_model_path)
 
         stop = False
-        if self.max_cartpole_score >= self.stop_value:
+        if self.max_env_score >= self.stop_value:
             stop = True
         return stop
 
