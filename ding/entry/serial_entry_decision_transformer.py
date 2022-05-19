@@ -21,6 +21,7 @@ import pickle
 import torch
 import numpy as np
 from torch.utils.data import Dataset
+import h5py
 
 
 def discount_cumsum(x, gamma):
@@ -43,7 +44,10 @@ class D4RLTrajectoryDataset(Dataset):
 
         # load dataset
         with open(dataset_path, 'rb') as f:
-            self.trajectories = pickle.load(f)
+            if dataset_path.endswith('.pkl'):
+                self.trajectories = pickle.load(f)
+            elif dataset_path.endswith('.hdf5'):
+                self.trajectories = h5py.File(dataset_path, 'r')
 
         if isinstance(self.trajectories[0], list):
             # for our collected dataset, e.g. cartpole/lunarlander case
