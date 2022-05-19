@@ -3,6 +3,7 @@ from functools import partial
 import copy
 
 import torch
+from torch import nn
 from torch.distributions import Normal, Independent, TransformedDistribution, TanhTransform
 from easydict import EasyDict
 
@@ -31,6 +32,8 @@ class MBSACPolicy(SACPolicy):
             horizon=0,
             # (float) Lambda for TD return.
             _lambda=0.8,
+            # (float) Gradient clip norm.
+            grad_clip=100,
             # (bool) Whether to sample transitions or only states from environment buffer. 
             sample_state=True,
         )
@@ -48,6 +51,7 @@ class MBSACPolicy(SACPolicy):
 
         self._horizon = self._cfg.learn.horizon
         self._lambda = self._cfg.learn._lambda
+        self._grad_clip = self._cfg.learn.grad_clip
         self._sample_state = self._cfg.learn.sample_state
 
         # TODO: complete auto alpha
@@ -68,14 +72,22 @@ class MBSACPolicy(SACPolicy):
 
         # helper functions to provide unified API
         def actor_fn(obs):
-            (mu, sigma) = self._learn_model.forward(
-                obs, mode='compute_actor')['logit']
-            # enforce action bounds
-            dist = TransformedDistribution(
-                Independent(Normal(mu, sigma), 1), [TanhTransform()])
-            action = dist.rsample()
-            log_prob = dist.log_prob(action)
-            return action, -self._alpha.detach()*log_prob
+            # (mu, sigma) = self._learn_model.forward(
+            #     obs, mode='compute_actor')['logit']
+            # # enforce action bounds
+            # dist = TransformedDistribution(
+            #     Independent(Normal(mu, sigma), 1), [TanhTransform()])
+            # action = dist.rsample()
+            # log_prob = dist.log_prob(action)
+            (mu, sigma) = self._learn_model.forward(obs, mode='compute_actor')['logit']
+            dist = Independent(Normal(mu, sigma), 1)
+            pred = dist.rsample()
+            action = torch.tanh(pred)
+
+            log_prob = dist.log_prob(
+                pred
+            ) + 2 * (pred + torch.nn.functional.softplus(-2. * pred) - torch.log(torch.tensor(2.))).sum(-1)
+            return action, -self._alpha.detach() * log_prob
         self._actor_fn = actor_fn
 
         def critic_fn(obss, actions, model):
@@ -181,10 +193,12 @@ class MBSACPolicy(SACPolicy):
         # update critic
         self._optimizer_q.zero_grad()
         loss_dict['critic_loss'].backward()
+        nn.utils.clip_grad_norm_(self._model.critic.parameters(), self._grad_clip)
         self._optimizer_q.step()
         # update policy
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
+        nn.utils.clip_grad_norm_(self._model.actor.parameters(), self._grad_clip)
         self._optimizer_policy.step()
         # update temperature
         # self._alpha_optim.zero_grad()
