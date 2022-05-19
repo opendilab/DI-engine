@@ -174,11 +174,11 @@
 
 
 <div class="viewcode-block" id="ConvEncoder"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder">[docs]</a><span class="k">class</span> <span class="nc">ConvEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``Convolution Encoder`` used in models. Used to encoder raw 2-dim observation.</span>
+<span class="sd">        The ``Convolution Encoder`` used to encode raw 2-dim observations.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">        ``__init__``, ``_get_flatten_size``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ConvEncoder.__init__"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -191,17 +191,21 @@
             <span class="n">padding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">SequenceType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Init the Convolution Encoder according to arguments.</span>
+<span class="sd">            Init the ``Convolution Encoder`` according to the provided arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, some ``output size``</span>
-<span class="sd">            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``</span>
-<span class="sd">            - activation (:obj:`nn.Module`):</span>
-<span class="sd">                The type of activation to use in the conv ``layers`` and ``ResBlock``,</span>
-<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`str`):</span>
-<span class="sd">                The type of normalization to use, see ``ding.torch_utils.ResBlock`` for more details</span>
+<span class="sd">            - obs_shape (:obj:`SequenceType`): Sequence of ``in_channel``, plus one or more ``input size``.</span>
+<span class="sd">            - hidden_size_list (:obj:`SequenceType`): Sequence of ``hidden_size`` of subsequent conv layers \</span>
+<span class="sd">                and the final dense layer.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): Type of activation to use in the conv ``layers`` and ``ResBlock``. \</span>
+<span class="sd">                Default is ``nn.ReLU()``.</span>
+<span class="sd">            - kernel_size (:obj:`SequenceType`): Sequence of ``kernel_size`` of subsequent conv layers.</span>
+<span class="sd">            - stride (:obj:`SequenceType`): Sequence of ``stride`` of subsequent conv layers.</span>
+<span class="sd">            - padding (:obj:`SequenceType`): Padding added to all four sides of the input for each conv layer. \</span>
+<span class="sd">                See ``nn.Conv2d`` for more details. Default is ``None``.</span>
+<span class="sd">            - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResBlock`` \</span>
+<span class="sd">                for more details. Default is ``None``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ConvEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
@@ -226,13 +230,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">flatten_size</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="ConvEncoder._get_flatten_size"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder._get_flatten_size">[docs]</a>    <span class="k">def</span> <span class="nf">_get_flatten_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Get the encoding size after ``self.main`` to get the number of ``in-features`` to feed to ``nn.Linear``.</span>
-<span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): Encoded Tensor after ``self.main``</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`torch.Tensor`): Size int, also number of in-feature</span>
+<span class="sd">            - outputs (:obj:`torch.Tensor`): Size ``int`` Tensor representing the number of ``in-features``.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - outputs: :math:`(1,)`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">test_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
@@ -240,13 +244,15 @@
         <span class="k">return</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="ConvEncoder.forward"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.ConvEncoder.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return embedding tensor of the env observation</span>
+<span class="sd">            Return output embedding tensor of the env observation.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`torch.Tensor`): Embedding tensor</span>
+<span class="sd">            - outputs (:obj:`torch.Tensor`): Output embedding tensor.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mid</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -254,11 +260,11 @@
 
 
 <div class="viewcode-block" id="FCEncoder"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder">[docs]</a><span class="k">class</span> <span class="nc">FCEncoder</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        The ``FCEncoder`` used in models. Used to encoder raw 1-dim observation.</span>
+<span class="sd">        The ``FCEncoder`` used in models to encode raw 1-dim observations.</span>
 <span class="sd">    Interfaces:</span>
-<span class="sd">        ``__init__``, ``forward``</span>
+<span class="sd">        ``__init__``, ``forward``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="FCEncoder.__init__"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -269,18 +275,16 @@
             <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
             <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Init the FC Encoder according to arguments.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - obs_shape (:obj:`int`): Observation shape</span>
-<span class="sd">            - hidden_size_list (:obj:`SequenceType`): The collection of ``hidden_size``</span>
-<span class="sd">            - res_block (:obj:`bool`): Whether use ``res_block``.</span>
-<span class="sd">            - activation (:obj:`nn.Module`):</span>
-<span class="sd">                The type of activation to use in the ``ResFCBlock``,</span>
-<span class="sd">                if ``None`` then default set to ``nn.ReLU()``</span>
-<span class="sd">            - norm_type (:obj:`str`):</span>
-<span class="sd">                The type of normalization to use, see ``ding.torch_utils.ResFCBlock`` for more details</span>
+<span class="sd">            - obs_shape (:obj:`int`): Observation shape.</span>
+<span class="sd">            - hidden_size_list (:obj:`SequenceType`): Sequence of ``hidden_size`` of subsequent FC layers.</span>
+<span class="sd">            - res_block (:obj:`bool`): Whether use ``res_block``. Default is ``False``.</span>
+<span class="sd">            - activation (:obj:`nn.Module`): Type of activation to use in ``ResFCBlock``. Default is ``nn.ReLU()``.</span>
+<span class="sd">            - norm_type (:obj:`str`): Type of normalization to use. See ``ding.torch_utils.network.ResFCBlock`` \</span>
+<span class="sd">                for more details. Default is ``None``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">FCEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obs_shape</span> <span class="o">=</span> <span class="n">obs_shape</span>
@@ -304,13 +308,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">main</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FCEncoder.forward"><a class="viewcode-back" href="../../../../api_doc/model/common/encoder.html#ding.model.common.encoder.FCEncoder.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
-<span class="sd">            Return embedding tensor of the env observation</span>
+<span class="sd">            Return output embedding tensor of the env observation.</span>
 <span class="sd">        Arguments:</span>
-<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation</span>
+<span class="sd">            - x (:obj:`torch.Tensor`): Env raw observation.</span>
 <span class="sd">        Returns:</span>
-<span class="sd">            - outputs (:obj:`torch.Tensor`): Embedding tensor</span>
+<span class="sd">            - outputs (:obj:`torch.Tensor`): Output embedding tensor.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - outputs: :math:`(B, N)`, where ``N = hidden_size_list[-1]``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>

@@ -171,15 +171,14 @@
 
 
 <div class="viewcode-block" id="create_model"><a class="viewcode-back" href="../../../../api_doc/model/common/utils.html#ding.model.common.utils.create_model">[docs]</a><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
-<span class="sd">        Creat model given config dictionary</span>
+<span class="sd">        Create a model given a config dictionary.</span>
 <span class="sd">    Arguments:</span>
-<span class="sd">        - cfg: (:obj:`dict`):</span>
-<span class="sd">            The trainning configuration, the key ``import_name`` is</span>
-<span class="sd">            used to import module, and they key ``type`` is used to build model.</span>
+<span class="sd">        - cfg: (:obj:`dict`): Training configuration. The key ``import_name`` is \</span>
+<span class="sd">            used to import modules, and they key ``type`` is used to build the model.</span>
 <span class="sd">    Returns:</span>
-<span class="sd">        - (:obj:`torch.nn.Module`) The corresponding model.</span>
+<span class="sd">        - (:obj:`torch.nn.Module`) Training configuration corresponding model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">import_module</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;import_names&#39;</span><span class="p">,</span> <span class="p">[]))</span>
     <span class="c1"># must use pop</span>
