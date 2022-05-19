@@ -1,7 +1,11 @@
+from typing import TYPE_CHECKING, Optional
 from numpy import ndarray
 
+if TYPE_CHECKING:
+    from ding.envs import BaseEnv, BaseEnvManager
 
-def render(env, render_mode=('rgb_array')) -> ndarray:
+
+def render(env: "BaseEnv", render_mode: Optional[tuple[str]] = ('rgb_array')) -> "ndarray":
     '''
     Overview:
         Render the environment's current frame.
@@ -16,11 +20,11 @@ def render(env, render_mode=('rgb_array')) -> ndarray:
         # mujoco: mujoco frame is unside-down by default
         return gym_env.sim.render(camera_name='track', height=128, width=128)[::-1]
     else:
-        # other
+        # other envs
         return gym_env.render(mode=render_mode)
 
 
-def fps(env_manager) -> int:
+def fps(env_manager: "BaseEnvManager") -> "int":
     '''
     Overview:
         Render the environment's fps.
@@ -38,6 +42,6 @@ def fps(env_manager) -> int:
         # classic control
         fps = gym_env.env.metadata['video.frames_per_second']
     else:
-        # atari and others
+        # atari and other envs
         fps = 30
     return fps

@@ -92,7 +92,6 @@ class VectorEvalMonitor(object):
         each_env_episode = [n_episode // env_num for _ in range(env_num)]
         for i in range(n_episode % env_num):
             each_env_episode[i] += 1
-        # self._video = {env_id: [] for env_id, maxlen in enumerate(self._each_env_episode)}
         self._video = {
             env_id: deque([[] for _ in range(maxlen)], maxlen=maxlen)
             for env_id, maxlen in enumerate(each_env_episode)
@@ -134,9 +133,6 @@ class VectorEvalMonitor(object):
 
     def update_video(self, imgs):
         for env_id, img in imgs.items():
-            # if len(self._reward[env_id]) == len(self._video[env_id]):
-            #     self._video[env_id].append([])
-            # self._video[env_id][-1].append(img)
             if len(self._reward[env_id]) == self._reward[env_id].maxlen:
                 continue
             self._video[env_id][len(self._reward[env_id])].append(img)
@@ -158,6 +154,8 @@ class VectorEvalMonitor(object):
         elif len(sortarg) == 3:
             idxs = [sortarg[0], sortarg[len(sortarg) // 2], sortarg[-1]]
         else:
+            # TensorboardX pad the number of videos to even numbers with black frames,
+            # therefore providing even number of videos prevents black frames being rendered.
             idxs = [sortarg[0], sortarg[len(sortarg) // 2 - 1], sortarg[len(sortarg) // 2], sortarg[-1]]
         videos = [videos[idx] for idx in idxs]
         # pad videos to the same length with last frames
