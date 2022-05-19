@@ -1,11 +1,15 @@
 import json
-import logging
+from ditk import logging
 import os
+from typing import Optional, Tuple, Union, Dict, Any
+
+import ditk.logging
 import numpy as np
 import yaml
+from hbutils.system import touch
 from tabulate import tabulate
+
 from .log_writer_helper import DistributedWriter
-from typing import Optional, Tuple, Union, Dict, Any
 
 
 def build_logger(
@@ -15,7 +19,7 @@ def build_logger(
     need_text: bool = True,
     text_level: Union[int, str] = logging.INFO
 ) -> Tuple[Optional[logging.Logger], Optional['SummaryWriter']]:  # noqa
-    r'''
+    r"""
     Overview:
         Build text logger and tensorboard logger.
     Arguments:
@@ -27,7 +31,7 @@ def build_logger(
     Returns:
         - logger (:obj:`Optional[logging.Logger]`): Logger that displays terminal output
         - tb_logger (:obj:`Optional['SummaryWriter']`): Saves output to tfboard, only return when ``need_tb``.
-    '''
+    """
     if name is None:
         name = 'default'
     logger = LoggerFactory.create_logger(path, name=name) if need_text else None
@@ -37,7 +41,6 @@ def build_logger(
 
 
 class TBLoggerFactory(object):
-
     tb_loggers = {}
 
     @classmethod
@@ -63,22 +66,16 @@ class LoggerFactory(object):
         Returns:
             - (:obj:`logging.Logger`): new logging logger
         """
-        name += '_logger'
-        # ensure the path exists
-        try:
-            os.makedirs(path)
-        except FileExistsError:
-            pass
-        logger = logging.getLogger(name)
-        logger_file_path = os.path.join(path, name + '.txt')
-        if not logger.handlers:
-            formatter = logging.Formatter('[%(asctime)s][%(filename)15s][line:%(lineno)4d][%(levelname)8s] %(message)s')
-            fh = logging.FileHandler(logger_file_path, 'a')
-            fh.setFormatter(formatter)
-            logger.setLevel(level)
-            logger.addHandler(fh)
+        ditk.logging.try_init_root(level)
+
+        logger_name = f'{name}_logger'
+        logger_file_path = os.path.join(path, f'{logger_name}.txt')
+        touch(logger_file_path)
+
+        logger = ditk.logging.getLogger(logger_name, level, [logger_file_path])
         logger.get_tabulate_vars = LoggerFactory.get_tabulate_vars
         logger.get_tabulate_vars_hor = LoggerFactory.get_tabulate_vars_hor
+
         return logger
 
     @staticmethod
@@ -100,18 +97,36 @@ class LoggerFactory(object):
 
     @staticmethod
     def get_tabulate_vars_hor(variables: Dict[str, Any]) -> str:
+        column_to_divide = 5  # which includes the header "Name & Value"
+
         datak = []
         datav = []
-        datak.append("Name")
-        datav.append("Value")
+
+        divide_count = 0
         for k, v in variables.items():
+            if divide_count == 0 or divide_count >= (column_to_divide - 1):
+                datak.append("Name")
+                datav.append("Value")
+                if divide_count >= (column_to_divide - 1):
+                    divide_count = 0
+            divide_count += 1
+
             datak.append(k)
             if not isinstance(v, str) and np.isscalar(v):
                 datav.append("{:.6f}".format(v))
             else:
                 datav.append(v)
-        data = [datak, datav]
-        s = "\n" + tabulate(data, tablefmt='grid')
+
+        s = "\n"
+        row_number = len(datak) // column_to_divide + 1
+        for row_id in range(row_number):
+            item_start = row_id * column_to_divide
+            item_end = (row_id + 1) * column_to_divide
+            if (row_id + 1) * column_to_divide > len(datak):
+                item_end = len(datak)
+            data = [datak[item_start:item_end], datav[item_start:item_end]]
+            s = s + tabulate(data, tablefmt='grid') + "\n"
+
         return s
 
 

@@ -33,8 +33,11 @@ class BipedalWalkerEnv(BaseEnv):
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
         if self._replay_path is not None:
-            self._env = gym.wrappers.Monitor(
-                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
+            self._env = gym.wrappers.RecordVideo(
+                self._env,
+                video_folder=self._replay_path,
+                episode_trigger=lambda episode_id: True,
+                name_prefix='rl-video-{}'.format(id(self))
             )
         self._final_eval_reward = 0
         obs = self._env.reset()

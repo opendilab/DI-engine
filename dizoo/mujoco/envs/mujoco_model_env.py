@@ -58,6 +58,18 @@ class MujocoModelEnv(object):
         elif self.env_id == "HalfCheetah-v3":
             done = torch.zeros_like(next_obs.sum(-1)).bool()
             return done
+        elif self.env_id in ['Ant-v2', 'AntTruncatedObs-v2']:
+            x = next_obs[:, 0]
+            not_done = 	np.isfinite(next_obs).all(axis=-1) \
+                        * (x >= 0.2) \
+                        * (x <= 1.0)
+            done = ~not_done
+            return done
+        elif self.env_id in ['Humanoid-v2', 'HumanoidTruncatedObs-v2']:
+            z = next_obs[:,0]
+            done = (z < 1.0) + (z > 2.0)
+            return done
+
 
     def rollout(
             self,

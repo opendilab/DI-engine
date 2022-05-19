@@ -10,27 +10,54 @@ from ding.utils import ENV_REGISTRY
 
 @ENV_REGISTRY.register('coinrun')
 class CoinRunEnv(BaseEnv):
-
+    config = dict(
+        control_level = True,
+        start_level = 0,
+        num_levels = 0,
+    )
     def __init__(self, cfg: dict) -> None:
         self._cfg = cfg
         self._seed = 0
         self._init_flag = False
+        self._observation_space = gym.spaces.Box(
+            low=np.zeros(shape=(3, 64, 64)),
+            high=np.ones(shape=(3, 64, 64)) * 255,
+            shape=(3, 64, 64),
+            dtype=np.float32
+        )
+        
+        self._action_space = gym.spaces.Discrete(15)
+
+        self._reward_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
+        self._control_level = self._cfg.control_level
+        self._start_level = self._cfg.start_level
+        self._num_levels = self._cfg.num_levels
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
-            self._env = gym.make('procgen:procgen-coinrun-v0', start_level=0, num_levels=1)
+            if self._control_level:
+                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._start_level, num_levels=self._num_levels)
+            else:
+                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=0, num_levels=1)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.close()
-            self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed + np_seed, num_levels=1)
+            if self._control_level:
+                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._start_level, num_levels=self._num_levels)
+            else:
+                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed + np_seed, num_levels=1)
         elif hasattr(self, '_seed'):
             self._env.close()
-            self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed, num_levels=1)
+            if self._control_level:
+                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._start_level, num_levels=self._num_levels)
+            else:
+                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed, num_levels=1)
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
+        obs = obs.astype(np.float32)
         return obs
 
     def close(self) -> None:
@@ -53,40 +80,22 @@ class CoinRunEnv(BaseEnv):
             info['final_eval_reward'] = self._final_eval_reward
         obs = to_ndarray(obs)
         obs = np.transpose(obs, (2, 0, 1))
+        obs = obs.astype(np.float32)
         rew = to_ndarray([rew])  # wrapped to be transfered to a array with shape (1,)
+        rew = rew.astype(np.float32)
         return BaseEnvTimestep(obs, rew, bool(done), info)
 
-    def info(self) -> BaseEnvInfo:
-        T = EnvElementInfo
-        return BaseEnvInfo(
-            agent_num=1,
-            obs_space=T(
-                (3, 64, 64),
-                {
-                    'min': np.zeros(shape=(3, 64, 64)),
-                    'max': np.ones(shape=(3, 64, 64)) * 255,
-                    'dtype': np.float32,
-                },
-            ),
-            # [min, max)
-            act_space=T(
-                (1, ),
-                {
-                    'min': 0,
-                    'max': 15,
-                    'dtype': np.float32,
-                },
-            ),
-            rew_space=T(
-                (1, ),
-                {
-                    'min': float("-inf"),
-                    'max': float("inf"),
-                    'dtype': np.float32
-                },
-            ),
-            use_wrappers=None,
-        )
+    @property
+    def observation_space(self) -> gym.spaces.Space:
+        return self._observation_space
+
+    @property
+    def action_space(self) -> gym.spaces.Space:
+        return self._action_space
+
+    @property
+    def reward_space(self) -> gym.spaces.Space:
+        return self._reward_space
 
     def __repr__(self) -> str:
         return "DI-engine CoinRun Env"

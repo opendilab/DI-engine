@@ -369,7 +369,7 @@ def one_hot(val: torch.LongTensor, num: int, num_first: bool = False) -> torch.F
     # If the value is -1, then it should be converted to all zeros encodings and
     # the corresponding entry in index_neg_one is 1, which is used to transform
     # the ret after the operation of ret.scatter_(1, val_reshape, 1) to their correct encodings bellowing
-    index_neg_one = torch.eq(val_reshape, -1).long()
+    index_neg_one = torch.eq(val_reshape, -1).float()
     if index_neg_one.sum() != 0:  # if -1 exists in val
         # convert the original value -1 to 0
         val_reshape = torch.where(

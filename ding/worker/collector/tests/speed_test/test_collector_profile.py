@@ -1,4 +1,4 @@
-import logging
+from ditk import logging
 import time
 import copy
 import pytest

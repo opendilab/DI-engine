@@ -1388,9 +1388,6 @@ _book
 *.pth.tar
 *.pt
 *.npy
-*default_logger.txt
-*default_tb_logger
-*evaluate.txt
 __pycache__
 *.egg-info
 experiment_config.yaml
@@ -1406,7 +1403,6 @@ htmlcov
 policy_*
 /data
 .vscode
-*total_config.py
 formatted_*
 **/exp
 **/benchmark
@@ -1416,8 +1412,23 @@ formatted_*
 *.puml.png
 *.puml.eps
 *.puml.svg
+default*
+events.*
+
+# DI-engine special key
+*default_logger.txt
+*default_tb_logger
+*evaluate.txt
+*total_config.py
 eval_config.py
 collect_demo_data_config.py
-default*
 !ding/**/*.py
 events.*
+bipedalwalker_ppo_seed0/
+cartpole_dqn_seed0/
+cartpole_fqf_seed0/
+dizoo/box2d/bipedalwalker/entry/
+dizoo/box2d/lunarlander/entry/lunarlander_dqn_main.py
+dizoo/gym_hybrid/entry/__init__.py
+lunarlander_dqn_seed0/
+pendulum_ppo_seed0/

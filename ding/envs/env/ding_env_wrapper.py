@@ -52,18 +52,21 @@ class DingEnvWrapper(BaseEnv):
                 low=self._env.reward_range[0], high=self._env.reward_range[1], shape=(1, ), dtype=np.float32
             )
             self._init_flag = True
+        if self._replay_path is not None:
+            self._env = gym.wrappers.RecordVideo(
+                self._env,
+                video_folder=self._replay_path,
+                episode_trigger=lambda episode_id: True,
+                name_prefix='rl-video-{}'.format(id(self))
+            )
+            self._replay_path = None
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
-        if self._replay_path is not None:
-            self._env = gym.wrappers.Monitor(
-                self._env, self._replay_path, video_callable=lambda episode_id: True, force=True
-            )
         obs = self._env.reset()
         obs = to_ndarray(obs).astype(np.float32)
-        self._action_type = self._cfg.get('action_type', 'scalar')
         return obs
 
     # override
@@ -77,7 +80,7 @@ class DingEnvWrapper(BaseEnv):
         np.random.seed(self._seed)
 
     # override
-    def step(self, action: np.ndarray) -> BaseEnvTimestep:
+    def step(self, action: Union[np.int64, np.ndarray]) -> BaseEnvTimestep:
         action = self._judge_action_type(action)
         if self._cfg.get('act_scale', False):
             action = affine_transform(action, min_val=self._env.action_space.low, max_val=self._env.action_space.high)
@@ -90,7 +93,7 @@ class DingEnvWrapper(BaseEnv):
         if isinstance(action, int):
             return action
         if isinstance(action, np.ndarray):
-            if action.shape == (1, ) and self._action_type == 'scalar':
+            if action.shape == (1, ) and action.dtype == np.int64:
                 action = action.item()
             return action
         elif isinstance(action, dict):

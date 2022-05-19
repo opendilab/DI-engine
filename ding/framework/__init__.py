@@ -1,4 +1,4 @@
-from .context import Context
-from .task import Task
+from .context import Context, OnlineRLContext, OfflineRLContext
+from .task import Task, task
 from .parallel import Parallel
 from .event_loop import EventLoop

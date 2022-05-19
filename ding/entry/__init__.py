@@ -8,7 +8,10 @@ from .serial_entry_bc import serial_pipeline_bc
 from .serial_entry_decision_transformer import serial_pipeline_dt
 from .serial_entry_reward_model_ngu import serial_pipeline_reward_model_ngu
 from .serial_entry_reward_model import serial_pipeline_reward_model
+from .serial_entry_ngu import serial_pipeline_ngu
+from .serial_entry_reward_model_offpolicy import serial_pipeline_reward_model_offpolicy
 from .serial_entry_reward_model_onpolicy import serial_pipeline_reward_model_onpolicy
+from .serial_entry_bc import serial_pipeline_bc
 from .serial_entry_mbrl import serial_pipeline_mbrl
 from .serial_entry_dqfd import serial_pipeline_dqfd
 from .serial_entry_r2d3 import serial_pipeline_r2d3
@@ -20,8 +23,8 @@ from .application_entry_trex_collect_data import trex_collecting_data, collect_e
 from .serial_entry_guided_cost import serial_pipeline_guided_cost
 from .serial_entry_gail import serial_pipeline_gail
 from .utils import random_collect
-from .serial_entry_reward_model_preference_based_irl \
-      import serial_pipeline_reward_model_preference_based_irl
-from .serial_entry_reward_model_preference_based_irl_onpolicy \
-      import serial_pipeline_reward_model_preference_based_irl_onpolicy
+from .serial_entry_preference_based_irl \
+      import serial_pipeline_preference_based_irl
+from .serial_entry_preference_based_irl_onpolicy \
+      import serial_pipeline_preference_based_irl_onpolicy
 from .application_entry_drex_collect_data import drex_collecting_data

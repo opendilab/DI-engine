@@ -1,5 +1,5 @@
 import pynng
-import logging
+from ditk import logging
 from typing import List, Optional, Tuple
 from pynng import Bus0
 from time import sleep

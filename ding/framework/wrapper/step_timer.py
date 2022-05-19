@@ -1,9 +1,10 @@
 from collections import deque, defaultdict
-import logging
+from functools import wraps
 from types import GeneratorType
 from typing import Callable
 import numpy as np
 import time
+from ditk import logging
 
 
 class StepTimer:
@@ -14,8 +15,8 @@ class StepTimer:
 
     def __call__(self, fn: Callable) -> Callable:
         step_name = getattr(fn, "__name__", type(fn).__name__)
-        step_id = id(fn)
 
+        @wraps(fn)
         def executor(ctx):
             start_time = time.time()
             time_cost = 0
@@ -35,14 +36,12 @@ class StepTimer:
                 time_cost += time.time() - start_time
             else:
                 time_cost = time.time() - start_time
-            self.records[step_id].append(time_cost * 1000)
+            self.records[step_name].append(time_cost * 1000)
             if ctx.total_step % self.print_per_step == 0:
                 logging.info(
                     "[Step Timer] {}: Cost: {:.2f}ms, Mean: {:.2f}ms".format(
-                        step_name, time_cost * 1000, np.mean(self.records[step_id])
+                        step_name, time_cost * 1000, np.mean(self.records[step_name])
                     )
                 )
-
-        executor.__name__ = "StepTimer<{}>".format(step_name)
 
         return executor
