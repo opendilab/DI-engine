@@ -1,4 +1,6 @@
-from time import sleep
+from collections import defaultdict
+import queue
+from time import sleep, time
 from ding.framework import Supervisor
 from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
 from ding.framework.supervisor import ChildType, RecvPayload, SendPayload
@@ -55,26 +57,33 @@ class EnvSupervisor(Supervisor):
             retry_waiting_time: Optional[int] = None,
             **kwargs
     ) -> None:
+        if kwargs:
+            logging.warning("Unknown parameters on env supervisor: {}".format(kwargs))
         super().__init__(type_=type_)
         if env_fn:
             for env_init in env_fn:
                 self.register(env_init)
-        self._env_seed = {}
-        self._env_dynamic_seed = None
-        self._env_replay_path = None
-        self._env_states = {}
         self._retry_type = retry_type
-        self._reset_param = {}
         self._auto_reset = auto_reset
-        self._ready_obs = {}
         if max_retry:
             logging.warning("The `max_retry` is going to be deprecated, use `max_try` instead!")
         self._max_try = max_try or max_retry or 1
         self._reset_timeout = reset_timeout
         self._step_timeout = step_timeout
         self._retry_waiting_time = retry_waiting_time
+        self._init_states()
 
-    def step(self, actions: Optional[Dict[int, List[Any]]], block: bool = True) -> Optional[List[tnp.ndarray]]:
+    def _init_states(self):
+        self._env_seed = {}
+        self._env_dynamic_seed = None
+        self._env_replay_path = None
+        self._env_states = {}
+        self._reset_param = {}
+        self._ready_obs = {}
+        self._retry_times = defaultdict(lambda: 0)
+        self._last_called = defaultdict(lambda: {"step": 9e9, "reset": 9e9})
+
+    def step(self, actions: Union[Dict[int, List[Any]], List[Any]], block: bool = True) -> Optional[List[tnp.ndarray]]:
         assert not self.closed, "Env supervisor has closed."
         if isinstance(actions, List):
             actions = {i: p for i, p in enumerate(actions)}
@@ -93,53 +102,49 @@ class EnvSupervisor(Supervisor):
 
         # Wait for all steps returns
         recv_payloads = self.recv_all(
-            send_payloads, ignore_err=True, callback=self._recv_step_callback(), timeout=self._step_timeout
+            send_payloads, ignore_err=True, callback=self._recv_callback, timeout=self._step_timeout
         )
         return [payload.data for payload in recv_payloads]
 
-    def _recv_step_callback(self) -> Callable:
-        reset_callback = self._recv_reset_callback()
-
-        def step_callback(payload: RecvPayload, remain_payloads: Dict[str, SendPayload]):
-            self.change_state(payload)
-            reset_callback(payload, remain_payloads)
-            if payload.method != "step":
-                return
+    def recv(self, ignore_err: bool = False) -> RecvPayload:
+        """
+        Overview:
+            Wait for recv payload, this function will block the thread.
+        Arguments:
+            - ignore_err (:obj:`bool`): If ignore_err is true, payload with error object will be discarded.\
+                This option will not catch the exception.
+        Returns:
+            - recv_payload (:obj:`RecvPayload`): Recv payload.
+        """
+        self._detect_timeout()
+        try:
+            payload = super().recv(ignore_err=True, timeout=0.1)
+            payload = self._recv_callback(payload=payload)
             if payload.err:
-                send_payloads = self._reset(payload.proc_id)
-                for p in send_payloads:
-                    remain_payloads[p.req_id] = p
-                info = {"abnormal": True, "err": payload.err}
-                payload.data = tnp.array(
-                    {
-                        'obs': None,
-                        'reward': None,
-                        'done': None,
-                        'info': info,
-                        'env_id': payload.proc_id
-                    }
-                )
+                return self.recv(ignore_err=ignore_err)
             else:
-                obs, reward, done, info = payload.data
-                if done and self._auto_reset:
-                    send_payloads = self._reset(payload.proc_id)
-                    for p in send_payloads:
-                        remain_payloads[p.req_id] = p
-                # make the type and content of key as similar as identifier,
-                # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
-                info = make_key_as_identifier(info)
-                payload.data = tnp.array(
-                    {
-                        'obs': obs,
-                        'reward': reward,
-                        'done': done,
-                        'info': info,
-                        'env_id': payload.proc_id
-                    }
-                )
-                self._ready_obs[payload.proc_id] = obs
+                return payload
+        except queue.Empty:
+            return self.recv(ignore_err=ignore_err)
 
-        return step_callback
+    def _detect_timeout(self):
+        """
+        Overview:
+            Try to restart all timeout environments if detected timeout.
+        """
+        for env_id in self._last_called:
+            if time() - self._last_called[env_id]["step"] > self._step_timeout:
+                payload = RecvPayload(
+                    proc_id=env_id, method="step", err=TimeoutError("Step timeout on env {}".format(env_id))
+                )
+                self._recv_queue.put(payload)
+                continue
+            if time() - self._last_called[env_id]["reset"] > self._reset_timeout:
+                payload = RecvPayload(
+                    proc_id=env_id, method="reset", err=TimeoutError("Step timeout on env {}".format(env_id))
+                )
+                self._recv_queue.put(payload)
+                continue
 
     @property
     def env_num(self) -> int:
@@ -230,36 +235,86 @@ class EnvSupervisor(Supervisor):
         if not block:
             return
 
-        self.recv_all(send_payloads, ignore_err=True, callback=self._recv_reset_callback(), timeout=self._reset_timeout)
+        self.recv_all(send_payloads, ignore_err=True, callback=self._recv_callback, timeout=self._reset_timeout)
 
-    def _recv_reset_callback(self) -> Callable:
-        retry_times = {env_id: 0 for env_id in range(self.env_num)}
+    def _recv_callback(
+            self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None
+    ) -> RecvPayload:
+        self.change_state(payload=payload)
+        if payload.method == "reset":
+            return self._recv_reset_callback(payload=payload, remain_payloads=remain_payloads)
+        elif payload.method == "step":
+            return self._recv_step_callback(payload=payload, remain_payloads=remain_payloads)
+        return payload
 
-        def reset_callback(payload: RecvPayload, remain_payloads: Dict[str, SendPayload]):
-            self.change_state(payload)
-            if payload.method != "reset":
-                return
-            env_id = payload.proc_id
-            if payload.err:
-                retry_times[env_id] += 1
-                if retry_times[env_id] > self._max_try - 1:
-                    self.shutdown(5)
-                    raise RuntimeError(
-                        "Env {} reset has exceeded max_try({}), and the latest exception is: {}".format(
-                            env_id, self._max_try, payload.err
-                        )
+    def _recv_reset_callback(
+            self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None
+    ) -> RecvPayload:
+        assert payload.method == "reset", "Recv error callback({}) in reset callback!".format(payload.method)
+        if not remain_payloads:
+            remain_payloads = {}
+        env_id = payload.proc_id
+        if payload.err:
+            self._retry_times[env_id] += 1
+            if self._retry_times[env_id] > self._max_try - 1:
+                self.shutdown(5)
+                raise RuntimeError(
+                    "Env {} reset has exceeded max_try({}), and the latest exception is: {}".format(
+                        env_id, self._max_try, payload.err
                     )
-                if self._retry_waiting_time:
-                    sleep(self._retry_waiting_time)
-                if self._retry_type == EnvRetryType.RENEW:
-                    self._children[env_id].restart()
-                send_payloads = self._reset(env_id)
+                )
+            if self._retry_waiting_time:
+                sleep(self._retry_waiting_time)
+            if self._retry_type == EnvRetryType.RENEW:
+                self._children[env_id].restart()
+            send_payloads = self._reset(env_id)
+            for p in send_payloads:
+                remain_payloads[p.req_id] = p
+        else:
+            self._retry_times[env_id] = 0
+            self._ready_obs[env_id] = payload.data
+        return payload
+
+    def _recv_step_callback(
+            self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None
+    ) -> RecvPayload:
+        assert payload.method == "step", "Recv error callback({}) in step callback!".format(payload.method)
+        if not remain_payloads:
+            remain_payloads = {}
+        if payload.err:
+            send_payloads = self._reset(payload.proc_id)
+            for p in send_payloads:
+                remain_payloads[p.req_id] = p
+            info = {"abnormal": True, "err": payload.err}
+            payload.data = tnp.array(
+                {
+                    'obs': None,
+                    'reward': None,
+                    'done': None,
+                    'info': info,
+                    'env_id': payload.proc_id
+                }
+            )
+        else:
+            obs, reward, done, info = payload.data
+            if done and self._auto_reset:
+                send_payloads = self._reset(payload.proc_id)
                 for p in send_payloads:
                     remain_payloads[p.req_id] = p
-            else:
-                self._ready_obs[env_id] = payload.data
-
-        return reset_callback
+            # make the type and content of key as similar as identifier,
+            # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
+            info = make_key_as_identifier(info)
+            payload.data = tnp.array(
+                {
+                    'obs': obs,
+                    'reward': reward,
+                    'done': done,
+                    'info': info,
+                    'env_id': payload.proc_id
+                }
+            )
+            self._ready_obs[payload.proc_id] = obs
+        return payload
 
     def _reset(self, env_id: int, kw_param: Optional[Dict[str, Any]] = None) -> List[SendPayload]:
         """
@@ -297,6 +352,7 @@ class EnvSupervisor(Supervisor):
         return send_payloads
 
     def change_state(self, payload: RecvPayload):
+        self._last_called[payload.proc_id][payload.method] = 9e9  # Have recevied
         if payload.err:
             self._env_states[payload.proc_id] = EnvState.ERROR
         elif payload.method == "reset":
@@ -304,6 +360,10 @@ class EnvSupervisor(Supervisor):
         elif payload.method == "step":
             if payload.data[2]:
                 self._env_states[payload.proc_id] = EnvState.DONE
+
+    def send(self, payload: SendPayload) -> None:
+        self._last_called[payload.proc_id][payload.method] = time()
+        return super().send(payload)
 
     def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
         """
@@ -345,7 +405,7 @@ class EnvSupervisor(Supervisor):
             for env_id in range(self.env_num):
                 self.send(SendPayload(proc_id=env_id, method="close"))
             super().shutdown(timeout=timeout)
-            self._env_states = {}
+            self._init_states()
 
     @property
     def closed(self) -> bool:

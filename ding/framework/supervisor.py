@@ -192,7 +192,7 @@ class Supervisor:
         """
         self._children[payload.proc_id].send(payload)
 
-    def recv(self, ignore_err: bool = False) -> RecvPayload:
+    def recv(self, ignore_err: bool = False, timeout: float = None) -> RecvPayload:
         """
         Overview:
             Wait for message from child process
@@ -202,7 +202,7 @@ class Supervisor:
         Returns:
             - recv_payload (:obj:`RecvPayload`): Recv payload.
         """
-        recv_payload: RecvPayload = self._recv_queue.get()
+        recv_payload: RecvPayload = self._recv_queue.get(timeout=timeout)
         if recv_payload.err and not ignore_err:
             raise recv_payload.err
         return recv_payload

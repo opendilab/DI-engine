@@ -1,6 +1,8 @@
 import time
+from aiohttp import payload_type
 import pytest
 import numpy as np
+import treetensor.numpy as tnp
 from ding.envs.env_manager import EnvSupervisor
 from ding.envs.env_manager.env_supervisor import EnvState
 from ding.framework.supervisor import ChildType
@@ -8,6 +10,7 @@ from ding.framework.supervisor import ChildType
 
 @pytest.mark.unittest
 class TestEnvSupervisorCompatible:
+    "Test compatibility with base env manager."
 
     @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
     def test_naive(self, setup_base_manager_cfg, type_):
@@ -48,7 +51,7 @@ class TestEnvSupervisorCompatible:
                 count += 1
 
             end_time = time.time()
-            print('total step time: {}'.format(end_time - start_time))
+            print('Total step time: {}'.format(end_time - start_time))
 
             assert all([env_supervisor.env_states[env_id] == EnvState.DONE for env_id in range(env_supervisor.env_num)])
 
@@ -187,8 +190,180 @@ class TestEnvSupervisorCompatible:
 @pytest.mark.unittest
 class TestEnvSupervisor:
     """
-    Test async apis
+    Test async usage
     """
 
-    def test_naive(self, setup_base_manager_cfg):
-        pass
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_normal(self, setup_base_manager_cfg, type_):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        setup_base_manager_cfg["auto_reset"] = False
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
+        env_supervisor.seed([314 for _ in range(env_supervisor.env_num)])
+        env_supervisor.launch(
+            reset_param={i: {
+                'stat': 'stat_test'
+            }
+                         for i in range(env_supervisor.env_num)}, block=False
+        )
+
+        count = 0
+        start_time = time.time()
+        while not env_supervisor.done:
+            recv_payload = env_supervisor.recv()
+            if recv_payload.method == "reset":  # Recv reset obs
+                assert len(recv_payload.data) == 3
+            elif recv_payload.method == "step":
+                assert isinstance(recv_payload.data, tnp.ndarray)
+            if env_supervisor.env_states[recv_payload.proc_id] != EnvState.DONE:
+                action = {recv_payload.proc_id: np.random.randn(4)}
+                env_supervisor.step(action, block=False)
+            count += 1
+            print("Count", count)
+
+        end_time = time.time()
+        print("Total step time: {}".format(end_time - start_time))
+
+        env_supervisor.close()
+        assert env_supervisor.closed
+
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_reset_error(self, setup_base_manager_cfg, type_):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
+        with pytest.raises(RuntimeError):
+            reset_param = {i: {'stat': 'error'} for i in range(env_supervisor.env_num)}
+            env_supervisor.launch(reset_param=reset_param, block=False)
+            while True:
+                env_supervisor.recv()
+
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_reset_error_once(self, setup_base_manager_cfg, type_):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
+        # Normal launch
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+        env_supervisor.launch(reset_param=reset_param)
+
+        env_id_0 = env_supervisor.time_id[0]
+
+        # Normal step
+        env_supervisor.step({i: np.random.randn(4) for i in range(env_supervisor.env_num)}, block=False)
+        timestep = []
+        while len(timestep) != 4:
+            payload = env_supervisor.recv()
+            if payload.method == "step":
+                timestep.append(payload.data)
+        assert len(timestep) == env_supervisor.env_num
+
+        # Test reset error once, will still go correct.
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+        assert env_supervisor._retry_type == 'reset'
+        reset_param[0] = {'stat': 'error_once'}
+        env_supervisor.reset(reset_param, block=False)  # First try, success
+        env_supervisor.reset(reset_param, block=False)  # Second try, error and recover
+
+        reset_obs = []
+        while len(reset_obs) != 8:
+            reset_obs.append(env_supervisor.recv(ignore_err=True))
+        assert env_supervisor.time_id[0] == env_id_0
+        assert all([state == EnvState.RUN for state in env_supervisor.env_states.values()])
+
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_renew_error_once(self, setup_base_manager_cfg, type_):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        setup_base_manager_cfg["retry_type"] = "renew"
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
+        # Normal launch
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+        env_supervisor.launch(reset_param=reset_param)
+
+        env_id_0 = env_supervisor.time_id[0]
+        reset_param[0] = {'stat': 'error_once'}
+        env_supervisor.reset(reset_param, block=False)
+        env_supervisor.reset(reset_param, block=False)
+
+        reset_obs = []
+        while len(reset_obs) != 8:
+            reset_obs.append(env_supervisor.recv(ignore_err=True))
+
+        assert env_supervisor.time_id[0] != env_id_0
+        assert len(env_supervisor.ready_obs) == 4
+
+        # Test step catched error
+        action = [np.random.randn(4) for i in range(env_supervisor.env_num)]
+        action[0] = 'catched_error'
+        env_supervisor.step(action, block=False)
+
+        timestep = {}
+        while len(timestep) != 4:
+            payload = env_supervisor.recv()
+            if payload.method == "step":
+                timestep[payload.proc_id] = payload.data
+        assert len(timestep) == env_supervisor.env_num
+        assert timestep[0].info.abnormal
+
+        assert all(['abnormal' not in timestep[i].info for i in range(1, env_supervisor.env_num)])
+
+    @pytest.mark.timeout(60)
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_block_launch(self, setup_base_manager_cfg, type_):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        setup_base_manager_cfg["retry_type"] = "renew"
+        setup_base_manager_cfg['max_retry'] = 1
+        setup_base_manager_cfg['reset_timeout'] = 7
+
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
+        with pytest.raises(RuntimeError):
+            reset_param = {i: {'stat': 'block'} for i in range(env_supervisor.env_num)}
+            env_supervisor.launch(reset_param=reset_param, block=False)
+            while True:
+                payload = env_supervisor.recv()
+        assert env_supervisor.closed
+
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+        reset_param[0]['stat'] = 'wait'
+
+        env_supervisor.launch(reset_param=reset_param, block=False)
+
+        reset_obs = []
+        while len(reset_obs) != 4:
+            payload = env_supervisor.recv(ignore_err=True)
+            if payload.method == "reset":
+                reset_obs.append(payload.data)
+
+        env_supervisor.close(1)
+
+    @pytest.mark.timeout(60)
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_block_step(self, setup_base_manager_cfg, type_):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        setup_base_manager_cfg["retry_type"] = "renew"
+        setup_base_manager_cfg['max_retry'] = 1
+        setup_base_manager_cfg['reset_timeout'] = 7
+
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+        env_supervisor.launch(reset_param=reset_param)
+
+        # Block step will reset env, thus cause runtime error
+        env_supervisor._reset_param[0] = {"stat": "block"}
+        # Test step timeout
+        action = [np.random.randn(4) for i in range(env_supervisor.env_num)]
+        action[0] = 'block'
+
+        with pytest.raises(RuntimeError):
+            env_supervisor.step(action, block=False)
+            while True:
+                env_supervisor.recv()
+        assert env_supervisor.closed
+
+        env_supervisor.launch(reset_param)
+        action[0] = 'wait'
+        env_supervisor.step(action, block=False)
+        timestep = []
+        while len(timestep) != 4:
+            payload = env_supervisor.recv(ignore_err=True)
+            if payload.method == "step":
+                timestep.append(payload.data)
+
+        env_supervisor.close(1)
