@@ -132,6 +132,7 @@ def test_dist_nstep_td():
     assert isinstance(dist.grad, torch.Tensor)
 
 
+@pytest.mark.unittest
 def test_dist_nstep_multi_agent_td():
     batch_size = 4
     action_dim = 3
