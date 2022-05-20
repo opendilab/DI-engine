@@ -513,9 +513,12 @@ class DQNAuxPolicy(DQNPolicy):
         self._aux_ratio = self._cfg.loss_ratio
 
     def _get_encoding_size(self):
+        obs = self._cfg.model.obs_shape
+        if isinstance(obs, int):
+            obs = [obs]
         test_data = {
-            "obs": torch.randn(1, *self._cfg.model.obs_shape),
-            "next_obs": torch.randn(1, *self._cfg.model.obs_shape),
+            "obs": torch.randn(1, *obs),
+            "next_obs": torch.randn(1, *obs),
         }
         with torch.no_grad():
             x, y = self._aux_encode(test_data)
