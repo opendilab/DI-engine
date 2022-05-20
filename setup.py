@@ -82,6 +82,7 @@ setup(
         'DI-treetensor>=0.2.1',
         'DI-toolkit>=0.0.2',
         'hbutils>=0.5.0',
+        'moviepy',
     ],
     extras_require={
         'test': [
