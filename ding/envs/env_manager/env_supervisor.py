@@ -100,16 +100,16 @@ class EnvSupervisor(Supervisor):
     def _recv_step_callback(self) -> Callable:
         reset_callback = self._recv_reset_callback()
 
-        def step_callback(payload: RecvPayload, req_ids: List[str]):
+        def step_callback(payload: RecvPayload, remain_payloads: Dict[str, SendPayload]):
             self.change_state(payload)
-            reset_callback(payload, req_ids)
+            reset_callback(payload, remain_payloads)
             if payload.method != "step":
                 return
             if payload.err:
                 send_payloads = self._reset(payload.proc_id)
-                req_ids += [payload.req_id for payload in send_payloads]
+                for p in send_payloads:
+                    remain_payloads[p.req_id] = p
                 info = {"abnormal": True, "err": payload.err}
-                print("Step error", req_ids, send_payloads)
                 payload.data = tnp.array(
                     {
                         'obs': None,
@@ -123,7 +123,8 @@ class EnvSupervisor(Supervisor):
                 obs, reward, done, info = payload.data
                 if done and self._auto_reset:
                     send_payloads = self._reset(payload.proc_id)
-                    req_ids += [payload.req_id for payload in send_payloads]
+                    for p in send_payloads:
+                        remain_payloads[p.req_id] = p
                 # make the type and content of key as similar as identifier,
                 # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
                 info = make_key_as_identifier(info)
@@ -234,12 +235,11 @@ class EnvSupervisor(Supervisor):
     def _recv_reset_callback(self) -> Callable:
         retry_times = {env_id: 0 for env_id in range(self.env_num)}
 
-        def reset_callback(payload: RecvPayload, req_ids: List[str]):
+        def reset_callback(payload: RecvPayload, remain_payloads: Dict[str, SendPayload]):
             self.change_state(payload)
             if payload.method != "reset":
                 return
             env_id = payload.proc_id
-            print("Reset callback", req_ids, payload)
             if payload.err:
                 retry_times[env_id] += 1
                 if retry_times[env_id] > self._max_try - 1:
@@ -254,7 +254,8 @@ class EnvSupervisor(Supervisor):
                 if self._retry_type == EnvRetryType.RENEW:
                     self._children[env_id].restart()
                 send_payloads = self._reset(env_id)
-                req_ids += [payload.req_id for payload in send_payloads]
+                for p in send_payloads:
+                    remain_payloads[p.req_id] = p
             else:
                 self._ready_obs[env_id] = payload.data
 
