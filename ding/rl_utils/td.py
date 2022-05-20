@@ -1015,11 +1015,11 @@ def multistep_forward_view(
             for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     result = torch.empty_like(rewards)
-    # Forced cutoff at the last one
-    result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
-    discounts = gammas * lambda_
     if done is None:
         done = torch.zeros_like(rewards)
+    # Forced cutoff at the last one
+    result[-1, :] = rewards[-1, :] + (1 - done[-1, :]) * gammas[-1, :] * bootstrap_values[-1, :]
+    discounts = gammas * lambda_
     for t in reversed(range(rewards.size()[0] - 1)):
         result[t, :] = rewards[t, :] + (1 - done[t, :]) \
                        * ( \

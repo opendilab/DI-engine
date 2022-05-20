@@ -1,5 +1,6 @@
 from typing import Any, Union, Optional
 import gym
+import torch
 import numpy as np
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.common_function import affine_transform
@@ -89,3 +90,11 @@ class PendulumEnv(BaseEnv):
 
     def __repr__(self) -> str:
         return "DI-engine Pendulum Env({})".format(self._cfg.env_id)
+
+
+@ENV_REGISTRY.register('mbpendulum')
+class MBPendulumEnv(PendulumEnv):
+    def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
+        # This function determines whether each state is a terminated state
+        done = torch.zeros_like(next_obs.sum(-1)).bool()
+        return done

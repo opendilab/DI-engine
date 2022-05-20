@@ -5,6 +5,7 @@ import copy
 from easydict import EasyDict
 
 from ding.utils import deep_merge_dicts
+from .utils import get_rollout_length_scheduler
 
 class WorldModel(ABC):
 
@@ -12,14 +13,26 @@ class WorldModel(ABC):
         train_freq=250,  # w.r.t environment step
         eval_freq=20,    # w.r.t environment step
         cuda=True,
+        rollout_length_scheduler=dict(
+            type='linear',
+            rollout_start_step=20000,
+            rollout_end_step=150000,
+            rollout_length_min=1,
+            rollout_length_max=25,
+        )
     )
 
-    def __init__(self, cfg, tb_logger):
+    def __init__(self, cfg, env, tb_logger):
         self.cfg = cfg
+        # will be potentially used in derived class
+        self.env = env
         self.tb_logger = tb_logger
-        self.cuda = self.cfg.cuda
-        self.train_freq = self.cfg.train_freq
-        self.eval_freq = self.cfg.eval_freq
+
+        self._cuda = cfg.cuda
+        self.train_freq = cfg.train_freq
+        self.eval_freq = cfg.eval_freq
+        self.rollout_length_scheduler = \
+            get_rollout_length_scheduler(cfg.rollout_length_scheduler)
 
         self.last_train_step = 0
         self.last_eval_step = 0
@@ -28,16 +41,11 @@ class WorldModel(ABC):
     def default_config(cls: type) -> EasyDict:
         # can not call default_config recursively 
         # because config will be overwritten by subclasses
-        cfg_list = []
-        cfg_type = cls.__name__ + 'Dict'
+        merge_cfg = EasyDict(cfg_type=cls.__name__ + 'Dict')
         while cls != ABC:
-            cfg_list.append(copy.deepcopy(cls.config))
+            merge_cfg = deep_merge_dicts(merge_cfg, cls.config)
             cls = cls.__base__
-        merge_cfg = dict()
-        for cfg in reversed(cfg_list):
-            merge_cfg = EasyDict(deep_merge_dicts(merge_cfg, cfg))
-        cfg.cfg_type = cfg_type
-        return cfg
+        return merge_cfg
 
     def should_train(self, envstep):
         if (envstep - self.last_train_step) < self.train_freq:
@@ -50,11 +58,11 @@ class WorldModel(ABC):
         return True
 
     @abstractmethod
-    def train(self, buffer, train_iter, envstep):
+    def train(self, env_buffer, envstep, train_iter):
         raise NotImplementedError
 
     @abstractmethod
-    def eval(self, buffer, train_iter, envstep):
+    def eval(self, env_buffer, envstep, train_iter):
         raise NotImplementedError
 
     @abstractmethod
@@ -68,34 +76,54 @@ class DynaWorldModel(WorldModel, ABC):
     """Dyna style - reuse model rollout"""
 
     # rollout_scheduler
-    config = dict(rollout_batch_size=100000)
+    config = dict(
+        other=dict(
+            real_ratio=0.05,
+            rollout_batch_size=100000,
+        )
+    )
 
-    def __init__(self, cfg, rollout_length_scheduler, tb_logger):
-        super().__init__(cfg, tb_logger)
-        self.rollout_length_scheduler = rollout_length_scheduler
-        self.rollout_batch_size = self.config.rollout_batch_size
+    def __init__(self, cfg, env, tb_logger):
+        super().__init__(cfg, env, tb_logger)
+        self.real_ratio = cfg.other.real_ratio
+        self.rollout_batch_size = cfg.other.rollout_batch_size
+        self.rollout_retain = cfg.other.rollout_retain
+        self.buffer_size_scheduler = \
+            lambda x: self.rollout_length_scheduler(x) \
+                * self.rollout_batch_size * self.rollout_retain
 
-    def fill_img_buffer(self, env_buffer, img_buffer, policy, envstep, cur_learner_iter):
+    def sample(self, env_buffer, img_buffer, batch_size, train_iter):
+        env_batch_size = int(batch_size * self.real_ratio)
+        img_batch_size = batch_size - env_batch_size
+        env_data = env_buffer.sample(env_batch_size, train_iter)
+        img_data = img_buffer.sample(img_batch_size, train_iter)
+        train_data = env_data + img_data
+        return train_data
+
+    def fill_img_buffer(self, policy, env_buffer, img_buffer, envstep, cur_learner_iter):
         """
         Overview:
             This function samples from the replay_buffer, rollouts to generate new data,
-            and push them into the imagine_buffer
+            and push them into the imagine_buffer.
         """
         from ding.torch_utils import to_tensor
         from ding.envs import BaseEnvTimestep
         from ding.worker.collector.base_serial_collector import to_tensor_transitions
+
         def step(obs, act):
             # This function has the same input and output format as env manager's step
             data_id = list(obs.keys())
             obs = torch.stack([obs[id] for id in data_id], dim=0)
             act = torch.stack([act[id] for id in data_id], dim=0)
-            rewards, next_obs, terminals = self.step(obs, act)
+            with torch.no_grad():
+                rewards, next_obs, terminals = self.step(obs, act)
             # terminals = self.termination_fn(next_obs)
             timesteps = {
                 id: BaseEnvTimestep(n, r, d, {})
-                for id, n, r, d in zip(data_id, next_obs.numpy(), rewards.numpy(), terminals.numpy())
+                for id, n, r, d in zip(data_id, next_obs.cpu().numpy(), rewards.cpu().numpy(), terminals.cpu().numpy())
             }
             return timesteps
+
         # set rollout length
         rollout_length = self.rollout_length_scheduler(envstep)
         # load data
@@ -133,13 +161,10 @@ class DynaWorldModel(WorldModel, ABC):
 class DreamWorldModel(WorldModel, ABC):
     """Dreamer style - on the fly rollout"""
 
-    @abstractmethod
-    def step(self, obs, act):
-        # obs, act -> rm obs, done in batch
-        raise NotImplementedError
-
-    def rollout(self, obs, horizon, actor_fn):
+    # TODO: use scheduler to set horizon
+    def rollout(self, obs, actor_fn, envstep):
         # actor_fn is batch_mode policy.forward with no collate and decollate
+        horizon = self.rollout_length_scheduler(envstep)
         obss        = [obs]
         actions     = []
         rewards     = []
@@ -169,5 +194,5 @@ class DreamWorldModel(WorldModel, ABC):
 
 
 class HybridWorldModel(DynaWorldModel, DreamWorldModel):
-    def __init__(self, cfg, rollout_length_scheduler, tb_logger):
-        DynaWorldModel.__init__(self, cfg, rollout_length_scheduler, tb_logger)
+    def __init__(self, cfg, env, tb_logger):
+        DynaWorldModel.__init__(self, cfg, env, tb_logger)

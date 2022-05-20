@@ -1,50 +1,51 @@
-from typing import Dict
 import itertools
 import numpy as np
 import copy
 import torch
 from torch import nn
 
-from ding.envs import BaseEnvTimestep
 from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
-from ding.world_model import HybridWorldModel
+from ding.world_model import DynaWorldModel
 from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
 
 
 @WORLD_MODEL_REGISTRY.register('mbpo')
-class MBPOWorldModel(HybridWorldModel, nn.Module):
+class MBPOWorldModel(DynaWorldModel, nn.Module):
     # TODO: put parameters into different categories
     config = dict(
-        network_size=7,
-        elite_size=5,
-        state_size=None,  # has to be specified
-        action_size=None, # has to be specified
-        reward_size=1,
-        hidden_size=200,
-        use_decay=False,
-        batch_size=256,
-        holdout_ratio=0.2,
-        max_epochs_since_update=5,
-        deterministic_rollout=True,
+        model=dict(
+            network_size=7,
+            elite_size=5,
+            state_size=None,  # has to be specified
+            action_size=None, # has to be specified
+            reward_size=1,
+            hidden_size=200,
+            use_decay=False,
+            batch_size=256,
+            holdout_ratio=0.2,
+            max_epochs_since_update=5,
+            deterministic_rollout=True,
+        ),
     )
 
-    def __init__(self, cfg, termination_fn, rollout_length_scheduler, tb_logger):
-        super().__init__(cfg, rollout_length_scheduler, tb_logger)
-        self.cfg = cfg
-        self.termination_fn = termination_fn
+    def __init__(self, cfg, env, tb_logger):
+        DynaWorldModel.__init__(self, cfg, env, tb_logger)
+        nn.Module.__init__(self)
+        # super().__init__(cfg, env, tb_logger)
 
-        self.network_size = self.cfg.network_size
-        self.elite_size = self.cfg.elite_size
-        self.state_size = self.cfg.state_size
-        self.action_size = self.cfg.action_size
-        self.reward_size = self.cfg.reward_size
-        self.hidden_size = self.cfg.hidden_size
-        self.use_decay = self.cfg.use_decay
-        self.batch_size = self.cfg.batch_size
-        self.holdout_ratio = self.cfg.holdout_ratio
-        self.max_epochs_since_update = self.cfg.max_epochs_since_update
-        self.deterministic_rollout = self.cfg.deterministic_rollout
+        cfg = cfg.model
+        self.network_size = cfg.network_size
+        self.elite_size = cfg.elite_size
+        self.state_size = cfg.state_size
+        self.action_size = cfg.action_size
+        self.reward_size = cfg.reward_size
+        self.hidden_size = cfg.hidden_size
+        self.use_decay = cfg.use_decay
+        self.batch_size = cfg.batch_size
+        self.holdout_ratio = cfg.holdout_ratio
+        self.max_epochs_since_update = cfg.max_epochs_since_update
+        self.deterministic_rollout = cfg.deterministic_rollout
 
         self.ensemble_model = EnsembleModel(
             self.state_size, self.action_size, self.reward_size, 
@@ -59,9 +60,42 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         self.model_variances = []
         self.elite_model_idxes = []
 
-    def eval(self, buffer, train_iter, envstep):
+    def step(self, obs, act, batch_size=8192):
+        if len(act.shape) == 1:
+            act = act.unsqueeze(1)
+        if self._cuda:
+            obs = obs.cuda()
+            act = act.cuda()
+        inputs = torch.cat([obs, act], dim=1)
+        inputs = self.scaler.transform(inputs)
+        # predict
+        ensemble_mean, ensemble_var = [], []
+        for i in range(0, inputs.shape[0], batch_size):
+            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.network_size, 1, 1)
+            b_mean, b_var = self.ensemble_model(input, ret_log_var=False)
+            ensemble_mean.append(b_mean)
+            ensemble_var.append(b_var)
+        ensemble_mean = torch.cat(ensemble_mean, 1)
+        ensemble_var = torch.cat(ensemble_var, 1)
+        ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
+        ensemble_std = ensemble_var.sqrt()
+        # sample from the predicted distribution
+        if self.deterministic_rollout:
+            ensemble_sample = ensemble_mean
+        else:
+            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+        # sample from ensemble
+        model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
+        batch_idxes = torch.arange(len(obs)).to(inputs.device)
+        sample = ensemble_sample[model_idxes, batch_idxes]
+        rewards, next_obs = sample[:, :1], sample[:, 1:]
+
+        # return rewards.detach().cpu(), next_obs.detach().cpu(), self.termination_fn(next_obs.detach().cpu())
+        return rewards, next_obs, self.env.termination_fn(next_obs)
+
+    def eval(self, env_buffer, envstep, train_iter):
         #TODO: change this
-        data = buffer.sample(self.eval_freq, train_iter)
+        data = env_buffer.sample(self.eval_freq, train_iter)
         data = default_collate(data)
         data['done'] = data['done'].float()
         data['weight'] = data.get('weight', None)
@@ -100,8 +134,8 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
 
         self.last_eval_step = envstep
 
-    def train(self, buffer, train_iter, envstep):
-        data = buffer.sample(buffer.count(), train_iter)
+    def train(self, env_buffer, envstep, train_iter):
+        data = env_buffer.sample(env_buffer.count(), train_iter)
         data = default_collate(data)
         data['done'] = data['done'].float()
         data['weight'] = data.get('weight', None)
@@ -222,39 +256,3 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
             return True
         else:
             return False
-
-    def step(self, obs, act, batch_size=8192):
-        # to predict the whole buffer and return cpu tensor
-        # form inputs
-        if len(act.shape) == 1:
-            act = act.unsqueeze(1)
-        if self._cuda:
-            obs = obs.cuda()
-            act = act.cuda()
-        inputs = torch.cat([obs, act], dim=1)
-        inputs = self.scaler.transform(inputs)
-        # predict
-        ensemble_mean, ensemble_var = [], []
-        for i in range(0, inputs.shape[0], batch_size):
-            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.network_size, 1, 1)
-            b_mean, b_var = self.ensemble_model(input, ret_log_var=False)
-            ensemble_mean.append(b_mean)
-            ensemble_var.append(b_var)
-        ensemble_mean = torch.cat(ensemble_mean, 1)
-        ensemble_var = torch.cat(ensemble_var, 1)
-        ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
-        ensemble_std = ensemble_var.sqrt()
-        # sample from the predicted distribution
-        if self.deterministic_rollout:
-            ensemble_sample = ensemble_mean
-        else:
-            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
-        # sample from ensemble
-        model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
-        batch_idxes = torch.arange(len(obs)).to(inputs.device)
-        sample = ensemble_sample[model_idxes, batch_idxes]
-        rewards, next_obs = sample[:, :1], sample[:, 1:]
-
-        return rewards.detach().cpu(), next_obs.detach().cpu(), self.termination_fn(next_obs.detach().cpu())
-
-

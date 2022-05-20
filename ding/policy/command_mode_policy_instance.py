@@ -22,7 +22,6 @@ from .td3 import TD3Policy
 from .td3_vae import TD3VAEPolicy
 from .td3_bc import TD3BCPolicy
 from .sac import SACPolicy, SACDiscretePolicy
-from .sac_nstep import SACNstepPolicy
 from .mbpolicy.mbsac import MBSACPolicy
 from .qmix import QMIXPolicy
 from .wqmix import WQMIXPolicy
@@ -235,11 +234,6 @@ class TD3BCCommandModePolicy(TD3BCPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('sac_command')
 class SACCommandModePolicy(SACPolicy, DummyCommandModePolicy):
-    pass
-
-
-@POLICY_REGISTRY.register('sac_nstep_command')
-class SACNstepCommandModePolicy(SACNstepPolicy, DummyCommandModePolicy):
     pass
 
 
