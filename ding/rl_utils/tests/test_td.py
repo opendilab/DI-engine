@@ -217,6 +217,38 @@ def test_dist_1step_compatible():
 
 
 @pytest.mark.unittest
+def test_dist_1step_multi_agent_td():
+    batch_size = 4
+    action_dim = 3
+    agent_num = 2
+    n_atom = 51
+    v_min = -10.0
+    v_max = 10.0
+    dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs().requires_grad_(True)
+    next_dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs()
+    done = torch.randn(batch_size)
+    action = torch.randint(
+        0, action_dim, size=(
+            batch_size,
+            agent_num,
+        )
+    )
+    next_action = torch.randint(
+        0, action_dim, size=(
+            batch_size,
+            agent_num,
+        )
+    )
+    reward = torch.randn(batch_size)
+    data = dist_1step_td_data(dist, next_dist, action, next_action, reward, done, None)
+    loss = dist_1step_td_error(data, 0.95, v_min, v_max, n_atom)
+    assert loss.shape == ()
+    assert dist.grad is None
+    loss.backward()
+    assert isinstance(dist.grad, torch.Tensor)
+
+
+@pytest.mark.unittest
 def test_td_lambda():
     T, B = 8, 4
     value = torch.randn(T + 1, B).requires_grad_(True)

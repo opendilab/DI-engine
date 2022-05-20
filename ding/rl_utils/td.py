@@ -117,19 +117,36 @@ def dist_1step_td_error(
 ) -> torch.Tensor:
     dist, next_dist, act, next_act, reward, done, weight = data
     device = reward.device
-    assert len(act.shape) == 1, act.shape
     assert len(reward.shape) == 1, reward.shape
-    reward = reward.unsqueeze(-1)
-    done = done.unsqueeze(-1)
     support = torch.linspace(v_min, v_max, n_atom).to(device)
     delta_z = (v_max - v_min) / (n_atom - 1)
-    batch_size = act.shape[0]
-    batch_range = torch.arange(batch_size)
-    if weight is None:
-        weight = torch.ones_like(reward)
 
-    next_dist = next_dist[batch_range, next_act].detach()
+    if len(act.shape) == 1:
+        reward = reward.unsqueeze(-1)
+        done = done.unsqueeze(-1)
+        batch_size = act.shape[0]
+        batch_range = torch.arange(batch_size)
+        if weight is None:
+            weight = torch.ones_like(reward)
+        next_dist = next_dist[batch_range, next_act].detach()
+    else:
+        reward = reward.unsqueeze(-1).repeat(1, act.shape[1])
+        done = done.unsqueeze(-1).repeat(1, act.shape[1])
 
+        batch_size = act.shape[0] * act.shape[1]
+        batch_range = torch.arange(act.shape[0] * act.shape[1])
+        action_dim = dist.shape[2]
+        dist = dist.reshape(act.shape[0] * act.shape[1], action_dim, -1)
+        reward = reward.reshape(act.shape[0] * act.shape[1], -1)
+        done = done.reshape(act.shape[0] * act.shape[1], -1)
+        next_dist = next_dist.reshape(act.shape[0] * act.shape[1], action_dim, -1)
+
+        next_act = next_act.reshape(act.shape[0] * act.shape[1])
+        next_dist = next_dist[batch_range, next_act].detach()
+        next_dist = next_dist.reshape(act.shape[0] * act.shape[1], -1)
+        act = act.reshape(act.shape[0] * act.shape[1])
+        if weight is None:
+            weight = torch.ones_like(reward)
     target_z = reward + (1 - done) * gamma * support
     target_z = target_z.clamp(min=v_min, max=v_max)
     b = (target_z - v_min) / delta_z
