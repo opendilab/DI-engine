@@ -1,5 +1,3 @@
-import logging
-import gym
 import time
 import pytest
 import numpy as np
@@ -11,7 +9,8 @@ from ding.framework.supervisor import ChildType
 @pytest.mark.unittest
 class TestEnvSupervisorCompatible:
 
-    def test_naive(self, setup_base_manager_cfg):
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_naive(self, setup_base_manager_cfg, type_):
         """
         To be compatible with the original env_manager, here uses the original configuration and blocking methods.
         {
@@ -26,11 +25,7 @@ class TestEnvSupervisorCompatible:
         }
         """
         env_fn = setup_base_manager_cfg.pop('env_fn')
-        env_supervisor = EnvSupervisor(
-            type_=ChildType.THREAD, env_fn=env_fn, **{
-                **setup_base_manager_cfg, "auto_reset": False
-            }
-        )
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **{**setup_base_manager_cfg, "auto_reset": False})
         try:
             env_supervisor.seed([314 for _ in range(env_supervisor.env_num)])
             assert env_supervisor.closed
@@ -68,19 +63,20 @@ class TestEnvSupervisorCompatible:
             with pytest.raises(AssertionError):
                 env_supervisor.step([])
 
-    def test_error(self, setup_base_manager_cfg):
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_error(self, setup_base_manager_cfg, type_):
         env_fn = setup_base_manager_cfg.pop('env_fn')
 
         def test_reset_error():
-            env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+            env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
             # Test reset error
             with pytest.raises(RuntimeError):
                 reset_param = {i: {'stat': 'error'} for i in range(env_supervisor.env_num)}
                 env_supervisor.launch(reset_param=reset_param)
-            assert all([state == EnvState.ERROR for state in env_supervisor.env_states.values()])
+            assert env_supervisor.closed
 
         def test_reset_error_once():
-            env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+            env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
             # Normal launch
             reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
             env_supervisor.launch(reset_param=reset_param)
@@ -103,7 +99,7 @@ class TestEnvSupervisorCompatible:
 
         def test_renew_error():
             env_supervisor = EnvSupervisor(
-                type_=ChildType.THREAD, env_fn=env_fn, **{
+                type_=type_, env_fn=env_fn, **{
                     **setup_base_manager_cfg, "retry_type": "renew"
                 }
             )
@@ -137,13 +133,14 @@ class TestEnvSupervisorCompatible:
         test_renew_error()
 
     @pytest.mark.timeout(60)
-    def test_block(self, setup_base_manager_cfg):
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_block(self, setup_base_manager_cfg, type_):
         env_fn = setup_base_manager_cfg.pop('env_fn')
         setup_base_manager_cfg['max_retry'] = 1
         setup_base_manager_cfg['reset_timeout'] = 7
 
         def test_block_launch():
-            env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+            env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
             with pytest.raises(RuntimeError):
                 reset_param = {i: {'stat': 'block'} for i in range(env_supervisor.env_num)}
                 env_supervisor.launch(reset_param=reset_param)
@@ -158,7 +155,7 @@ class TestEnvSupervisorCompatible:
             env_supervisor.close(1)
 
         def test_block_step():
-            env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+            env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
 
             reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
             env_supervisor.launch(reset_param=reset_param)
