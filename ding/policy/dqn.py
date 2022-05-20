@@ -438,7 +438,8 @@ class DQNAuxPolicy(DQNPolicy):
                                                                                                  | value to end value
                                                                                                  | during decay length.
         20 | ``loss_ratio``     float    0.01           | the ratio of auxiliary loss to main    | any real value,
-                                                        | loss                                   | typically [-0.1, 0.1].
+                                                        | loss                                   | typically in 
+                                                                                                 | [-0.1, 0.1].
         == ==================== ======== ============== ======================================== =======================
     """
 
