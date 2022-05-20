@@ -55,7 +55,7 @@ def test_supervisor(type_):
         sv.send(payload)
 
     req_ids = [payload.req_id for payload in send_payloads]
-    ## Only wait for last two messages, keep the first one in the queue.
+    # Only wait for last two messages, keep the first one in the queue.
     recv_payloads = sv.recv_all(send_payloads[1:])
     assert len(recv_payloads) == 2
     for req_id, payload in zip(req_ids[1:], recv_payloads):
@@ -179,12 +179,12 @@ def test_timeout(type_):
     sv.start_link()
     send_payloads = []
 
-    ## 0 is block
+    # 0 is block
     payload = SendPayload(proc_id=0, method="block")
     send_payloads.append(payload)
     sv.send(payload)
 
-    ## 1 is step
+    # 1 is step
     payload = SendPayload(proc_id=1, method="step", args=[""])
     send_payloads.append(payload)
     sv.send(payload)
@@ -205,12 +205,12 @@ def test_timeout_with_callback(type_):
     sv.start_link()
     send_payloads = []
 
-    ## 0 is block
+    # 0 is block
     payload = SendPayload(proc_id=0, method="block")
     send_payloads.append(payload)
     sv.send(payload)
 
-    ## 1 is step
+    # 1 is step
     payload = SendPayload(proc_id=1, method="step", args=[""])
     send_payloads.append(payload)
     sv.send(payload)
