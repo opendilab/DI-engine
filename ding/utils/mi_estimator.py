@@ -19,7 +19,7 @@ class ContrastiveLoss(nn.Module):
             x_dim: Union[int, SequenceType],
             y_dim: Union[int, SequenceType],
             heads: SequenceType = [1, 1],
-            embed_dim: int = 64,
+            encode_shape: int = 64,
             loss_type: str = "infonce",
             temperature: float = 1.0,
     ) -> None:
@@ -37,7 +37,7 @@ class ContrastiveLoss(nn.Module):
         assert loss_type.lower() in ["infonce"]
 
         self._type = loss_type.lower()
-        self._embed_dim = embed_dim
+        self._encode_shape = encode_shape
         self._heads = heads
         self._x_encoder = self._get_encoder(x_dim, heads[0])
         self._y_encoder = self._get_encoder(y_dim, heads[1])
@@ -49,10 +49,10 @@ class ContrastiveLoss(nn.Module):
         assert len(obs) in [1, 3]
 
         if len(obs) == 1:
-            hidden_size_list = [128, 128, self._embed_dim * heads]
+            hidden_size_list = [128, 128, self._encode_shape * heads]
             encoder = FCEncoder(obs[0], hidden_size_list)
         else:
-            hidden_size_list = [32, 64, 64, self._embed_dim * heads]
+            hidden_size_list = [32, 64, 64, self._encode_shape * heads]
             if obs[-1] >= 36:
                 encoder = ConvEncoder(obs, hidden_size_list)
             else:
@@ -71,11 +71,11 @@ class ContrastiveLoss(nn.Module):
 
         N = x.size(0)
         x_heads, y_heads = self._heads
-        x = self._x_encoder.forward(x).reshape(N, x_heads, self._embed_dim)
-        y = self._y_encoder.forward(y).reshape(N, y_heads, self._embed_dim)
+        x = self._x_encoder.forward(x).reshape(N, x_heads, self._encode_shape)
+        y = self._y_encoder.forward(y).reshape(N, y_heads, self._encode_shape)
 
-        x_n = x.reshape(-1, self._embed_dim)
-        y_n = y.reshape(-1, self._embed_dim)
+        x_n = x.reshape(-1, self._encode_shape)
+        y_n = y.reshape(-1, self._encode_shape)
 
         # Inner product for positive samples. Outer product for negative. We need to do it this way
         # for the multiclass loss. For the outer product, we want a N x N x n_local x n_multi tensor.
