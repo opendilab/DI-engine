@@ -69,9 +69,9 @@ hopper_dt_config = dict(
     ),
 )
 
-bipedalwalker_dt_config = EasyDict(bipedalwalker_dt_config)
-main_config = bipedalwalker_dt_config
-bipedalwalker_dt_create_config = dict(
+hopper_dt_config = EasyDict(hopper_dt_config)
+main_config = hopper_dt_config
+hopper_dt_create_config = dict(
     env=dict(
         type='mujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
@@ -79,8 +79,8 @@ bipedalwalker_dt_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dt'),
 )
-bipedalwalker_dt_create_config = EasyDict(bipedalwalker_dt_create_config)
-create_config = bipedalwalker_dt_create_config
+hopper_dt_create_config = EasyDict(hopper_dt_create_config)
+create_config = hopper_dt_create_config
 
 
 if __name__ == "__main__":
