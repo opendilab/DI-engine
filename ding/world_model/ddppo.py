@@ -1,15 +1,51 @@
 import itertools
-import copy
-import multiprocessing
-
 import numpy as np
+import multiprocessing
+import copy
 import torch
 from torch import nn
-from scipy.spatial import KDTree
 
-from .mbpo import EnsembleModel, StandardScaler
-from ding.utils import MODEL_REGISTRY
+from scipy.spatial import KDTree
+from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
+from ding.world_model.base_wm import HybridWorldModel
+from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
+
+
+#======================= Helper functions =======================
+def get_neighbor_index(data, k):
+    """
+        data: [B, N]
+        k: int
+
+        ret: [B, k]
+    """
+    data = data.cpu().numpy()
+    tree = KDTree(data)
+    global tree_query
+    # tree_query = lambda datapoint: tree.query(datapoint, k=k+1)[1][1:]
+    def tree_query(datapoint):
+        return tree.query(datapoint, k=k+1)[1][1:]
+    # TODO: multiprocessing
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+    nn_index = torch.from_numpy(
+        np.array(list(pool.map(tree_query, data)), dtype=np.int32)
+    ).to(torch.long)
+    pool.close()
+    return nn_index
+
+
+def get_batch_jacobian(net, x, noutputs): # x: b, in dim, noutpouts: out dim
+    x = x.unsqueeze(1) # b, 1 ,in_dim
+    n = x.size()[0]
+    x = x.repeat(1, noutputs, 1) # b, out_dim, in_dim
+    x.requires_grad_(True)
+    y = net(x)
+    upstream_gradient = torch.eye(noutputs
+        ).reshape(1, noutputs, noutputs).repeat(n, 1, 1).to(x.device)
+    re = torch.autograd.grad(y, x, upstream_gradient, create_graph=True)[0]
+
+    return re
 
 
 class EnsembleGradientModel(EnsembleModel):
@@ -27,76 +63,70 @@ class EnsembleGradientModel(EnsembleModel):
         self.optimizer.step()
 
 
-
-@MODEL_REGISTRY.register('ddppo')
-class EnsembleDoubleModel(nn.Module):
+# TODO: derive from MBPO instead of implementing from scratch
+@WORLD_MODEL_REGISTRY.register('ddppo')
+class DDPPOWorldMode(HybridWorldModel, nn.Module):
     """rollout model + gradient model"""
+    config = dict(
+        model=dict(
+            network_size=7,
+            elite_size=5,
+            state_size=None,  # has to be specified
+            action_size=None, # has to be specified
+            reward_size=1,
+            hidden_size=200,
+            use_decay=False,
+            batch_size=256,
+            holdout_ratio=0.2,
+            max_epochs_since_update=5,
+            deterministic_rollout=True,
+            # parameters for DDPPO
+            gradient_model=True,
+            k=3,
+            reg=1,
+            neighbor_pool_size=10000,
+            train_freq_gradient_model=250
+        ),
+    )
 
-    def __init__(
-        self,
-        network_size,
-        elite_size,
-        state_size,
-        action_size,
-        reward_size=1,
-        hidden_size=200,
-        use_decay=False,
-        batch_size=256,
-        holdout_ratio=0.2,
-        max_epochs_since_update=5,
-        train_freq=250,
-        eval_freq=20,
-        deterministic_rollout=False,
-        cuda=True,
-        tb_logger=None,
+    def __init__(self, cfg, env, tb_logger):
+        HybridWorldModel.__init__(self, cfg, env, tb_logger)
+        nn.Module.__init__(self)
 
+        cfg = cfg.model
+        self.network_size = cfg.network_size
+        self.elite_size = cfg.elite_size
+        self.state_size = cfg.state_size
+        self.action_size = cfg.action_size
+        self.reward_size = cfg.reward_size
+        self.hidden_size = cfg.hidden_size
+        self.use_decay = cfg.use_decay
+        self.batch_size = cfg.batch_size
+        self.holdout_ratio = cfg.holdout_ratio
+        self.max_epochs_since_update = cfg.max_epochs_since_update
+        self.deterministic_rollout = cfg.deterministic_rollout
         # parameters for DDPPO
-        gradient_model=True,
-        k=3,
-        reg=1,
-        neighbor_pool_size=10000,
-        train_freq_gradient_model=250
-    ):
-        super(EnsembleDoubleModel, self).__init__()
-        self.deterministic_rollout = deterministic_rollout
-        self._cuda = cuda
-        self.tb_logger = tb_logger
-
-        self.network_size = network_size
-        self.elite_size = elite_size
-        self.state_size = state_size
-        self.action_size = action_size
-        self.reward_size = reward_size
+        self.gradient_model = cfg.gradient_model
+        self.k = cfg.k
+        self.reg = cfg.reg
+        self.neighbor_pool_size = cfg.neighbor_pool_size
+        self.train_freq_gradient_model = cfg.train_freq_gradient_model
 
         self.rollout_model = EnsembleModel(
-            state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
+            self.state_size, self.action_size, self.reward_size, 
+            self.network_size, self.hidden_size, use_decay=self.use_decay
         )
-
-        self.scaler = StandardScaler(state_size + action_size)
-
-        self.last_train_step = 0
-        self.last_eval_step = 0
-        self.train_freq = train_freq
-        self.eval_freq = eval_freq
+        self.scaler = StandardScaler(self.state_size + self.action_size)
+        
         self.ensemble_mse_losses = []
         self.model_variances = []
-
-        self._max_epochs_since_update = max_epochs_since_update
-        self.batch_size = batch_size
-        self.holdout_ratio = holdout_ratio
         self.elite_model_idxes = []
 
-        # parameters for DDPPO
-        self.gradient_model = gradient_model
-        self.k = k
-        self.reg = reg
-        self.neighbor_pool_size = neighbor_pool_size
-        self.train_freq_gradient_model = train_freq_gradient_model
 
         if self.gradient_model:
             self.gradient_model = EnsembleGradientModel(
-                state_size, action_size, reward_size, 
-                network_size, hidden_size, use_decay=use_decay
+                self.state_size, self.action_size, self.reward_size, 
+                self.network_size, self.hidden_size, use_decay=self.use_decay
             )
         self.elite_model_idxes_gradient_model = []
                 
@@ -105,29 +135,65 @@ class EnsembleDoubleModel(nn.Module):
         if self._cuda:
             self.cuda()
 
+    def step(self, obs, act, batch_size=8192):
 
-    def should_eval(self, envstep):
-        """
-        Overview:
-            Determine whether you need to start the evaluation mode, if the number of training has reached\
-                the maximum number of times to start the evaluator, return True
-        """
-        if (envstep - self.last_eval_step) < self.eval_freq or self.last_train_step == 0:
-            return False
-        return True
+        class Predict(torch.autograd.Function):
+            # TODO: align rollout_model elites with gradient_model elites
+            # use different model for forward and backward
+            @staticmethod
+            def forward(ctx, x):
+                ctx.save_for_backward(x)
+                mean, var = self.rollout_model(x, ret_log_var=False) 
+                return torch.concat([mean, var], dim=-1)
 
-    def should_train(self, envstep):
-        """
-        Overview:
-            Determine whether you need to start the evaluation mode, if the number of training has reached\
-                the maximum number of times to start the evaluator, return True
-        """
-        if (envstep - self.last_train_step) < self.train_freq:
-            return False
-        return True
+            @staticmethod
+            def backward(ctx, grad_out):
+                x, = ctx.saved_tensors
+                with torch.enable_grad():
+                    x = x.detach()
+                    x.requires_grad_(True)
+                    mean, var = self.gradient_model(x, ret_log_var=False)
+                    y = torch.concat([mean, var], dim=-1)
+                    return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
+        
+        if len(act.shape) == 1:
+            act = act.unsqueeze(1)
+        if self._cuda:
+            obs = obs.cuda()
+            act = act.cuda()
+        inputs = torch.cat([obs, act], dim=1)
+        inputs = self.scaler.transform(inputs)
+        # predict
+        ensemble_mean, ensemble_var = [], []
+        for i in range(0, inputs.shape[0], batch_size):
+            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.network_size, 1, 1)
+            if not torch.is_grad_enabled() or not self.gradient_model:
+                b_mean, b_var = self.rollout_model(input, ret_log_var=False)
+            else:
+                # use gradient model to modify gradients
+                output = Predict.apply(input)
+                b_mean, b_var = output.chunk(2, dim=2)
+            ensemble_mean.append(b_mean)
+            ensemble_var.append(b_var)
+        ensemble_mean = torch.cat(ensemble_mean, 1)
+        ensemble_var = torch.cat(ensemble_var, 1)
+        ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
+        ensemble_std = ensemble_var.sqrt()
+        # sample from the predicted distribution
+        if self.deterministic_rollout:
+            ensemble_sample = ensemble_mean
+        else:
+            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+        # sample from ensemble
+        model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
+        batch_idxes = torch.arange(len(obs)).to(inputs.device)
+        sample = ensemble_sample[model_idxes, batch_idxes]
+        rewards, next_obs = sample[:, :1], sample[:, 1:]
 
-    def eval(self, data, envstep):
-        # load data
+        return rewards, next_obs, self.env.termination_fn(next_obs)
+
+    def eval(self, env_buffer, envstep, train_iter):
+        data = env_buffer.sample(self.eval_freq, train_iter)
         data = default_collate(data)
         data['done'] = data['done'].float()
         data['weight'] = data.get('weight', None)
@@ -167,7 +233,7 @@ class EnsembleDoubleModel(nn.Module):
         self.last_eval_step = envstep
 
 
-    def train(self, buffer, train_iter, envstep):
+    def train(self, env_buffer, envstep, train_iter):
 
         def train_sample(data) -> tuple:
             data = default_collate(data)
@@ -192,15 +258,15 @@ class EnsembleDoubleModel(nn.Module):
 
         logvar = dict()
 
-        data = buffer.sample(buffer.count(), train_iter)
+        data = env_buffer.sample(env_buffer.count(), train_iter)
         inputs, labels = train_sample(data)
         logvar.update(self._train_rollout_model(inputs, labels))
 
         if self.gradient_model:
             # update neighbor pool
             if (envstep - self.last_train_step_gradient_model) >= self.train_freq_gradient_model:
-                n = min(buffer.count(), self.neighbor_pool_size)
-                self.neighbor_pool = buffer.sample(n, train_iter, sample_range=slice(-n, None))
+                n = min(env_buffer.count(), self.neighbor_pool_size)
+                self.neighbor_pool = env_buffer.sample(n, train_iter, sample_range=slice(-n, None))
                 inputs_reg, labels_reg = train_sample(self.neighbor_pool)
                 logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
                 self.last_train_step_gradient_model = envstep
@@ -430,156 +496,7 @@ class EnsembleDoubleModel(nn.Module):
             self._epochs_since_update = 0
         else:
             self._epochs_since_update += 1
-        if self._epochs_since_update > self._max_epochs_since_update:
+        if self._epochs_since_update > self.max_epochs_since_update:
             return True
         else:
             return False
-
-    # def batch_predict(self, obs, action):
-    #     # to predict a batch
-    #     # norm and repeat for ensemble
-    #     class Predict(torch.autograd.Function):
-    #         # use different model for forward and backward
-    #         @staticmethod
-    #         def forward(ctx, x):
-    #             ctx.save_for_backward(x)
-    #             return self.rollout_model(x, ret_log_var=False)[0]
-
-    #         @staticmethod
-    #         def backward(ctx, grad_out):
-    #             x, = ctx.saved_tensors
-    #             with torch.enable_grad():
-    #                 x = x.detach()
-    #                 x.requires_grad_(True)
-    #                 y = self.gradient_model(x, ret_log_var=False)[0]
-    #                 return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
-
-    #     if len(action.shape) == 1:
-    #         action = action.unsqueeze(1)
-    #     inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
-    #     # predict
-    #     if self.gradient_model:
-    #         outputs = Predict.apply(inputs)
-    #     else: 
-    #         outputs, _ = self.rollout_model(inputs, ret_log_var=False)
-    #     outputs = outputs.mean(0)
-    #     return outputs[:, 0], outputs[:, 1:] + obs
-
-    def batch_predict(self, obs, action):
-
-        def forward(inputs, mode='rollout'):
-            # model = self.rollout_model
-            if mode == 'rollout':
-                model = self.rollout_model
-                elite_model_indxes = self.elite_model_idxes
-            else:
-                model = self.gradient_model
-                elite_model_indxes = self.elite_model_idxes_gradient_model
-            ensemble_mean, ensemble_var = model(inputs, ret_log_var=False)
-            ensemble_std = ensemble_var.sqrt()
-            if self.deterministic_rollout:
-                ensemble_sample = ensemble_mean
-            else:
-                ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
-            model_idxes = torch.from_numpy(np.random.choice(elite_model_indxes, size=len(obs))).to(inputs.device)
-            batch_idxes = torch.arange(len(obs)).to(inputs.device)
-            sample = ensemble_sample[model_idxes, batch_idxes]
-            return sample
-
-        class Predict(torch.autograd.Function):
-            # use different model for forward and backward
-            @staticmethod
-            def forward(ctx, x):
-                ctx.save_for_backward(x)
-                return forward(x)
-
-            @staticmethod
-            def backward(ctx, grad_out):
-                x, = ctx.saved_tensors
-                with torch.enable_grad():
-                    x = x.detach()
-                    x.requires_grad_(True)
-                    y = forward(x, mode='gradient')
-                    return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
-
-        if len(action.shape) == 1:
-            action = action.unsqueeze(1)
-        inputs = self.scaler.transform(torch.cat([obs, action], dim=-1)).unsqueeze(0).repeat(self.network_size, 1, 1)
-        if self.gradient_model:
-            sample = Predict.apply(inputs)
-        else: 
-            sample = forward(inputs)
-        rewards, next_obs = sample[:, 0], sample[:, 1:] + obs
-
-        return rewards, next_obs
-
-
-    def predict(self, obs, act, batch_size=8192):
-        # to predict the whole buffer and return cpu tensor
-        # form inputs
-        if len(act.shape) == 1:
-            act = act.unsqueeze(1)
-        if self._cuda:
-            obs = obs.cuda()
-            act = act.cuda()
-        inputs = torch.cat([obs, act], dim=1)
-        inputs = self.scaler.transform(inputs)
-        # predict
-        ensemble_mean, ensemble_var = [], []
-        for i in range(0, inputs.shape[0], batch_size):
-            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.network_size, 1, 1)
-            b_mean, b_var = self.rollout_model(input, ret_log_var=False)
-            ensemble_mean.append(b_mean)
-            ensemble_var.append(b_var)
-        ensemble_mean = torch.cat(ensemble_mean, 1)
-        ensemble_var = torch.cat(ensemble_var, 1)
-        ensemble_mean[:, :, 1:] += obs.unsqueeze(0)
-        ensemble_std = ensemble_var.sqrt()
-        # sample from the predicted distribution
-        if self.deterministic_rollout:
-            ensemble_sample = ensemble_mean
-        else:
-            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
-        # sample from ensemble
-        model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
-        batch_idxes = torch.arange(len(obs)).to(inputs.device)
-        sample = ensemble_sample[model_idxes, batch_idxes]
-        rewards, next_obs = sample[:, :1], sample[:, 1:]
-
-        return rewards.detach().cpu(), next_obs.detach().cpu()
-
-
-#======================= Helper functions =======================
-def get_neighbor_index(data, k):
-    """
-        data: [B, N]
-        k: int
-
-        ret: [B, k]
-    """
-    data = data.cpu().numpy()
-    tree = KDTree(data)
-    global tree_query
-    # tree_query = lambda datapoint: tree.query(datapoint, k=k+1)[1][1:]
-    def tree_query(datapoint):
-        return tree.query(datapoint, k=k+1)[1][1:]
-    # TODO: multiprocessing
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-    nn_index = torch.from_numpy(
-        np.array(list(pool.map(tree_query, data)), dtype=np.int32)
-    ).to(torch.long)
-    pool.close()
-    return nn_index
-
-
-def get_batch_jacobian(net, x, noutputs): # x: b, in dim, noutpouts: out dim
-    x = x.unsqueeze(1) # b, 1 ,in_dim
-    n = x.size()[0]
-    x = x.repeat(1, noutputs, 1) # b, out_dim, in_dim
-    x.requires_grad_(True)
-    y = net(x)
-    upstream_gradient = torch.eye(noutputs
-        ).reshape(1, noutputs, noutputs).repeat(n, 1, 1).to(x.device)
-    re = torch.autograd.grad(y, x, upstream_gradient, create_graph=True)[0]
-
-    return re

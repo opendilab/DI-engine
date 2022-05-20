@@ -13,7 +13,7 @@ from ding.policy import SACPolicy
 from ding.rl_utils import generalized_lambda_returns
 from ding.policy.common_utils import default_preprocess_learn
 
-from .utils import q_evaluation, rollout
+from .utils import q_evaluation
 
 @POLICY_REGISTRY.register('mbsac')
 class MBSACPolicy(SACPolicy):
@@ -27,9 +27,6 @@ class MBSACPolicy(SACPolicy):
 
     config = dict(
         learn=dict(
-            # (int) Model-based value expansion horizon H (arXiv 1803.00101). 
-            # (int) Model-based value gradient horizon H (arXiv 1510.09142). 
-            horizon=0,
             # (float) Lambda for TD return.
             _lambda=0.8,
             # (float) Gradient clip norm.
@@ -49,26 +46,12 @@ class MBSACPolicy(SACPolicy):
     def _init_learn(self) -> None:
         super()._init_learn()
 
-        self._horizon = self._cfg.learn.horizon
         self._lambda = self._cfg.learn._lambda
         self._grad_clip = self._cfg.learn.grad_clip
         self._sample_state = self._cfg.learn.sample_state
 
         # TODO: complete auto alpha
         self._auto_alpha = False
-
-        # TODO: create real world model
-        def world_model(obs, action):
-            reward, obs  = self._env_model.batch_predict(obs, action)
-            done = self._model_env.termination_fn(obs)
-            return reward, obs, done
-        self._world_model = world_model
-
-        assert type(self._horizon) == int and self._horizon >= 0, self._horizon 
-        if self._horizon > 0:
-            assert self._world_model, 'world model should be set for rollout'
-        else:
-            assert not self._sample_state, 'transitions should be sampled when horizon is zero'
 
         # helper functions to provide unified API
         def actor_fn(obs):
@@ -96,7 +79,7 @@ class MBSACPolicy(SACPolicy):
             return q_values
         self._critic_fn = critic_fn
 
-    def _forward_learn(self, data: dict) -> Dict[str, Any]:
+    def _forward_learn(self, data: dict, world_model, envstep) -> Dict[str, Any]:
         # preprocess data
         data = default_preprocess_learn(
             data,
@@ -117,10 +100,10 @@ class MBSACPolicy(SACPolicy):
         if self._sample_state:
             # data['reward'], ... are not used 
             obss, actions, rewards, aug_rewards, dones = \
-                rollout(data['obs'], self._actor_fn, self._horizon, self._world_model)
+                world_model.rollout(data['obs'], self._actor_fn, envstep)
         else:
             obss, actions, rewards, aug_rewards, dones = \
-                rollout(data['next_obs'], self._actor_fn, self._horizon, self._world_model)
+                world_model.rollout(data['next_obs'], self._actor_fn, envstep)
             obss        = torch.concat([data['obs'][None,:],    obss])
             actions     = torch.concat([data['action'][None,:], actions])
             rewards     = torch.concat([data['reward'][None,:], rewards])

@@ -79,6 +79,7 @@ class DynaWorldModel(WorldModel, ABC):
     config = dict(
         other=dict(
             real_ratio=0.05,
+            rollout_retain=4,
             rollout_batch_size=100000,
         )
     )
@@ -174,6 +175,10 @@ class DreamWorldModel(WorldModel, ABC):
             action, aug_reward = actor_fn(obs)
             # done: probability of termination
             reward, obs, done = self.step(obs, action)
+            if len(reward.shape) == 2:
+                reward = reward.squeeze(1)
+            if len(done.shape) == 2:
+                done = done.squeeze(1)
             reward = reward + aug_reward
             obss.append(obs)
             actions.append(action)
@@ -187,7 +192,7 @@ class DreamWorldModel(WorldModel, ABC):
             torch.stack(obss), 
             torch.stack(actions), 
             # rewards is an empty list when horizon=0
-            torch.stack(rewards) if rewards else torch.tensor(rewards), 
+            torch.stack(rewards),
             torch.stack(aug_rewards), 
             torch.stack(dones)
         )
@@ -196,3 +201,4 @@ class DreamWorldModel(WorldModel, ABC):
 class HybridWorldModel(DynaWorldModel, DreamWorldModel):
     def __init__(self, cfg, env, tb_logger):
         DynaWorldModel.__init__(self, cfg, env, tb_logger)
+        DreamWorldModel.__init__(self, cfg, env, tb_logger)

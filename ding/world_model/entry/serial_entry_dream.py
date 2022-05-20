@@ -19,6 +19,7 @@ def serial_pipeline_dream(
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, env_buffer)
 
+
     while True:
         # eval the policy
         if evaluator.should_eval(learner.train_iter):
@@ -41,7 +42,13 @@ def serial_pipeline_dream(
             train_data = env_buffer.sample(batch_size, learner.train_iter)
             # dreamer-style: use pure on-policy imagined rollout to train policy, 
             # which depends on the current envstep to decide the rollout length
-            learner.train(train_data, collector.envstep, policy_kwargs=dict(envstep=collector.envstep))
+            learner.train(
+                train_data, collector.envstep, 
+                policy_kwargs=dict(
+                    world_model=world_model,
+                    envstep=collector.envstep
+                )
+            )
 
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break

@@ -7,11 +7,12 @@ from torch import nn
 from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.world_model import DynaWorldModel
+from ding.world_model.base_wm import HybridWorldModel
 from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
 
 
 @WORLD_MODEL_REGISTRY.register('mbpo')
-class MBPOWorldModel(DynaWorldModel, nn.Module):
+class MBPOWorldModel(HybridWorldModel, nn.Module):
     # TODO: put parameters into different categories
     config = dict(
         model=dict(
@@ -30,9 +31,8 @@ class MBPOWorldModel(DynaWorldModel, nn.Module):
     )
 
     def __init__(self, cfg, env, tb_logger):
-        DynaWorldModel.__init__(self, cfg, env, tb_logger)
+        HybridWorldModel.__init__(self, cfg, env, tb_logger)
         nn.Module.__init__(self)
-        # super().__init__(cfg, env, tb_logger)
 
         cfg = cfg.model
         self.network_size = cfg.network_size
@@ -90,11 +90,9 @@ class MBPOWorldModel(DynaWorldModel, nn.Module):
         sample = ensemble_sample[model_idxes, batch_idxes]
         rewards, next_obs = sample[:, :1], sample[:, 1:]
 
-        # return rewards.detach().cpu(), next_obs.detach().cpu(), self.termination_fn(next_obs.detach().cpu())
         return rewards, next_obs, self.env.termination_fn(next_obs)
 
     def eval(self, env_buffer, envstep, train_iter):
-        #TODO: change this
         data = env_buffer.sample(self.eval_freq, train_iter)
         data = default_collate(data)
         data['done'] = data['done'].float()

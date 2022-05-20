@@ -50,14 +50,14 @@ def mbrl_entry_setup(
     # create logger
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
 
-    # Create policy
-    set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
-    policy = create_policy(cfg.policy, enable_field=['learn', 'collect', 'eval', 'command'])
-
     # create world model
     world_model = create_world_model(cfg.world_model, env_fn(cfg.env), tb_logger)
 
-    # Create worker
+    # create policy
+    set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
+    policy = create_policy(cfg.policy, enable_field=['learn', 'collect', 'eval', 'command'])
+
+    # create worker
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     collector = create_serial_collector(
         cfg.policy.collect.collector,

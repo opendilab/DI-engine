@@ -26,7 +26,8 @@ main_config = dict(
     ),
     policy=dict(
         cuda=cuda,
-        # it is better to put random_collect_size  in policy.other
+        # backward compatibility: it is better to 
+        # put random_collect_size in policy.other
         random_collect_size=1000,
         model=dict(
             obs_shape=obs_shape,
@@ -75,8 +76,8 @@ main_config = dict(
         model=dict(
             network_size=5,
             elite_size=3,
-            state_size=obs_shape,  # has to be specified
-            action_size=action_shape, # has to be specified
+            state_size=obs_shape,
+            action_size=action_shape,
             reward_size=1,
             hidden_size=100,
             use_decay=True,
