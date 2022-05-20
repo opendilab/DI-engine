@@ -132,7 +132,6 @@ def test_dist_nstep_td():
     assert isinstance(dist.grad, torch.Tensor)
 
 
-@pytest.mark.unittest
 def test_dist_nstep_multi_agent_td():
     batch_size = 4
     action_dim = 3
@@ -144,8 +143,18 @@ def test_dist_nstep_multi_agent_td():
     dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs().requires_grad_(True)
     next_n_dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs()
     done = torch.randn(batch_size)
-    action = torch.randint(0, action_dim, size=(batch_size, agent_num, ))
-    next_action = torch.randint(0, action_dim, size=(batch_size, agent_num, ))
+    action = torch.randint(
+        0, action_dim, size=(
+            batch_size,
+            agent_num,
+        )
+    )
+    next_action = torch.randint(
+        0, action_dim, size=(
+            batch_size,
+            agent_num,
+        )
+    )
     reward = torch.randn(nstep, batch_size)
     data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, None)
     loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep)
