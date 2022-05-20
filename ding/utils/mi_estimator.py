@@ -77,20 +77,20 @@ class ContrastiveLoss(nn.Module):
         x_n = x.reshape(-1, self._encode_shape)
         y_n = y.reshape(-1, self._encode_shape)
 
-        # Inner product for positive samples. Outer product for negative. We need to do it this way
-        # for the multiclass loss. For the outer product, we want a N x N x n_local x n_multi tensor.
+        # Use inner product to obtain postive samples.
+        # [N, x_heads, encode_dim] * [N, encode_dim, y_heads] -> [N, x_heads, y_heads]
         u_pos = torch.matmul(x, y.permute(0, 2, 1)).unsqueeze(2)
+        # Use outer product to obtain all sample permutations.
+        # [N * x_heads, encode_dim] X [encode_dim, N * y_heads] -> [N * x_heads, N * y_heads]
         u_all = torch.mm(y_n, x_n.t()).reshape(N, y_heads, N, x_heads).permute(0, 2, 3, 1)
 
-        # We need to mask the diagonal part of the negative tensor.
+        # Mask the diagonal part to obtain the negative samples, with all diagonals setting to -10.
         mask = torch.eye(N)[:, :, None, None].to(x.device)
         n_mask = 1 - mask
-
-        # Masking is done by shifting the diagonal before exp.
-        u_neg = (n_mask * u_all) - (10. * (1 - n_mask))  # mask out "self" examples, all diagonals are set to -10.
+        u_neg = (n_mask * u_all) - (10. * (1 - n_mask))
         u_neg = u_neg.reshape(N, N * x_heads, y_heads).unsqueeze(dim=1).expand(-1, x_heads, -1, -1)
 
-        # Since this is multiclass, we concat the positive along the class dimension before performing log softmax.
+        # Concatenate postive and negative samples and apply log softmax.
         pred_lgt = torch.cat([u_pos, u_neg], dim=2)
         pred_log = F.log_softmax(pred_lgt * self._temperature, dim=2)
 
