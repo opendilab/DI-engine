@@ -358,6 +358,9 @@ class DTPolicy(DQNPolicy):
             traj_mask = traj_mask.to(self.device)  # B x T
             action_target = torch.clone(actions).detach().to(self.device)
 
+            if len(returns_to_go.shape) == 2:
+                returns_to_go = returns_to_go.unsqueeze(-1)
+
             # if discrete
             if not self._cfg.model.continuous:
                 actions = one_hot(actions.squeeze(-1), num=self.act_dim)
