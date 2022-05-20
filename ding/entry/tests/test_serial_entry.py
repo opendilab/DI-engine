@@ -6,7 +6,8 @@ from copy import deepcopy
 
 from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_offline
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
-from dizoo.classic_control.cartpole.config.cartpole_dqn_aux_config import cartpole_dqn_aux_config, cartpole_dqn_aux_create_config
+from dizoo.classic_control.cartpole.config.cartpole_dqn_aux_config import cartpole_dqn_aux_config, \
+    cartpole_dqn_aux_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config, \
     cartpole_offppo_create_config
