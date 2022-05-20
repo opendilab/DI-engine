@@ -1,11 +1,11 @@
 import time
-from aiohttp import payload_type
 import pytest
 import numpy as np
 import treetensor.numpy as tnp
 from ding.envs.env_manager import EnvSupervisor
 from ding.envs.env_manager.env_supervisor import EnvState
 from ding.framework.supervisor import ChildType
+from gym.spaces import Space
 
 
 @pytest.mark.unittest
@@ -185,6 +185,17 @@ class TestEnvSupervisorCompatible:
 
         test_block_launch()
         test_block_step()
+
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_properties(self, setup_base_manager_cfg, type_):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
+        reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+        env_supervisor.launch(reset_param=reset_param)
+
+        assert isinstance(env_supervisor.action_space, Space)
+        assert isinstance(env_supervisor.reward_space, Space)
+        assert isinstance(env_supervisor.observation_space, Space)
 
 
 @pytest.mark.unittest

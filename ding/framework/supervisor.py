@@ -199,6 +199,7 @@ class Supervisor:
         Arguments:
             - ignore_err (:obj:`bool`): If ignore_err is True, put the err in the property of recv_payload. \
                 Otherwise, an exception will be raised.
+            - timeout (:obj:`float`): Timeout for queue.get, will raise an Empty exception if timeout.
         Returns:
             - recv_payload (:obj:`RecvPayload`): Recv payload.
         """
@@ -288,6 +289,22 @@ class Supervisor:
             send_payloads.append(payload)
             child.send(payload)
         return [payload.data for payload in self.recv_all(send_payloads)]
+
+    def get_child_attr(self, proc_id: str, key: str) -> Any:
+        """
+        Overview:
+            Get attr of one child process instance.
+        Arguments:
+            - proc_id (:obj:`str`): Proc id.
+            - key (:obj:`str`): Attribute key.
+        Returns:
+            - attr (:obj:`Any`): Attribute of child.
+        """
+        assert self._running, "Supervisor is not running, please call start_link first!"
+        payload = SendPayload(proc_id=proc_id, method=ReserveMethod.GETATTR, args=[key])
+        self._children[proc_id].send(payload)
+        payloads = self.recv_all([payload])
+        return payloads[0].data
 
     def __del__(self) -> None:
         self.shutdown(timeout=5)

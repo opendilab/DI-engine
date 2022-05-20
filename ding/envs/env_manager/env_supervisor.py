@@ -1,6 +1,9 @@
 from collections import defaultdict
+import functools
+import inspect
 import queue
 from time import sleep, time
+
 from ding.framework import Supervisor
 from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
 from ding.framework.supervisor import ChildType, RecvPayload, SendPayload
@@ -57,6 +60,20 @@ class EnvSupervisor(Supervisor):
             retry_waiting_time: Optional[int] = None,
             **kwargs
     ) -> None:
+        """
+        Overview:
+            Supervisor that manage a group of envs.
+        Arguments:
+            - type_ (:obj:`ChildType`): Type of child process.
+            - env_fn (:obj:`List[Callable]`): The function to create environment
+            - retry_type (:obj:`EnvRetryType`): Retry reset or renew env.
+            - max_try (:obj:`EasyDict`): Max try times for reset or step action.
+            - max_retry (:obj:`Optional[int]`): Alias of max_try.
+            - auto_reset (:obj:`bool`): Auto reset env if reach done.
+            - reset_timeout (:obj:`Optional[int]`): Timeout in seconds for reset.
+            - step_timeout (:obj:`Optional[int]`): Timeout in seconds for step.
+            - retry_waiting_time (:obj:`Optional[float]`): Wait time on each retry.
+        """
         if kwargs:
             logging.warning("Unknown parameters on env supervisor: {}".format(kwargs))
         super().__init__(type_=type_)
@@ -71,6 +88,7 @@ class EnvSupervisor(Supervisor):
         self._reset_timeout = reset_timeout
         self._step_timeout = step_timeout
         self._retry_waiting_time = retry_waiting_time
+        self._env_replay_path = None
         self._init_states()
 
     def _init_states(self):
@@ -84,6 +102,17 @@ class EnvSupervisor(Supervisor):
         self._last_called = defaultdict(lambda: {"step": 9e9, "reset": 9e9})
 
     def step(self, actions: Union[Dict[int, List[Any]], List[Any]], block: bool = True) -> Optional[List[tnp.ndarray]]:
+        """
+        Overview:
+            Execute env step according to input actions. And reset an env if done.
+        Arguments:
+            - actions (:obj:`List[tnp.ndarray]`): Actions came from outer caller like policy, \
+                in structure of {env_id: actions}.
+            - block (:obj:`bool`): If block, return timesteps, else return none.
+        Returns:
+            - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \
+                info, env_id.
+        """
         assert not self.closed, "Env supervisor has closed."
         if isinstance(actions, List):
             actions = {i: p for i, p in enumerate(actions)}
@@ -151,16 +180,28 @@ class EnvSupervisor(Supervisor):
         return len(self._children)
 
     @property
+    @functools.cache
     def observation_space(self) -> 'Space':
-        pass
+        assert not self.closed, "Please launch env supervisor before calling {}".format(
+            inspect.currentframe().f_code.co_name
+        )
+        return self.get_child_attr(0, "observation_space")
 
     @property
+    @functools.cache
     def action_space(self) -> 'Space':
-        pass
+        assert not self.closed, "Please launch env supervisor before calling {}".format(
+            inspect.currentframe().f_code.co_name
+        )
+        return self.get_child_attr(0, "action_space")
 
     @property
+    @functools.cache
     def reward_space(self) -> 'Space':
-        pass
+        assert not self.closed, "Please launch env supervisor before calling {}".format(
+            inspect.currentframe().f_code.co_name
+        )
+        return self.get_child_attr(0, "reward_space")
 
     @property
     def ready_obs(self) -> tnp.array:
@@ -195,7 +236,7 @@ class EnvSupervisor(Supervisor):
         return {env_id: self._env_states.get(env_id) or EnvState.VOID for env_id in range(self.env_num)}
 
     def env_state_done(self, env_id: int) -> bool:
-        pass
+        return self.env_states[env_id] == EnvState.DONE
 
     def launch(self, reset_param: Optional[Dict] = None, block: bool = True) -> None:
         """
@@ -211,6 +252,7 @@ class EnvSupervisor(Supervisor):
             assert len(reset_param) == self.env_num
         self.start_link()
         self.reset(reset_param, block=block)
+        self._enable_env_replay()
 
     def reset(self, reset_param: Optional[Dict[int, List[Any]]] = None, block: bool = True) -> None:
         """
@@ -392,7 +434,26 @@ class EnvSupervisor(Supervisor):
         self._env_dynamic_seed = dynamic_seed
 
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
-        pass
+        """
+        Overview:
+            Set each env's replay save path.
+        Arguments:
+            - replay_path (:obj:`Union[List[str], str]`): List of paths for each environment; \
+                Or one path for all environments.
+        """
+        if isinstance(replay_path, str):
+            replay_path = [replay_path] * self.env_num
+        self._env_replay_path = replay_path
+
+    def _enable_env_replay(self):
+        if self._env_replay_path is None:
+            return
+        send_payloads = []
+        for env_id, s in enumerate(self._env_replay_path):
+            payload = SendPayload(proc_id=env_id, method="enable_save_replay", args=[s])
+            send_payloads.append(payload)
+            self.send(payload)
+        self.recv_all(send_payloads=send_payloads)
 
     def close(self, timeout: Optional[float] = None) -> None:
         """
