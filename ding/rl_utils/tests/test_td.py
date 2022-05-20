@@ -133,6 +133,36 @@ def test_dist_nstep_td():
 
 
 @pytest.mark.unittest
+def test_dist_nstep_multi_agent_td():
+    batch_size = 4
+    action_dim = 3
+    agent_num = 2
+    n_atom = 51
+    v_min = -10.0
+    v_max = 10.0
+    nstep = 5
+    dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs().requires_grad_(True)
+    next_n_dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs()
+    done = torch.randn(batch_size)
+    action = torch.randint(0, action_dim, size=(batch_size, agent_num, ))
+    next_action = torch.randint(0, action_dim, size=(batch_size, agent_num, ))
+    reward = torch.randn(nstep, batch_size)
+    data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, None)
+    loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep)
+    assert loss.shape == ()
+    assert dist.grad is None
+    loss.backward()
+    assert isinstance(dist.grad, torch.Tensor)
+    weight = torch.tensor([0.9])
+    value_gamma = torch.tensor(0.9)
+    data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, weight)
+    loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep, value_gamma)
+    assert loss.shape == ()
+    loss.backward()
+    assert isinstance(dist.grad, torch.Tensor)
+
+
+@pytest.mark.unittest
 def test_q_nstep_td_with_rescale():
     batch_size = 4
     action_dim = 3

@@ -226,21 +226,39 @@ def dist_nstep_td_error(
     """
     dist, next_n_dist, act, next_n_act, reward, done, weight = data
     device = reward.device
-    assert len(act.shape) == 1, act.shape
     reward_factor = torch.ones(nstep).to(device)
     for i in range(1, nstep):
         reward_factor[i] = gamma * reward_factor[i - 1]
     reward = torch.matmul(reward_factor, reward)
-    reward = reward.unsqueeze(-1)
-    done = done.unsqueeze(-1)
     support = torch.linspace(v_min, v_max, n_atom).to(device)
     delta_z = (v_max - v_min) / (n_atom - 1)
-    batch_size = act.shape[0]
-    batch_range = torch.arange(batch_size)
-    if weight is None:
-        weight = torch.ones_like(reward)
+    if len(act.shape) == 1:
+        reward = reward.unsqueeze(-1)
+        done = done.unsqueeze(-1)
+        batch_size = act.shape[0]
+        batch_range = torch.arange(batch_size)
+        if weight is None:
+            weight = torch.ones_like(reward)
 
-    next_n_dist = next_n_dist[batch_range, next_n_act].detach()
+        next_n_dist = next_n_dist[batch_range, next_n_act].detach()
+    else:
+        reward = reward.unsqueeze(-1).repeat(1, act.shape[1])
+        done = done.unsqueeze(-1).repeat(1, act.shape[1])
+
+        batch_size = act.shape[0] * act.shape[1]
+        batch_range = torch.arange(act.shape[0] * act.shape[1])
+        action_dim = dist.shape[2]
+        dist = dist.reshape(act.shape[0] * act.shape[1], action_dim, -1)
+        reward = reward.reshape(act.shape[0] * act.shape[1], -1)
+        done = done.reshape(act.shape[0] * act.shape[1], -1)
+        next_n_dist = next_n_dist.reshape(act.shape[0] * act.shape[1], action_dim, -1)
+
+        next_n_act = next_n_act.reshape(act.shape[0] * act.shape[1])
+        next_n_dist = next_n_dist[batch_range, next_n_act].detach()
+        next_n_dist = next_n_dist.reshape(act.shape[0] * act.shape[1], -1)
+        act = act.reshape(act.shape[0] * act.shape[1])
+        if weight is None:
+            weight = torch.ones_like(reward)
 
     if value_gamma is None:
         target_z = reward + (1 - done) * (gamma ** nstep) * support
