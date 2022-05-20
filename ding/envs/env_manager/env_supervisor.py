@@ -1,3 +1,4 @@
+from time import sleep
 from ding.framework import Supervisor
 from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
 from ding.framework.supervisor import ChildType, RecvPayload, SendPayload
@@ -36,10 +37,6 @@ class EnvSupervisor(Supervisor):
     - Consistent interface in multi-process and multi-threaded mode.
     - Add asynchronous features and recommend using asynchronous methods.
     - Reset is performed after an error is encountered in the step method.
-    - Add an auto_recover option, when an environment goes fatally error, it will be automatically restarted \
-        if auto_recover is true, otherwise a runtime error will be raised.
-    - Reset timeout and step timeout will be fatal errors and not be auto retried, use auto_recover to restart \
-        the environment.
 
     Breaking changes (compared to env manager):
     - Without some states.
@@ -55,7 +52,7 @@ class EnvSupervisor(Supervisor):
             auto_reset: bool = True,
             reset_timeout: Optional[int] = None,
             step_timeout: Optional[int] = None,
-            auto_recover: bool = True,
+            retry_waiting_time: Optional[int] = None,
             **kwargs
     ) -> None:
         super().__init__(type_=type_)
@@ -75,7 +72,7 @@ class EnvSupervisor(Supervisor):
         self._max_try = max_try or max_retry or 1
         self._reset_timeout = reset_timeout
         self._step_timeout = step_timeout
-        self._auto_recover = auto_recover
+        self._retry_waiting_time = retry_waiting_time
 
     def step(self, actions: Optional[Dict[int, List[Any]]], block: bool = True) -> Optional[List[tnp.ndarray]]:
         assert not self.closed, "Env supervisor has closed."
@@ -83,11 +80,11 @@ class EnvSupervisor(Supervisor):
             actions = {i: p for i, p in enumerate(actions)}
         assert actions, "Action is empty!"
 
-        req_ids = []
+        send_payloads = []
 
         for env_id, act in actions.items():
             payload = SendPayload(proc_id=env_id, method="step", args=[act])
-            req_ids.append(payload.req_id)
+            send_payloads.append(payload)
             self.send(payload)
 
         if not block:
@@ -96,7 +93,7 @@ class EnvSupervisor(Supervisor):
 
         # Wait for all steps returns
         recv_payloads = self.recv_all(
-            req_ids, ignore_err=True, callback=self._recv_step_callback(), timeout=self._step_timeout
+            send_payloads, ignore_err=True, callback=self._recv_step_callback(), timeout=self._step_timeout
         )
         return [payload.data for payload in recv_payloads]
 
@@ -109,8 +106,10 @@ class EnvSupervisor(Supervisor):
             if payload.method != "step":
                 return
             if payload.err:
-                req_ids += self._reset(payload.proc_id)
+                send_payloads = self._reset(payload.proc_id)
+                req_ids += [payload.req_id for payload in send_payloads]
                 info = {"abnormal": True, "err": payload.err}
+                print("Step error", req_ids, send_payloads)
                 payload.data = tnp.array(
                     {
                         'obs': None,
@@ -123,7 +122,8 @@ class EnvSupervisor(Supervisor):
             else:
                 obs, reward, done, info = payload.data
                 if done and self._auto_reset:
-                    req_ids += self._reset(payload.proc_id)
+                    send_payloads = self._reset(payload.proc_id)
+                    req_ids += [payload.req_id for payload in send_payloads]
                 # make the type and content of key as similar as identifier,
                 # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
                 info = make_key_as_identifier(info)
@@ -220,16 +220,16 @@ class EnvSupervisor(Supervisor):
         elif isinstance(reset_param, List):
             reset_param = {i: p for i, p in enumerate(reset_param)}
 
-        req_ids = []
+        send_payloads = []
 
         for env_id, kw_param in reset_param.items():
             self._reset_param[env_id] = kw_param  # For auto reset
-            req_ids += self._reset(env_id, kw_param=kw_param)
+            send_payloads += self._reset(env_id, kw_param=kw_param)
 
         if not block:
             return
 
-        self.recv_all(req_ids=req_ids, ignore_err=True, callback=self._recv_reset_callback())
+        self.recv_all(send_payloads, ignore_err=True, callback=self._recv_reset_callback(), timeout=self._reset_timeout)
 
     def _recv_reset_callback(self) -> Callable:
         retry_times = {env_id: 0 for env_id in range(self.env_num)}
@@ -239,23 +239,28 @@ class EnvSupervisor(Supervisor):
             if payload.method != "reset":
                 return
             env_id = payload.proc_id
+            print("Reset callback", req_ids, payload)
             if payload.err:
                 retry_times[env_id] += 1
                 if retry_times[env_id] > self._max_try - 1:
+                    self.shutdown(5)
                     raise RuntimeError(
                         "Env {} reset has exceeded max_try({}), and the latest exception is: {}".format(
                             env_id, self._max_try, payload.err
                         )
                     )
+                if self._retry_waiting_time:
+                    sleep(self._retry_waiting_time)
                 if self._retry_type == EnvRetryType.RENEW:
                     self._children[env_id].restart()
-                req_ids += self._reset(env_id)
+                send_payloads = self._reset(env_id)
+                req_ids += [payload.req_id for payload in send_payloads]
             else:
                 self._ready_obs[env_id] = payload.data
 
         return reset_callback
 
-    def _reset(self, env_id: int, kw_param: Optional[Dict[str, Any]] = None) -> List[str]:
+    def _reset(self, env_id: int, kw_param: Optional[Dict[str, Any]] = None) -> List[SendPayload]:
         """
         Overview:
             Reset an environment. This method does not wait for the result to be returned.
@@ -263,15 +268,15 @@ class EnvSupervisor(Supervisor):
             - env_id (:obj:`int`): Environment id.
             - kw_param (:obj:`Optional[Dict[str, Any]]`): Reset parameters for the environment.
         Returns:
-            - req_ids (:obj:`List[str]`): The request ids for seed and reset actions.
+            - send_payloads (:obj:`List[SendPayload]`): The request payloads for seed and reset actions.
         """
         assert not self.closed, "Env supervisor has closed."
-        req_ids = []
+        send_payloads = []
         kw_param = kw_param or self._reset_param[env_id]
 
         if self._env_replay_path is not None and self.env_states[env_id] == EnvState.RUN:
             logging.warning("Please don't reset an unfinished env when you enable save replay, we just skip it")
-            return req_ids
+            return send_payloads
 
         # Set seed if necessary
         seed = self._env_seed.get(env_id)
@@ -280,15 +285,15 @@ class EnvSupervisor(Supervisor):
             if self._env_dynamic_seed is not None:
                 args.append(self._env_dynamic_seed)
             payload = SendPayload(proc_id=env_id, method="seed", args=args)
-            req_ids.append(payload.req_id)
+            send_payloads.append(payload)
             self.send(payload)
 
         # Reset env
         payload = SendPayload(proc_id=env_id, method="reset", kwargs=kw_param)
-        req_ids.append(payload.req_id)
+        send_payloads.append(payload)
         self.send(payload)
 
-        return req_ids
+        return send_payloads
 
     def change_state(self, payload: RecvPayload):
         if payload.err:
@@ -328,17 +333,17 @@ class EnvSupervisor(Supervisor):
     def enable_save_replay(self, replay_path: Union[List[str], str]) -> None:
         pass
 
-    def close(self) -> None:
+    def close(self, timeout: Optional[float] = None) -> None:
         """
         In order to be compatible with BaseEnvManager, the new version can use `shutdown` directly.
         """
-        self.shutdown()
+        self.shutdown(timeout=timeout)
 
-    def shutdown(self) -> None:
+    def shutdown(self, timeout: Optional[float] = None) -> None:
         if self._running:
             for env_id in range(self.env_num):
                 self.send(SendPayload(proc_id=env_id, method="close"))
-            super().shutdown()
+            super().shutdown(timeout=timeout)
             self._env_states = {}
 
     @property

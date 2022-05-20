@@ -228,40 +228,40 @@ class Supervisor:
             - recv_payload (:obj:`List[RecvPayload]`): Recv payload, may contain timeout error.
         """
         assert send_payloads, "Req payload is empty!"
-        return_payloads = {}
-        indexed_payloads = {payload.req_id: payload for payload in send_payloads}
-
-        req_ids = list(indexed_payloads.keys())
+        recv_payloads = {}
+        remain_payloads = {payload.req_id: payload for payload in send_payloads}
         unrelated_payloads = []
 
         try:
-            while req_ids:
+            while remain_payloads:
                 try:
                     recv_payload: RecvPayload = self._recv_queue.get(block=True, timeout=timeout)
-                    if recv_payload.req_id in req_ids:
-                        req_ids.remove(recv_payload.req_id)
-                        return_payloads[recv_payload.req_id] = recv_payload
+                    if recv_payload.req_id in remain_payloads:
+                        del remain_payloads[recv_payload.req_id]
+                        recv_payloads[recv_payload.req_id] = recv_payload
                         if recv_payload.err and not ignore_err:
                             raise recv_payload.err
                         if callback:
-                            callback(recv_payload, req_ids)
+                            callback(recv_payload, remain_payloads)
                     else:
                         unrelated_payloads.append(recv_payload)
                 except queue.Empty:
                     if ignore_err:
-                        logging.warning("Timeout ({}s) when receving payloads!".format(timeout))
-                        for req_id in copy(req_ids):
-                            send_payload = indexed_payloads[req_id]
+                        req_ids = list(remain_payloads.keys())
+                        logging.warning("Timeout ({}s) when receving payloads! Req ids: {}".format(timeout, req_ids))
+                        for req_id in req_ids:
+                            send_payload = remain_payloads.pop(req_id)
+                            # If timeout error happens in timeout recover, there may not find any send_payload
+                            # in the original indexed payloads.
                             recv_payload = RecvPayload(
                                 proc_id=send_payload.proc_id,
                                 req_id=send_payload.req_id,
                                 method=send_payload.method,
                                 err=TimeoutError("Timeout on req_id ({})".format(req_id))
                             )
-                            req_ids.remove(recv_payload.req_id)
-                            return_payloads[req_id] = recv_payload
+                            recv_payloads[req_id] = recv_payload
                             if callback:
-                                callback(recv_payload, req_ids)
+                                callback(recv_payload, remain_payloads)
                     else:
                         raise TimeoutError("Timeout ({}s) when receving payloads!".format(timeout))
         finally:
@@ -270,7 +270,7 @@ class Supervisor:
                 self._recv_queue.put(payload)
 
         # Keep the original order of requests.
-        return [return_payloads[send_payload.req_id] for send_payload in send_payloads]
+        return [recv_payloads[send_payload.req_id] for send_payload in send_payloads]
 
     def shutdown(self, timeout: Optional[float] = None) -> None:
         if self._running:

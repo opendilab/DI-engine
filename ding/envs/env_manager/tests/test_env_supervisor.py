@@ -138,14 +138,57 @@ class TestEnvSupervisorCompatible:
 
     @pytest.mark.timeout(60)
     def test_block(self, setup_base_manager_cfg):
-        env_fn = setup_base_manager_cfg.pop('env_fn')
-        setup_base_manager_cfg['max_retry'] = 1
-        print(setup_base_manager_cfg)
-        env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
-        with pytest.raises(RuntimeError):
-            reset_param = {i: {'stat': 'block'} for i in range(env_supervisor.env_num)}
-            obs = env_supervisor.launch(reset_param=reset_param)
-        assert env_supervisor.closed
+
+        def test_block_launch():
+            env_fn = setup_base_manager_cfg.pop('env_fn')
+            setup_base_manager_cfg['max_retry'] = 1
+            setup_base_manager_cfg['reset_timeout'] = 7
+            env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+            with pytest.raises(RuntimeError):
+                reset_param = {i: {'stat': 'block'} for i in range(env_supervisor.env_num)}
+                env_supervisor.launch(reset_param=reset_param)
+            assert env_supervisor.closed
+
+            reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+            reset_param[0]['stat'] = 'wait'
+
+            env_supervisor.launch(reset_param=reset_param)
+            assert not env_supervisor.closed
+
+            env_supervisor.close(1)
+
+        def test_block_step():
+            env_fn = setup_base_manager_cfg.pop('env_fn')
+            setup_base_manager_cfg['max_retry'] = 1
+            setup_base_manager_cfg['reset_timeout'] = 7
+            env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
+
+            reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}
+            env_supervisor.launch(reset_param=reset_param)
+
+            timestep = env_supervisor.step({i: np.random.randn(4) for i in range(env_supervisor.env_num)})
+            assert len(timestep) == env_supervisor.env_num
+
+            # Block step will reset env, thus cause runtime error
+            env_supervisor._reset_param[0] = {"stat": "block"}
+            # Test step timeout
+            action = [np.random.randn(4) for i in range(env_supervisor.env_num)]
+            action[0] = 'block'
+
+            print("Begin step")
+            with pytest.raises(RuntimeError):
+                timestep = env_supervisor.step(action)
+            assert env_supervisor.closed
+
+            env_supervisor.launch(reset_param)
+            action[0] = 'wait'
+            timestep = env_supervisor.step(action)
+            assert len(timestep) == env_supervisor.env_num
+
+            env_supervisor.close(1)
+
+        # test_block_launch()
+        test_block_step()
 
 
 @pytest.mark.unittest
@@ -155,13 +198,4 @@ class TestEnvSupervisor:
     """
 
     def test_naive(self, setup_base_manager_cfg):
-        env_fn = setup_base_manager_cfg.pop('env_fn')
-        env_supervisor = EnvSupervisor(type_=ChildType.THREAD, env_fn=env_fn, **setup_base_manager_cfg)
-
-        env_supervisor.seed([314 for _ in range(env_supervisor.env_num)])
-        assert env_supervisor.closed
-        env_supervisor.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)})
-
-        while True:
-            timestep = env_supervisor.recv()
-            env_supervisor.step()
+        pass

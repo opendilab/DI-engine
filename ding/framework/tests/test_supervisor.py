@@ -1,5 +1,6 @@
+from curses import nonl
 from time import sleep
-from typing import List
+from typing import Dict, List
 import pytest
 from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType
 
@@ -18,6 +19,9 @@ class MockEnv():
         return 3
 
     def block(self):
+        sleep(10)
+
+    def block_reset(self):
         sleep(10)
 
 
@@ -137,13 +141,13 @@ def test_recv_all(type_):
 
     retry_times = {env_id: 0 for env_id in range(len(sv._children))}
 
-    def recv_callback(recv_payload: RecvPayload, req_ids: List[str]):
+    def recv_callback(recv_payload: RecvPayload, remain_payloads: Dict[str, SendPayload]):
         if retry_times[recv_payload.proc_id] == 2:
             return
         retry_times[recv_payload.proc_id] += 1
         payload = SendPayload(proc_id=recv_payload.proc_id, method="step", args={"action"})
         sv.send(payload)
-        req_ids.append(payload.req_id)
+        remain_payloads[payload.req_id] = payload
 
     recv_payloads = sv.recv_all(send_payloads=send_payloads, callback=recv_callback)
     assert len(recv_payloads) == 3
@@ -185,12 +189,49 @@ def test_timeout(type_):
     send_payloads.append(payload)
     sv.send(payload)
 
-    # Will receiving a normal payload and a payload with a timeout error
-    def recv_callback(recv_payload: RecvPayload, req_ids: List[str]):
-        # Ignore further errors
-        pass
+    payloads = sv.recv_all(send_payloads=send_payloads, timeout=1, ignore_err=True)
+    assert isinstance(payloads[0].err, TimeoutError)
+    assert payloads[1].err is None
+
+    sv.shutdown(timeout=1)
+
+
+@pytest.mark.timeout(60)
+@pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+def test_timeout_with_callback(type_):
+    sv = Supervisor(type_=type_)
+    for _ in range(3):
+        sv.register(MockEnv, "AnyArgs")
+    sv.start_link()
+    send_payloads = []
+
+    ## 0 is block
+    payload = SendPayload(proc_id=0, method="block")
+    send_payloads.append(payload)
+    sv.send(payload)
+
+    ## 1 is step
+    payload = SendPayload(proc_id=1, method="step", args=[""])
+    send_payloads.append(payload)
+    sv.send(payload)
+
+    block_reset_callback = False
+
+    # 1. Add another send payload in the callback
+    # 2. Recv this send payload and check for the method
+    def recv_callback(recv_payload: RecvPayload, remain_payloads: Dict[str, SendPayload]):
+        if recv_payload.method == "block" and recv_payload.err:
+            new_send_payload = SendPayload(proc_id=recv_payload.proc_id, method="block_reset")
+            remain_payloads[new_send_payload.req_id] = new_send_payload
+            return
+
+        if recv_payload.method == "block_reset" and recv_payload.err:
+            nonlocal block_reset_callback
+            block_reset_callback = True
+            return
 
     payloads = sv.recv_all(send_payloads=send_payloads, timeout=1, ignore_err=True, callback=recv_callback)
+    assert block_reset_callback
     assert isinstance(payloads[0].err, TimeoutError)
     assert payloads[1].err is None
 
