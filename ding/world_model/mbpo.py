@@ -6,20 +6,18 @@ from torch import nn
 
 from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
-from ding.world_model import DynaWorldModel
 from ding.world_model.base_wm import HybridWorldModel
 from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
 
 
 @WORLD_MODEL_REGISTRY.register('mbpo')
 class MBPOWorldModel(HybridWorldModel, nn.Module):
-    # TODO: put parameters into different categories
     config = dict(
         model=dict(
             network_size=7,
             elite_size=5,
-            state_size=None,  # has to be specified
-            action_size=None, # has to be specified
+            state_size=None,
+            action_size=None,
             reward_size=1,
             hidden_size=200,
             use_decay=False,

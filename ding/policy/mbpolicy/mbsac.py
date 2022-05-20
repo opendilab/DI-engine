@@ -3,6 +3,7 @@ from functools import partial
 import copy
 
 import torch
+from torch import Tensor
 from torch import nn
 from torch.distributions import Normal, Independent, TransformedDistribution, TanhTransform
 from easydict import EasyDict
@@ -53,8 +54,8 @@ class MBSACPolicy(SACPolicy):
         # TODO: complete auto alpha
         self._auto_alpha = False
 
-        # helper functions to provide unified API
-        def actor_fn(obs):
+        # TODO: use TanhTransform()
+        def actor_fn(obs: Tensor):
             # (mu, sigma) = self._learn_model.forward(
             #     obs, mode='compute_actor')['logit']
             # # enforce action bounds
@@ -62,7 +63,8 @@ class MBSACPolicy(SACPolicy):
             #     Independent(Normal(mu, sigma), 1), [TanhTransform()])
             # action = dist.rsample()
             # log_prob = dist.log_prob(action)
-            (mu, sigma) = self._learn_model.forward(obs, mode='compute_actor')['logit']
+            (mu, sigma) = self._learn_model.forward(
+                obs, mode='compute_actor')['logit']
             dist = Independent(Normal(mu, sigma), 1)
             pred = dist.rsample()
             action = torch.tanh(pred)
@@ -71,12 +73,14 @@ class MBSACPolicy(SACPolicy):
                 pred
             ) + 2 * (pred + torch.nn.functional.softplus(-2. * pred) - torch.log(torch.tensor(2.))).sum(-1)
             return action, -self._alpha.detach() * log_prob
+
         self._actor_fn = actor_fn
 
-        def critic_fn(obss, actions, model):
+        def critic_fn(obss: Tensor, actions: Tensor, model: nn.Module):
             eval_data = {'obs': obss, 'action': actions}
             q_values = model.forward(eval_data, mode='compute_critic')['q_value']
             return q_values
+
         self._critic_fn = critic_fn
 
     def _forward_learn(self, data: dict, world_model, envstep) -> Dict[str, Any]:
@@ -97,6 +101,7 @@ class MBSACPolicy(SACPolicy):
         self._learn_model.train()
         self._target_model.train()
             
+        # rollout length is determined by world_model.rollout_length_scheduler
         if self._sample_state:
             # data['reward'], ... are not used 
             obss, actions, rewards, aug_rewards, dones = \
@@ -128,6 +133,7 @@ class MBSACPolicy(SACPolicy):
                                                    dones[1:])
 
         # (T, B)
+        # If S_t terminates, we should not consider loss from t+1,...
         weight = (1 - dones[:-1].detach()).log().cumsum(dim=0).exp()
 
         # (T+1, B)

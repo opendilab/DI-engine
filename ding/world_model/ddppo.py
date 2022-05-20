@@ -170,7 +170,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             if not torch.is_grad_enabled() or not self.gradient_model:
                 b_mean, b_var = self.rollout_model(input, ret_log_var=False)
             else:
-                # use gradient model to modify gradients
+                # use gradient model to compute gradients during backward pass
                 output = Predict.apply(input)
                 b_mean, b_var = output.chunk(2, dim=2)
             ensemble_mean.append(b_mean)

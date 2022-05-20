@@ -1,10 +1,10 @@
-from typing import Tuple, Union
+from typing import Callable, Tuple, Union
 
 import torch
 from torch import Tensor, Size
 
 def flatten_batch(x: Tensor, nonbatch_dims=1) -> Tuple[Tensor, Size]:
-    # (b1,b2,..., X) => (B, X)
+    # (T, B, X) => (T*B, X)
     if nonbatch_dims > 0:
         batch_dim = x.shape[:-nonbatch_dims]
         x = torch.reshape(x, (-1,) + x.shape[-nonbatch_dims:])
@@ -15,11 +15,15 @@ def flatten_batch(x: Tensor, nonbatch_dims=1) -> Tuple[Tensor, Size]:
         return x, batch_dim
 
 def unflatten_batch(x: Tensor, batch_dim: Union[Size, Tuple]) -> Tensor:
-    # (B, X) => (b1,b2,..., X)
+    # (T*B, X) => (T, B, X)
     x = torch.reshape(x, batch_dim + x.shape[1:])
     return x
 
-def q_evaluation(obss, actions, q_critic_fn):
+def q_evaluation(
+        obss: Tensor, 
+        actions: Tensor, 
+        q_critic_fn: Callable[[Tensor, Tensor], Tensor]
+) -> Union[Tensor, Tuple[Tensor, Tensor]]:
     obss, dim = flatten_batch(obss, 1)
     actions, _ = flatten_batch(actions, 1)
     q_values = q_critic_fn(obss, actions)

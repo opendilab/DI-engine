@@ -1,4 +1,14 @@
-def get_rollout_length_scheduler(cfg):
+from typing import Callable
+
+def get_rollout_length_scheduler(cfg: dict) -> Callable[[int], int]:
+    """
+    Overview:
+        Get the rollout length scheduler that adapts rollout length based 
+        on the current environment steps.
+    Returns:
+        - scheduler (:obj:`Callble`): The function that takes envstep and 
+          return the current rollout length.
+    """
     if cfg.type == 'linear':
         x0 = cfg.rollout_start_step
         x1 = cfg.rollout_end_step
