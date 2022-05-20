@@ -19,3 +19,4 @@ from .vtrace import vtrace_data, vtrace_error
 from .beta_function import beta_function_map
 from .retrace import compute_q_retraces
 from .acer import acer_policy_error, acer_value_error, acer_trust_region_update
+from .decision_transformer import discount_cumsum, get_d4rl_dataset_stats

@@ -13,6 +13,7 @@ main_config = dict(
         n_landmark=n_landmark,
         max_cycles=100,
         agent_obs_only=False,
+        agent_specific_global_state=True,
         continuous_actions=False,
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -81,11 +82,7 @@ create_config = dict(
         import_names=['dizoo.petting_zoo.envs.petting_zoo_env'],
         type='petting_zoo',
     ),
-<<<<<<< HEAD
     env_manager=dict(type='subprocess'),
-=======
-    env_manager=dict(type='base'),
->>>>>>> 6d86f9bc0fb6c08a5d300e6a73142684db43e66a
     policy=dict(type='sac_discrete'),
 )
 create_config = EasyDict(create_config)
