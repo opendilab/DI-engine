@@ -1,5 +1,8 @@
 from easydict import EasyDict
 
+# TODO: move the pipeline to ding.entry
+from ding.world_model.entry.serial_entry_dyna import serial_pipeline_dyna
+
 # environment hypo
 env_id = 'Walker2d-v2'
 obs_shape = 17
@@ -8,24 +11,8 @@ action_shape = 6
 # gpu
 cuda = True
 
-# model training hypo
-rollout_batch_size = 100000
-rollout_retain = 4
-rollout_start_step = 20000
-rollout_end_step = 150000
-rollout_length_min = 1
-rollout_length_max = 1
-
-x0 = rollout_start_step
-y0 = rollout_length_min
-y1 = rollout_length_max
-w = (rollout_length_max - rollout_length_min) / (rollout_end_step - rollout_start_step)
-b = rollout_length_min
-set_rollout_length = lambda x: int(min(max(w * (x - x0) + b, y0), y1))
-set_buffer_size = lambda x: set_rollout_length(x) * rollout_batch_size * rollout_retain
-
 main_config = dict(
-    exp_name='walker2d_sac_mbpo_seed0',
+    exp_name='walker2d_sac_mbpo',
     env=dict(
         env_id=env_id,
         norm_obs=dict(use_norm=False, ),
@@ -38,6 +25,7 @@ main_config = dict(
     ),
     policy=dict(
         cuda=cuda,
+        # it is better to put random_collect_size in policy.other
         random_collect_size=10000,
         model=dict(
             obs_shape=obs_shape,
@@ -65,42 +53,53 @@ main_config = dict(
             unroll_len=1,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
-        other=dict(replay_buffer=dict(replay_buffer_size=1000000, periodic_thruput_seconds=60), ),
-    ),
-    model_based=dict(
-        real_ratio=0.05,
-        imagine_buffer=dict(
-            type='elastic',
-            replay_buffer_size=6000000,
-            deepcopy=False,
-            enable_track_used_data=False,
-            set_buffer_size=set_buffer_size,
-            periodic_thruput_seconds=60,
+        eval=dict(evaluator=dict(eval_freq=10000, )),
+        other=dict(
+            # environment buffer
+            replay_buffer=dict(
+                replay_buffer_size=1000000, 
+                periodic_thruput_seconds=60
+            ),
         ),
-        env_model=dict(
-            type='mbpo',
-            import_names=['ding.model.template.model_based.mbpo'],
+    ),
+    world_model=dict(
+        type='mbpo',
+        import_names=['ding.world_model.mbpo'],
+        eval_freq=250,  # w.r.t envstep
+        train_freq=250, # w.r.t envstep
+        cuda=cuda,
+        rollout_length_scheduler=dict(
+            type='linear',
+            rollout_start_step=20000,
+            rollout_end_step=150000,
+            rollout_length_min=1,
+            rollout_length_max=1,
+        ),
+        model=dict(
             network_size=7,
             elite_size=5,
-            state_size=obs_shape,
-            action_size=action_shape,
+            state_size=obs_shape,  # has to be specified
+            action_size=action_shape, # has to be specified
             reward_size=1,
             hidden_size=200,
             use_decay=True,
             batch_size=2048,
             holdout_ratio=0.1,
             max_epochs_since_update=5,
-            eval_freq=250,
-            train_freq=250,
-            cuda=cuda,
+            deterministic_rollout=True,
         ),
-        model_env=dict(
-            type='mujoco_model',
-            import_names=['dizoo.mujoco.envs.mujoco_model_env'],
-            env_id=env_id,
-            rollout_batch_size=rollout_batch_size,
-            set_rollout_length=set_rollout_length,
+        other=dict(
+            rollout_batch_size=100000,
+            rollout_retain=4,
+            real_ratio=0.05,
+            imagination_buffer=dict(
+                type='elastic',
+                replay_buffer_size=6000000,
+                deepcopy=False,
+                enable_track_used_data=False,
+                # set_buffer_size=set_buffer_size,
+                periodic_thruput_seconds=60,
+            ),
         ),
     ),
 )
@@ -109,7 +108,7 @@ main_config = EasyDict(main_config)
 
 create_config = dict(
     env=dict(
-        type='mujoco',
+        type='mbmujoco',
         import_names=['dizoo.mujoco.envs.mujoco_env'],
     ),
     env_manager=dict(type='subprocess'),
@@ -123,5 +122,4 @@ create_config = EasyDict(create_config)
 
 
 if __name__ == '__main__':
-    from ding.entry import serial_pipeline_mbrl
-    serial_pipeline_mbrl((main_config, create_config), seed=0)
+    serial_pipeline_dyna((main_config, create_config), seed=0)
