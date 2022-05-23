@@ -300,11 +300,12 @@ class DreamWorldModel(WorldModel, ABC):
             - actor_fn's inputs and outputs shape are similar to WorldModel.step()
         """
         horizon = self.rollout_length_scheduler(envstep)
+        device = 'cuda' if self._cuda else 'cpu'
         obss        = [obs]
         actions     = []
         rewards     = []
         aug_rewards = []    # -temperature*logprob
-        dones       = [torch.zeros_like(obs.sum(-1))]
+        dones       = [torch.zeros_like(obs.sum(-1), device=device)]
         for _ in range(horizon):
             action, aug_reward = actor_fn(obs)
             # done: probability of termination
@@ -326,7 +327,7 @@ class DreamWorldModel(WorldModel, ABC):
             torch.stack(obss), 
             torch.stack(actions), 
             # rewards is an empty list when horizon=0
-            torch.stack(rewards),
+            torch.stack(rewards) if rewards else torch.tensor(rewards, device=device),
             torch.stack(aug_rewards), 
             torch.stack(dones)
         )
