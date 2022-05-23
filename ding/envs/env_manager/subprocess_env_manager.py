@@ -321,7 +321,7 @@ class AsyncSubprocessEnvManager(BaseEnvManager):
         return {i: self._ready_obs[i] for i in self.ready_env}
 
     @property
-    def ready_imgs(self, render_mode=('rgb_array')) -> Dict[int, Any]:
+    def ready_imgs(self, render_mode: Optional[str] = 'rgb_array') -> Dict[int, Any]:
         """
         Overview:
             Get the next renderd frames.
