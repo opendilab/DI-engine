@@ -11,7 +11,7 @@ from torch.distributions import Normal, Independent
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
-    qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_nstep_return_data
+    qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_nstep_return_data, REF_MIN_SCORE, REF_MAX_SCORE
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
@@ -160,11 +160,11 @@ class DTPolicy(DQNPolicy):
         log_csv_name = self.prefix + "_log_" + self.start_time_str + ".csv"
         log_csv_path = os.path.join(self.log_dir, log_csv_name)
 
-        # self.csv_writer = csv.writer(open(log_csv_path, 'a', 1))
-        # csv_header = (["duration", "num_updates", "action_loss",
-        #             "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"])
+        self.csv_writer = csv.writer(open(log_csv_path, 'a', 1))
+        csv_header = (["duration", "num_updates", "action_loss",
+                    "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"])
 
-        # self.csv_writer.writerow(csv_header)
+        self.csv_writer.writerow(csv_header)
 
         dataset_path = self._cfg.learn.dataset_path
         print("=" * 60)
@@ -365,7 +365,7 @@ class DTPolicy(DQNPolicy):
 
         eval_avg_reward = results['eval/avg_reward']
         eval_avg_ep_len = results['eval/avg_ep_len']
-        # eval_d4rl_score = self.get_d4rl_normalized_score(results['eval/avg_reward'], self.env_name) * 100
+        eval_d4rl_score = self.get_d4rl_normalized_score(results['eval/avg_reward'], self.env_name) * 100
 
         mean_action_loss = np.mean(self.log_action_losses)
         time_elapsed = str(datetime.now().replace(microsecond=0) - self.start_time)
@@ -375,8 +375,8 @@ class DTPolicy(DQNPolicy):
         log_str = (
             "=" * 60 + '\n' + "time elapsed: " + time_elapsed + '\n' + "num of updates: " + str(self.total_updates) +
             '\n' + "action loss: " + format(mean_action_loss, ".5f") + '\n' + "eval avg reward: " +
-            format(eval_avg_reward, ".5f") + '\n' + "eval avg ep len: " + format(eval_avg_ep_len, ".5f")  #+ '\n' +
-            # "eval d4rl score: " + format(eval_d4rl_score, ".5f")
+            format(eval_avg_reward, ".5f") + '\n' + "eval avg ep len: " + format(eval_avg_ep_len, ".5f")  + '\n' +
+            "eval d4rl score: " + format(eval_d4rl_score, ".5f")
         )
 
         print(log_str)
@@ -387,11 +387,11 @@ class DTPolicy(DQNPolicy):
         log_csv_name = self.prefix + "_log_" + self.start_time_str + ".csv"
         log_csv_path = os.path.join(self.log_dir, log_csv_name)
 
-        csv_writer = csv.writer(open(log_csv_path, 'a', 1))
+        # csv_writer = csv.writer(open(log_csv_path, 'a', 1))
         # csv_header = (
         #     ["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"]
         # )
-        csv_header = (["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len"])
+        # csv_header = (["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len"])
         csv_writer.writerow(log_data)
 
         # save model
