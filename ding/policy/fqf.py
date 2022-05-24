@@ -21,7 +21,7 @@ class FQFPolicy(DQNPolicy):
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
         == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      fqf          | RL policy register name, refer to      | this arg is optional,
+        1  ``type``             str      fqf            | RL policy register name, refer to      | this arg is optional,
                                                         | registry ``POLICY_REGISTRY``           | a placeholder
         2  ``cuda``             bool     False          | Whether to use cuda for network        | this arg can be diff-
                                                                                                  | erent from modes
