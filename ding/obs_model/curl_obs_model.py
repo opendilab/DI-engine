@@ -9,21 +9,23 @@ import torch.nn as nn
 if TYPE_CHECKING:
     from tensorboardX import SummaryWriter
 
+
 class encoder(nn.Module):
     pass
 
-class CURL:
+
+class CurlObsModel:
     @classmethod
     def default_config(cls: type) -> EasyDict:
         # copy.deepcopy 深拷贝 拷贝对象及其子对象
         cfg = EasyDict(copy.deepcopy(cls.config))
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
-        #cls指类，config为一个类
+        # cls指类，config为一个类
     config = dict(
-        batch_size,
-        z_dim,
-        learning_rate=1e-3,
+        batch_size=64,
+        encoder_lr=1e-3,
+        w_lr=1e-4,
         encoder_feature_size=50,
         target_theta=0.005,
     )
@@ -35,7 +37,7 @@ class CURL:
         Overview:
             Create main components, such as paramater, optimizer, loss function and so on.
         """
-        super(CURL,self).__init__()
+        super(CurlObsModel, self).__init__()
 
         self.cfg = cfg
         self.encoder = encoder
@@ -43,27 +45,18 @@ class CURL:
         self.tb_logger = tb_logger
 
         # parameter
-        self.W = nn.Parameter(torch.rand(z_dim, z_dim))
+        self.W = nn.Parameter(torch.rand(self.cfg.encoder_feature_size, self.cfg.encoder_feature_size))
         # optimizer
-        self.actor_optimizer = torch.optim.Adam(
-            self.actor.parameters(), lr=actor_lr, betas=(actor_beta, 0.999)
-        )
-        self.critic_optimizer = torch.optim.Adam(
-            self.critic.parameters(), lr=critic_lr, betas=(critic_beta, 0.999)
-        )
-        self.log_alpha_optimizer = torch.optim.Adam(
-            [self.log_alpha], lr=alpha_lr, betas=(alpha_beta, 0.999)
-        )
         self.encoder_optimizer = torch.optim.Adam(
-            self.critic.encoder.parameters(), lr=encoder_lr
+            self.encoder.parameters(), lr=self.cfg.encoder_lr
         )
         self.cpc_optimizer = torch.optim.Adam(
-            self.CURL.parameters(), lr=encoder_lr
+            [self.W], lr=self.cfg.w_lr,
         )
         # loss function
         self.cross_entropy_loss = nn.CrossEntropyLoss()
 
-    def compute_logits(self,z_a,z_pos):
+    def compute_logits(self, z_a, z_pos):
         """
             Uses logits trick for CURL:
             - compute (B,B) matrix z_a (W z_pos.T)
@@ -71,7 +64,7 @@ class CURL:
             - negatives are all other elements
             - to compute loss use multiclass cross entropy with identity matrix for labels
         """
-        Wz = torch.matmul(self.W, z_pos.T)  # (z_dim,B)
+        Wz = torch.matmul(self.W, z_pos.T)  # (encoder_feature_size, B)
         logits = torch.matmul(z_a, Wz)  # (B,B)
         logits = logits - torch.max(logits, 1)[0][:, None]
         return logits
@@ -90,7 +83,7 @@ class CURL:
             模型训练好后怎么给rl用
         """
         # k和q怎么编码
-        embedding= self.encoder(obs)
+        embedding = self.encoder(obs)
 
         return embedding
 
@@ -121,7 +114,6 @@ class CURL:
         # if step % self.log_interval == 0:
         #     L.log('train/curl_loss', loss, step)
 
-
     def save(self, _state_dict: Dict, step) -> Dict:
         """
         Overview:
@@ -137,7 +129,7 @@ class CURL:
             self.CURL.state_dict(), '%s/curl_%s.pt' % (_state_dict, step)
         )
 
-    def load(self, _state_dict: Dict,step) -> None:
+    def load(self, _state_dict: Dict, step: int) -> None:
         """
         Overview:
             Load state_dict including W and optimizer in order to recover.
