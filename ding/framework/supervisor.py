@@ -270,7 +270,7 @@ class Supervisor:
                 self._recv_queue.put(payload)
 
         # Keep the original order of requests.
-        return [recv_payloads[send_payload.req_id] for send_payload in send_payloads]
+        return [recv_payloads[p.req_id] for p in send_payloads]
 
     def shutdown(self, timeout: Optional[float] = None) -> None:
         if self._running:

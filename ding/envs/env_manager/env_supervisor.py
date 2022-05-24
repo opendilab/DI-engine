@@ -58,6 +58,7 @@ class EnvSupervisor(Supervisor):
             reset_timeout: Optional[int] = None,
             step_timeout: Optional[int] = None,
             retry_waiting_time: Optional[int] = None,
+            episode_num: int = float("inf"),
             **kwargs
     ) -> None:
         """
@@ -89,6 +90,7 @@ class EnvSupervisor(Supervisor):
         self._step_timeout = step_timeout
         self._retry_waiting_time = retry_waiting_time
         self._env_replay_path = None
+        self._episode_num = episode_num
         self._init_states()
 
     def _init_states(self):
@@ -98,6 +100,7 @@ class EnvSupervisor(Supervisor):
         self._env_states = {}
         self._reset_param = {}
         self._ready_obs = {}
+        self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._retry_times = defaultdict(lambda: 0)
         self._last_called = defaultdict(lambda: {"step": 9e9, "reset": 9e9})
 
@@ -341,10 +344,12 @@ class EnvSupervisor(Supervisor):
             )
         else:
             obs, reward, done, info = payload.data
-            if done and self._auto_reset:
-                send_payloads = self._reset(payload.proc_id)
-                for p in send_payloads:
-                    remain_payloads[p.req_id] = p
+            if done:
+                self._env_episode_count[payload.proc_id] += 1
+                if self._env_episode_count[payload.proc_id] < self._episode_num and self._auto_reset:
+                    send_payloads = self._reset(payload.proc_id)
+                    for p in send_payloads:
+                        remain_payloads[p.req_id] = p
             # make the type and content of key as similar as identifier,
             # in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info
             info = make_key_as_identifier(info)
