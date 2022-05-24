@@ -232,7 +232,6 @@ class Supervisor:
         recv_payloads = {}
         remain_payloads = {payload.req_id: payload for payload in send_payloads}
         unrelated_payloads = []
-
         try:
             while remain_payloads:
                 try:

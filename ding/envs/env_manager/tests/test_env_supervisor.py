@@ -197,6 +197,27 @@ class TestEnvSupervisorCompatible:
         assert isinstance(env_supervisor.reward_space, Space)
         assert isinstance(env_supervisor.observation_space, Space)
 
+    @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
+    def test_auto_reset(self, setup_base_manager_cfg, type_):
+        env_fn = setup_base_manager_cfg.pop('env_fn')
+        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **{**setup_base_manager_cfg, "auto_reset": True})
+        env_supervisor.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)})
+
+        assert len(env_supervisor.ready_obs) == 4
+        assert len(env_supervisor.ready_obs_id) == 4
+
+        timesteps = []
+
+        for _ in range(10):
+            action = {i: np.random.randn(4) for i in range(env_supervisor.env_num)}
+            timesteps.append(env_supervisor.step(action))
+            assert len(env_supervisor.ready_obs) == 4
+            time.sleep(1)
+        timesteps = tnp.stack(timesteps).reshape(-1)
+        assert len(timesteps.done) == 40
+        assert any(done for done in timesteps.done)
+        assert all([env_supervisor.env_states[env_id] == EnvState.RUN for env_id in range(env_supervisor.env_num)])
+
 
 @pytest.mark.unittest
 class TestEnvSupervisor:

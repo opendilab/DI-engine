@@ -217,6 +217,8 @@ class EnvSupervisor(Supervisor):
         """
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
         obs = [self._ready_obs.get(i) for i in active_env]
+        if len(obs) == 0:
+            return tnp.array([])
         return tnp.stack(obs)
 
     @property
@@ -293,7 +295,7 @@ class EnvSupervisor(Supervisor):
             self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None
     ) -> RecvPayload:
         assert payload.method == "reset", "Recv error callback({}) in reset callback!".format(payload.method)
-        if not remain_payloads:
+        if remain_payloads is None:
             remain_payloads = {}
         env_id = payload.proc_id
         if payload.err:
@@ -321,7 +323,7 @@ class EnvSupervisor(Supervisor):
             self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None
     ) -> RecvPayload:
         assert payload.method == "step", "Recv error callback({}) in step callback!".format(payload.method)
-        if not remain_payloads:
+        if remain_payloads is None:
             remain_payloads = {}
         if payload.err:
             send_payloads = self._reset(payload.proc_id)
