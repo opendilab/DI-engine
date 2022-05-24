@@ -415,7 +415,8 @@ class DTPolicy(DQNPolicy):
         stop = False
         if self.max_env_score >= self.stop_value:
             stop = True
-        return stop
+        # return stop
+        return False    # Training stop till max_train_iters
 
     def get_d4rl_normalized_score(self, score, env_name):
         env_key = env_name.split('-')[0].lower()
