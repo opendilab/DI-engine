@@ -381,8 +381,8 @@ class DTPolicy(DQNPolicy):
 
         print(log_str)
 
-        # log_data = [time_elapsed, self.total_updates, mean_action_loss, eval_avg_reward, eval_avg_ep_len, eval_d4rl_score]
-        log_data = [time_elapsed, self.total_updates, mean_action_loss, eval_avg_reward, eval_avg_ep_len]
+        log_data = [time_elapsed, self.total_updates, mean_action_loss, eval_avg_reward, eval_avg_ep_len, eval_d4rl_score]
+        # log_data = [time_elapsed, self.total_updates, mean_action_loss, eval_avg_reward, eval_avg_ep_len]
 
         log_csv_name = self.prefix + "_log_" + self.start_time_str + ".csv"
         log_csv_path = os.path.join(self.log_dir, log_csv_name)
@@ -392,7 +392,7 @@ class DTPolicy(DQNPolicy):
         #     ["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"]
         # )
         # csv_header = (["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len"])
-        csv_writer.writerow(log_data)
+        self.csv_writer.writerow(log_data)
 
         # save model
         # print("max d4rl score: " + format(max_d4rl_score, ".5f"))
