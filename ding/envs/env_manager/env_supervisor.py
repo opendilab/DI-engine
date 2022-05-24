@@ -219,6 +219,7 @@ class EnvSupervisor(Supervisor):
             >>> timesteps = env_manager.step(action)
         """
         active_env = [i for i, s in self._env_states.items() if s == EnvState.RUN]
+        active_env.sort()
         obs = [self._ready_obs.get(i) for i in active_env]
         if len(obs) == 0:
             return tnp.array([])
