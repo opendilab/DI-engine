@@ -14,7 +14,7 @@ action_shape = 1
 cuda = False
 
 main_config = dict(
-    exp_name='pendulum_sac_mbpo_dream',
+    exp_name='pendulum_mbsac_mbpo_dream',
     env=dict(
         env_id=env_id,  # only for backward compatibility
         collector_env_num=10,

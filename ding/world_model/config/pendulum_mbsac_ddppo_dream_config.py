@@ -14,7 +14,7 @@ action_shape = 1
 cuda = False
 
 main_config = dict(
-    exp_name='pendulum_sac_ddppo_dream',
+    exp_name='pendulum_mbsac_ddppo_dream',
     env=dict(
         env_id=env_id,  # only for backward compatibility
         collector_env_num=10,
@@ -63,8 +63,8 @@ main_config = dict(
         ),
     ),
     world_model=dict(
-        type='mbpo',
-        import_names=['ding.world_model.mbpo'],
+        type='ddppo',
+        import_names=['ding.world_model.ddppo'],
         eval_freq=100,  # w.r.t envstep
         train_freq=100, # w.r.t envstep
         cuda=cuda,
