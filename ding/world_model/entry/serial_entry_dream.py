@@ -22,7 +22,7 @@ def serial_pipeline_dream(
 
     while True:
         # eval the policy
-        if evaluator.should_eval(learner.train_iter):
+        if evaluator.should_eval(collector.envstep):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
@@ -37,7 +37,9 @@ def serial_pipeline_dream(
         if world_model.should_train(collector.envstep):
             world_model.train(env_buffer, collector.envstep, learner.train_iter)
         
-        for i in range(cfg.policy.learn.update_per_collect):
+        update_per_collect = cfg.policy.learn.update_per_collect // world_model.rollout_length_scheduler(collector.envstep)
+        update_per_collect = max(1, update_per_collect)
+        for i in range(update_per_collect):
             batch_size = learner.policy.get_attribute('batch_size')
             train_data = env_buffer.sample(batch_size, learner.train_iter)
             # dreamer-style: use pure on-policy imagined rollout to train policy, 

@@ -29,7 +29,7 @@ def serial_pipeline_dyna(
 
     while True:
         # eval the policy
-        if evaluator.should_eval(learner.train_iter):
+        if evaluator.should_eval(collector.envstep):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break

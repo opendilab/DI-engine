@@ -134,6 +134,8 @@ class MBSACPolicy(SACPolicy):
 
         # (T, B)
         # If S_t terminates, we should not consider loss from t+1,...
+        # note: torch.tensor(0).log().exp() = tensor(0.)
+        # example: tensor([0., 0., 0., 0.]).log().cumsum(dim=0).exp() = tensor([1., 1., 0., 0.])
         weight = (1 - dones[:-1].detach()).log().cumsum(dim=0).exp()
 
         # (T+1, B)

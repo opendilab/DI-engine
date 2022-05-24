@@ -53,7 +53,7 @@ main_config = dict(
             unroll_len=1,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=10000, )),
+        eval=dict(evaluator=dict(eval_freq=5000, )),
         other=dict(
             # environment buffer
             replay_buffer=dict(
