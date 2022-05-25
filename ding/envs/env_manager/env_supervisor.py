@@ -1,5 +1,5 @@
 from collections import defaultdict
-import functools
+from functools import lru_cache
 import inspect
 import queue
 from time import sleep, time
@@ -183,7 +183,7 @@ class EnvSupervisor(Supervisor):
         return len(self._children)
 
     @property
-    @functools.lru_cache
+    @lru_cache(maxsize=None)
     def observation_space(self) -> 'Space':
         assert not self.closed, "Please launch env supervisor before calling {}".format(
             inspect.currentframe().f_code.co_name
@@ -191,7 +191,7 @@ class EnvSupervisor(Supervisor):
         return self.get_child_attr(0, "observation_space")
 
     @property
-    @functools.lru_cache
+    @lru_cache(maxsize=None)
     def action_space(self) -> 'Space':
         assert not self.closed, "Please launch env supervisor before calling {}".format(
             inspect.currentframe().f_code.co_name
@@ -199,7 +199,7 @@ class EnvSupervisor(Supervisor):
         return self.get_child_attr(0, "action_space")
 
     @property
-    @functools.lru_cache
+    @lru_cache(maxsize=None)
     def reward_space(self) -> 'Space':
         assert not self.closed, "Please launch env supervisor before calling {}".format(
             inspect.currentframe().f_code.co_name
