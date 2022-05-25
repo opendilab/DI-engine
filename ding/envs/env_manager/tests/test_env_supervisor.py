@@ -99,6 +99,7 @@ class TestEnvSupervisorCompatible:
         # If retry type is reset, time id should be equal
         assert env_supervisor.time_id[0] == env_id_0
         assert all([state == EnvState.RUN for state in env_supervisor.env_states.values()])
+        env_supervisor.close()
 
     @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
     def test_renew_error(self, setup_base_manager_cfg, type_):
@@ -130,6 +131,7 @@ class TestEnvSupervisorCompatible:
         # With auto_reset, abnormal timestep with done==True will be auto reset.
         assert all([env_supervisor.env_states[i] == EnvState.RUN for i in range(env_supervisor.env_num)])
         assert len(env_supervisor.ready_obs) == 4
+        env_supervisor.close()
 
     @pytest.mark.timeout(60)
     @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
@@ -194,11 +196,17 @@ class TestEnvSupervisorCompatible:
         assert isinstance(env_supervisor.action_space, Space)
         assert isinstance(env_supervisor.reward_space, Space)
         assert isinstance(env_supervisor.observation_space, Space)
+        env_supervisor.close()
 
     @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
     def test_auto_reset(self, setup_base_manager_cfg, type_):
         env_fn = setup_base_manager_cfg.pop('env_fn')
-        env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **{**setup_base_manager_cfg, "auto_reset": True})
+        env_supervisor = EnvSupervisor(
+            type_=type_, env_fn=env_fn, **{
+                **setup_base_manager_cfg, "auto_reset": True,
+                "episode_num": 1000
+            }
+        )
         env_supervisor.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)})
 
         assert len(env_supervisor.ready_obs) == 4
@@ -215,6 +223,7 @@ class TestEnvSupervisorCompatible:
         assert len(timesteps.done) == 40
         assert any(done for done in timesteps.done)
         assert all([env_supervisor.env_states[env_id] == EnvState.RUN for env_id in range(env_supervisor.env_num)])
+        env_supervisor.close()
 
 
 @pytest.mark.unittest
@@ -265,6 +274,7 @@ class TestEnvSupervisor:
             env_supervisor.launch(reset_param=reset_param, block=False)
             while True:
                 env_supervisor.recv()
+        env_supervisor.close()
 
     @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
     def test_reset_error_once(self, setup_base_manager_cfg, type_):
@@ -297,6 +307,7 @@ class TestEnvSupervisor:
             reset_obs.append(env_supervisor.recv(ignore_err=True))
         assert env_supervisor.time_id[0] == env_id_0
         assert all([state == EnvState.RUN for state in env_supervisor.env_states.values()])
+        env_supervisor.close()
 
     @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
     def test_renew_error_once(self, setup_base_manager_cfg, type_):
@@ -333,6 +344,7 @@ class TestEnvSupervisor:
         assert timestep[0].info.abnormal
 
         assert all(['abnormal' not in timestep[i].info for i in range(1, env_supervisor.env_num)])
+        env_supervisor.close()
 
     @pytest.mark.timeout(60)
     @pytest.mark.parametrize("type_", [ChildType.PROCESS, ChildType.THREAD])
