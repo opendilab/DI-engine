@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-pong_dqn_aux_config = dict(
-    exp_name='pong_dqn_seed0',
+pong_dqn_stdim_config = dict(
+    exp_name='pong_dqn_stdim_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=8,
@@ -46,9 +46,9 @@ pong_dqn_aux_config = dict(
         ),
     ),
 )
-pong_dqn_aux_config = EasyDict(pong_dqn_aux_config)
-main_config = pong_dqn_aux_config
-pong_dqn_aux_create_config = dict(
+pong_dqn_stdim_config = EasyDict(pong_dqn_stdim_config)
+main_config = pong_dqn_stdim_config
+pong_dqn_stdim_create_config = dict(
     env=dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
@@ -56,8 +56,8 @@ pong_dqn_aux_create_config = dict(
     env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
-pong_dqn_aux_create_config = EasyDict(pong_dqn_aux_create_config)
-create_config = pong_dqn_aux_create_config
+pong_dqn_stdim_create_config = EasyDict(pong_dqn_stdim_create_config)
+create_config = pong_dqn_stdim_create_config
 
 if __name__ == '__main__':
     # or you can enter `ding -m serial -c pong_dqn_config.py -s 0`

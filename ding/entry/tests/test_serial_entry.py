@@ -6,8 +6,8 @@ from copy import deepcopy
 
 from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_offline
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
-from dizoo.classic_control.cartpole.config.cartpole_dqn_aux_config import cartpole_dqn_aux_config, \
-    cartpole_dqn_aux_create_config
+from dizoo.classic_control.cartpole.config.cartpole_dqn_stdim_config import cartpole_dqn_stdim_config, \
+    cartpole_dqn_stdim_create_config
 from dizoo.classic_control.cartpole.config.cartpole_ppo_config import cartpole_ppo_config, cartpole_ppo_create_config
 from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config, \
     cartpole_offppo_create_config
@@ -104,16 +104,16 @@ def test_hybrid_mpdqn():
 
 
 @pytest.mark.unittest
-def test_dqn_aux():
-    config = [deepcopy(cartpole_dqn_aux_config), deepcopy(cartpole_dqn_aux_create_config)]
+def test_dqn_stdim():
+    config = [deepcopy(cartpole_dqn_stdim_config), deepcopy(cartpole_dqn_stdim_create_config)]
     config[0].policy.learn.update_per_collect = 1
-    config[0].exp_name = 'cartpole_dqn_aux_unittest'
+    config[0].exp_name = 'cartpole_dqn_stdim_unittest'
     try:
         serial_pipeline(config, seed=0, max_train_iter=1)
     except Exception:
         assert False, "pipeline fail"
     finally:
-        os.popen('rm -rf cartpole_dqn_aux_unittest')
+        os.popen('rm -rf cartpole_dqn_stdim_unittest')
 
 
 @pytest.mark.unittest

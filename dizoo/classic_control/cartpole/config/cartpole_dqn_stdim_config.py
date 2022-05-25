@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
-cartpole_dqn_aux_config = dict(
-    exp_name='cartpole_dqn_seed0',
+cartpole_dqn_stdim_config = dict(
+    exp_name='cartpole_dqn_stdim_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -44,9 +44,9 @@ cartpole_dqn_aux_config = dict(
         ),
     ),
 )
-cartpole_dqn_aux_config = EasyDict(cartpole_dqn_aux_config)
-main_config = cartpole_dqn_aux_config
-cartpole_dqn_aux_create_config = dict(
+cartpole_dqn_stdim_config = EasyDict(cartpole_dqn_stdim_config)
+main_config = cartpole_dqn_stdim_config
+cartpole_dqn_stdim_create_config = dict(
     env=dict(
         type='cartpole',
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
@@ -58,8 +58,8 @@ cartpole_dqn_aux_create_config = dict(
         import_names=['ding.data.buffer.deque_buffer_wrapper']
     ),
 )
-cartpole_dqn_aux_create_config = EasyDict(cartpole_dqn_aux_create_config)
-create_config = cartpole_dqn_aux_create_config
+cartpole_dqn_stdim_create_config = EasyDict(cartpole_dqn_stdim_create_config)
+create_config = cartpole_dqn_stdim_create_config
 
 if __name__ == "__main__":
     # or you can enter `ding -m serial -c cartpole_dqn_config.py -s 0`

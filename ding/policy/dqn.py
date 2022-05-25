@@ -10,7 +10,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
-from ding.utils.mi_estimator import ContrastiveLoss
+from ding.torch_utils import ContrastiveLoss
 
 
 @POLICY_REGISTRY.register('dqn')
@@ -384,8 +384,8 @@ class DQNPolicy(Policy):
         return 'dqn', ['ding.model.template.q_learning']
 
 
-@POLICY_REGISTRY.register('dqn_aux')
-class DQNAuxPolicy(DQNPolicy):
+@POLICY_REGISTRY.register('dqn_stdim')
+class DQNSTDIMPolicy(DQNPolicy):
     """
     Overview:
         Policy class of DQN algorithm, extended by auxiliary objectives.
@@ -573,8 +573,8 @@ class DQNAuxPolicy(DQNPolicy):
         # Auxiliary model update
         # ======================
         with torch.no_grad():
-            x, y = self._aux_encode(data)
-        aux_loss_learn = self._aux_model.forward(x, y)
+            x_no_grad, y_no_grad = self._aux_encode(data)
+        aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
         self._aux_optimizer.zero_grad()
         aux_loss_learn.backward()
         self._aux_optimizer.step()
@@ -588,6 +588,7 @@ class DQNAuxPolicy(DQNPolicy):
         # ======================
         # Compute auxiliary loss
         # ======================
+        x, y = self._aux_encode(data)
         aux_loss_eval = self._aux_model.forward(x, y) * self._aux_ratio
         loss += aux_loss_eval
 

@@ -1,14 +1,17 @@
 import pytest
 import numpy as np
 import torch
-from ding.utils.mi_estimator import ContrastiveLoss
 from torch.utils.data import TensorDataset, DataLoader
+from ding.torch_utils import ContrastiveLoss
 
 
 @pytest.mark.unittest
 @pytest.mark.parametrize('noise', [0.1, 1.0, 3.0])
-@pytest.mark.parametrize('dims', [[16], [1, 16, 16]])
+@pytest.mark.parametrize('dims', [
+    [16],
+])
 def test_infonce_loss(noise, dims):
+    print_loss = False
     batch_size = 128
     N_batch = 10
     x_dim = [batch_size * N_batch] + dims
@@ -38,3 +41,10 @@ def test_infonce_loss(noise, dims):
                 x, y = inputs
                 outputs = estimator.forward(x, y)
                 test_loss += outputs.item()
+
+        if print_loss:
+            print(
+                "epoch {}: test_loss: {:.4f}, \t test_loss: {:.4f}".format(
+                    epoch, train_loss / N_batch, test_loss / N_batch
+                )
+            )
