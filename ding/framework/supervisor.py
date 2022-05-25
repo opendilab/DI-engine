@@ -1,11 +1,10 @@
-from copy import copy
 import multiprocessing as mp
 import threading
 import queue
 import platform
-from time import sleep
 import traceback
 import uuid
+import time
 from ditk import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -106,6 +105,7 @@ class ChildProcess(Child):
         proc = ctx.Process(
             target=self._target,
             args=(self._proc_id, self._init, self._args, self._send_queue, self._recv_queue),
+            name="supervisor_child_{}_{}".format(self._proc_id, time.time())
             daemon=True
         )
         proc.start()
@@ -140,6 +140,7 @@ class ChildThread(Child):
         thread = threading.Thread(
             target=self._target,
             args=(self._proc_id, self._init, self._args, self._send_queue, self._recv_queue),
+            name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
             daemon=True
         )
         thread.start()

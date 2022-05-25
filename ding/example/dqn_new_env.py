@@ -3,7 +3,7 @@ from ditk import logging
 from ding.framework.supervisor import ChildType
 from ding.model import DQN
 from ding.policy import DQNPolicy
-from ding.envs import DingEnvWrapper, BaseEnvManagerV2, EnvSupervisor
+from ding.envs import DingEnvWrapper, EnvSupervisor
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.framework import task
