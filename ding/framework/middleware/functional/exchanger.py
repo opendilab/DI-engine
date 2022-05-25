@@ -1,5 +1,7 @@
 from time import sleep
+from queue import Empty
 from typing import TYPE_CHECKING, List, Dict
+from ditk import logging
 from ding.framework import task
 from ding.utils.data.structure.lifo_deque import LifoDeque
 if TYPE_CHECKING:
@@ -63,8 +65,11 @@ def model_exchanger(model: "Module", is_learner: bool = False):
     def _model_exchanger(ctx: "Context"):
         if not is_learner:
             if ctx.total_step != 0:  # Skip first iteration
-                state_dict = bufferd_state_dict.get()
-                model.load_state_dict(state_dict)
+                try:
+                    state_dict = bufferd_state_dict.get(timeout=5)
+                    model.load_state_dict(state_dict)
+                except Empty:
+                    logging.warning("Timeout when waiting for new model!")
 
         if is_learner:
             yield

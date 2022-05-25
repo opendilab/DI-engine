@@ -55,6 +55,8 @@ class OnlineRLContext(Context):
         self.trajectories = None
         self.episodes = None
         self.trajectory_end_idx = []
+        self.action = []
+        self.inference_output = None
         # eval
         self.eval_value = None
         self.last_eval_iter = None
