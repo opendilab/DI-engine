@@ -329,13 +329,31 @@ class SampleSerialCollector(ISerialCollector):
         print('== obs size: {}KB'.format(obs_know_size.nbytes / 1024))
         step_time_list = np.array(step_time_list)
         infer_time_list = np.array(infer_time_list)
+        print('== All Data:')
         print(
-            '== step: {} + {} (min:{}, max:{})'.format(
+            '  - step: {} + {} (min:{}, max:{})'.format(
                 step_time_list.mean(), step_time_list.std(), step_time_list.min(), step_time_list.max()
             )
         )
         print(
-            '== infer: {} + {} (min:{}, max:{})'.format(
+            '  - infer: {} + {} (min:{}, max:{})'.format(
+                infer_time_list.mean(), infer_time_list.std(), infer_time_list.min(), infer_time_list.max()
+            )
+        )
+        print('== No top 5% \and last 5%:')
+        step_time_list = np.sort(step_time_list)
+        step_time_len = step_time_list.shape[0]
+        step_time_list = step_time_list[int(step_time_len * 0.05): int(step_time_len * 0.95)]
+        infer_time_list = np.sort(infer_time_list)
+        infer_time_len = infer_time_list.shape[0]
+        infer_time_list = infer_time_list[int(infer_time_len * 0.05): int(infer_time_len * 0.95)]
+        print(
+            '  - step: {} + {} (min:{}, max:{})'.format(
+                step_time_list.mean(), step_time_list.std(), step_time_list.min(), step_time_list.max()
+            )
+        )
+        print(
+            '  - infer: {} + {} (min:{}, max:{})'.format(
                 infer_time_list.mean(), infer_time_list.std(), infer_time_list.min(), infer_time_list.max()
             )
         )
