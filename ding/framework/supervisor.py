@@ -105,7 +105,7 @@ class ChildProcess(Child):
         proc = ctx.Process(
             target=self._target,
             args=(self._proc_id, self._init, self._args, self._send_queue, self._recv_queue),
-            name="supervisor_child_{}_{}".format(self._proc_id, time.time())
+            name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
             daemon=True
         )
         proc.start()

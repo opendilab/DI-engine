@@ -1,4 +1,3 @@
-from curses import nonl
 from time import sleep
 from typing import Dict, List
 import pytest
