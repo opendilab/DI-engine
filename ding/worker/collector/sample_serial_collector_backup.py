@@ -9,10 +9,6 @@ from ding.utils import build_logger, EasyTimer, SERIAL_COLLECTOR_REGISTRY, one_t
 from ding.torch_utils import to_tensor, to_ndarray
 from .base_serial_collector import ISerialCollector, CachePool, TrajBuffer, INF, to_tensor_transitions
 
-import time
-import sys
-import copy
-
 
 @SERIAL_COLLECTOR_REGISTRY.register('sample')
 class SampleSerialCollector(ISerialCollector):
@@ -227,32 +223,22 @@ class SampleSerialCollector(ISerialCollector):
         collected_sample = 0
         return_data = []
 
-        step_time_list = []
-        infer_time_list = []
-
         while collected_sample < n_sample:
             with self._timer:
                 # Get current env obs.
                 obs = self._env.ready_obs
-                obs_know_size = copy.deepcopy(obs)[0]
                 # Policy forward.
                 self._obs_pool.update(obs)
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
                 policy_output = self._policy.forward(obs, **policy_kwargs)
-                infer_start = time.time()
                 self._policy_output_pool.update(policy_output)
-                infer_end = time.time()
-                infer_time_list.append(infer_end - infer_start)
                 # Interact with env.
                 actions = {env_id: output['action'] for env_id, output in policy_output.items()}
                 actions = to_ndarray(actions)
-                step_start = time.time()
                 timesteps = self._env.step(actions)
-                step_end = time.time()
-                step_time_list.append(step_end - step_start)
 
-            # # TODO(nyz) this duration may be inaccurate in async env
+            # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
 
             # TODO(nyz) vectorize this for loop
@@ -324,13 +310,6 @@ class SampleSerialCollector(ISerialCollector):
         if self._on_policy:
             for env_id in range(self._env_num):
                 self._reset_stat(env_id)
-
-        # print(type(obs_know_size))
-        print('== obs size: {}KB'.format(obs_know_size.nbytes / 1024))  #
-        step_time_list = np.array(step_time_list)
-        infer_time_list = np.array(infer_time_list)
-        print('== step: {} + {}'.format(step_time_list.mean(), step_time_list.std()))
-        print('== infer: {} + {}'.format(infer_time_list.mean(), infer_time_list.std()))
 
         if drop_extra:
             return return_data[:n_sample]

@@ -3,7 +3,7 @@ from easydict import EasyDict
 pong_dqn_config = dict(
     exp_name='pong_dqn_seed0',
     env=dict(
-        collector_env_num=1,
+        collector_env_num=8,
         evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
@@ -11,14 +11,14 @@ pong_dqn_config = dict(
         frame_stack=4,
     ),
     policy=dict(
-        cuda=False,
+        cuda=True,
         priority=False,
         model=dict(
             obs_shape=[4, 84, 84],
             action_shape=6,
             encoder_hidden_size_list=[128, 128, 512],
         ),
-        nstep=1,
+        nstep=3,
         discount_factor=0.99,
         learn=dict(
             update_per_collect=10,
@@ -26,7 +26,7 @@ pong_dqn_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        collect=dict(n_sample=1000, ),
+        collect=dict(n_sample=96, ),
         eval=dict(evaluator=dict(eval_freq=4000, )),
         other=dict(
             eps=dict(
@@ -46,7 +46,7 @@ pong_dqn_create_config = dict(
         type='atari',
         import_names=['dizoo.atari.envs.atari_env'],
     ),
-    env_manager=dict(type='base'),
+    env_manager=dict(type='subprocess'),
     policy=dict(type='dqn'),
 )
 pong_dqn_create_config = EasyDict(pong_dqn_create_config)
