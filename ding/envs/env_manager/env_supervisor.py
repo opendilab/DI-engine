@@ -165,13 +165,13 @@ class EnvSupervisor(Supervisor):
             Try to restart all timeout environments if detected timeout.
         """
         for env_id in self._last_called:
-            if time() - self._last_called[env_id]["step"] > self._step_timeout:
+            if self._step_timeout and time() - self._last_called[env_id]["step"] > self._step_timeout:
                 payload = RecvPayload(
                     proc_id=env_id, method="step", err=TimeoutError("Step timeout on env {}".format(env_id))
                 )
                 self._recv_queue.put(payload)
                 continue
-            if time() - self._last_called[env_id]["reset"] > self._reset_timeout:
+            if self._reset_timeout and time() - self._last_called[env_id]["reset"] > self._reset_timeout:
                 payload = RecvPayload(
                     proc_id=env_id, method="reset", err=TimeoutError("Step timeout on env {}".format(env_id))
                 )

@@ -46,11 +46,11 @@ dockertest:
 	${DING_DIR}/scripts/docker-test-entry.sh
 
 platformtest:
-	pytest ${PLATFORM_TEST_DIR} \
+	pytest ${TEST_DIR} \
 		--cov-report term-missing \
 		--cov=${COV_DIR} \
 		${WORKERS_COMMAND} \
-		-sv -m unittest \
+		-sv -m platformtest
 
 benchmark:
 	pytest ${TEST_DIR} \
