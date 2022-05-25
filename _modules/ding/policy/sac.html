@@ -243,7 +243,6 @@
         <span class="c1"># on-policy setting influences the behaviour of buffer.</span>
         <span class="c1"># Default False in SAC.</span>
         <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="c1"># (bool type) priority: Determine whether to use priority in buffer sample.</span>
         <span class="c1"># Default False in SAC.</span>
         <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -252,6 +251,10 @@
         <span class="c1"># (int) Number of training samples(randomly collected) in replay buffer when training starts.</span>
         <span class="c1"># Default 10000 in SAC.</span>
         <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to enable multi-agent training setting</span>
+        <span class="n">multi_agent</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.</span>
             <span class="c1"># Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .</span>
@@ -753,6 +756,9 @@
         <span class="c1"># (int) Number of training samples(randomly collected) in replay buffer when training starts.</span>
         <span class="c1"># Default 10000 in SAC.</span>
         <span class="n">random_collect_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to need policy data in process transition</span>
+        <span class="n">transition_with_policy_data</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether to enable multi-agent training setting</span>
         <span class="n">multi_agent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
             <span class="c1"># (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.</span>
