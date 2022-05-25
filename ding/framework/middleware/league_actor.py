@@ -7,6 +7,9 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 from abc import abstractmethod
 
+from easydict import EasyDict
+from ding.envs import BaseEnvManager
+
 class Storage:
 
     def __init__(self, path: str) -> None:
@@ -54,7 +57,7 @@ class Job:
 
 class LeagueActor:
 
-    def __init__(self):
+    def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager):
         self._running = True
         self._model_updated = True
         task.on("league_job_actor_{}".format(task.router.node_id), self._on_league_job)
