@@ -23,9 +23,10 @@ def main():
             env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.collector_env_num)],
             **cfg.env.manager
         )
-        evaluator_env = BaseEnvManagerV2(
+        evaluator_env = EnvSupervisor(
+            type_=ChildType.THREAD,
             env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(cfg.env.evaluator_env_num)],
-            cfg=cfg.env.manager
+            **cfg.env.manager
         )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)

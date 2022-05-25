@@ -257,6 +257,7 @@ class EnvSupervisor(Supervisor):
         if reset_param is not None:
             assert len(reset_param) == self.env_num
         self.start_link()
+        self.send_seed(self._env_seed, self._env_dynamic_seed, block=block)
         self.reset(reset_param, block=block)
         self._enable_env_replay()
 
@@ -384,22 +385,27 @@ class EnvSupervisor(Supervisor):
             logging.warning("Please don't reset an unfinished env when you enable save replay, we just skip it")
             return send_payloads
 
-        # Set seed if necessary
-        seed = self._env_seed.get(env_id)
-        if seed is not None:
-            args = [seed]
-            if self._env_dynamic_seed is not None:
-                args.append(self._env_dynamic_seed)
-            payload = SendPayload(proc_id=env_id, method="seed", args=args)
-            send_payloads.append(payload)
-            self.send(payload)
-
         # Reset env
         payload = SendPayload(proc_id=env_id, method="reset", kwargs=kw_param)
         send_payloads.append(payload)
         self.send(payload)
 
         return send_payloads
+
+    def send_seed(self, env_seed: Dict[int, int], env_dynamic_seed: Optional[bool] = None, block: bool = True) -> None:
+        send_payloads = []
+        for env_id, seed in env_seed.items():
+            if seed is None:
+                continue
+            args = [seed]
+            if env_dynamic_seed is not None:
+                args.append(env_dynamic_seed)
+            payload = SendPayload(proc_id=env_id, method="seed", args=args)
+            send_payloads.append(payload)
+            self.send(payload)
+        if not block or not send_payloads:
+            return
+        self.recv_all(send_payloads, ignore_err=True, callback=self._recv_callback, timeout=self._reset_timeout)
 
     def change_state(self, payload: RecvPayload):
         self._last_called[payload.proc_id][payload.method] = 9e9  # Have recevied
@@ -415,14 +421,15 @@ class EnvSupervisor(Supervisor):
         self._last_called[payload.proc_id][payload.method] = time()
         return super().send(payload)
 
-    def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: bool = None) -> None:
+    def seed(self, seed: Union[Dict[int, int], List[int], int], dynamic_seed: Optional[bool] = None) -> None:
         """
         Overview:
-            Set the seed for each environment.
+            Set the seed for each environment. The seed function will not be called until supervisor.launch \
+            was called.
         Arguments:
             - seed (:obj:`Union[Dict[int, int], List[int], int]`): List of seeds for each environment; \
                 Or one seed for the first environment and other seeds are generated automatically.
-            - dynamic_seed (:obj:`bool`): Dynamic seed is used in the training environment, \
+            - dynamic_seed (:obj:`Optional[bool]`): Dynamic seed is used in the training environment, \
                 trying to make the random seed of each episode different, they are all generated in the reset \
                 method by a random generator 100 * np.random.randint(1 , 1000) (but the seed of this random \
                 number generator is fixed by the environmental seed method, guranteeing the reproducibility \
