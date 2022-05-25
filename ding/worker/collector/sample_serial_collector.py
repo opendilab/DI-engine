@@ -326,11 +326,19 @@ class SampleSerialCollector(ISerialCollector):
                 self._reset_stat(env_id)
 
         # print(type(obs_know_size))
-        print('== obs size: {}KB'.format(obs_know_size.nbytes / 1024))  #
+        print('== obs size: {}KB'.format(obs_know_size.nbytes / 1024))
         step_time_list = np.array(step_time_list)
         infer_time_list = np.array(infer_time_list)
-        print('== step: {} + {}'.format(step_time_list.mean(), step_time_list.std()))
-        print('== infer: {} + {}'.format(infer_time_list.mean(), infer_time_list.std()))
+        print(
+            '== step: {} + {} (min:{}, max:{})'.format(
+                step_time_list.mean(), step_time_list.std(), step_time_list.min(), step_time_list.max()
+            )
+        )
+        print(
+            '== infer: {} + {} (min:{}, max:{})'.format(
+                infer_time_list.mean(), infer_time_list.std(), infer_time_list.min(), infer_time_list.max()
+            )
+        )
 
         if drop_extra:
             return return_data[:n_sample]
