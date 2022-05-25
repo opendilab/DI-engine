@@ -2,7 +2,7 @@ from ding.framework import task
 from time import sleep
 import logging
 
-from typing import List, Any
+from typing import List, Any, Callable
 from dataclasses import dataclass, field
 from abc import abstractmethod
 
@@ -14,6 +14,7 @@ from .functional import inferencer, rolloutor, TransitionList
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
+    from ding.policy import Policy
 
 class Storage:
 
@@ -62,12 +63,13 @@ class Job:
 
 class LeagueActor:
 
-    def __init__(self, cfg: EasyDict, policy, env: BaseEnvManager):
+    def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable):
         self._running = True
         self._model_updated = True
 
         self.cfg = cfg
-        self.policy = policy
+        self.env_fn = env_fn
+        self.policy_fn = policy_fn
         self._transitions = TransitionList(self.env.env_num)
         self._inferencer = task.wrap(inferencer(cfg, policy, env))
         self._rolloutor = task.wrap(rolloutor(cfg, policy, env, self._transitions))
