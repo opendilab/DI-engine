@@ -35,21 +35,21 @@ class Job:
     train_iter: int = None
     is_eval: bool = False
 
-class Agent:
-    HAS_MODEL = False
-    HAS_TEACHER_MODEL = False
-    HAS_SUCCESSIVE_MODEL = False
-    def __init__(self, cfg=None, env_id=0):
-        pass
+# class Agent:
+#     HAS_MODEL = False
+#     HAS_TEACHER_MODEL = False
+#     HAS_SUCCESSIVE_MODEL = False
+#     def __init__(self, cfg=None, env_id=0):
+#         pass
 
-    def reset(self, map_name, race, game_info, obs):
-        pass
+#     def reset(self, map_name, race, game_info, obs):
+#         pass
 
-    def step(self, obs):
-        action = {'func_id': 0, 'skip_steps': 1, 
-        'queued': False, 'unit_tags': [0], 
-        'target_unit_tag': 0, 'location': [0, 0]}
-        return [action]
+#     def step(self, obs):
+#         action = {'func_id': 0, 'skip_steps': 1, 
+#         'queued': False, 'unit_tags': [0], 
+#         'target_unit_tag': 0, 'location': [0, 0]}
+#         return [action]
 
 
 class LeagueActor:
@@ -59,15 +59,6 @@ class LeagueActor:
         self._model_updated = True
         task.on("league_job_actor_{}".format(task.router.node_id), self._on_league_job)
         task.on("learner_model", self._on_learner_model)
-
-        # initialize agents 
-        self._set_up_agents()
-    
-    def _set_up_agents(self):
-        """
-        Initialize policy?.
-        """
-        self.agents = []
 
     def _on_learner_model(self):
         """
