@@ -177,7 +177,7 @@ def NormedLinear(*args, scale=1.0, dtype=torch.float32, **kwargs):
 
     out.weight.data *= scale / out.weight.norm(dim=1, p=2, keepdim=True)
     if kwargs.get("bias", True):
-        out.bias.data *= 0
+        out.bias.data.zero_()
     return out
 
 
