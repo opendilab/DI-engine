@@ -308,8 +308,8 @@ class ImpalaCNN(nn.Module):
         curshape = (c, h, w)
         s = 1 / math.sqrt(len(chans))  # per stack scale
         self.stacks = nn.ModuleList()
-        for outchan in chans:
-            stack = CnnDownStack(curshape[0], nblock=nblock, outchan=outchan, scale=s, **kwargs)
+        for out_channel in chans:
+            stack = CnnDownStack(curshape[0], nblock=nblock, out_channel=out_channel, scale=s, **kwargs)
             self.stacks.append(stack)
             curshape = stack.output_shape(curshape)
         self.dense = NormedLinear(intprod(curshape), outsize, scale=1.4)
