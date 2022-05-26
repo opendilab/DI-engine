@@ -253,11 +253,11 @@ class CnnBasicBlock(nn.Module):
         # inplace should be False for the first relu, so that it does not change the input,
         # which will be used for skip connection.
         # getattr is for backwards compatibility with loaded models
-        if not self.batch_norm:
+        if self.batch_norm:
             x = self.bn0(x)
         x = F.relu(x, inplace=False)
         x = self.conv0(x)
-        if not self.batch_norm:
+        if self.batch_norm:
             x = self.bn1(x)
         x = F.relu(x, inplace=True)
         x = self.conv1(x)
