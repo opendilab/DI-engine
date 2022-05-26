@@ -44,17 +44,18 @@ class Child:
     Abstract class of child process/thread.
     """
 
-    def __init__(self, proc_id: int, init: Callable, args: List[Any], recv_queue: Union[mp.Queue, queue.Queue]) -> None:
+    def __init__(self, proc_id: int, init: Callable, args: List[Any]) -> None:
         self._proc_id = proc_id
         self._init = init
         self._args = args
-        self._recv_queue = recv_queue
+        self._recv_queue = None
 
-    def start(self):
+    def start(self, recv_queue: Union[mp.Queue, queue.Queue]):
         raise NotImplementedError
 
     def restart(self):
-        raise NotImplementedError
+        self.shutdown()
+        self.start(self._recv_queue)
 
     def shutdown(self, timeout: Optional[float] = None):
         raise NotImplementedError
@@ -94,12 +95,13 @@ class Child:
 
 class ChildProcess(Child):
 
-    def __init__(self, proc_id: int, init: Callable, args: List[Any], recv_queue: mp.Queue) -> None:
-        super().__init__(proc_id, init, args, recv_queue)
-        self._send_queue = mp.Queue()
+    def __init__(self, proc_id: int, init: Callable, args: List[Any]) -> None:
+        super().__init__(proc_id, init, args)
         self._proc = None
 
-    def start(self):
+    def start(self, recv_queue: mp.Queue):
+        self._recv_queue = recv_queue
+        self._send_queue = mp.Queue()
         context = 'spawn' if platform.system().lower() == 'windows' else 'fork'
         ctx = mp.get_context(context)
         proc = ctx.Process(
@@ -111,10 +113,6 @@ class ChildProcess(Child):
         proc.start()
         self._proc = proc
 
-    def restart(self):
-        self.shutdown()
-        self.start()
-
     def shutdown(self, timeout: Optional[float] = None):
         if self._proc:
             self._send_queue.put(SendPayload(proc_id=self._proc_id, method=ReserveMethod.SHUTDOWN))
@@ -123,7 +121,8 @@ class ChildProcess(Child):
             self._proc.close()
             self._proc = None
             self._send_queue.close()
-            self._send_queue = mp.Queue()
+            self._send_queue.join_thread()
+            self._send_queue = None
 
     def send(self, payload: SendPayload):
         self._send_queue.put(payload)
@@ -131,12 +130,13 @@ class ChildProcess(Child):
 
 class ChildThread(Child):
 
-    def __init__(self, proc_id: int, init: Callable, args: List[Any], recv_queue: queue.Queue) -> None:
-        super().__init__(proc_id, init, args, recv_queue)
-        self._send_queue = queue.Queue()
+    def __init__(self, proc_id: int, init: Callable, args: List[Any]) -> None:
+        super().__init__(proc_id, init, args)
         self._thread = None
 
-    def start(self):
+    def start(self, recv_queue: queue.Queue):
+        self._recv_queue = recv_queue
+        self._send_queue = queue.Queue()
         thread = threading.Thread(
             target=self._target,
             args=(self._proc_id, self._init, self._args, self._send_queue, self._recv_queue),
@@ -146,16 +146,12 @@ class ChildThread(Child):
         thread.start()
         self._thread = thread
 
-    def restart(self):
-        self.shutdown()
-        self.start()
-
     def shutdown(self, timeout: Optional[float] = None):
         if self._thread:
             self._send_queue.put(SendPayload(proc_id=self._proc_id, method=ReserveMethod.SHUTDOWN))
             self._thread.join(timeout=timeout)
             self._thread = None
-            self._send_queue = queue.Queue()
+            self._send_queue = None
 
     def send(self, payload: SendPayload):
         self._send_queue.put(payload)
@@ -171,17 +167,27 @@ class Supervisor:
         self._children: List[Child] = []
         self._type = type_
         self._child_class = self.TYPE_MAPPING[self._type]
-        self._recv_queue: queue.Queue = self.QUEUE_MAPPING[self._type]()
         self._running = False
+        self.__queue = None
 
     def register(self, init: Callable, *args) -> None:
         proc_id = len(self._children)
-        self._children.append(self._child_class(proc_id, init=init, args=args, recv_queue=self._recv_queue))
+        self._children.append(self._child_class(proc_id, init=init, args=args))
+
+    @property
+    def _recv_queue(self) -> Union[queue.Queue, mp.Queue]:
+        if not self.__queue:
+            self.__queue = self.QUEUE_MAPPING[self._type]()
+        return self.__queue
+
+    @_recv_queue.setter
+    def _recv_queue(self, value):
+        self.__queue = value
 
     def start_link(self) -> None:
         if not self._running:
             for child in self._children:
-                child.start()
+                child.start(recv_queue=self._recv_queue)
             self._running = True
 
     def send(self, payload: SendPayload) -> None:
@@ -277,9 +283,20 @@ class Supervisor:
         if self._running:
             for child in self._children:
                 child.shutdown(timeout=timeout)
+            self._cleanup_queue()
+        self._running = False
+
+    def _cleanup_queue(self):
+        while True:
             while not self._recv_queue.empty():
                 self._recv_queue.get()
-        self._running = False
+            time.sleep(0.1)  # mp.Queue is not reliable.
+            if self._recv_queue.empty():
+                break
+        if hasattr(self._recv_queue, "close"):
+            self._recv_queue.close()
+            self._recv_queue.join_thread()
+            self._recv_queue = None
 
     def __getattr__(self, key: str) -> List[Any]:
         assert self._running, "Supervisor is not running, please call start_link first!"

@@ -478,8 +478,12 @@ class EnvSupervisor(Supervisor):
 
     def shutdown(self, timeout: Optional[float] = None) -> None:
         if self._running:
+            send_payloads = []
             for env_id in range(self.env_num):
-                self.send(SendPayload(proc_id=env_id, method="close"))
+                payload = SendPayload(proc_id=env_id, method="close")
+                send_payloads.append(payload)
+                self.send(payload)
+            self.recv_all(send_payloads=send_payloads, ignore_err=True, timeout=timeout)
             super().shutdown(timeout=timeout)
             self._init_states()
 
