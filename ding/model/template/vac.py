@@ -77,17 +77,15 @@ class VAC(nn.Module):
             self.share_encoder = share_encoder
             if self.share_encoder:
                 if self.impala_cnn_encoder:
-                    encoder_cls = ImpalaEncoder
-                    self.encoder = encoder_cls(obs_shape)
+                    self.encoder = ImpalaEncoder(obs_shape)
                 else:
                     self.encoder = encoder_cls(
                         obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
                     )
             else:
                 if self.impala_cnn_encoder:
-                    encoder_cls = ImpalaEncoder
-                    self.actor_encoder = encoder_cls(obs_shape)
-                    self.critic_encoder = encoder_cls(obs_shape)
+                    self.actor_encoder = ImpalaEncoder(obs_shape)
+                    self.critic_encoder = ImpalaEncoder(obs_shape)
                 else:
                     self.actor_encoder = encoder_cls(
                         obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type

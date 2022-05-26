@@ -11,6 +11,8 @@ from ding.utils import ENV_REGISTRY, deep_merge_dicts
 
 @ENV_REGISTRY.register('coinrun')
 class CoinRunEnv(BaseEnv):
+
+    #If control_level is True, you can control the specific level of the generated environment by controlling start_level and num_level.
     config = dict(
         control_level=True,
         start_level=0,

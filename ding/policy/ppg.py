@@ -86,7 +86,7 @@ class PPGOnPolicy(Policy):
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
-        on_policy=False,
+        on_policy=True,
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
@@ -238,8 +238,7 @@ class PPGOnPolicy(Policy):
             data['return'] = data['adv'] + data['value']
 
         for epoch in range(self._cfg.learn.actor_epoch_per_collect):
-            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
-                policy_data = batch
+            for policy_data in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
                 policy_adv = policy_data['adv']
                 if self._adv_norm:
                     # Normalize advantage in a total train_batch
@@ -257,8 +256,7 @@ class PPGOnPolicy(Policy):
                 self._optimizer_ac.step()
 
         for epoch in range(self._cfg.learn.critic_epoch_per_collect):
-            for batch in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
-                value_data = batch
+            for value_data in split_data_generator(data, self._cfg.learn.batch_size, shuffle=True):
                 value_adv = value_data['adv']
                 return_ = value_data['return']
                 if self._adv_norm:
@@ -442,8 +440,6 @@ class PPGOnPolicy(Policy):
             for i in range(len(data)):
                 data[i]['value'] /= self._running_mean_std.std
 
-        for i in range(len(data)):
-            data[i].pop('next_obs')
         return get_train_sample(data, self._unroll_len)
 
     def _get_batch_size(self) -> Dict[str, int]:
