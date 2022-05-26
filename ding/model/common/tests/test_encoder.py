@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pytest
 
-from ding.model import ConvEncoder, FCEncoder
+from ding.model import ConvEncoder, FCEncoder, ImpalaEncoder
 from ding.torch_utils import is_differentiable
 
 B = 4
@@ -39,3 +39,11 @@ class TestEncoder:
         outputs = model(inputs)
         self.output_check(model, outputs)
         assert outputs.shape == (B, hidden_size_list[-1])
+
+    def test_impalacnn_encoder(self):
+        inputs = torch.randn(B, 3, 64, 64)
+        model = ImpalaEncoder(inshape=(3, 64, 64))
+        print(model)
+        outputs = model(inputs)
+        self.output_check(model, outputs)
+        assert outputs.shape == (B, 256)
