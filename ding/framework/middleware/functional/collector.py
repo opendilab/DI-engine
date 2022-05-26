@@ -173,7 +173,7 @@ class BattleInferencer():
                             self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id],
                             policy_timestep
                         )
-                        transition['collect_iter'] = ctx.cleartrain_iter
+                        transition['collect_iter'] = ctx.train_iter
                         # TODO(zms): self._traj_buffer comes from self.reset()
                         self._traj_buffer[env_id][policy_id].append(transition)
                         # prepare data
