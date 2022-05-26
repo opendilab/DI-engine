@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 import os
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 import numpy as np

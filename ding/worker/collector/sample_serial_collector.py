@@ -94,9 +94,10 @@ class SampleSerialCollector(ISerialCollector):
         if _policy is not None:
             self._policy = _policy
             self._default_n_sample = _policy.get_attribute('cfg').collect.get('n_sample', None)
+            self._traj_len_inf = _policy.get_attribute('cfg').collect.get('traj_len_inf', False)
             self._unroll_len = _policy.get_attribute('unroll_len')
             self._on_policy = _policy.get_attribute('on_policy')
-            if self._default_n_sample is not None:
+            if self._default_n_sample is not None and not self._traj_len_inf:
                 self._traj_len = max(
                     self._unroll_len,
                     self._default_n_sample // self._env_num + int(self._default_n_sample % self._env_num != 0)
@@ -251,23 +252,32 @@ class SampleSerialCollector(ISerialCollector):
                         self._reset_stat(env_id)
                         self._logger.info('Env{} returns a abnormal step, its info is {}'.format(env_id, timestep.info))
                         continue
-                    transition = self._policy.process_transition(
-                        self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
-                    )
+                    if 'type' in self._policy.get_attribute('cfg') and \
+                            self._policy.get_attribute('cfg').type == 'ngu_command':
+                        # for NGU policy
+                        transition = self._policy.process_transition(
+                            self._obs_pool[env_id], self._policy_output_pool[env_id], timestep, env_id
+                        )
+                    else:
+                        transition = self._policy.process_transition(
+                            self._obs_pool[env_id], self._policy_output_pool[env_id], timestep
+                        )
                     # ``train_iter`` passed in from ``serial_entry``, indicates current collecting model's iteration.
                     transition['collect_iter'] = train_iter
-                    self._traj_buffer[env_id].append(transition)  # NOTE
+                    self._traj_buffer[env_id].append(transition)
                     self._env_info[env_id]['step'] += 1
                     self._total_envstep_count += 1
                     # prepare data
                     if timestep.done or len(self._traj_buffer[env_id]) == self._traj_len:
-                        # for r2d2:
-                        # 1. for each collect_env, we want to collect data of the length self._traj_len
-                        # except when it comes to a done.
-                        # 2. however, even if timestep is done and assume we only collected 9 transitions,
-                        # by going through self._policy.get_train_sample, it will be padded automatically.
-                        # 3. so, a unit of train transition for r2d2 will have seq len
-                        # (burnin + nstep) (collected_sample=1), and we need to collect n_sample.
+                        # If policy is r2d2:
+                        # 1. For each collect_env, we want to collect data of length self._traj_len=INF
+                        # unless the episode enters the 'done' state.
+                        # 2. The length of a train (sequence) sample in r2d2 is <burnin + learn_unroll_length>
+                        # (please refer to r2d2.py) and in each collect phase,
+                        # we collect a total of <n_sample> (sequence) samples.
+                        # 3. When timestep is done and we only collected very few transitions in self._traj_buffer,
+                        # by going through self._policy.get_train_sample, it will be padded automatically to get the
+                        # sequence sample of length <burnin + learn_unroll_len> (please refer to r2d2.py).
 
                         # Episode is done or traj_buffer(maxlen=traj_len) is full.
                         transitions = to_tensor_transitions(self._traj_buffer[env_id])

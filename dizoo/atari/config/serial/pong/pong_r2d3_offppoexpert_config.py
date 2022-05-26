@@ -3,6 +3,7 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 8
 expert_replay_buffer_size = int(5e3)
+
 """
 agent config
 """
@@ -26,18 +27,13 @@ pong_r2d3_config = dict(
             encoder_hidden_size_list=[128, 128, 512],
         ),
         discount_factor=0.997,
-        burnin_step=2,
         nstep=5,
+        burnin_step=2,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
-        # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=40,
+        # i.e., <the whole sequence length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
+        learn_unroll_len=40,
         learn=dict(
-            # according to the r2d3 paper, actor parameter update interval is 400
-            # environment timesteps, and in per collect phase, we collect 32 sequence
-            # samples, the length of each samlpe sequence is <burnin_step> + <unroll_len>,
-            # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
-            # in most environments
             value_rescale=True,
             update_per_collect=8,
             batch_size=64,
@@ -52,8 +48,14 @@ pong_r2d3_config = dict(
             per_train_iter_k=0,  # TODO(pu)
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             env_num=collector_env_num,
             # The hyperparameter pho, the demo ratio, control the propotion of data coming\
             # from expert demonstrations versus from the agent's own experience.
@@ -89,6 +91,7 @@ pong_r2d3_create_config = dict(
 )
 pong_r2d3_create_config = EasyDict(pong_r2d3_create_config)
 create_config = pong_r2d3_create_config
+
 """
 export config
 """
@@ -117,22 +120,29 @@ expert_pong_r2d3_config = dict(
         burnin_step=20,
         nstep=5,
         learn=dict(
-            expert_replay_buffer_size=expert_replay_buffer_size,  # TODO(pu)
+            expert_replay_buffer_size=expert_replay_buffer_size,
         ),
         collect=dict(
-            # NOTE it is important that don't include key n_sample here, to make sure self._traj_len=INF
-            each_iter_n_sample=32,
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In sequence-based policy, for each collect_env,
+            # we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
+            n_sample=32,
+            traj_len_inf=True,
             # Users should add their own path here. path should lead to a well-trained model
             # Absolute path is recommended.
             model_path='./pong_offppo_seed0/ckpt/ckpt_best.pth.tar',
-            # Cut trajectories into pieces with length "unroll_len". should set as self._unroll_len_add_burnin_step of r2d2
-            unroll_len=42,  # TODO(pu): should equals self._unroll_len_add_burnin_step in r2d2 policy
+            # Cut trajectories into pieces with length "unroll_len",
+            # which should set as self._learn_unroll_len_plus_burnin_step of r2d2
+            unroll_len=42,  # NOTE: should equals self._learn_unroll_len_plus_burnin_step in r2d2 policy
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
         other=dict(
             replay_buffer=dict(
-                replay_buffer_size=expert_replay_buffer_size,  # TODO(pu)
+                replay_buffer_size=expert_replay_buffer_size,
                 # (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization
                 alpha=0.6,
                 # (Float type)  How much correction is used: 0 means no correction while 1 means full correction

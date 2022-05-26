@@ -157,7 +157,7 @@ class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('ppo_offpolicy_collect_traj_command')
+@POLICY_REGISTRY.register('offppo_collect_traj_command')
 class PPOOffCollectTrajCommandModePolicy(OffPPOCollectTrajPolicy, DummyCommandModePolicy):
     pass
 

@@ -543,7 +543,7 @@ class CQLPolicy(SACPolicy):
 
 @POLICY_REGISTRY.register('cql_discrete')
 class CQLDiscretePolicy(DQNPolicy):
-    r"""
+    """
         Overview:
             Policy class of CQL algorithm in discrete environments.
 
@@ -572,7 +572,7 @@ class CQLDiscretePolicy(DQNPolicy):
                                                         | valid in serial training               | means more off-policy
         11 ``learn.kappa``      float    /              | Threshold of Huber loss
         == ==================== ======== ============== ======================================== =======================
-        """
+    """
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").

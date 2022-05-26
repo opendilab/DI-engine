@@ -7,6 +7,7 @@ from easydict import EasyDict
 from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
+from ding.envs import ObsPlusPrevActRewWrapper
 
 
 @ENV_REGISTRY.register('cartpole')
@@ -35,15 +36,18 @@ class CartPoleEnv(BaseEnv):
                     episode_trigger=lambda episode_id: True,
                     name_prefix='rl-video-{}'.format(id(self))
                 )
+            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
+                self._env = ObsPlusPrevActRewWrapper(self._env)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.seed(self._seed + np_seed)
         elif hasattr(self, '_seed'):
             self._env.seed(self._seed)
+        self._observation_space = self._env.observation_space
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         return obs
 
     def close(self) -> None:
@@ -56,15 +60,14 @@ class CartPoleEnv(BaseEnv):
         self._dynamic_seed = dynamic_seed
         np.random.seed(self._seed)
 
-    def step(self, action: np.ndarray) -> BaseEnvTimestep:
-        assert isinstance(action, np.ndarray), type(action)
-        if action.shape == (1, ):
+    def step(self, action: Union[int, np.ndarray]) -> BaseEnvTimestep:
+        if isinstance(action, np.ndarray) and action.shape == (1, ):
             action = action.squeeze()  # 0-dim array
         obs, rew, done, info = self._env.step(action)
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transfered to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 

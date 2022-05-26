@@ -2,7 +2,7 @@ from typing import List, Dict
 import pickle
 import torch
 import numpy as np
-import logging
+from ditk import logging
 
 from easydict import EasyDict
 from torch.utils.data import Dataset
@@ -34,7 +34,6 @@ class D4RLDataset(Dataset):
 
     def __init__(self, cfg: dict) -> None:
         import gym
-        import logging
         try:
             import d4rl  # register d4rl enviroments with open ai gym
         except ImportError:
@@ -68,7 +67,6 @@ class D4RLDataset(Dataset):
             trans_data['action'] = torch.from_numpy(dataset['actions'][i])
             trans_data['reward'] = torch.tensor(dataset['rewards'][i])
             trans_data['done'] = dataset['terminals'][i]
-            trans_data['collect_iter'] = 0
             self._data.append(trans_data)
 
     def _normalize_states(self, dataset, eps=1e-3):
@@ -139,7 +137,6 @@ def hdf5_save(exp_data, expert_data_path):
     dataset.create_dataset('action', data=np.array([d['action'].numpy() for d in exp_data]), compression='gzip')
     dataset.create_dataset('reward', data=np.array([d['reward'].numpy() for d in exp_data]), compression='gzip')
     dataset.create_dataset('done', data=np.array([d['done'] for d in exp_data]), compression='gzip')
-    dataset.create_dataset('collect_iter', data=np.array([d['collect_iter'] for d in exp_data]), compression='gzip')
     dataset.create_dataset('next_obs', data=np.array([d['next_obs'].numpy() for d in exp_data]), compression='gzip')
 
 
