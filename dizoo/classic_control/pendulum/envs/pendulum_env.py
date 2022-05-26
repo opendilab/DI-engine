@@ -95,6 +95,12 @@ class PendulumEnv(BaseEnv):
 @ENV_REGISTRY.register('mbpendulum')
 class MBPendulumEnv(PendulumEnv):
     def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
-        # This function determines whether each state is a terminated state
+        """
+        Overview:
+            This function determines whether each state is a terminated state
+        .. note::
+            Done is always false for pendulum, according to\
+            <https://github.com/openai/gym/blob/master/gym/envs/classic_control/pendulum.py>.
+        """
         done = torch.zeros_like(next_obs.sum(-1)).bool()
         return done

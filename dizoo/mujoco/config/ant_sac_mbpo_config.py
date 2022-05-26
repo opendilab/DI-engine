@@ -11,7 +11,7 @@ action_shape = 8
 cuda = True
 
 main_config = dict(
-    exp_name='ant_sac_mbpo',
+    exp_name='ant_sac_mbpo_seed0',
     env=dict(
         env_id=env_id,
         norm_obs=dict(use_norm=False, ),

@@ -125,7 +125,13 @@ class MujocoEnv(BaseEnv):
 @ENV_REGISTRY.register('mbmujoco')
 class MBMujocoEnv(MujocoEnv):
     def termination_fn(self, next_obs: torch.Tensor) -> torch.Tensor:
-        # This function determines whether each state is a terminated state
+        """
+        Overview:
+            This function determines whether each state is a terminated state.
+        .. note::
+            This is a collection of termination functions for mujocos used in MBPO (arXiv: 1906.08253),\
+            directly copied from MBPO repo https://github.com/jannerm/mbpo/tree/master/mbpo/static.
+        """
         assert len(next_obs.shape) == 2
         if self._cfg.env_id == "Hopper-v2":
             height = next_obs[:, 0]

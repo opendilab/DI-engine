@@ -1,5 +1,5 @@
 """
-    In progress. Will be moved to dizoo after completion.
+    In progress. Mujoco configs will be added here later.
 """
 from easydict import EasyDict
 
@@ -14,7 +14,7 @@ action_shape = 1
 cuda = False
 
 main_config = dict(
-    exp_name='pendulum_sac_mbpo_dyna',
+    exp_name='pendulum_sac_mbpo_dyna_seed0',
     env=dict(
         env_id=env_id,  # only for backward compatibility
         collector_env_num=10,
@@ -26,7 +26,7 @@ main_config = dict(
     ),
     policy=dict(
         cuda=cuda,
-        # backward compatibility: it is better to 
+        # backward compatibility: it is better to
         # put random_collect_size in policy.other
         random_collect_size=1000,
         model=dict(
@@ -64,7 +64,7 @@ main_config = dict(
         type='mbpo',
         import_names=['ding.world_model.mbpo'],
         eval_freq=100,  # w.r.t envstep
-        train_freq=100, # w.r.t envstep
+        train_freq=100,  # w.r.t envstep
         cuda=cuda,
         rollout_length_scheduler=dict(
             type='linear',

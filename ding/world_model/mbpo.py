@@ -6,7 +6,7 @@ from torch import nn
 
 from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
-from ding.world_model.base_wm import HybridWorldModel
+from ding.world_model.base_world_model import HybridWorldModel
 from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
 
 
@@ -46,14 +46,18 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         self.deterministic_rollout = cfg.deterministic_rollout
 
         self.ensemble_model = EnsembleModel(
-            self.state_size, self.action_size, self.reward_size, 
-            self.network_size, self.hidden_size, use_decay=self.use_decay
+            self.state_size,
+            self.action_size,
+            self.reward_size,
+            self.network_size,
+            self.hidden_size,
+            use_decay=self.use_decay
         )
         self.scaler = StandardScaler(self.state_size + self.action_size)
 
         if self._cuda:
             self.cuda()
-        
+
         self.ensemble_mse_losses = []
         self.model_variances = []
         self.elite_model_idxes = []

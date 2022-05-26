@@ -12,33 +12,24 @@ from ding.envs import get_vec_env_setting, create_env_manager
 from ding.config import compile_config
 from ding.utils import set_pkg_seed
 from ding.policy import create_policy
-from ding.utils import import_module, WORLD_MODEL_REGISTRY
+from ding.world_model import get_world_model_cls, create_world_model
 
-
-def get_world_model_cls(cfg):
-    import_module(cfg.get('import_names', []))
-    return WORLD_MODEL_REGISTRY.get(cfg.type)
-
-def create_world_model(cfg, *args, **kwargs):
-    import_module(cfg.get('import_names', []))
-    return WORLD_MODEL_REGISTRY.build(cfg.type, cfg, *args, **kwargs)
 
 # TODO: complete the setup with commander and so on
 def mbrl_entry_setup(
-        input_cfg: Union[str, Tuple[dict, dict]],
-        seed: int = 0,
-        env_setting: Optional[List[Any]] = None,
-        model: Optional[torch.nn.Module] = None,
-        max_train_iter: Optional[int] = int(1e10),
-        max_env_step: Optional[int] = int(1e10),
+    input_cfg: Union[str, Tuple[dict, dict]],
+    seed: int = 0,
+    env_setting: Optional[List[Any]] = None,
+    model: Optional[torch.nn.Module] = None,
+    max_train_iter: Optional[int] = int(1e10),
+    max_env_step: Optional[int] = int(1e10),
 ):
     cfg, create_cfg = input_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
 
     cfg = compile_config(cfg, seed=seed, env=None, auto=True, create_cfg=create_cfg, save_cfg=True)
     # merge world model default config
-    cfg.world_model = deep_merge_dicts(
-        get_world_model_cls(cfg.world_model).default_config(), cfg.world_model)
+    cfg.world_model = deep_merge_dicts(get_world_model_cls(cfg.world_model).default_config(), cfg.world_model)
 
     env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
@@ -74,9 +65,15 @@ def mbrl_entry_setup(
         cfg.policy.other.commander, learner, collector, evaluator, env_buffer, policy.command_mode
     )
 
-
     return (
-        cfg, policy, world_model, 
-        env_buffer, learner, collector, collector_env, evaluator, commander,
+        cfg,
+        policy,
+        world_model,
+        env_buffer,
+        learner,
+        collector,
+        collector_env,
+        evaluator,
+        commander,
         tb_logger,
     )

@@ -16,6 +16,7 @@ from ding.policy.common_utils import default_preprocess_learn
 
 from .utils import q_evaluation
 
+
 @POLICY_REGISTRY.register('mbsac')
 class MBSACPolicy(SACPolicy):
     r"""
@@ -32,7 +33,7 @@ class MBSACPolicy(SACPolicy):
             _lambda=0.8,
             # (float) Gradient clip norm.
             grad_clip=100,
-            # (bool) Whether to sample transitions or only states from environment buffer. 
+            # (bool) Whether to sample transitions or only states from environment buffer.
             sample_state=True,
         )
     )
@@ -63,8 +64,7 @@ class MBSACPolicy(SACPolicy):
             #     Independent(Normal(mu, sigma), 1), [TanhTransform()])
             # action = dist.rsample()
             # log_prob = dist.log_prob(action)
-            (mu, sigma) = self._learn_model.forward(
-                obs, mode='compute_actor')['logit']
+            (mu, sigma) = self._learn_model.forward(obs, mode='compute_actor')['logit']
             dist = Independent(Normal(mu, sigma), 1)
             pred = dist.rsample()
             action = torch.tanh(pred)
@@ -100,51 +100,44 @@ class MBSACPolicy(SACPolicy):
 
         self._learn_model.train()
         self._target_model.train()
-            
+
+        # TODO: use treetensor
         # rollout length is determined by world_model.rollout_length_scheduler
         if self._sample_state:
-            # data['reward'], ... are not used 
+            # data['reward'], ... are not used
             obss, actions, rewards, aug_rewards, dones = \
                 world_model.rollout(data['obs'], self._actor_fn, envstep)
         else:
             obss, actions, rewards, aug_rewards, dones = \
                 world_model.rollout(data['next_obs'], self._actor_fn, envstep)
-            obss        = torch.concat([data['obs'][None,:],    obss])
-            actions     = torch.concat([data['action'][None,:], actions])
-            rewards     = torch.concat([data['reward'][None,:], rewards])
-            aug_rewards = torch.concat([torch.zeros_like(data['reward'])[None,:], aug_rewards])
-            dones       = torch.concat([data['done'][None,:],   dones])
-
+            obss = torch.concat([data['obs'][None, :], obss])
+            actions = torch.concat([data['action'][None, :], actions])
+            rewards = torch.concat([data['reward'][None, :], rewards])
+            aug_rewards = torch.concat([torch.zeros_like(data['reward'])[None, :], aug_rewards])
+            dones = torch.concat([data['done'][None, :], dones])
 
         # (T+1, B)
-        target_q_values = q_evaluation(obss, actions, 
-                                       partial(self._critic_fn, model=self._target_model))
+        target_q_values = q_evaluation(obss, actions, partial(self._critic_fn, model=self._target_model))
         if self._twin_critic:
-            target_q_values = torch.min(target_q_values[0],
-                                        target_q_values[1]) + aug_rewards
+            target_q_values = torch.min(target_q_values[0], target_q_values[1]) + aug_rewards
         else:
             target_q_values = target_q_values + aug_rewards
 
         # (T, B)
-        lambda_return = generalized_lambda_returns(target_q_values, 
-                                                   rewards, 
-                                                   self._gamma, 
-                                                   self._lambda, 
-                                                   dones[1:])
+        lambda_return = generalized_lambda_returns(target_q_values, rewards, self._gamma, self._lambda, dones[1:])
 
         # (T, B)
         # If S_t terminates, we should not consider loss from t+1,...
         # note: torch.tensor(0).log().exp() = tensor(0.)
-        # example: tensor([0., 0., 0., 0.]).log().cumsum(dim=0).exp() = tensor([1., 1., 0., 0.])
+        # example: tensor([0., 0., 1., 0.]).log().cumsum(dim=0).exp() = tensor([1., 1., 0., 0.])
         weight = (1 - dones[:-1].detach()).log().cumsum(dim=0).exp()
 
         # (T+1, B)
-        q_values = q_evaluation(obss.detach(), actions.detach(), 
-                                partial(self._critic_fn, model=self._learn_model))
+        q_values = q_evaluation(obss.detach(), actions.detach(), partial(self._critic_fn, model=self._learn_model))
         if self._twin_critic:
             critic_loss = 0.5 * torch.square(q_values[0][:-1] - lambda_return.detach()) \
                         + 0.5 * torch.square(q_values[1][:-1] - lambda_return.detach())
-        else: 
+        else:
             critic_loss = 0.5 * torch.square(q_values[:-1] - lambda_return.detach())
 
         # value expansion loss
@@ -179,7 +172,7 @@ class MBSACPolicy(SACPolicy):
             'target_q_value': target_q_values.detach().mean().item(),
             **loss_dict
         }
-    
+
     def _update(self, loss_dict):
         # update critic
         self._optimizer_q.zero_grad()
