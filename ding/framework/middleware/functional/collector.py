@@ -6,6 +6,7 @@ import treetensor.torch as ttorch
 from ding.envs import BaseEnvManager
 from ding.policy import Policy
 from ding.framework import task
+from collections import namedtuple
 
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
@@ -81,6 +82,26 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
         ctx.inference_output = inference_output
 
     return _inference
+
+class BattleInferencer():
+    def __init__(self, cfg: EasyDict, policy: List[namedtuple] = None, env: BaseEnvManager = None):
+        self._cfg = cfg
+        self._policy = policy
+        self._env = env 
+
+
+    def __call__(self, ctx: "OnlineRLContext") -> None:
+        """
+        Input of ctx:
+            - n_episode (:obj:`int`): the number of collecting data episode
+            - train_iter (:obj:`int`): the number of training iteration
+            - policy_kwargs (:obj:`dict`): the keyword args for policy forward
+        Output of ctx:
+            -  return_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
+                the former is a list containing collected episodes if not get_train_sample, \
+                otherwise, return train_samples split by unroll_len.
+        """
+        raise NotImplementedError
 
 
 def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: TransitionList) -> Callable:

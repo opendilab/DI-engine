@@ -2,7 +2,7 @@ from ding.framework import task
 from time import sleep
 import logging
 
-from typing import List, Any, Callable
+from typing import Dict, List, Any, Callable 
 from dataclasses import dataclass, field
 from abc import abstractmethod
 
@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
     from ding.policy import Policy
+    from ding.framework.middleware.league_learner import LearnerModel
 
 class Storage:
 
@@ -70,9 +71,12 @@ class LeagueActor:
         self.cfg = cfg
         self.env_fn = env_fn
         self.policy_fn = policy_fn
-        self._transitions = TransitionList(self.env.env_num)
-        self._inferencer = task.wrap(inferencer(cfg, policy, env))
-        self._rolloutor = task.wrap(rolloutor(cfg, policy, env, self._transitions))
+        self._policies: Dict[str, "Policy.collect_function"] = {}
+        self._inferencers: Dict[str, "inferencer"] = {}
+        self._rolloutors: Dict[str, "rolloutor"] = {}
+        # self._transitions = TransitionList(self.env.env_num)
+        # self._inferencer = task.wrap(inferencer(cfg, policy, env))
+        # self._rolloutor = task.wrap(rolloutor(cfg, policy, env, self._transitions))
 
         task.on("league_job_actor_{}".format(task.router.node_id), self._on_league_job)
         task.on("learner_model", self._on_learner_model)
@@ -110,24 +114,31 @@ class LeagueActor:
             policies.append(self._get_policy(player))
             if player.player_id == job.launch_player:
                 main_player = player
+                inferencer,rolloutor = self._get_collector(player.player_id)
 
         assert main_player, "Can not find active player"
+        for p in self._policies:
+            p.reset()
         
         # initialize env
-        self._envs.reset()
+        # self._envs.reset()
 
         # 参考StepCollector 
         ctx = OnlineRLContext()
+        ctx.env_step = 0
+        ctx.env_episode = 0
+        ctx.train_iter = main_player.total_agent_step
+        #TODO: what is ctx.collect_kwargs 
+
         old = ctx.env_step
         
         target_size = self.cfg.policy.collect.n_sample * self.cfg.policy.collect.unroll_len
-        current_inferencer = self._inferencer
 
         while True:
             # model interaction with env
             # collector
-            current_inferencer(ctx)
-            self._rolloutor(ctx)
+            inferencer(ctx)
+            rolloutor(ctx)
             if ctx.env_step - old >= target_size:
                 ctx.trajectories, ctx.trajectory_end_idx = self._transitions.to_trajectories()
                 self._transitions.clear()
@@ -152,8 +163,18 @@ class LeagueActor:
             raise NotImplementedError
 
         task.emit("actor_greeting", task.router.node_id)
-        self._envs.close()
         self._running = False
+    
+    def _get_collector(self, player_id: str):
+        if self._inferencers.get(player_id) and self._rolloutors.get(player_id):
+            return self._inferencers[player_id], self._rolloutors[player_id]
+        cfg = self.cfg
+        env = self.env_fn()
+        policy = self._policies[player_id]
+
+        self._inferencers[player_id] = task.wrap(inferencer(cfg, policy, env))
+        self._rolloutors[player_id] = task.wrap(rolloutor(cfg, policy, env, self._transitions))
+        return self._inferencers[player_id], self._rolloutors[player_id]
 
     def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
         player_id = player.player_id
