@@ -1,8 +1,7 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_onpolicy_ppg
 
 bigfish_ppg_default_config = dict(
-    exp_name='bigfish_ppg2_0501_1',
+    exp_name='bigfish_ppg_seed0',
     env=dict(
         is_train=True,
         collector_env_num=64,
@@ -55,4 +54,6 @@ bigfish_ppg_create_config = EasyDict(bigfish_ppg_create_config)
 create_config = bigfish_ppg_create_config
 
 if __name__ == "__main__":
+
+    from ding.entry import serial_pipeline_onpolicy_ppg
     serial_pipeline_onpolicy_ppg([main_config, create_config], seed=0)

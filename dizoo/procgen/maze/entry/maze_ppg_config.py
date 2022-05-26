@@ -1,8 +1,7 @@
 from easydict import EasyDict
-from ding.entry import serial_pipeline_onpolicy_ppg
 
 maze_ppg_default_config = dict(
-    exp_name='maze_ppg_0501_1',
+    exp_name='maze_ppg_seed0',
     env=dict(
         is_train=True,
         collector_env_num=64,
@@ -55,4 +54,5 @@ maze_ppg_create_config = EasyDict(maze_ppg_create_config)
 create_config = maze_ppg_create_config
 
 if __name__ == "__main__":
+    from ding.entry import serial_pipeline_onpolicy_ppg
     serial_pipeline_onpolicy_ppg([main_config, create_config], seed=0)
