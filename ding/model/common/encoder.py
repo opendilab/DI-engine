@@ -2,15 +2,11 @@ from typing import Optional
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-import torch.distributed as dist
-import torch.distributions as dis
 
 from ding.torch_utils import ResFCBlock, ResBlock, Flatten
 from ding.utils import SequenceType
 
 import math
-import time
-import random
 
 
 class ConvEncoder(nn.Module):
