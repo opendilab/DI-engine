@@ -26,7 +26,7 @@ Remember to keep them connected by mesh to ensure that they can exchange informa
 3. You can repeat step 2 to start more collectors on other machines.
 """
 import gym
-import logging
+from ditk import logging
 from ding.model import DQN
 from ding.policy import DQNPolicy
 from ding.envs import DingEnvWrapper, BaseEnvManagerV2

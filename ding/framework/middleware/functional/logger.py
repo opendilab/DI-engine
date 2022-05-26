@@ -6,17 +6,20 @@ if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
 
 
-def online_logger(record_train_iter: bool = False) -> Callable:
+def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
     writer = DistributedWriter.get_instance()
+    last_train_show_iter = -1
 
     def _logger(ctx: "OnlineRLContext"):
+        nonlocal last_train_show_iter
         if ctx.eval_value is not None:
             if record_train_iter:
                 writer.add_scalar('basic/eval_episode_reward_mean-env_step', ctx.eval_value, ctx.env_step)
                 writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
             else:
                 writer.add_scalar('basic/eval_episode_reward_mean', ctx.eval_value, ctx.env_step)
-        if ctx.train_output is not None:
+        if ctx.train_output is not None and ctx.train_iter - last_train_show_iter >= train_show_freq:
+            last_train_show_iter = ctx.train_iter
             if isinstance(ctx.train_output, deque):
                 output = ctx.train_output.pop()  # only use latest output
             else:
