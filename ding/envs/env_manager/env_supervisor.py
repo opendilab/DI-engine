@@ -1,14 +1,13 @@
 from collections import defaultdict
-from functools import lru_cache
-import inspect
 import queue
 from time import sleep, time
-
+import gym
 from ding.framework import Supervisor
 from typing import TYPE_CHECKING, Any, List, Union, Dict, Optional, Callable
-from ding.framework.supervisor import ChildType, RecvPayload, SendPayload
+from ding.framework.supervisor import ChildType, RecvPayload, SendPayload, SharedObject
 from ding.utils import make_key_as_identifier
 from ditk import logging
+from ding.envs.env_manager.subprocess_env_manager import ShmBufferContainer
 import enum
 import treetensor.numpy as tnp
 import numbers
@@ -59,6 +58,8 @@ class EnvSupervisor(Supervisor):
             step_timeout: Optional[int] = None,
             retry_waiting_time: Optional[int] = None,
             episode_num: int = float("inf"),
+            shared_memory: bool = True,
+            copy_on_get: bool = True,
             **kwargs
     ) -> None:
         """
@@ -74,13 +75,40 @@ class EnvSupervisor(Supervisor):
             - reset_timeout (:obj:`Optional[int]`): Timeout in seconds for reset.
             - step_timeout (:obj:`Optional[int]`): Timeout in seconds for step.
             - retry_waiting_time (:obj:`Optional[float]`): Wait time on each retry.
+            - shared_memory (:obj:`bool`): Use shared memory in multiprocessing.
+            - copy_on_get (:obj:`bool`): Use copy on get in multiprocessing.
         """
         if kwargs:
             logging.warning("Unknown parameters on env supervisor: {}".format(kwargs))
         super().__init__(type_=type_)
+        self._shared_memory = type_ is ChildType.PROCESS and shared_memory
+        self._copy_on_get = type_ is ChildType.PROCESS and copy_on_get
+        self._env_fn = env_fn
+        self._create_env_ref()
+        self._obs_buffers = None
         if env_fn:
-            for env_init in env_fn:
-                self.register(env_init)
+            if self._shared_memory:
+                obs_space = self._observation_space
+                if isinstance(obs_space, gym.spaces.Dict):
+                    # For multi_agent case, such as multiagent_mujoco and petting_zoo mpe.
+                    # Now only for the case that each agent in the team have the same obs structure
+                    # and corresponding shape.
+                    shape = {k: v.shape for k, v in obs_space.spaces.items()}
+                    dtype = {k: v.dtype for k, v in obs_space.spaces.items()}
+                else:
+                    shape = obs_space.shape
+                    dtype = obs_space.dtype
+                self._obs_buffers = {
+                    env_id: ShmBufferContainer(dtype, shape, copy_on_get=self._copy_on_get)
+                    for env_id in range(len(self._env_fn))
+                }
+                for env_init in env_fn:
+                    self.register(
+                        env_init, shared_object=SharedObject(buf=self._obs_buffers, callback=self._shm_callback)
+                    )
+            else:
+                for env_init in env_fn:
+                    self.register(env_init)
         self._retry_type = retry_type
         self._auto_reset = auto_reset
         if max_retry:
@@ -103,6 +131,23 @@ class EnvSupervisor(Supervisor):
         self._env_episode_count = {i: 0 for i in range(self.env_num)}
         self._retry_times = defaultdict(lambda: 0)
         self._last_called = defaultdict(lambda: {"step": 9e9, "reset": 9e9})
+
+    def _shm_callback(self, payload: RecvPayload, obs_buffers: Any):
+        if payload.method == "reset" and payload.data is not None:
+            obs_buffers[payload.proc_id].fill(payload.data)
+            payload.data = None
+        elif payload.method == "step" and payload.data is not None:
+            obs_buffers[payload.proc_id].fill(payload.data.obs)
+            payload.data._replace(obs=None)
+
+    def _create_env_ref(self):
+        # env_ref is used to acquire some common attributes of env, like obs_shape and act_shape
+        self._env_ref = self._env_fn[0]()
+        self._env_ref.reset()
+        self._observation_space = self._env_ref.observation_space
+        self._action_space = self._env_ref.action_space
+        self._reward_space = self._env_ref.reward_space
+        self._env_ref.close()
 
     def step(self, actions: Union[Dict[int, List[Any]], List[Any]], block: bool = True) -> Optional[List[tnp.ndarray]]:
         """
@@ -183,28 +228,16 @@ class EnvSupervisor(Supervisor):
         return len(self._children)
 
     @property
-    @lru_cache(maxsize=None)
     def observation_space(self) -> 'Space':
-        assert not self.closed, "Please launch env supervisor before calling {}".format(
-            inspect.currentframe().f_code.co_name
-        )
-        return self.get_child_attr(0, "observation_space")
+        return self._observation_space
 
     @property
-    @lru_cache(maxsize=None)
     def action_space(self) -> 'Space':
-        assert not self.closed, "Please launch env supervisor before calling {}".format(
-            inspect.currentframe().f_code.co_name
-        )
-        return self.get_child_attr(0, "action_space")
+        return self._action_space
 
     @property
-    @lru_cache(maxsize=None)
     def reward_space(self) -> 'Space':
-        assert not self.closed, "Please launch env supervisor before calling {}".format(
-            inspect.currentframe().f_code.co_name
-        )
-        return self.get_child_attr(0, "reward_space")
+        return self._reward_space
 
     @property
     def ready_obs(self) -> tnp.array:
@@ -289,12 +322,21 @@ class EnvSupervisor(Supervisor):
     def _recv_callback(
             self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None
     ) -> RecvPayload:
+        self._set_shared_obs(payload=payload)
         self.change_state(payload=payload)
         if payload.method == "reset":
             return self._recv_reset_callback(payload=payload, remain_payloads=remain_payloads)
         elif payload.method == "step":
             return self._recv_step_callback(payload=payload, remain_payloads=remain_payloads)
         return payload
+
+    def _set_shared_obs(self, payload: RecvPayload):
+        if self._obs_buffers is None:
+            return
+        if payload.method == "reset" and payload.err is None:
+            payload.data = self._obs_buffers[payload.proc_id].get()
+        elif payload.method == "step" and payload.err is None:
+            payload.data._replace(obs=self._obs_buffers[payload.proc_id].get())
 
     def _recv_reset_callback(
             self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None
@@ -469,6 +511,11 @@ class EnvSupervisor(Supervisor):
             send_payloads.append(payload)
             self.send(payload)
         self.recv_all(send_payloads=send_payloads)
+
+    def __getattr__(self, key: str) -> List[Any]:
+        if not hasattr(self._env_ref, key):
+            raise AttributeError("env `{}` doesn't have the attribute `{}`".format(type(self._env_ref), key))
+        return super().__getattr__(key)
 
     def close(self, timeout: Optional[float] = None) -> None:
         """

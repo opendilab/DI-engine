@@ -39,16 +39,23 @@ class ChildType(Enum):
     THREAD = "thread"
 
 
+@dataclass
+class SharedObject:
+    buf: Any
+    callback: Callable
+
+
 class Child:
     """
     Abstract class of child process/thread.
     """
 
-    def __init__(self, proc_id: int, init: Callable, args: List[Any]) -> None:
+    def __init__(self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None) -> None:
         self._proc_id = proc_id
         self._init = init
         self._args = args
         self._recv_queue = None
+        self._shared_object = shared_object
 
     def start(self, recv_queue: Union[mp.Queue, queue.Queue]):
         raise NotImplementedError
@@ -64,8 +71,13 @@ class Child:
         raise NotImplementedError
 
     def _target(
-        self, proc_id: int, init: Callable, args: List, send_queue: Union[mp.Queue, queue.Queue],
-        recv_queue: Union[mp.Queue, queue.Queue]
+        self,
+        proc_id: int,
+        init: Callable,
+        args: List,
+        send_queue: Union[mp.Queue, queue.Queue],
+        recv_queue: Union[mp.Queue, queue.Queue],
+        shared_object: Optional[SharedObject] = None
     ):
         send_payload = SendPayload(proc_id=proc_id)
         child_ins = init(*args)
@@ -78,9 +90,12 @@ class Child:
                     data = getattr(child_ins, send_payload.args[0])
                 else:
                     data = getattr(child_ins, send_payload.method)(*send_payload.args, **send_payload.kwargs)
-                recv_queue.put(
-                    RecvPayload(proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, data=data)
+                recv_payload = RecvPayload(
+                    proc_id=proc_id, req_id=send_payload.req_id, method=send_payload.method, data=data
                 )
+                if shared_object:
+                    shared_object.callback(recv_payload, shared_object.buf)
+                recv_queue.put(recv_payload)
             except Exception as e:
                 logging.warning(traceback.format_exc())
                 logging.warning("Error in child process! id: {}, error: {}".format(self._proc_id, e))
@@ -95,8 +110,8 @@ class Child:
 
 class ChildProcess(Child):
 
-    def __init__(self, proc_id: int, init: Callable, args: List[Any]) -> None:
-        super().__init__(proc_id, init, args)
+    def __init__(self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None) -> None:
+        super().__init__(proc_id, init, *args, shared_object=shared_object)
         self._proc = None
 
     def start(self, recv_queue: mp.Queue):
@@ -106,7 +121,7 @@ class ChildProcess(Child):
         ctx = mp.get_context(context)
         proc = ctx.Process(
             target=self._target,
-            args=(self._proc_id, self._init, self._args, self._send_queue, self._recv_queue),
+            args=(self._proc_id, self._init, self._args, self._send_queue, self._recv_queue, self._shared_object),
             name="supervisor_child_{}_{}".format(self._proc_id, time.time()),
             daemon=True
         )
@@ -130,8 +145,8 @@ class ChildProcess(Child):
 
 class ChildThread(Child):
 
-    def __init__(self, proc_id: int, init: Callable, args: List[Any]) -> None:
-        super().__init__(proc_id, init, args)
+    def __init__(self, proc_id: int, init: Callable, *args, shared_object: Optional[SharedObject] = None) -> None:
+        super().__init__(proc_id, init, *args, shared_object=shared_object)
         self._thread = None
 
     def start(self, recv_queue: queue.Queue):
@@ -170,9 +185,9 @@ class Supervisor:
         self._running = False
         self.__queue = None
 
-    def register(self, init: Callable, *args) -> None:
+    def register(self, init: Callable, *args, shared_object: Optional[SharedObject] = None) -> None:
         proc_id = len(self._children)
-        self._children.append(self._child_class(proc_id, init=init, args=args))
+        self._children.append(self._child_class(proc_id, init, *args, shared_object=shared_object))
 
     @property
     def _recv_queue(self) -> Union[queue.Queue, mp.Queue]:

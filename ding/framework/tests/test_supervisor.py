@@ -1,7 +1,9 @@
+import multiprocessing as mp
+import ctypes
 from time import sleep
-from typing import Dict, List
+from typing import Any, Dict, List
 import pytest
-from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType
+from ding.framework.supervisor import RecvPayload, SendPayload, Supervisor, ChildType, SharedObject
 
 
 class MockEnv():
@@ -235,3 +237,27 @@ def test_timeout_with_callback(type_):
     assert payloads[1].err is None
 
     sv.shutdown(timeout=1)
+
+
+@pytest.mark.unittest
+def test_shared_memory():
+    sv = Supervisor(type_=ChildType.PROCESS)
+
+    def shm_callback(payload: RecvPayload, shm: Any):
+        shm[payload.proc_id] = payload.data
+        payload.data = 0
+
+    shm = mp.Array(ctypes.c_uint8, 3)
+    for i in range(3):
+        sv.register(MockEnv, "AnyArgs", shared_object=SharedObject(buf=shm, callback=shm_callback))
+    sv.start_link()
+
+    for env_id in range(len(sv._children)):
+        sv.send(SendPayload(proc_id=env_id, method="step", args=["any action"]))
+
+    for i in range(3):
+        payload = sv.recv()
+        assert payload.data == 0
+        assert shm[i] == 1
+
+    sv.shutdown()
