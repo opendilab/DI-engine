@@ -115,6 +115,7 @@ class BattleInferencer():
                 raise RuntimeError("Please specify collect n_episode")
             else:
                 ctx.n_episode = self._default_n_episode
+        ### TODO(zms): self._env_num comes from self.reset_env()
         assert ctx.n_episode >= self._env_num, "Please make sure n_episode >= env_num"
 
         if ctx.policy_kwargs is None:
@@ -161,7 +162,7 @@ class BattleInferencer():
             for env_id, timestep in timesteps.items():
                 # TODO(zms): self._env_info comes from self.reset()
                 self._env_info[env_id]['step'] += 1
-                # TODO(zms): self._env_info comes from self.reset()
+                # TODO(zms): self._total_envstep_count comes from self.reset()
                 self._total_envstep_count += 1
                 with self._timer:
                     for policy_id, policy in enumerate(self._policy):
@@ -173,6 +174,7 @@ class BattleInferencer():
                             policy_timestep
                         )
                         transition['collect_iter'] = ctx.cleartrain_iter
+                        # TODO(zms): self._traj_buffer comes from self.reset()
                         self._traj_buffer[env_id][policy_id].append(transition)
                         # prepare data
                         if timestep.done:
@@ -189,7 +191,7 @@ class BattleInferencer():
 
                 # If env is done, record episode info and reset
                 if timestep.done:
-                    # TODO(zms): self._env_info comes from self.reset()
+                    # TODO(zms): self._total_episode_count comes from self.reset()
                     self._total_episode_count += 1
                     info = {
                         'reward0': timestep.info[0]['final_eval_reward'],
@@ -198,9 +200,11 @@ class BattleInferencer():
                         'step': self._env_info[env_id]['step'],
                     }
                     collected_episode += 1
+                    # TODO(zms): self._episode_info comes from self.reset()
                     self._episode_info.append(info)
                     for i, p in enumerate(self._policy):
                         p.reset([env_id])
+                    # TODO(zms): define self._reset_stat 
                     self._reset_stat(env_id)
                     ready_env_id.remove(env_id)
                     for policy_id in range(2):
