@@ -3,9 +3,10 @@ import pytest
 from copy import deepcopy
 from ding.envs import BaseEnvManager
 from ding.framework.middleware.tests.league_config import cfg
-from ding.framework.middleware.league_actor import ActorData, LeagueActor, Job
+from ding.framework.middleware.league_actor import ActorData, LeagueActor
 
 from ding.framework.task import task, Parallel
+from ding.league.v2.base_league import BaseLeague, Job
 from ding.model import VAC
 from ding.policy.ppo import PPOPolicy
 from dizoo.league_demo.game_env import GameEnv

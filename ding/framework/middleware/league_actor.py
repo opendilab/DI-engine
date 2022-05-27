@@ -12,6 +12,7 @@ from ding.envs import BaseEnvManager
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
+    from ding.league.v2.base_league import Job
     from ding.policy import Policy
     from ding.framework.middleware.league_learner import LearnerModel
     from ding.framework.middleware import BattleCollector
@@ -39,16 +40,6 @@ class PlayerMeta:
     player_id: str
     checkpoint: "Storage"
     total_agent_step: int = 0
-
-@dataclass
-class Job:
-    launch_player: str
-    players: List["PlayerMeta"]
-    result: list = field(default_factory=list)
-    job_no: int = 0  # Serial number of  job, not required
-    train_iter: int = None
-    is_eval: bool = False
-
 
 class LeagueActor:
 
