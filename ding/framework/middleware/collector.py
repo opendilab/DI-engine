@@ -14,6 +14,24 @@ from ding.utils import EasyTimer, dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
 from ding.worker.collector.base_serial_collector import CachePool, TrajBuffer, INF, to_tensor_transitions
 
+def reset_policy(_policy: Optional[List[namedtuple]] = None):
+
+    def _reset_policy(ctx: OnlineRLContext):
+        if _policy is not None:
+            assert len(_policy) > 1, "battle collector needs more than 1 policies"
+            ctx._policy = _policy
+            ctx._default_n_episode = _policy[0].get_attribute('cfg').collect.get('n_episode', None)
+            # ctx._unroll_len = _policy[0].get_attribute('unroll_len') # unuseful here
+            # ctx._on_policy = _policy[0].get_attribute('cfg').on_policy # unuseful here 
+            # ctx._traj_len = INF
+
+        for p in ctx._policy:
+            p.reset()
+
+    return _reset_policy
+
+
+
 
 class BattleCollector():
     def __init__(
@@ -29,11 +47,9 @@ class BattleCollector():
         self._end_flag = False
         self._traj_len = float("inf")
 
-        # TODO(zms) call self.reset() to reset policy and env
-        self._policy = policy
-        self._env = env 
+        self._reset(env)
     
-    def reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
+    def _reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
         """
         Overview:
             Reset the environment.
@@ -51,35 +67,10 @@ class BattleCollector():
         else:
             self._env.reset()
     
-    def reset_policy(self, _policy: Optional[List[namedtuple]] = None) -> None:
+    def _reset(self, _env: Optional[BaseEnvManager] = None) -> None:
         """
         Overview:
-            Reset the policy.
-            If _policy is None, reset the old policy.
-            If _policy is not None, replace the old policy in the collector with the new passed in policy.
-        Arguments:
-            - policy (:obj:`Optional[List[namedtuple]]`): the api namedtuple of collect_mode policy
-        """
-        assert hasattr(self, '_env'), "please set env first"
-        if _policy is not None:
-            assert len(_policy) == 2, "1v1 episode collector needs 2 policy, but found {}".format(len(_policy))
-            self._policy = _policy
-            self._default_n_episode = _policy[0].get_attribute('cfg').collect.get('n_episode', None)
-            self._unroll_len = _policy[0].get_attribute('unroll_len')
-            self._on_policy = _policy[0].get_attribute('cfg').on_policy
-            self._traj_len = INF
-            # self._logger.debug(
-            #     'Set default n_episode mode(n_episode({}), env_num({}), traj_len({}))'.format(
-            #         self._default_n_episode, self._env_num, self._traj_len
-            #     )
-            # )
-        for p in self._policy:
-            p.reset()
-    
-    def reset(self, _policy: Optional[List[namedtuple]] = None, _env: Optional[BaseEnvManager] = None) -> None:
-        """
-        Overview:
-            Reset the environment and policy.
+            Reset the environment.
             If _env is None, reset the old environment.
             If _env is not None, replace the old environment in the collector with the new passed \
                 in environment and launch.
@@ -91,9 +82,7 @@ class BattleCollector():
                 env_manager(BaseEnvManager)
         """
         if _env is not None:
-            self.reset_env(_env)
-        if _policy is not None:
-            self.reset_policy(_policy)
+            self._reset_env(_env)
 
         self._obs_pool = CachePool('obs', self._env_num, deepcopy=self._deepcopy_obs)
         self._policy_output_pool = CachePool('policy_output', self._env_num)
@@ -127,7 +116,7 @@ class BattleCollector():
         self._policy_output_pool.reset(env_id)
         self._env_info[env_id] = {'time': 0., 'step': 0}
     
-    def close(self) -> None:
+    def _close(self) -> None:
         """
         Overview:
             Close the collector. If end_flag is False, close the environment, flush the tb_logger\
@@ -144,7 +133,7 @@ class BattleCollector():
             Execute the close command and close the collector. __del__ is automatically called to \
                 destroy the collector instance when the collector finishes its work
         """
-        self.close()
+        self._close()
 
     def __call__(self, ctx: "OnlineRLContext") -> None:
         """
@@ -159,12 +148,10 @@ class BattleCollector():
         """
         
         if ctx.n_episode is None:
-            ### TODO(zms): self._default_n_episode comes from self.reset_policy()
-            if self._default_n_episode is None:
+            if ctx._default_n_episode is None:
                 raise RuntimeError("Please specify collect n_episode")
             else:
-                ctx.n_episode = self._default_n_episode
-        ### TODO(zms): self._env_num comes from self.reset_env()
+                ctx.n_episode = ctx._default_n_episode
         assert ctx.n_episode >= self._env_num, "Please make sure n_episode >= env_num"
 
         if ctx.policy_kwargs is None:
@@ -186,14 +173,12 @@ class BattleCollector():
                 obs = {env_id: obs[env_id] for env_id in ready_env_id}
 
                 # Policy forward.
-                ### TODO(zms): self._obs_pool comes from self.reset
                 self._obs_pool.update(obs)
                 if self._transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
                 obs = dicts_to_lists(obs)
-                policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(self._policy)]
+                policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx._policy)]
 
-                ### TODO(zms): self._policy_output_pool comes from self.reset
                 self._policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {}
@@ -209,28 +194,23 @@ class BattleCollector():
 
             # TODO(nyz) vectorize this for loop
             for env_id, timestep in timesteps.items():
-                # TODO(zms): self._env_info comes from self.reset()
                 self._env_info[env_id]['step'] += 1
-                # TODO(zms): self._total_envstep_count comes from self.reset()
                 self._total_envstep_count += 1
                 with self._timer:
-                    for policy_id, policy in enumerate(self._policy):
+                    for policy_id, policy in enumerate(ctx._policy):
                         policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                         policy_timestep = type(timestep)(*policy_timestep_data)
-                        transition = self._policy[policy_id].process_transition(
-                            # TODO(zms): self._policy_output_pool comes from self.reset()
+                        transition = ctx._policy[policy_id].process_transition(
                             self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id],
                             policy_timestep
                         )
                         transition['collect_iter'] = ctx.train_iter
-                        # TODO(zms): self._traj_buffer comes from self.reset()
                         self._traj_buffer[env_id][policy_id].append(transition)
                         # prepare data
                         if timestep.done:
-                            # TODO(zms): to get rid of collector, "to_tensor_transitions" function should be removed and must be somewhere else.
                             transitions = to_tensor_transitions(self._traj_buffer[env_id][policy_id])
                             if self._cfg.get_train_sample:
-                                train_sample = self._policy[policy_id].get_train_sample(transitions)
+                                train_sample = ctx._policy[policy_id].get_train_sample(transitions)
                                 return_data[policy_id].extend(train_sample)
                             else:
                                 return_data[policy_id].append(transitions)
@@ -240,7 +220,6 @@ class BattleCollector():
 
                 # If env is done, record episode info and reset
                 if timestep.done:
-                    # TODO(zms): self._total_episode_count comes from self.reset()
                     self._total_episode_count += 1
                     info = {
                         'reward0': timestep.info[0]['final_eval_reward'],
@@ -249,11 +228,9 @@ class BattleCollector():
                         'step': self._env_info[env_id]['step'],
                     }
                     collected_episode += 1
-                    # TODO(zms): self._episode_info comes from self.reset()
                     self._episode_info.append(info)
-                    for i, p in enumerate(self._policy):
+                    for i, p in enumerate(ctx._policy):
                         p.reset([env_id])
-                    # TODO(zms): define self._reset_stat 
                     self._reset_stat(env_id)
                     ready_env_id.remove(env_id)
                     for policy_id in range(2):
