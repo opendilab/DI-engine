@@ -87,7 +87,12 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     return _inference
 
 class BattleCollector():
-    def __init__(self, cfg: EasyDict, policy: List[namedtuple] = None, env: BaseEnvManager = None):
+    def __init__(
+            self, 
+            cfg: EasyDict, 
+            env: BaseEnvManager = None, 
+            policy: List[namedtuple] = None
+    ):
         self._cfg = cfg
         self._transform_obs = cfg.transform_obs
         self._timer = EasyTimer()

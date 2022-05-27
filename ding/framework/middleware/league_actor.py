@@ -16,6 +16,12 @@ if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
     from ding.policy import Policy
     from ding.framework.middleware.league_learner import LearnerModel
+    from ding.framework.middleware.functional.collector import BattleCollector
+
+@dataclass
+class ActorData:
+    train_data: Any
+    env_step: int = 0
 
 class Storage:
 
@@ -65,19 +71,15 @@ class Job:
 class LeagueActor:
 
     def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable):
-        self._running = True
-        self._model_updated = True
-
         self.cfg = cfg
         self.env_fn = env_fn
         self.policy_fn = policy_fn
+        # self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
+        self.n_rollout_samples = 0
+        self._running = False
+        self._collectors: Dict[str, BattleCollector] = {}
         self._policies: Dict[str, "Policy.collect_function"] = {}
-        self._inferencers: Dict[str, "inferencer"] = {}
-        self._rolloutors: Dict[str, "rolloutor"] = {}
-        # self._transitions = TransitionList(self.env.env_num)
-        # self._inferencer = task.wrap(inferencer(cfg, policy, env))
-        # self._rolloutor = task.wrap(rolloutor(cfg, policy, env, self._transitions))
-
+        self._model_updated = True
         task.on("league_job_actor_{}".format(task.router.node_id), self._on_league_job)
         task.on("learner_model", self._on_learner_model)
 
@@ -107,74 +109,57 @@ class LeagueActor:
                 "Waiting for new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
             )
             sleep(1)
-
+        
+        collector = self._get_collector(job.launch_player)
         policies = []
         main_player: "PlayerMeta" = None
         for player in job.players:
             policies.append(self._get_policy(player))
             if player.player_id == job.launch_player:
                 main_player = player
-                inferencer,rolloutor = self._get_collector(player.player_id)
+                # inferencer,rolloutor = self._get_collector(player.player_id)
 
         assert main_player, "Can not find active player"
-        for p in self._policies:
-            p.reset()
-        
-        # initialize env
-        # self._envs.reset()
+        collector.reset_policy(policies)
 
-        # 参考StepCollector 
+        def send_actor_job(episode_info: List):
+            job.result = [e['result'] for e in episode_info]
+            task.emit("actor_job", job)
+
+        def send_actor_data(train_data: List):
+            # Don't send data in evaluation mode
+            if job.is_eval:
+                return
+            for d in train_data:
+                d["adv"] = d["reward"]
+
+            actor_data = ActorData(env_step=collector.envstep, train_data=train_data)
+            task.emit("actor_data_player_{}".format(job.launch_player), actor_data)
+
         ctx = OnlineRLContext()
-        ctx.env_step = 0
-        ctx.env_episode = 0
+        ctx.n_episode = None
         ctx.train_iter = main_player.total_agent_step
-        #TODO: what is ctx.collect_kwargs 
-
-        old = ctx.env_step
+        ctx.policy_kwargs = None
         
-        target_size = self.cfg.policy.collect.n_sample * self.cfg.policy.collect.unroll_len
-
-        while True:
-            # model interaction with env
-            # collector
-            inferencer(ctx)
-            rolloutor(ctx)
-            if ctx.env_step - old >= target_size:
-                ctx.trajectories, ctx.trajectory_end_idx = self._transitions.to_trajectories()
-                self._transitions.clear()
-                break
-
-        # generate traj
-        # get traj from collector
-
-        # emit traj data 
-        # rolloutor 实现
+        train_data, episode_info = collector.collect(ctx)
+        train_data, episode_info = train_data[0], episode_info[0]  # only use main player data for training
+        send_actor_data(train_data)
+        send_actor_job(episode_info)
         
-        def send_actor_job():
-            """
-            Q:When send actor job? 
-            """
-            raise NotImplementedError
-        
-        def send_actor_data():
-            """
-            Send actor traj for each iter.
-            """
-            raise NotImplementedError
-
         task.emit("actor_greeting", task.router.node_id)
         self._running = False
     
     def _get_collector(self, player_id: str):
-        if self._inferencers.get(player_id) and self._rolloutors.get(player_id):
-            return self._inferencers[player_id], self._rolloutors[player_id]
+        if self._collectors.get(player_id):
+            return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
-        policy = self._policies[player_id]
-
-        self._inferencers[player_id] = task.wrap(inferencer(cfg, policy, env))
-        self._rolloutors[player_id] = task.wrap(rolloutor(cfg, policy, env, self._transitions))
-        return self._inferencers[player_id], self._rolloutors[player_id]
+        collector = BattleCollector(
+            cfg.policy.collect.collector,
+            env
+        )
+        self._collectors[player_id] = collector
+        return collector
 
     def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
         player_id = player.player_id
