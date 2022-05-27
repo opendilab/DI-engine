@@ -5,8 +5,8 @@ from ding.envs import BaseEnvManager
 from ding.framework import task
 from .functional import inferencer, rolloutor, TransitionList
 
-if TYPE_CHECKING:
-    from ding.framework import OnlineRLContext
+# if TYPE_CHECKING:
+from ding.framework import OnlineRLContext
 
 import torch
 from collections import namedtuple
@@ -33,12 +33,11 @@ def reset_policy(_policy: Optional[List[namedtuple]] = None):
 
 
 
-class BattleCollector():
+class BattleCollector:
     def __init__(
             self, 
             cfg: EasyDict, 
             env: BaseEnvManager = None, 
-            policy: List[namedtuple] = None
     ):
         self._deepcopy_obs = cfg.deepcopy_obs
         self._transform_obs = cfg.transform_obs
@@ -46,7 +45,6 @@ class BattleCollector():
         self._timer = EasyTimer()
         self._end_flag = False
         self._traj_len = float("inf")
-
         self._reset(env)
     
     def _reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
@@ -146,7 +144,7 @@ class BattleCollector():
                 the former is a list containing collected episodes if not get_train_sample, \
                 otherwise, return train_samples split by unroll_len.
         """
-        
+        ctx.envstep = self._total_envstep_count
         if ctx.n_episode is None:
             if ctx._default_n_episode is None:
                 raise RuntimeError("Please specify collect n_episode")
@@ -162,7 +160,6 @@ class BattleCollector():
         return_info = [[] for _ in range(2)]
         ready_env_id = set()
         remain_episode = ctx.n_episode
-
         while True:
             with self._timer:
                 # Get current env obs.
@@ -196,6 +193,7 @@ class BattleCollector():
             for env_id, timestep in timesteps.items():
                 self._env_info[env_id]['step'] += 1
                 self._total_envstep_count += 1
+                ctx.envstep = self._total_envstep_count
                 with self._timer:
                     for policy_id, policy in enumerate(ctx._policy):
                         policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
@@ -240,8 +238,8 @@ class BattleCollector():
         # log
         ### TODO: how to deal with log here?
         # self._output_log(ctx.train_iter)
-        ctx.return_data = return_data
-        ctx.return_info = return_info
+        ctx.train_data = return_data
+        ctx.episode_info = return_info
 
 
 class StepCollector:

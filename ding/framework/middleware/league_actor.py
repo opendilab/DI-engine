@@ -9,13 +9,12 @@ from abc import abstractmethod
 from easydict import EasyDict
 from ding.envs import BaseEnvManager
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from ding.framework import OnlineRLContext
-    from ding.league.v2.base_league import Job
-    from ding.policy import Policy
-    from ding.framework.middleware.league_learner import LearnerModel
-    from ding.framework.middleware import BattleCollector
+from ding.framework import OnlineRLContext
+from ding.league.v2.base_league import Job
+from ding.policy import Policy
+from ding.framework.middleware.league_learner import LearnerModel
+from ding.framework.middleware import BattleCollector
+from ding.framework.middleware.collector import reset_policy
 
 @dataclass
 class ActorData:
@@ -82,7 +81,6 @@ class LeagueActor:
                 "Waiting for new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
             )
             sleep(1)
-        
         collector = self._get_collector(job.launch_player)
         policies = []
         main_player: "PlayerMeta" = None
@@ -91,10 +89,10 @@ class LeagueActor:
             if player.player_id == job.launch_player:
                 main_player = player
                 # inferencer,rolloutor = self._get_collector(player.player_id)
-
         assert main_player, "Can not find active player"
-        collector.reset_policy(policies)
 
+        ctx = OnlineRLContext()
+        reset_policy(policies)(ctx)
         def send_actor_job(episode_info: List):
             job.result = [e['result'] for e in episode_info]
             task.emit("actor_job", job)
@@ -106,16 +104,16 @@ class LeagueActor:
             for d in train_data:
                 d["adv"] = d["reward"]
 
-            actor_data = ActorData(env_step=collector.envstep, train_data=train_data)
+            actor_data = ActorData(env_step=ctx.envstep, train_data=train_data)
             task.emit("actor_data_player_{}".format(job.launch_player), actor_data)
 
-        ctx = OnlineRLContext()
+        
         ctx.n_episode = None
         ctx.train_iter = main_player.total_agent_step
         ctx.policy_kwargs = None
         
-        train_data, episode_info = collector(ctx)
-        train_data, episode_info = train_data[0], episode_info[0]  # only use main player data for training
+        collector(ctx)
+        train_data, episode_info = ctx.train_data[0], ctx.episode_info[0]  # only use main player data for training
         send_actor_data(train_data)
         send_actor_job(episode_info)
         
@@ -151,8 +149,35 @@ class LeagueActor:
         sleep(3)
 
 # used for test
+# if __name__ == '__main__':
+#     actor = LeagueActor()
+
+
 if __name__ == '__main__':
-    actor = LeagueActor()
+    from copy import deepcopy
+    from ding.framework.middleware.tests.league_config import cfg
+    from dizoo.league_demo.game_env import GameEnv
+
+    def prepare_test():
+        global cfg
+        cfg = deepcopy(cfg)
+
+        def env_fn():
+            env = BaseEnvManager(
+                env_fn=[lambda: GameEnv(cfg.env.env_type) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
+            )
+            env.seed(cfg.seed)
+            return env
+
+        return cfg, env_fn
+    
+    cfg, env_fn = prepare_test()
 
 
+    collector = BattleCollector(
+        cfg.policy.collect.collector,
+        env_fn()
+    )
+    ctx = OnlineRLContext()
+    reset_policy(None)(ctx)
 
