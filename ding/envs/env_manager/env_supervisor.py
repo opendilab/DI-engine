@@ -387,7 +387,7 @@ class EnvSupervisor(Supervisor):
                 }
             )
         else:
-            obs, reward, done, info = payload.data
+            obs, reward, done, info, *_ = payload.data
             if done:
                 self._env_episode_count[payload.proc_id] += 1
                 if self._env_episode_count[payload.proc_id] < self._episode_num and self._auto_reset:
