@@ -178,13 +178,14 @@ class MAVAC(nn.Module):
             >>> actor_outputs = model(inputs,'compute_actor')
             >>> assert actor_outputs['action'].shape == torch.Size([4, 64])
         """
-        action_mask = x['action_mask']
+        #action_mask = x['action_mask']
         x = x['agent_state']
 
         x = self.actor_encoder(x)
+        #print(x)
         x = self.actor_head(x)
         logit = x['logit']
-        logit[action_mask == 0.0] = -99999999
+        #logit[action_mask == 0.0] = -99999999
         return {'logit': logit}
 
     def compute_critic(self, x: Dict) -> Dict:
@@ -212,7 +213,7 @@ class MAVAC(nn.Module):
             >>> critic_outputs['value']
             tensor([0.0252, 0.0235, 0.0201, 0.0072], grad_fn=<SqueezeBackward1>)
         """
-
+        #print(x['global_state'].shape)
         x = self.critic_encoder(x['global_state'])
         x = self.critic_head(x)
         return {'value': x['pred']}
@@ -252,5 +253,5 @@ class MAVAC(nn.Module):
         """
         logit = self.compute_actor(x)['logit']
         value = self.compute_critic(x)['value']
-        action_mask = x['action_mask']
+        #action_mask = x['action_mask']
         return {'logit': logit, 'value': value}

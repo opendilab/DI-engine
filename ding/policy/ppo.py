@@ -405,7 +405,7 @@ class PPOPolicy(Policy):
         if self._action_space == 'continuous':
             self._eval_model = model_wrap(self._model, wrapper_name='deterministic_sample')
         elif self._action_space == 'discrete':
-            self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
+            self._eval_model = model_wrap(self._model, wrapper_name='multinomial_sample')
         elif self._action_space == 'hybrid':
             self._eval_model = model_wrap(self._model, wrapper_name='hybrid_deterministic_argmax_sample')
         self._eval_model.reset()

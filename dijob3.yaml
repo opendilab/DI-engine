@@ -1,0 +1,67 @@
+apiVersion: diengine.opendilab.org/v2alpha1
+kind: DIJob
+metadata:
+    name: mappo-try1-wyh-onehot-diffp-nr-0526-advf-2
+spec:
+  group: "diengine"  # 标记job所属的group，保留字段
+  priority: "normal"  # 表示job的优先级，保留字段，调度中或许可以用到
+  backoffLimit: 0  # 表示job允许的最大重启次数，可以为nil，表示无限重启；默认为3，可以通过status.restarts看到实际重启次数
+  cleanPodPolicy: "Running"  # 表示job运行完成之后，如何处理worker pods。Running表示job完成后删除所有还在Running的pods
+  preemptible: false  # 表示job是否允许被抢占，调度中对job资源改动之后涉及到抢占操作。目前只能设置为false
+  minReplicas: 1  # 表示job的最小replicas数目。job提交后默认的replicas数等于该值。用户可以通过修改status.replicas来调整实际创建的replicas。
+  maxReplicas: 1  # 表示job的最大replicas数目。保留字段
+  template:
+    spec:
+      volumes:
+      - name: cache-volume
+        emptyDir:
+          medium: Memory
+          sizeLimit: 128Mi
+      volumes:
+      - name: volume-tmp
+        hostPath:
+          path: /mnt/lustre/weiyuhong
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - sh-idc1-10-198-34-128
+                - sh-idc1-10-198-34-152
+                - sh-idc1-10-198-34-153
+                - sh-idc1-10-198-34-136
+      containers:
+      - name: di-container
+        image: registry.sensetime.com/xlab/ding:cuda-nightly-atari
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /mnt/lustre/weiyuhong
+          name: volume-tmp
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+            cpu: 16
+            memory: "60Gi"
+          limits:
+            nvidia.com/gpu: 1
+            cpu: 16
+            memory: "60Gi"
+        command: ["/bin/bash", "-c",]
+        args:
+        - |
+            
+            cd /mnt/lustre/weiyuhong/communication/DI-engine
+            pip install -i http://pypi.opencloud.sensetime.com/repository/pypi-proxy/simple/ --trusted-host pypi.opencloud.sensetime.com -e . --user
+
+            python scma_mappo_onehot_nr.py
+           
+
+        ports:
+        - name: di-port
+          containerPort: 22270

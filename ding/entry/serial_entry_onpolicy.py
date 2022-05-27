@@ -1,7 +1,7 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
-from ditk import logging
+import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
@@ -68,7 +68,7 @@ def serial_pipeline_onpolicy(
         exp_name=cfg.exp_name
     )
     evaluator = InteractionSerialEvaluator(
-        cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
+        cfg.policy.eval.evaluator, evaluator_env, policy.collect_mode, tb_logger, exp_name=cfg.exp_name
     )
     commander = BaseSerialCommander(
         cfg.policy.other.commander, learner, collector, evaluator, None, policy.command_mode
