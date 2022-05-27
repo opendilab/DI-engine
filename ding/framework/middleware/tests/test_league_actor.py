@@ -2,6 +2,7 @@ from time import sleep
 import pytest
 from copy import deepcopy
 from ding.envs import BaseEnvManager
+from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.tests.league_config import cfg
 from ding.framework.middleware.league_actor import ActorData, LeagueActor
 
@@ -12,37 +13,6 @@ from ding.policy.ppo import PPOPolicy
 from dizoo.league_demo.game_env import GameEnv
 
 from dataclasses import dataclass
-
-@dataclass
-class LearnerModel:
-    player_id: str
-    state_dict: dict
-    train_iter: int = 0
-
-class MockLeague:
-    def __init__(self):
-        self.active_players_ids = ["test_node_1", "test_node_2", "test_node_3"]
-        self.update_payoff_cnt = 0
-        self.update_active_player_cnt = 0
-        self.create_historical_player_cnt = 0
-        self.get_job_info_cnt = 0
-
-    def update_payoff(self, job):
-        self.update_payoff_cnt += 1
-        # print("update_payoff: {}".format(job))
-    
-    def update_active_player(self, meta):
-        self.update_active_player_cnt += 1
-        # print("update_active_player: {}".format(meta))
-    
-    def create_historical_player(self, meta):
-        self.create_historical_player_cnt += 1
-        # print("create_historical_player: {}".format(meta))
-    
-    def get_job_info(self, player_id):
-        self.get_job_info_cnt += 1
-        # print("get_job_info")
-        return Job(231890, player_id, False)
 
 def prepare_test():
     global cfg
@@ -60,14 +30,17 @@ def prepare_test():
         policy = PPOPolicy(cfg.policy, model=model)
         return policy
 
-    league = MockLeague()
+    league = BaseLeague(cfg.policy.other.league)
     return cfg, env_fn, policy_fn, league
 
 
 def main():
     cfg, env_fn, policy_fn, league = prepare_test()
     policy = policy_fn()
+    league: BaseLeague
     task.start()
+
+    job: Job = league.get_job_info()
     ACTOR_ID = 0
 
     def on_actor_greeting(actor_id):
@@ -81,8 +54,27 @@ def main():
     
     if task.router.node_id == ACTOR_ID:
         league_actor = LeagueActor(cfg, env_fn, policy_fn)
+
     elif task.router.node_id == 1:
         task.on('actor_greeting', on_actor_greeting)
+        task.on("actor_job", on_actor_job)
+        task.on("actor_data_player_{}".format(job.launch_player), on_actor_data)
+
+        sleep(0.3)
+        task.emit("league_job_actor_{}".format(task.router.node_id), job)
+        sleep(0.3)
+        assert league_actor._model_updated == False
+
+        task.emit(
+            "learner_model",
+            LearnerModel(
+                player_id=league.active_players_ids[0], state_dict=policy.learn_mode.state_dict(), train_iter=0
+            )
+        )
+        sleep(0.3)
+        assert league_actor._model_updated == True
+
+        task.finish = True
 
 if __name__ == "__main__":
-    Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="star")(main)
+    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="star")(main)
