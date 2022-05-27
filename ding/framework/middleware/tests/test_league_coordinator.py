@@ -47,10 +47,10 @@ def _main():
         # test ACTOR_GREETING
         res = []
         actor_id = "test_node_{}".format(task.router.node_id)
-        task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB(actor_id), lambda job: res.append(job))
+        task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.get_event(actor_id), lambda job: res.append(job))
         time.sleep(1)
         for _ in range(3):
-            task.emit(EventEnum.ACTOR_GREETING(), actor_id)
+            task.emit(EventEnum.ACTOR_GREETING.get_event(), actor_id)
         time.sleep(3)
         assert actor_id == res[-1].actor_id
     elif task.router.node_id == 2:
@@ -58,7 +58,7 @@ def _main():
         actor_id = "test_node_{}".format(task.router.node_id)
         time.sleep(1)
         for _ in range(3):
-            task.emit(EventEnum.LEARNER_SEND_META(), {"meta": actor_id})
+            task.emit(EventEnum.LEARNER_SEND_META.get_event(), {"meta": actor_id})
         time.sleep(3)
     elif task.router.node_id == 3:
         # test ACTOR_FINISH_JOB
@@ -66,7 +66,7 @@ def _main():
         time.sleep(1)
         job = Job(-1, actor_id, False)
         for _ in range(3):
-            task.emit(EventEnum.ACTOR_FINISH_JOB(), job)
+            task.emit(EventEnum.ACTOR_FINISH_JOB.get_event(), job)
         time.sleep(3)
     else:
         raise Exception("Invalid node id {}".format(task.router.is_active))

@@ -22,9 +22,9 @@ class LeagueCoordinator:
         self.league = league
         self._job_iter = self._job_dispatcher()
         self._lock = Lock()
-        task.on(EventEnum.ACTOR_GREETING(), self._on_actor_greeting)
-        task.on(EventEnum.LEARNER_SEND_META(), self._on_learner_meta)
-        task.on(EventEnum.ACTOR_FINISH_JOB(), self._on_actor_job)
+        task.on(EventEnum.ACTOR_GREETING.get_event(), self._on_actor_greeting)
+        task.on(EventEnum.LEARNER_SEND_META.get_event(), self._on_learner_meta)
+        task.on(EventEnum.ACTOR_FINISH_JOB, self._on_actor_job)
 
     def _on_actor_greeting(self, actor_id):
         with self._lock:
@@ -32,7 +32,7 @@ class LeagueCoordinator:
         if job.job_no > 0 and job.job_no % 10 == 0:  # 1/10 turn job into eval mode
             job.is_eval = True
         job.actor_id = actor_id
-        task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB(actor_id), job)
+        task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.get_event(actor_id), job)
 
     def _on_actor_job(self, job: "Job"):
         self.league.update_payoff(job)
