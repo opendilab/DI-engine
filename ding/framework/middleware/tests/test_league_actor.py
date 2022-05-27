@@ -2,14 +2,21 @@ from time import sleep
 import pytest
 from copy import deepcopy
 from ding.envs import BaseEnvManager
-from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.tests.league_config import cfg
 from ding.framework.middleware.league_actor import ActorData, LeagueActor, Job
 
-from ding.framework.task import Task
+from ding.framework.task import task, Parallel
 from ding.model import VAC
 from ding.policy.ppo import PPOPolicy
 from dizoo.league_demo.game_env import GameEnv
+
+from dataclasses import dataclass
+
+@dataclass
+class LearnerModel:
+    player_id: str
+    state_dict: dict
+    train_iter: int = 0
 
 class MockLeague:
     def __init__(self):
@@ -52,18 +59,29 @@ def prepare_test():
         policy = PPOPolicy(cfg.policy, model=model)
         return policy
 
-    league = BaseLeague(cfg.policy.other.league)
+    league = MockLeague()
     return cfg, env_fn, policy_fn, league
 
 
 def main():
-    cfg, env_fn, policy_fn = prepare_test()
+    cfg, env_fn, policy_fn, league = prepare_test()
+    policy = policy_fn()
     task.start()
+    ACTOR_ID = 0
+
+    def on_actor_greeting(actor_id):
+        assert actor_id == ACTOR_ID
     
-    if task.router.node_id == 0:
-        LeagueActor()
+    def on_actor_job(job_: Job):
+        assert job_.launch_player == job.launch_player
+    
+    def on_actor_data(actor_data):
+        assert isinstance(actor_data, ActorData)
+    
+    if task.router.node_id == ACTOR_ID:
+        league_actor = LeagueActor(cfg, env_fn, policy_fn)
     elif task.router.node_id == 1:
-        pass
+        task.on('actor_greeting', on_actor_greeting)
 
 if __name__ == "__main__":
     Parallel.runner(n_parallel_workers=4, protocol="tcp", topology="star")(main)
