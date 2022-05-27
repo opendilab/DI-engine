@@ -9,14 +9,12 @@ from abc import abstractmethod
 from easydict import EasyDict
 from ding.envs import BaseEnvManager
 
-from .functional import inferencer, rolloutor, TransitionList
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ding.framework import OnlineRLContext
     from ding.policy import Policy
     from ding.framework.middleware.league_learner import LearnerModel
-    from ding.framework.middleware.functional.collector import BattleCollector
+    from ding.framework.middleware import BattleCollector
 
 @dataclass
 class ActorData:
@@ -50,22 +48,6 @@ class Job:
     job_no: int = 0  # Serial number of  job, not required
     train_iter: int = None
     is_eval: bool = False
-
-# class Agent:
-#     HAS_MODEL = False
-#     HAS_TEACHER_MODEL = False
-#     HAS_SUCCESSIVE_MODEL = False
-#     def __init__(self, cfg=None, env_id=0):
-#         pass
-
-#     def reset(self, map_name, race, game_info, obs):
-#         pass
-
-#     def step(self, obs):
-#         action = {'func_id': 0, 'skip_steps': 1, 
-#         'queued': False, 'unit_tags': [0], 
-#         'target_unit_tag': 0, 'location': [0, 0]}
-#         return [action]
 
 
 class LeagueActor:
@@ -141,7 +123,7 @@ class LeagueActor:
         ctx.train_iter = main_player.total_agent_step
         ctx.policy_kwargs = None
         
-        train_data, episode_info = collector.collect(ctx)
+        train_data, episode_info = collector(ctx)
         train_data, episode_info = train_data[0], episode_info[0]  # only use main player data for training
         send_actor_data(train_data)
         send_actor_job(episode_info)
