@@ -14,7 +14,7 @@ from ding.league.v2.base_league import Job
 from ding.policy import Policy
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware import BattleCollector
-from ding.framework.middleware.collector import reset_policy
+from ding.framework.middleware.collector import policy_resetter
 
 @dataclass
 class ActorData:
@@ -54,7 +54,7 @@ class LeagueActor:
         self._model_updated = True
         task.on("league_job_actor_{}".format(task.router.node_id), self._on_league_job)
         task.on("learner_model", self._on_learner_model)
-        self._policy_reseter = task.wrap(reset_policy())
+        self._policy_resetter = task.wrap(policy_resetter())
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
@@ -93,7 +93,7 @@ class LeagueActor:
         assert main_player, "Can not find active player"
 
         self.ctx.policies = policies
-        self._policy_reseter(self.ctx)
+        self._policy_resetter(self.ctx)
 
         def send_actor_job(episode_info: List):
             job.result = [e['result'] for e in episode_info]
@@ -182,5 +182,5 @@ class LeagueActor:
 #         env_fn()
 #     )
 #     ctx = OnlineRLContext()
-#     reset_policy(None)(ctx)
+#     policy_resetter(None)(ctx)
 

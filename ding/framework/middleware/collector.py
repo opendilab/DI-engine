@@ -14,9 +14,8 @@ from ding.utils import EasyTimer, dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
 from ding.worker.collector.base_serial_collector import CachePool, TrajBuffer, INF, to_tensor_transitions
 
-def reset_policy():
-
-    def _reset_policy(ctx: OnlineRLContext):
+def policy_resetter():
+    def _policy_resetter(ctx: OnlineRLContext):
         if ctx.policies is not None:
             assert len(ctx.policies) > 1, "battle collector needs more than 1 policies"
             ctx._default_n_episode = ctx.policies[0].get_attribute('cfg').collect.get('n_episode', None)
@@ -25,7 +24,7 @@ def reset_policy():
         for p in ctx.policies:
             p.reset()
 
-    return _reset_policy
+    return _policy_resetter
 
 
 
