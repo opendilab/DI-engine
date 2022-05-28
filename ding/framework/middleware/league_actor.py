@@ -91,8 +91,7 @@ class LeagueActor:
                 # inferencer,rolloutor = self._get_collector(player.player_id)
         assert main_player, "Can not find active player"
 
-        ctx = OnlineRLContext()
-        reset_policy(policies)(ctx)
+        reset_policy(policies)(        self.ctx)
         def send_actor_job(episode_info: List):
             job.result = [e['result'] for e in episode_info]
             task.emit("actor_job", job)
@@ -104,16 +103,16 @@ class LeagueActor:
             for d in train_data:
                 d["adv"] = d["reward"]
 
-            actor_data = ActorData(env_step=ctx.envstep, train_data=train_data)
+            actor_data = ActorData(env_step=self.ctx.envstep, train_data=train_data)
             task.emit("actor_data_player_{}".format(job.launch_player), actor_data)
 
         
-        ctx.n_episode = None
-        ctx.train_iter = main_player.total_agent_step
-        ctx.policy_kwargs = None
+        self.ctx.n_episode = None
+        self.ctx.train_iter = main_player.total_agent_step
+        self.ctx.policy_kwargs = None
         
-        collector(ctx)
-        train_data, episode_info = ctx.train_data[0], ctx.episode_info[0]  # only use main player data for training
+        collector(self.ctx)
+        train_data, episode_info = self.ctx.train_data[0], self.ctx.episode_info[0]  # only use main player data for training
         send_actor_data(train_data)
         send_actor_job(episode_info)
         
@@ -143,7 +142,8 @@ class LeagueActor:
 
         return policy
 
-    def __call__(self):
+    def __call__(self, ctx: "OnlineRLContext"):
+        self.ctx = ctx
         if not self._running:
             task.emit("actor_greeting", task.router.node_id)
         sleep(3)
@@ -153,31 +153,31 @@ class LeagueActor:
 #     actor = LeagueActor()
 
 
-if __name__ == '__main__':
-    from copy import deepcopy
-    from ding.framework.middleware.tests.league_config import cfg
-    from dizoo.league_demo.game_env import GameEnv
+# if __name__ == '__main__':
+#     from copy import deepcopy
+#     from ding.framework.middleware.tests.league_config import cfg
+#     from dizoo.league_demo.game_env import GameEnv
 
-    def prepare_test():
-        global cfg
-        cfg = deepcopy(cfg)
+#     def prepare_test():
+#         global cfg
+#         cfg = deepcopy(cfg)
 
-        def env_fn():
-            env = BaseEnvManager(
-                env_fn=[lambda: GameEnv(cfg.env.env_type) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
-            )
-            env.seed(cfg.seed)
-            return env
+#         def env_fn():
+#             env = BaseEnvManager(
+#                 env_fn=[lambda: GameEnv(cfg.env.env_type) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
+#             )
+#             env.seed(cfg.seed)
+#             return env
 
-        return cfg, env_fn
+#         return cfg, env_fn
     
-    cfg, env_fn = prepare_test()
+#     cfg, env_fn = prepare_test()
 
 
-    collector = BattleCollector(
-        cfg.policy.collect.collector,
-        env_fn()
-    )
-    ctx = OnlineRLContext()
-    reset_policy(None)(ctx)
+#     collector = BattleCollector(
+#         cfg.policy.collect.collector,
+#         env_fn()
+#     )
+#     ctx = OnlineRLContext()
+#     reset_policy(None)(ctx)
 
