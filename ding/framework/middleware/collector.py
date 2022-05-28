@@ -53,17 +53,6 @@ class BattleCollector:
         self.obs_pool.reset(env_id)
         self.policy_output_pool.reset(env_id)
         self.env_info[env_id] = {'time': 0., 'step': 0}
-    
-    def _close(self) -> None:
-        """
-        Overview:
-            Close the collector. If end_flag is False, close the environment, flush the tb_logger\
-                and close the tb_logger.
-        """
-        if self.end_flag:
-            return
-        self.end_flag = True
-        self.env.close()
 
     def __del__(self) -> None:
         """
@@ -71,7 +60,10 @@ class BattleCollector:
             Execute the close command and close the collector. __del__ is automatically called to \
                 destroy the collector instance when the collector finishes its work
         """
-        self._close()
+        if self.end_flag:
+            return
+        self.end_flag = True
+        self.env.close()
 
     def __call__(self, ctx: "OnlineRLContext") -> None:
         """
