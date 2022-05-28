@@ -20,9 +20,6 @@ def reset_policy():
         if ctx._policy is not None:
             assert len(ctx._policy) > 1, "battle collector needs more than 1 policies"
             ctx._default_n_episode = ctx._policy[0].get_attribute('cfg').collect.get('n_episode', None)
-            # ctx._unroll_len = _policy[0].get_attribute('unroll_len') # unuseful here
-            # ctx._on_policy = _policy[0].get_attribute('cfg').on_policy # unuseful here 
-            # ctx._traj_len = INF
 
         for p in ctx._policy:
             p.reset()
@@ -36,67 +33,31 @@ class BattleCollector:
     def __init__(
             self, 
             cfg: EasyDict, 
-            env: BaseEnvManager = None, 
+            env: BaseEnvManager, 
     ):
-        self._deepcopy_obs = cfg.deepcopy_obs
-        self._transform_obs = cfg.transform_obs
-        self._cfg = cfg
+        self.cfg = cfg
         self._timer = EasyTimer()
-        self._end_flag = False
-        self._traj_len = float("inf")
-        self._reset(env)
-    
-    def _reset_env(self, _env: Optional[BaseEnvManager] = None) -> None:
-        """
-        Overview:
-            Reset the environment.
-            If _env is None, reset the old environment.
-            If _env is not None, replace the old environment in the collector with the new passed \
-                in environment and launch.
-        Arguments:
-            - env (:obj:`Optional[BaseEnvManager]`): instance of the subclass of vectorized \
-                env_manager(BaseEnvManager)
-        """
-        if _env is not None:
-            self._env = _env
-            self._env.launch()
-            self._env_num = self._env.env_num
-        else:
-            self._env.reset()
-    
-    def _reset(self, _env: Optional[BaseEnvManager] = None) -> None:
-        """
-        Overview:
-            Reset the environment.
-            If _env is None, reset the old environment.
-            If _env is not None, replace the old environment in the collector with the new passed \
-                in environment and launch.
-            If _policy is None, reset the old policy.
-            If _policy is not None, replace the old policy in the collector with the new passed in policy.
-        Arguments:
-            - policy (:obj:`Optional[List[namedtuple]]`): the api namedtuple of collect_mode policy
-            - env (:obj:`Optional[BaseEnvManager]`): instance of the subclass of vectorized \
-                env_manager(BaseEnvManager)
-        """
-        if _env is not None:
-            self._reset_env(_env)
+        self.end_flag = False
+        self.traj_len = float("inf")
+        # self._reset(env)
+        self.env = env
+        self.env.launch()
+        self.env_num = self.env.env_num
 
-        self._obs_pool = CachePool('obs', self._env_num, deepcopy=self._deepcopy_obs)
-        self._policy_output_pool = CachePool('policy_output', self._env_num)
+        self.obs_pool = CachePool('obs', self.env_num, deepcopy=self.cfg.deepcopy_obs)
+        self.policy_output_pool = CachePool('policy_output', self.env_num)
         # _traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
-        self._traj_buffer = {
-            env_id: {policy_id: TrajBuffer(maxlen=self._traj_len)
+        self.traj_buffer = {
+            env_id: {policy_id: TrajBuffer(maxlen=self.traj_len)
                      for policy_id in range(2)}
-            for env_id in range(self._env_num)
+            for env_id in range(self.env_num)
         }
-        self._env_info = {env_id: {'time': 0., 'step': 0} for env_id in range(self._env_num)}
+        self.env_info = {env_id: {'time': 0., 'step': 0} for env_id in range(self.env_num)}
 
-        self._episode_info = []
-        self._total_envstep_count = 0
-        self._total_episode_count = 0
-        self._total_duration = 0
-        self._last_train_iter = 0
-        self._end_flag = False
+        self.episode_info = []
+        self.total_envstep_count = 0
+        self.total_episode_count = 0
+        self.end_flag = False
     
     def _reset_stat(self, env_id: int) -> None:
         """
@@ -108,10 +69,10 @@ class BattleCollector:
             - env_id (:obj:`int`): the id where we need to reset the collector's state
         """
         for i in range(2):
-            self._traj_buffer[env_id][i].clear()
-        self._obs_pool.reset(env_id)
-        self._policy_output_pool.reset(env_id)
-        self._env_info[env_id] = {'time': 0., 'step': 0}
+            self.traj_buffer[env_id][i].clear()
+        self.obs_pool.reset(env_id)
+        self.policy_output_pool.reset(env_id)
+        self.env_info[env_id] = {'time': 0., 'step': 0}
     
     def _close(self) -> None:
         """
@@ -119,10 +80,10 @@ class BattleCollector:
             Close the collector. If end_flag is False, close the environment, flush the tb_logger\
                 and close the tb_logger.
         """
-        if self._end_flag:
+        if self.end_flag:
             return
-        self._end_flag = True
-        self._env.close()
+        self.end_flag = True
+        self.env.close()
 
     def __del__(self) -> None:
         """
@@ -143,13 +104,13 @@ class BattleCollector:
                 the former is a list containing collected episodes if not get_train_sample, \
                 otherwise, return train_samples split by unroll_len.
         """
-        ctx.envstep = self._total_envstep_count
+        ctx.envstep = self.total_envstep_count
         if ctx.n_episode is None:
             if ctx._default_n_episode is None:
                 raise RuntimeError("Please specify collect n_episode")
             else:
                 ctx.n_episode = ctx._default_n_episode
-        assert ctx.n_episode >= self._env_num, "Please make sure n_episode >= env_num"
+        assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
         if ctx.policy_kwargs is None:
             ctx.policy_kwargs = {}
@@ -162,20 +123,20 @@ class BattleCollector:
         while True:
             with self._timer:
                 # Get current env obs.
-                obs = self._env.ready_obs
+                obs = self.env.ready_obs
                 new_available_env_id = set(obs.keys()).difference(ready_env_id)
                 ready_env_id = ready_env_id.union(set(list(new_available_env_id)[:remain_episode]))
                 remain_episode -= min(len(new_available_env_id), remain_episode)
                 obs = {env_id: obs[env_id] for env_id in ready_env_id}
 
                 # Policy forward.
-                self._obs_pool.update(obs)
-                if self._transform_obs:
+                self.obs_pool.update(obs)
+                if self.cfg.transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
                 obs = dicts_to_lists(obs)
                 policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx._policy)]
 
-                self._policy_output_pool.update(policy_output)
+                self.policy_output_pool.update(policy_output)
                 # Interact with env.
                 actions = {}
                 for env_id in ready_env_id:
@@ -183,49 +144,49 @@ class BattleCollector:
                     for output in policy_output:
                         actions[env_id].append(output[env_id]['action'])
                 actions = to_ndarray(actions)
-                timesteps = self._env.step(actions)
+                timesteps = self.env.step(actions)
 
             # TODO(nyz) this duration may be inaccurate in async env
             interaction_duration = self._timer.value / len(timesteps)
 
             # TODO(nyz) vectorize this for loop
             for env_id, timestep in timesteps.items():
-                self._env_info[env_id]['step'] += 1
-                self._total_envstep_count += 1
-                ctx.envstep = self._total_envstep_count
+                self.env_info[env_id]['step'] += 1
+                self.total_envstep_count += 1
+                ctx.envstep = self.total_envstep_count
                 with self._timer:
                     for policy_id, policy in enumerate(ctx._policy):
                         policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                         policy_timestep = type(timestep)(*policy_timestep_data)
                         transition = ctx._policy[policy_id].process_transition(
-                            self._obs_pool[env_id][policy_id], self._policy_output_pool[env_id][policy_id],
+                            self.obs_pool[env_id][policy_id], self.policy_output_pool[env_id][policy_id],
                             policy_timestep
                         )
                         transition['collect_iter'] = ctx.train_iter
-                        self._traj_buffer[env_id][policy_id].append(transition)
+                        self.traj_buffer[env_id][policy_id].append(transition)
                         # prepare data
                         if timestep.done:
-                            transitions = to_tensor_transitions(self._traj_buffer[env_id][policy_id])
-                            if self._cfg.get_train_sample:
+                            transitions = to_tensor_transitions(self.traj_buffer[env_id][policy_id])
+                            if self.cfg.get_train_sample:
                                 train_sample = ctx._policy[policy_id].get_train_sample(transitions)
                                 return_data[policy_id].extend(train_sample)
                             else:
                                 return_data[policy_id].append(transitions)
-                            self._traj_buffer[env_id][policy_id].clear()
+                            self.traj_buffer[env_id][policy_id].clear()
 
-                self._env_info[env_id]['time'] += self._timer.value + interaction_duration
+                self.env_info[env_id]['time'] += self._timer.value + interaction_duration
 
                 # If env is done, record episode info and reset
                 if timestep.done:
-                    self._total_episode_count += 1
+                    self.total_episode_count += 1
                     info = {
                         'reward0': timestep.info[0]['final_eval_reward'],
                         'reward1': timestep.info[1]['final_eval_reward'],
-                        'time': self._env_info[env_id]['time'],
-                        'step': self._env_info[env_id]['step'],
+                        'time': self.env_info[env_id]['time'],
+                        'step': self.env_info[env_id]['step'],
                     }
                     collected_episode += 1
-                    self._episode_info.append(info)
+                    self.episode_info.append(info)
                     for i, p in enumerate(ctx._policy):
                         p.reset([env_id])
                     self._reset_stat(env_id)
