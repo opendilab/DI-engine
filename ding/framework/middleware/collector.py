@@ -118,7 +118,7 @@ class BattleCollector:
         
         collected_episode = 0
         ctx.train_data = [[] for _ in range(ctx.agent_num)]
-        ctx.train_info = [[] for _ in range(ctx.agent_num)]
+        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
         ready_env_id = set()
         remain_episode = ctx.n_episode
         while True:
@@ -193,7 +193,7 @@ class BattleCollector:
                     self._reset_stat(env_id, ctx.agent_num)
                     ready_env_id.remove(env_id)
                     for policy_id in range(ctx.agent_num):
-                        ctx.train_info[policy_id].append(timestep.info[policy_id])
+                        ctx.episode_info[policy_id].append(timestep.info[policy_id])
             if collected_episode >= ctx.n_episode:
                 break
 
