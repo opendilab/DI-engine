@@ -94,6 +94,7 @@ def test_league_actor():
                 sleep(0.3)
                 assert league_actor._model_updated == True
                 try:
+                    print(testcases)
                     assert all(testcases.values())
                 finally:
                     task.finish = True

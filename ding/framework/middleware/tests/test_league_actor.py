@@ -54,53 +54,52 @@ def test_league_actor():
     ACTOR_ID = 0
 
     with task.start(async_mode=True):
-        if task.router.node_id == ACTOR_ID:
-            sleep(2)
-            league_actor = LeagueActor(cfg, env_fn, policy_fn)
-            task.use(league_actor)
+        league_actor = LeagueActor(cfg, env_fn, policy_fn)
 
-        elif task.router.node_id == 1:
-            def test_actor():
-                testcases = {
-                    "on_actor_greeting": False,
-                    "on_actor_job": False,
-                    "on_actor_data": False,
-                }
+        def test_actor():
+            testcases = {
+                "on_actor_greeting": False,
+                "on_actor_job": False,
+                "on_actor_data": False,
+            }
 
-                def on_actor_greeting(actor_id):
-                    assert actor_id == ACTOR_ID
-                    task.emit("league_job_actor_{}".format(ACTOR_ID), job)
-                    testcases["on_actor_greeting"] = True
+            def on_actor_greeting(actor_id):
+                assert actor_id == ACTOR_ID
+                task.emit("league_job_actor_{}".format(ACTOR_ID), job)
+                testcases["on_actor_greeting"] = True
+        
+            def on_actor_job(job_: Job):
+                assert job_.launch_player == job.launch_player
+                testcases["on_actor_job"] = True
             
-                def on_actor_job(job_: Job):
-                    assert job_.launch_player == job.launch_player
-                    testcases["on_actor_job"] = True
-                
-                def on_actor_data(actor_data):
-                    assert isinstance(actor_data, ActorData)
-                    testcases["on_actor_data"] = True
-                
-                task.on('actor_greeting', on_actor_greeting)
-                task.on("actor_job", on_actor_job)
-                task.on("actor_data_player_{}".format(job.launch_player), on_actor_data)
+            def on_actor_data(actor_data):
+                assert isinstance(actor_data, ActorData)
+                testcases["on_actor_data"] = True
+            
+            task.on('actor_greeting', on_actor_greeting)
+            task.on("actor_job", on_actor_job)
+            task.on("actor_data_player_{}".format(job.launch_player), on_actor_data)
 
-                def _test_actor(ctx):
-                    sleep(0.3)
+            def _test_actor(ctx):
+                sleep(0.3)
 
-                    task.emit(
-                        "learner_model",
-                        LearnerModel(
-                            player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
-                        )
+                task.emit(
+                    "learner_model",
+                    LearnerModel(
+                        player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
-                    sleep(5)
-                    try:
-                        print(testcases)
-                        assert all(testcases.values())
-                    finally:
-                        task.finish = True
-                return _test_actor
+                )
+                sleep(5)
+                try:
+                    print(testcases)
+                    assert all(testcases.values())
+                finally:
+                    task.finish = True
+            return _test_actor
 
+        if task.router.node_id == ACTOR_ID:
+            task.use(league_actor)
+        elif task.router.node_id == 1:
             task.use(test_actor())
 
         task.run()

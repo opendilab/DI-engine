@@ -54,6 +54,7 @@ class LeagueActor:
         self._model_updated = True
         task.on("league_job_actor_{}".format(task.router.node_id), self._on_league_job)
         task.on("learner_model", self._on_learner_model)
+        self._policy_reseter = task.wrap(reset_policy())
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
@@ -91,7 +92,9 @@ class LeagueActor:
                 # inferencer,rolloutor = self._get_collector(player.player_id)
         assert main_player, "Can not find active player"
 
-        reset_policy(policies)(        self.ctx)
+        self.ctx._policy = policies
+        self._policy_reseter(self.ctx)
+
         def send_actor_job(episode_info: List):
             job.result = [e['result'] for e in episode_info]
             task.emit("actor_job", job)
@@ -124,10 +127,10 @@ class LeagueActor:
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
-        collector = BattleCollector(
+        collector = task.wrap(BattleCollector(
             cfg.policy.collect.collector,
             env
-        )
+        ))
         self._collectors[player_id] = collector
         return collector
 

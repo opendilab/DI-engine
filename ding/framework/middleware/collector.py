@@ -14,13 +14,12 @@ from ding.utils import EasyTimer, dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
 from ding.worker.collector.base_serial_collector import CachePool, TrajBuffer, INF, to_tensor_transitions
 
-def reset_policy(_policy: Optional[List[namedtuple]] = None):
+def reset_policy():
 
     def _reset_policy(ctx: OnlineRLContext):
-        if _policy is not None:
-            assert len(_policy) > 1, "battle collector needs more than 1 policies"
-            ctx._policy = _policy
-            ctx._default_n_episode = _policy[0].get_attribute('cfg').collect.get('n_episode', None)
+        if ctx._policy is not None:
+            assert len(ctx._policy) > 1, "battle collector needs more than 1 policies"
+            ctx._default_n_episode = ctx._policy[0].get_attribute('cfg').collect.get('n_episode', None)
             # ctx._unroll_len = _policy[0].get_attribute('unroll_len') # unuseful here
             # ctx._on_policy = _policy[0].get_attribute('cfg').on_policy # unuseful here 
             # ctx._traj_len = INF
