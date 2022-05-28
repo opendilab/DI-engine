@@ -92,7 +92,7 @@ class LeagueActor:
                 # inferencer,rolloutor = self._get_collector(player.player_id)
         assert main_player, "Can not find active player"
 
-        self.ctx._policy = policies
+        self.ctx.policies = policies
         self._policy_reseter(self.ctx)
 
         def send_actor_job(episode_info: List):

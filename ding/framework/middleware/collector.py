@@ -17,11 +17,12 @@ from ding.worker.collector.base_serial_collector import CachePool, TrajBuffer, I
 def reset_policy():
 
     def _reset_policy(ctx: OnlineRLContext):
-        if ctx._policy is not None:
-            assert len(ctx._policy) > 1, "battle collector needs more than 1 policies"
-            ctx._default_n_episode = ctx._policy[0].get_attribute('cfg').collect.get('n_episode', None)
+        if ctx.policies is not None:
+            assert len(ctx.policies) > 1, "battle collector needs more than 1 policies"
+            ctx._default_n_episode = ctx.policies[0].get_attribute('cfg').collect.get('n_episode', None)
+            ctx.agent_num = len(ctx.policies)
 
-        for p in ctx._policy:
+        for p in ctx.policies:
             p.reset()
 
     return _reset_policy
@@ -46,7 +47,7 @@ class BattleCollector:
 
         self.obs_pool = CachePool('obs', self.env_num, deepcopy=self.cfg.deepcopy_obs)
         self.policy_output_pool = CachePool('policy_output', self.env_num)
-        # _traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
+        # traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
         self.traj_buffer = {
             env_id: {policy_id: TrajBuffer(maxlen=self.traj_len)
                      for policy_id in range(2)}
@@ -59,7 +60,7 @@ class BattleCollector:
         self.total_episode_count = 0
         self.end_flag = False
     
-    def _reset_stat(self, env_id: int) -> None:
+    def _reset_stat(self, env_id: int, agent_num: int) -> None:
         """
         Overview:
             Reset the collector's state. Including reset the traj_buffer, obs_pool, policy_output_pool\
@@ -68,7 +69,7 @@ class BattleCollector:
         Arguments:
             - env_id (:obj:`int`): the id where we need to reset the collector's state
         """
-        for i in range(2):
+        for i in range(agent_num):
             self.traj_buffer[env_id][i].clear()
         self.obs_pool.reset(env_id)
         self.policy_output_pool.reset(env_id)
@@ -100,7 +101,7 @@ class BattleCollector:
             - train_iter (:obj:`int`): the number of training iteration
             - policy_kwargs (:obj:`dict`): the keyword args for policy forward
         Output of ctx:
-            -  return_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
+            -  ctx.train_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
                 the former is a list containing collected episodes if not get_train_sample, \
                 otherwise, return train_samples split by unroll_len.
         """
@@ -116,8 +117,8 @@ class BattleCollector:
             ctx.policy_kwargs = {}
         
         collected_episode = 0
-        return_data = [[] for _ in range(2)]
-        return_info = [[] for _ in range(2)]
+        ctx.train_data = [[] for _ in range(ctx.agent_num)]
+        ctx.train_info = [[] for _ in range(ctx.agent_num)]
         ready_env_id = set()
         remain_episode = ctx.n_episode
         while True:
@@ -134,7 +135,7 @@ class BattleCollector:
                 if self.cfg.transform_obs:
                     obs = to_tensor(obs, dtype=torch.float32)
                 obs = dicts_to_lists(obs)
-                policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx._policy)]
+                policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx.policies)]
 
                 self.policy_output_pool.update(policy_output)
                 # Interact with env.
@@ -155,10 +156,10 @@ class BattleCollector:
                 self.total_envstep_count += 1
                 ctx.envstep = self.total_envstep_count
                 with self._timer:
-                    for policy_id, policy in enumerate(ctx._policy):
+                    for policy_id, _ in enumerate(ctx.policies):
                         policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                         policy_timestep = type(timestep)(*policy_timestep_data)
-                        transition = ctx._policy[policy_id].process_transition(
+                        transition = ctx.policies[policy_id].process_transition(
                             self.obs_pool[env_id][policy_id], self.policy_output_pool[env_id][policy_id],
                             policy_timestep
                         )
@@ -168,10 +169,10 @@ class BattleCollector:
                         if timestep.done:
                             transitions = to_tensor_transitions(self.traj_buffer[env_id][policy_id])
                             if self.cfg.get_train_sample:
-                                train_sample = ctx._policy[policy_id].get_train_sample(transitions)
-                                return_data[policy_id].extend(train_sample)
+                                train_sample = ctx.policies[policy_id].get_train_sample(transitions)
+                                ctx.train_data[policy_id].extend(train_sample)
                             else:
-                                return_data[policy_id].append(transitions)
+                                ctx.train_data[policy_id].append(transitions)
                             self.traj_buffer[env_id][policy_id].clear()
 
                 self.env_info[env_id]['time'] += self._timer.value + interaction_duration
@@ -187,19 +188,14 @@ class BattleCollector:
                     }
                     collected_episode += 1
                     self.episode_info.append(info)
-                    for i, p in enumerate(ctx._policy):
+                    for i, p in enumerate(ctx.policies):
                         p.reset([env_id])
-                    self._reset_stat(env_id)
+                    self._reset_stat(env_id, ctx.agent_num)
                     ready_env_id.remove(env_id)
-                    for policy_id in range(2):
-                        return_info[policy_id].append(timestep.info[policy_id])
+                    for policy_id in range(ctx.agent_num):
+                        ctx.train_info[policy_id].append(timestep.info[policy_id])
             if collected_episode >= ctx.n_episode:
                 break
-        # log
-        ### TODO: how to deal with log here?
-        # self._output_log(ctx.train_iter)
-        ctx.train_data = return_data
-        ctx.episode_info = return_info
 
 
 class StepCollector:
