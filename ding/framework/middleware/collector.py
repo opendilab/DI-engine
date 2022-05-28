@@ -20,6 +20,13 @@ def policy_resetter():
             assert len(ctx.policies) > 1, "battle collector needs more than 1 policies"
             ctx._default_n_episode = ctx.policies[0].get_attribute('cfg').collect.get('n_episode', None)
             ctx.agent_num = len(ctx.policies)
+            ctx.traj_len = float("inf")
+            # traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
+            ctx.traj_buffer = {
+                env_id: {policy_id: TrajBuffer(maxlen=ctx.traj_len)
+                        for policy_id in range(ctx.agent_num)}
+                for env_id in range(ctx.env_num)
+            }
 
         for p in ctx.policies:
             p.reset()
@@ -38,7 +45,6 @@ class BattleCollector:
         self.cfg = cfg
         self._timer = EasyTimer()
         self.end_flag = False
-        self.traj_len = float("inf")
         # self._reset(env)
         self.env = env
         self.env.launch()
@@ -46,12 +52,6 @@ class BattleCollector:
 
         self.obs_pool = CachePool('obs', self.env_num, deepcopy=self.cfg.deepcopy_obs)
         self.policy_output_pool = CachePool('policy_output', self.env_num)
-        # traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
-        self.traj_buffer = {
-            env_id: {policy_id: TrajBuffer(maxlen=self.traj_len)
-                     for policy_id in range(2)}
-            for env_id in range(self.env_num)
-        }
         self.env_info = {env_id: {'time': 0., 'step': 0} for env_id in range(self.env_num)}
 
         self.episode_info = []
@@ -59,7 +59,7 @@ class BattleCollector:
         self.total_episode_count = 0
         self.end_flag = False
     
-    def _reset_stat(self, env_id: int, agent_num: int) -> None:
+    def _reset_stat(self, env_id: int, ctx: OnlineRLContext) -> None:
         """
         Overview:
             Reset the collector's state. Including reset the traj_buffer, obs_pool, policy_output_pool\
@@ -68,8 +68,8 @@ class BattleCollector:
         Arguments:
             - env_id (:obj:`int`): the id where we need to reset the collector's state
         """
-        for i in range(agent_num):
-            self.traj_buffer[env_id][i].clear()
+        for i in range(ctx.agent_num):
+            ctx.traj_buffer[env_id][i].clear()
         self.obs_pool.reset(env_id)
         self.policy_output_pool.reset(env_id)
         self.env_info[env_id] = {'time': 0., 'step': 0}
@@ -163,16 +163,16 @@ class BattleCollector:
                             policy_timestep
                         )
                         transition['collect_iter'] = ctx.train_iter
-                        self.traj_buffer[env_id][policy_id].append(transition)
+                        ctx.traj_buffer[env_id][policy_id].append(transition)
                         # prepare data
                         if timestep.done:
-                            transitions = to_tensor_transitions(self.traj_buffer[env_id][policy_id])
+                            transitions = to_tensor_transitions(ctx.traj_buffer[env_id][policy_id])
                             if self.cfg.get_train_sample:
                                 train_sample = ctx.policies[policy_id].get_train_sample(transitions)
                                 ctx.train_data[policy_id].extend(train_sample)
                             else:
                                 ctx.train_data[policy_id].append(transitions)
-                            self.traj_buffer[env_id][policy_id].clear()
+                            ctx.traj_buffer[env_id][policy_id].clear()
 
                 self.env_info[env_id]['time'] += self._timer.value + interaction_duration
 
@@ -189,7 +189,7 @@ class BattleCollector:
                     self.episode_info.append(info)
                     for i, p in enumerate(ctx.policies):
                         p.reset([env_id])
-                    self._reset_stat(env_id, ctx.agent_num)
+                    self._reset_stat(env_id, ctx)
                     ready_env_id.remove(env_id)
                     for policy_id in range(ctx.agent_num):
                         ctx.episode_info[policy_id].append(timestep.info[policy_id])

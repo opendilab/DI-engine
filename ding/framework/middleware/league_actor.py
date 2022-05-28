@@ -44,7 +44,8 @@ class LeagueActor:
 
     def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable):
         self.cfg = cfg
-        self.env_fn = env_fn
+        self.env = env_fn()
+        self.env_num = self.env.env_num
         self.policy_fn = policy_fn
         # self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
         self.n_rollout_samples = 0
@@ -93,6 +94,7 @@ class LeagueActor:
         assert main_player, "Can not find active player"
 
         self.ctx.policies = policies
+        self.ctx.env_num = self.env_num
         self._policy_resetter(self.ctx)
 
         def send_actor_job(episode_info: List):
@@ -126,10 +128,9 @@ class LeagueActor:
         if self._collectors.get(player_id):
             return self._collectors.get(player_id)
         cfg = self.cfg
-        env = self.env_fn()
         collector = task.wrap(BattleCollector(
             cfg.policy.collect.collector,
-            env
+            self.env
         ))
         self._collectors[player_id] = collector
         return collector
