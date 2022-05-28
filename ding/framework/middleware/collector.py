@@ -62,12 +62,37 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, p
 
     return _battle_inferencer
 
+def battle_rolloutor(cfg: EasyDict, obs_pool: CachePool, policy_output_pool:CachePool):
+    def _battle_rolloutor(ctx: "OnlineRLContext"):
+        timestep = ctx.timestep
+        env_id = ctx.env_id
+        for policy_id, _ in enumerate(ctx.policies):
+            policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
+            policy_timestep = type(timestep)(*policy_timestep_data)
+            transition = ctx.policies[policy_id].process_transition(
+                obs_pool[env_id][policy_id], policy_output_pool[env_id][policy_id],
+                policy_timestep
+            )
+            transition['collect_iter'] = ctx.train_iter
+            ctx.traj_buffer[env_id][policy_id].append(transition)
+            # If env is done, prepare data
+            if timestep.done:
+                transitions = to_tensor_transitions(ctx.traj_buffer[env_id][policy_id])
+                if cfg.get_train_sample:
+                    train_sample = ctx.policies[policy_id].get_train_sample(transitions)
+                    ctx.train_data[policy_id].extend(train_sample)
+                else:
+                    ctx.train_data[policy_id].append(transitions)
+                ctx.traj_buffer[env_id][policy_id].clear()
+    return _battle_rolloutor
+
 
 class BattleCollector:
     def __init__(
             self, 
             cfg: EasyDict, 
             env: BaseEnvManager, 
+            n_rollout_samples: int
     ):
         self.cfg = cfg
         self._timer = EasyTimer()
@@ -84,8 +109,10 @@ class BattleCollector:
         self.total_envstep_count = 0
         self.total_episode_count = 0
         self.end_flag = False
+        self.n_rollout_samples = n_rollout_samples
 
         self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
+        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.obs_pool, self.policy_output_pool))
     
     def _reset_stat(self, env_id: int, ctx: OnlineRLContext) -> None:
         """
@@ -128,7 +155,7 @@ class BattleCollector:
             - train_iter (:obj:`int`): the number of training iteration
             - policy_kwargs (:obj:`dict`): the keyword args for policy forward
         Output of ctx:
-            -  return_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
+            -  ctx.train_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
                 the former is a list containing collected episodes if not get_train_sample, \
                 otherwise, return train_samples split by unroll_len.
         """
@@ -147,8 +174,8 @@ class BattleCollector:
             self.env.launch()
 
         ctx.collected_episode = 0
-        return_data = [[] for _ in range(ctx.agent_num)]
-        return_info = [[] for _ in range(ctx.agent_num)]
+        ctx.train_data = [[] for _ in range(ctx.agent_num)]
+        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
         ctx.ready_env_id = set()
         ctx.remain_episode = ctx.n_episode
         while True:
@@ -163,25 +190,10 @@ class BattleCollector:
                 self.env_info[env_id]['step'] += 1
                 self.total_envstep_count += 1
                 ctx.envstep = self.total_envstep_count
+                ctx.env_id = env_id
+                ctx.timestep = timestep
                 with self._timer:
-                    for policy_id, _ in enumerate(ctx.policies):
-                        policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
-                        policy_timestep = type(timestep)(*policy_timestep_data)
-                        transition = ctx.policies[policy_id].process_transition(
-                            self.obs_pool[env_id][policy_id], self.policy_output_pool[env_id][policy_id],
-                            policy_timestep
-                        )
-                        transition['collect_iter'] = ctx.train_iter
-                        ctx.traj_buffer[env_id][policy_id].append(transition)
-                        # prepare data
-                        if timestep.done:
-                            transitions = to_tensor_transitions(ctx.traj_buffer[env_id][policy_id])
-                            if self.cfg.get_train_sample:
-                                train_sample = ctx.policies[policy_id].get_train_sample(transitions)
-                                return_data[policy_id].extend(train_sample)
-                            else:
-                                return_data[policy_id].append(transitions)
-                            ctx.traj_buffer[env_id][policy_id].clear()
+                    self._battle_rolloutor(ctx)
 
                 self.env_info[env_id]['time'] += self._timer.value + interaction_duration
 
@@ -201,13 +213,10 @@ class BattleCollector:
                     self._reset_stat(env_id, ctx)
                     ctx.ready_env_id.remove(env_id)
                     for policy_id in range(ctx.agent_num):
-                        return_info[policy_id].append(timestep.info[policy_id])
+                        ctx.episode_info[policy_id].append(timestep.info[policy_id])
             if ctx.collected_episode >= ctx.n_episode:
                 break
         
-        ctx.train_data = return_data
-        ctx.episode_info = return_info
-
 
 class StepCollector:
     """

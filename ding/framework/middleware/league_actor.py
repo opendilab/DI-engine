@@ -47,7 +47,7 @@ class LeagueActor:
         self.env = env_fn()
         self.env_num = self.env.env_num
         self.policy_fn = policy_fn
-        # self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
+        self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
         self.n_rollout_samples = 0
         self._running = False
         self._collectors: Dict[str, BattleCollector] = {}
@@ -63,10 +63,9 @@ class LeagueActor:
         """
         player_meta = PlayerMeta(player_id=learner_model.player_id, checkpoint=None)
         policy = self._get_policy(player_meta)
+        # update policy model
         policy.load_state_dict(learner_model.state_dict)
         self._model_updated = True
-
-        # update policy model
 
     def _on_league_job(self, job: "Job"):
         """
@@ -111,10 +110,12 @@ class LeagueActor:
             actor_data = ActorData(env_step=self.ctx.envstep, train_data=train_data)
             task.emit("actor_data_player_{}".format(job.launch_player), actor_data)
 
-        
-        self.ctx.n_episode = None
-        self.ctx.train_iter = main_player.total_agent_step
-        self.ctx.policy_kwargs = None
+        if self.n_rollout_samples > 0:
+            pass
+        else:
+            self.ctx.n_episode = None
+            self.ctx.train_iter = main_player.total_agent_step
+            self.ctx.policy_kwargs = None
         
         collector(self.ctx)
         train_data, episode_info = self.ctx.train_data[0], self.ctx.episode_info[0]  # only use main player data for training
@@ -130,7 +131,8 @@ class LeagueActor:
         cfg = self.cfg
         collector = task.wrap(BattleCollector(
             cfg.policy.collect.collector,
-            self.env
+            self.env,
+            self.n_rollout_samples
         ))
         self._collectors[player_id] = collector
         return collector
@@ -152,36 +154,4 @@ class LeagueActor:
             task.emit("actor_greeting", task.router.node_id)
         sleep(3)
 
-# used for test
-# if __name__ == '__main__':
-#     actor = LeagueActor()
-
-
-# if __name__ == '__main__':
-#     from copy import deepcopy
-#     from ding.framework.middleware.tests.league_config import cfg
-#     from dizoo.league_demo.game_env import GameEnv
-
-#     def prepare_test():
-#         global cfg
-#         cfg = deepcopy(cfg)
-
-#         def env_fn():
-#             env = BaseEnvManager(
-#                 env_fn=[lambda: GameEnv(cfg.env.env_type) for _ in range(cfg.env.collector_env_num)], cfg=cfg.env.manager
-#             )
-#             env.seed(cfg.seed)
-#             return env
-
-#         return cfg, env_fn
-    
-#     cfg, env_fn = prepare_test()
-
-
-#     collector = BattleCollector(
-#         cfg.policy.collect.collector,
-#         env_fn()
-#     )
-#     ctx = OnlineRLContext()
-#     policy_resetter(None)(ctx)
 
