@@ -138,7 +138,7 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
 
     return _rollout
 
-def policy_resetter():
+def policy_resetter(env_num:int):
     def _policy_resetter(ctx: OnlineRLContext):
         if ctx.policies is not None:
             assert len(ctx.policies) > 1, "battle collector needs more than 1 policies"
@@ -149,7 +149,7 @@ def policy_resetter():
             ctx.traj_buffer = {
                 env_id: {policy_id: TrajBuffer(maxlen=ctx.traj_len)
                         for policy_id in range(ctx.agent_num)}
-                for env_id in range(ctx.env_num)
+                for env_id in range(env_num)
             }
 
         for p in ctx.policies:
