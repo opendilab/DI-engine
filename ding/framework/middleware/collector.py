@@ -1,3 +1,4 @@
+from distutils.log import info
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 from easydict import EasyDict
 from ding.policy import Policy, get_random_policy
@@ -118,11 +119,11 @@ class BattleCollector:
                 if timestep.done:
                     self.total_episode_count += 1
                     info = {
-                        'reward0': timestep.info[0]['final_eval_reward'],
-                        'reward1': timestep.info[1]['final_eval_reward'],
                         'time': self.env_info[env_id]['time'],
                         'step': self.env_info[env_id]['step'],
                     }
+                    for policy_id in range(ctx.agent_num):
+                        info['reward'+str(policy_id)] = timestep.info[policy_id]['final_eval_reward']
                     ctx.collected_episode += 1
                     self.episode_info.append(info)
                     for i, p in enumerate(ctx.policies):
