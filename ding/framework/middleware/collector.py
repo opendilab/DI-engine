@@ -34,6 +34,33 @@ def policy_resetter():
     return _policy_resetter
 
 
+def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool:CachePool):
+    def _battle_inferencer(ctx: "OnlineRLContext"):
+        # Get current env obs.
+        obs = env.ready_obs
+        new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
+        ctx.ready_env_id = ctx.ready_env_id.union(set(list(new_available_env_id)[:ctx.remain_episode]))
+        ctx.remain_episode -= min(len(new_available_env_id), ctx.remain_episode)
+        obs = {env_id: obs[env_id] for env_id in ctx.ready_env_id}
+
+        # Policy forward.
+        obs_pool.update(obs)
+        if cfg.transform_obs:
+            obs = to_tensor(obs, dtype=torch.float32)
+        obs = dicts_to_lists(obs)
+        policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx.policies)]
+        policy_output_pool.update(policy_output)
+
+        # Interact with env.
+        actions = {}
+        for env_id in ctx.ready_env_id:
+            actions[env_id] = []
+            for output in policy_output:
+                actions[env_id].append(output[env_id]['action'])
+        actions = to_ndarray(actions)
+        ctx.timesteps = env.step(actions)
+
+    return _battle_inferencer
 
 
 class BattleCollector:
@@ -47,7 +74,6 @@ class BattleCollector:
         self.end_flag = False
         # self._reset(env)
         self.env = env
-        self.env.launch()
         self.env_num = self.env.env_num
 
         self.obs_pool = CachePool('obs', self.env_num, deepcopy=self.cfg.deepcopy_obs)
@@ -58,6 +84,8 @@ class BattleCollector:
         self.total_envstep_count = 0
         self.total_episode_count = 0
         self.end_flag = False
+
+        self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
     
     def _reset_stat(self, env_id: int, ctx: OnlineRLContext) -> None:
         """
@@ -100,7 +128,7 @@ class BattleCollector:
             - train_iter (:obj:`int`): the number of training iteration
             - policy_kwargs (:obj:`dict`): the keyword args for policy forward
         Output of ctx:
-            -  ctx.train_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
+            -  return_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
                 the former is a list containing collected episodes if not get_train_sample, \
                 otherwise, return train_samples split by unroll_len.
         """
@@ -115,42 +143,23 @@ class BattleCollector:
         if ctx.policy_kwargs is None:
             ctx.policy_kwargs = {}
         
-        collected_episode = 0
-        ctx.train_data = [[] for _ in range(ctx.agent_num)]
-        ctx.episode_info = [[] for _ in range(ctx.agent_num)]
-        ready_env_id = set()
-        remain_episode = ctx.n_episode
+        if self.env.closed:
+            self.env.launch()
+
+        ctx.collected_episode = 0
+        return_data = [[] for _ in range(ctx.agent_num)]
+        return_info = [[] for _ in range(ctx.agent_num)]
+        ctx.ready_env_id = set()
+        ctx.remain_episode = ctx.n_episode
         while True:
             with self._timer:
-                # Get current env obs.
-                obs = self.env.ready_obs
-                new_available_env_id = set(obs.keys()).difference(ready_env_id)
-                ready_env_id = ready_env_id.union(set(list(new_available_env_id)[:remain_episode]))
-                remain_episode -= min(len(new_available_env_id), remain_episode)
-                obs = {env_id: obs[env_id] for env_id in ready_env_id}
-
-                # Policy forward.
-                self.obs_pool.update(obs)
-                if self.cfg.transform_obs:
-                    obs = to_tensor(obs, dtype=torch.float32)
-                obs = dicts_to_lists(obs)
-                policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx.policies)]
-
-                self.policy_output_pool.update(policy_output)
-                # Interact with env.
-                actions = {}
-                for env_id in ready_env_id:
-                    actions[env_id] = []
-                    for output in policy_output:
-                        actions[env_id].append(output[env_id]['action'])
-                actions = to_ndarray(actions)
-                timesteps = self.env.step(actions)
+                self._battle_inferencer(ctx)
 
             # TODO(nyz) this duration may be inaccurate in async env
-            interaction_duration = self._timer.value / len(timesteps)
+            interaction_duration = self._timer.value / len(ctx.timesteps)
 
             # TODO(nyz) vectorize this for loop
-            for env_id, timestep in timesteps.items():
+            for env_id, timestep in ctx.timesteps.items():
                 self.env_info[env_id]['step'] += 1
                 self.total_envstep_count += 1
                 ctx.envstep = self.total_envstep_count
@@ -169,9 +178,9 @@ class BattleCollector:
                             transitions = to_tensor_transitions(ctx.traj_buffer[env_id][policy_id])
                             if self.cfg.get_train_sample:
                                 train_sample = ctx.policies[policy_id].get_train_sample(transitions)
-                                ctx.train_data[policy_id].extend(train_sample)
+                                return_data[policy_id].extend(train_sample)
                             else:
-                                ctx.train_data[policy_id].append(transitions)
+                                return_data[policy_id].append(transitions)
                             ctx.traj_buffer[env_id][policy_id].clear()
 
                 self.env_info[env_id]['time'] += self._timer.value + interaction_duration
@@ -185,16 +194,19 @@ class BattleCollector:
                         'time': self.env_info[env_id]['time'],
                         'step': self.env_info[env_id]['step'],
                     }
-                    collected_episode += 1
+                    ctx.collected_episode += 1
                     self.episode_info.append(info)
                     for i, p in enumerate(ctx.policies):
                         p.reset([env_id])
                     self._reset_stat(env_id, ctx)
-                    ready_env_id.remove(env_id)
+                    ctx.ready_env_id.remove(env_id)
                     for policy_id in range(ctx.agent_num):
-                        ctx.episode_info[policy_id].append(timestep.info[policy_id])
-            if collected_episode >= ctx.n_episode:
+                        return_info[policy_id].append(timestep.info[policy_id])
+            if ctx.collected_episode >= ctx.n_episode:
                 break
+        
+        ctx.train_data = return_data
+        ctx.episode_info = return_info
 
 
 class StepCollector:
