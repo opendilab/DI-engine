@@ -14,7 +14,7 @@ from ding.league.v2.base_league import Job
 from ding.policy import Policy
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware import BattleCollector
-from ding.framework.middleware.collector import policy_resetter
+from ding.framework.middleware.functional import policy_resetter
 
 @dataclass
 class ActorData:
