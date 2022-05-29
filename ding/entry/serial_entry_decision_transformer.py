@@ -76,11 +76,10 @@ def serial_pipeline_dt(
     stop = False
 
     for i in range(max_train_iter):
-        if i != 0 and i % 10 == 0:
-            stop = policy.evaluate(state_mean, state_std)
-
         learner.train({'data_iter': data_iter, 'traj_data_loader': traj_data_loader})
-        if stop:
-            break
+        if i % 10 == 0:
+            stop = policy.evaluate(state_mean, state_std)
+            if stop:
+                break
     learner.call_hook('after_run')
     return policy, stop

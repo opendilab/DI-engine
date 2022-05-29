@@ -370,7 +370,7 @@ class DTPolicy(DQNPolicy):
         mean_action_loss = np.mean(self.log_action_losses)
         time_elapsed = str(datetime.now().replace(microsecond=0) - self.start_time)
 
-        self.total_updates += self.num_updates_per_iter
+        self.total_updates += self.num_updates_per_iter * 10
 
         log_str = (
             "=" * 60 + '\n' + "time elapsed: " + time_elapsed + '\n' + "num of updates: " + str(self.total_updates) +

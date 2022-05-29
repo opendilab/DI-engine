@@ -181,13 +181,9 @@ class D4RLTrajectoryDataset(Dataset):
 
             self.trajectories = self.trajectories_tmp
 
-        # calculate min len of traj, state mean and variance
-        # and returns_to_go for all traj
-        min_len = 10 ** 6
         states = []
         for traj in self.trajectories:
             traj_len = traj['observations'].shape[0]
-            min_len = min(min_len, traj_len)
             states.append(traj['observations'])
             # calculate returns to go and rescale them
             traj['returns_to_go'] = discount_cumsum(traj['rewards'], 1.0) / rtg_scale
