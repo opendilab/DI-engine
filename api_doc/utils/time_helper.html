@@ -215,233 +215,23 @@
 <section id="time-helper">
 <h2>time_helper<a class="headerlink" href="#time-helper" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/ding/utils/time_helper.py for usage.</p>
-<section id="module-ding.utils.time_helper.build_time_helper">
-<span id="build-time-helper"></span><h3>build_time_helper<a class="headerlink" href="#module-ding.utils.time_helper.build_time_helper" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Build the timehelper</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>):</dt><dd><p>The config file, which is a multilevel dict, have large domain like
-evaluate, common, model, train etc, and each large domain
-has it’s smaller domain.</p>
-</dd>
-</dl>
-</li>
-<li><p>wrapper_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The type of wrapper returned, support <code class="docutils literal notranslate"><span class="pre">['time',</span> <span class="pre">'cuda']</span></code></p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>time_wrapper (<code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeWrapper</span></code>):</dt><dd><p>Return the corresponding timewrapper, Reference: <code class="docutils literal notranslate"><span class="pre">ding.utils.timehelper.TimeWrapperTime</span></code>
-and <code class="docutils literal notranslate"><span class="pre">ding.utils.timehelper.get_cuda_time_wrapper</span></code>.</p>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
+<section id="build-time-helper">
+<h3>build_time_helper<a class="headerlink" href="#build-time-helper" title="Permalink to this headline">¶</a></h3>
 </section>
 <section id="timewrapper">
 <h3>TimeWrapper<a class="headerlink" href="#timewrapper" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.time_helper.</span></span><span class="sig-name descname"><span class="pre">TimeWrapper</span></span><a class="reference internal" href="../../_modules/ding/utils/time_helper_base.html#TimeWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Abstract class method that defines <code class="docutils literal notranslate"><span class="pre">TimeWrapper</span></code> class</p>
-</dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">wrapper</span></code>, <code class="docutils literal notranslate"><span class="pre">start_time</span></code>, <code class="docutils literal notranslate"><span class="pre">end_time</span></code></p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapper.end_time">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">end_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper_base.html#TimeWrapper.end_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.end_time" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Abstract classmethod, stop timing</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapper.start_time">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper_base.html#TimeWrapper.start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.start_time" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Abstract classmethod, start timing</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapper.wrapper">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">wrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper_base.html#TimeWrapper.wrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapper.wrapper" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Classmethod wrapper, wrap a function and automatically return its running time</p>
-</dd>
-</dl>
-<ul class="simple">
-<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">function</span></code>): The function to be wrap and timed</p></li>
-</ul>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 <section id="timewrappertime">
 <h3>TimeWrapperTime<a class="headerlink" href="#timewrappertime" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapperTime">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.time_helper.</span></span><span class="sig-name descname"><span class="pre">TimeWrapperTime</span></span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#TimeWrapperTime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapperTime" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>A class method that inherit from <code class="docutils literal notranslate"><span class="pre">TimeWrapper</span></code> class</p>
-</dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">start_time</span></code>, <code class="docutils literal notranslate"><span class="pre">end_time</span></code></p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapperTime.end_time">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">end_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#TimeWrapperTime.end_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapperTime.end_time" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Implement and overide the end_time method in <code class="docutils literal notranslate"><span class="pre">TimeWrapper</span></code> class</p>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>time(<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The time between <code class="docutils literal notranslate"><span class="pre">start_time</span></code> and end_time</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.TimeWrapperTime.start_time">
-<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">start_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#TimeWrapperTime.start_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.TimeWrapperTime.start_time" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Implement and overide the <code class="docutils literal notranslate"><span class="pre">start_time</span></code> method in <code class="docutils literal notranslate"><span class="pre">TimeWrapper</span></code> class</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
-<section id="module-ding.utils.time_helper.get_cuda_time_wrapper">
-<span id="get-cuda-time-wrapper"></span><h3>get_cuda_time_wrapper<a class="headerlink" href="#module-ding.utils.time_helper.get_cuda_time_wrapper" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Return the <code class="docutils literal notranslate"><span class="pre">TimeWrapperCuda</span></code> class, this wrapper aims to ensure compatibility in no cuda device</p>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>TimeWrapperCuda(<code class="xref py py-obj docutils literal notranslate"><span class="pre">class</span></code>): See <code class="docutils literal notranslate"><span class="pre">TimeWrapperCuda</span></code> class</p></li>
-</ul>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Must use <code class="docutils literal notranslate"><span class="pre">torch.cuda.synchronize()</span></code>, reference: &lt;<a class="reference external" href="https://blog.csdn.net/u013548568/article/details/81368019">https://blog.csdn.net/u013548568/article/details/81368019</a>&gt;</p>
-</div>
+<section id="get-cuda-time-wrapper">
+<h3>get_cuda_time_wrapper<a class="headerlink" href="#get-cuda-time-wrapper" title="Permalink to this headline">¶</a></h3>
 </section>
 <section id="easytimer">
 <h3>EasyTimer<a class="headerlink" href="#easytimer" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.utils.time_helper.EasyTimer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.time_helper.</span></span><span class="sig-name descname"><span class="pre">EasyTimer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cuda</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#EasyTimer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.EasyTimer" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
-<dt>Overview:</dt><dd><p>A decent timer wrapper that can be used easily.</p>
-</dd>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">__enter__</span></code>, <code class="docutils literal notranslate"><span class="pre">__exit__</span></code></p>
-</dd>
-<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wait_timer</span> <span class="o">=</span> <span class="n">EasyTimer</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">wait_timer</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>   <span class="n">func</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">time_</span> <span class="o">=</span> <span class="n">wait_timer</span><span class="o">.</span><span class="n">value</span>  <span class="c1"># in second</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.EasyTimer.__enter__">
-<span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#EasyTimer.__enter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.EasyTimer.__enter__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Enter timer, start timing</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.EasyTimer.__exit__">
-<span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#EasyTimer.__exit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.EasyTimer.__exit__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Exit timer, stop timing</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.EasyTimer.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cuda</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#EasyTimer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.EasyTimer.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Init class EasyTimer</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cuda (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to build timer with cuda type</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 <section id="watchdog">
 <h3>WatchDog<a class="headerlink" href="#watchdog" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.utils.time_helper.WatchDog">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.time_helper.</span></span><span class="sig-name descname"><span class="pre">WatchDog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#WatchDog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.WatchDog" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Simple watchdog timer to detect timeouts</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>timeout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Timeout value of the <code class="docutils literal notranslate"><span class="pre">watchdog</span> <span class="pre">[seconds]</span></code>.</p></li>
-</ul>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If it is not reset before exceeding this value, <code class="docutils literal notranslate"><span class="pre">TimeourError</span></code> raised.</p>
-</div>
-<dl>
-<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code></p>
-</dd>
-<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">watchdog</span> <span class="o">=</span> <span class="n">WatchDog</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># x is a timeout value</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="o">...</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">watchdog</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="o">...</span> <span class="c1"># Some function</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.WatchDog.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#WatchDog.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.WatchDog.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.WatchDog.start">
-<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#WatchDog.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.WatchDog.start" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Start watchdog.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.utils.time_helper.WatchDog.stop">
-<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/time_helper.html#WatchDog.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.time_helper.WatchDog.stop" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Stop watchdog with <code class="docutils literal notranslate"><span class="pre">alarm(0)</span></code>, <code class="docutils literal notranslate"><span class="pre">SIGALRM</span></code>, and <code class="docutils literal notranslate"><span class="pre">SIG_DFL</span></code> signals.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 </section>

@@ -204,61 +204,6 @@
 <h1>worker.coordinator.resource_manager<a class="headerlink" href="#worker-coordinator-resource-manager" title="Permalink to this headline">¶</a></h1>
 <section id="naiveresourcemanager">
 <h2>NaiveResourceManager<a class="headerlink" href="#naiveresourcemanager" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.worker.coordinator.resource_manager.NaiveResourceManager">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.worker.coordinator.resource_manager.</span></span><span class="sig-name descname"><span class="pre">NaiveResourceManager</span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/resource_manager.html#NaiveResourceManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.resource_manager.NaiveResourceManager" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>the naive resource manager</p>
-</dd>
-<dt>Interface:</dt><dd><p>__init__, assign_collector, assign_learner, update</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.worker.coordinator.resource_manager.NaiveResourceManager.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/resource_manager.html#NaiveResourceManager.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.resource_manager.NaiveResourceManager.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>init the resouce manager</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.worker.coordinator.resource_manager.NaiveResourceManager.assign_collector">
-<span class="sig-name descname"><span class="pre">assign_collector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collector_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/resource_manager.html#NaiveResourceManager.assign_collector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.resource_manager.NaiveResourceManager.assign_collector" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>assign the collector_task randomly and return the resouce info</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>collector_task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): the collector task to assign</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.worker.coordinator.resource_manager.NaiveResourceManager.assign_learner">
-<span class="sig-name descname"><span class="pre">assign_learner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">learner_task</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/resource_manager.html#NaiveResourceManager.assign_learner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.resource_manager.NaiveResourceManager.assign_learner" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>assign the learner_task randomly and return the resouce info</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>learner_task (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): the learner task to assign</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.worker.coordinator.resource_manager.NaiveResourceManager.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">worker_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resource_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/ding/worker/coordinator/resource_manager.html#NaiveResourceManager.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.worker.coordinator.resource_manager.NaiveResourceManager.update" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>update the reource info</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 

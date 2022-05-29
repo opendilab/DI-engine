@@ -112,16 +112,16 @@
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Torch Utils</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="checkpoint_helper.html">checkpoint_helper</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">data_helper</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_device">to_device</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_dtype">to_dtype</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_tensor">to_tensor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_ndarray">to_ndarray</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_list">to_list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.tensor_to_list">tensor_to_list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.same_shape">same_shape</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.build_log_buffer">build_log_buffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#to-device">to_device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#to-dtype">to_dtype</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#to-tensor">to_tensor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#to-ndarray">to_ndarray</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#to-list">to_list</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tensor-to-list">tensor_to_list</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#same-shape">same_shape</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#build-log-buffer">build_log_buffer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#cudafetcher">CudaFetcher</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.data_helper.get_tensor_data">get_tensor_data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get-tensor-data">get_tensor_data</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="distribution.html">distribution</a></li>
@@ -223,174 +223,35 @@
             
   <section id="data-helper">
 <h1>data_helper<a class="headerlink" href="#data-helper" title="Permalink to this headline">¶</a></h1>
-<section id="module-ding.torch_utils.data_helper.to_device">
-<span id="to-device"></span><h2>to_device<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_device" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Transfer data to certain device</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be transferred</p></li>
-<li><p>device (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the device wanted</p></li>
-<li><p>ignore_keys (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the keys to be ignored in transfer, defalut set to empty</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the transferred item</p></li>
-</ul>
-</dd>
-</dl>
+<section id="to-device">
+<h2>to_device<a class="headerlink" href="#to-device" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="module-ding.torch_utils.data_helper.to_dtype">
-<span id="to-dtype"></span><h2>to_dtype<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_dtype" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Change data to certain dtype</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be dtype changed</p></li>
-<li><p>dtype (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): the type wanted</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code>): the dtype changed item</p></li>
-</ul>
-</dd>
-</dl>
+<section id="to-dtype">
+<h2>to_dtype<a class="headerlink" href="#to-dtype" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="module-ding.torch_utils.data_helper.to_tensor">
-<span id="to-tensor"></span><h2>to_tensor<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_tensor" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Change <cite>numpy.ndarray</cite>, sequence of scalars to torch.Tensor, and keep other data types unchanged.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be changed</p></li>
-<li><p>dtype (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): the type of wanted tensor</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the change tensor</p></li>
-</ul>
-</dd>
-</dl>
+<section id="to-tensor">
+<h2>to_tensor<a class="headerlink" href="#to-tensor" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="module-ding.torch_utils.data_helper.to_ndarray">
-<span id="to-ndarray"></span><h2>to_ndarray<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_ndarray" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Change <cite>torch.Tensor</cite>, sequence of scalars to ndarray, and keep other data types unchanged.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code>): the item to be changed</p></li>
-<li><p>dtype (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): the type of wanted ndarray</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code>): the changed ndarray</p></li>
-</ul>
-</dd>
-</dl>
+<section id="to-ndarray">
+<h2>to_ndarray<a class="headerlink" href="#to-ndarray" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="module-ding.torch_utils.data_helper.to_list">
-<span id="to-list"></span><h2>to_list<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_list" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Transform <cite>torch.Tensor</cite>, <cite>numpy.ndarray</cite> to <cite>list</cite>, keep other data types unchanged</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be transformed</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list after transformation</p></li>
-</ul>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Now supports item type: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code> and <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
-</div>
+<section id="to-list">
+<h2>to_list<a class="headerlink" href="#to-list" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="module-ding.torch_utils.data_helper.tensor_to_list">
-<span id="tensor-to-list"></span><h2>tensor_to_list<a class="headerlink" href="#module-ding.torch_utils.data_helper.tensor_to_list" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Transform <cite>torch.Tensor</cite> to <cite>list</cite>, keep other data types unchanged</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be transformed</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list after transformation</p></li>
-</ul>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Now supports item type: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code> and <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
-</div>
+<section id="tensor-to-list">
+<h2>tensor_to_list<a class="headerlink" href="#tensor-to-list" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="module-ding.torch_utils.data_helper.same_shape">
-<span id="same-shape"></span><h2>same_shape<a class="headerlink" href="#module-ding.torch_utils.data_helper.same_shape" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Judge whether all data elements in a list have the same shape.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list of data</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>same (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether the list of data all have the same shape</p></li>
-</ul>
-</dd>
-</dl>
+<section id="same-shape">
+<h2>same_shape<a class="headerlink" href="#same-shape" title="Permalink to this headline">¶</a></h2>
 </section>
-<section id="module-ding.torch_utils.data_helper.build_log_buffer">
-<span id="build-log-buffer"></span><h2>build_log_buffer<a class="headerlink" href="#module-ding.torch_utils.data_helper.build_log_buffer" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Builg log buffer, a subclass of dict, which can transform the input data into log format.</p>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>log_buffer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">LogDict</span></code>): Log buffer dict</p></li>
-</ul>
-</dd>
-</dl>
+<section id="build-log-buffer">
+<h2>build_log_buffer<a class="headerlink" href="#build-log-buffer" title="Permalink to this headline">¶</a></h2>
 </section>
 <section id="cudafetcher">
 <h2>CudaFetcher<a class="headerlink" href="#cudafetcher" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.data_helper.</span></span><span class="sig-name descname"><span class="pre">CudaFetcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sleep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Fetch data from source, and transfer it to specified device.</p>
-</dd>
-<dt>Interfaces:</dt><dd><p>run, close</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher.close">
-<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher.close" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Stop <code class="docutils literal notranslate"><span class="pre">producer</span></code> thread by setting <code class="docutils literal notranslate"><span class="pre">end_flag</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> .</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher.run" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Start <code class="docutils literal notranslate"><span class="pre">producer</span></code> thread: Keep fetching data from source,
-change the device, and put into <code class="docutils literal notranslate"><span class="pre">queue</span></code> for request.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
-<section id="module-ding.torch_utils.data_helper.get_tensor_data">
-<span id="get-tensor-data"></span><h2>get_tensor_data<a class="headerlink" href="#module-ding.torch_utils.data_helper.get_tensor_data" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Get pure tensor data from the given data(without disturbing grad computation graph)</p>
-</dd>
-</dl>
+<section id="get-tensor-data">
+<h2>get_tensor_data<a class="headerlink" href="#get-tensor-data" title="Permalink to this headline">¶</a></h2>
 </section>
 </section>
 

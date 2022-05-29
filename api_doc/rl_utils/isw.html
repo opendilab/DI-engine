@@ -26,7 +26,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -212,30 +211,8 @@
 <h1>rl_utils.isw<a class="headerlink" href="#rl-utils-isw" title="Permalink to this headline">¶</a></h1>
 <section id="isw">
 <h2>isw<a class="headerlink" href="#isw" title="Permalink to this headline">¶</a></h2>
-<section id="module-ding.rl_utils.isw.compute_importance_weights">
-<span id="compute-importance-weights"></span><h3>compute_importance_weights<a class="headerlink" href="#module-ding.rl_utils.isw.compute_importance_weights" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Computing importance sampling weight with given output and action</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output taking the action by the current policy network,            usually this output is network output logit</p></li>
-<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output taking the action by the behaviour policy network,            usually this output is network output logit, which is used to produce the trajectory(collector)</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the chosen action(index for the discrete action space) in trajectory,            i.e.: behaviour_action</p></li>
-<li><p>requires_grad (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether requires grad computation</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>rhos (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Importance sampling weight</p></li>
-</ul>
-</dd>
-<dt>Shapes:</dt><dd><ul class="simple">
-<li><p>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, N)\)</span>, where T is timestep, B is batch size and            N is action dim</p></li>
-<li><p>behaviour_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B, N)\)</span></p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
-<li><p>rhos (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
-</ul>
-</dd>
-</dl>
+<section id="compute-importance-weights">
+<h3>compute_importance_weights<a class="headerlink" href="#compute-importance-weights" title="Permalink to this headline">¶</a></h3>
 </section>
 </section>
 </section>

@@ -203,225 +203,27 @@
 <h2>config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h2>
 <section id="id1">
 <h3>Config<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.config.Config">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.config.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg_text</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/config/config.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.Config" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Base class for config.</p>
-</dd>
-<dt>Interface:</dt><dd><p>__init__, file_to_dict</p>
-</dd>
-<dt>Property:</dt><dd><p>cfg_dict</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.config.Config.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg_dict</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg_text</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#Config.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.Config.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Init method. Create config including dict type config and text type config.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg_dict (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[dict]</span></code>): dict type config</p></li>
-<li><p>cfg_text (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): text type config</p></li>
-<li><p>filename (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): config file name</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.config.Config._file_to_dict">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">_file_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#Config._file_to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.Config._file_to_dict" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Read config file and convert the config file to dict type config and text type config.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>filename (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): config file name.</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>cfg_dict (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[dict]</span></code>): dict type config</p></li>
-<li><p>cfg_text (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): text type config</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.config.Config.file_to_dict">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">file_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.config.Config" title="ding.config.config.Config"><span class="pre">ding.config.config.Config</span></a></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#Config.file_to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.Config.file_to_dict" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Read config file and create config.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>filename (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): config file name.</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>cfg_dict (<a class="reference internal" href="#ding.config.Config" title="ding.config.Config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Config</span></code></a>): config class</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 <section id="read-config-yaml">
 <h3>read_config_yaml<a class="headerlink" href="#read-config-yaml" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.config.config.read_config_yaml">
-<span class="sig-prename descclassname"><span class="pre">ding.config.config.</span></span><span class="sig-name descname"><span class="pre">read_config_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">easydict.EasyDict</span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#read_config_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.read_config_yaml" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>read configuration from path</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of source yaml</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config data from this file with dict type</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="save-config-yaml">
 <h3>save_config_yaml<a class="headerlink" href="#save-config-yaml" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.config.config.save_config_yaml">
-<span class="sig-prename descclassname"><span class="pre">ding.config.config.</span></span><span class="sig-name descname"><span class="pre">save_config_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">NoReturn</span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#save_config_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.save_config_yaml" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>save configuration to path</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>config (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Config dict</p></li>
-<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of target yaml</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="save-config-py">
 <h3>save_config_py<a class="headerlink" href="#save-config-py" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.config.config.save_config_py">
-<span class="sig-prename descclassname"><span class="pre">ding.config.config.</span></span><span class="sig-name descname"><span class="pre">save_config_py</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">NoReturn</span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#save_config_py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.save_config_py" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>save configuration to python file</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>config (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Config dict</p></li>
-<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of target yaml</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="read-config">
 <h3>read_config<a class="headerlink" href="#read-config" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.config.config.read_config">
-<span class="sig-prename descclassname"><span class="pre">ding.config.config.</span></span><span class="sig-name descname"><span class="pre">read_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#read_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.read_config" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Read configuration from a file path(now only suport python file). And select some proper parts.</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of configuration file</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[dict,</span> <span class="pre">dict]</span></code>): A collection(tuple) of configuration dict, divided into <cite>main_config</cite> and             <cite>create_cfg</cite> two parts.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="save-config">
 <h3>save_config<a class="headerlink" href="#save-config" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.config.config.save_config">
-<span class="sig-prename descclassname"><span class="pre">ding.config.config.</span></span><span class="sig-name descname"><span class="pre">save_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'py'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_formatted</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">NoReturn</span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#save_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.save_config" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>save configuration to python file or yaml file</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>config (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Config dict</p></li>
-<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of target yaml or target python file</p></li>
-<li><p>type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): If type is <code class="docutils literal notranslate"><span class="pre">yaml</span></code> , save configuration to yaml file. If type is <code class="docutils literal notranslate"><span class="pre">py</span></code> , save             configuration to python file.</p></li>
-<li><p>save_formatted (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): If save_formatted is true, save formatted config to path.            Formatted config can be read by serial_pipeline directly.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="compile-config">
 <h3>compile_config<a class="headerlink" href="#compile-config" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.config.config.compile_config">
-<span class="sig-prename descclassname"><span class="pre">ding.config.config.</span></span><span class="sig-name descname"><span class="pre">compile_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">cfg:</span> <span class="pre">easydict.EasyDict</span></em>, <em class="sig-param"><span class="pre">env_manager:</span> <span class="pre">Optional[type]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">policy:</span> <span class="pre">Optional[type]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">learner:</span> <span class="pre">type</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'ding.worker.learner.base_learner.BaseLearner'&gt;</span></em>, <em class="sig-param"><span class="pre">collector:</span> <span class="pre">Optional[type]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">evaluator:</span> <span class="pre">type</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'ding.worker.collector.interaction_serial_evaluator.InteractionSerialEvaluator'&gt;</span></em>, <em class="sig-param"><span class="pre">buffer:</span> <span class="pre">Optional[type]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">env:</span> <span class="pre">Optional[type]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">reward_model:</span> <span class="pre">Optional[type]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">seed:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></em>, <em class="sig-param"><span class="pre">auto:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">create_cfg:</span> <span class="pre">Optional[dict]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">save_cfg:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em>, <em class="sig-param"><span class="pre">save_path:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'total_config.py'</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">easydict.EasyDict</span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#compile_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.compile_config" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Combine the input config information with other input information.
-Compile config to make it easy to be called by other programs</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Input config dict which is to be used in the following pipeline</p></li>
-<li><p>env_manager (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Env_manager class which is to be used in the following pipeline</p></li>
-<li><p>policy (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Policy class which is to be used in the following pipeline</p></li>
-<li><p>learner (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Input learner class, defaults to BaseLearner</p></li>
-<li><p>collector (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Input collector class, defaults to BaseSerialCollector</p></li>
-<li><p>evaluator (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Input evaluator class, defaults to InteractionSerialEvaluator</p></li>
-<li><p>buffer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Input buffer class, defaults to IBuffer</p></li>
-<li><p>env (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Environment class which is to be used in the following pipeline</p></li>
-<li><p>reward_model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): Reward model class which aims to offer various and valuable reward</p></li>
-<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Random number seed</p></li>
-<li><p>auto (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Compile create_config dict or not</p></li>
-<li><p>create_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Input create config dict</p></li>
-<li><p>save_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Save config or not</p></li>
-<li><p>save_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of saving file</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config after compiling</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="compile-config-parallel">
 <h3>compile_config_parallel<a class="headerlink" href="#compile-config-parallel" title="Permalink to this headline">¶</a></h3>
-<dl class="py function">
-<dt class="sig sig-object py" id="ding.config.config.compile_config_parallel">
-<span class="sig-prename descclassname"><span class="pre">ding.config.config.</span></span><span class="sig-name descname"><span class="pre">compile_config_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'total_config.py'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'local'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinator_host</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learner_host</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collector_host</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinator_port</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learner_port</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collector_port</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">easydict.EasyDict</span></span></span><a class="reference internal" href="../../_modules/ding/config/config.html#compile_config_parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.config.config.compile_config_parallel" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Combine the input parallel mode configuration information with other input information. Compile config             to make it easy to be called by other programs</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Input main config dict</p></li>
-<li><p>create_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Input create config dict, including type parameters, such as environment type</p></li>
-<li><p>system_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): Input system config dict, including system parameters, such as file path,            communication mode, use multiple GPUs or not</p></li>
-<li><p>seed (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Random number seed</p></li>
-<li><p>save_cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Save config or not</p></li>
-<li><p>save_path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Path of saving file</p></li>
-<li><p>platform (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Where to run the program, ‘local’ or ‘slurm’</p></li>
-<li><p>coordinator_host (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): Input coordinator’s host when platform is slurm</p></li>
-<li><p>learner_host (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): Input learner’s host when platform is slurm</p></li>
-<li><p>collector_host (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[str]</span></code>): Input collector’s host when platform is slurm</p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): Config after compiling</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 </section>
 </section>

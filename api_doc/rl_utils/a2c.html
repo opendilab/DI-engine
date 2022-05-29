@@ -26,7 +26,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -212,32 +211,8 @@
 <h1>rl_utils.a2c<a class="headerlink" href="#rl-utils-a2c" title="Permalink to this headline">¶</a></h1>
 <section id="a2c">
 <h2>a2c<a class="headerlink" href="#a2c" title="Permalink to this headline">¶</a></h2>
-<section id="module-ding.rl_utils.a2c.a2c_error">
-<span id="a2c-error"></span><h3>a2c_error<a class="headerlink" href="#module-ding.rl_utils.a2c.a2c_error" title="Permalink to this headline">¶</a></h3>
-<dl class="simple">
-<dt>Overview:</dt><dd><p>Implementation of A2C(Advantage Actor-Critic) (arXiv:1602.01783)</p>
-</dd>
-<dt>Arguments:</dt><dd><ul class="simple">
-<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): a2c input data with fieids shown in <code class="docutils literal notranslate"><span class="pre">a2c_data</span></code></p></li>
-</ul>
-</dd>
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>a2c_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): the a2c loss item, all of them are the differentiable 0-dim tensor</p></li>
-</ul>
-</dd>
-<dt>Shapes:</dt><dd><ul class="simple">
-<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is action dim</p></li>
-<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>adv (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>return (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
-<li><p>policy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span>, 0-dim tensor</p></li>
-<li><p>value_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span></p></li>
-<li><p>entropy_loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span></p></li>
-</ul>
-</dd>
-</dl>
+<section id="a2c-error">
+<h3>a2c_error<a class="headerlink" href="#a2c-error" title="Permalink to this headline">¶</a></h3>
 </section>
 </section>
 </section>

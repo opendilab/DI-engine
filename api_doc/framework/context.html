@@ -205,35 +205,6 @@
 <h2>context<a class="headerlink" href="#context" title="Permalink to this headline">¶</a></h2>
 <section id="id1">
 <h3>Context<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="ding.framework.context.Context">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.framework.context.</span></span><span class="sig-name descname"><span class="pre">Context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/framework/context.html#Context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.context.Context" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Context is an object that pass contextual data between middlewares, whose life cycle
-is only one training iteration. It is a dict that reflect itself, so you can set
-any properties as you wish.</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.framework.context.Context.keep">
-<span class="sig-name descname"><span class="pre">keep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/context.html#Context.keep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.context.Context.keep" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Keep this key/keys until next iteration.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ding.framework.context.Context.renew">
-<span class="sig-name descname"><span class="pre">renew</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.framework.context.Context" title="ding.framework.context.Context"><span class="pre">ding.framework.context.Context</span></a></span></span><a class="reference internal" href="../../_modules/ding/framework/context.html#Context.renew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.context.Context.renew" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>Overview:</dt><dd><p>Renew context from self, add total_step and shift kept properties to the new instance.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 </section>
