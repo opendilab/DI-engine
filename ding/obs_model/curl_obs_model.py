@@ -1,11 +1,14 @@
 from typing import TYPE_CHECKING, Dict
-# easydict的作用：可以使得以属性的方式去访问字典的值
+# easydict: enable to access the value of the dictionary as an attribute
 from easydict import EasyDict
 import copy
+import numpy as np
 import torch
 import torch.nn as nn
 import os
-# 为了防止循环引用出现的差错
+from skimage.util.shape import view_as_windows
+
+# prevent error from circling
 if TYPE_CHECKING:
     from tensorboardX import SummaryWriter
 
@@ -23,7 +26,7 @@ class Encoder(nn.Module):
         self.num_layers = num_layers
 
         self.convs = nn.ModuleList(
-            [nn.Conv2d(obs_shape[0], num_filters, 3, stride=2)] #??
+            [nn.Conv2d(obs_shape[0], num_filters, 3, stride=2)]
         )
         for i in range(num_layers - 1):
             self.convs.append(nn.Conv2d(num_filters, num_filters, 3, stride=1))
@@ -58,7 +61,7 @@ class Encoder(nn.Module):
 class CurlObsModel(nn.Module):
     @classmethod
     def default_config(cls: type) -> EasyDict:
-        # copy.deepcopy 深拷贝 拷贝对象及其子对象
+        # copy.deepcopy: copy objecgs and their subjects
         cfg = EasyDict(copy.deepcopy(cls.config))
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
@@ -149,7 +152,7 @@ class CurlObsModel(nn.Module):
         z_pos = self.encode(obs_positive)
         logits = self.compute_logits(z_anc, z_pos)
 
-        labels = torch.arange(logits.shape[0]).long() #.to(self.device) 有two devices 报错
+        labels = torch.arange(logits.shape[0]).long()#.to(self.device) #有two devices 报错
         loss = self.cross_entropy_loss(logits, labels)
 
         self.encoder_optimizer.zero_grad() # 将模型的参数梯度初始化为0
@@ -166,17 +169,58 @@ class CurlObsModel(nn.Module):
         Overview:
             Returneezs state_dict including W and optimizer for saving checkpoint.
         """
-        torch.save(
-            self.encoder.state_dict(), 'curl.pt'
-        )
-
+        state_dict = {
+                        'encoder': self.encoder.state_dict(),
+                        'W': self.W.detach(),
+                        'encoder optimizer': self.encoder_optimizer.state_dict() ,
+                        'cpc optimizer': self.cpc_optimizer.state_dict()
+        }
+        torch.save(state_dict, 'curl.pt')
 
     def load(self) -> None:
         """
         Overview:
             Load state_dict including W and optimizer in order to recover.
         """
-        self.encoder.load_state_dict(
-            torch.load('curl.pt')
-        )
+        state_dict = {
+                        'encoder': self.encoder.state_dict(),
+                        'W': self.W.detach(),
+                        'encoder optimizer': self.encoder_optimizer.state_dict() ,
+                        'cpc optimizer': self.cpc_optimizer.state_dict()
+        }
+        self.encoder.load_state_dict(state_dict['encoder'])
+        with torch.no_grad():
+            self.W.copy_(state_dict['W'])
+        self.encoder_optimizer.load_state_dict(state_dict['encoder optimizer'])
+        self.cpc_optimizer.load_state_dict(state_dict['cpc optimizer'])
 
+    def get_augmented_data(self, img: torch.Tensor) -> Dict[str, torch.Tensor]:
+        """
+        Translate the picture to dict
+        args:
+        imgs, with shape (B,C,H,W)
+        """
+        b = img.shape[0]
+        img_size = img.shape[-1]
+        crop_max = img_size - self.cfg.image_size #16
+        imgs = np.transpose(img,(0,2,3,1)) #(64,100,100,9)
+        H_a = np.random.randint(0,crop_max,b)# 64
+        W_a = np.random.randint(0,crop_max,b)
+        H_p = np.random.randint(0,crop_max,b)
+        W_p = np.random.randint(0,crop_max,b)
+        # view_as_windows(input_array, window_shape, step)
+
+        windows = view_as_windows(
+            imgs, (1, self.cfg.image_size, self.cfg.image_size, 1))[...,0, :,:, 0]
+        # without [···，0，：，：，0] anchor:(64, 9, 1, 84, 84, 1) , 0 means drop
+
+        anchor = windows[np.arange(b), H_a, W_a] #(64,9,84,84)
+        print(anchor.shape)
+        positive = windows[np.arange(b), H_p, W_p]
+
+        anchor = torch.as_tensor(anchor, device=self.device).float()
+        positive = torch.as_tensor(positive, device=self.device).float()
+
+        data = dict(obs_anchor=anchor, obs_positive=positive)
+
+        return data
