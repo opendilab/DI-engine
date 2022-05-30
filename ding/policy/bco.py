@@ -45,6 +45,7 @@ class BCOPolicy(Policy):
         self._optimizer = SGD(
             self._model.parameters(),
             lr=self._cfg.learn.learning_rate,
+            weight_decay=self._cfg.learn.weight_decay,
         )
         self._timer = EasyTimer(cuda=True)
 
@@ -94,10 +95,11 @@ class BCOPolicy(Policy):
             'forward_time': forward_time,
             'backward_time': backward_time,
             'sync_time': sync_time,
+            '[histogram]logit_distribution':a_logit['logit'],
         }
 
     def _monitor_vars_learn(self):
-        return ['cur_lr', 'total_loss', 'forward_time', 'backward_time', 'sync_time']
+        return ['[histogram]logit_distribution','cur_lr', 'total_loss', 'forward_time', 'backward_time', 'sync_time']
 
     def _init_eval(self):
         self._eval_model = model_wrap(self._model, wrapper_name='argmax_sample')
