@@ -250,7 +250,9 @@ P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse re
 - [File an issue](https://github.com/opendilab/DI-engine/issues/new/choose) on Github
 - Open or participate in our [forum](https://github.com/opendilab/DI-engine/discussions)
 - Discuss on DI-engine [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
-- Discuss on DI-engine's QQ group (700157520) or add us on ![WeChat](https://github.com/opendilab/DI-engine/assets/wechat.png)
+- Discuss on DI-engine's QQ group (700157520) or add us on WeChat 
+  
+  ![WeChat](https://github.com/opendilab/DI-engine/blob/main/assets/wechat.png)
 - Contact our email (opendilab.contact@gmail.com)
 - Contributes to our future plan [Roadmap](https://github.com/opendilab/DI-engine/projects)
 
