@@ -10,7 +10,7 @@ maze_ppg_default_config = dict(
         n_evaluator_episode=50,
         stop_value=10,
         manager=dict(
-            shared_memory=False,
+            shared_memory=True,
         ),
     ),
     policy=dict(
@@ -46,7 +46,7 @@ main_config = maze_ppg_default_config
 maze_ppg_create_config = dict(
     env=dict(
         type='procgen',
-        import_names=['dizoo.procgen.procgen_env'],
+        import_names=['dizoo.procgen.envs.procgen_env'],
     ),
     env_manager=dict(type='subprocess', ),
     policy=dict(type='ppg'),

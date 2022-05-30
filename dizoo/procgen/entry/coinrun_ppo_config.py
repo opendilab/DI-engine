@@ -45,7 +45,7 @@ main_config = coinrun_ppo_default_config
 coinrun_ppo_create_config = dict(
     env=dict(
         type='procgen',
-        import_names=['dizoo.procgen.procgen_env'],
+        import_names=['dizoo.procgen.envs.procgen_env'],
     ),
     env_manager=dict(type='subprocess', ),
     policy=dict(type='ppo'),
