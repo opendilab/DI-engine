@@ -258,6 +258,6 @@ def test_shared_memory():
     for i in range(3):
         payload = sv.recv()
         assert payload.data == 0
-        assert shm[i] == 1
+        assert shm[payload.proc_id] == 1
 
     sv.shutdown()
