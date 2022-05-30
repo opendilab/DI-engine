@@ -24,7 +24,8 @@ cartpole_dqn_stdim_config = dict(
             loss_type = 'infonce',
             temperature = 1.0,
         ),
-        loss_ratio = 0.05,
+        # the ratio of the auxiliary loss to the TD loss
+        aux_loss_ratio = 0.05,
         nstep=1,
         discount_factor=0.97,
         learn=dict(
@@ -52,7 +53,7 @@ cartpole_dqn_stdim_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='dqn'),
+    policy=dict(type='dqn_stdim'),
     replay_buffer=dict(
         type='deque',
         import_names=['ding.data.buffer.deque_buffer_wrapper']

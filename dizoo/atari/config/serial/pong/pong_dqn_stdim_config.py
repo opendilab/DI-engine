@@ -24,7 +24,8 @@ pong_dqn_stdim_config = dict(
             loss_type = 'infonce',
             temperature = 1.0,
         ),
-        loss_ratio = 0.05,
+        # the ratio of the auxiliary loss to the TD loss
+        aux_loss_ratio = 0.05,
         nstep=3,
         discount_factor=0.99,
         learn=dict(
@@ -54,7 +55,7 @@ pong_dqn_stdim_create_config = dict(
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='dqn'),
+    policy=dict(type='dqn_stdim'),
 )
 pong_dqn_stdim_create_config = EasyDict(pong_dqn_stdim_create_config)
 create_config = pong_dqn_stdim_create_config

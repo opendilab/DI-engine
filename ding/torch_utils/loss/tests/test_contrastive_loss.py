@@ -2,18 +2,19 @@ import pytest
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset, DataLoader
-from ding.torch_utils import ContrastiveLoss
+from ding.torch_utils.loss.contrastive_loss import ContrastiveLoss
 
 
-@pytest.mark.unittest
-@pytest.mark.parametrize('noise', [0.1, 1.0, 3.0])
+@pytest.mark.benchmark
+@pytest.mark.parametrize('noise', [0.1, 1.0])
 @pytest.mark.parametrize('dims', [
     [16],
+    [3, 16, 16]
 ])
 def test_infonce_loss(noise, dims):
     print_loss = False
     batch_size = 128
-    N_batch = 10
+    N_batch = 3
     x_dim = [batch_size * N_batch] + dims
 
     encode_shape = 16

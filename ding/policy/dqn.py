@@ -4,13 +4,14 @@ import copy
 import torch
 
 from ding.torch_utils import Adam, to_device
+from ding.torch_utils.loss.contrastive_loss import ContrastiveLoss
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, get_nstep_return_data, get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
+
 from .base_policy import Policy
 from .common_utils import default_preprocess_learn
-from ding.torch_utils import ContrastiveLoss
 
 
 @POLICY_REGISTRY.register('dqn')
@@ -393,7 +394,7 @@ class DQNSTDIMPolicy(DQNPolicy):
         == ==================== ======== ============== ======================================== =======================
         ID Symbol               Type     Default Value  Description                              Other(Shape)
         == ==================== ======== ============== ======================================== =======================
-        1  ``type``             str      dqn            | RL policy register name, refer to      | This arg is optional,
+        1  ``type``             str      dqn_stdim      | RL policy register name, refer to      | This arg is optional,
                                                         | registry ``POLICY_REGISTRY``           | a placeholder
         2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-
                                                                                                  | erent from modes
@@ -437,14 +438,14 @@ class DQNSTDIMPolicy(DQNPolicy):
                                                                                                  | decay from start
                                                                                                  | value to end value
                                                                                                  | during decay length.
-        20 | ``loss_ratio``     float    0.01           | the ratio of auxiliary loss to main    | any real value,
-                                                        | loss                                   | typically in
+        20 | ``aux_loss_ratio`` float    0.05           | the ratio of the auxiliary loss to     | any real value,
+                                                        | the TD loss                            | typically in
                                                                                                  | [-0.1, 0.1].
         == ==================== ======== ============== ======================================== =======================
     """
 
     config = dict(
-        type='dqn',
+        type='dqn_stdim',
         # (bool) Whether use cuda in policy
         cuda=False,
         # (bool) Whether learning policy is the same as collecting data policy(on-policy)
@@ -499,18 +500,17 @@ class DQNSTDIMPolicy(DQNPolicy):
             ),
             replay_buffer=dict(replay_buffer_size=10000, ),
         ),
-        loss_ratio=0.01,
+        aux_loss_ratio=0.05,
     )
 
     def _init_learn(self) -> None:
         super()._init_learn()
-        self._main_encoder = self._model.encoder
         x_size, y_size = self._get_encoding_size()
         self._aux_model = ContrastiveLoss(x_size, y_size, **self._cfg.aux_model)
         if self._cuda:
             self._aux_model.cuda()
         self._aux_optimizer = Adam(self._aux_model.parameters(), lr=self._cfg.learn.learning_rate)
-        self._aux_ratio = self._cfg.loss_ratio
+        self._aux_ratio = self._cfg.aux_loss_ratio
 
     def _get_encoding_size(self):
         obs = self._cfg.model.obs_shape
@@ -526,7 +526,7 @@ class DQNSTDIMPolicy(DQNPolicy):
 
     def _aux_encode(self, data):
         x = data["obs"]
-        y = self._main_encoder(data["obs"])
+        y = self._model.encoder(data["obs"])
         return x, y
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -583,14 +583,14 @@ class DQNSTDIMPolicy(DQNPolicy):
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
         value_gamma = data.get('value_gamma')
-        loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        bellman_loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
 
         # ======================
         # Compute auxiliary loss
         # ======================
         x, y = self._aux_encode(data)
         aux_loss_eval = self._aux_model.forward(x, y) * self._aux_ratio
-        loss += aux_loss_eval
+        loss = aux_loss_eval + bellman_loss
 
         # ====================
         # Q-learning update
@@ -607,10 +607,45 @@ class DQNSTDIMPolicy(DQNPolicy):
         self._target_model.update(self._learn_model.state_dict())
         return {
             'cur_lr': self._optimizer.defaults['lr'],
-            'total_loss': loss.item(),
+            'bellman_loss': bellman_loss.item(),
             'aux_loss': aux_loss_eval.item(),
+            'total_loss': loss.item(),
             'q_value': q_value.mean().item(),
             'priority': td_error_per_sample.abs().tolist(),
             # Only discrete action satisfying len(data['action'])==1 can return this and draw histogram on tensorboard.
             # '[histogram]action_distribution': data['action'],
         }
+
+    def _monitor_vars_learn(self) -> List[str]:
+        return ['cur_lr', 'bellman_loss', 'aux_loss', 'total_loss', 'q_value']
+
+    def _state_dict_learn(self) -> Dict[str, Any]:
+        """
+        Overview:
+            Return the state_dict of learn mode, usually including model and optimizer.
+        Returns:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.
+        """
+        return {
+            'model': self._learn_model.state_dict(),
+            'target_model': self._target_model.state_dict(),
+            'optimizer': self._optimizer.state_dict(),
+            'aux_optimizer': self._aux_optimizer.state_dict(),
+        }
+
+    def _load_state_dict_learn(self, state_dict: Dict[str, Any]) -> None:
+        """
+        Overview:
+            Load the state_dict variable into policy learn mode.
+        Arguments:
+            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.
+
+        .. tip::
+            If you want to only load some parts of model, you can simply set the ``strict`` argument in \
+            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \
+            complicated operation.
+        """
+        self._learn_model.load_state_dict(state_dict['model'])
+        self._target_model.load_state_dict(state_dict['target_model'])
+        self._optimizer.load_state_dict(state_dict['optimizer'])
+        self._aux_optimizer.load_state_dict(state_dict['aux_optimizer'])
