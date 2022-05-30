@@ -109,12 +109,14 @@ class LeagueActor:
             actor_data = ActorData(env_step=self.ctx.envstep, train_data=train_data)
             task.emit("actor_data_player_{}".format(job.launch_player), actor_data)
 
-        if self.n_rollout_samples > 0:
-            pass
-        else:
-            self.ctx.n_episode = None
-            self.ctx.train_iter = main_player.total_agent_step
-            self.ctx.policy_kwargs = None
+        self.ctx.n_episode = None
+        self.ctx.train_iter = main_player.total_agent_step
+        self.ctx.policy_kwargs = None
+
+        # if self.n_rollout_samples > 0:
+        #     pass
+        # else:
+        #     pass
         
         collector(self.ctx)
         train_data, episode_info = self.ctx.train_data[0], self.ctx.episode_info[0]  # only use main player data for training
