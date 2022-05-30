@@ -7,10 +7,11 @@ cartpole_dqn_config = dict(
         evaluator_env_num=5,
         n_evaluator_episode=5,
         stop_value=195,
-        replay_path='cartpole_dqn/video',
+        replay_path='cartpole_dqn_seed0/video',
     ),
     policy=dict(
         cuda=False,
+        load_path='cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar',  # necessary for eval
         model=dict(
             obs_shape=4,
             action_shape=2,
@@ -45,6 +46,15 @@ cartpole_dqn_create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
+    replay_buffer=dict(
+        type='deque',
+        import_names=['ding.data.buffer.deque_buffer_wrapper']
+    ),
 )
 cartpole_dqn_create_config = EasyDict(cartpole_dqn_create_config)
 create_config = cartpole_dqn_create_config
+
+if __name__ == "__main__":
+    # or you can enter `ding -m serial -c cartpole_dqn_config.py -s 0`
+    from ding.entry import serial_pipeline
+    serial_pipeline((main_config, create_config), seed=0)

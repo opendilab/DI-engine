@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Callable, Optional
 from concurrent.futures import ThreadPoolExecutor
 import fnmatch
-import logging
+from ditk import logging
 
 
 class EventLoop:

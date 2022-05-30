@@ -22,6 +22,8 @@ def wrap_mujoco(
     Returns:
         - wrapped_env (:obj:`gym.Env`): The wrapped mujoco environment
     """
+    # import customized gym environment
+    from . import mujoco_gym_env
     env = gym.make(env_id)
     env = FinalEvalRewardEnv(env)
     if norm_obs is not None and norm_obs.use_norm:

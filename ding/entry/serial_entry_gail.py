@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 import os
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 import numpy as np
@@ -68,6 +68,8 @@ def serial_pipeline_gail(
         expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
+    if 'data_path' not in cfg.reward_model:
+        cfg.reward_model.data_path = cfg.exp_name
     # Load expert data
     if collect_data:
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:
@@ -151,9 +153,9 @@ def serial_pipeline_gail(
                     "You can modify data collect config, e.g. increasing n_sample, n_episode."
                 )
                 break
-            # update train_data reward
-            reward_model.estimate(train_data)
-            learner.train(train_data, collector.envstep)
+            # update train_data reward using the augmented reward
+            train_data_augmented = reward_model.estimate(train_data)
+            learner.train(train_data_augmented, collector.envstep)
             if learner.policy.get_attribute('priority'):
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:

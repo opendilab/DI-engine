@@ -102,6 +102,12 @@ class CQLPolicy(SACPolicy):
 
             # (str type) action_space: Use reparameterization trick for continous action
             action_space='reparameterization',
+
+            # (int) Hidden size for actor network head.
+            actor_head_hidden_size=256,
+
+            # (int) Hidden size for critic network head.
+            critic_head_hidden_size=256,
         ),
         learn=dict(
             # (bool) Whether to use multi gpu
@@ -537,7 +543,7 @@ class CQLPolicy(SACPolicy):
 
 @POLICY_REGISTRY.register('cql_discrete')
 class CQLDiscretePolicy(DQNPolicy):
-    r"""
+    """
         Overview:
             Policy class of CQL algorithm in discrete environments.
 
@@ -566,7 +572,7 @@ class CQLDiscretePolicy(DQNPolicy):
                                                         | valid in serial training               | means more off-policy
         11 ``learn.kappa``      float    /              | Threshold of Huber loss
         == ==================== ======== ============== ======================================== =======================
-        """
+    """
 
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").

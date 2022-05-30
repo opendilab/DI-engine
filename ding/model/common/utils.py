@@ -4,15 +4,14 @@ from ding.utils import import_module, MODEL_REGISTRY
 
 
 def create_model(cfg: EasyDict) -> torch.nn.Module:
-    r"""
+    """
     Overview:
-        Creat model given config dictionary
+        Create a model given a config dictionary.
     Arguments:
-        - cfg: (:obj:`dict`):
-            The trainning configuration, the key ``import_name`` is
-            used to import module, and they key ``type`` is used to build model.
+        - cfg: (:obj:`dict`): Training configuration. The key ``import_name`` is \
+            used to import modules, and they key ``type`` is used to build the model.
     Returns:
-        - (:obj:`torch.nn.Module`) The corresponding model.
+        - (:obj:`torch.nn.Module`) Training configuration corresponding model.
     """
     import_module(cfg.pop('import_names', []))
     # must use pop

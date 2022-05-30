@@ -1,7 +1,7 @@
 {% set data = load_setup_py_data() %}
 package:
   name: di-engine
-  version: v0.3.0
+  version: v0.3.1
 
 source:
   path: ..

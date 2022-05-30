@@ -27,7 +27,7 @@ def get_manager_node_ip(node_ip: Optional[str] = None) -> str:
         Look up the manager node of the slurm cluster and return the node ip
     """
     if 'SLURM_JOB_ID' not in os.environ:
-        import logging
+        from ditk import logging
         logging.error(
             'We are not running on slurm!, \'auto\' for manager_ip or '
             'coordinator_ip is only intended for running on multiple slurm clusters'

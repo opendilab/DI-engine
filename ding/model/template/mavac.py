@@ -23,10 +23,9 @@ class MAVAC(nn.Module):
             global_obs_shape: Union[int, SequenceType],
             action_shape: Union[int, SequenceType],
             agent_num: int,
-            encoder_hidden_size_list: SequenceType = [128, 128, 64],
-            actor_head_hidden_size: int = 64,
+            actor_head_hidden_size: int = 256,
             actor_head_layer_num: int = 2,
-            critic_head_hidden_size: int = 64,
+            critic_head_hidden_size: int = 512,
             critic_head_layer_num: int = 1,
             action_space: str = 'discrete',
             activation: Optional[nn.Module] = nn.ReLU(),
@@ -78,20 +77,25 @@ class MAVAC(nn.Module):
                 format(global_obs_shape)
             )
 
-        self.actor_encoder = encoder_cls(
-            agent_obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-        )
-        self.critic_encoder = global_encoder_cls(
-            global_obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-        )
+        # We directly connect the Head after a Liner layer instead of using the 3-layer FCEncoder.
+        # In SMAC task it can obviously improve the performance.
+        # Users can change the model according to their own needs.
+        self.actor_encoder = nn.Identity()
+        self.critic_encoder = nn.Identity()
         # Head Type
-        self.critic_head = RegressionHead(
-            critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
+        self.critic_head = nn.Sequential(
+            nn.Linear(global_obs_shape, critic_head_hidden_size), activation,
+            RegressionHead(
+                critic_head_hidden_size, 1, critic_head_layer_num, activation=activation, norm_type=norm_type
+            )
         )
 
         actor_head_cls = DiscreteHead
-        self.actor_head = actor_head_cls(
-            actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+        self.actor_head = nn.Sequential(
+            nn.Linear(agent_obs_shape, actor_head_hidden_size), activation,
+            actor_head_cls(
+                actor_head_hidden_size, action_shape, actor_head_layer_num, activation=activation, norm_type=norm_type
+            )
         )
         # must use list, not nn.ModuleList
         self.actor = [self.actor_encoder, self.actor_head]

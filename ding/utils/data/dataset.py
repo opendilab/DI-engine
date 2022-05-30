@@ -2,7 +2,7 @@ from typing import List, Dict
 import pickle
 import torch
 import numpy as np
-import logging
+from ditk import logging
 
 from easydict import EasyDict
 from torch.utils.data import Dataset
@@ -34,7 +34,6 @@ class D4RLDataset(Dataset):
 
     def __init__(self, cfg: dict) -> None:
         import gym
-        import logging
         try:
             import d4rl  # register d4rl enviroments with open ai gym
         except ImportError:
@@ -49,6 +48,8 @@ class D4RLDataset(Dataset):
             d4rl.set_dataset_path(data_path)
         env = gym.make(env_id)
         dataset = d4rl.qlearning_dataset(env)
+        if cfg.policy.collect.get('normalize_states', None):
+            dataset = self._normalize_states(dataset)
         self._data = []
         self._load_d4rl(dataset)
 
@@ -66,8 +67,22 @@ class D4RLDataset(Dataset):
             trans_data['action'] = torch.from_numpy(dataset['actions'][i])
             trans_data['reward'] = torch.tensor(dataset['rewards'][i])
             trans_data['done'] = dataset['terminals'][i]
-            trans_data['collect_iter'] = 0
             self._data.append(trans_data)
+
+    def _normalize_states(self, dataset, eps=1e-3):
+        self._mean = dataset['observations'].mean(0, keepdims=True)
+        self._std = dataset['observations'].std(0, keepdims=True) + eps
+        dataset['observations'] = (dataset['observations'] - self._mean) / self._std
+        dataset['next_observations'] = (dataset['next_observations'] - self._mean) / self._std
+        return dataset
+
+    @property
+    def mean(self):
+        return self._mean
+
+    @property
+    def std(self):
+        return self._std
 
 
 @DATASET_REGISTRY.register('hdf5')
@@ -122,7 +137,6 @@ def hdf5_save(exp_data, expert_data_path):
     dataset.create_dataset('action', data=np.array([d['action'].numpy() for d in exp_data]), compression='gzip')
     dataset.create_dataset('reward', data=np.array([d['reward'].numpy() for d in exp_data]), compression='gzip')
     dataset.create_dataset('done', data=np.array([d['done'] for d in exp_data]), compression='gzip')
-    dataset.create_dataset('collect_iter', data=np.array([d['collect_iter'] for d in exp_data]), compression='gzip')
     dataset.create_dataset('next_obs', data=np.array([d['next_obs'].numpy() for d in exp_data]), compression='gzip')
 
 

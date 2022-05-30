@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from ding.utils import SequenceType, squeeze, MODEL_REGISTRY
 from ..common import ReparameterizationHead, RegressionHead, DiscreteHead, MultiHead, \
-    FCEncoder, ConvEncoder
+    FCEncoder, ConvEncoder, ImpalaConvEncoder
 
 
 @MODEL_REGISTRY.register('vac')
@@ -35,6 +35,7 @@ class VAC(nn.Module):
         fixed_sigma_value: Optional[int] = 0.3,
         bound_type: Optional[str] = None,
         encoder: Optional[torch.nn.Module] = None,
+        impala_cnn_encoder: bool = False,
     ) -> None:
         r"""
         Overview:
@@ -61,6 +62,7 @@ class VAC(nn.Module):
         obs_shape: int = squeeze(obs_shape)
         action_shape = squeeze(action_shape)
         self.obs_shape, self.action_shape = obs_shape, action_shape
+        self.impala_cnn_encoder = impala_cnn_encoder
         # Encoder Type
         if encoder is None:
             if isinstance(obs_shape, int) or len(obs_shape) == 1:
@@ -74,16 +76,23 @@ class VAC(nn.Module):
                 )
             self.share_encoder = share_encoder
             if self.share_encoder:
-                self.encoder = encoder_cls(
-                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                )
+                if self.impala_cnn_encoder:
+                    self.encoder = ImpalaConvEncoder(obs_shape)
+                else:
+                    self.encoder = encoder_cls(
+                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                    )
             else:
-                self.actor_encoder = encoder_cls(
-                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                )
-                self.critic_encoder = encoder_cls(
-                    obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
-                )
+                if self.impala_cnn_encoder:
+                    self.actor_encoder = ImpalaConvEncoder(obs_shape)
+                    self.critic_encoder = ImpalaConvEncoder(obs_shape)
+                else:
+                    self.actor_encoder = encoder_cls(
+                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                    )
+                    self.critic_encoder = encoder_cls(
+                        obs_shape, encoder_hidden_size_list, activation=activation, norm_type=norm_type
+                    )
         else:
             assert share_encoder
             self.share_encoder = share_encoder

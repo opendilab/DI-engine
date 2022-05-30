@@ -1,16 +1,14 @@
-from copy import deepcopy
-from ding.entry import serial_pipeline
 from easydict import EasyDict
 
 pong_ppg_config = dict(
+    exp_name='pong_ppg_seed0',
     env=dict(
         collector_env_num=8,
-        evaluator_env_num=4,
+        evaluator_env_num=8,
         n_evaluator_episode=8,
         stop_value=20,
         env_id='PongNoFrameskip-v4',
         frame_stack=4,
-        manager=dict(shared_memory=False, )
     ),
     policy=dict(
         cuda=True,
@@ -67,7 +65,15 @@ pong_ppg_create_config = dict(
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppg'),
+    policy=dict(type='ppg_offpolicy'),
 )
 create_config = EasyDict(pong_ppg_create_config)
-# PPG needs to use specific entry, like `cartpole_ppg_main.py`
+
+if __name__ == "__main__":
+    import os
+    import warnings
+    from dizoo.atari.entry.atari_ppg_main import main
+    from dizoo.atari.entry.atari_ppg_main import __file__ as _origin_py_file
+    origin_py_file_rel = os.path.relpath(_origin_py_file, os.path.abspath(os.path.curdir))
+    warnings.warn(UserWarning(f"This config file can be executed by {repr(origin_py_file_rel)}"))
+    main(main_config)
