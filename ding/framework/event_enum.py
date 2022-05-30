@@ -2,17 +2,15 @@ from enum import Enum, unique
 
 
 @unique
-class EventEnum(Enum):
-    COORDINATOR_DISPATCH_ACTOR_JOB = 1000
+class EventEnum(str, Enum):
+    # events emited by coordinators
+    COORDINATOR_DISPATCH_ACTOR_JOB = "on_coordinator_dispatch_actor_job_{actor_id}"
 
-    LEARNER_SEND_MODEL = 2000
-    LEARNER_SEND_META = 2001
+    # events emited by learners
+    LEARNER_SEND_MODEL = "on_learner_send_model"
+    LEARNER_SEND_META = "on_learner_send_meta"
 
-    ACTOR_GREETING = 3000
-    ACTOR_SEND_DATA = 3001
-    ACTOR_FINISH_JOB = 3002
-
-    def __call__(self, node_id: int = None):
-        if not node_id:
-            return "event_{}".format(self.value)
-        return "event_{}_{}".format(self.value, node_id)
+    # events emited by actors
+    ACTOR_GREETING = "on_actor_greeting"
+    ACTOR_SEND_DATA = "on_actor_send_meta"
+    ACTOR_FINISH_JOB = "on_actor_finish_job"

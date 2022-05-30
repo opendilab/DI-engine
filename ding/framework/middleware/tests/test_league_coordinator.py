@@ -38,7 +38,7 @@ def _main():
             league = MockLeague()
             coordinator = LeagueCoordinator(league)
             coordinator(None)
-            time.sleep(5)
+            time.sleep(3)
             assert league.update_payoff_cnt == 3
             assert league.update_active_player_cnt == 3
             assert league.create_historical_player_cnt == 3
@@ -47,26 +47,26 @@ def _main():
         # test ACTOR_GREETING
         res = []
         actor_id = "test_node_{}".format(task.router.node_id)
-        task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB(actor_id), lambda job: res.append(job))
-        time.sleep(1)
+        task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=actor_id), lambda job: res.append(job))
+        time.sleep(0.1)
         for _ in range(3):
-            task.emit(EventEnum.ACTOR_GREETING(), actor_id)
-        time.sleep(3)
+            task.emit(EventEnum.ACTOR_GREETING, actor_id)
+        time.sleep(2)
         assert actor_id == res[-1].actor_id
     elif task.router.node_id == 2:
         # test LEARNER_SEND_META
         actor_id = "test_node_{}".format(task.router.node_id)
-        time.sleep(1)
+        time.sleep(0.1)
         for _ in range(3):
-            task.emit(EventEnum.LEARNER_SEND_META(), {"meta": actor_id})
-        time.sleep(3)
+            task.emit(EventEnum.LEARNER_SEND_META, {"meta": actor_id})
+        time.sleep(2)
     elif task.router.node_id == 3:
         # test ACTOR_FINISH_JOB
         actor_id = "test_node_{}".format(task.router.node_id)
-        time.sleep(1)
+        time.sleep(0.1)
         job = Job(-1, actor_id, False)
         for _ in range(3):
-            task.emit(EventEnum.ACTOR_FINISH_JOB(), job)
+            task.emit(EventEnum.ACTOR_FINISH_JOB, job)
         time.sleep(3)
     else:
         raise Exception("Invalid node id {}".format(task.router.is_active))
