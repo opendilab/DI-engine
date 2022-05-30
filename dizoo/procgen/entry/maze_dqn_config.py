@@ -3,6 +3,7 @@ from easydict import EasyDict
 maze_dqn_default_config = dict(
     env=dict(
         collector_env_num=4,
+        env_id='maze',
         evaluator_env_num=4,
         n_evaluator_episode=4,
         stop_value=10,
@@ -41,8 +42,8 @@ main_config = maze_dqn_default_config
 
 maze_dqn_create_config = dict(
     env=dict(
-        type='maze',
-        import_names=['dizoo.procgen.maze.envs.maze_env'],
+        type='procgen',
+        import_names=['dizoo.procgen.envs.procgen_env'],
     ),
     env_manager=dict(type='subprocess', ),
     policy=dict(type='dqn'),
