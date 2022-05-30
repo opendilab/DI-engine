@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="http://di-engine.github.io"><img width="500px" height="auto" src="https://github.com/opendilab/DI-engine-docs/blob/main/source/images/di_engine_logo.svg"></a>
+    <a href="https://di-engine-docs.readthedocs.io/en/latest/"><img width="1000px" height="auto" src="https://github.com/opendilab/DI-engine-docs/blob/main/source/images/head_image.png"></a>
 </div>
 
 ---
@@ -79,8 +79,8 @@ Have fun with exploration and exploitation.
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Feature](#feature)
-  - [Algorithm Versatility](#algorithm-versatility)
-  - [Environment Versatility](#environment-versatility)
+  - [&#8627; Algorithm Versatility](#algorithm-versatility)
+  - [&#8627; Environment Versatility](#environment-versatility)
 - [Feedback and Contribution](#feedback-and-contribution)
 - [Supporters](#supporters)
   - [&#8627; Stargazers](#-stargazers)
@@ -108,6 +108,7 @@ And our dockerhub repo can be found [here](https://hub.docker.com/repository/doc
 - atari: opendilab/ding:nightly-atari
 - mujoco: opendilab/ding:nightly-mujoco
 - smac: opendilab/ding:nightly-smac
+- grf: opendilab/ding:nightly-grf
 
 The detailed documentation are hosted on [doc](https://di-engine-docs.readthedocs.io/en/latest/) | [中文文档](https://di-engine-docs.readthedocs.io/zh_CN/latest/).
 
@@ -248,7 +249,9 @@ P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse re
 
 - [File an issue](https://github.com/opendilab/DI-engine/issues/new/choose) on Github
 - Open or participate in our [forum](https://github.com/opendilab/DI-engine/discussions)
-- Discuss on DI-engine [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ) or QQ group (700157520)
+- Discuss on DI-engine [slack communication channel](https://join.slack.com/t/opendilab/shared_invite/zt-v9tmv4fp-nUBAQEH1_Kuyu_q4plBssQ)
+- Discuss on DI-engine's QQ group (700157520) or add us on ![WeChat](https://github.com/opendilab/DI-engine/assets/wechat.png)
+- Contact our email (opendilab.contact@gmail.com)
 - Contributes to our future plan [Roadmap](https://github.com/opendilab/DI-engine/projects)
 
 We appreciate all the feedbacks and contributions to improve DI-engine, both algorithms and system designs. And `CONTRIBUTING.md` offers some necessary information.
