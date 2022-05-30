@@ -276,11 +276,12 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">Adam</span><span class="p">,</span> <span class="n">to_device</span><span class="p">,</span> <span class="n">ContrastiveLoss</span>
 <span class="kn">from</span> <span class="nn">ding.rl_utils</span> <span class="kn">import</span> <span class="n">q_nstep_td_data</span><span class="p">,</span> <span class="n">q_nstep_td_error</span><span class="p">,</span> <span class="n">get_nstep_return_data</span><span class="p">,</span> <span class="n">get_train_sample</span>
 <span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">model_wrap</span>
 <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">POLICY_REGISTRY</span>
 <span class="kn">from</span> <span class="nn">ding.utils.data</span> <span class="kn">import</span> <span class="n">default_collate</span><span class="p">,</span> <span class="n">default_decollate</span>
+
 <span class="kn">from</span> <span class="nn">.base_policy</span> <span class="kn">import</span> <span class="n">Policy</span>
 <span class="kn">from</span> <span class="nn">.common_utils</span> <span class="kn">import</span> <span class="n">default_preprocess_learn</span>
 
@@ -654,6 +655,276 @@
 <span class="sd">            by import_names path. For DQN, ``ding.model.template.q_learning.DQN``</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s1">&#39;dqn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;ding.model.template.q_learning&#39;</span><span class="p">]</span></div></div>
+
+
+<span class="nd">@POLICY_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;dqn_stdim&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DQNSTDIMPolicy</span><span class="p">(</span><span class="n">DQNPolicy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Policy class of DQN algorithm, extended by auxiliary objectives.</span>
+<span class="sd">    Config:</span>
+<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
+<span class="sd">        ID Symbol               Type     Default Value  Description                              Other(Shape)</span>
+<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
+<span class="sd">        1  ``type``             str      dqn_stdim      | RL policy register name, refer to      | This arg is optional,</span>
+<span class="sd">                                                        | registry ``POLICY_REGISTRY``           | a placeholder</span>
+<span class="sd">        2  ``cuda``             bool     False          | Whether to use cuda for network        | This arg can be diff-</span>
+<span class="sd">                                                                                                 | erent from modes</span>
+<span class="sd">        3  ``on_policy``        bool     False          | Whether the RL algorithm is on-policy</span>
+<span class="sd">                                                        | or off-policy</span>
+<span class="sd">        4  ``priority``         bool     False          | Whether use priority(PER)              | Priority sample,</span>
+<span class="sd">                                                                                                 | update priority</span>
+<span class="sd">        5  | ``priority_IS``    bool     False          | Whether use Importance Sampling Weight</span>
+<span class="sd">           | ``_weight``                                | to correct biased update. If True,</span>
+<span class="sd">                                                        | priority must be True.</span>
+<span class="sd">        6  | ``discount_``      float    0.97,          | Reward&#39;s future discount factor, aka.  | May be 1 when sparse</span>
+<span class="sd">           | ``factor``                  [0.95, 0.999]  | gamma                                  | reward env</span>
+<span class="sd">        7  ``nstep``            int      1,             | N-step reward discount sum for target</span>
+<span class="sd">                                         [3, 5]         | q_value estimation</span>
+<span class="sd">        8  | ``learn.update``   int      3              | How many updates(iterations) to train  | This args can be vary</span>
+<span class="sd">           | ``per_collect``                            | after collector&#39;s one collection. Only | from envs. Bigger val</span>
+<span class="sd">                                                        | valid in serial training               | means more off-policy</span>
+<span class="sd">        9  | ``learn.multi``    bool     False          | whether to use multi gpu during</span>
+<span class="sd">           | ``_gpu``</span>
+<span class="sd">        10 | ``learn.batch_``   int      64             | The number of samples of an iteration</span>
+<span class="sd">           | ``size``</span>
+<span class="sd">        11 | ``learn.learning`` float    0.001          | Gradient step length of an iteration.</span>
+<span class="sd">           | ``_rate``</span>
+<span class="sd">        12 | ``learn.target_``  int      100            | Frequence of target network update.    | Hard(assign) update</span>
+<span class="sd">           | ``update_freq``</span>
+<span class="sd">        13 | ``learn.ignore_``  bool     False          | Whether ignore done for target value   | Enable it for some</span>
+<span class="sd">           | ``done``                                   | calculation.                           | fake termination env</span>
+<span class="sd">        14 ``collect.n_sample`` int      [8, 128]       | The number of training samples of a    | It varies from</span>
+<span class="sd">                                                        | call of collector.                     | different envs</span>
+<span class="sd">        15 | ``collect.unroll`` int      1              | unroll length of an iteration          | In RNN, unroll_len&gt;1</span>
+<span class="sd">           | ``_len``</span>
+<span class="sd">        16 | ``other.eps.type`` str      exp            | exploration rate decay type            | Support [&#39;exp&#39;,</span>
+<span class="sd">                                                                                                 | &#39;linear&#39;].</span>
+<span class="sd">        17 | ``other.eps.``     float    0.95           | start value of exploration rate        | [0,1]</span>
+<span class="sd">           | ``start``</span>
+<span class="sd">        18 | ``other.eps.``     float    0.1            | end value of exploration rate          | [0,1]</span>
+<span class="sd">           | ``end``</span>
+<span class="sd">        19 | ``other.eps.``     int      10000          | decay length of exploration            | greater than 0. set</span>
+<span class="sd">           | ``decay``                                                                           | decay=10000 means</span>
+<span class="sd">                                                                                                 | the exploration rate</span>
+<span class="sd">                                                                                                 | decay from start</span>
+<span class="sd">                                                                                                 | value to end value</span>
+<span class="sd">                                                                                                 | during decay length.</span>
+<span class="sd">        20 | ``aux_loss_ratio`` float    0.05           | the ratio of the auxiliary loss to     | any real value,</span>
+<span class="sd">                                                        | the TD loss                            | typically in</span>
+<span class="sd">                                                                                                 | [-0.1, 0.1].</span>
+<span class="sd">        == ==================== ======== ============== ======================================== =======================</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn_stdim&#39;</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether use cuda in policy</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether learning policy is the same as collecting data policy(on-policy)</span>
+        <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether enable priority experience sample</span>
+        <span class="n">priority</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.</span>
+        <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># (float) Discount factor(gamma) for returns</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+        <span class="c1"># (int) The number of step for calculating target q_value</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (bool) Whether to use multi gpu</span>
+            <span class="n">multi_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="c1"># How many updates(iterations) to train after collector&#39;s one collection.</span>
+            <span class="c1"># Bigger &quot;update_per_collect&quot; means bigger off-policy.</span>
+            <span class="c1"># collect data -&gt; update policy-&gt; collect data -&gt; ...</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="c1"># (int) How many samples in a training batch</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="c1"># (float) The step size of gradient descent</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># The following configs are algorithm-specific</span>
+            <span class="c1"># ==============================================================</span>
+            <span class="c1"># (int) Frequence of target network update.</span>
+            <span class="n">target_update_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="c1"># (bool) Whether ignore done(usually for max step termination env)</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="c1"># collect_mode config</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># (int) Only one of [n_sample, n_episode] shoule be set</span>
+            <span class="c1"># n_sample=8,</span>
+            <span class="c1"># (int) Cut trajectories into pieces with length &quot;unroll_len&quot;.</span>
+            <span class="n">unroll_len</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+        <span class="c1"># other config</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># Epsilon greedy with decay.</span>
+            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="c1"># (str) Decay type. Support [&#39;exp&#39;, &#39;linear&#39;].</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="c1"># (float) Epsilon start value</span>
+                <span class="n">start</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                <span class="c1"># (float) Epsilon end value</span>
+                <span class="n">end</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="c1"># (int) Decay length(env step)</span>
+                <span class="n">decay</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">aux_loss_ratio</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_init_learn</span><span class="p">()</span>
+        <span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_encoding_size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span> <span class="o">=</span> <span class="n">ContrastiveLoss</span><span class="p">(</span><span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">aux_model</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">aux_loss_ratio</span>
+
+    <span class="k">def</span> <span class="nf">_get_encoding_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">obs_shape</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="p">[</span><span class="n">obs</span><span class="p">]</span>
+        <span class="n">test_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;obs&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">obs</span><span class="p">),</span>
+            <span class="s2">&quot;next_obs&quot;</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">obs</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_encode</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="k">def</span> <span class="nf">_aux_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;obs&quot;</span><span class="p">])</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;next_obs&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+
+    <span class="k">def</span> <span class="nf">_forward_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Forward computation graph of learn mode(updating policy).</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - data (:obj:`Dict[str, Any]`): Dict type data, a batch of data for training, values are torch.Tensor or \</span>
+<span class="sd">                np.ndarray or dict/list combinations.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - info_dict (:obj:`Dict[str, Any]`): Dict type data, a info dict indicated training result, which will be \</span>
+<span class="sd">                recorded in text log and tensorboard, values are python scalar or a list of scalars.</span>
+<span class="sd">        ArgumentsKeys:</span>
+<span class="sd">            - necessary: ``obs``, ``action``, ``reward``, ``next_obs``, ``done``</span>
+<span class="sd">            - optional: ``value_gamma``, ``IS``</span>
+<span class="sd">        ReturnsKeys:</span>
+<span class="sd">            - necessary: ``cur_lr``, ``total_loss``, ``priority``</span>
+<span class="sd">            - optional: ``action_distribution``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">default_preprocess_learn</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span>
+            <span class="n">use_priority</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_priority</span><span class="p">,</span>
+            <span class="n">use_priority_IS_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">priority_IS_weight</span><span class="p">,</span>
+            <span class="n">ignore_done</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">ignore_done</span><span class="p">,</span>
+            <span class="n">use_nstep</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">to_device</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+
+        <span class="c1"># ====================</span>
+        <span class="c1"># Q-learning forward</span>
+        <span class="c1"># ====================</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        <span class="c1"># Current q value (main model)</span>
+        <span class="n">q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">])[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+        <span class="c1"># Target q value</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">target_q_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">])[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span>
+            <span class="c1"># Max q value action (main model)</span>
+            <span class="n">target_q_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">])[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+
+        <span class="c1"># ======================</span>
+        <span class="c1"># Auxiliary model update</span>
+        <span class="c1"># ======================</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">x_no_grad</span><span class="p">,</span> <span class="n">y_no_grad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_encode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">aux_loss_learn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x_no_grad</span><span class="p">,</span> <span class="n">y_no_grad</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">aux_loss_learn</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="n">data_n</span> <span class="o">=</span> <span class="n">q_nstep_td_data</span><span class="p">(</span>
+            <span class="n">q_value</span><span class="p">,</span> <span class="n">target_q_value</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">],</span> <span class="n">target_q_action</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;done&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">value_gamma</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;value_gamma&#39;</span><span class="p">)</span>
+        <span class="n">bellman_loss</span><span class="p">,</span> <span class="n">td_error_per_sample</span> <span class="o">=</span> <span class="n">q_nstep_td_error</span><span class="p">(</span>
+            <span class="n">data_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span><span class="p">,</span> <span class="n">nstep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_nstep</span><span class="p">,</span> <span class="n">value_gamma</span><span class="o">=</span><span class="n">value_gamma</span>
+        <span class="p">)</span>
+
+        <span class="c1"># ======================</span>
+        <span class="c1"># Compute auxiliary loss</span>
+        <span class="c1"># ======================</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_encode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">aux_loss_eval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_model</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_ratio</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">aux_loss_eval</span> <span class="o">+</span> <span class="n">bellman_loss</span>
+
+        <span class="c1"># ====================</span>
+        <span class="c1"># Q-learning update</span>
+        <span class="c1"># ====================</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">multi_gpu</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sync_gradients</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="c1"># =============</span>
+        <span class="c1"># after update</span>
+        <span class="c1"># =============</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">())</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;cur_lr&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;bellman_loss&#39;</span><span class="p">:</span> <span class="n">bellman_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;aux_loss&#39;</span><span class="p">:</span> <span class="n">aux_loss_eval</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;total_loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;q_value&#39;</span><span class="p">:</span> <span class="n">q_value</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+            <span class="s1">&#39;priority&#39;</span><span class="p">:</span> <span class="n">td_error_per_sample</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="c1"># Only discrete action satisfying len(data[&#39;action&#39;])==1 can return this and draw histogram on tensorboard.</span>
+            <span class="c1"># &#39;[histogram]action_distribution&#39;: data[&#39;action&#39;],</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_monitor_vars_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;cur_lr&#39;</span><span class="p">,</span> <span class="s1">&#39;bellman_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;aux_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;total_loss&#39;</span><span class="p">,</span> <span class="s1">&#39;q_value&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Return the state_dict of learn mode, usually including model and optimizer.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): the dict of current policy learn state, for saving and restoring.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;target_model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+            <span class="s1">&#39;aux_optimizer&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_load_state_dict_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Load the state_dict variable into policy learn mode.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state_dict (:obj:`Dict[str, Any]`): the dict of policy learn state saved before.</span>
+
+<span class="sd">        .. tip::</span>
+<span class="sd">            If you want to only load some parts of model, you can simply set the ``strict`` argument in \</span>
+<span class="sd">            load_state_dict to ``False``, or refer to ``ding.torch_utils.checkpoint_helper`` for more \</span>
+<span class="sd">            complicated operation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_target_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;target_model&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_aux_optimizer</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">[</span><span class="s1">&#39;aux_optimizer&#39;</span><span class="p">])</span>
 </pre></div>
 
               </article>
