@@ -207,12 +207,13 @@ class NGU(nn.Module):
                 if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
                     saved_hidden_state.append(prev_state)
                 lstm_embedding.append(output)
-                hidden_state = list(zip(*prev_state))
-                hidden_state_list.append(torch.cat(hidden_state[0], dim=1))  # take the first hidden state
+                # only take the hidden state h
+                hidden_state_list.append(torch.cat([item['h'] for item in prev_state], dim=1))
+
             x = torch.cat(lstm_embedding, 0)  # [B, H, 64]
             x = parallel_wrapper(self.head)(x)
-            x['next_state'] = prev_state  # including the first hidden state and the second cell state
+            x['next_state'] = prev_state  # including the hidden state (h) and the cell state (c)
             x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
             if saved_hidden_state_timesteps is not None:
-                x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states
+                x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
             return x
