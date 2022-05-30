@@ -66,14 +66,24 @@ class MBSACPolicy(SACPolicy):
         # TODO: auto alpha
         self._auto_alpha = False
 
+        # TODO: TanhTransform
         def actor_fn(obs: Tensor):
-            (mu, sigma) = self._learn_model.forward(
-                obs, mode='compute_actor')['logit']
-            # enforce action bounds
-            dist = TransformedDistribution(
-                Independent(Normal(mu, sigma), 1), [TanhTransform()])
-            action = dist.rsample()
-            log_prob = dist.log_prob(action)
+            # (mu, sigma) = self._learn_model.forward(
+            #     obs, mode='compute_actor')['logit']
+            # # enforce action bounds
+            # dist = TransformedDistribution(
+            #     Independent(Normal(mu, sigma), 1), [TanhTransform()])
+            # action = dist.rsample()
+            # log_prob = dist.log_prob(action)
+            # return action, -self._alpha.detach() * log_prob
+            (mu, sigma) = self._learn_model.forward(obs, mode='compute_actor')['logit']
+            dist = Independent(Normal(mu, sigma), 1)
+            pred = dist.rsample()
+            action = torch.tanh(pred)
+
+            log_prob = dist.log_prob(
+                pred
+            ) + 2 * (pred + torch.nn.functional.softplus(-2. * pred) - torch.log(torch.tensor(2.))).sum(-1)
             return action, -self._alpha.detach() * log_prob
 
         self._actor_fn = actor_fn
