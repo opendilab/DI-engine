@@ -636,7 +636,7 @@ class DRQN(nn.Module):
             )
 
     def forward(
-            self, inputs: Dict, inference: bool = False, saved_hidden_state_timesteps: Optional[list] = None
+            self, inputs: Dict, inference: bool = False, saved_state_timesteps: Optional[list] = None
     ) -> Dict:
         r"""
         Overview:
@@ -646,9 +646,9 @@ class DRQN(nn.Module):
             - inputs (:obj:`Dict`):
             - inference: (:obj:'bool'): if inference is True, we unroll the one timestep transition,
                 if inference is False, we unroll the sequence transitions.
-            - saved_hidden_state_timesteps: (:obj:'Optional[list]'): when inference is False,
+            - saved_state_timesteps: (:obj:'Optional[list]'): when inference is False,
                 we unroll the sequence transitions, then we would save rnn hidden states at timesteps
-                that are listed in list saved_hidden_state_timesteps.
+                that are listed in list saved_state_timesteps.
 
        ArgumentsKeys:
             - obs (:obj:`torch.Tensor`): Encoded observation
@@ -705,12 +705,12 @@ class DRQN(nn.Module):
             lstm_embedding = []
             # TODO(nyz) how to deal with hidden_size key-value
             hidden_state_list = []
-            if saved_hidden_state_timesteps is not None:
-                saved_hidden_state = []
+            if saved_state_timesteps is not None:
+                saved_state = []
             for t in range(x.shape[0]):  # T timesteps
                 output, prev_state = self.rnn(x[t:t + 1], prev_state)  # output: (1,B, head_hidden_size)
-                if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
-                    saved_hidden_state.append(prev_state)
+                if saved_state_timesteps is not None and t + 1 in saved_state_timesteps:
+                    saved_state.append(prev_state)
                 lstm_embedding.append(output)
                 hidden_state = [p['h'] for p in prev_state]
                 # only keep ht, {list: x.shape[0]{Tensor:(1, batch_size, head_hidden_size)}}
@@ -719,13 +719,15 @@ class DRQN(nn.Module):
             if self.res_link:
                 x = x + a
             x = parallel_wrapper(self.head)(x)  # (T, B, action_shape)
-            # the last timestep state including h and c for lstm, {list: B{tuple: 2{Tensor:(1, 1, head_hidden_size}}}
+            # the last timestep state including the hidden state (h) and the cell state (c)
+            # shape: {list: B{dict: 2{Tensor:(1, 1, head_hidden_size}}}
             x['next_state'] = prev_state
             # all hidden state h, this returns a tensor of the dim: seq_len*batch_size*head_hidden_size
             # This key is used in qtran, the algorithm requires to retain all h_{t} during training
             x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
-            if saved_hidden_state_timesteps is not None:
-                x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
+            if saved_state_timesteps is not None:
+                # the selected saved hidden states, including the hidden state (h) and the cell state (c)
+                x['saved_state'] = saved_state
             return x
 
 

@@ -210,7 +210,7 @@ class NGU(nn.Module):
 
             x = torch.cat(lstm_embedding, 0)  # [B, H, 64]
             x = parallel_wrapper(self.head)(x)
-            # including the hidden state (h) and the cell state (c)
+            # the last timestep state including the hidden state (h) and the cell state (c)
             x['next_state'] = prev_state
             x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
             if saved_state_timesteps is not None:
