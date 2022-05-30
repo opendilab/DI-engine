@@ -1,0 +1,755 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>如何理解训练过程中生成的文件夹？ &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="API Doc" href="../05_api_doc/index.html" />
+  <link rel="prev" title="如何使用 RNN" href="rnn_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">最佳实践</a> &gt;</li>
+        
+      <li>如何理解训练过程中生成的文件夹？</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/04_best_practice/training_generated_folders_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="id1">
+<h1>如何理解训练过程中生成的文件夹？<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<p>DI-engine 在训练过程中会生成很多文件夹：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>在 <strong>串行（serial）</strong> 模式下, DI-engine 生成 log 和 checkpoint 文件夹.</p></li>
+<li><p>在 <strong>并行（parallel）</strong> 模式下, DI-engine 生成 log, checkpoint, data 和 policy 文件夹.</p></li>
+</ul>
+</div></blockquote>
+<p>我们将分别介绍这两种模式。</p>
+<section id="id2">
+<h2>串行模式<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>在串行模式下，生成的文件树如下：</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cartpole_dqn
+├── ckpt
+│   ├── ckpt_best.pth.tar
+│   ├── iteration_0.pth.tar
+│   └── iteration_561.pth.tar
+├── formatted_total_config.py
+├── log
+│   ├── buffer
+│   │   └── buffer_logger.txt
+│   ├── collector
+│   │   └── collector_logger.txt
+│   ├── evaluator
+│   │   └── evaluator_logger.txt
+│   ├── learner
+│   │   └── learner_logger.txt
+│   └── serial
+│       └── events.out.tfevents.1626453528.CN0014009700M.local
+└── total_config.py
+</pre></div>
+</div>
+<ul>
+<li><p>log/buffer</p>
+<blockquote>
+<div><p>在 buffer 这个文件夹里, 有一个名为 <code class="docutils literal notranslate"><span class="pre">buffer_logger.txt</span></code> 的文件，其中包含buffer中有关数据使用情况的一些信息。</p>
+<p>经过一定次数的采样后，会打印出采样信息，显示采样数据的属性，并且也展示出数据的质量。 表格如下图所示：</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 7%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Name</p></td>
+<td><p>use_avg</p></td>
+<td><p>use_max</p></td>
+<td><p>priority_avg</p></td>
+<td><p>priority_max</p></td>
+<td><p>priority_min</p></td>
+<td><p>staleness_avg</p></td>
+<td><p>staleness_max</p></td>
+</tr>
+<tr class="row-even"><td><p>Value</p></td>
+<td><p>float</p></td>
+<td><p>int</p></td>
+<td><p>float</p></td>
+<td><p>float</p></td>
+<td><p>float</p></td>
+<td><p>float</p></td>
+<td><p>float</p></td>
+</tr>
+</tbody>
+</table>
+<p>一定秒数后，吞吐量信息（进入buffer的数据数量、采样次数、删除数量、目前拥有的有效数量）将打印如下：</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+<col style="width: 22%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Name</p></td>
+<td><p>pushed_in</p></td>
+<td><p>sampled_out</p></td>
+<td><p>removed</p></td>
+<td><p>current_have</p></td>
+</tr>
+<tr class="row-even"><td><p>Value</p></td>
+<td><p>float</p></td>
+<td><p>float</p></td>
+<td><p>float</p></td>
+<td><p>float</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><p>log/collector</p>
+<blockquote>
+<div><p>在收集器文件夹中，有一个名为“collector_logger.txt”的文件，其中包含一些与环境交互相关的信息。</p>
+<ul>
+<li><p>设默认置 n_sample 模式。 collector 的基本信息: n_sample 和 env_num. n_sample 表示采集的数据样本数. 对于 env_num，它表示collector将与多少个环境交互。</p></li>
+<li><p>collector与环境交互时产生的特殊信息，例如</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>episode_count: 收集数据的episode数量</p></li>
+<li><p>envstep_count: 收集数据的envstep数量</p></li>
+<li><p>train_sample_count: 训练样本数据个数</p></li>
+<li><p>avg_envstep_per_episode: 每个 eposide中平均的 envstep</p></li>
+<li><p>avg_sample_per_episode: 每个episode中的平均样本数</p></li>
+<li><p>avg_envstep_per_sec: 每秒平均的env_step</p></li>
+<li><p>avg_train_sample_per_sec: 每秒平均的训练样本数</p></li>
+<li><p>avg_episode_per_sec: 每秒平均episode数</p></li>
+<li><p>collect_time: 收集时间</p></li>
+<li><p>reward_mean: 平均奖励</p></li>
+<li><p>reward_std: 奖励的标准差</p></li>
+<li><p>each_reward: collector与环境交互时的每个episode的奖励。</p></li>
+<li><p>reward_max: 最大reward</p></li>
+<li><p>reward_min: 最小reward</p></li>
+<li><p>total_envstep_count: 总 envstep 数</p></li>
+<li><p>total_train_sample_count: 总训练样本数</p></li>
+<li><p>total_episode_count: 总 episode 数</p></li>
+<li><p>total_duration: 总持续时间</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>log/evaluator</p>
+<blockquote>
+<div><p>在 evaluator 文件夹中，有一个名为 <code class="docutils literal notranslate"><span class="pre">evaluator_logger.txt</span></code> 的文件，其中包含有关 evaluator 与环境交互时的一些信息。</p>
+<ul class="simple">
+<li><p>[INFO]: env 完成episode，最终奖励：xxx，当前episode：xxx</p></li>
+<li><p>train_iter: 训练迭代数</p></li>
+<li><p>ckpt_name: 模型路径，如iteration_0.pth.tar</p></li>
+<li><p>episode_count: episode计数</p></li>
+<li><p>envstep_count: envstep计数</p></li>
+<li><p>evaluate_time: evaluator花费的时间</p></li>
+<li><p>avg_envstep_per_episode: 每个episode的平均envstep</p></li>
+<li><p>avg_envstep_per_sec: 每秒的平均envstep</p></li>
+<li><p>avg_time_per_episode: 每秒的平均episode</p></li>
+<li><p>reward_mean: 平均奖励</p></li>
+<li><p>reward_std: 奖励的标准差</p></li>
+<li><p>each_reward: evaluator与环境交互时的每个episode的奖励。</p></li>
+<li><p>reward_max: 最大reward</p></li>
+<li><p>reward_min: 最小reward</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>log/learner</p>
+<blockquote>
+<div><p>在learner文件夹中，有一个名为“learner_logger.txt”的文件，其中包含有关learner的一些信息。</p>
+<p>以下信息是在 DQN 训练期间生成的</p>
+<ul>
+<li><dl>
+<dt>策略神经网络架构：</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INFO</span><span class="p">:</span><span class="n">learner_logger</span><span class="p">:[</span><span class="n">RANK0</span><span class="p">]:</span> <span class="n">DI</span><span class="o">-</span><span class="n">engine</span> <span class="n">DRL</span> <span class="n">Policy</span>
+<span class="n">DQN</span><span class="p">(</span>
+  <span class="p">(</span><span class="n">encoder</span><span class="p">):</span> <span class="n">FCEncoder</span><span class="p">(</span>
+    <span class="p">(</span><span class="n">act</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+    <span class="p">(</span><span class="n">init</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">main</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+      <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+      <span class="p">(</span><span class="mi">2</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="p">(</span><span class="mi">3</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+    <span class="p">)</span>
+  <span class="p">)</span>
+  <span class="p">(</span><span class="n">head</span><span class="p">):</span> <span class="n">DuelingHead</span><span class="p">(</span>
+    <span class="p">(</span><span class="n">A</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+      <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+      <span class="p">)</span>
+      <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="p">(</span><span class="n">V</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+      <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">ReLU</span><span class="p">()</span>
+      <span class="p">)</span>
+      <span class="p">(</span><span class="mi">1</span><span class="p">):</span> <span class="n">Sequential</span><span class="p">(</span>
+        <span class="p">(</span><span class="mi">0</span><span class="p">):</span> <span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="p">)</span>
+    <span class="p">)</span>
+  <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><p>leaner信息：</p>
+<blockquote>
+<div><p>网格表：</p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 34%" />
+<col style="width: 46%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Name</p></td>
+<td><p>cur_lr_avg</p></td>
+<td><p>total_loss_avg</p></td>
+</tr>
+<tr class="row-even"><td><p>Value</p></td>
+<td><p>0.001000</p></td>
+<td><p>0.098996</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>serial</p>
+<blockquote>
+<div><p>将buffer、collector、evaluator、learner的相关信息保存到名为 <code class="docutils literal notranslate"><span class="pre">events.out.tfevents</span></code> 的文件中，供 <strong>tensorboard</strong> 使用。</p>
+<p>DI-engine 将串行文件夹中的所有 tensorboard 文件保存为 <a href="#id3"><span class="problematic" id="id4">**</span></a>一个 tensorboard 文件 ** ，而不是各自的文件夹。 因为在跑如果跑n个实验的时候，当n很大时，4*n个各自的tensorboard文件不容易判别。 所以在串行模式下，所有的 tensorboard文件都在串行文件夹中 （但是，在并行模式下，tensorboard文件位于各自的文件夹中）。</p>
+</div></blockquote>
+</li>
+<li><p>ckpt</p>
+<blockquote>
+<div><dl class="simple">
+<dt>在这个文件夹中，有模型参数 checkpoints：</dt><dd><ul class="simple">
+<li><p>ckpt_best.pth.tar. 达到最高评价分数的最佳模型.</p></li>
+<li><p>“iteration” + iter number. 每 <code class="docutils literal notranslate"><span class="pre">iter_number</span></code> 保存的模型。</p></li>
+</ul>
+</dd>
+</dl>
+<p>您可以使用 <code class="docutils literal notranslate"><span class="pre">torch.load('ckpt_best.pth.tar')</span></code> 来加载模型。</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="id5">
+<h2>并行模式<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cartpole_dqn
+├── ckpt
+│   └── iteration_0.pth.tar
+├── data
+├── log
+│   ├── buffer
+│   │   ├── buffer_logger.txt
+│   │   └── buffer_tb_logger
+│   │       └── events.out.tfevents.1626453752.CN0014009700M.local
+│   ├── collector
+│   │   ├── 4890b4c5-f084-4c94-b440-75f9fa602388_614285_logger.txt
+│   │   ├── c029d882-fe4f-4a1d-9451-13015bbca192_750418_logger.txt
+│   │   └── fc68e215-f062-4a1b-a0fd-dcf5f375b290_886803_logger.txt
+│   ├── commander
+│   │   ├── commander_collector_logger.txt
+│   │   ├── commander_evaluator_logger.txt
+│   │   ├── commander_logger.txt
+│   │   └── commander_tb_logger
+│   │       └── events.out.tfevents.1626453748.CN0014009700M.local
+│   ├── coordinator_logger.txt
+│   ├── evaluator
+│   │   ├── 1496df45-8858-4f38-82da-b4a39461a268_451909_logger.txt
+│   │   └── 2e8879e3-8af5-4ebb-8d50-8af829f03845_711157_logger.txt
+│   └── learner
+│       ├── learner_logger.txt
+│       └── learner_tb_logger
+│           └── events.out.tfevents.1626453750.CN0014009700M.local
+└── policy
+    ├── policy_0d2a6a81-fd73-4e29-8815-3607f1428aaa_907961
+    └── policy_0d2a6a81-fd73-4e29-8815-3607f1428aaa_907961.lock:
+</pre></div>
+</div>
+<p>并行模式下，log文件夹有5个子文件夹，包括buffer、collector、evaluator、learner、commander和一个文件coordinator_logger.txt</p>
+<ul>
+<li><p>log/buffer</p>
+<blockquote>
+<div><p>在 buffer 文件夹中, 有一个名为 <code class="docutils literal notranslate"><span class="pre">buffer_logger.txt</span></code> 的文件和一个名为 <code class="docutils literal notranslate"><span class="pre">buffer_tb_logger</span></code> 的子文件夹。</p>
+<p><code class="docutils literal notranslate"><span class="pre">buffer_logger.txt</span></code> 中的数据与串行模式下的数据相同。</p>
+<p>在 buffer_tb_logger 文件夹中，有一个 <code class="docutils literal notranslate"><span class="pre">events.out.tfevents</span></code> tensorboard 文件。</p>
+</div></blockquote>
+</li>
+<li><p>log/collector</p>
+<blockquote>
+<div><p>在collector文件夹中，有很多 <code class="docutils literal notranslate"><span class="pre">collector_logger.txt</span></code> 文件，包括collector与环境交互时的collector信息。并行模式有很多collector，所以有很多 <code class="docutils literal notranslate"><span class="pre">collector_logger.txt</span></code> 文件记录信息。</p>
+<p><a href="#id6"><span class="problematic" id="id7">``</span></a>collector_logger.txt``中的数据与串行模式相同。</p>
+</div></blockquote>
+</li>
+<li><p>log/evaluator</p>
+<blockquote>
+<div><p>在 evaluator 文件夹中，有很多 <code class="docutils literal notranslate"><span class="pre">evaluator_logger.txt</span></code> 文件，包括 evaluator 与环境交互时有关 evaluator 的信息。 并行模式有很多evaluator，所以有很多 <code class="docutils literal notranslate"><span class="pre">evaluator_logger.txt</span></code> 文件记录信息。</p>
+<p><code class="docutils literal notranslate"><span class="pre">evaluator_logger.txt</span></code> 中的数据与串行模式相同。</p>
+</div></blockquote>
+</li>
+<li><p>log/learner</p>
+<blockquote>
+<div><p>在learner文件夹中，有一个名为 <code class="docutils literal notranslate"><span class="pre">learner_logger.txt</span></code> 的文件和一个名为 <code class="docutils literal notranslate"><span class="pre">learner_tb_logger</span></code> 的子文件夹。</p>
+<p><code class="docutils literal notranslate"><span class="pre">learner_logger.txt</span></code> 中的数据与串行模式相同。</p>
+<p>在 learner_tb_logger 文件夹中保存了一些 tensorboard 文件 <code class="docutils literal notranslate"><span class="pre">events.out.tfevents</span></code>，可以被 tensorboard 使用。</p>
+<p>在并行模式下，将所有tb文件放在同一个文件夹中太难了, 所以每个 tb 文件都放在一个文件夹中，其中包含相应的文本记录器文件。 它与串行模式不同。在串行模式下，我们将所有 tb 文件放在串行文件夹中。</p>
+</div></blockquote>
+</li>
+<li><p>log/commander</p>
+<blockquote>
+<div><p>在commander文件夹中，有三个文件： <code class="docutils literal notranslate"><span class="pre">commander_collector_logger.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">commander_evaluator_logger.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">commander_logger.txt</span></code> 和一个名为 <code class="docutils literal notranslate"><span class="pre">learner_tb_logger</span></code> 的子文件夹.</p>
+<p>在 <code class="docutils literal notranslate"><span class="pre">commander_collector_logger.txt</span></code> 里, 有一些coordinator需要的collector的信息。 如train_iter、step_count、avg_step_per_episode、avg_time_per_step、avg_time_per_episode、reward_mean、reward_std</p>
+<p>在 <code class="docutils literal notranslate"><span class="pre">commander_evaluator_logger.txt</span></code> 里, 有一些coordinator需要的evaluator的信息。 如train_iter、step_count、avg_step_per_episode、avg_time_per_step、avg_time_per_episode、reward_mean、reward_std</p>
+<p>在 <code class="docutils literal notranslate"><span class="pre">commander_logger.txt</span></code> 里, 有一些关于coordinator何时将会结束的信息</p>
+<p>collector和evaluator文件夹中有很多文件，看起来很不方便。 所以我们在commander里面做了一个整合。 这就是并行模式下存在collector 和evaluator 文件夹但commander 文件夹具有collector 文本文件和evaluator 文本文件的原因。</p>
+</div></blockquote>
+</li>
+<li><p>ckpt:</p>
+<blockquote>
+<div><p>并行模式下 checkpoint 文件夹与串行模式的相同。</p>
+<dl class="simple">
+<dt>在这个文件夹中，有模型参数 checkpoints：</dt><dd><ul class="simple">
+<li><p>ckpt_best.pth.tar. 达到最高评价分数的最佳模型.</p></li>
+<li><p>“iteration” + iter number. 每 <code class="docutils literal notranslate"><span class="pre">iter_number</span></code> 保存的模型。</p></li>
+</ul>
+</dd>
+</dl>
+<p>您可以使用 <code class="docutils literal notranslate"><span class="pre">torch.load('ckpt_best.pth.tar')</span></code> 来加载模型。</p>
+</div></blockquote>
+</li>
+<li><p>data</p>
+<blockquote>
+<div><p>在这个文件夹中，有很多数据文件。 在串行模式下，所有数据都存储在内存中; 在并行模式下，数据分为元数据和文件数据： 元数据仍然存储在内存中，但文件数据存储在文件系统中。</p>
+</div></blockquote>
+</li>
+<li><p>policy</p>
+<blockquote>
+<div><p>在此文件夹中，有一个策略文件。 该文件包含策略参数。用于将learner的最新参数发送给collector进行更新。 在并行模式下，coordinator使用策略文件的路径注册collector，collector使用策略文件中的数据作为自己的参数。</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../05_api_doc/index.html" class="btn btn-neutral float-right" title="API Doc" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="rnn_zh.html" class="btn btn-neutral" title="如何使用 RNN" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">如何理解训练过程中生成的文件夹？</a><ul>
+<li><a class="reference internal" href="#id2">串行模式</a></li>
+<li><a class="reference internal" href="#id5">并行模式</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

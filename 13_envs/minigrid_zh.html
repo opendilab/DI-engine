@@ -1,0 +1,754 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>MiniGrid &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Slime Volleyball" href="slime_volleyball_zh.html" />
+  <link rel="prev" title="BipedalWalker" href="bipedalwalker_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习环境示例</a> &gt;</li>
+        
+      <li>MiniGrid</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/minigrid_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="minigrid">
+<h1>MiniGrid<a class="headerlink" href="#minigrid" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>MiniGrid, 即最小化的格子世界环境，是经典的稀疏奖励的离散动作空间强化学习环境，常作为离散动作空间条件下稀疏强化学习算法的基准测试环境。
+在该游戏中，智能体需要学习在一个离散动作集合中选择合适的动作，在方格世界中完成移动，获取钥匙，开门等一系列序列决策以到达目标的位置。
+它有许多不同的实现版本，这里主要介绍
+<a class="reference external" href="https://github.com/maximecb/gym-minigrid">MiniGrid</a>, 因为其实现简单、轻量、代码依赖少、容易安装。
+它包括 MiniGrid-Empty-8x8-v0, MiniGrid-FourRooms-v0, MiniGrid-DoorKey-16x16-v0, MiniGrid-KeyCorridorS3R3-v0,
+MiniGrid-ObstructedMaze-2Dlh-v0, MiniGrid-ObstructedMaze-Full-v0 等一系列环境, 下图所示为其中的 MiniGrid-DoorKey-16x16-v0 游戏。</p>
+<a class="reference internal image-reference" href="../_images/MiniGrid-DoorKey-16x16-v0.png"><img alt="../_images/MiniGrid-DoorKey-16x16-v0.png" class="align-center" src="../_images/MiniGrid-DoorKey-16x16-v0.png" style="width: 240.6px; height: 249.6px;" /></a>
+</section>
+<section id="id2">
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<section id="id3">
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>用户可以选择通过 pip 一键安装或 git clone 代码库后 pip 本地安装.</p>
+<p>注：如果用户没有 root 权限，请在 install 的命令后面加上 <code class="docutils literal notranslate"><span class="pre">--user</span></code></p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># Method1: Install Directly</span>
+pip install gym-minigrid
+<span class="c1"># Method2: First clone this repository and install the dependencies with pip</span>
+git clone https://github.com/maximecb/gym-minigrid.git
+<span class="nb">cd</span> gym-minigrid
+pip install -e .
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>安装完成后，可以在 Python 命令行中运行如下命令, 如果显示出游戏的交互界面，则证明安装成功：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="n">cd</span> <span class="n">gym</span><span class="o">-</span><span class="n">minigrid</span>
+<span class="o">./</span><span class="n">manual_control</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">env</span> <span class="n">MiniGrid</span><span class="o">-</span><span class="n">Empty</span><span class="o">-</span><span class="mi">8</span><span class="n">x8</span><span class="o">-</span><span class="n">v0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id5">
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<section id="id6">
+<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>以MiniGrid-Empty-8x8-v0为例，</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;MiniGrid-Empty-8x8-v0&#39;</span><span class="p">)</span>
+<span class="n">obs1</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># obs: {&#39;image&#39;: numpy.ndarray (7, 7, 3),&#39;direction&#39;: ,&#39;mission&#39;: ,}</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">RGBImgPartialObsWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">)</span> <span class="c1"># Get pixel observations</span>
+<span class="n">obs2</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># obs: {&#39;mission&#39;: ,&#39;image&#39;: numpy.ndarray (56, 56, 3)}</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">ImgObsWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">)</span> <span class="c1"># Get rid of the &#39;mission&#39; field</span>
+<span class="n">obs3</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># obs: numpy.ndarray (56, 56, 3)</span>
+
+<span class="c1"># 不能在使用上述Wrapper后再使用此FlatObsWrapper，应该单独使用</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s1">&#39;MiniGrid-Empty-8x8-v0&#39;</span><span class="p">)</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">FlatObsWrapper</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+<span class="n">obs4</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>  <span class="c1"># obs: numpy.ndarray  (56, 56, 3)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>obs1 为一个<code class="docutils literal notranslate"><span class="pre">dict</span></code>，包含<code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">direction</span></code>, <code class="docutils literal notranslate"><span class="pre">mission</span></code> 这 3 个字段, 其中<code class="docutils literal notranslate"><span class="pre">image</span></code>字段是一个 shape 为(7, 7, 3) 的<code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">uint8</span></code>
+(7, 7) 表示只观测到附近 7x7 方格内的世界(因为环境是部分可观测的)，3 表示每个小格对应一个 3 维的描述向量，注意这里不是真正的图像；<code class="docutils literal notranslate"><span class="pre">direction</span></code>字段是给出一个指导性的方向；
+<code class="docutils literal notranslate"><span class="pre">mission</span></code>字段是一个文本字符串，描述了智能体应该达到什么样的目标以获得奖励.</p></li>
+<li><p>用户如果想使用真正的像素形式的图像，需要通过<code class="docutils literal notranslate"><span class="pre">RGBImgPartialObsWrapper</span></code>对 env 进行封装，obs2 为一个<code class="docutils literal notranslate"><span class="pre">dict</span></code>，包含<code class="docutils literal notranslate"><span class="pre">mission</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>这 2 个字段，其中<code class="docutils literal notranslate"><span class="pre">image</span></code>字段是一个 shape 为 (56, 56, 3)的<code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">uint8</span></code>
+是环境是部分可观测的真正的图像；</p></li>
+<li><p>再通过<code class="docutils literal notranslate"><span class="pre">ImgObsWrapper</span></code>后，obs3 是一个<code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>，shape 为 (56, 56, 3)，数据类型为<code class="docutils literal notranslate"><span class="pre">uint8</span></code></p></li>
+<li><p>我们的代码库使用第 4 种<code class="docutils literal notranslate"><span class="pre">FlatObsWrapper</span></code> 方式，这种方式将<code class="docutils literal notranslate"><span class="pre">mission</span></code>字段中的任务字符串用 one-hot 的方式编码，
+并将其与<code class="docutils literal notranslate"><span class="pre">image</span></code>字段内容拼接成一个<code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>obs4，其 shape 为 (2739，)，数据类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p>游戏操作按键空间，一般是大小为 7 的离散动作空间，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入 python 数值（或是 0 维 np 数组，例如动作 3 为<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）</p></li>
+<li><p>动作在 0-6 中取值，具体的含义是：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>0：left</p></li>
+<li><p>1：right</p></li>
+<li><p>2：up</p></li>
+<li><p>3：toggle</p></li>
+<li><p>4：pickup</p></li>
+<li><p>5：drop</p></li>
+<li><p>6：done/noop</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>参考 <a class="reference external" href="https://github.com/maximecb/gym-minigrid/blob/master/manual_control.py">MiniGrid manual_control.py</a> ，键盘按键-动作对应关系为:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>‘arrow left’: left</p></li>
+<li><p>‘arrow right’: right</p></li>
+<li><p>‘arrow up’: up</p></li>
+<li><p>‘ ’: toggle</p></li>
+<li><p>‘pageup’: pickup</p></li>
+<li><p>‘pagedown’: drop</p></li>
+<li><p>‘enter’: done/noop</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="id8">
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>游戏得分，不同的 minigrid 子环境奖励幅度差异较小，其最大值为 1，一般是一个<code class="docutils literal notranslate"><span class="pre">float</span></code>数值，由于是稀疏奖励环境，只有在 agent (显示为红色的点)到达 goal
+(显示为绿色的点)时才有一个大于零的奖励，具体的数值由不同环境和达到 goal 所用的总步数决定，没有达到 goal 之前的奖励都是 0。</p></li>
+</ul>
+</section>
+<section id="id9">
+<h3>其他<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>当智能体到达绿色的 goal 或者达到环境的最大步数限制时，游戏结束。</p></li>
+</ul>
+</section>
+</section>
+<section id="id10">
+<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>观测输入可以选择像素形式的图像或者含有具体语义的”图像”, 还可以选用描述智能体应该达到何种目标以获得奖励的文本形式的字符串。</p></li>
+<li><p>离散动作空间。</p></li>
+<li><p>稀疏奖励，奖励取值尺度变化较小，最大为 1，最小为 0。</p></li>
+</ol>
+</section>
+<section id="rl">
+<h2>变换后的空间（RL 环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
+<section id="id11">
+<h3>观察空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>变换内容：我们的代码库使用第4种<code class="docutils literal notranslate"><span class="pre">FlatObsWrapper</span></code>方式，这种方式将<code class="docutils literal notranslate"><span class="pre">mission</span></code>字段中的任务字符串以 one-hot 的方式编码，并将其与<code class="docutils literal notranslate"><span class="pre">image</span></code>字段内容拼接成一个长数组</p></li>
+<li><p>变换结果：一维 np 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(2739，)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，取值为 <code class="docutils literal notranslate"><span class="pre">[0.,</span> <span class="pre">7.]</span></code></p></li>
+</ul>
+</section>
+<section id="id12">
+<h3>动作空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>基本无变换，依然是大小为 N=7 的离散动作空间，一般为一维 np 数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.int64</span></code></p></li>
+</ul>
+</section>
+<section id="id13">
+<h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>变换内容：基本无变换</p></li>
+</ul>
+<p>上述空间使用 gym 环境空间定义则可表示为：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+
+<span class="n">obs_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2739</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">act_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">rew_space</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Box</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id14">
+<h3>其他<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>键值对，表示整个 episode 的评测指标，在 minigrid 中为整个 episode 的奖励累加和</p></li>
+</ul>
+</section>
+</section>
+<section id="id15">
+<h2>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
+<section id="id16">
+<h3>随机种子<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
+<li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
+<li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值; 对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置为seed + np_seed, 其中 seed 为前述的随机库种子的值,
+np_seed = 100 * np.random.randint(1, 1000)。</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>训练和测试环境的区别<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，由一个随机数发生器产生，而这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
+</ul>
+</section>
+<section id="id18">
+<h3>存储录像<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">dizoo.minigrid.envs</span> <span class="kn">import</span> <span class="n">MiniGridEnv</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">MiniGridEnv</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="s1">&#39;MiniGrid-Empty-8x8-v0&#39;</span><span class="p">,</span> <span class="s1">&#39;flat_obs&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}))</span>
+
+<span class="n">env</span><span class="o">.</span><span class="n">enable_save_replay</span><span class="p">(</span><span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;./video&#39;</span><span class="p">)</span>
+<span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">act_val</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">info</span><span class="p">()</span><span class="o">.</span><span class="n">act_space</span><span class="o">.</span><span class="n">value</span>
+    <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span> <span class="o">=</span> <span class="n">act_val</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">],</span> <span class="n">act_val</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">]</span>
+    <span class="n">random_action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+    <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">random_action</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Episode is over, final eval reward is: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;final_eval_reward&#39;</span><span class="p">]))</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="di-zoo">
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/config">github
+link</a>
+内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">minigrid_r2d2_config.py</span></code>，使用如下的 demo 即可运行：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+<span class="n">collector_env_num</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">evaluator_env_num</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">minigrid_r2d2_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;minigrid_empty8_r2d2_n5_bs2_ul40&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span>
+        <span class="n">env_id</span><span class="o">=</span><span class="s1">&#39;MiniGrid-Empty-8x8-v0&#39;</span><span class="p">,</span>
+        <span class="c1"># env_id=&#39;MiniGrid-FourRooms-v0&#39;,</span>
+        <span class="c1"># env_id=&#39;MiniGrid-DoorKey-16x16-v0&#39;,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mf">0.96</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">on_policy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">priority</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">priority_IS_weight</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">2739</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">512</span><span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.997</span><span class="p">,</span>
+        <span class="n">burnin_step</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>  <span class="c1"># TODO(pu) 20</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="c1"># (int) the whole sequence length to unroll the RNN network minus</span>
+        <span class="c1"># the timesteps of burnin part,</span>
+        <span class="c1"># i.e., &lt;the whole sequence length&gt; = &lt;burnin_step&gt; + &lt;unroll_len&gt;</span>
+        <span class="n">unroll_len</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>  <span class="c1"># TODO(pu) 80</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># according to the R2D2 paper, actor parameter update interval is 400</span>
+            <span class="c1"># environment timesteps, and in per collect phase, we collect 32 sequence</span>
+            <span class="c1"># samples, the length of each samlpe sequence is &lt;burnin_step&gt; + &lt;unroll_len&gt;,</span>
+            <span class="c1"># which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8</span>
+            <span class="c1"># in most environments</span>
+            <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.0005</span><span class="p">,</span>
+            <span class="n">target_update_theta</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="c1"># NOTE it is important that don&#39;t include key n_sample here, to make sure self._traj_len=INF</span>
+            <span class="n">each_iter_n_sample</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+            <span class="n">env_num</span><span class="o">=</span><span class="n">collector_env_num</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">env_num</span><span class="o">=</span><span class="n">evaluator_env_num</span><span class="p">,</span> <span class="p">),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                <span class="n">end</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                <span class="n">decay</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+                <span class="c1"># (Float type) How much prioritization is used: 0 means no prioritization while 1 means full prioritization</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span>
+                <span class="c1"># (Float type)  How much correction is used: 0 means no correction while 1 means full correction</span>
+                <span class="n">beta</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">minigrid_r2d2_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">minigrid_r2d2_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">minigrid_r2d2_config</span>
+<span class="n">minigrid_r2d2_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;minigrid&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.minigrid.envs.minigrid_env&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;r2d2&#39;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">minigrid_r2d2_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">minigrid_r2d2_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">minigrid_r2d2_create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">serial_pipeline</span><span class="p">([</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id19">
+<h2>基准算法性能<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>MiniGrid-Empty-8x8-v0（0.5M env step 下，平均奖励大于 0.95）</p>
+<ul class="simple">
+<li><p>MiniGrid-Empty-8x8-v0 + R2D2</p></li>
+</ul>
+<a class="reference internal image-reference" href="../_images/empty8_r2d2.png"><img alt="../_images/empty8_r2d2.png" class="align-center" src="../_images/empty8_r2d2.png" style="width: 311.0px; height: 217.0px;" /></a>
+</li>
+<li><p>MiniGrid-FourRooms-v0（10M env step 下，平均奖励大于 0.6）</p>
+<ul class="simple">
+<li><p>MiniGrid-FourRooms-v0 + R2D2</p></li>
+</ul>
+<a class="reference internal image-reference" href="../_images/fourrooms_r2d2.png"><img alt="../_images/fourrooms_r2d2.png" class="align-center" src="../_images/fourrooms_r2d2.png" style="width: 336.0px; height: 237.0px;" /></a>
+</li>
+<li><p>MiniGrid-DoorKey-16x16-v0（20M env step 下，平均奖励大于 0.2）</p>
+<ul class="simple">
+<li><p>MiniGrid-DoorKey-16x16-v0 + R2D2</p></li>
+</ul>
+<a class="reference internal image-reference" href="../_images/doorkey_r2d2.png"><img alt="../_images/doorkey_r2d2.png" class="align-center" src="../_images/doorkey_r2d2.png" style="width: 338.0px; height: 236.0px;" /></a>
+</li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="slime_volleyball_zh.html" class="btn btn-neutral float-right" title="Slime Volleyball" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="bipedalwalker_zh.html" class="btn btn-neutral" title="BipedalWalker" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">MiniGrid</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">安装</a><ul>
+<li><a class="reference internal" href="#id3">安装方法</a></li>
+<li><a class="reference internal" href="#id4">验证安装</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">变换前的空间（原始环境）</a><ul>
+<li><a class="reference internal" href="#id6">观察空间</a></li>
+<li><a class="reference internal" href="#id7">动作空间</a></li>
+<li><a class="reference internal" href="#id8">奖励空间</a></li>
+<li><a class="reference internal" href="#id9">其他</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id10">关键事实</a></li>
+<li><a class="reference internal" href="#rl">变换后的空间（RL 环境）</a><ul>
+<li><a class="reference internal" href="#id11">观察空间</a></li>
+<li><a class="reference internal" href="#id12">动作空间</a></li>
+<li><a class="reference internal" href="#id13">奖励空间</a></li>
+<li><a class="reference internal" href="#id14">其他</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id15">其他</a><ul>
+<li><a class="reference internal" href="#id16">随机种子</a></li>
+<li><a class="reference internal" href="#id17">训练和测试环境的区别</a></li>
+<li><a class="reference internal" href="#id18">存储录像</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
+<li><a class="reference internal" href="#id19">基准算法性能</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

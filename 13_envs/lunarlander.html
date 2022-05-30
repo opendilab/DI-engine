@@ -1,0 +1,592 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>LunarLander &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="BipedalWalker" href="bipedalwalker.html" />
+  <link rel="prev" title="Pendulum" href="pendulum.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">RL Env Examples</a> &gt;</li>
+        
+      <li>LunarLander</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/lunarlander.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="lunarlander">
+<h1>LunarLander<a class="headerlink" href="#lunarlander" title="Permalink to this headline">¶</a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>LunarLander, or Lunar Landing, is a mission aimed at navigating a lander to a designated landing site. The environment has both discrete action space and continuous action space versions. Currently, DI-engine only supports the discrete action space version, and the continuous space version and some adaptations will be added in the future. The following mainly introduces the offline action space version of lunarlander.</p>
+<img alt="../_images/lunarlander.gif" class="align-center" src="../_images/lunarlander.gif" />
+</section>
+<section id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<section id="installation-method">
+<h3>Installation Method<a class="headerlink" href="#installation-method" title="Permalink to this headline">¶</a></h3>
+<p>Just install the gym and Box2d libraries. Users can choose to install them with one click through pip</p>
+<p>Note: If the user does not have root privileges, please add –user after the install command</p>
+</section>
+<section id="verify-installation">
+<h3>Verify Installation<a class="headerlink" href="#verify-installation" title="Permalink to this headline">¶</a></h3>
+<p>After the installation is complete, you can verify that the installation was successful by running the following command on the Python command line:</p>
+</section>
+<section id="image">
+<h3>Image<a class="headerlink" href="#image" title="Permalink to this headline">¶</a></h3>
+<p>The image of DI-engine is equipped with the framework itself and the Lunarlander environment, which can be obtained by <code class="docutils literal notranslate"><span class="pre">docker</span> <span class="pre">pull</span> <span class="pre">opendilab/ding:nightly</span></code>, or by visiting <a class="reference external" href="https://hub.docker.com/repository/docker/opendilab/ding">docker
+hub</a> for more images</p>
+</section>
+</section>
+<section id="space-before-transformation-original-environment">
+<h2>Space before Transformation (Original Environment)<a class="headerlink" href="#space-before-transformation-original-environment" title="Permalink to this headline">¶</a></h2>
+<section id="observation-space">
+<h3>Observation Space<a class="headerlink" href="#observation-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>np array with 8-latitude observation space, data type <code class="docutils literal notranslate"><span class="pre">float32</span></code></p></li>
+<li><p>s[0] is the abscissa</p></li>
+<li><p>s[1] is the ordinate</p></li>
+<li><p>s[2] is the horizontal speed</p></li>
+<li><p>s[3] is the vertical speed</p></li>
+<li><p>s[4] is radians from the ordinate (positive to the right, negative to the left, 180 degrees = pi radians)</p></li>
+<li><p>s[5] is the angular velocity</p></li>
+<li><p>s[6] 1 if one foot lands, 0 otherwise</p></li>
+<li><p>s[7] 1 if the second foot lands, 0 otherwise</p></li>
+</ul>
+</section>
+<section id="action-space">
+<h3>Action Space<a class="headerlink" href="#action-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>For the game operation key space of the discrete version of lunarlander, it is generally a discrete action space of size 4, and the data type is <code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
+<li><p>In the discrete version of lunarlander, actions take values in 0-3, the specific meanings are:</p></li>
+<li><p>0: Do nothing</p></li>
+<li><p>1: Fire right engine</p></li>
+<li><p>2: Fire down engine</p></li>
+<li><p>3: Fire left engine</p></li>
+</ul>
+</section>
+<section id="bonus-space">
+<h3>Bonus Space<a class="headerlink" href="#bonus-space" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>a <code class="docutils literal notranslate"><span class="pre">int</span></code>value</p></li>
+<li><p>The reward for moving from the top of the screen to the landing point and going to zero speed is about 100…140 points. If the lander travels in a direction away from the landing pad, it loses the reward. If the lander falls or stops, the episode ends, earning an extra -100 or +100 points. Ground contact for each leg is a +10 bonus. The launch main engine is -0.3 bonus per frame. A successful landing to the landing site is 200 points. Landing outside the landing gear is possible. Fuel is unlimited.</p></li>
+</ul>
+</section>
+<section id="other">
+<h3>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The end of the game is the end of the current environment episode. If the lander crashes or reaches a stationary state, the current episode ends</p></li>
+</ul>
+</section>
+</section>
+<section id="key-facts">
+<h2>Key Facts<a class="headerlink" href="#key-facts" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Discrete and continuous action spaces</p></li>
+</ol>
+</section>
+<section id="transformed-space-rl-environment">
+<h2>Transformed Space (RL Environment)<a class="headerlink" href="#transformed-space-rl-environment" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h3>Observation Space<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>no change</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>Action Space<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>It is still a discrete action space of size 4, but the data type is changed from <code class="docutils literal notranslate"><span class="pre">int</span></code> to <code class="docutils literal notranslate"><span class="pre">np.int64</span></code>, the size is <code class="docutils literal notranslate"><span class="pre">(</span> <span class="pre">)</span></code>, that is, an array of 0-dim</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>Bonus Space<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Transformation content: data structure transformation</p></li>
+<li><p>Transformation result: it becomes an np array, the size is <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">)</span></code>, and the data type is <code class="docutils literal notranslate"><span class="pre">np.float64</span></code></p></li>
+</ul>
+<p>The above space can be expressed as:</p>
+</section>
+<section id="id4">
+<h3>Other<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">info</span></code>returned by the environment <code class="docutils literal notranslate"><span class="pre">step</span></code>method must contain the <code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>key-value pair, which represents the evaluation index of the entire episode, and is the cumulative sum of the rewards of the entire episode in lunarlander</p></li>
+</ul>
+</section>
+</section>
+<section id="id5">
+<h2>Other<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<section id="lazy-initialization">
+<h3>Lazy Initialization<a class="headerlink" href="#lazy-initialization" title="Permalink to this headline">¶</a></h3>
+<p>In order to support parallel operations such as environment vectorization, environment instances generally implement lazy initialization, that is, the <code class="docutils literal notranslate"><span class="pre">__init__</span></code>method does not initialize the real original environment instance, but only sets relevant parameters and configuration values. The concrete original environment instance is initialized when the <code class="docutils literal notranslate"><span class="pre">reset</span></code>method is used.</p>
+</section>
+<section id="random-seed">
+<h3>Random Seed<a class="headerlink" href="#random-seed" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>There are two parts of random seeds in the environment that need to be set, one is the random seed of the original environment, and the other is the random seed of the random library used by various environment transformations (such as <code class="docutils literal notranslate"><span class="pre">random</span></code>, <code class="docutils literal notranslate"><span class="pre">np.random</span></code>)</p></li>
+<li><p>For the environment caller, just set these two seeds through the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment, and do not need to care about the specific implementation details</p></li>
+<li><p>Concrete implementation inside the environment: For the seed of the original environment, set before calling the <code class="docutils literal notranslate"><span class="pre">reset</span></code>method of the environment, before the concrete <code class="docutils literal notranslate"><span class="pre">reset</span></code></p></li>
+<li><p>The specific implementation inside the environment: for random library seeds, set the value directly in the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment; for the seed of the original environment, inside the <code class="docutils literal notranslate"><span class="pre">reset</span></code>method of the calling environment, The specific original environment<code class="docutils literal notranslate"><span class="pre">reset</span></code>was previously set to seed + np_seed, where seed is the value of the aforementioned random library seed,
+np_seed = 100 * np.random.randint(1, 1000).</p></li>
+</ul>
+</section>
+<section id="the-difference-between-training-and-testing-environments">
+<h3>The difference between training and testing environments<a class="headerlink" href="#the-difference-between-training-and-testing-environments" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The training environment uses a dynamic random seed, that is, the random seed of each episode is different, and is generated by a random number generator, but the seed of this random number generator is fixed by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method of the environment ;The test environment uses a static random seed, that is, the random seed of each episode is the same, specified by the <code class="docutils literal notranslate"><span class="pre">seed</span></code>method.</p></li>
+</ul>
+</section>
+<section id="store-video">
+<h3>Store Video<a class="headerlink" href="#store-video" title="Permalink to this headline">¶</a></h3>
+<p>After the environment is created, but before reset, call the <code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>method to specify the path to save the game recording. The environment will automatically save the local video files after each episode ends. (The default call <code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>implementation, depends on <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>), the code shown below will run an environment episode and save the result of this episode in the form <code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>in a file like this:</p>
+</section>
+</section>
+<section id="di-zoo-runnable-code-example">
+<h2>DI-zoo Runnable Code Example<a class="headerlink" href="#di-zoo-runnable-code-example" title="Permalink to this headline">¶</a></h2>
+<p>The full training configuration file is at <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/dizoo/box2d/lunarlander/config/">github
+link</a>
+Inside, for specific configuration files, such as <code class="docutils literal notranslate"><span class="pre">lunarlander_dqn_config.py</span></code>, use the following demo to run:</p>
+</section>
+<section id="benchmark-algorithm-performance">
+<h2>Benchmark Algorithm Performance<a class="headerlink" href="#benchmark-algorithm-performance" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>LunarLander (Average reward greater than or equal to 200 is considered a better Agent)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Lunarlander + DQFD</p></li>
+</ul>
+<img alt="../_images/lunarlander_dqfd.png" class="align-center" src="../_images/lunarlander_dqfd.png" />
+</div></blockquote>
+</li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="bipedalwalker.html" class="btn btn-neutral float-right" title="BipedalWalker" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="pendulum.html" class="btn btn-neutral" title="Pendulum" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">LunarLander</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#install">Install</a><ul>
+<li><a class="reference internal" href="#installation-method">Installation Method</a></li>
+<li><a class="reference internal" href="#verify-installation">Verify Installation</a></li>
+<li><a class="reference internal" href="#image">Image</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#space-before-transformation-original-environment">Space before Transformation (Original Environment)</a><ul>
+<li><a class="reference internal" href="#observation-space">Observation Space</a></li>
+<li><a class="reference internal" href="#action-space">Action Space</a></li>
+<li><a class="reference internal" href="#bonus-space">Bonus Space</a></li>
+<li><a class="reference internal" href="#other">Other</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#key-facts">Key Facts</a></li>
+<li><a class="reference internal" href="#transformed-space-rl-environment">Transformed Space (RL Environment)</a><ul>
+<li><a class="reference internal" href="#id1">Observation Space</a></li>
+<li><a class="reference internal" href="#id2">Action Space</a></li>
+<li><a class="reference internal" href="#id3">Bonus Space</a></li>
+<li><a class="reference internal" href="#id4">Other</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">Other</a><ul>
+<li><a class="reference internal" href="#lazy-initialization">Lazy Initialization</a></li>
+<li><a class="reference internal" href="#random-seed">Random Seed</a></li>
+<li><a class="reference internal" href="#the-difference-between-training-and-testing-environments">The difference between training and testing environments</a></li>
+<li><a class="reference internal" href="#store-video">Store Video</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo-runnable-code-example">DI-zoo Runnable Code Example</a></li>
+<li><a class="reference internal" href="#benchmark-algorithm-performance">Benchmark Algorithm Performance</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

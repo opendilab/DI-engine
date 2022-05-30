@@ -1,0 +1,544 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Learn From DI-zoo &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="RL Algorithms Cheat Sheet" href="../12_policies/index.html" />
+  <link rel="prev" title="Basic Concepts" href="../10_concepts/basic_rl.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+      <li>Learn From DI-zoo</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/11_dizoo/index.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="learn-from-di-zoo">
+<h1>Learn From DI-zoo<a class="headerlink" href="#learn-from-di-zoo" title="Permalink to this headline">¶</a></h1>
+<section id="what-is-di-zoo">
+<h2>What is DI-zoo<a class="headerlink" href="#what-is-di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>DI-zoo is a collection of reinforcement learning environments wrapped with DI-engine. It covers the vast majority of reinforcement learning environments, including basic environments like <a class="reference external" href="https://gym.openai.com/">OpenAI Gym</a>, as well as more complex environments such as <a class="reference external" href="https://github.com/oxwhirl/smac">SMAC</a>. Besides, for each environment, DI-zoo provides the entries of different algorithms with their optimal configurations.</p>
+</section>
+<section id="the-structure-of-di-zoo">
+<h2>The structure of DI-zoo<a class="headerlink" href="#the-structure-of-di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>For a certain environment/policy pair, in order to run RL experiment in DI-engine, DI-zoo mainly provides two files: the <code class="docutils literal notranslate"><span class="pre">config.py</span></code> file, including the key configuration required as well as the entry point to run the RL experiment; the <code class="docutils literal notranslate"><span class="pre">env.py</span></code> file, containing the encapsulation of the environment to run in DI-engine.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Besides, some environment/policy pairs also possess a <code class="docutils literal notranslate"><span class="pre">main.py</span></code> entry file, which is the training pipeline left over from the previous version.</p>
+</div>
+<p>Here we briefly show the structure of DI-zoo based on the CartPole environment and DQN algorithm.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dizoo</span><span class="o">/</span>
+  <span class="n">classic_control</span><span class="o">/</span>
+    <span class="n">cartpole</span><span class="o">/</span>
+      <span class="n">config</span><span class="o">/</span><span class="n">cartpole_dqn_config</span><span class="o">.</span><span class="n">py</span> <span class="c1"># Config</span>
+      <span class="n">entry</span><span class="o">/</span><span class="n">cartpole_dqn_main</span><span class="o">.</span><span class="n">py</span>  <span class="c1"># Main</span>
+      <span class="n">envs</span><span class="o">/</span><span class="n">cartpole_env</span><span class="o">.</span><span class="n">py</span>  <span class="c1"># Env</span>
+</pre></div>
+</div>
+</section>
+<section id="how-to-use-di-zoo">
+<h2>How to use DI-zoo<a class="headerlink" href="#how-to-use-di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>You can directly execute the <code class="docutils literal notranslate"><span class="pre">config.py</span></code> file provided by DI-zoo to train a certain environment/policy pair. For CartPole/DQN, you can easily perform the RL experiment with the following code:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python dizoo/classic_control/cartpole/config/cartpole_dqn_config.py
+</pre></div>
+</div>
+<p>DI-engine also provides the CLI tool for users, you can type the following command in your terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -v
+</pre></div>
+</div>
+<p>If the terminal returns the correct information, you can use this CLI tool for the common training and evaluation, and you can type <code class="docutils literal notranslate"><span class="pre">ding</span> <span class="pre">-h</span></code> for further usage。</p>
+<p>To train CartPole/DQN, you can directly type the following command in the terminal:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -m serial -c cartpole_dqn_config.py -s <span class="m">0</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">serial</span></code> means that the training pipeline you call is <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code>. <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">cartpole_dqn_config.py</span></code> means that the <code class="docutils literal notranslate"><span class="pre">config</span></code> file you use is <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.py</span></code>. <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">0</span></code> means <code class="docutils literal notranslate"><span class="pre">seed</span></code> is 0.</p>
+</section>
+<section id="customization-of-di-zoo">
+<h2>Customization of DI-zoo<a class="headerlink" href="#customization-of-di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>You can customize your training process or tune the performance of your RL experiment by changing the configuration in <code class="docutils literal notranslate"><span class="pre">config.py</span></code>.</p>
+<p>Here we use <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.py</span></code> as an example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="n">cartpole_dqn_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">exp_name</span><span class="o">=</span><span class="s1">&#39;cartpole_dqn_seed0&#39;</span><span class="p">,</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">collector_env_num</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">evaluator_env_num</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">n_evaluator_episode</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">stop_value</span><span class="o">=</span><span class="mi">195</span><span class="p">,</span>
+        <span class="n">replay_path</span><span class="o">=</span><span class="s1">&#39;cartpole_dqn_seed0/video&#39;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cuda</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">load_path</span><span class="o">=</span><span class="s1">&#39;cartpole_dqn_seed0/ckpt/ckpt_best.pth.tar&#39;</span><span class="p">,</span>  <span class="c1"># necessary for eval</span>
+        <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">obs_shape</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">encoder_hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+            <span class="n">dueling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">nstep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">discount_factor</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+        <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">n_sample</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+        <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">eval_freq</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="p">)),</span>
+        <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">eps</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;exp&#39;</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                <span class="n">end</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">decay</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer_size</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span> <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cartpole_dqn_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_dqn_config</span><span class="p">)</span>
+<span class="n">main_config</span> <span class="o">=</span> <span class="n">cartpole_dqn_config</span>
+<span class="n">cartpole_dqn_create_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">env</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;cartpole&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dizoo.classic_control.cartpole.envs.cartpole_env&#39;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">env_manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;base&#39;</span><span class="p">),</span>
+    <span class="n">policy</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;dqn&#39;</span><span class="p">),</span>
+    <span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;deque&#39;</span><span class="p">,</span>
+        <span class="n">import_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ding.data.buffer.deque_buffer_wrapper&#39;</span><span class="p">]</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cartpole_dqn_create_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">cartpole_dqn_create_config</span><span class="p">)</span>
+<span class="n">create_config</span> <span class="o">=</span> <span class="n">cartpole_dqn_create_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># or you can enter `ding -m serial -c cartpole_dqn_config.py -s 0`</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">serial_pipeline</span>
+    <span class="n">serial_pipeline</span><span class="p">((</span><span class="n">main_config</span><span class="p">,</span> <span class="n">create_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The two dictionary objects <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config</span></code> and <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_create_config</span></code> contain the key configurations required for CartPole/DQN training. You can change the behavior of your training pipeline by changing the configuration here. For example, by changing <code class="docutils literal notranslate"><span class="pre">cartpole_dqn_config.policy.cuda</span></code> , you can choose whether to use your cuda device to run the entire training process.</p>
+<p>If you want to use other training pipelines provided by DI-engine, or use your own customized training pipelines, you only need to change the <code class="docutils literal notranslate"><span class="pre">__main__</span></code> function of <code class="docutils literal notranslate"><span class="pre">config.py</span></code> that calls the training pipeline. For example, you can change the <code class="docutils literal notranslate"><span class="pre">serial_pipeline</span></code> in the example to <code class="docutils literal notranslate"><span class="pre">parallel_pipeline</span></code> to call the parallel training pipeline.</p>
+<p>For the CLI tool <code class="docutils literal notranslate"><span class="pre">ding</span></code>, you can also change the previous cli command to</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ding -m parallel -c cartpole_dqn_config.py -s <span class="m">0</span>
+</pre></div>
+</div>
+<p>to call <code class="docutils literal notranslate"><span class="pre">parallel_pipeline</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To customize the training pipeline, you can refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/0fccfcb046f04767504f68220d96a6608bb38f29/ding/entry/serial_entry.py#L17">serial_pipeline</a> , or refer to <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py">DQN example</a>, using the the <a class="reference external" href="../03_system/middleware.html">middleware</a> provided by DI-engine to build the pipeline.</p>
+<p>If you want to use your own environment in DI-engine, you can just inherit <code class="docutils literal notranslate"><span class="pre">BaseEnv</span></code> implemented by DI-engine. For this part you can refer to <a class="reference external" href="../best_practice/ding_env.html">How to migrate your environment to DI-engine</a></p>
+</div>
+</section>
+<section id="list-of-algorithms-and-environments-supported-by-di-zoo">
+<h2>List of algorithms and environments supported by DI-zoo<a class="headerlink" href="#list-of-algorithms-and-environments-supported-by-di-zoo" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="../12_policies/index.html">The algorithm documentation of DI-engine</a></p>
+<p><a class="reference external" href="../13_envs/index.html">The environment documentation of DI-engine</a></p>
+<p><a class="reference external" href="https://github.com/opendilab/DI-engine#algorithm-versatility">List of supported algorithms</a></p>
+<p><a class="reference external" href="https://github.com/opendilab/DI-engine#environment-versatility">List of supported environments</a></p>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../12_policies/index.html" class="btn btn-neutral float-right" title="RL Algorithms Cheat Sheet" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="../10_concepts/basic_rl.html" class="btn btn-neutral" title="Basic Concepts" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Learn From DI-zoo</a><ul>
+<li><a class="reference internal" href="#what-is-di-zoo">What is DI-zoo</a></li>
+<li><a class="reference internal" href="#the-structure-of-di-zoo">The structure of DI-zoo</a></li>
+<li><a class="reference internal" href="#how-to-use-di-zoo">How to use DI-zoo</a></li>
+<li><a class="reference internal" href="#customization-of-di-zoo">Customization of DI-zoo</a></li>
+<li><a class="reference internal" href="#list-of-algorithms-and-environments-supported-by-di-zoo">List of algorithms and environments supported by DI-zoo</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

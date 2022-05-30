@@ -1,0 +1,598 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>data_helper &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../genindex.html" />
+  <link rel="search" title="Search" href="../../search.html" />
+  <link rel="next" title="distribution" href="distribution.html" />
+  <link rel="prev" title="checkpoint_helper" href="checkpoint_helper.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../index.html">API Doc</a> &gt;</li>
+        
+          <li><a href="index.html">Torch Utils</a> &gt;</li>
+        
+      <li>data_helper</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/05_api_doc/torch_utils/data_helper.rst.txt" rel="nofollow"><img src="../../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="data-helper">
+<h1>data_helper<a class="headerlink" href="#data-helper" title="Permalink to this headline">¶</a></h1>
+<section id="module-ding.torch_utils.data_helper.to_device">
+<span id="to-device"></span><h2>to_device<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_device" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Transfer data to certain device</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be transferred</p></li>
+<li><p>device (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the device wanted</p></li>
+<li><p>ignore_keys (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the keys to be ignored in transfer, defalut set to empty</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the transferred item</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.data_helper.to_dtype">
+<span id="to-dtype"></span><h2>to_dtype<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_dtype" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Change data to certain dtype</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be dtype changed</p></li>
+<li><p>dtype (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): the type wanted</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code>): the dtype changed item</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.data_helper.to_tensor">
+<span id="to-tensor"></span><h2>to_tensor<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_tensor" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Change <cite>numpy.ndarray</cite>, sequence of scalars to torch.Tensor, and keep other data types unchanged.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be changed</p></li>
+<li><p>dtype (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): the type of wanted tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the change tensor</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.data_helper.to_ndarray">
+<span id="to-ndarray"></span><h2>to_ndarray<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_ndarray" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Change <cite>torch.Tensor</cite>, sequence of scalars to ndarray, and keep other data types unchanged.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code>): the item to be changed</p></li>
+<li><p>dtype (<code class="xref py py-obj docutils literal notranslate"><span class="pre">type</span></code>): the type of wanted ndarray</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">object</span></code>): the changed ndarray</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.data_helper.to_list">
+<span id="to-list"></span><h2>to_list<a class="headerlink" href="#module-ding.torch_utils.data_helper.to_list" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Transform <cite>torch.Tensor</cite>, <cite>numpy.ndarray</cite> to <cite>list</cite>, keep other data types unchanged</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be transformed</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list after transformation</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Now supports item type: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code> and <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</div>
+</section>
+<section id="module-ding.torch_utils.data_helper.tensor_to_list">
+<span id="tensor-to-list"></span><h2>tensor_to_list<a class="headerlink" href="#module-ding.torch_utils.data_helper.tensor_to_list" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Transform <cite>torch.Tensor</cite> to <cite>list</cite>, keep other data types unchanged</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the item to be transformed</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>item (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list after transformation</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Now supports item type: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code> and <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</div>
+</section>
+<section id="module-ding.torch_utils.data_helper.same_shape">
+<span id="same-shape"></span><h2>same_shape<a class="headerlink" href="#module-ding.torch_utils.data_helper.same_shape" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Judge whether all data elements in a list have the same shape.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list of data</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>same (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether the list of data all have the same shape</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.data_helper.build_log_buffer">
+<span id="build-log-buffer"></span><h2>build_log_buffer<a class="headerlink" href="#module-ding.torch_utils.data_helper.build_log_buffer" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Builg log buffer, a subclass of dict, which can transform the input data into log format.</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>log_buffer (<code class="xref py py-obj docutils literal notranslate"><span class="pre">LogDict</span></code>): Log buffer dict</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="cudafetcher">
+<h2>CudaFetcher<a class="headerlink" href="#cudafetcher" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.data_helper.</span></span><span class="sig-name descname"><span class="pre">CudaFetcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sleep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Fetch data from source, and transfer it to specified device.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>run, close</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher.close" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Stop <code class="docutils literal notranslate"><span class="pre">producer</span></code> thread by setting <code class="docutils literal notranslate"><span class="pre">end_flag</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> .</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.data_helper.CudaFetcher.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/data_helper.html#CudaFetcher.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.data_helper.CudaFetcher.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Start <code class="docutils literal notranslate"><span class="pre">producer</span></code> thread: Keep fetching data from source,
+change the device, and put into <code class="docutils literal notranslate"><span class="pre">queue</span></code> for request.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ding.torch_utils.data_helper.get_tensor_data">
+<span id="get-tensor-data"></span><h2>get_tensor_data<a class="headerlink" href="#module-ding.torch_utils.data_helper.get_tensor_data" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get pure tensor data from the given data(without disturbing grad computation graph)</p>
+</dd>
+</dl>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="distribution.html" class="btn btn-neutral float-right" title="distribution" accesskey="n"
+      rel="next">Next <img src="../../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="checkpoint_helper.html" class="btn btn-neutral" title="checkpoint_helper" accesskey="p"
+      rel="prev"><img src="../../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">data_helper</a><ul>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_device">to_device</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_dtype">to_dtype</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_tensor">to_tensor</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_ndarray">to_ndarray</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.to_list">to_list</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.tensor_to_list">tensor_to_list</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.same_shape">same_shape</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.build_log_buffer">build_log_buffer</a></li>
+<li><a class="reference internal" href="#cudafetcher">CudaFetcher</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.data_helper.get_tensor_data">get_tensor_data</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../"
+    src="../../_static/documentation_options.js"></script>
+  <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+  <script src="../../_static/jquery.js"></script>
+  <script src="../../_static/underscore.js"></script>
+  <script src="../../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,623 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>DIAYN &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Guided Cost Learning" href="guided_cost_zh.html" />
+  <link rel="prev" title="NGU" href="ngu_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
+        
+      <li>DIAYN</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/12_policies/diayn_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="diayn">
+<h1>DIAYN<a class="headerlink" href="#diayn" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>DIAYN (Diversity is All You Need) 首次在论文
+<a class="reference external" href="https://arxiv.org/abs/1802.06070">Diversity is All You Need: Learning Skills without a Reward Function</a> 中提出,
+该算法可以使智能体在不提供奖励信号的环境中，主动学习出一个奖励函数, 并且自动探索出一些有用的技能（skills）。这些学到的技能为很多 RL 任务提供了基石，例如，要找到一个能在任务中获得高回报的策略，通常只需选择具有最大回报的技能就足够了。
+另外三个应用分别是：</p>
+<ol class="arabic simple">
+<li><p>用于RL算法训练的策略初始化，加速学习过程。</p></li>
+<li><p>用于分层强化学习：通过学习一个元控制器去组合DIAYN学习到的技能来解决复杂的分层任务。</p></li>
+<li><p>用于模仿学习：找到最像专家行为的技能,并把该技能对应的策略作为模仿学习中学到的策略</p></li>
+</ol>
+<p>DIAYN 是由三个核心的想法推导出来的。首先，为了让学到的技能有用，我们想让技能去决定智能体在与环境交互中会经历的状态， 即智能体采取不同的技能，能够访问到不同的状态。 其次，我们依靠状态，而不是动作去区分技能，因为无法对环境状态产生影响的动作对于观察者来说是不可见的。
+最后，我们为了鼓励探索，并让学到的技能更加多元，对于每一个技能对应的策略，尽可能地让其动作更加随机。</p>
+</section>
+<section id="id2">
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>DIAYN 是无监督学习的算法</p></li>
+<li><p>训练策略的奖励是由判别器生成，而不是环境给出的奖励</p></li>
+<li><p>DIAYN 是基于 SAC 算法训练的，其训练过程包括：1.更新判别器以更好地预测技能，2.更新技能以访问不同的状态，使其更具判别能力。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>DIAYN的算法的整体训练与计算流程如下：</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/diayn_process.png"><img alt="" src="../_images/diayn_process.png" style="width: 210.4px; height: 138.4px;" /></a>
+</figure>
+<p>我们在游戏每一个 episode 的初始时刻随机采样一个技能，并通过依赖于这个技能的策略去跟环境交互产生数据。 通过产生的数据，我们去训练判别器使得其更好的通过状态判别技能。然后，我们更新策略使其产生能让判别器的判别能力最大化的数据。
+由于我们之前提到 DIAYN 的算法是无监督学习，所以训练策略的奖励函数是由上述三个核心想法计算得来的， 具体来说：</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/diayn_reward1.png"><img alt="" src="../_images/diayn_reward1.png" style="width: 250.4px; height: 32.0px;" /></a>
+</figure>
+<p>第一项鼓励我们对 p(z) 的先验分布具有很高的熵。在我们的方法中，我们把 p(z) 固定为均匀分布，保证它具有最大的熵。第二项表明，从当前状态推断技能z应该是很容易的。第三项表明，每个技能对应的策略应该尽可能地随机地选择动作，我们通过使用最大熵策略来实现此要求。
+由于我们无法对所有的状态和技能进行整合以准确计算 p(z | s)，我们用一个学习到的判别器 q(z | s)来近似这个后验。詹森不等式(Jensen’s Inequality) 告诉我们，用 q(z | s)代替p(z | s)可以给我们的目标 F(θ) 提供一个变分下限 G(θ, φ)</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/diayn_reward2.png"><img alt="" src="../_images/diayn_reward2.png" style="width: 251.60000000000002px; height: 34.0px;" /></a>
+</figure>
+<p>由于在 SAC 算法训练中最大化了策略的熵， 所以我们只需要把奖励函数变成了如下形式并通过 SAC 算法训练策略，便等同于最大化 G 这个期望:</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/diayn_reward3.png"><img alt="" src="../_images/diayn_reward3.png" style="width: 251.60000000000002px; height: 12.0px;" /></a>
+</figure>
+</section>
+<section id="id4">
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>以下为DIAYN的伪代码：</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/diayn_algorithm.png"><img alt="" src="../_images/diayn_algorithm.png" style="width: 247.60000000000002px; height: 136.8px;" /></a>
+</figure>
+<p>注意：我们在实现时采用了 off-policy SAC，通过从 buffer 中均匀随机采样 mini-batch 的样本来训练。其中 discriminator 建模为一个神经网络，其输入是观测到的状态，输出是对 skill 的预测分布。</p>
+</section>
+<section id="id5">
+<h2>实现<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>DIAYN 的接口定义如下, 相对于 SAC，主要区别在：加入了判别器的训练流程，修改了奖励函数。</p>
+<p>注意: <code class="docutils literal notranslate"><span class="pre">...</span></code> 表示省略的代码。 对于完整的代码，请参考 DI-engine 的
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/policy/diayn.py">实现</a> 。</p>
+<section id="id6">
+<h3>判别器网络<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<dl>
+<dt>我们编写的判别器网络是由 <code class="docutils literal notranslate"><span class="pre">linear</span> <span class="pre">encoder</span></code> + <code class="docutils literal notranslate"><span class="pre">regression</span> <span class="pre">head</span></code> 构成</dt><dd><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">discriminator</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+           <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">discriminator_head_hidden_size</span><span class="p">),</span>
+           <span class="n">activation</span><span class="p">,</span>
+           <span class="n">RegressionHead</span><span class="p">(</span>
+               <span class="n">discriminator_head_hidden_size</span><span class="p">,</span>
+               <span class="n">num_skills</span><span class="p">,</span>  <span class="c1"># output size</span>
+               <span class="n">discriminator_head_layer_num</span><span class="p">,</span>
+               <span class="n">final_tanh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
+               <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span>
+           <span class="p">)</span>
+       <span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">RegressionHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+   <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+           <span class="bp">self</span><span class="p">,</span>
+           <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+           <span class="n">output_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+           <span class="n">layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+           <span class="n">final_tanh</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+           <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+           <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+   <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+       <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">       Overview:</span>
+<span class="sd">           Init the Head according to arguments.</span>
+<span class="sd">       Arguments:</span>
+<span class="sd">           - hidden_size (:obj:`int`): The ``hidden_size`` used before connected to ``DuelingHead``</span>
+<span class="sd">           - output_size (:obj:`int`): The num of output</span>
+<span class="sd">           - final_tanh (:obj:`Optional[bool]`): Whether a final tanh layer is needed</span>
+<span class="sd">           - layer_num (:obj:`int`): The num of layers used in the network to compute Q value output</span>
+<span class="sd">           - activation (:obj:`nn.Module`):</span>
+<span class="sd">               The type of activation function to use in ``MLP`` the after ``layer_fn``,</span>
+<span class="sd">               if ``None`` then default set to ``nn.ReLU()``</span>
+<span class="sd">           - norm_type (:obj:`str`):</span>
+<span class="sd">               The type of normalization to use, see ``ding.torch_utils.fc_block`` for more details</span>
+<span class="sd">       &quot;&quot;&quot;</span>
+       <span class="nb">super</span><span class="p">(</span><span class="n">RegressionHead</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">main</span> <span class="o">=</span> <span class="n">MLP</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">last</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span>  <span class="c1"># for convenience of special initialization</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">final_tanh</span> <span class="o">=</span> <span class="n">final_tanh</span>
+       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_tanh</span><span class="p">:</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">()</span>
+
+   <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+       <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">       Overview:</span>
+<span class="sd">           Use encoded embedding tensor to predict Regression output.</span>
+<span class="sd">           Parameter updates with RegressionHead&#39;s MLPs forward setup.</span>
+<span class="sd">       Arguments:</span>
+<span class="sd">           - x (:obj:`torch.Tensor`):</span>
+<span class="sd">               The encoded embedding tensor, determined with given ``hidden_size``, i.e. ``(B, N=hidden_size)``.</span>
+<span class="sd">       Returns:</span>
+<span class="sd">           - outputs (:obj:`Dict`):</span>
+<span class="sd">               Run ``MLP`` with ``RegressionHead`` setups and return the result prediction dictionary.</span>
+
+<span class="sd">               Necessary Keys:</span>
+<span class="sd">                   - pred (:obj:`torch.Tensor`): Tensor with prediction value cells, with same size as input ``x``.</span>
+<span class="sd">       Examples:</span>
+<span class="sd">           &gt;&gt;&gt; head = RegressionHead(64, 64)</span>
+<span class="sd">           &gt;&gt;&gt; inputs = torch.randn(4, 64)</span>
+<span class="sd">           &gt;&gt;&gt; outputs = head(inputs)</span>
+<span class="sd">           &gt;&gt;&gt; assert isinstance(outputs, dict)</span>
+<span class="sd">           &gt;&gt;&gt; assert outputs[&#39;pred&#39;].shape == torch.Size([4, 64])</span>
+<span class="sd">       &quot;&quot;&quot;</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+       <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_tanh</span><span class="p">:</span>
+           <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+       <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+           <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+       <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;pred&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</section>
+<section id="id7">
+<h3>数据收集<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>在收集数据时，我们会在每个 episode 开始前，通过均匀分布，随机采样出一个技能：</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">collected_sample</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">return_data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">z_one_hot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_skills</span><span class="p">)</span>
+<span class="n">_p_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num_skills</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">num_skills</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">num_skills</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">_p_z</span><span class="p">)</span>
+<span class="n">z_one_hot</span><span class="p">[</span><span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="k">while</span> <span class="n">collected_sample</span> <span class="o">&lt;</span> <span class="n">n_sample</span><span class="p">:</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="p">:</span>
+        <span class="c1"># Get current env obs.</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">ready_obs</span>
+        <span class="n">obs</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">obs</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">z_one_hot</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># Policy forward.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obs_pool</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform_obs</span><span class="p">:</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">policy_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="o">**</span><span class="n">policy_kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_policy_output_pool</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">policy_output</span><span class="p">)</span>
+        <span class="c1"># Interact with env.</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">policy_output</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="n">to_ndarray</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+        <span class="n">timesteps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+<section id="id8">
+<h2>基准算法性能<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Hopper</p>
+<a class="reference internal image-reference" href="../_images/ezgif.com-gif-maker4.gif"><img alt="../_images/ezgif.com-gif-maker4.gif" src="../_images/ezgif.com-gif-maker4.gif" style="width: 200px; height: 100px;" /></a>
+<a class="reference internal image-reference" href="../_images/ezgif.com-gif-maker2.gif"><img alt="../_images/ezgif.com-gif-maker2.gif" src="../_images/ezgif.com-gif-maker2.gif" style="width: 200px; height: 100px;" /></a>
+<a class="reference internal image-reference" href="../_images/ezgif.com-gif-maker3.gif"><img alt="../_images/ezgif.com-gif-maker3.gif" src="../_images/ezgif.com-gif-maker3.gif" style="width: 200px; height: 100px;" /></a>
+</li>
+<li><p>Ant</p>
+<a class="reference internal image-reference" href="../_images/Ant_5000_1.gif"><img alt="../_images/Ant_5000_1.gif" src="../_images/Ant_5000_1.gif" style="width: 200px; height: 100px;" /></a>
+<a class="reference internal image-reference" href="../_images/Ant_5000_2.gif"><img alt="../_images/Ant_5000_2.gif" src="../_images/Ant_5000_2.gif" style="width: 200px; height: 100px;" /></a>
+<a class="reference internal image-reference" href="../_images/Ant_5000_3.gif"><img alt="../_images/Ant_5000_3.gif" src="../_images/Ant_5000_3.gif" style="width: 200px; height: 100px;" /></a>
+</li>
+<li><p>HalfCheetah</p>
+<a class="reference internal image-reference" href="../_images/cheetah_1.gif"><img alt="../_images/cheetah_1.gif" src="../_images/cheetah_1.gif" style="width: 200px; height: 100px;" /></a>
+<a class="reference internal image-reference" href="../_images/cheetah_2.gif"><img alt="../_images/cheetah_2.gif" src="../_images/cheetah_2.gif" style="width: 200px; height: 100px;" /></a>
+<a class="reference internal image-reference" href="../_images/cheetah_3.gif"><img alt="../_images/cheetah_3.gif" src="../_images/cheetah_3.gif" style="width: 200px; height: 100px;" /></a>
+</li>
+</ul>
+</section>
+<section id="id9">
+<h2>参考资料<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Benjamin Eysenbach, Abhishek Gupta, Julian Ibarz, Sergey Levine. Diversity is All You Need: Learning Skills without a Reward Function. arXiv:1802.06070.</p></li>
+</ol>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="guided_cost_zh.html" class="btn btn-neutral float-right" title="Guided Cost Learning" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="ngu_zh.html" class="btn btn-neutral" title="NGU" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">DIAYN</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">核心要点</a></li>
+<li><a class="reference internal" href="#id3">关键方程或关键框图</a></li>
+<li><a class="reference internal" href="#id4">伪代码</a></li>
+<li><a class="reference internal" href="#id5">实现</a><ul>
+<li><a class="reference internal" href="#id6">判别器网络</a></li>
+<li><a class="reference internal" href="#id7">数据收集</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id8">基准算法性能</a></li>
+<li><a class="reference internal" href="#id9">参考资料</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,631 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Competitive RL &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="Procgen" href="procgen_zh.html" />
+  <link rel="prev" title="Slime Volleyball" href="slime_volleyball_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习环境示例</a> &gt;</li>
+        
+      <li>Competitive RL</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/13_envs/competitive_rl_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="competitive-rl">
+<h1>Competitive RL<a class="headerlink" href="#competitive-rl" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Competitive RL 是由香港中文大学（CUHK）开发的一个对抗性游戏环境，环境中允许两个玩家分别控制双方进行对抗。游戏中双方玩家均可以观测到完整的环境信息（例如相同的球局、相同的赛车跑道），并以战胜对方、取得游戏胜利为最终目标。链接为 <a class="reference external" href="https://github.com/cuhkrlcourse/competitive-rl">github repo</a></p>
+<p>Competitive RL 目前提供两种游戏环境：</p>
+<blockquote>
+<div><ul>
+<li><p>Competitive Pong (cPong): 是将 Atari 中的 Pong 修改为对抗式的环境，即允许对抗的双方均为玩家操控，且均都是可被训练的agent。</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/c_pong.gif"><img alt="../_images/c_pong.gif" src="../_images/c_pong.gif" style="width: 336.0px; height: 432.0px;" /></a>
+</div></blockquote>
+</li>
+<li><p>Competitive Car-Racing (cCarRacing): 赛车环境允许两辆车在同一个赛道地图中进行竞速。</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/c_car_racing.gif"><img alt="../_images/c_car_racing.gif" src="../_images/c_car_racing.gif" style="width: 360.0px; height: 288.0px;" /></a>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+<p>在每个环境中，都有 single-agent 和 double-agent 两个版本。</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>single-agent 即只有一个 agent 可以被玩家控制，另一个则由内置 bot 控制，single-agent 版本的 pong 环境和 Atari pong 是一样的</p></li>
+<li><p>double-agent 就是指两个 agent 都可以被玩家控制。</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id2">
+<h2>安装<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<section id="id3">
+<h3>安装方法<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>可以通过 pip 一键安装。</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install git+https://github.com/cuhkrlcourse/competitive-rl.git
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3>验证安装<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>安装完成后，可以通过在 Python 命令行中运行如下命令验证安装成功：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">import</span> <span class="nn">competitive_rl</span>
+
+<span class="n">competitive_rl</span><span class="o">.</span><span class="n">register_competitive_envs</span><span class="p">()</span>
+
+<span class="n">pong_single_env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;cPong-v0&quot;</span><span class="p">)</span>  <span class="c1"># single-agent pong env</span>
+<span class="n">pong_double_env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;cPongDouble-v0&quot;</span><span class="p">)</span>  <span class="c1"># double-agent pong env</span>
+
+<span class="n">racing_single_env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;cCarRacing-v0&quot;</span><span class="p">)</span>  <span class="c1"># single-agent car_racing env</span>
+<span class="n">racing_double_env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;cCarRacingDouble-v0&quot;</span><span class="p">)</span>  <span class="c1"># double-agent car_racing env</span>
+
+<span class="n">pong_single_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">pong_single_env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">pong_double_env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="n">pong_double_env</span><span class="o">.</span><span class="n">step</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>以下说明均以 <strong>cPong</strong> 为例。</p>
+</section>
+</section>
+<section id="id5">
+<h2>变换前的空间（原始环境）<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<section id="id6">
+<h3>观察空间<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>若为 single agent env，则为实际的游戏画面，RGB 三通道图片，具体尺寸为<code class="docutils literal notranslate"><span class="pre">(210,</span> <span class="pre">160,</span> <span class="pre">3)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">float32</span></code>，取值范围为 <code class="docutils literal notranslate"><span class="pre">[0.0,</span>&#160; <span class="pre">255.0]</span></code></p></li>
+<li><p>若为 double agent env，则为一个元组<code class="docutils literal notranslate"><span class="pre">Tuple(Box(210,</span> <span class="pre">160,</span> <span class="pre">3),</span> <span class="pre">Box(210,</span> <span class="pre">160,</span> <span class="pre">3))</span></code>，并将右侧玩家的原始游戏画面沿纵轴对称，使其看起来是左侧玩家的视角。数据类型和取值范围不变。</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>动作空间<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>若为 single agent env，则为游戏操作按键空间，即大小为 3 的离散动作空间<code class="docutils literal notranslate"><span class="pre">Discrete(3)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code>，需要传入 python 数值（或是 0 维 np 数组，例如动作 3 为<code class="docutils literal notranslate"><span class="pre">np.array(3)</span></code>）。动作的具体的含义是：（与 Atari Pong 略有不同）
+-  0：NOOP
+-  1：UP
+-  2：DOWN</p></li>
+<li><p>若为 double agent env，则为一个元组<code class="docutils literal notranslate"><span class="pre">Tuple(Discrete(3),</span> <span class="pre">Discrete(3))</span></code>，数据类型与动作含义不变。</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>奖励空间<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>奖励代表游戏得分，是一个<code class="docutils literal notranslate"><span class="pre">float</span></code>数值，范围是<code class="docutils literal notranslate"><span class="pre">(-inf,</span> <span class="pre">inf)</span></code>。</p></li>
+<li><p>虽然对战有双方，但是由于双方的奖励之和必定为 0 ，故只返回 <strong>左侧玩家</strong> 的奖励。</p></li>
+</ul>
+</section>
+<section id="id9">
+<h3>其他<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>游戏结束即为当前环境episode结束</p></li>
+</ul>
+</section>
+</section>
+<section id="id10">
+<h2>关键事实<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>若为 double agent env，则会对右侧玩家的观察进行翻转，使得看来两个玩家的视角相同，都是同一边的，因此只需要学习一种策略。</p></li>
+<li><p>类似 Atari Pong。一，由于单帧图像蕴含的信息不足（比如运动方向），需要堆叠多帧图像来解决。二，动作空间为离散。</p></li>
+<li><p>奖励空间取值实际应当在<code class="docutils literal notranslate"><span class="pre">[-21,</span> <span class="pre">+21]</span></code>，因为一局比赛只有 21 个球。</p></li>
+</ol>
+</section>
+<section id="rl">
+<h2>变换后的空间（RL环境）<a class="headerlink" href="#rl" title="Permalink to this headline">¶</a></h2>
+<section id="id11">
+<h3>观察空间<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>变换内容：将左右两侧玩家的观察堆叠合并，然后类似Atari Pong操作（灰度图，空间尺寸缩放，最大最小值归一化，堆叠相邻 4 个游戏帧）</p></li>
+<li><p>变换结果：四维np数组，尺寸为<code class="docutils literal notranslate"><span class="pre">(2，</span> <span class="pre">4,</span> <span class="pre">84,</span> <span class="pre">84)</span></code>，数据类型为<code class="docutils literal notranslate"><span class="pre">np.float32</span></code>，取值为 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code></p></li>
+</ul>
+</section>
+<section id="id12">
+<h3>动作空间<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>基本无变换，但允许传回的双方动作为堆叠的 <code class="docutils literal notranslate"><span class="pre">np.ndarry</span></code> 或 <code class="docutils literal notranslate"><span class="pre">list</span></code></p></li>
+<li><p>任一方的动作依然是大小为3的离散动作空间，数据类型为<code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
+</ul>
+</section>
+<section id="id13">
+<h3>奖励空间<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>无变换</p></li>
+</ul>
+</section>
+<section id="id14">
+<h3>训练环境与测试环境不同<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>训练时允许同时控制左右两侧的两个玩家，所以需要启动 <strong>double</strong> agent env，上述内容都是针对此类环境的。</p></li>
+<li><p>测试时在只允许控制一个玩家（一般为左侧玩家），另一边由内置AI作出动作，所以需要启动 <strong>single</strong> agent env，它的观察空间和动作空间都为 double agent env 的一半，和 Atari Pong 十分类似（除了动作空间）。</p></li>
+</ul>
+</section>
+<section id="id15">
+<h3>其他<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>如果一个 episode 结束，环境<code class="docutils literal notranslate"><span class="pre">step</span></code>方法返回的<code class="docutils literal notranslate"><span class="pre">info</span></code>必须包含<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code>键值对，表示整个 episode 的评测指标，即整个 episode 的奖励累加和</p></li>
+<li><p>和奖励空间相同，只需要传左侧玩家的<code class="docutils literal notranslate"><span class="pre">final_eval_reward</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="id16">
+<h2>其他<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
+<section id="id17">
+<h3>惰性初始化<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<p>为了便于支持环境向量化等并行操作，环境实例一般实现惰性初始化，即<code class="docutils literal notranslate"><span class="pre">__init__</span></code>方法不初始化真正的原始环境实例，只是设置相关参数和配置值，在第一次调用<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法时初始化具体的原始环境实例。</p>
+</section>
+<section id="id18">
+<h3>随机种子<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>环境中有两部分随机种子需要设置，一是原始环境的随机种子，二是各种环境变换使用到的随机库的随机种子（例如<code class="docutils literal notranslate"><span class="pre">random</span></code>，<code class="docutils literal notranslate"><span class="pre">np.random</span></code>）</p></li>
+<li><p>对于环境调用者，只需通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法进行设置这两个种子，无需关心具体实现细节</p></li>
+<li><p>环境内部的具体实现：对于原始环境的种子，在调用环境的<code class="docutils literal notranslate"><span class="pre">reset</span></code>方法内部，具体的原始环境<code class="docutils literal notranslate"><span class="pre">reset</span></code>之前设置</p></li>
+<li><p>环境内部的具体实现：对于随机库种子，则在环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法中直接设置该值</p></li>
+</ul>
+</section>
+<section id="id19">
+<h3>训练和测试环境的区别<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>训练采用 double agent 环境，测试采用 single agent 环境。</p></li>
+<li><p>训练环境使用动态随机种子，即每个 episode 的随机种子都不同，都是由一个随机数发生器产生，但这个随机数发生器的种子是通过环境的<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法固定的；测试环境使用静态随机种子，即每个 episode 的随机种子相同，通过<code class="docutils literal notranslate"><span class="pre">seed</span></code>方法指定。</p></li>
+</ul>
+</section>
+<section id="id20">
+<h3>存储录像<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<p>在环境创建之后，重置之前，调用<code class="docutils literal notranslate"><span class="pre">enable_save_replay</span></code>方法，指定游戏录像保存的路径。环境会在每个 episode 结束之后自动保存本局的录像文件。（默认调用<code class="docutils literal notranslate"><span class="pre">gym.wrapper.Monitor</span></code>实现，依赖<code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code>），下面所示的代码将运行一个环境 episode，并将这个 episode 的结果保存在形如<code class="docutils literal notranslate"><span class="pre">./video/xxx.mp4</span></code>这样的文件中：</p>
+</section>
+</section>
+<section id="di-zoo">
+<h2>DI-zoo 可运行代码示例<a class="headerlink" href="#di-zoo" title="Permalink to this headline">¶</a></h2>
+<p>完整的训练配置文件在 <a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/competitive_rl/config/cpong_dqn_config.py">github
+link</a>
+内，对于具体的配置文件，例如<code class="docutils literal notranslate"><span class="pre">pong_dqn_config.py</span></code>，使用如下的 demo 即可运行：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">dizoo.competitive_rl.config.cpong_dqn_config</span> <span class="kn">import</span> <span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_system_config</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">ding.entry</span> <span class="kn">import</span> <span class="n">parallel_pipeline</span>
+    <span class="n">parallel_pipeline</span><span class="p">((</span><span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_config</span><span class="p">,</span> <span class="n">cpong_dqn_system_config</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id21">
+<h2>基准算法性能<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<p>TBD</p>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="procgen_zh.html" class="btn btn-neutral float-right" title="Procgen" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="slime_volleyball_zh.html" class="btn btn-neutral" title="Slime Volleyball" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Competitive RL</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">安装</a><ul>
+<li><a class="reference internal" href="#id3">安装方法</a></li>
+<li><a class="reference internal" href="#id4">验证安装</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id5">变换前的空间（原始环境）</a><ul>
+<li><a class="reference internal" href="#id6">观察空间</a></li>
+<li><a class="reference internal" href="#id7">动作空间</a></li>
+<li><a class="reference internal" href="#id8">奖励空间</a></li>
+<li><a class="reference internal" href="#id9">其他</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id10">关键事实</a></li>
+<li><a class="reference internal" href="#rl">变换后的空间（RL环境）</a><ul>
+<li><a class="reference internal" href="#id11">观察空间</a></li>
+<li><a class="reference internal" href="#id12">动作空间</a></li>
+<li><a class="reference internal" href="#id13">奖励空间</a></li>
+<li><a class="reference internal" href="#id14">训练环境与测试环境不同</a></li>
+<li><a class="reference internal" href="#id15">其他</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id16">其他</a><ul>
+<li><a class="reference internal" href="#id17">惰性初始化</a></li>
+<li><a class="reference internal" href="#id18">随机种子</a></li>
+<li><a class="reference internal" href="#id19">训练和测试环境的区别</a></li>
+<li><a class="reference internal" href="#id20">存储录像</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#di-zoo">DI-zoo 可运行代码示例</a></li>
+<li><a class="reference internal" href="#id21">基准算法性能</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

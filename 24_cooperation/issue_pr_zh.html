@@ -1,0 +1,503 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Github 的使用 &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="prev" title="Git 使用" href="git_guide_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../12_policies/index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">Github 合作模式</a> &gt;</li>
+        
+      <li>Github 的使用</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/24_cooperation/issue_pr_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="github">
+<h1>Github 的使用<a class="headerlink" href="#github" title="Permalink to this headline">¶</a></h1>
+<p>本节将对 Github 中的 issue &amp; pull request 进行介绍。</p>
+<section id="id1">
+<h2>1. 从模板创建<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>issue 和 pr 都有自己的模板。</p>
+<p>issue 需要选择类别，确保已经阅读过文档和之前的 issue 和 pr，并指明版本号、操作系统，然后才是正式描述这个 issue。详细见下：</p>
+<ul>
+<li><p>I have marked all applicable categories (我已经标注了所有适用类别):</p>
+<ul class="simple">
+<li><p>exception-raising bug (引发异常的错误)</p></li>
+<li><p>RL algorithm bug (RL算法错误)</p></li>
+<li><p>system worker bug (系统组件错误)</p></li>
+<li><p>system utils bug (系统工具错误)</p></li>
+<li><p>code design/refactor (代码设计/重构)</p></li>
+<li><p>documentation request (文档请求)</p></li>
+<li><p>new feature request (新功能请求)</p></li>
+</ul>
+</li>
+<li><p>I have visited the
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/github-dev/README.md">readme</a>
+and <a class="reference external" href="https://opendilab.github.io/DI-engine/">doc</a> (我已经阅读了 readme 和文档)</p></li>
+<li><p>I have searched through the <a class="reference external" href="https://github.com/opendilab/DI-engine/issues">issue
+tracker</a> and <a class="reference external" href="https://github.com/opendilab/DI-engine/pulls">pr
+tracker</a> (我已经浏览了所有 issue 和 pr)</p></li>
+<li><p>I have mentioned version numbers, operating system and environment,
+where applicable: (我描述了版本号、操作系统和环境，它们可以从下述代码得到)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ding</span><span class="o">,</span> <span class="nn">torch</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ding</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>pr 的模板中，Description 用于描述当前 pr 的作用和功能，Related Issue 用于列出相关的 issue，TODO 用于列出目前还没有完成的工作。</p>
+<p>此外，还有一个 Check List 用于确保融合了源分支并解决冲突，通过代码风格检查，通过所有测试。详细见下：</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>merge the latest version source branch/repo, and resolve all the conflicts (合并最新版本的源分支/仓库，并解决所有冲突)</p></li>
+<li><p>pass style check (通行代码风格检查)</p></li>
+<li><p>pass all the tests (通过所有测试)</p></li>
+</ul>
+</div></blockquote>
+<p>pr 的命名规范可以参考 git commit 章节。此外，如果当前 pr 仍在开发中，可以在 pr 名字的开头加上<code class="docutils literal notranslate"><span class="pre">WIP:</span></code>标记，它是 Work
+In Progess 的缩写。</p>
+</section>
+<section id="label-milestone">
+<h2>2. 设置 Label 和 Milestone<a class="headerlink" href="#label-milestone" title="Permalink to this headline">¶</a></h2>
+<p>每个 issue 和 pr 都需要被打上标签label，并注明相关的重要时间节点 milestone，milestone 的意义是追踪每个具体任务对应的中长期目标，二者需要在界面的这个位置进行指定：</p>
+<a class="reference internal image-reference" href="../_images/github_label_milestone.png"><img alt="../_images/github_label_milestone.png" class="align-center" src="../_images/github_label_milestone.png" style="width: 636.5px; height: 342.5px;" /></a>
+<p>DI-engine repo 中目前支持以下 label：</p>
+<a class="reference internal image-reference" href="../_images/github_label1.png"><img alt="../_images/github_label1.png" class="align-center" src="../_images/github_label1.png" style="width: 799.9200000000001px; height: 400.62px;" /></a>
+<a class="reference internal image-reference" href="../_images/github_label2.png"><img alt="../_images/github_label2.png" class="align-center" src="../_images/github_label2.png" style="width: 795.3000000000001px; height: 361.02000000000004px;" /></a>
+<p>目前的 milestone 支持：</p>
+<a class="reference internal image-reference" href="../_images/github_milestone.png"><img alt="../_images/github_milestone.png" class="align-center" src="../_images/github_milestone.png" style="width: 792.0px; height: 378.18px;" /></a>
+</section>
+<section id="pr-github-actions">
+<h2>3. PR 的 Github Actions<a class="headerlink" href="#pr-github-actions" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/github_actions_all.png"><img alt="../_images/github_actions_all.png" class="align-center" src="../_images/github_actions_all.png" style="width: 701.5px; height: 274.0px;" /></a>
+<p>GitHub actions 是一种持续式集成，用于自动化完成各种任务。DI-engine 中主要使用 actions 进行各种测试（算法测试、平台测试、风格测试、单元测试等），只有当一个 pr 通过了所有必要的测试，它才可以被 merge。假如有 actions 没有通过，pr 会显示如下图：</p>
+<a class="reference internal image-reference" href="../_images/github_actions_all.png"><img alt="../_images/github_actions_all.png" class="align-center" src="../_images/github_actions_all.png" style="width: 701.5px; height: 274.0px;" /></a>
+<p>此时就需要点击 Details 进入查看具体失败原因。如果本地可以通过测试，但 CI 不通过，可以尝试 rerun：</p>
+<a class="reference internal image-reference" href="../_images/github_actions_rerun.png"><img alt="../_images/github_actions_rerun.png" class="align-center" src="../_images/github_actions_rerun.png" style="width: 711.5px; height: 239.5px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>如果还想进一步了解，可以移步<a class="reference external" href="http://www.ruanyifeng.com/blog/2019/09/getting-started-with-github-actions.html">教程</a></p>
+</div>
+</section>
+<section id="pr-code-review">
+<h2>4. PR 的 Code Review<a class="headerlink" href="#pr-code-review" title="Permalink to this headline">¶</a></h2>
+<p>PR review 需要从以下五个角度去看：代码风格，算法原理，计算效率，接口易用性，兼容性。任何问题都可以提 comment。推荐每天抽出一定时间看看 github 上的 PR 看看整个开发社区在做什么，有什么可以学习或者互相提升的地方。</p>
+<p>如果需要 review 别人的 PR，一般有两种评论的方式：</p>
+<p>一是直接在 pr 的 conversation 中评论，通常是针对整体进行评论，如下图：</p>
+<a class="reference internal image-reference" href="../_images/github_review11.png"><img alt="../_images/github_review11.png" class="align-center" src="../_images/github_review11.png" style="width: 859.32px; height: 355.08000000000004px;" /></a>
+<a class="reference internal image-reference" href="../_images/github_review12.png"><img alt="../_images/github_review12.png" class="align-center" src="../_images/github_review12.png" style="width: 670.5600000000001px; height: 229.68px;" /></a>
+<p>二是针对具体某行或某段代码进行评论，可以在 Files Changed 中点击加号新建评论，如下图：</p>
+<a class="reference internal image-reference" href="../_images/github_review2.png"><img alt="../_images/github_review2.png" class="align-center" src="../_images/github_review2.png" style="width: 854.0400000000001px; height: 382.8px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>一般来讲，一个 PR 的工作流程如下：</p>
+<ol class="arabic simple">
+<li><p>在 discussion 中进行讨论，某人总结并提了 issue，开发者现在需要针对 issue 进行开发</p></li>
+<li><p>在 github 提 Pull Request</p></li>
+<li><p>代码开发</p></li>
+<li><p>分配给某人进行 code review，解决他人提出的问题，完成所有的开发工作</p></li>
+<li><p>merge 最新源分支（一般是 main）并解决冲突，保证通过 github CI，最终等待被合并</p></li>
+</ol>
+</div>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    
+    <a href="git_guide_zh.html" class="btn btn-neutral" title="Git 使用" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Github 的使用</a><ul>
+<li><a class="reference internal" href="#id1">1. 从模板创建</a></li>
+<li><a class="reference internal" href="#label-milestone">2. 设置 Label 和 Milestone</a></li>
+<li><a class="reference internal" href="#pr-github-actions">3. PR 的 Github Actions</a></li>
+<li><a class="reference internal" href="#pr-code-review">4. PR 的 Code Review</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

@@ -1,8 +1,12 @@
 
 
+
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
 <head>
   <meta charset="utf-8">
   <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
@@ -12,63 +16,159 @@
   <title>Welcome to DI-engine’s documentation! &mdash; DI-engine 0.1.0 documentation</title>
   
 
+  <link rel="shortcut icon" href="_static/images/favicon.ico" />
   
+  
+
+  
+
   
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-    
-
-  
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> -->
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation" href="installation/index.html" />
+  <link rel="stylesheet" href="_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="genindex.html" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="next" title="Introduction" href="00_intro/index.html" />
     <link href="_static/css/style.css" rel="stylesheet" type="text/css">
 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
 </head>
 
-<body class="wy-body-for-nav">
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
 
    
-  <div class="wy-grid-for-nav">
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
           
 
           
-            <a href="#" class="icon icon-home"> DI-engine
+          
+          
           
 
           
-          </a>
 
-          
-            
-            
-          
 
-          
+
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search Docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -77,57 +177,47 @@
           
         </div>
 
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation/index.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start/index.html">Quick Start</a></li>
-<li class="toctree-l1"><a class="reference internal" href="key_concept/index.html">Key Concept</a></li>
-<li class="toctree-l1"><a class="reference internal" href="intro_rl/index.html">Introduction to RL</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
-<li class="toctree-l1"><a class="reference internal" href="env_tutorial/index.html">RL Environments Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="distributed/index.html">Distributed</a></li>
-<li class="toctree-l1"><a class="reference internal" href="best_practice/index.html">Best Practice</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api_doc/index.html">API Doc</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq/index.html">FAQ</a></li>
-<li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature</a></li>
+<li class="toctree-l1"><a class="reference internal" href="00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_system/index.html">System Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_faq/index.html">FAQ</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="guide/index.html">Developer Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial_dev/index.html">Tutorial-Developer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture/index.html">Architecture Design</a></li>
-<li class="toctree-l1"><a class="reference internal" href="specification/index.html">Middleware code specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="24_cooperation/index.html">Github Cooperation</a></li>
 </ul>
 
-            
-          
-        </div>
+        
+        
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
         
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">DI-engine</a>
-        
-      </nav>
-
-
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
 
 
 
@@ -145,17 +235,22 @@
 
 <div role="navigation" aria-label="breadcrumbs navigation">
 
-  <ul class="wy-breadcrumbs">
+  <ul class="pytorch-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li>
+        <a href="#">
+            Docs
+        </a> &gt;
+      </li>
+
         
       <li>Welcome to DI-engine’s documentation!</li>
     
     
-      <li class="wy-breadcrumbs-aside">
+      <li class="pytorch-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/index.rst.txt" rel="nofollow"><img src="_static/images/view-page-source-icon.svg"></a>
           
         
       </li>
@@ -163,288 +258,316 @@
   </ul>
 
   
-  <hr/>
 </div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
             
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
   <section id="welcome-to-di-engine-s-documentation">
 <h1>Welcome to DI-engine’s documentation!<a class="headerlink" href="#welcome-to-di-engine-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p><a class="reference external" href="/zh_CN/latest/index_zh.html">中文</a></p>
-<a class="reference internal image-reference" href="_images/di_engine_logo.svg"><img alt="_images/di_engine_logo.svg" class="align-center" src="_images/di_engine_logo.svg" width="300" /></a>
-<section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>DI-engine is a generalized Decision Intelligence engine. It supports most basic deep reinforcement learning (DRL) algorithms,
-such as DQN, PPO, SAC, and domain-specific algorithms like QMIX in multi-agent RL, GAIL in inverse RL, and RND in exploration problems.
-The whole supported algorithms introduction can be found in <a class="reference external" href="./feature/algorithm_overview.html">Algorithm</a>.</p>
-<p>For scalability, DI-engine supports three different training pipelines:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">serial</span></code></p>
-<ul>
-<li><p>feature: single-machine, learner-collector loop executes sequentially</p></li>
-<li><p>usage: academic research</p></li>
-</ul>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">parallel</span></code></p>
-<ul>
-<li><p>feature: single-machine, learner and collector execute in parallel</p></li>
-<li><p>usage: speed up serial pipeline and introduction to the whole distributed training</p></li>
-</ul>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dist</span></code></p>
-<ul>
-<li><p>feature: for GPU and CPU mixed computing clusters, learner-collector distributed execution</p></li>
-<li><p>usage: large scale AI decision application, such as AlphaStar league training</p></li>
-</ul>
-</li>
-</ul>
-</div></blockquote>
-<img alt="_images/system_layer.png" src="_images/system_layer.png" />
-</section>
-<section id="main-features">
-<h2>Main Features<a class="headerlink" href="#main-features" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><ul class="simple">
-<li><p>DI-zoo: High-performance DRL algorithm zoo, algorithm support list. <a class="reference external" href="feature/algorithm_overview.html">Link</a></p></li>
-<li><p>Generalized decision intelligence algorithms: DRL family, IRL family, MARL family, searching family(MCTS) and etc.</p></li>
-<li><p>Customized DRL demand implementation, such as Inverse RL/RL hybrid training; Multi-buffer training; League self-play training</p></li>
-<li><p>Large scale DRL training demonstration and application</p></li>
-<li><p>Various efficiency optimization modules: DI-hpc, DI-store, EnvManager, DataLoader</p></li>
-<li><p>k8s support, DI-orchestrator k8s cluster scheduler for dynamic collectors and other services</p></li>
-</ul>
-</div></blockquote>
-<p>To get started, take a look over the <a class="reference external" href="./quick_start/index.html">quick start</a> and <a class="reference external" href="./api_doc/index.html">API documentation</a>.
-For RL beginners, DI-engine advises you to refer to <a class="reference external" href="hands_on/index.html">hands-on RL</a> for more discussion.
-If you want to deeply customize your algorithm and application with DI-engine, also checkout <a class="reference external" href="./key_concept/index.html">key concept</a> and <a class="reference external" href="./feature/index.html">Feature</a>.</p>
+<a class="reference internal image-reference" href="_images/head_image.png"><img alt="_images/head_image.png" class="align-center" src="_images/head_image.png" style="width: 1096px;" /></a>
+<p><a class="reference external" href="/zh_CN/latest/index_zh.html">中文文档</a></p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation/index.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation/index.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation/index.html#stable-release-version">Stable Release Version</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation/index.html#development-version">Development Version</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation/index.html#check-install">Check install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="00_intro/index.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="00_intro/index.html#what-is-di-engine">What is DI-engine?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="00_intro/index.html#key-concepts">Key Concepts</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="quick_start/index.html">Quick Start</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="quick_start/index.html#instantiate-the-run-time-config">Instantiate the run-time config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quick_start/index.html#initialize-the-environments">Initialize the Environments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quick_start/index.html#set-up-the-policy-and-nn-models">Set up the Policy and NN models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quick_start/index.html#define-the-execution-modules">Define the Execution Modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quick_start/index.html#aggregate-the-training-and-evaluation-pipelines">Aggregate the Training and Evaluation Pipelines</a></li>
-<li class="toctree-l2"><a class="reference internal" href="quick_start/index.html#other-utilities">Other Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01_quickstart/index.html">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="01_quickstart/installation.html">Installation Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="01_quickstart/first_rl_program.html">First Reinforcement Learning Program</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="key_concept/index.html">Key Concept</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="key_concept/index.html#concept">Concept</a></li>
-<li class="toctree-l2"><a class="reference internal" href="key_concept/index.html#computation-pattern">Computation Pattern</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02_algo/index.html">RL Algorithm Taxonomy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="02_algo/offline_rl.html">Offline Reinforcement Learning</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="intro_rl/index.html">Introduction to RL</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="intro_rl/basic.html">Basic Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03_system/index.html">System Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="03_system/middleware.html">Middleware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="03_system/distributed.html">Distributed</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="hands_on/index.html">RL Algorithm Cheat Sheet</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/dqn.html">DQN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/rainbow.html">Rainbow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/c51.html">C51</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/qrdqn.html">QRDQN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/iqn.html">IQN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/sql.html">SQL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/sqn.html">SQN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/r2d2.html">R2D2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/a2c.html">A2C</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/ppo.html">PPO</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/acer.html">ACER</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/impala.html">IMPALA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/ppg.html">PPG</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/ddpg.html">DDPG</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/d4pg.html">D4PG</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/td3.html">TD3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/sac.html">SAC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/cql.html">CQL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/td3_bc.html">TD3BC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/qmix.html">QMIX</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/coma.html">COMA</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/wqmix.html">WQMIX</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/collaq.html">CollaQ</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/atoc.html">ATOC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/rnd.html">RND</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/her.html">HER</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/dqfd.html">DQfD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/sqil.html">SQIL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/gail.html">GAIL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/trex.html">TREX</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/icm_zh.html">ICM</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/guided_cost_zh.html">Guided Cost Learning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/r2d3_zh.html">R2D3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/gtrxl.html">GTrXL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/mbpo.html">MBPO</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/vpn.html">VPN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/mcts.html">MCTS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/alphago.html">AlphaGo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hands_on/alphago.html#alphagozero">AlphaGoZero</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_api_doc/index.html">API Doc</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/config/index.html">Config</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/env/index.html">Env</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/policy/index.html">Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/model/index.html">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/reward_model/index.html">Reward Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/league/index.html">League</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/framework/index.html">Framework</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/learner/index.html">Learner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/collector/index.html">Collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/replay_buffer/index.html">Replay Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/coordinator/index.html">Coordinator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/worker/buffer/index.html">Buffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/rl_utils/index.html">RL Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/torch_utils/index.html">Torch Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/utils/index.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="05_api_doc/interaction/index.html">Interaction</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="env_tutorial/index.html">RL Environments Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="env_tutorial/atari.html">Atari</a></li>
-<li class="toctree-l2"><a class="reference internal" href="env_tutorial/overcooked.html">Overcooked</a></li>
-<li class="toctree-l2"><a class="reference internal" href="env_tutorial/bsuite.html">Bsuite</a></li>
-<li class="toctree-l2"><a class="reference internal" href="env_tutorial/slime_volleyball.html">Slime Volleyball</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="distributed/index.html">Distributed</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="distributed/index.html#task">Task</a></li>
-<li class="toctree-l2"><a class="reference internal" href="distributed/index.html#magic-time">Magic time</a></li>
-<li class="toctree-l2"><a class="reference internal" href="distributed/index.html#async-and-parallel">Async and parallel</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="best_practice/index.html">Best Practice</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/ding_env.html">How to migrate your environment to DI-engine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/nstep_td.html">N-step TD</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/priority.html">How to Use PER(Prioritized Experience Replay)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/IL.html">Imitation Learning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/IRL.html">Inverse RL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/rnn.html">How to use RNN</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/random_seed.html">Random seed</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/multi_discrete.html">Multi-Discrete Example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/multi_gpu_example.html">How to Use Multi-GPUs to Train Your Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/random_collect_size.html">How to randomly collect some data sample at the beginning?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/training_generated_folders.html">How to understand training generated folders?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/learner_log.html">Learner log</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/model_wrapper.html">How to Customize Model Wrapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/env_wrapper.html">How to Customize an Env Wrapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/episode_buffer.html">How to use Episode Replay Buffer?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/multi_buffer.html">How to use multiple buffers?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/registry.html">Registry</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/maac.html">Multi-Agent Actor-Critic RL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="best_practice/customization1_dynamic_update_step.html">Customization 1: Dynamic Update Step</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_doc/index.html">API Doc</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/config/index.html">Config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/env/index.html">Env</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/policy/index.html">Policy</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/model/index.html">Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/reward_model/index.html">Reward Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/league/index.html">League</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/framework/index.html">Framework</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/learner/index.html">Learner</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/collector/index.html">Collector</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/replay_buffer/index.html">Replay Buffer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/coordinator/index.html">Coordinator</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/worker/buffer/index.html">Buffer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/rl_utils/index.html">RL Utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/torch_utils/index.html">Torch Utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/utils/index.html">Utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_doc/interaction/index.html">Interaction</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="faq/index.html">FAQ</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q1-import-packages-warning">Q1: Import packages warning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q2-cannot-use-di-engine-command-line-tool-cli-after-installation">Q2: Cannot use DI-engine command line tool (CLI) after installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q3-no-permission-error-occurred-during-installation">Q3: “No permission” error occurred during installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="faq/index.html#q5-how-to-adjust-the-learning-rate">Q5: How to adjust the learning rate</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="feature/index.html">Feature</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="feature/algorithm_overview.html">Algorithm Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/policy_overview.html">Policy Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/model_overview.html">Model Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/env_overview.html">Env Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/collector_overview.html">Collector Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/env_manager_overview.html">Env Manager Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/replay_buffer_overview.html">Replay Buffer Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/learner_overview.html">Learner Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/wrapper_hook_overview.html">Wrapper &amp; Hook Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/league_overview.html">League Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/hpc_rl_overview.html">DI-hpc Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/orchestrator_overview.html">DI-orchestrator Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/interaction_overview.html">Interaction Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="feature/loader_overview.html">Loader Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06_faq/index.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="06_faq/index.html#q1-import-packages-warning">Q1: Import packages warning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_faq/index.html#q2-cannot-use-di-engine-command-line-tool-cli-after-installation">Q2: Cannot use DI-engine command line tool (CLI) after installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_faq/index.html#q3-no-permission-error-occurred-during-installation">Q3: “No permission” error occurred during installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_faq/index.html#q4-how-to-set-the-relevant-operating-parameters-of-syncsubprocessenvmanager">Q4: How to set the relevant operating parameters of <code class="docutils literal notranslate"><span class="pre">SyncSubprocessEnvManager</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="06_faq/index.html#q5-how-to-adjust-the-learning-rate">Q5: How to adjust the learning rate</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="guide/index.html">Developer Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="guide/git_guide.html">Git Collaboration Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guide/doc_contribution.html">Documentation Contribution Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guide/code_comment.html">Code Comment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="10_concepts/index.html">Introduction to RL</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="10_concepts/basic_rl.html">Basic Concepts</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial_dev/index.html">Tutorial-Developer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial_dev/index.html#code-structure">Code Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial_dev/index.html#data-flow">Data Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="11_dizoo/index.html">Learn From DI-zoo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index.html#what-is-di-zoo">What is DI-zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index.html#the-structure-of-di-zoo">The structure of DI-zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index.html#how-to-use-di-zoo">How to use DI-zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index.html#customization-of-di-zoo">Customization of DI-zoo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="11_dizoo/index.html#list-of-algorithms-and-environments-supported-by-di-zoo">List of algorithms and environments supported by DI-zoo</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="architecture/index.html">Architecture Design</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="architecture/interaction/index.html">Interaction Framework</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture/loader/index.html">Loader Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12_policies/index.html">RL Algorithms Cheat Sheet</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/dqn.html">DQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/c51.html">C51</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/qrdqn.html">QRDQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/rainbow.html">Rainbow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/iqn.html">IQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/sql.html">SQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/sqn.html">SQN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/a2c.html">A2C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/ppo.html">PPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/acer.html">ACER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/impala.html">IMPALA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/ppg.html">PPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/ddpg.html">DDPG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/d4pg.html">D4PG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/td3.html">TD3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/sac.html">SAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/rnd.html">RND</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/her.html">HER</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/icm.html">ICM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/mcts.html">MCTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/dqfd.html">DQfD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/sqil.html">SQIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/gail.html">GAIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/trex.html">TREX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/r2d3.html">R2D3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/cql.html">CQL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/td3_bc.html">TD3BC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/r2d2.html">R2D2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/gtrxl.html">GTrXL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/qmix.html">QMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/coma.html">COMA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/wqmix.html">WQMIX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/collaq.html">CollaQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/atoc.html">ATOC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/alphago.html">AlphaGo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/alphago.html#alphagozero">AlphaGoZero</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/mbpo.html">MBPO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="12_policies/vpn.html">VPN</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="specification/index.html">Middleware code specification</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="specification/index.html#file-structure-and-naming">File structure and naming</a></li>
-<li class="toctree-l2"><a class="reference internal" href="specification/index.html#class-function-parameter">Class, Function, Parameter</a></li>
-<li class="toctree-l2"><a class="reference internal" href="specification/index.html#construction-method">Construction method</a></li>
-<li class="toctree-l2"><a class="reference internal" href="specification/index.html#runtime-method">Runtime method</a></li>
-<li class="toctree-l2"><a class="reference internal" href="specification/index.html#event-naming-convention">Event naming convention</a></li>
+<li class="toctree-l1"><a class="reference internal" href="13_envs/index.html">RL Env Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/atari.html">Atari</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/mujoco.html">Mujoco</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/cartpole.html">Cartpole</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/pendulum.html">Pendulum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/lunarlander.html">LunarLander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/bipedalwalker.html">BipedalWalker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/minigrid.html">MiniGrid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/slime_volleyball.html">Slime Volleyball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/procgen.html">Procgen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/smac.html">SMAC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/gym_hybrid.html">gym hybrid</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/overcooked.html">Overcooked</a></li>
+<li class="toctree-l2"><a class="reference internal" href="13_envs/bsuite.html">Bsuite</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="20_spec/index.html">Specification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="20_spec/middleware.html">Middleware specification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="20_spec/middleware.html#event-naming-convention">Event Naming Convention</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="21_code_style/index.html">Code Style Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="21_code_style/index.html#basic-code-style-rules">Basic Code Style Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="21_code_style/index.html#yapf">yapf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="21_code_style/index.html#flake8">flake8</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="22_test/index.html">Unit Test Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="22_test/index.html#significance-of-unit-testing">Significance of Unit Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="22_test/index.html#types-of-unit-test">Types of Unit Test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="22_test/index.html#how-to-build-unit-test">How to Build Unit Test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="22_test/index.html#how-do-run-unit-test">How do Run Unit Test</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="23_visual/index.html">Diagrams and Visualization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="23_visual/index.html#plantuml">PlantUML</a></li>
+<li class="toctree-l2"><a class="reference internal" href="23_visual/index.html#graphviz">graphviz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="23_visual/index.html#draw-io">draw.io</a></li>
+<li class="toctree-l2"><a class="reference internal" href="23_visual/index.html#snakeviz">snakeviz</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="24_cooperation/index.html">Github Cooperation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="24_cooperation/git_guide.html">Git Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="24_cooperation/issue_pr.html">Github Usage</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </section>
-</section>
 
 
-           </div>
-           
-          </div>
-          <footer>
+              </article>
+              
+            </div>
+            <footer>
   
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="installation/index.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-    </div>
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="00_intro/index.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n"
+      rel="next">Next <img src="_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+  </div>
   
 
-  <hr/>
+  <hr>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2021, OpenDILab Contributors
+      &copy; Copyright 2021, OpenDILab Contributors.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
-        </div>
-      </div>
-
-    </section>
-
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
   </div>
-  
-
-
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
-
-  
-  
-    
    
 
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">Welcome to DI-engine’s documentation!</a><ul>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="./"
+    src="_static/documentation_options.js"></script>
+  <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+  <script src="_static/jquery.js"></script>
+  <script src="_static/underscore.js"></script>
+  <script src="_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
 </body>
+
 </html>

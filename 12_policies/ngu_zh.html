@@ -1,0 +1,1119 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>NGU &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="DIAYN" href="diayn_zh.html" />
+  <link rel="prev" title="ICM" href="icm_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
+        
+      <li>NGU</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/12_policies/ngu_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="ngu">
+<h1>NGU<a class="headerlink" href="#ngu" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>概述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>NGU(Never Give up) 首次在论文
+<a class="reference external" href="https://arxiv.org/abs/2002.06038">Never Give Up: Learning Directed Exploration Strategies</a> 中提出,
+通过学习一组不同程度的探索策略（directed exploratory policies） 来解决探索困难的游戏。它定义的内在奖励分为2部分: 局内内在奖励(episodic intrinsic reward) 和 局间内在奖励（life-long/inter-episodic intrinsic reward）。</p>
+<p><strong>局内内在奖励</strong> 核心思想在于在同一局中迅速的抑制智能体再次访问相似的状态，这是通过维护一个存有一局历史样本 embedding 的 memory，然后根据与当前观测的 embedding 最相似的 k 个样本的距离计算得到
+一个局内内在奖励值。这里的 embedding 期望它只包含环境观测中智能体动作能够影响的部分而去掉那些环境噪声，因此又称为 controllable state，它是通过训练一个自监督逆动力学模型来实现的。</p>
+<p><strong>局间内在奖励</strong> 核心思想在于缓慢的抑制智能体访问那些历史局中已经多次访问过的状态，采用 <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">RND</a>  内在奖励来实现此功能。
+接着局内内在奖励和局间内在奖励通过相乘的方式融合为新的的内在奖励，然后乘以一个内在奖励的权重 beta，再加上原始外在奖励，作为最终的奖励。</p>
+<p>NGU使用一个神经网络（Q 函数）同时学习一组不同程度的探索策略（即具有不同的奖励折扣因子gamma和内在奖励权重beta），在探索和利用之间进行不同程度的权衡。
+所提出的方法与现代分布式 RL 算法 <a class="reference external" href="https://openreview.net/forum?id=r1lyTjAqYX">R2D2</a> 结合，通过在不同环境实例上并行运行一组collector 收集大量经验，加速收集与训练过程。
+在我们的实现中，在收集样本的过程中，每一局开始时随机采样一个 gamma 和 beta，且对于不同环境实例具有不同的固定的 epsilon。
+NGU 在 Atari-57 中的所有难于探索的任务中性能翻倍，同时在其余游戏中保持非常高的分数，其人类标准化分的中位数为1344.0%。
+作者称 NGU 是第一个在不使用专家轨迹和手工设计特征的情况下，在 Pitfall 游戏中实现非零奖励（平均得分为 8400）的算法。</p>
+</section>
+<section id="id2">
+<h2>核心要点<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>NGU 的基线强化学习算法是 <a class="reference external" href="https://openreview.net/forum?id=r1lyTjAqYX">R2D2</a> ,可以参考我们的实现
+<a class="reference external" href="hhttps://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py">r2d2</a> ，它本质上是一个基于分布式框架，采用了双 Q 网络, dueling 结构，n-step td 的 DQN 算法。</p></li>
+<li><p>NGU 是一种结合了局内内在奖励和局间内在奖励，并利用一组具有不同折扣因子和融合系数的的探索强化学习方法，(其中局内内在奖励对应论文 <a class="reference external" href="https://arxiv.org/pdf/1705.05363.pdf">ICM</a>
+局间内在奖励对应论文 <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">RND</a> )的探索方法。</p></li>
+<li><p>局间内在奖励（RND 奖励）。通过设置一个固定且随机初始化的目标网络作为预测问题，用智能体收集的数据去学习另一个预测器网络来拟合随机网络的输出，如果当前状态，之前已经见过很多次，为了探索，那么它对应的内在
+奖励就应该小一些，具体怎么衡量，则是正比于前述 2 个网络输出值的误差。因为在整个状态空间里，如果某个状态区域之前收集数据比较多，也即用于训练预测器网络比较多，那么在此状态区域里，误差会小一些。</p></li>
+<li><p>局内内在奖励（ICM 奖励）。首先它通过训练一个自监督逆动力学模型，即用 t 时刻和 t+1 时刻的状态观测来预测 t 时刻的动作，然后取出其中的embedding 网络用于将原始状态观测映射为一个 controllable state，
+期望它只包含环境状态观测中智能体动作能够影响的部分而去掉那些环境噪声。
+然后在一局中维护一个内存表，存着已经访问过的状态观测对应的的 controllable state，然后根据与当前状态观测最相似的k个controllable state 的距离计算得到一个局内内在奖励。</p></li>
+<li><p>NGU 通过在不同环境实例（actor）上并行运行收集大量经验，在收集游戏轨迹的过程中，每一局开始时从均匀分布的集合中随机采样一个奖励折扣因子 gamma 和内在奖励的权重 beta，这个集合的大小N可变，确定了探索策略的
+数量，一般取 32。此外，在我们的实现中，不同环境实例具有不同的固定的 epsilon。</p></li>
+<li><p>局内内在奖励（ICM奖励）的不同归一化方式对结果影响极大，而且在 minigrid 任务中，我们还对一局最后一个非零的原始奖励乘以一个正比于一局步数的权重，以避免内在奖励对 minigrid 原始目标的影响，详见实现细节。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>关键方程或关键框图<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>NGU 算法的整体训练与计算流程如下：</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/ngu.png"><img alt="" src="../_images/ngu.png" style="width: 692.0px; height: 284.0px;" /></a>
+</figure>
+<p>图中左边部分是逆向动力学模型的训练框架，右边部分是局间内在奖励(RND 奖励)和局内内在奖励(ICM 奖励)的产生与融合示意图。</p>
+<p>局间内在奖励和局内内在奖励的融合公式：</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/ngu_fusion_intrinsic_reward.png"><img alt="" src="../_images/ngu_fusion_intrinsic_reward.png" style="width: 258.40000000000003px; height: 34.4px;" /></a>
+</figure>
+<p>N组奖励折扣因子和内在奖励权重系数的分布图如下所示：</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/ngu_beta_gamma.png"><img alt="" src="../_images/ngu_beta_gamma.png" style="width: 461.29999999999995px; height: 179.89999999999998px;" /></a>
+</figure>
+<p>图中左边部分是内在奖励权重系数 beta，右边部分是奖励折扣因子 gamma, 他们的具体计算公式如下图所示。</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/ngu_beta.png"><img alt="" src="../_images/ngu_beta.png" style="width: 230.29999999999998px; height: 54.599999999999994px;" /></a>
+</figure>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/ngu_gamma.png"><img alt="" src="../_images/ngu_gamma.png" style="width: 332.5px; height: 43.4px;" /></a>
+</figure>
+</section>
+<section id="id4">
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>以下为局内内在奖励的伪代码：</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="../_images/ngu_episodic_intrinsic_reward.png"><img alt="" src="../_images/ngu_episodic_intrinsic_reward.png" style="width: 618.8px; height: 537.5999999999999px;" /></a>
+</figure>
+<p>关于 r2d2 算法的细节，请参考 <a class="reference external" href="https://openreview.net/forum?id=r1lyTjAqYX">Recurrent Experience Replay in Distributed Reinforcement Learning</a> 和我们的实现
+<a class="reference external" href="hhttps://github.com/opendilab/DI-engine/blob/main/ding/policy/r2d2.py">r2d2</a> 。</p>
+</section>
+<section id="id5">
+<h2>重要的实现细节<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>1. 奖励归一化。在通过上面所述的算法计算得到局内内在奖励后，由于在智能体学习的不同阶段和不同的环境下，它的幅度是变化剧烈的，如果直接用作后续的计算，很容易造成学习的不稳定。在我们
+的实现中，是按照下面的最大最小归一化公式 归一化到 [0,1] 之间:</p>
+<p>其中 episodic_reward 是一个 mini-batch 计算得到的局内内在奖励。我们也分析了其他归一化方式的效果。</p>
+<blockquote>
+<div><p>方法1: transform to batch mean1: erbm1。
+由于我们的实现中批数据里面可能会有null_padding的样本（注意null_padding样本的原始归一化前的 episodic reward=0），造成episodic_reward.mean() 不是真正的均值，需要特别处理计算得到真实的均值 episodic_reward_real_mean，
+这给代码实现造成了额外的复杂度，此外这种方式不能将局内内在奖励的幅度限制在一定范围内，造成内在奖励的加权系数不好确定。
+.. code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">episodic_reward</span> <span class="o">=</span> <span class="n">episodic_reward</span> <span class="o">/</span> <span class="p">(</span><span class="n">episodic_reward</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-11</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>方法2. transform to long-term mean1: erlm1。
+存在和方法1类似的问题
+.. code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">episodic_reward</span> <span class="o">=</span> <span class="n">episodic_reward</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_episodic_reward</span><span class="o">.</span><span class="n">mean</span>
+</pre></div>
+</div>
+<p>方法3. transform to mean 0, std 1。
+由于 rnd_reward在[1,5]集合内, episodic reward 应该大于0，例如如果 episodic_reward 是 -2, rnd_reward 越大, 总的intrinsic reward 却越小, 这是不正确的
+.. code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">episodic_reward</span> <span class="o">=</span> <span class="p">(</span><span class="n">episodic_reward</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_episodic_reward</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span><span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_episodic_reward</span><span class="o">.</span><span class="n">std</span>
+</pre></div>
+</div>
+<p>方法4. transform to std1, 似乎没有直观的意义。
+.. code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">episodic_reward</span> <span class="o">=</span> <span class="n">episodic_reward</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_episodic_reward</span><span class="o">.</span><span class="n">std</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>2. 在 minigrid 环境上，由于环境设置只有在智能体达到目标位置时，智能体才获得一个正的 0 到 1 之间的奖励，其他时刻奖励都为零，在这种环境上累计折扣内在奖励的幅度会远大于原始的0，1之间的数，造成
+智能体学习的目标偏差太大，为了缓解这个问题，我们在实现中对每一局的最后一个非零的奖励乘上一个权重因子，实验证明如果不加这个权重因子，在最简单的 empty8 环境上算法也不能收敛，这显示了原始
+外在奖励和内在奖励之间相对权重的重要性。</p>
+<p>3.在局内奖励模型(episodic reward model)中需要维护保存一局中所有历史观测的 memory，由于我们在实现时不是实时计算出其局内内在奖励的，而是在收集完一批数据样本后，存在 replay_buffer 中，
+然后从 replay_buffer 中采样一个 mini-batch 的序列样本用来计算每个状态观测的局内内在奖励，因此需要设置序列长度(sequence length)近似等于完成一局的长度（trajectory length）。
+由于收集的数据中含有 null_padding 的样本，在训练 episodic/rnd 奖励模型时，需要首先舍弃无意义的 null_padding 样本。
+episodic/rnd 内在奖励模型训练时 batch_size 应设置足够大(例如 320)时，训练更稳定。 replay_buffer需要先copy.deepcopy(train_data), 再修改样本的奖励为原始外在奖励加上内在奖励，
+否则会导致下次从 replay_buffer 采样同一个样本时一直累加其内在奖励。</p>
+</section>
+<section id="id6">
+<h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>局间内在奖励模型( <code class="docutils literal notranslate"><span class="pre">RndNGURewardModel</span></code> )的接口定义如下：</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.reward_model.ngu_reward_model.</span></span><span class="sig-name descname"><span class="pre">RndNGURewardModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/reward_model/ngu_reward_model.html#RndNGURewardModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>inter-episodic/RND reward model for NGU.
+The corresponding paper is <cite>never give up: learning directed exploration strategies</cite>.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/reward_model/ngu_reward_model.html#RndNGURewardModel.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../_modules/ding/reward_model/ngu_reward_model.html#RndNGURewardModel.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Rewrite the reward key in each row of the data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>局内内在奖励模型( <code class="docutils literal notranslate"><span class="pre">EpisodicNGURewardModel</span></code> )的接口定义如下：</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.reward_model.ngu_reward_model.</span></span><span class="sig-name descname"><span class="pre">EpisodicNGURewardModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/reward_model/ngu_reward_model.html#EpisodicNGURewardModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Episodic reward model for NGU.
+The corresponding paper is <cite>never give up: learning directed exploration strategies</cite>.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/ding/reward_model/ngu_reward_model.html#EpisodicNGURewardModel.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../_modules/ding/reward_model/ngu_reward_model.html#EpisodicNGURewardModel.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Rewrite the reward key in each row of the data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>NGU的接口定义如下,它相对于 r2d2 主要有以下几个改动，首先网络的输入除了时刻 t 的状态观测外，还增加了时刻 t-1 的动作，外在奖励，和beta，在实现时动作和 beta 我们都转化成了相应的 one-hot 向量.</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.ngu.</span></span><span class="sig-name descname"><span class="pre">NGUPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/ngu.html#NGUPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Policy class of NGU. The corresponding paper is <cite>never give up: learning directed exploration strategies</cite>.</p>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 19%" />
+<col style="width: 7%" />
+<col style="width: 13%" />
+<col style="width: 37%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>dqn</p></td>
+<td><div class="line-block">
+<div class="line">RL policy register name, refer to</div>
+<div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">This arg is optional,</div>
+<div class="line">a placeholder</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use cuda for network</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">This arg can be diff-</div>
+<div class="line">erent from modes</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on_policy</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether the RL algorithm is on-policy</div>
+<div class="line">or off-policy</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">priority</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use priority(PER)</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Priority sample,</div>
+<div class="line">update priority</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">priority_IS</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_weight</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use Importance Sampling Weight</div>
+<div class="line">to correct biased update. If True,</div>
+<div class="line">priority must be True.</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">discount_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">factor</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.997,
+[0.95, 0.999]</p></td>
+<td><div class="line-block">
+<div class="line">Reward’s future discount factor, aka.</div>
+<div class="line">gamma</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">May be 1 when sparse</div>
+<div class="line">reward env</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nstep</span></code></p></td>
+<td><p>int</p></td>
+<td><p>3,
+[3, 5]</p></td>
+<td><div class="line-block">
+<div class="line">N-step reward discount sum for target</div>
+<div class="line">q_value estimation</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">burnin_step</span></code></p></td>
+<td><p>int</p></td>
+<td><p>2</p></td>
+<td><div class="line-block">
+<div class="line">The timestep of burnin operation,</div>
+<div class="line">which is designed to RNN hidden state</div>
+<div class="line">difference caused by off-policy</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.update</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">How many updates(iterations) to train</div>
+<div class="line">after collector’s one collection. Only</div>
+<div class="line">valid in serial training</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">This args can be vary</div>
+<div class="line">from envs. Bigger val</div>
+<div class="line">means more off-policy</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.batch_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">size</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>64</p></td>
+<td><div class="line-block">
+<div class="line">The number of samples of an iteration</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>11</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_rate</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.001</p></td>
+<td><div class="line-block">
+<div class="line">Gradient step length of an iteration.</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>12</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.value_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">rescale</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><div class="line-block">
+<div class="line">Whether use value_rescale function for</div>
+<div class="line">predicted value</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>13</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.target_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">update_freq</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>100</p></td>
+<td><div class="line-block">
+<div class="line">Frequence of target network update.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Hard(assign) update</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>14</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.ignore_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">done</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether ignore done for target value</div>
+<div class="line">calculation.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Enable it for some</div>
+<div class="line">fake termination env</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>15</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">collect.n_sample</span></code></p></td>
+<td><p>int</p></td>
+<td><p>[8, 128]</p></td>
+<td><div class="line-block">
+<div class="line">The number of training samples of a</div>
+<div class="line">call of collector.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">It varies from</div>
+<div class="line">different envs</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>16</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">collect.unroll</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_len</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">unroll length of an iteration</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">In RNN, unroll_len&gt;1</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<p>注意：<code class="docutils literal notranslate"><span class="pre">...</span></code> 表示省略的代码片段。 完整代码请参考我们的在DI-engine中的
+<a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/reward_model/ngu_reward_model.py">实现</a> 。</p>
+<section id="rndnetwork-inversenetwork">
+<h3>RndNetwork/InverseNetwork<a class="headerlink" href="#rndnetwork-inversenetwork" title="Permalink to this headline">¶</a></h3>
+<p>首先，我们定义类 <code class="docutils literal notranslate"><span class="pre">RndNetwork</span></code> 涉及两个神经网络：固定和随机初始化的目标网络 <code class="docutils literal notranslate"><span class="pre">self.target</span></code> ，
+和预测网络 <code class="docutils literal notranslate"><span class="pre">self.predictor</span></code> 根据代理收集的数据进行训练。我们定义类 <code class="docutils literal notranslate"><span class="pre">InverseNetwork</span></code> 也分为 2 个部分：<code class="docutils literal notranslate"><span class="pre">self.embedding_net</span></code> 负责将原始观测映射到隐空间，
+和 <code class="docutils literal notranslate"><span class="pre">self.inverse_net</span></code> 根据t时刻观测和t+1时刻观测的 <code class="docutils literal notranslate"><span class="pre">embedding</span></code> ，预测 t 时刻的动作。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RndNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span> <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">RndNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predictor</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+            <span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">, please customize your own RND model&quot;</span><span class="o">.</span>
+            <span class="nb">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+        <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+    <span class="n">predict_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predictor</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">target_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">predict_feature</span><span class="p">,</span> <span class="n">target_feature</span>
+
+
+<span class="k">class</span> <span class="nc">InverseNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">InverseNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+            <span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">, please customize your own RND model&quot;</span><span class="o">.</span>
+            <span class="nb">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">inverse_net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">inference</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">inference</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">cur_obs_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">cur_obs_embedding</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># obs: torch.Tensor, next_obs: torch.Tensor</span>
+        <span class="n">cur_obs_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">])</span>
+        <span class="n">next_obs_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_net</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">])</span>
+        <span class="c1"># get pred action</span>
+        <span class="n">obs_plus_next_obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">cur_obs_embedding</span><span class="p">,</span> <span class="n">next_obs_embedding</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">pred_action_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse_net</span><span class="p">(</span><span class="n">obs_plus_next_obs</span><span class="p">)</span>
+        <span class="n">pred_action_probs</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Softmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)(</span><span class="n">pred_action_logits</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pred_action_logits</span><span class="p">,</span> <span class="n">pred_action_probs</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h3>内在奖励计算<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<p>关于 RndNGURewardModel/EpisodicNGURewardModel 的训练部分请参考 <a class="reference external" href="hhttps://github.com/opendilab/DI-engine/blob/main/ding/reward_model/ngu_reward_model.py">ngu_reward_model</a> .
+这里主要展示是如何根据已经训练好的模型计算局内内在奖励(<code class="docutils literal notranslate"><span class="pre">episodic</span> <span class="pre">reward</span></code>)和局外内在奖励(<code class="docutils literal notranslate"><span class="pre">rnd</span> <span class="pre">reward</span></code>)。</p>
+<blockquote>
+<div><p>1.episodic reward 在我们在类 <code class="docutils literal notranslate"><span class="pre">EpisodicNGURewardModel</span></code> 的方法 <code class="docutils literal notranslate"><span class="pre">_compute_intrinsic_reward</span></code> 中实现根据当前的 <code class="docutils literal notranslate"><span class="pre">episodic_memory</span></code> 计算得到当前状态的局内内在奖励。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_compute_intrinsic_reward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">episodic_memory</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+        <span class="n">current_controllable_state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">kernel_cluster_distance</span><span class="o">=</span><span class="mf">0.008</span><span class="p">,</span>
+        <span class="n">kernel_epsilon</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+        <span class="n">c</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+        <span class="n">siminarity_max</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="c1"># this function is modified from https://github.com/Coac/never-give-up/blob/main/embedding_model.py</span>
+    <span class="n">state_dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">current_controllable_state</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">episodic_memory</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">()[</span><span class="mi">0</span><span class="p">][:</span><span class="n">k</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_episodic_dist</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">state_dist</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+    <span class="n">state_dist</span> <span class="o">=</span> <span class="n">state_dist</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_episodic_dist</span><span class="o">.</span><span class="n">mean</span> <span class="o">+</span> <span class="mf">1e-11</span><span class="p">)</span>
+
+    <span class="n">state_dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">state_dist</span> <span class="o">-</span> <span class="n">kernel_cluster_distance</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel_epsilon</span> <span class="o">/</span> <span class="p">(</span><span class="n">state_dist</span> <span class="o">+</span> <span class="n">kernel_epsilon</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">kernel</span><span class="p">),</span> <span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span> <span class="o">+</span> <span class="n">c</span>
+
+    <span class="k">if</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="n">siminarity_max</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;s &gt; siminarity_max:&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">s</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">s</span>
+</pre></div>
+</div>
+<p>2.我们是在收集一批样本后，从 replay buffer 中采样一个 mini-batch 的样本序列，调用上面的 <code class="docutils literal notranslate"><span class="pre">_compute_intrinsic_reward</span></code> 计算局内内在奖励。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rewrite the reward key in each row of the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">obs</span><span class="p">,</span> <span class="n">is_null</span> <span class="o">=</span> <span class="n">collect_data_episodic</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+    <span class="n">seq_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># stack episode dim</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">episode_obs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">episode_obs</span> <span class="ow">in</span> <span class="n">obs</span><span class="p">]</span>
+
+    <span class="c1"># stack batch dim</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span> <span class="o">*</span> <span class="n">seq_length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># len(self.cfg.obs_shape) == 3 for image obs</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span> <span class="o">*</span> <span class="n">seq_length</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="n">inputs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span> <span class="s1">&#39;is_null&#39;</span><span class="p">:</span> <span class="n">is_null</span><span class="p">}</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">cur_obs_embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">episodic_reward_model</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">inference</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cur_obs_embedding</span> <span class="o">=</span> <span class="n">cur_obs_embedding</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">episodic_reward</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seq_length</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+                    <span class="n">episodic_reward</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">j</span><span class="p">:</span>
+                    <span class="n">episodic_memory</span> <span class="o">=</span> <span class="n">cur_obs_embedding</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="n">j</span><span class="p">]</span>
+                    <span class="n">reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_intrinsic_reward</span><span class="p">(</span><span class="n">episodic_memory</span><span class="p">,</span> <span class="n">cur_obs_embedding</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                    <span class="n">episodic_reward</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reward</span><span class="p">)</span>
+
+            <span class="c1"># if have null padding, the episodic_reward should be 0</span>
+            <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">is_null</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">float</span><span class="p">())</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">null_start_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">is_null</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">float</span><span class="p">())</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">null_start_index</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">):</span>
+                    <span class="n">episodic_reward</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="c1"># list(list(tensor)) - &gt; tensor</span>
+        <span class="c1"># stack episode dim</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">episodic_reward_tmp</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">episodic_reward_tmp</span> <span class="ow">in</span> <span class="n">episodic_reward</span><span class="p">]</span>
+        <span class="c1"># stack batch dim</span>
+        <span class="n">episodic_reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">episodic_reward</span> <span class="o">=</span> <span class="n">episodic_reward</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># torch.Size([32, 42]) -&gt; torch.Size([32*42]</span>
+
+        <span class="c1"># transform to [0,1]: er01</span>
+        <span class="n">episodic_reward</span> <span class="o">=</span> <span class="p">(</span><span class="n">episodic_reward</span> <span class="o">-</span> <span class="n">episodic_reward</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">episodic_reward</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">episodic_reward</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-11</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">episodic_reward</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>计算局间内在奖励。</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rewrite the reward key in each row of the data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">obs</span><span class="p">,</span> <span class="n">is_null</span> <span class="o">=</span> <span class="n">collect_data_rnd</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>  <span class="c1"># if obs shape list( list(torch.tensor) )</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="n">predict_feature</span><span class="p">,</span> <span class="n">target_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+        <span class="n">reward</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">predict_feature</span><span class="p">,</span> <span class="n">target_feature</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_rnd</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">reward</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+        <span class="c1"># transform to mean 1 std 1</span>
+        <span class="n">reward</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">reward</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_rnd</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_running_mean_std_rnd</span><span class="o">.</span><span class="n">std</span> <span class="o">+</span> <span class="mf">1e-11</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cnt_rnd</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;rnd_reward/rnd_reward_max&#39;</span><span class="p">,</span> <span class="n">reward</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cnt_rnd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;rnd_reward/rnd_reward_mean&#39;</span><span class="p">,</span> <span class="n">reward</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cnt_rnd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb_logger</span><span class="o">.</span><span class="n">add_scalar</span><span class="p">(</span><span class="s1">&#39;rnd_reward/rnd_reward_min&#39;</span><span class="p">,</span> <span class="n">reward</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cnt_rnd</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reward</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="id9">
+<h3>融合局内内在奖励和局外内在奖励<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fusion_reward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">inter_episodic_reward</span><span class="p">,</span> <span class="n">episodic_reward</span><span class="p">,</span> <span class="n">nstep</span><span class="p">,</span> <span class="n">collector_env_num</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">,</span> <span class="n">estimate_cnt</span><span class="p">):</span>
+    <span class="n">estimate_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">index_to_beta</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">i</span><span class="p">:</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">-</span> <span class="p">(</span><span class="n">collector_env_num</span> <span class="o">-</span> <span class="mi">2</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">collector_env_num</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">collector_env_num</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">seq_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">])</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
+    <span class="n">intrinsic_reward_type</span> <span class="o">=</span> <span class="s1">&#39;add&#39;</span>
+    <span class="n">intrisic_reward</span> <span class="o">=</span> <span class="n">episodic_reward</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">inter_episodic_reward</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="o">...</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+        <span class="c1"># not rnn based rl algorithm</span>
+        <span class="n">intrisic_reward</span> <span class="o">=</span> <span class="n">intrisic_reward</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">intrisic_reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">intrisic_reward</span><span class="p">,</span> <span class="n">intrisic_reward</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">rew</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">intrisic_reward</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">intrinsic_reward_type</span> <span class="o">==</span> <span class="s1">&#39;add&#39;</span><span class="p">:</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rew</span> <span class="o">*</span> <span class="n">index_to_beta</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span><span class="p">]]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># rnn based rl algorithm</span>
+        <span class="n">intrisic_reward</span> <span class="o">=</span> <span class="n">intrisic_reward</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># tensor to tuple</span>
+        <span class="n">intrisic_reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">intrisic_reward</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">intrisic_reward</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;obs&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># for env atari, obs is image</span>
+            <span class="n">last_rew_weight</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># foe env lularlander, minigrid</span>
+            <span class="n">last_rew_weight</span> <span class="o">=</span> <span class="n">seq_length</span>
+
+        <span class="c1"># this is for the nstep rl algorithms</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>  <span class="c1"># batch_size typically 64</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">seq_length</span><span class="p">):</span>  <span class="c1"># burnin+unroll_len is the sequence length, e.g. 100=2+98</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">seq_length</span> <span class="o">-</span> <span class="n">nstep</span><span class="p">:</span>
+                    <span class="n">intrinsic_reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">intrisic_reward</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">seq_length</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nstep</span><span class="p">)],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="c1"># if intrinsic_reward_type == &#39;add&#39;:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;null&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]:</span>
+                        <span class="c1"># if data[i][&#39;null&#39;][j]==True, means its&#39;s null data, only the not null data,</span>
+                        <span class="c1"># we add aintrinsic_reward reward</span>
+                        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;done&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]:</span>
+                            <span class="c1"># if not null data, and data[i][&#39;done&#39;][j]==True, so this is the last nstep transition</span>
+                            <span class="c1"># in the original data.</span>
+                            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">nstep</span><span class="p">)):</span>
+                                <span class="c1"># here we want to find the last nonzero reward in the nstep reward list:</span>
+                                <span class="c1"># data[i][&#39;reward&#39;][j], that is also the last reward in the sequence, here,</span>
+                                <span class="c1"># we set the sequence length is large enough,</span>
+                                <span class="c1"># so we can consider the sequence as the whole episode plus null_padding</span>
+
+                                <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                    <span class="c1"># find the last one that is nonzero, and enlarging &lt;seq_length&gt; times</span>
+                                    <span class="n">tmp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">])</span>
+                                    <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">intrinsic_reward</span> <span class="o">*</span> <span class="n">index_to_beta</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;beta&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">])]</span>
+                                    <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_rew_weight</span> <span class="o">*</span> <span class="n">tmp</span>
+                                    <span class="c1"># substitute the kth reward in the list data[i][&#39;reward&#39;][j] with &lt;seq_length&gt;</span>
+                                    <span class="c1"># times amplified reward</span>
+                                    <span class="k">break</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">intrinsic_reward</span> <span class="o">*</span> <span class="n">index_to_beta</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;beta&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">])]</span>
+
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">estimate_cnt</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+<section id="id10">
+<h2>基准算法性能<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<p>读者仔细思考可以发现NGU仍然存在一些问题：例如如何选择 N,将内在奖励和外在奖励分为 2 个 Q 网络来学习，如何自适应的奖励选择折扣因子和内在奖励权重系数。
+有兴趣的读者可以阅读后续改进工作 <a class="reference external" href="https://arxiv.org/abs/2003.13350">Agent57: Outperforming the Atari Human Benchmark</a>.</p>
+</section>
+<section id="id11">
+<h2>参考资料<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Badia A P, Sprechmann P, Vitvitskyi A, et al. Never give up: Learning directed exploration strategies[J]. arXiv preprint arXiv:2002.06038, 2020.</p></li>
+<li><p>Burda Y, Edwards H, Storkey A, et al. Exploration by random network distillation[J]. <a class="reference external" href="https://arxiv.org/abs/1810.12894v1">https://arxiv.org/abs/1810.12894v1</a>. arXiv:1810.12894, 2018.</p></li>
+<li><p>Pathak D, Agrawal P, Efros A A, et al. Curiosity-driven exploration by self-supervised prediction[C]//International conference on machine learning. PMLR, 2017: 2778-2787.</p></li>
+<li><p>Kapturowski S, Ostrovski G, Quan J, et al. Recurrent experience replay in distributed reinforcement learning[C]//International conference on learning representations. 2018.</p></li>
+</ol>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="diayn_zh.html" class="btn btn-neutral float-right" title="DIAYN" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="icm_zh.html" class="btn btn-neutral" title="ICM" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">NGU</a><ul>
+<li><a class="reference internal" href="#id1">概述</a></li>
+<li><a class="reference internal" href="#id2">核心要点</a></li>
+<li><a class="reference internal" href="#id3">关键方程或关键框图</a></li>
+<li><a class="reference internal" href="#id4">伪代码</a></li>
+<li><a class="reference internal" href="#id5">重要的实现细节</a></li>
+<li><a class="reference internal" href="#id6">实现</a><ul>
+<li><a class="reference internal" href="#rndnetwork-inversenetwork">RndNetwork/InverseNetwork</a></li>
+<li><a class="reference internal" href="#id8">内在奖励计算</a></li>
+<li><a class="reference internal" href="#id9">融合局内内在奖励和局外内在奖励</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id10">基准算法性能</a></li>
+<li><a class="reference internal" href="#id11">参考资料</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

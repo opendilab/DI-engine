@@ -1,0 +1,1403 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>network.activation &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../../genindex.html" />
+  <link rel="search" title="Search" href="../../search.html" />
+  <link rel="next" title="Utils" href="../utils/index.html" />
+  <link rel="prev" title="loss.cross_entropy_loss" href="torch_utils_loss.html" />
+    <link href="../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../00_intro/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../01_quickstart/index.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../02_algo/index.html">RL Algorithm Taxonomy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../03_system/index.html">System Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../06_faq/index.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reinforcement Learning Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../10_concepts/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../11_dizoo/index.html">Learn From DI-zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../12_policies/index.html">RL Algorithms Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../13_envs/index.html">RL Env Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Specification</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../20_spec/index.html">Specification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../21_code_style/index.html">Code Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../22_test/index.html">Unit Test Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../23_visual/index.html">Diagrams and Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../24_cooperation/index.html">Github Cooperation</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../../index.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="../index.html">API Doc</a> &gt;</li>
+        
+          <li><a href="index.html">Torch Utils</a> &gt;</li>
+        
+      <li>network.activation</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/05_api_doc/torch_utils/torch_utils_network.rst.txt" rel="nofollow"><img src="../../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="network-activation">
+<h1>network.activation<a class="headerlink" href="#network-activation" title="Permalink to this headline">¶</a></h1>
+<section id="glu">
+<h2>GLU<a class="headerlink" href="#glu" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.activation.GLU">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.activation.</span></span><span class="sig-name descname"><span class="pre">GLU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'fc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/activation.html#GLU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.activation.GLU" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Gating Linear Unit.
+This class does a thing like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Inputs: input, context, output_size</span>
+<span class="c1"># The gate value is a learnt function of the input.</span>
+<span class="n">gate</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">linear</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">size</span><span class="p">)(</span><span class="n">context</span><span class="p">))</span>
+<span class="c1"># Gate the input and return an output of desired size.</span>
+<span class="n">gated_input</span> <span class="o">=</span> <span class="n">gate</span> <span class="o">*</span> <span class="nb">input</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">linear</span><span class="p">(</span><span class="n">output_size</span><span class="p">)(</span><span class="n">gated_input</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">output</span>
+</pre></div>
+</div>
+</dd>
+<dt>Interfaces:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>This module also supports 2D convolution, in which case, the input and context must have the same shape.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.activation.GLU.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/activation.html#GLU.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.activation.GLU.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return GLU computed tensor</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) : the input tensor</p></li>
+<li><p>context (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>) : the context tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the computed tensor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ding.torch_utils.network.activation.build_activation">
+<span id="build-activation"></span><h2>build_activation<a class="headerlink" href="#module-ding.torch_utils.network.activation.build_activation" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Return the activation module according to the given type.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>actvation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the type of activation module, now supports [‘relu’, ‘glu’, ‘prelu’]</p></li>
+<li><p>inplace (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): can optionally do the operation in-place in relu. Default <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>act_func (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.module</span></code>): the corresponding activation module</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="network-nn-module">
+<h1>network.nn_module<a class="headerlink" href="#network-nn-module" title="Permalink to this headline">¶</a></h1>
+<section id="module-ding.torch_utils.network.nn_module.weight_init_">
+<span id="weight-init"></span><h2>weight_init<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.weight_init_" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Init weight according to the specified type.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the weight that needed to init</p></li>
+<li><p>init_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the type of init to implement, supports [“xavier”, “kaiming”, “orthogonal”]</p></li>
+<li><dl class="simple">
+<dt>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the activation function name, recommend that use only with </dt><dd><p>[‘relu’, ‘leaky_relu’].</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.sequential_pack">
+<span id="sequential-pack"></span><h2>sequential_pack<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.sequential_pack" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Pack the layers in the input list to a <cite>nn.Sequential</cite> module.
+If there is a convolutional layer in module, an extra attribute <cite>out_channels</cite> will be added
+to the module and set to the out_channel of the conv layer.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>layers (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the input list</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>seq (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): packed sequential container</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.conv1d_block">
+<span id="conv1d-block"></span><h2>conv1d_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.conv1d_block" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Create a 1-dim convlution layer with activation and normalization.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
+<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor</p></li>
+<li><p>kernel_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Size of the convolving kernel</p></li>
+<li><p>stride (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Stride of the convolution</p></li>
+<li><p>padding (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Zero-padding added to both sides of the input</p></li>
+<li><p>dilation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Spacing between kernel elements</p></li>
+<li><p>groups (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of blocked connections from input channels to output channels</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the 1 dim convlution layer</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Conv1d (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d">https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d</a>)</p>
+</div>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.conv2d_block">
+<span id="conv2d-block"></span><h2>conv2d_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.conv2d_block" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Create a 2-dim convlution layer with activation and normalization.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
+<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor</p></li>
+<li><p>kernel_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Size of the convolving kernel</p></li>
+<li><p>stride (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Stride of the convolution</p></li>
+<li><p>padding (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Zero-padding added to both sides of the input</p></li>
+<li><p>dilation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Spacing between kernel elements</p></li>
+<li><p>groups (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of blocked connections from input channels to output channels</p></li>
+<li><p>pad_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the way to add padding, include [‘zero’, ‘reflect’, ‘replicate’], default: None</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization, default set to None, now support [‘BN’, ‘IN’, ‘SyncBN’]</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the 2 dim convlution layer</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Conv2d (<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d">https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html#torch.nn.Conv2d</a>)</p>
+</div>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.deconv2d_block">
+<span id="deconv2d-block"></span><h2>deconv2d_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.deconv2d_block" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Create a 2-dim transopse convlution layer with activation and normalization</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
+<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor</p></li>
+<li><p>kernel_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Size of the convolving kernel</p></li>
+<li><p>stride (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Stride of the convolution</p></li>
+<li><p>padding (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Zero-padding added to both sides of the input</p></li>
+<li><p>pad_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the way to add padding, include [‘zero’, ‘reflect’, ‘replicate’]</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the 2-dim </dt><dd><p>transpose convlution layer</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>ConvTranspose2d (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html">https://pytorch.org/docs/master/generated/torch.nn.ConvTranspose2d.html</a>)</p>
+</div>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.fc_block">
+<span id="fc-block"></span><h2>fc_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.fc_block" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Create a fully-connected block with activation, normalization and dropout.
+Optional normalization can be done to the dim 1 (across the channels)
+x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
+<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization</p></li>
+<li><p>use_dropout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>) : whether to use dropout in the fully-connected block</p></li>
+<li><p>dropout_probability (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) : probability of an element to be zeroed in the dropout. Default: 0.5</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the fully-connected block</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>you can refer to nn.linear (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Linear.html">https://pytorch.org/docs/master/generated/torch.nn.Linear.html</a>)</p>
+</div>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.MLP">
+<span id="mlp"></span><h2>MLP<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.MLP" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>create a multi-layer perceptron using fully-connected blocks with activation, normalization and dropout,
+optional normalization can be done to the dim 1 (across the channels)
+x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
+<li><p>hidden_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the hidden tensor</p></li>
+<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor</p></li>
+<li><p>layer_num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of layers</p></li>
+<li><p>layer_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): layer function</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the optional activation function</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization</p></li>
+<li><p>use_dropout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether to use dropout in the fully-connected block</p></li>
+<li><p>dropout_probability (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): probability of an element to be zeroed in the dropout. Default: 0.5</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the fully-connected block</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>you can refer to nn.linear (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Linear.html">https://pytorch.org/docs/master/generated/torch.nn.Linear.html</a>)</p>
+</div>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.one_hot">
+<span id="one-hot"></span><h2>one_hot<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.one_hot" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>Overview:</dt><dd><p>Convert a <code class="docutils literal notranslate"><span class="pre">torch.LongTensor</span></code> to one hot encoding.
+This implementation can be slightly faster than <code class="docutils literal notranslate"><span class="pre">torch.nn.functional.one_hot</span></code></p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>val (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): each element contains the state to be encoded, the range should be [0, num-1]</p></li>
+<li><p>num (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): number of states of the one hot encoding</p></li>
+<li><dl class="simple">
+<dt>num_first (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): If <code class="docutils literal notranslate"><span class="pre">num_first</span></code> is False, the one hot encoding is added as the last; </dt><dd><p>Otherwise as the first dimension.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>one_hot (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>)</p></li>
+</ul>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">one_hot</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">tensor([[[0., 0., 1.],</span>
+<span class="go">         [0., 0., 1.]],</span>
+<span class="go">        [[0., 0., 1.],</span>
+<span class="go">         [0., 0., 1.]]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one_hot</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span><span class="mi">3</span><span class="p">,</span><span class="n">num_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">tensor([[[0., 0.], [1., 0.]],</span>
+<span class="go">        [[0., 1.], [0., 0.]],</span>
+<span class="go">        [[1., 0.], [0., 1.]]])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.binary_encode">
+<span id="binary-encode"></span><h2>binary_encode<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.binary_encode" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt>Overview:</dt><dd><p>Convert elements in a tensor to its binary representation</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>y (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the tensor to be transferred into its binary representation</p></li>
+<li><p>max_val (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the max value of the elements in tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>binary (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor in its binary representation</p></li>
+</ul>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">binary_encode</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">]),</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">8</span><span class="p">))</span>
+<span class="go">tensor([[0, 0, 1, 1],[0, 0, 1, 0]])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</section>
+<section id="module-ding.torch_utils.network.nn_module.noise_block">
+<span id="noise-block"></span><h2>noise_block<a class="headerlink" href="#module-ding.torch_utils.network.nn_module.noise_block" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Create a fully-connected block with activation, normalization and dropout
+Optional normalization can be done to the dim 1 (across the channels)
+x -&gt; fc -&gt; norm -&gt; act -&gt; dropout -&gt; out</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>in_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the input tensor</p></li>
+<li><p>out_channels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Number of channels in the output tensor</p></li>
+<li><p>activation (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): the optional activation function</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normalization</p></li>
+<li><p>use_dropout (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>) : whether to use dropout in the fully-connected block</p></li>
+<li><p>dropout_probability (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) : probability of an element to be zeroed in the dropout. Default: 0.5</p></li>
+<li><p>simga0 (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the sigma0 is the defalut noise volumn when init NoiseLinearLayer</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>block (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Sequential</span></code>): a sequential list containing the torch layers of the fully-connected block</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>you can refer to nn.linear (<a class="reference external" href="https://pytorch.org/docs/master/generated/torch.nn.Linear.html">https://pytorch.org/docs/master/generated/torch.nn.Linear.html</a>)</p>
+</div>
+</section>
+<section id="channelshuffle">
+<h2>ChannelShuffle<a class="headerlink" href="#channelshuffle" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.ChannelShuffle">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.nn_module.</span></span><span class="sig-name descname"><span class="pre">ChannelShuffle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#ChannelShuffle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.ChannelShuffle" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Apply channelShuffle to the input tensor</p>
+</dd>
+<dt>Interface:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can see the original paper shuffle net in <a class="reference external" href="https://arxiv.org/abs/1707.01083">https://arxiv.org/abs/1707.01083</a></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.ChannelShuffle.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#ChannelShuffle.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.ChannelShuffle.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the upsampled input</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the shuffled input tensor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="nearestupsample">
+<h2>NearestUpsample<a class="headerlink" href="#nearestupsample" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NearestUpsample">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.nn_module.</span></span><span class="sig-name descname"><span class="pre">NearestUpsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#NearestUpsample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.NearestUpsample" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Upsamples the input to the given member varible scale_factor using mode nearest</p>
+</dd>
+<dt>Interface:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NearestUpsample.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#NearestUpsample.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.NearestUpsample.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the upsampled input</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>upsample(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the upsampled input tensor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="bilinearupsample">
+<h2>BilinearUpsample<a class="headerlink" href="#bilinearupsample" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.BilinearUpsample">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.nn_module.</span></span><span class="sig-name descname"><span class="pre">BilinearUpsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#BilinearUpsample"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.BilinearUpsample" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Upsamples the input to the given member varible scale_factor using mode biliner</p>
+</dd>
+<dt>Interface:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.BilinearUpsample.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#BilinearUpsample.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.BilinearUpsample.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the upsampled input</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>upsample(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the upsampled input tensor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="noiselinearlayer">
+<h2>NoiseLinearLayer<a class="headerlink" href="#noiselinearlayer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NoiseLinearLayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.nn_module.</span></span><span class="sig-name descname"><span class="pre">NoiseLinearLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma0</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#NoiseLinearLayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.NoiseLinearLayer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Linear layer with random noise.</p>
+</dd>
+<dt>Interface:</dt><dd><p>reset_noise, reset_parameters, forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NoiseLinearLayer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#NoiseLinearLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.NoiseLinearLayer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Layer forward with noise.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output with noise</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_noise">
+<span class="sig-name descname"><span class="pre">reset_noise</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#NoiseLinearLayer.reset_noise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_noise" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset noise settinngs in the layer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_parameters">
+<span class="sig-name descname"><span class="pre">reset_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/nn_module.html#NoiseLinearLayer.reset_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.nn_module.NoiseLinearLayer.reset_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Reset parameters in the layer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="network-normalization">
+<h1>network.normalization<a class="headerlink" href="#network-normalization" title="Permalink to this headline">¶</a></h1>
+<section id="module-ding.torch_utils.network.normalization.build_normalization">
+<span id="build-normalization"></span><h2>build_normalization<a class="headerlink" href="#module-ding.torch_utils.network.normalization.build_normalization" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Build the corresponding normalization module</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normaliztion, now support [‘BN’, ‘IN’, ‘SyncBN’, ‘AdaptiveIN’]</p></li>
+<li><p>dim (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): dimension of the normalization, when norm_type is in [BN, IN]</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>norm_func (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): the corresponding batch normalization function</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For beginers, you can refer to &lt;<a class="reference external" href="https://zhuanlan.zhihu.com/p/34879333">https://zhuanlan.zhihu.com/p/34879333</a>&gt; to learn more about batch normalization.</p>
+</div>
+</section>
+</section>
+<section id="network-res-block">
+<h1>network.res_block<a class="headerlink" href="#network-res-block" title="Permalink to this headline">¶</a></h1>
+<section id="resblock">
+<h2>ResBlock<a class="headerlink" href="#resblock" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResBlock">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.res_block.</span></span><span class="sig-name descname"><span class="pre">ResBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'basic'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResBlock" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><dl class="simple">
+<dt>Residual Block with 2D convolution layers, including 2 types:</dt><dd><dl class="simple">
+<dt>basic block:</dt><dd><p>input channel: C
+x -&gt; 3*3*C -&gt; norm -&gt; act -&gt; 3*3*C -&gt; norm -&gt; act -&gt; out
+__________________________________________/+</p>
+</dd>
+<dt>bottleneck block:</dt><dd><p>x -&gt; 1*1*(1/4*C) -&gt; norm -&gt; act -&gt; 3*3*(1/4*C) -&gt; norm -&gt; act -&gt; 1*1*C -&gt; norm -&gt; act -&gt; out
+_____________________________________________________________________________/+</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt>Interfaces:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResBlock.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResBlock.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the redisual block output</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the resblock output tensor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="resfcblock">
+<h2>ResFCBlock<a class="headerlink" href="#resfcblock" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResFCBlock">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.res_block.</span></span><span class="sig-name descname"><span class="pre">ResFCBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'BN'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResFCBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResFCBlock" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Residual Block with 2 fully connected block
+x -&gt; fc1 -&gt; norm -&gt; act -&gt; fc2 -&gt; norm -&gt; act -&gt; out
+_____________________________________/+</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.res_block.ResFCBlock.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/res_block.html#ResFCBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.res_block.ResFCBlock.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Return the redisual block output</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the input tensor</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the resblock output tensor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="network-rnn">
+<h1>network.rnn<a class="headerlink" href="#network-rnn" title="Permalink to this headline">¶</a></h1>
+<section id="lstmforwardwrapper">
+<h2>LSTMForwardWrapper<a class="headerlink" href="#lstmforwardwrapper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTMForwardWrapper">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.rnn.</span></span><span class="sig-name descname"><span class="pre">LSTMForwardWrapper</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTMForwardWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTMForwardWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>A class which provides methods to use before and after <cite>forward</cite>, in order to wrap the LSTM <cite>forward</cite> method.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>_before_forward, _after_forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTMForwardWrapper._after_forward">
+<span class="sig-name descname"><span class="pre">_after_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTMForwardWrapper._after_forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTMForwardWrapper._after_forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Post-process the next_state, return list or tensor type next_states</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[torch.Tensor]</span></code>): Tuple which contains next state (h, c).</p></li>
+<li><p>list_next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to return next_state with list format, default set to False</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>next_state(<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[List[Dict],</span> <span class="pre">Dict[str,</span> <span class="pre">torch.Tensor]]</span></code>): The formatted next_state.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTMForwardWrapper._before_forward">
+<span class="sig-name descname"><span class="pre">_before_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTMForwardWrapper._before_forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTMForwardWrapper._before_forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Preprocess the inputs and previous states</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input vector of cell, tensor of size [seq_len, batch_size, input_size]</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[None,</span> <span class="pre">List[Dict]]</span></code>): None or tensor of size                 [num_directions*num_layers, batch_size, hidden_size].                 If None then prv_state will be initialized to all zeros.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): batch previous state in lstm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="lstm">
+<h2>LSTM<a class="headerlink" href="#lstm" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTM">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.rnn.</span></span><span class="sig-name descname"><span class="pre">LSTM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTM" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Implimentation of LSTM cell with LN</p>
+</dd>
+<dt>Interface:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For beginners, you can refer to &lt;<a class="reference external" href="https://zhuanlan.zhihu.com/p/32085405">https://zhuanlan.zhihu.com/p/32085405</a>&gt; to learn the basics about lstm</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.rnn.LSTM.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#LSTM.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.LSTM.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Take the previous state and the input and calculate the output and the nextstate</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input vector of cell, tensor of size [seq_len, batch_size, input_size]</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): None or tensor of size                 [num_directions*num_layers, batch_size, hidden_size]</p></li>
+<li><p>list_next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether return next_state with list format, default set to False</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): output from lstm</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">list]</span></code>): hidden state from lstm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pytorchlstm">
+<h2>PytorchLSTM<a class="headerlink" href="#pytorchlstm" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.rnn.PytorchLSTM">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.rnn.</span></span><span class="sig-name descname"><span class="pre">PytorchLSTM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#PytorchLSTM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.PytorchLSTM" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Wrap the PyTorch nn.LSTM, format the input and output</p>
+</dd>
+<dt>Interface:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>you can reference the &lt;<a class="reference external" href="https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM">https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM</a>&gt;</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.rnn.PytorchLSTM.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_next_state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/rnn.html#PytorchLSTM.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.rnn.PytorchLSTM.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Wrapped nn.LSTM.forward.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input vector of cell, tensor of size                 [seq_len, batch_size, input_size]</p></li>
+<li><p>prev_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): None or tensor of size                 [num_directions*num_layers, batch_size, hidden_size]</p></li>
+<li><p>list_next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether return next_state with list format, default set to False</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): output from lstm</p></li>
+<li><p>next_state (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.Tensor,</span> <span class="pre">list]</span></code>): hidden state from lstm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ding.torch_utils.network.rnn.get_lstm">
+<span id="get-lstm"></span><h2>get_lstm<a class="headerlink" href="#module-ding.torch_utils.network.rnn.get_lstm" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Build and return the corresponding LSTM cell</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>lstm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): version of rnn cell, now support [‘normal’, ‘pytorch’, ‘hpc’, ‘gru’]</p></li>
+<li><p>input_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): size of the input vector</p></li>
+<li><p>hidden_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): size of the hidden state vector</p></li>
+<li><p>num_layers (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): number of lstm layers</p></li>
+<li><p>norm_type (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): type of the normaliztion, (default: None)</p></li>
+<li><p>dropout (:obj:float):  dropout rate, default set to .0</p></li>
+<li><p>seq_len (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): seq len, default set to None</p></li>
+<li><p>batch_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[int]</span></code>): batch_size len, default set to None</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>lstm (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[LSTM,</span> <span class="pre">PytorchLSTM]</span></code>): the corresponding lstm cell</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+<section id="network-scatter-connection">
+<h1>network.scatter_connection<a class="headerlink" href="#network-scatter-connection" title="Permalink to this headline">¶</a></h1>
+<section id="scatterconnection">
+<h2>ScatterConnection<a class="headerlink" href="#scatterconnection" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.scatter_connection.ScatterConnection">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.scatter_connection.</span></span><span class="sig-name descname"><span class="pre">ScatterConnection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scatter_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/scatter_connection.html#ScatterConnection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.scatter_connection.ScatterConnection" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Scatter feature to its corresponding location
+In AlphaStar, each entity is embedded into a tensor,
+and these tensors are scattered into a feature map with map size.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.scatter_connection.ScatterConnection.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spatial_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/scatter_connection.html#ScatterConnection.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.scatter_connection.ScatterConnection.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>scatter x into a spatial feature map</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">tensor</span></code>): input tensor :math: <cite>(B, M, N)</cite> where <cite>M</cite> means the number of entity, <cite>N</cite> means                 the dimension of entity attributes</p></li>
+<li><p>spatial_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code>): Tuple[H, W], the size of spatial feature x will be scattered into</p></li>
+<li><p>location (<code class="xref py py-obj docutils literal notranslate"><span class="pre">tensor</span></code>): :math: <cite>(B, M, 2)</cite> torch.LongTensor, each location should be (y, x)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">tensor</span></code>): :math: <cite>(B, N, H, W)</cite> where <cite>H</cite> and <cite>W</cite> are spatial_size, return the                scattered feature map</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>Input: :math: <cite>(B, M, N)</cite> where <cite>M</cite> means the number of entity, <cite>N</cite> means                 the dimension of entity attributes</p></li>
+<li><p>Size: Tuple type :math: <cite>[H, W]</cite></p></li>
+<li><p>Location: :math: <cite>(B, M, 2)</cite> torch.LongTensor, each location should be (y, x)</p></li>
+<li><p>Output: :math: <cite>(B, N, H, W)</cite> where <cite>H</cite> and <cite>W</cite> are spatial_size</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When there are some overlapping in locations, <code class="docutils literal notranslate"><span class="pre">cover</span></code> mode will result in the loss of information, we
+use the addition as temporal substitute.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="network-soft-argmax">
+<h1>network.soft_argmax<a class="headerlink" href="#network-soft-argmax" title="Permalink to this headline">¶</a></h1>
+<section id="softargmax">
+<h2>SoftArgmax<a class="headerlink" href="#softargmax" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.soft_argmax.SoftArgmax">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.soft_argmax.</span></span><span class="sig-name descname"><span class="pre">SoftArgmax</span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/soft_argmax.html#SoftArgmax"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.soft_argmax.SoftArgmax" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>An nn.Module that computes SoftArgmax</p>
+</dd>
+<dt>Interface:</dt><dd><p>__init__, forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.soft_argmax.SoftArgmax.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/soft_argmax.html#SoftArgmax.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.soft_argmax.SoftArgmax.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Soft-argmax for location regression</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): predict heat map</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>location (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): predict location</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>x: <span class="math notranslate nohighlight">\((B, C, H, W)\)</span>, while B is the batch size, C is number of channels, </dt><dd><p>H and W stands for height and width</p>
+</dd>
+</dl>
+</li>
+<li><p>location: <span class="math notranslate nohighlight">\((B, 2)\)</span>, while B is the batch size</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="network-transformer">
+<h1>network.transformer<a class="headerlink" href="#network-transformer" title="Permalink to this headline">¶</a></h1>
+<section id="attention">
+<h2>Attention<a class="headerlink" href="#attention" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.transformer.Attention">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.transformer.</span></span><span class="sig-name descname"><span class="pre">Attention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/transformer.html#Attention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.transformer.Attention" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>For each entry embedding, compute individual attention across all entries, add them up to get output attention</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>split, forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.transformer.Attention.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/transformer.html#Attention.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.transformer.Attention.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Compute attention</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input tensor</p></li>
+<li><p>mask (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): mask out invalid entries</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>attention (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): attention tensor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.transformer.Attention.split">
+<span class="sig-name descname"><span class="pre">split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/transformer.html#Attention.split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.transformer.Attention.split" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Split input to get multihead queries, keys, values</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): query or key or value</p></li>
+<li><p>T (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether to transpose output</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[torch.Tensor]</span></code>): list of output tensors for each head</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="transformerlayer">
+<h2>TransformerLayer<a class="headerlink" href="#transformerlayer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.transformer.TransformerLayer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.transformer.</span></span><span class="sig-name descname"><span class="pre">TransformerLayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/transformer.html#TransformerLayer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.transformer.TransformerLayer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>In transformer layer, first computes entries’s attention and applies a feedforward layer</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.transformer.TransformerLayer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/transformer.html#TransformerLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.transformer.TransformerLayer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Transformer layer forward</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>inputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[torch.Tensor,</span> <span class="pre">torch.Tensor]</span></code>): x and mask</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Tuple[torch.Tensor,</span> <span class="pre">torch.Tensor]</span></code>): predict value and mask</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="transformer">
+<h2>Transformer<a class="headerlink" href="#transformer" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.network.transformer.Transformer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.network.transformer.</span></span><span class="sig-name descname"><span class="pre">Transformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.nn.modules.module.Module</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/network/transformer.html#Transformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.transformer.Transformer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Transformer implementation</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For details refer to Attention is all you need: <a class="reference external" href="http://arxiv.org/abs/1706.03762">http://arxiv.org/abs/1706.03762</a></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.network.transformer.Transformer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/network/transformer.html#Transformer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.network.transformer.Transformer.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Transformer forward</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): input tensor. Shape (B, N, C), B is batch size, </dt><dd><p>N is number of entries, C is feature dimension</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>mask (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>): bool tensor, can be used to mask out invalid entries in attention. </dt><dd><p>Shape (B, N), B is batch size, N is number of entries</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): transformer output</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="../utils/index.html" class="btn btn-neutral float-right" title="Utils" accesskey="n"
+      rel="next">Next <img src="../../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="torch_utils_loss.html" class="btn btn-neutral" title="loss.cross_entropy_loss" accesskey="p"
+      rel="prev"><img src="../../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">network.activation</a><ul>
+<li><a class="reference internal" href="#glu">GLU</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.activation.build_activation">build_activation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-nn-module">network.nn_module</a><ul>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.weight_init_">weight_init</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.sequential_pack">sequential_pack</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.conv1d_block">conv1d_block</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.conv2d_block">conv2d_block</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.deconv2d_block">deconv2d_block</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.fc_block">fc_block</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.MLP">MLP</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.one_hot">one_hot</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.binary_encode">binary_encode</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.nn_module.noise_block">noise_block</a></li>
+<li><a class="reference internal" href="#channelshuffle">ChannelShuffle</a></li>
+<li><a class="reference internal" href="#nearestupsample">NearestUpsample</a></li>
+<li><a class="reference internal" href="#bilinearupsample">BilinearUpsample</a></li>
+<li><a class="reference internal" href="#noiselinearlayer">NoiseLinearLayer</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-normalization">network.normalization</a><ul>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.normalization.build_normalization">build_normalization</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-res-block">network.res_block</a><ul>
+<li><a class="reference internal" href="#resblock">ResBlock</a></li>
+<li><a class="reference internal" href="#resfcblock">ResFCBlock</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-rnn">network.rnn</a><ul>
+<li><a class="reference internal" href="#lstmforwardwrapper">LSTMForwardWrapper</a></li>
+<li><a class="reference internal" href="#lstm">LSTM</a></li>
+<li><a class="reference internal" href="#pytorchlstm">PytorchLSTM</a></li>
+<li><a class="reference internal" href="#module-ding.torch_utils.network.rnn.get_lstm">get_lstm</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-scatter-connection">network.scatter_connection</a><ul>
+<li><a class="reference internal" href="#scatterconnection">ScatterConnection</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-soft-argmax">network.soft_argmax</a><ul>
+<li><a class="reference internal" href="#softargmax">SoftArgmax</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-transformer">network.transformer</a><ul>
+<li><a class="reference internal" href="#attention">Attention</a></li>
+<li><a class="reference internal" href="#transformerlayer">TransformerLayer</a></li>
+<li><a class="reference internal" href="#transformer">Transformer</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../../"
+    src="../../_static/documentation_options.js"></script>
+  <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+  <script src="../../_static/jquery.js"></script>
+  <script src="../../_static/underscore.js"></script>
+  <script src="../../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,961 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en">
+<!--<![endif]-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>DQN &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  <link rel="shortcut icon" href="../_static/images/favicon.ico" />
+  
+  
+
+  
+
+  
+  
+  
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+  <link rel="index" title="Index" href="../genindex.html" />
+  <link rel="search" title="Search" href="../search.html" />
+  <link rel="next" title="ICM" href="icm_zh.html" />
+  <link rel="prev" title="强化学习算法" href="index_zh.html" />
+    <link href="../_static/css/style.css" rel="stylesheet" type="text/css">
+
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+  <script>
+    MathJax = {
+        chtml: {
+            scale: 1,
+            minScale: 1,
+        },
+        svg: {
+            scale: 1,
+            minScale: 1,
+        }
+    }
+</script>
+
+  <!-- Preload the theme fonts -->
+
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-book.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/FreightSans/freight-sans-medium-italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="../_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+
+<!-- Preload the katex fonts -->
+
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Math-Italic.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Main-Bold.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size1-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size4-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size2-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Size3-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/fonts/KaTeX_Caligraphic-Regular.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+    integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/"
+        aria-label="OpenMMLab"></a>
+
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+          <li >
+            <div id="resourcesDropdownButton" data-toggle="resources-dropdown" class="resources-dropdown">
+              <a
+                class="resource-option with-down-arrow">
+                OpenDILab
+              </a>
+              <div class="resources-dropdown-menu">
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-engine" target="_blank">
+                  <span class="dropdown-title">DI-engine </span>
+                  <p>OpenDILab Decision AI Engine</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-star" target="_blank">
+                  <span class="dropdown-title">DI-star </span>
+                  <p>OpenDILab Decision AI in StarCraftII</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-drive" target="_blank">
+                  <span class="dropdown-title">DI-drive </span>
+                  <p>OpenDILab Auto-driving platform</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/GoBigger" target="_blank">
+                  <span class="dropdown-title">GoBigger </span>
+                  <p>OpenDILab Multi-Agent Environment</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-smartcross" target="_blank">
+                  <span class="dropdown-title">DI-smartcross </span>
+                  <p>Decision Intelligence Platform for Traffic Crossing Signal Control</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/DI-treetensor" target="_blank">
+                  <span class="dropdown-title">DI-treetensor </span>
+                  <p>Tree Nested PyTorch Tensor Lib</p>
+                </a>
+                <a class="doc-dropdown-option nav-dropdown-item"
+                  href="https://github.com/opendilab/awesome-model-based-RL" target="_blank">
+                  <span class="dropdown-title">awesome-model-based-RL </span>
+                  <p>A curated list of awesome model based RL resources (continually updated)</p>
+                </a>
+              </div>
+          </li>
+        </ul>
+      </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+  </div>
+</div>
+
+<body class="pytorch-body">
+
+   
+
+  
+
+  <div class="table-of-contents-link-wrapper">
+    <span>Table of Contents</span>
+    <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+  </div>
+
+  <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+    <div class="pytorch-side-scroll">
+      <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <div class="pytorch-left-menu-search">
+          
+
+          
+          
+          
+          
+
+          
+
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        
+        
+        
+        
+        
+        <p class="caption" role="heading"><span class="caption-text">用户指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../00_intro/index_zh.html">DI-engine 简介</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../01_quickstart/index_zh.html">快速开始</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../02_algo/index_zh.html">强化学习算法分类</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../03_system/index_zh.html">系统设计</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../04_best_practice/index_zh.html">最佳实践</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../05_api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../06_faq/index_zh.html">FAQ</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">强化学习教程</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../10_concepts/index_zh.html">强化学习基础概念介绍</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../11_dizoo/index_zh.html">从 DI-zoo 开始学习</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index_zh.html">强化学习算法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../13_envs/index_zh.html">强化学习环境示例</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">开发者规范</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../20_spec/index_zh.html">代码规范</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../21_code_style/index_zh.html">代码风格指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../22_test/index_zh.html">单元测试指南</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../23_visual/index_zh.html">图像与可视化</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../24_cooperation/index_zh.html">Github 合作模式</a></li>
+</ul>
+
+        
+        
+      </div>
+    </div>
+  </nav>
+
+  <div class="pytorch-container">
+    <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+      <div class="pytorch-breadcrumbs-wrapper">
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index_zh.html">
+            Docs
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index_zh.html">强化学习算法</a> &gt;</li>
+        
+      <li>DQN</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/12_policies/dqn_zh.rst.txt" rel="nofollow"><img src="../_static/images/view-page-source-icon.svg"></a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+      </div>
+
+      <div class="pytorch-shortcuts-wrapper" id="pytorch-shortcuts-wrapper">
+        Shortcuts
+      </div>
+    </div>
+
+    <section data-toggle="wy-nav-shift" id="pytorch-content-wrap" class="pytorch-content-wrap">
+      <div class="pytorch-content-left">
+        
+          <div class="rst-content">
+            
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+              <article itemprop="articleBody" id="pytorch-article" class="pytorch-article">
+                
+  <section id="dqn">
+<h1>DQN<a class="headerlink" href="#dqn" title="Permalink to this headline">¶</a></h1>
+<section id="id1">
+<h2>综述<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>传统的 Q-learning 维护一张 <code class="docutils literal notranslate"><span class="pre">M*N</span></code> 的Q值表（其中 M表示状态个数，N表示动作个数），通过贝尔曼方程（Bellman equation）来迭代更新 Q-value。这种算法在状态/动作空间变得很大的时候就会出现维度灾难的问题。而DQN与传统强化学习方法不同，它将 Q-learning 与深度神经网络相结合，使用深度神经网络来估计 Q 值，并通过计算时序差分（TD, Temporal-Difference） 损失，利用梯度下降算法进行更新，从而在高维空间的问题决策中（例如Atari游戏）达到了媲美甚至超过人类玩家的水平。</p>
+</section>
+<section id="id2">
+<h2>快速了解<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li><p>DQN 是一个 <strong>无模型（model-free)</strong> 且 <strong>基于值函数（value-based）</strong> 的强化学习算法。</p></li>
+<li><p>DQN 只支持 <strong>离散（discrete）</strong> 动作空间。</p></li>
+<li><p>DQN 是一个 <strong>异策略（off-policy）</strong> 算法.</p></li>
+<li><p>通常，DQN 使用 <strong>epsilon贪心（eps-greedy）</strong> 或 <strong>多项分布采样（multinomial sample）</strong> 来做探索（exploration）。</p></li>
+<li><p>DQN + RNN = DRQN</p></li>
+<li><p>DI-engine 中实现的 DQN 支持 <strong>多维度离散（multi-discrete）</strong> 动作空间，即在一个step下执行多个离散动作。</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>重要公示/重要图示<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>DQN 中的 TD-loss 是：</p>
+<div class="math notranslate nohighlight">
+\[\mathrm{L}(w)=\mathbb{E}\left[(\underbrace{r+\gamma \max _{a^{\prime}} Q_{\text {target }}\left(s^{\prime}, a^{\prime}, \theta^{-}\right)}-Q(s, a, \theta))^{2}\right]\]</div>
+<p>其中目标网络 <span class="math notranslate nohighlight">\(Q_{\text {target}}\)</span> ，带有参数 <span class="math notranslate nohighlight">\(\theta^{-}\)</span> ，与在线网络相同，只是它的参数会每 <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> 个环境步数从在线网络复制更新一次（超参数 <code class="docutils literal notranslate"><span class="pre">target_update_freq</span></code> 可以在配置文件中修改。请参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/wrapper/model_wrappers.py">TargetNetworkWrapper</a> 了解更多详情）。</p>
+</section>
+<section id="id4">
+<h2>伪代码<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<img alt="../_images/DQN.png" class="align-center" src="../_images/DQN.png" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>与发表在 Nature 的版本相比，现代的 DQN 在算法和实现方面都得到了显著改进。譬如，在算法部分，<strong>TD-loss, PER, n-step, target network</strong> and <strong>dueling head</strong> 等技巧被广泛使用，感兴趣的读者可参考论文 <a class="reference external" href="https://arxiv.org/abs/1710.02298">Rainbow: Combining Improvements in Deep Reinforcement Learning</a>。</p>
+</div>
+</section>
+<section id="id5">
+<h2>扩展<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>DQN 可以和以下方法相结合：</p>
+<blockquote>
+<div><ul>
+<li><p>优先级经验回放 （PER，<a class="reference external" href="https://arxiv.org/abs/1511.05952">Prioritized Experience Replay</a> ）</p>
+<p>Prioritized Experience Replay 用一种特殊定义的“优先级”来代替经验回放池中的均匀采样。该优先级可由各种指标定义，如绝对TD误差、观察的新颖性等。通过优先采样，DQN的收敛速度和性能可以得到很大的提高。</p>
+<p>优先级经验回放（PER）有两种实现方式，其中一种较常用方式的伪代码如下图所示：</p>
+<img alt="../_images/PERDQN.png" class="align-center" src="../_images/PERDQN.png" />
+<p>在DI-engine中，PER可以通过修改配置文件中的 <code class="docutils literal notranslate"><span class="pre">priority</span></code> 和 <code class="docutils literal notranslate"><span class="pre">priority_IS_weight</span></code> 两个字段来控制，具体的代码实现可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/dev-treetensor/ding/worker/replay_buffer/advanced_buffer.py">PER code</a> 。具体的示例讲解可以参考
+<a class="reference external" href="../best_practice/priority.html">PER example</a></p>
+</li>
+<li><p>多步（Multi-step） TD-loss</p>
+<p>在 Single-step TD-loss 中，Q-learning 通过贝尔曼方程更新 <span class="math notranslate nohighlight">\(Q(s,a)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[r(s,a)+\gamma \max_{a^{'}}Q(s',a')\]</div>
+<p>在 Multi-step TD-loss 中，贝尔曼方程是:</p>
+<div class="math notranslate nohighlight">
+\[\sum_{t=0}^{n-1}\gamma^t r(s_t,a_t) + \gamma^n \max_{a^{'}}Q(s_n,a')\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>在DQN中使用 Multi-step TD-loss 有一个潜在的问题：采用 epsilon 贪心收集数据时， Q值的估计是有偏的。 因为t &gt;= 1时，<span class="math notranslate nohighlight">\(r(s_t,a_t)\)</span> 是在 epsilon-greedy 策略下采样的，而不是通过正在学习的策略本身来采样。但实践中发现 Multi-step TD-loss 与 epsilon-greedy 结合使用，一般都可以明显提升智能体的最终性能。</p>
+</div>
+<p>在DI-engine中，Multi-step TD-loss 可以通过修改配置文件中的 <code class="docutils literal notranslate"><span class="pre">nstep</span></code> 字段来控制，详细的损失函数计算代码可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/dev-treetensor/ding/rl_utils/td.py">nstep code</a> 中的 <code class="docutils literal notranslate"><span class="pre">q_nstep_td_error</span></code></p>
+</li>
+<li><p>目标网络（target network/Double DQN）</p>
+<p>Double DQN, 在 <a class="reference external" href="https://arxiv.org/abs/1509.06461">Deep Reinforcement Learning with Double Q-learning</a> 中被提出，是 DQN 的一种常见变种。</p>
+<p>标准 Q 学习或 DQN 中在计算目标网络时的 max 算子使用同一个的 Q 值来选择和评估动作。这使得它选择的动作的价值更有可能被高估，从而导致过度乐观的价值估计。为了防止这种情况，我们可以将选择与评估分离。更具体地说，以下两个公式展示了二者的差异：</p>
+<p>（1）标记的Q-learning和（2）标记的Double DQN中的目标如下图所示：</p>
+<a class="reference internal image-reference" href="../_images/DQN_and_DDQN.png"><img alt="../_images/DQN_and_DDQN.png" class="align-center" src="../_images/DQN_and_DDQN.png" style="width: 336.8px; height: 44.0px;" /></a>
+<p>区别于传统DQN，Double DQN中的目标网络不会选择当前网络中离散动作空间中的最大Q值，而是首先查找  <strong>在线网络</strong>  中Q值最大的动作（对应上面公式中的  <span class="math notranslate nohighlight">\(argmax_a Q(S_{t+1},a;\theta_t)\)</span>），然后根据该动作从 <strong>目标网络</strong>  计算得到Q值
+(对应上面公示中的  <span class="math notranslate nohighlight">\(Q(S_{t+1},argmax_a Q(S_{t+1},a;\theta_t);\theta'_t)\)</span>）。</p>
+<p>综上所述，Double Q-learning 可以抑制 Q 值的高估，从而减少相关的负面影响。</p>
+<p>DI-engine 默认实现并使用 Double DQN ，没有关闭选项。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>过高估计可能是由函数近似误差（近似Q值的神经网络）、环境噪声、数值不稳定等原因造成的。</p>
+</div>
+</li>
+<li><p>Dueling head (<a class="reference external" href="https://arxiv.org/pdf/1511.06581">Dueling Network Architectures for Deep Reinforcement Learning</a>)</p>
+<p>Dueling head 结构通过对每个动作的状态-价值和优势的分解，并由上述两个部分构建最终的Q值，从而更好地评估一些与动作选择无关的状态的价值。下图展示了具体的分解结构（图片来自论文 Dueling Network Architectures for Deep Reinforcement Learning）：</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="../_images/DuelingDQN.png"><img alt="../_images/DuelingDQN.png" class="align-center" src="../_images/DuelingDQN.png" style="height: 300px;" /></a>
+</div></blockquote>
+<p>在DI-engine中，Dueling head 可以通过修改配置文件中模型部分的 <code class="docutils literal notranslate"><span class="pre">dueling</span></code> 字段来控制，具体网络结构的实现可以参考 <a class="reference external" href="https://github.com/opendilab/DI-engine/blob/main/ding/model/common/head.py">Dueling Head</a> 中的 <code class="docutils literal notranslate"><span class="pre">DuelingHead</span></code></p>
+</li>
+<li><p>RNN (DRQN, R2D2)</p>
+<p>DQN与RNN结合的方法，可以参考本系列文档中的 <a class="reference external" href="./r2d2.html">R2D2部分</a></p>
+</li>
+</ul>
+</div></blockquote>
+</section>
+<section id="id6">
+<h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>DQNPolicy 的默认 config 如下所示：</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.policy.dqn.</span></span><span class="sig-name descname"><span class="pre">DQNPolicy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">type</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_field</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/policy/dqn.html#DQNPolicy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Policy class of DQN algorithm, extended by Double DQN/Dueling DQN/PER/multi-step TD.</p>
+</dd>
+<dt>Config:</dt><dd><table class="docutils align-default">
+<colgroup>
+<col style="width: 2%" />
+<col style="width: 19%" />
+<col style="width: 7%" />
+<col style="width: 13%" />
+<col style="width: 37%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Other(Shape)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>str</p></td>
+<td><p>dqn</p></td>
+<td><div class="line-block">
+<div class="line">RL policy register name, refer to</div>
+<div class="line">registry <code class="docutils literal notranslate"><span class="pre">POLICY_REGISTRY</span></code></div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">This arg is optional,</div>
+<div class="line">a placeholder</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cuda</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether to use cuda for network</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">This arg can be diff-</div>
+<div class="line">erent from modes</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">on_policy</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether the RL algorithm is on-policy</div>
+<div class="line">or off-policy</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">priority</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use priority(PER)</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Priority sample,</div>
+<div class="line">update priority</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">priority_IS</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_weight</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether use Importance Sampling Weight</div>
+<div class="line">to correct biased update. If True,</div>
+<div class="line">priority must be True.</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">discount_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">factor</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.97,
+[0.95, 0.999]</p></td>
+<td><div class="line-block">
+<div class="line">Reward’s future discount factor, aka.</div>
+<div class="line">gamma</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">May be 1 when sparse</div>
+<div class="line">reward env</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nstep</span></code></p></td>
+<td><p>int</p></td>
+<td><p>1,
+[3, 5]</p></td>
+<td><div class="line-block">
+<div class="line">N-step reward discount sum for target</div>
+<div class="line">q_value estimation</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.update</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">per_collect</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>3</p></td>
+<td><div class="line-block">
+<div class="line">How many updates(iterations) to train</div>
+<div class="line">after collector’s one collection. Only</div>
+<div class="line">valid in serial training</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">This args can be vary</div>
+<div class="line">from envs. Bigger val</div>
+<div class="line">means more off-policy</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.multi</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_gpu</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">whether to use multi gpu during</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.batch_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">size</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>64</p></td>
+<td><div class="line-block">
+<div class="line">The number of samples of an iteration</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>11</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.learning</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_rate</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.001</p></td>
+<td><div class="line-block">
+<div class="line">Gradient step length of an iteration.</div>
+</div>
+</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>12</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.target_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">update_freq</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>100</p></td>
+<td><div class="line-block">
+<div class="line">Frequence of target network update.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Hard(assign) update</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>13</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">learn.ignore_</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">done</span></code></div>
+</div>
+</td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><div class="line-block">
+<div class="line">Whether ignore done for target value</div>
+<div class="line">calculation.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Enable it for some</div>
+<div class="line">fake termination env</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>14</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">collect.n_sample</span></code></p></td>
+<td><p>int</p></td>
+<td><p>[8, 128]</p></td>
+<td><div class="line-block">
+<div class="line">The number of training samples of a</div>
+<div class="line">call of collector.</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">It varies from</div>
+<div class="line">different envs</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>15</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">collect.unroll</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">_len</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><div class="line-block">
+<div class="line">unroll length of an iteration</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">In RNN, unroll_len&gt;1</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>16</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.type</span></code></div>
+</div>
+</td>
+<td><p>str</p></td>
+<td><p>exp</p></td>
+<td><div class="line-block">
+<div class="line">exploration rate decay type</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">Support [‘exp’,</div>
+<div class="line">‘linear’].</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>17</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">start</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.95</p></td>
+<td><div class="line-block">
+<div class="line">start value of exploration rate</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">[0,1]</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>18</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">end</span></code></div>
+</div>
+</td>
+<td><p>float</p></td>
+<td><p>0.1</p></td>
+<td><div class="line-block">
+<div class="line">end value of exploration rate</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">[0,1]</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>19</p></td>
+<td><div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">other.eps.</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">decay</span></code></div>
+</div>
+</td>
+<td><p>int</p></td>
+<td><p>10000</p></td>
+<td><div class="line-block">
+<div class="line">decay length of exploration</div>
+</div>
+</td>
+<td><div class="line-block">
+<div class="line">greater than 0. set</div>
+<div class="line">decay=10000 means</div>
+<div class="line">the exploration rate</div>
+<div class="line">decay from start</div>
+<div class="line">value to end value</div>
+<div class="line">during decay length.</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<p>其中使用的神经网络接口如下所示：</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.model.template.q_learning.</span></span><span class="sig-name descname"><span class="pre">DQN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obs_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">ding.utils.type_helper.SequenceType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_hidden_size_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">ding.utils.type_helper.SequenceType</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[128,</span> <span class="pre">128,</span> <span class="pre">64]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dueling</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_hidden_size</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_layer_num</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">torch.nn.modules.module.Module</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">ReLU()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/model/template/q_learning.html#DQN"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/ding/model/template/q_learning.html#DQN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>DQN forward computation graph, input observation tensor to predict q_value.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Observation inputs</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>outputs (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): DQN forward outputs, such as q_value.</p></li>
+</ul>
+</dd>
+<dt>ReturnsKeys:</dt><dd><ul class="simple">
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Discrete Q-value output of each action dimension.</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>x (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span>, where B is batch size and N is <code class="docutils literal notranslate"><span class="pre">obs_shape</span></code></p></li>
+<li><p>logit (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, M)\)</span>, where B is batch size and M is <code class="docutils literal notranslate"><span class="pre">action_shape</span></code></p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">DQN</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># arguments: &#39;obs_shape&#39; and &#39;action_shape&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;logit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="benchmark">
+<h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 12%" />
+<col style="width: 38%" />
+<col style="width: 19%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>environment</p></th>
+<th class="head"><p>best mean reward</p></th>
+<th class="head"><p>evaluation results</p></th>
+<th class="head"><p>config link</p></th>
+<th class="head"><p>comparison</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pong</p>
+<p>(PongNoFrameskip-v4)</p>
+</td>
+<td><p>20</p></td>
+<td><img alt="../_images/pong_dqn.png" src="../_images/pong_dqn.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/pong/pong_dqn_config.py">config_link_p</a></p></td>
+<td><p>Tianshou(20)</p>
+<p>Sb3(20)</p>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Qbert</p>
+<p>(QbertNoFrameskip-v4)</p>
+</td>
+<td><p>17966</p></td>
+<td><img alt="../_images/qbert_dqn.png" src="../_images/qbert_dqn.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/qbert/qbert_dqn_config.py">config_link_q</a></p></td>
+<td><p>Tianshou(7307)</p>
+<p>Rllib(7968)</p>
+<p>Sb3(9496)</p>
+</td>
+</tr>
+<tr class="row-even"><td><p>SpaceInvaders</p>
+<p>(SpaceInvadersNoFrame
+skip-v4)</p>
+</td>
+<td><p>2403</p></td>
+<td><img alt="../_images/spaceinvaders_dqn.png" src="../_images/spaceinvaders_dqn.png" />
+</td>
+<td><p><a class="reference external" href="https://github.com/opendilab/DI-engine/tree/main/dizoo/atari/config/serial/spaceinvaders/spaceinvaders_dqn_config.py">config_link_s</a></p></td>
+<td><p>Tianshou(812)</p>
+<p>Rllib(1001)</p>
+<p>Sb3(622)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>注：</p>
+<ol class="arabic simple">
+<li><p>以上结果是在5个不同的随机种子（即0，1，2，3，4）运行相同的配置得到</p></li>
+<li><p>对于DQN这样的离散动作空间算法，一般选择Atari环境集进行测试（其中包括子环境Pong等），而Atari环境，一般是通过训练10M个env_step下所得的最高平均奖励来进行评价，详细的环境信息可以查看 <a class="reference external" href="../env_tutorial/atari_zh.html">Atari环境的介绍文档</a></p></li>
+</ol>
+</section>
+<section id="id7">
+<h2>参考文献<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Mnih, Volodymyr, et al. “Human-level control through deep reinforcement learning.” nature 518.7540 (2015): 529-533.</p></li>
+<li><p>Wang, Z., Schaul, T., Hessel, M., Hasselt, H., Lanctot, M., &amp; Freitas, N. (2016, June). Dueling network architectures for deep reinforcement learning. In International conference on machine learning (pp. 1995-2003). PMLR.</p></li>
+<li><p>Van Hasselt, H., Guez, A., &amp; Silver, D. (2016, March). Deep reinforcement learning with double q-learning. In Proceedings of the AAAI conference on artificial intelligence (Vol. 30, No. 1).</p></li>
+<li><p>Schaul, T., Quan, J., Antonoglou, I., &amp; Silver, D. (2015). Prioritized experience replay. arXiv preprint arXiv:1511.05952.</p></li>
+</ul>
+</section>
+</section>
+
+
+              </article>
+              
+            </div>
+            <footer>
+  
+  <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+    
+    <a href="icm_zh.html" class="btn btn-neutral float-right" title="ICM" accesskey="n"
+      rel="next">Next <img src="../_static/images/chevron-right-blue.svg"
+        class="next-page"></a>
+    
+    
+    <a href="index_zh.html" class="btn btn-neutral" title="强化学习算法" accesskey="p"
+      rel="prev"><img src="../_static/images/chevron-right-blue.svg" class="previous-page"> Previous</a>
+    
+  </div>
+  
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>
+      &copy; Copyright 2021, OpenDILab Contributors.
+
+    </p>
+  </div>
+  
+  <div>
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
+      href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the
+      Docs</a>.
+  </div>
+   
+
+</footer>
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">DQN</a><ul>
+<li><a class="reference internal" href="#id1">综述</a></li>
+<li><a class="reference internal" href="#id2">快速了解</a></li>
+<li><a class="reference internal" href="#id3">重要公示/重要图示</a></li>
+<li><a class="reference internal" href="#id4">伪代码</a></li>
+<li><a class="reference internal" href="#id5">扩展</a></li>
+<li><a class="reference internal" href="#id6">实现</a></li>
+<li><a class="reference internal" href="#benchmark">实验 Benchmark</a></li>
+<li><a class="reference internal" href="#id7">参考文献</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+    </section>
+  </div>
+
+  
+
+
+  
+
+  
+  <script type="text/javascript" id="documentation_options" data-url_root="../"
+    src="../_static/documentation_options.js"></script>
+  <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+  <script src="../_static/jquery.js"></script>
+  <script src="../_static/underscore.js"></script>
+  <script src="../_static/doctools.js"></script>
+  <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+
+  
+
+  <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+  <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+    jQuery(function () {
+      SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+  <!-- Begin Footer -->
+
+  <div class="container-fluid docs-tutorials-resources" id="docs-tutorials-resources">
+  </div>
+
+  <!-- End Footer -->
+
+  <!-- Begin Mobile Menu -->
+
+  <div class="mobile-main-menu">
+    <div class="container-fluid">
+      <div class="container">
+        <div class="mobile-main-menu-header-container">
+          <a class="header-logo" href="https://di-engine-docs.readthedocs.io/en/latest/" aria-label="OpenMMLab"></a>
+          <a class="main-menu-close-button" href="#" data-behavior="close-mobile-menu"></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-main-menu-links-container">
+      <div class="main-menu">
+        <ul>
+          <li>
+            <a href="https://github.com/opendilab/DI-engine" target="_blank">GitHub</a>
+          </li>
+      </div>
+    </div>
+  </div>
+
+  <!-- End Mobile Menu -->
+
+  <script type="text/javascript" src="../_static/js/vendor/anchor.min.js"></script>
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      mobileMenu.bind();
+      mobileTOC.bind();
+      pytorchAnchors.bind();
+      sideMenus.bind();
+      scrollToAnchor.bind();
+      highlightNavigation.bind();
+      mainMenuDropdown.bind();
+      filterTags.bind();
+
+      // Add class to links that have code blocks, since we cannot create links in code blocks
+      $("article.pytorch-article a span.pre").each(function (e) {
+        $(this).closest("a").addClass("has-code");
+      });
+    })
+  </script>
+</body>
+
+</html>
