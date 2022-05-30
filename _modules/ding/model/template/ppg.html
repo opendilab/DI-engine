@@ -178,23 +178,34 @@
     <span class="n">mode</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;compute_actor&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_critic&#39;</span><span class="p">,</span> <span class="s1">&#39;compute_actor_critic&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
-            <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
-            <span class="n">action_space</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
-            <span class="n">share_encoder</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
-            <span class="n">actor_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
-            <span class="n">actor_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="n">critic_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
-            <span class="n">critic_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-            <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">action_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span>
+        <span class="n">action_space</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;discrete&#39;</span><span class="p">,</span>
+        <span class="n">share_encoder</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">encoder_hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span> <span class="o">=</span> <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+        <span class="n">actor_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">actor_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="n">critic_head_hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
+        <span class="n">critic_head_layer_num</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">activation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+        <span class="n">norm_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">impala_cnn_encoder</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PPG</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span> <span class="o">=</span> <span class="n">VAC</span><span class="p">(</span>
-            <span class="n">obs_shape</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">,</span> <span class="n">action_space</span><span class="p">,</span> <span class="n">share_encoder</span><span class="p">,</span> <span class="n">encoder_hidden_size_list</span><span class="p">,</span> <span class="n">actor_head_hidden_size</span><span class="p">,</span>
-            <span class="n">actor_head_layer_num</span><span class="p">,</span> <span class="n">critic_head_hidden_size</span><span class="p">,</span> <span class="n">critic_head_layer_num</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">norm_type</span>
+            <span class="n">obs_shape</span><span class="p">,</span>
+            <span class="n">action_shape</span><span class="p">,</span>
+            <span class="n">action_space</span><span class="p">,</span>
+            <span class="n">share_encoder</span><span class="p">,</span>
+            <span class="n">encoder_hidden_size_list</span><span class="p">,</span>
+            <span class="n">actor_head_hidden_size</span><span class="p">,</span>
+            <span class="n">actor_head_layer_num</span><span class="p">,</span>
+            <span class="n">critic_head_hidden_size</span><span class="p">,</span>
+            <span class="n">critic_head_layer_num</span><span class="p">,</span>
+            <span class="n">activation</span><span class="p">,</span>
+            <span class="n">norm_type</span><span class="p">,</span>
+            <span class="n">impala_cnn_encoder</span><span class="o">=</span><span class="n">impala_cnn_encoder</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aux_critic</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">actor_critic</span><span class="o">.</span><span class="n">critic</span><span class="p">)</span>
 
