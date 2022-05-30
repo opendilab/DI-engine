@@ -1,9 +1,9 @@
 from typing import Union
-from ding.utils import SequenceType
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ding.model import ConvEncoder, FCEncoder
+from ding.utils import SequenceType
 
 
 class ContrastiveLoss(nn.Module):
@@ -44,6 +44,8 @@ class ContrastiveLoss(nn.Module):
         self._temperature = temperature
 
     def _get_encoder(self, obs: Union[int, SequenceType], heads: int):
+        from ding.model import ConvEncoder, FCEncoder
+
         if isinstance(obs, int):
             obs = [obs]
         assert len(obs) in [1, 3]

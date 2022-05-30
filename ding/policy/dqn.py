@@ -3,8 +3,7 @@ from collections import namedtuple
 import copy
 import torch
 
-from ding.torch_utils import Adam, to_device
-from ding.torch_utils.loss.contrastive_loss import ContrastiveLoss
+from ding.torch_utils import Adam, to_device, ContrastiveLoss
 from ding.rl_utils import q_nstep_td_data, q_nstep_td_error, get_nstep_return_data, get_train_sample
 from ding.model import model_wrap
 from ding.utils import POLICY_REGISTRY
