@@ -97,8 +97,3 @@ class ContrastiveLoss(nn.Module):
         # The positive score is the first element of the log softmax.
         loss = -pred_log[:, :, 0, :].mean()
         return loss
-
-    def __call__(self, x: torch.Tensor, y: torch.Tensor):
-        with torch.no_grad():
-            out = self.forward(x, y)
-        return out

@@ -577,6 +577,8 @@ class DQNSTDIMPolicy(DQNPolicy):
         aux_loss_learn = self._aux_model.forward(x_no_grad, y_no_grad)
         self._aux_optimizer.zero_grad()
         aux_loss_learn.backward()
+        if self._cfg.learn.multi_gpu:
+            self.sync_gradients(self._aux_model)
         self._aux_optimizer.step()
 
         data_n = q_nstep_td_data(

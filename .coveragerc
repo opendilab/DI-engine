@@ -21,3 +21,4 @@ omit =
   ding/scripts/tests/test_parallel_socket.py
   ding/data/buffer/tests/test_benchmark.py
   ding/example/*
+  ding/torch_utils/loss/tests/*

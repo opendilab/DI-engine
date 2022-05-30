@@ -7,18 +7,21 @@ from ding.torch_utils.loss.contrastive_loss import ContrastiveLoss
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize('noise', [0.1, 1.0])
-@pytest.mark.parametrize('dims', [[16], [3, 16, 16]])
+@pytest.mark.parametrize('dims', [16, [1, 16, 16], [1, 40, 40]])
 def test_infonce_loss(noise, dims):
     print_loss = False
     batch_size = 128
     N_batch = 3
-    x_dim = [batch_size * N_batch] + dims
+    if isinstance(dims, int):
+        x_dim = [batch_size * N_batch, dims]
+    else:
+        x_dim = [batch_size * N_batch] + dims
 
     encode_shape = 16
     x = np.random.normal(0, 1, size=x_dim)
     y = x ** 2 + noise * np.random.normal(0, 1, size=x_dim)
 
-    estimator = ContrastiveLoss(x.shape[1:], y.shape[1:], encode_shape=encode_shape)
+    estimator = ContrastiveLoss(dims, dims, encode_shape=encode_shape)
     dataset = TensorDataset(torch.Tensor(x), torch.Tensor(y))
     dataloader = DataLoader(dataset, batch_size=batch_size)
     optimizer = torch.optim.Adam(estimator.parameters(), lr=3e-4)
