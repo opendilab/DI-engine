@@ -8,39 +8,22 @@ from ding.torch_utils import Swish
 
 class StandardScaler(nn.Module):
 
-    def __init__(self, input_size):
+    def __init__(self, input_size: int):
         super(StandardScaler, self).__init__()
         self.register_buffer('std', torch.ones(1, input_size))
         self.register_buffer('mu', torch.zeros(1, input_size))
 
-    def fit(self, data):
+    def fit(self, data: torch.Tensor):
         std, mu = torch.std_mean(data, dim=0, keepdim=True)
         std[std < 1e-12] = 1
         self.std.data.mul_(0.0).add_(std)
         self.mu.data.mul_(0.0).add_(mu)
 
-    def transform(self, data):
+    def transform(self, data: torch.Tensor):
         return (data - self.mu) / self.std
 
-    def inverse_transform(self, data):
+    def inverse_transform(self, data: torch.Tensor):
         return self.std * data + self.mu
-
-
-def init_weights(m):
-
-    def truncated_normal_init(t, mean=0.0, std=0.01):
-        torch.nn.init.normal_(t, mean=mean, std=std)
-        while True:
-            cond = torch.logical_or(t < mean - 2 * std, t > mean + 2 * std)
-            if not torch.sum(cond):
-                break
-            t = torch.where(cond, torch.nn.init.normal_(torch.ones(t.shape), mean=mean, std=std), t)
-        return t
-
-    if isinstance(m, nn.Linear) or isinstance(m, EnsembleFC):
-        input_dim = m.in_features
-        truncated_normal_init(m.weight, std=1 / (2 * np.sqrt(input_dim)))
-        m.bias.data.fill_(0.0)
 
 
 class EnsembleFC(nn.Module):
@@ -55,16 +38,17 @@ class EnsembleFC(nn.Module):
         self.in_features = in_features
         self.out_features = out_features
         self.ensemble_size = ensemble_size
-        self.weight = nn.Parameter(torch.Tensor(ensemble_size, in_features, out_features))
+        self.weight = nn.Parameter(torch.zeros(ensemble_size, in_features, out_features))
         self.weight_decay = weight_decay
-        self.bias = nn.Parameter(torch.Tensor(ensemble_size, 1, out_features))
+        self.bias = nn.Parameter(torch.zeros(ensemble_size, 1, out_features))
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         assert input.shape[0] == self.ensemble_size and len(input.shape) == 3
         return torch.bmm(input, self.weight) + self.bias  # w times x + b
 
     def extra_repr(self) -> str:
-        return 'in_features={}, out_features={}'.format(self.in_features, self.out_features)
+        return 'in_features={}, out_features={}, ensemble_size={}, weight_decay={}'.format(
+            self.in_features, self.out_features, self.ensemble_size, self.weight_decay)
 
 
 class EnsembleModel(nn.Module):
@@ -94,18 +78,34 @@ class EnsembleModel(nn.Module):
         self.min_logvar = nn.Parameter(torch.ones(1, self.output_dim).float() * -10, requires_grad=False)
         self.swish = Swish()
 
+        def init_weights(m: nn.Module):
+
+            def truncated_normal_init(t, mean: float=0.0, std: float=0.01):
+                torch.nn.init.normal_(t, mean=mean, std=std)
+                while True:
+                    cond = torch.logical_or(t < mean - 2 * std, t > mean + 2 * std)
+                    if not torch.sum(cond):
+                        break
+                    t = torch.where(cond, torch.nn.init.normal_(torch.ones(t.shape), mean=mean, std=std), t)
+                return t
+
+            if isinstance(m, nn.Linear) or isinstance(m, EnsembleFC):
+                input_dim = m.in_features
+                truncated_normal_init(m.weight, std=1 / (2 * np.sqrt(input_dim)))
+                m.bias.data.fill_(0.0)
+
         self.apply(init_weights)
 
         self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
-    def forward(self, x, ret_log_var=False):
-        nn1_output = self.swish(self.nn1(x))
-        nn2_output = self.swish(self.nn2(nn1_output))
-        nn3_output = self.swish(self.nn3(nn2_output))
-        nn4_output = self.swish(self.nn4(nn3_output))
-        nn5_output = self.nn5(nn4_output)
+    def forward(self, x: torch.Tensor, ret_log_var: bool=False):
+        x = self.swish(self.nn1(x))
+        x = self.swish(self.nn2(x))
+        x = self.swish(self.nn3(x))
+        x = self.swish(self.nn4(x))
+        x = self.nn5(x)
 
-        mean, logvar = nn5_output.chunk(2, dim=2)
+        mean, logvar = x.chunk(2, dim=2)
         logvar = self.max_logvar - F.softplus(self.max_logvar - logvar)
         logvar = self.min_logvar + F.softplus(logvar - self.min_logvar)
 
@@ -116,12 +116,12 @@ class EnsembleModel(nn.Module):
 
     def get_decay_loss(self):
         decay_loss = 0.
-        for m in self.children():
+        for m in self.modules():
             if isinstance(m, EnsembleFC):
                 decay_loss += m.weight_decay * torch.sum(torch.square(m.weight)) / 2.
         return decay_loss
 
-    def loss(self, mean, logvar, labels):
+    def loss(self, mean:torch.Tensor, logvar:torch.Tensor, labels:torch.Tensor):
         """
         mean, logvar: Ensemble_size x N x dim
         labels: Ensemble_size x N x dim
@@ -131,11 +131,13 @@ class EnsembleModel(nn.Module):
         # Average over batch and dim, sum over ensembles.
         mse_loss_inv = (torch.pow(mean - labels, 2) * inv_var).mean(dim=(1, 2))
         var_loss = logvar.mean(dim=(1, 2))
-        mse_loss = torch.pow(mean - labels, 2).mean(dim=(1, 2))
+        with torch.no_grad():
+            # Used only for logging.
+            mse_loss = torch.pow(mean - labels, 2).mean(dim=(1, 2))
         total_loss = mse_loss_inv.sum() + var_loss.sum()
         return total_loss, mse_loss
 
-    def train(self, loss):
+    def train(self, loss:torch.Tensor):
         self.optimizer.zero_grad()
 
         loss += 0.01 * torch.sum(self.max_logvar) - 0.01 * torch.sum(self.min_logvar)

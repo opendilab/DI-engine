@@ -8,7 +8,7 @@ from torch import nn
 from scipy.spatial import KDTree
 from ding.utils import WORLD_MODEL_REGISTRY
 from ding.utils.data import default_collate
-from ding.world_model.base_wm import HybridWorldModel
+from ding.world_model.base_world_model import HybridWorldModel
 from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
 
 
@@ -23,25 +23,26 @@ def get_neighbor_index(data, k):
     data = data.cpu().numpy()
     tree = KDTree(data)
     global tree_query
-
     # tree_query = lambda datapoint: tree.query(datapoint, k=k+1)[1][1:]
     def tree_query(datapoint):
-        return tree.query(datapoint, k=k + 1)[1][1:]
-
+        return tree.query(datapoint, k=k+1)[1][1:]
     # TODO: multiprocessing
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-    nn_index = torch.from_numpy(np.array(list(pool.map(tree_query, data)), dtype=np.int32)).to(torch.long)
+    nn_index = torch.from_numpy(
+        np.array(list(pool.map(tree_query, data)), dtype=np.int32)
+    ).to(torch.long)
     pool.close()
     return nn_index
 
 
-def get_batch_jacobian(net, x, noutputs):  # x: b, in dim, noutpouts: out dim
-    x = x.unsqueeze(1)  # b, 1 ,in_dim
+def get_batch_jacobian(net, x, noutputs): # x: b, in dim, noutpouts: out dim
+    x = x.unsqueeze(1) # b, 1 ,in_dim
     n = x.size()[0]
-    x = x.repeat(1, noutputs, 1)  # b, out_dim, in_dim
+    x = x.repeat(1, noutputs, 1) # b, out_dim, in_dim
     x.requires_grad_(True)
     y = net(x)
-    upstream_gradient = torch.eye(noutputs).reshape(1, noutputs, noutputs).repeat(n, 1, 1).to(x.device)
+    upstream_gradient = torch.eye(noutputs
+        ).reshape(1, noutputs, noutputs).repeat(n, 1, 1).to(x.device)
     re = torch.autograd.grad(y, x, upstream_gradient, create_graph=True)[0]
 
     return re
@@ -71,7 +72,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             network_size=7,
             elite_size=5,
             state_size=None,  # has to be specified
-            action_size=None,  # has to be specified
+            action_size=None, # has to be specified
             reward_size=1,
             hidden_size=200,
             use_decay=False,
@@ -112,30 +113,23 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         self.train_freq_gradient_model = cfg.train_freq_gradient_model
 
         self.rollout_model = EnsembleModel(
-            self.state_size,
-            self.action_size,
-            self.reward_size,
-            self.network_size,
-            self.hidden_size,
-            use_decay=self.use_decay
+            self.state_size, self.action_size, self.reward_size, 
+            self.network_size, self.hidden_size, use_decay=self.use_decay
         )
         self.scaler = StandardScaler(self.state_size + self.action_size)
-
+        
         self.ensemble_mse_losses = []
         self.model_variances = []
         self.elite_model_idxes = []
 
+
         if self.gradient_model:
             self.gradient_model = EnsembleGradientModel(
-                self.state_size,
-                self.action_size,
-                self.reward_size,
-                self.network_size,
-                self.hidden_size,
-                use_decay=self.use_decay
+                self.state_size, self.action_size, self.reward_size, 
+                self.network_size, self.hidden_size, use_decay=self.use_decay
             )
         self.elite_model_idxes_gradient_model = []
-
+                
         self.last_train_step_gradient_model = 0
 
         if self._cuda:
@@ -149,7 +143,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             @staticmethod
             def forward(ctx, x):
                 ctx.save_for_backward(x)
-                mean, var = self.rollout_model(x, ret_log_var=False)
+                mean, var = self.rollout_model(x, ret_log_var=False) 
                 return torch.concat([mean, var], dim=-1)
 
             @staticmethod
@@ -161,7 +155,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
                     mean, var = self.gradient_model(x, ret_log_var=False)
                     y = torch.concat([mean, var], dim=-1)
                     return torch.autograd.grad(y, x, grad_outputs=grad_out, create_graph=True)
-
+        
         if len(act.shape) == 1:
             act = act.unsqueeze(1)
         if self._cuda:
@@ -238,6 +232,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
 
         self.last_eval_step = envstep
 
+
     def train(self, env_buffer, envstep, train_iter):
 
         def train_sample(data) -> tuple:
@@ -260,6 +255,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
                 labels = labels.cuda()
             return inputs, labels
 
+
         logvar = dict()
 
         data = env_buffer.sample(env_buffer.count(), train_iter)
@@ -275,12 +271,14 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
                 logvar.update(self._train_gradient_model(inputs, labels, inputs_reg, labels_reg))
                 self.last_train_step_gradient_model = envstep
 
+
         self.last_train_step = envstep
 
         # log
         if self.tb_logger is not None:
             for k, v in logvar.items():
                 self.tb_logger.add_scalar('env_model_step/' + k, v, envstep)
+
 
     def _train_rollout_model(self, inputs, labels):
         #split
@@ -344,15 +342,15 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             'rollout_model/bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
         }
 
+    
     def _get_jacobian(self, model, train_input_reg):
         """
             train_input_reg: [network_size, B, state_size+action_size]
 
             ret: [network_size, B, state_size+reward_size, state_size+action_size]
         """
-
         def func(x):
-            x = x.view(self.network_size, -1, self.state_size + self.action_size)
+            x = x.view(self.network_size, -1, self.state_size+self.action_size)
             state = x[:, :, :self.state_size]
             x = self.scaler.transform(x)
             y, _ = model(x)
@@ -361,17 +359,16 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             null[:, :, self.reward_size:] += state
             y = y + null
 
-            return y.view(-1, self.state_size + self.reward_size, self.state_size + self.reward_size)
+            return y.view(-1, self.state_size+self.reward_size, self.state_size+self.reward_size)
 
         # reshape input
-        train_input_reg = train_input_reg.view(-1, self.state_size + self.action_size)
-        jacobian = get_batch_jacobian(func, train_input_reg, self.state_size + self.reward_size)
+        train_input_reg = train_input_reg.view(-1, self.state_size+self.action_size)
+        jacobian = get_batch_jacobian(func, train_input_reg, self.state_size+self.reward_size)
 
         # reshape jacobian
-        return jacobian.view(
-            self.network_size, -1, self.state_size + self.reward_size, self.state_size + self.action_size
-        )
+        return jacobian.view(self.network_size, -1, self.state_size+self.reward_size, self.state_size+self.action_size)
 
+    
     def _train_gradient_model(self, inputs, labels, inputs_reg, labels_reg):
         #split
         num_holdout = int(inputs.shape[0] * self.holdout_ratio)
@@ -387,7 +384,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         holdout_inputs = holdout_inputs[None, :, :].repeat(self.network_size, 1, 1)
         holdout_labels = holdout_labels[None, :, :].repeat(self.network_size, 1, 1)
 
-        #no split and normalization on regulation data
+        #no split and normalization on regulation data 
         train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
 
         neighbor_index = get_neighbor_index(train_inputs_reg, self.k)
@@ -405,8 +402,8 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
                                      for _ in range(self.network_size)]).to(train_inputs.device)
 
             train_idx_reg = torch.stack([torch.randperm(train_inputs_reg.shape[0])
-                                         for _ in range(self.network_size)]).to(train_inputs_reg.device)
-
+                                     for _ in range(self.network_size)]).to(train_inputs_reg.device)
+            
             self.mse_loss = []
             self.grad_loss = []
             for start_pos in range(0, train_inputs.shape[0], self.batch_size):
@@ -418,27 +415,19 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
 
                 # regulation loss
                 if start_pos % train_inputs_reg.shape[0] < (start_pos + self.batch_size) % train_inputs_reg.shape[0]:
-                    idx_reg = train_idx_reg[:, start_pos % train_inputs_reg.shape[0]:(start_pos + self.batch_size) %
-                                            train_inputs_reg.shape[0]]
+                    idx_reg = train_idx_reg[:, start_pos % train_inputs_reg.shape[0]: (start_pos + self.batch_size) % train_inputs_reg.shape[0]]
                 else:
-                    idx_reg = train_idx_reg[:, 0:(start_pos + self.batch_size) % train_inputs_reg.shape[0]]
+                    idx_reg = train_idx_reg[:, 0: (start_pos + self.batch_size) % train_inputs_reg.shape[0]]
 
                 train_input_reg = train_inputs_reg[idx_reg]
-                neighbor_input_distance = neighbor_inputs_distance[idx_reg
-                                                                   ]  # [network_size, B, k, state_size+action_size]
-                neighbor_label_distance = neighbor_labels_distance[idx_reg
-                                                                   ]  # [network_size, B, k, state_size+reward_size]
+                neighbor_input_distance = neighbor_inputs_distance[idx_reg]  # [network_size, B, k, state_size+action_size]
+                neighbor_label_distance = neighbor_labels_distance[idx_reg]  # [network_size, B, k, state_size+reward_size]
 
-                jacobian = self._get_jacobian(self.gradient_model, train_input_reg).unsqueeze(2).repeat_interleave(
-                    self.k, dim=2
-                )  # [network_size, B, k(repeat), state_size+reward_size, state_size+action_size]
+                jacobian = self._get_jacobian(self.gradient_model, train_input_reg).unsqueeze(2).repeat_interleave(self.k, dim=2)  # [network_size, B, k(repeat), state_size+reward_size, state_size+action_size]
 
-                directional_derivative = (jacobian @ neighbor_input_distance.unsqueeze(-1)).squeeze(
-                    -1
-                )  # [network_size, B, k, state_size+reward_size]
+                directional_derivative = (jacobian @ neighbor_input_distance.unsqueeze(-1)).squeeze(-1)  # [network_size, B, k, state_size+reward_size]
 
-                loss_reg = torch.pow((neighbor_label_distance - directional_derivative),
-                                     2).sum(0).mean()  # sumed over network
+                loss_reg = torch.pow((neighbor_label_distance - directional_derivative), 2).sum(0).mean()  # sumed over network
 
                 self.gradient_model.train(loss, loss_reg, self.reg)
                 self.mse_loss.append(mse_loss.mean().item())
@@ -476,6 +465,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             'gradient_model/middle_holdout_mse_loss': self.middle_holdout_mse_loss,
             'gradient_model/bottom_holdout_mse_loss': self.bottom_holdout_mse_loss,
         }
+
 
     def _save_states(self, ):
         self._states = copy.deepcopy(self.state_dict())

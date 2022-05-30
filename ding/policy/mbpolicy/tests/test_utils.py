@@ -1,7 +1,6 @@
 import pytest
 import torch
-from ding.policy.mbpolicy.utils import flatten_batch, unflatten_batch, \
-    q_evaluation, rollout
+from ding.policy.mbpolicy.utils import flatten_batch, unflatten_batch, q_evaluation
 
 
 @pytest.mark.unittest
@@ -37,22 +36,22 @@ def test_q_evaluation():
     assert q_value.shape == (T, B)
 
 
-@pytest.mark.unittest
-def test_rollout():
-    T, B, O, A = 10, 20, 100, 30
+# @pytest.mark.unittest
+# def test_rollout():
+#     T, B, O, A = 10, 20, 100, 30
 
-    def fake_policy_fn(obs):
-        return torch.randn(B, A), torch.zeros(B)
+#     def fake_policy_fn(obs):
+#         return torch.randn(B, A), torch.zeros(B)
 
-    def fake_env(obs, action):
-        # r, s, done
-        return (torch.zeros(B), torch.rand(B, O), obs.sum(-1) > 0)
+#     def fake_env(obs, action):
+#         # r, s, done
+#         return (torch.zeros(B), torch.rand(B, O), obs.sum(-1) > 0)
 
-    obs = torch.rand(B, O)
-    obss, actions, rewards, aug_rewards, dones = \
-        rollout(obs, fake_policy_fn, T, fake_env)
-    assert obss.shape == (T + 1, B, O)
-    assert actions.shape == (T + 1, B, A)
-    assert rewards.shape == (T, B)
-    assert aug_rewards.shape == (T + 1, B)
-    assert dones.shape == (T + 1, B)
+#     obs = torch.rand(B, O)
+#     obss, actions, rewards, aug_rewards, dones = \
+#         rollout(obs, fake_policy_fn, T, fake_env)
+#     assert obss.shape == (T + 1, B, O)
+#     assert actions.shape == (T + 1, B, A)
+#     assert rewards.shape == (T, B)
+#     assert aug_rewards.shape == (T + 1, B)
+#     assert dones.shape == (T + 1, B)

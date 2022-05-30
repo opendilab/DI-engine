@@ -8,18 +8,19 @@ def flatten_batch(x: Tensor, nonbatch_dims=1) -> Tuple[Tensor, Size]:
     # (T, B, X) => (T*B, X)
     if nonbatch_dims > 0:
         batch_dim = x.shape[:-nonbatch_dims]
-        x = torch.reshape(x, (-1, ) + x.shape[-nonbatch_dims:])
+        x = x.view(-1, *(x.shape[-nonbatch_dims:]))
         return x, batch_dim
     else:
         batch_dim = x.shape
-        x = torch.reshape(x, (-1, ))
+        x = x.view(-1)
         return x, batch_dim
 
 
 def unflatten_batch(x: Tensor, batch_dim: Union[Size, Tuple]) -> Tensor:
     # (T*B, X) => (T, B, X)
-    x = torch.reshape(x, batch_dim + x.shape[1:])
-    return x
+    # x = torch.reshape(x, batch_dim + x.shape[1:])
+    # return x
+    return x.view(*batch_dim, *x.shape[1:])
 
 
 def q_evaluation(obss: Tensor, actions: Tensor, q_critic_fn: Callable[[Tensor, Tensor],

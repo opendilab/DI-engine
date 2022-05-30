@@ -21,10 +21,19 @@ from .utils import q_evaluation
 class MBSACPolicy(SACPolicy):
     r"""
        Overview:
-           Model based SAC.
+           Model based SAC with value expansion (arXiv: 1803.00101) and value gradient (arXiv: 1510.09142) w.r.t lambda-return.
 
        Config:
-            TODO
+           == ====================   ========    =============  ==================================
+           ID Symbol                 Type        Default Value  Description                       
+           == ====================   ========    =============  ==================================
+           1  ``learn._lambda``      float       0.8            | Lambda for TD-lambda return
+           2  ``learn.grad_clip`     float       100.0          | Max norm of the gradients.
+           3  ``learn.sample_state`` bool        True           | Whether to sample states or tra-
+                                                                |   nsitions from environment buffer
+           --Note: 
+               For other configs, please refer to ding.policy.sac.SACPolicy.
+           == ====================   ========    =============  ==================================
        """
 
     config = dict(
@@ -52,26 +61,19 @@ class MBSACPolicy(SACPolicy):
         self._grad_clip = self._cfg.learn.grad_clip
         self._sample_state = self._cfg.learn.sample_state
 
-        # TODO: complete auto alpha
+        self._target_model.requires_grad_(False)
+
+        # TODO: auto alpha
         self._auto_alpha = False
 
-        # TODO: use TanhTransform()
         def actor_fn(obs: Tensor):
-            # (mu, sigma) = self._learn_model.forward(
-            #     obs, mode='compute_actor')['logit']
-            # # enforce action bounds
-            # dist = TransformedDistribution(
-            #     Independent(Normal(mu, sigma), 1), [TanhTransform()])
-            # action = dist.rsample()
-            # log_prob = dist.log_prob(action)
-            (mu, sigma) = self._learn_model.forward(obs, mode='compute_actor')['logit']
-            dist = Independent(Normal(mu, sigma), 1)
-            pred = dist.rsample()
-            action = torch.tanh(pred)
-
-            log_prob = dist.log_prob(
-                pred
-            ) + 2 * (pred + torch.nn.functional.softplus(-2. * pred) - torch.log(torch.tensor(2.))).sum(-1)
+            (mu, sigma) = self._learn_model.forward(
+                obs, mode='compute_actor')['logit']
+            # enforce action bounds
+            dist = TransformedDistribution(
+                Independent(Normal(mu, sigma), 1), [TanhTransform()])
+            action = dist.rsample()
+            log_prob = dist.log_prob(action)
             return action, -self._alpha.detach() * log_prob
 
         self._actor_fn = actor_fn
@@ -154,7 +156,7 @@ class MBSACPolicy(SACPolicy):
             # 'alpha_loss':  alpha_loss.detach(),
         }
 
-        self._update(loss_dict)
+        norm_dict = self._update(loss_dict)
 
         # =============
         # after update
@@ -166,25 +168,44 @@ class MBSACPolicy(SACPolicy):
         return {
             'cur_lr_q': self._optimizer_q.defaults['lr'],
             'cur_lr_p': self._optimizer_policy.defaults['lr'],
-            # 'priority': td_error_per_sample.abs().tolist(),
-            # 'td_error': td_error_per_sample.detach().mean().item(),
-            # 'alpha': self._alpha.item(),
+            'alpha': self._alpha.item(),
             'target_q_value': target_q_values.detach().mean().item(),
-            **loss_dict
+            **norm_dict,
+            **loss_dict,
         }
 
     def _update(self, loss_dict):
         # update critic
         self._optimizer_q.zero_grad()
         loss_dict['critic_loss'].backward()
-        nn.utils.clip_grad_norm_(self._model.critic.parameters(), self._grad_clip)
+        critic_norm = nn.utils.clip_grad_norm_(self._model.critic.parameters(), self._grad_clip)
         self._optimizer_q.step()
         # update policy
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
-        nn.utils.clip_grad_norm_(self._model.actor.parameters(), self._grad_clip)
+        policy_norm = nn.utils.clip_grad_norm_(self._model.actor.parameters(), self._grad_clip)
         self._optimizer_policy.step()
         # update temperature
         # self._alpha_optim.zero_grad()
         # loss_dict['alpha_loss'].backward()
         # self._alpha_optim.step()
+        return {'policy_norm': policy_norm, 'critic_norm': critic_norm}
+
+    def _monitor_vars_learn(self) -> List[str]:
+        r"""
+        Overview:
+            Return variables' name if variables are to used in monitor.
+        Returns:
+            - vars (:obj:`List[str]`): Variables' name list.
+        """
+        alpha_loss = ['alpha_loss'] if self._auto_alpha else []
+        return [
+            'policy_loss',
+            'critic_loss',
+            'policy_norm',
+            'critic_norm',
+            'cur_lr_q',
+            'cur_lr_p',
+            'alpha',
+            'target_q_value',
+        ] + alpha_loss

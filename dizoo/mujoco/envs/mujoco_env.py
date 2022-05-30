@@ -179,3 +179,5 @@ class MBMujocoEnv(MujocoEnv):
             z = next_obs[:,0]
             done = (z < 1.0) + (z > 2.0)
             return done
+        else:
+            raise KeyError("not implemented env_id: {}".format(self._cfg.env_id))
