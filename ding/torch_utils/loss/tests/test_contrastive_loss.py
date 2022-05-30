@@ -7,10 +7,7 @@ from ding.torch_utils.loss.contrastive_loss import ContrastiveLoss
 
 @pytest.mark.benchmark
 @pytest.mark.parametrize('noise', [0.1, 1.0])
-@pytest.mark.parametrize('dims', [
-    [16],
-    [3, 16, 16]
-])
+@pytest.mark.parametrize('dims', [[16], [3, 16, 16]])
 def test_infonce_loss(noise, dims):
     print_loss = False
     batch_size = 128

@@ -583,7 +583,9 @@ class DQNSTDIMPolicy(DQNPolicy):
             q_value, target_q_value, data['action'], target_q_action, data['reward'], data['done'], data['weight']
         )
         value_gamma = data.get('value_gamma')
-        bellman_loss, td_error_per_sample = q_nstep_td_error(data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma)
+        bellman_loss, td_error_per_sample = q_nstep_td_error(
+            data_n, self._gamma, nstep=self._nstep, value_gamma=value_gamma
+        )
 
         # ======================
         # Compute auxiliary loss
