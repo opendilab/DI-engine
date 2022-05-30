@@ -34,7 +34,7 @@ def create_shuffled_dataloader(data, batch_size):
     return DataLoader(ds, batch_size=batch_size, shuffle=True)
 
 
-@POLICY_REGISTRY.register('ppg_onpolicy')
+@POLICY_REGISTRY.register('ppg')
 class PPGPolicy(Policy):
     """
     Overview:
@@ -613,7 +613,7 @@ class PPGPolicy(Policy):
         return auxiliary_loss_ / i, behavioral_cloning_loss_ / i, value_loss_ / i
 
 
-@POLICY_REGISTRY.register('ppg')
+@POLICY_REGISTRY.register('ppg_offpolicy')
 class PPGOffPolicy(Policy):
     """
     Overview:
@@ -661,7 +661,7 @@ class PPGOffPolicy(Policy):
     """
     config = dict(
         # (str) RL policy register name (refer to function "POLICY_REGISTRY").
-        type='ppg',
+        type='ppg_offpolicy',
         # (bool) Whether to use cuda for network.
         cuda=False,
         # (bool) Whether the RL algorithm is on-policy or off-policy. (Note: in practice PPO can be off-policy used)
