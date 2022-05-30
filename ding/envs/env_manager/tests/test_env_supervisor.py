@@ -313,6 +313,7 @@ class TestEnvSupervisor:
     def test_renew_error_once(self, setup_base_manager_cfg, type_):
         env_fn = setup_base_manager_cfg.pop('env_fn')
         setup_base_manager_cfg["retry_type"] = "renew"
+        setup_base_manager_cfg["shared_memory"] = False
         env_supervisor = EnvSupervisor(type_=type_, env_fn=env_fn, **setup_base_manager_cfg)
         # Normal launch
         reset_param = {i: {'stat': 'stat_test'} for i in range(env_supervisor.env_num)}

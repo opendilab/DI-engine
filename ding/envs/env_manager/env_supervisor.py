@@ -290,7 +290,7 @@ class EnvSupervisor(Supervisor):
         if reset_param is not None:
             assert len(reset_param) == self.env_num
         self.start_link()
-        self.send_seed(self._env_seed, self._env_dynamic_seed, block=block)
+        self._send_seed(self._env_seed, self._env_dynamic_seed, block=block)
         self.reset(reset_param, block=block)
         self._enable_env_replay()
 
@@ -322,6 +322,16 @@ class EnvSupervisor(Supervisor):
     def _recv_callback(
             self, payload: RecvPayload, remain_payloads: Optional[Dict[str, SendPayload]] = None
     ) -> RecvPayload:
+        """
+        Overview:
+            The callback function for each received payload, within this method will modify the state of \
+            each environment, replace objects in shared memory, and determine if a retry is needed due to an error.
+        Arguments:
+            - payload (:obj:`RecvPayload`): The received payload.
+            - remain_payloads (:obj:`Optional[Dict[str, SendPayload]]`): The callback may be called many times \
+                until remain_payloads be cleared, you can append new payload into remain_payloads to call this \
+                callback recursively.
+        """
         self._set_shared_obs(payload=payload)
         self.change_state(payload=payload)
         if payload.method == "reset":
@@ -434,7 +444,7 @@ class EnvSupervisor(Supervisor):
 
         return send_payloads
 
-    def send_seed(self, env_seed: Dict[int, int], env_dynamic_seed: Optional[bool] = None, block: bool = True) -> None:
+    def _send_seed(self, env_seed: Dict[int, int], env_dynamic_seed: Optional[bool] = None, block: bool = True) -> None:
         send_payloads = []
         for env_id, seed in env_seed.items():
             if seed is None:
@@ -470,7 +480,10 @@ class EnvSupervisor(Supervisor):
             was called.
         Arguments:
             - seed (:obj:`Union[Dict[int, int], List[int], int]`): List of seeds for each environment; \
-                Or one seed for the first environment and other seeds are generated automatically.
+                Or one seed for the first environment and other seeds are generated automatically. \
+                Note that in threading mode, no matter how many seeds are given, only the last one will take effect. \
+                Because the execution in the thread is asynchronous, the results of each experiment \
+                are different even if a fixed seed is used.
             - dynamic_seed (:obj:`Optional[bool]`): Dynamic seed is used in the training environment, \
                 trying to make the random seed of each episode different, they are all generated in the reset \
                 method by a random generator 100 * np.random.randint(1 , 1000) (but the seed of this random \
