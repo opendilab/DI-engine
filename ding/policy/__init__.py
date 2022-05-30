@@ -1,5 +1,5 @@
 from .base_policy import Policy, CommandModePolicy, create_policy, get_policy_cls
-from .dqn import DQNPolicy
+from .dqn import DQNSTDIMPolicy, DQNPolicy
 from .iqn import IQNPolicy
 from .qrdqn import QRDQNPolicy
 from .c51 import C51Policy

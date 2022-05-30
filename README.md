@@ -74,12 +74,19 @@ Have fun with exploration and exploitation.
 
 ## Outline
 
-* [Installation](#installation)
-* [Quick Start](#quick-start)
-* [Feature/Algorithm Versatility](#algorithm-versatility)
-* [Feature/Environment Versatility](#environment-versatility)
-* [Feedback & Contribution](feedback-and-contribution)
-* [License](#license)
+- [Introduction to DI-engine (beta)](#introduction-to-di-engine-beta)
+- [Outline](#outline)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Feature](#feature)
+  - [Algorithm Versatility](#algorithm-versatility)
+  - [Environment Versatility](#environment-versatility)
+- [Feedback and Contribution](#feedback-and-contribution)
+- [Supporters](#supporters)
+  - [&#8627; Stargazers](#-stargazers)
+  - [&#8627; Forkers](#-forkers)
+- [Citation](#citation)
+- [License](#license)
 
 ## Installation
 
@@ -164,6 +171,7 @@ ding -m serial -e cartpole -p dqn -s 0
 |  35  |         [MBPO](https://arxiv.org/pdf/1906.08253.pdf)         | ![mbrl](https://img.shields.io/badge/-ModelBasedRL-lightblue) | [model/template/model_based/mbpo](https://github.com/opendilab/DI-engine/blob/main/ding/model/template/model_based/mbpo.py) |        python3 -u sac_halfcheetah_mopo_default_config.py     |
 |  36  |         [PER](https://arxiv.org/pdf/1511.05952.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [worker/replay_buffer](https://github.com/opendilab/DI-engine/blob/main/ding/worker/replay_buffer/advanced_buffer.py) |                        `rainbow demo`                        |
 |  37  |         [GAE](https://arxiv.org/pdf/1506.02438.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [rl_utils/gae](https://github.com/opendilab/DI-engine/blob/main/ding/rl_utils/gae.py) |                          `ppo demo`                          |
+|  38  |         [ST-DIM](https://arxiv.org/pdf/1906.08226.pdf)          |   ![other](https://img.shields.io/badge/-other-lightgrey)    | [torch_utils/loss/contrastive_loss](https://github.com/opendilab/DI-engine/blob/main/ding/torch_utils/loss/contrastive_loss.py) |        ding -m serial -c cartpole_dqn_stdim_config.py -s 0       |
 
 ![discrete](https://img.shields.io/badge/-discrete-brightgreen) means discrete action space, which is only label in normal DRL algorithms (1-18)
 
