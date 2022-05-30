@@ -119,9 +119,7 @@ class NGU(nn.Module):
                 head_hidden_size, action_shape, head_layer_num, activation=activation, norm_type=norm_type
             )
 
-    def forward(
-            self, inputs: Dict, inference: bool = False, saved_hidden_state_timesteps: Optional[list] = None
-    ) -> Dict:
+    def forward(self, inputs: Dict, inference: bool = False, saved_state_timesteps: Optional[list] = None) -> Dict:
         r"""
         Overview:
             Use observation, prev_action prev_reward_extrinsic to predict NGU Q output.
@@ -130,9 +128,9 @@ class NGU(nn.Module):
             - inputs (:obj:`Dict`):
             - inference: (:obj:'bool'): if inference is True, we unroll the one timestep transition,
                 if inference is False, we unroll the sequence transitions.
-            - saved_hidden_state_timesteps: (:obj:'Optional[list]'): when inference is False,
+            - saved_state_timesteps: (:obj:'Optional[list]'): when inference is False,
                 we unroll the sequence transitions, then we would save rnn hidden states at timesteps
-                that are listed in list saved_hidden_state_timesteps.
+                that are listed in list saved_state_timesteps.
 
        ArgumentsKeys:
             - obs (:obj:`torch.Tensor`): Encoded observation
@@ -200,20 +198,22 @@ class NGU(nn.Module):
             lstm_embedding = []
             # TODO(nyz) how to deal with hidden_size key-value
             hidden_state_list = []
-            if saved_hidden_state_timesteps is not None:
-                saved_hidden_state = []
+            if saved_state_timesteps is not None:
+                saved_state = []
             for t in range(x.shape[0]):  # T timesteps
                 output, prev_state = self.rnn(x[t:t + 1], prev_state)
-                if saved_hidden_state_timesteps is not None and t + 1 in saved_hidden_state_timesteps:
-                    saved_hidden_state.append(prev_state)
+                if saved_state_timesteps is not None and t + 1 in saved_state_timesteps:
+                    saved_state.append(prev_state)
                 lstm_embedding.append(output)
                 # only take the hidden state h
                 hidden_state_list.append(torch.cat([item['h'] for item in prev_state], dim=1))
 
             x = torch.cat(lstm_embedding, 0)  # [B, H, 64]
             x = parallel_wrapper(self.head)(x)
-            x['next_state'] = prev_state  # including the hidden state (h) and the cell state (c)
+            # including the hidden state (h) and the cell state (c)
+            x['next_state'] = prev_state
             x['hidden_state'] = torch.cat(hidden_state_list, dim=-3)
-            if saved_hidden_state_timesteps is not None:
-                x['saved_hidden_state'] = saved_hidden_state  # the selected saved hidden states, including h and c
+            if saved_state_timesteps is not None:
+                # the selected saved hidden states, including the hidden state (h) and the cell state (c)
+                x['saved_state'] = saved_state
             return x
