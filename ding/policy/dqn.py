@@ -524,8 +524,8 @@ class DQNSTDIMPolicy(DQNPolicy):
         return x.size()[1:], y.size()[1:]
 
     def _aux_encode(self, data):
-        x = data["obs"]
-        y = self._model.encoder(data["obs"])
+        x = self._model.encoder(data["obs"])
+        y = self._model.encoder(data["next_obs"])
         return x, y
 
     def _forward_learn(self, data: Dict[str, Any]) -> Dict[str, Any]:
