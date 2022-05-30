@@ -9,7 +9,6 @@ from .functional import inferencer, rolloutor, TransitionList, battle_inferencer
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext
 
-from ding.utils import EasyTimer
 from ding.worker.collector.base_serial_collector import CachePool
 
 
@@ -21,7 +20,6 @@ class BattleCollector:
             n_rollout_samples: int
     ):
         self.cfg = cfg
-        self._timer = EasyTimer()
         self.end_flag = False
         # self._reset(env)
         self.env = env
@@ -29,9 +27,7 @@ class BattleCollector:
 
         self.obs_pool = CachePool('obs', self.env_num, deepcopy=self.cfg.deepcopy_obs)
         self.policy_output_pool = CachePool('policy_output', self.env_num)
-        self.env_info = {env_id: {'time': 0., 'step': 0} for env_id in range(self.env_num)}
 
-        self.episode_info = []
         self.total_envstep_count = 0
         self.total_episode_count = 0
         self.end_flag = False
@@ -53,7 +49,6 @@ class BattleCollector:
             ctx.traj_buffer[env_id][i].clear()
         self.obs_pool.reset(env_id)
         self.policy_output_pool.reset(env_id)
-        self.env_info[env_id] = {'time': 0., 'step': 0}
 
     def __del__(self) -> None:
         """
@@ -97,35 +92,20 @@ class BattleCollector:
         ctx.ready_env_id = set()
         ctx.remain_episode = ctx.n_episode
         while True:
-            with self._timer:
-                self._battle_inferencer(ctx)
-
-            # TODO(nyz) this duration may be inaccurate in async env
-            interaction_duration = self._timer.value / len(ctx.timesteps)
+            self._battle_inferencer(ctx)
 
             # TODO(nyz) vectorize this for loop
             for env_id, timestep in ctx.timesteps.items():
-                self.env_info[env_id]['step'] += 1
                 self.total_envstep_count += 1
                 ctx.envstep = self.total_envstep_count
                 ctx.env_id = env_id
                 ctx.timestep = timestep
-                with self._timer:
-                    self._battle_rolloutor(ctx)
-
-                self.env_info[env_id]['time'] += self._timer.value + interaction_duration
+                self._battle_rolloutor(ctx)
 
                 # If env is done, record episode info and reset
                 if timestep.done:
                     self.total_episode_count += 1
-                    info = {
-                        'time': self.env_info[env_id]['time'],
-                        'step': self.env_info[env_id]['step'],
-                    }
-                    for policy_id in range(ctx.agent_num):
-                        info['reward'+str(policy_id)] = timestep.info[policy_id]['final_eval_reward']
                     ctx.collected_episode += 1
-                    self.episode_info.append(info)
                     for i, p in enumerate(ctx.policies):
                         p.reset([env_id])
                     self._reset_stat(env_id, ctx)

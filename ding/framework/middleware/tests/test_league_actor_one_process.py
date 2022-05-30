@@ -91,7 +91,7 @@ def test_league_actor():
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
                 )
-                sleep(0.3)
+                sleep(5)
                 assert league_actor._model_updated == True
                 try:
                     print(testcases)
