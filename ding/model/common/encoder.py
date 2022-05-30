@@ -198,46 +198,6 @@ def NormedConv2d(*args, scale=1, **kwargs):
     return out
 
 
-class Encoder(nn.Module):
-    """
-    Takes in seq of observations and outputs sequence of codes
-    Encoders can be stateful, meaning that you pass in one observation at a
-    time and update the state, which is a separate object. (This object
-    doesn't store any state except parameters)
-    """
-
-    def __init__(self):
-        super().__init__()
-
-    def initial_state(self, batchsize):
-        raise NotImplementedError
-
-    def empty_state(self):
-        return None
-
-    def stateless_forward(self, obs):
-        """
-        inputs:
-            obs: array or dict, all with preshape (B, T)
-        returns:
-            codes: array or dict, all with preshape (B, T)
-        """
-        code, _state = self(obs, None, self.empty_state())
-        return code
-
-    def forward(self, obs, first, state_in):
-        """
-        inputs:
-            obs: array or dict, all with preshape (B, T)
-            first: float array shape (B, T)
-            state_in: array or dict, all with preshape (B,)
-        returns:
-            codes: array or dict
-            state_out: array or dict
-        """
-        raise NotImplementedError
-
-
 class CnnBasicBlock(nn.Module):
     """
     Residual basic block (without batchnorm), as in ImpalaCNN
@@ -304,10 +264,10 @@ class CnnDownStack(nn.Module):
             return (self.out_channel, h, w)
 
 
-class ImpalaCNN(nn.Module):
-    name = "ImpalaCNN"  # put it here to preserve pickle compat
+class ImpalaConvEncoder(nn.Module):
+    name = "ImpalaConvEncoder"  # put it here to preserve pickle compat
 
-    def __init__(self, inshape, chans, outsize, scale_ob, nblock, final_relu=True, **kwargs):
+    def __init__(self, inshape, chans=(16, 32, 32), outsize=256, scale_ob=255.0, nblock=2, final_relu=True, **kwargs):
         super().__init__()
         self.scale_ob = scale_ob
         c, h, w = inshape
@@ -333,17 +293,3 @@ class ImpalaCNN(nn.Module):
         if self.final_relu:
             x = torch.relu(x)
         return x
-
-
-class ImpalaEncoder(Encoder):
-
-    def __init__(self, inshape, outsize=256, chans=(16, 32, 32), scale_ob=255.0, nblock=2, **kwargs):
-        super().__init__()
-        self.cnn = ImpalaCNN(inshape=inshape, chans=chans, scale_ob=scale_ob, nblock=nblock, outsize=outsize, **kwargs)
-
-    def forward(self, x):
-        x = self.cnn(x)
-        return x
-
-    def initial_state(self, batchsize):
-        return torch.zeros(batchsize, 0)
