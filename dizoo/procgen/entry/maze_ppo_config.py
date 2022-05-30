@@ -4,6 +4,7 @@ maze_ppo_default_config = dict(
     env=dict(
         # frame_stack=4,
         is_train=True,
+        env_id='maze',
         collector_env_num=4,
         evaluator_env_num=4,
         n_evaluator_episode=4,
@@ -44,8 +45,8 @@ main_config = maze_ppo_default_config
 
 maze_ppo_create_config = dict(
     env=dict(
-        type='maze',
-        import_names=['dizoo.procgen.maze.envs.maze_env'],
+        type='procgen',
+        import_names=['dizoo.procgen.envs.procgen_env'],
     ),
     env_manager=dict(type='subprocess', ),
     policy=dict(type='ppo'),

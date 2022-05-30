@@ -18,7 +18,7 @@ from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
 from .r2d2 import R2D2Policy
 from .r2d2_gtrxl import R2D2GTrXLPolicy
-from .ppg import PPGPolicy
+from .ppg import PPGPolicy, PPGOffPolicy
 from .sqn import SQNPolicy
 
 from .qmix import QMIXPolicy

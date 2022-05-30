@@ -56,6 +56,7 @@ Updated on 2022.04.22 DI-engine-v0.3.1
   - [DI-drive](https://github.com/opendilab/DI-drive): Auto-driving platform
   - [GoBigger](https://github.com/opendilab/GoBigger): Multi-Agent Decision Intelligence Environment
   - [DI-smartcross](https://github.com/opendilab/DI-smartcross): Decision AI in Traffic Light Control
+  - [DI-bioseq](https://github.com/opendilab/DI-bioseq): Decision AI in Biological Sequence Prediction and Searching
 - General nested data lib
   - [treevalue](https://github.com/opendilab/treevalue): Tree-nested data structure
   - [DI-treetensor](https://github.com/opendilab/DI-treetensor): Tree-nested PyTorch tensor Lib
@@ -70,6 +71,15 @@ Updated on 2022.04.22 DI-engine-v0.3.1
 - [DI-store](https://github.com/opendilab/DI-store): RL Object Store
 
 Have fun with exploration and exploitation.
+
+## Outline
+
+* [Installation](#installation)
+* [Quick Start](#quick-start)
+* [Feature/Algorithm Versatility](#algorithm-versatility)
+* [Feature/Environment Versatility](#environment-versatility)
+* [Feedback & Contribution](feedback-and-contribution)
+* [License](#license)
 
 ## Installation
 
@@ -109,16 +119,6 @@ The detailed documentation are hosted on [doc](https://di-engine-docs.readthedoc
 ```bash
 ding -m serial -e cartpole -p dqn -s 0
 ```
-
-## Supporters
-
-### &#8627; Stargazers
-
-[![Stargazers repo roster for @opendilab/DI-engine](https://reporoster.com/stars/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/stargazers)
-
-### &#8627; Forkers
-
-[![Forkers repo roster for @opendilab/DI-engine](https://reporoster.com/forks/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/network/members)
 
 ## Feature
 
@@ -200,9 +200,9 @@ P.S: The `.py` file in `Runnable Demo` can be found in `dizoo`
 |  7   |       [gfootball](https://github.com/google-research/football)                        | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![sparse](https://img.shields.io/badge/-sparse%20reward-orange)![selfplay](https://img.shields.io/badge/-selfplay-blue) | ![original](./dizoo/gfootball/gfootball.gif)      | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo.gfootball/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/gfootball_zh.html) |
 |  8   |       [minigrid](https://github.com/maximecb/gym-minigrid)                         | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)![sparse](https://img.shields.io/badge/-sparse%20reward-orange) | ![original](./dizoo/minigrid/minigrid.gif)         | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/minigrid/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/minigrid_zh.html) |
 |  9   |       [mujoco](https://github.com/openai/gym/tree/master/gym/envs/mujoco)       |  ![continuous](https://img.shields.io/badge/-continous-green)  | ![original](./dizoo/mujoco/mujoco.gif)                    | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/majoco/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/mujoco_zh.html) |
-|  10   |       [PettingZoo](https://github.com/Farama-Foundation/PettingZoo)         | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![continuous](https://img.shields.io/badge/-continous-green) ![marl](https://img.shields.io/badge/-MARL-yellow)  | ![original](./dizoo/petting_zoo/petting_zoo_mpe_simple_spread.gif.gif)     |  [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/multiagent_particle_zh.html)  |
+|  10   |       [PettingZoo](https://github.com/Farama-Foundation/PettingZoo)         | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![continuous](https://img.shields.io/badge/-continous-green) ![marl](https://img.shields.io/badge/-MARL-yellow)  | ![original](./dizoo/petting_zoo/petting_zoo_mpe_simple_spread.gif)     |  [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/petting_zoo/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/multiagent_particle_zh.html)  |
 |  11   |       [overcooked](https://github.com/HumanCompatibleAI/overcooked-demo)     | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![marl](https://img.shields.io/badge/-MARL-yellow)  | ![original](./dizoo/overcooked/overcooked.gif)       |   [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/overcooded/envs)<br>[env tutorial](https://di-engine-docs.readthedocs.io/en/latest/env_tutorial/overcooked.html)   |
-|  12  |       [procgen](https://github.com/openai/procgen)                          | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/procgen/coinrun/coinrun.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/procgen)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/procgen_zh.html) |
+|  12  |       [procgen](https://github.com/openai/procgen)                          | ![discrete](https://img.shields.io/badge/-discrete-brightgreen)   | ![original](./dizoo/procgen/coinrun.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/procgen)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/procgen_zh.html) |
 |  13  |       [pybullet](https://github.com/benelot/pybullet-gym)    | ![continuous](https://img.shields.io/badge/-continous-green)  | ![original](./dizoo/pybullet/pybullet.gif)       | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/pybullet/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/pybullet_zh.html) |
 |  14  |       [smac](https://github.com/oxwhirl/smac)     | ![discrete](https://img.shields.io/badge/-discrete-brightgreen) ![marl](https://img.shields.io/badge/-MARL-yellow)![selfplay](https://img.shields.io/badge/-selfplay-blue)![sparse](https://img.shields.io/badge/-sparse%20reward-orange) | ![original](./dizoo/smac/smac.gif)       | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/smac/envs)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/smac_zh.html) |
 | 15 | [d4rl](https://github.com/rail-berkeley/d4rl) | ![offline](https://img.shields.io/badge/-offlineRL-darkblue) | ![ori](dizoo/d4rl/d4rl.gif) | [dizoo link](https://github.com/opendilab/DI-engine/tree/main/dizoo/d4rl)<br>[环境指南](https://di-engine-docs.readthedocs.io/zh_CN/latest/env_tutorial/d4rl_zh.html) |
@@ -244,6 +244,17 @@ P.S. some enviroments in Atari, such as **MontezumaRevenge**, are also sparse re
 - Contributes to our future plan [Roadmap](https://github.com/opendilab/DI-engine/projects)
 
 We appreciate all the feedbacks and contributions to improve DI-engine, both algorithms and system designs. And `CONTRIBUTING.md` offers some necessary information. 
+
+## Supporters
+
+### &#8627; Stargazers
+
+[![Stargazers repo roster for @opendilab/DI-engine](https://reporoster.com/stars/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/stargazers)
+
+### &#8627; Forkers
+
+[![Forkers repo roster for @opendilab/DI-engine](https://reporoster.com/forks/opendilab/DI-engine)](https://github.com/opendilab/DI-engine/network/members)
+
 
 ## Citation
 ```latex
