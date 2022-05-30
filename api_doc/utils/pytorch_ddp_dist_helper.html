@@ -215,32 +215,100 @@
 <section id="pytorch-ddp-dist-helper">
 <h2>pytorch_ddp_dist_helper<a class="headerlink" href="#pytorch-ddp-dist-helper" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/ding/utils/disk_helper.py for usage.</p>
-<section id="errro-wrapper">
-<h3>errro_wrapper<a class="headerlink" href="#errro-wrapper" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.error_wrapper">
+<span id="errro-wrapper"></span><h3>errro_wrapper<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.error_wrapper" title="Permalink to this headline">¶</a></h3>
+<dl>
+<dt>Overview:</dt><dd><p>wrap the function, so that any Exception in the function will be catched and return the default_ret</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): the function to be wraped</p></li>
+<li><p>default_ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">obj</span></code>): the default return when an Exception occurred in the function</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>wrapper (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): the wrapped function</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Used to checkfor Fakelink (Refer to utils.linklink_dist_helper.py)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">get_rank</span><span class="p">():</span>  <span class="c1"># Get the rank of linklink model, return 0 if use FakeLink.</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="k">if</span> <span class="n">is_fake_link</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>       <span class="k">return</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="k">return</span> <span class="n">error_wrapper</span><span class="p">(</span><span class="n">link</span><span class="o">.</span><span class="n">get_rank</span><span class="p">,</span> <span class="mi">0</span><span class="p">)()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </section>
-<section id="get-rank">
-<h3>get_rank<a class="headerlink" href="#get-rank" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.get_rank">
+<span id="get-rank"></span><h3>get_rank<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.get_rank" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get the rank of current process in total world_size</p>
+</dd>
+</dl>
 </section>
-<section id="get-world-size">
-<h3>get_world_size<a class="headerlink" href="#get-world-size" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.get_world_size">
+<span id="get-world-size"></span><h3>get_world_size<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.get_world_size" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get the world_size(total process number in data parallel training)</p>
+</dd>
+</dl>
 </section>
-<section id="broadcast">
-<h3>broadcast<a class="headerlink" href="#broadcast" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.broadcast">
+<span id="broadcast"></span><h3>broadcast<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.broadcast" title="Permalink to this headline">¶</a></h3>
+<p>Broadcasts the tensor to the whole group.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tensor</span></code> must have the same number of elements in all processes
+participating in the collective.</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>tensor (Tensor): Data to be sent if <code class="docutils literal notranslate"><span class="pre">src</span></code> is the rank of current</dt><dd><p>process, and tensor to be used to save received data otherwise.</p>
+</dd>
+</dl>
+<p>src (int): Source rank.
+group (ProcessGroup, optional): The process group to work on. If None,</p>
+<blockquote>
+<div><p>the default process group will be used.</p>
+</div></blockquote>
+<p>async_op (bool, optional): Whether this op should be an async op</p>
+</dd>
+<dt>Returns:</dt><dd><p>Async work handle, if async_op is set to True.
+None, if not async_op or if not part of the group</p>
+</dd>
+</dl>
 </section>
-<section id="allreduce">
-<h3>allreduce<a class="headerlink" href="#allreduce" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.allreduce">
+<span id="allreduce"></span><h3>allreduce<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.allreduce" title="Permalink to this headline">¶</a></h3>
 </section>
-<section id="get-group">
-<h3>get_group<a class="headerlink" href="#get-group" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.get_group">
+<span id="get-group"></span><h3>get_group<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.get_group" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get the group segmentation of <code class="docutils literal notranslate"><span class="pre">group_size</span></code> each group</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>group_size (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>) the <code class="docutils literal notranslate"><span class="pre">group_size</span></code></p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="dist-mode">
-<h3>dist_mode<a class="headerlink" href="#dist-mode" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.dist_mode">
+<span id="dist-mode"></span><h3>dist_mode<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.dist_mode" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Wrap the function so that in can init and finalize automatically before each call</p>
+</dd>
+</dl>
 </section>
-<section id="dist-init">
-<h3>dist_init<a class="headerlink" href="#dist-init" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.dist_init">
+<span id="dist-init"></span><h3>dist_init<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.dist_init" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Init the distributed training setting</p>
+</dd>
+</dl>
 </section>
-<section id="dist-finalize">
-<h3>dist_finalize<a class="headerlink" href="#dist-finalize" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.pytorch_ddp_dist_helper.dist_finalize">
+<span id="dist-finalize"></span><h3>dist_finalize<a class="headerlink" href="#module-ding.utils.pytorch_ddp_dist_helper.dist_finalize" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Finalize distributed training resources</p>
+</dd>
+</dl>
 </section>
 </section>
 </section>

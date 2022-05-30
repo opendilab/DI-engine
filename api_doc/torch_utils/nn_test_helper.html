@@ -115,7 +115,7 @@
 <li class="toctree-l3"><a class="reference internal" href="distribution.html">distribution</a></li>
 <li class="toctree-l3"><a class="reference internal" href="metric.html">metric</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">nn_test_helper</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#is-differentiable">is_differentiable</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.nn_test_helper.is_differentiable">is_differentiable</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="optimizer_helper.html">optimizer_helper</a></li>
@@ -214,8 +214,19 @@
             
   <section id="nn-test-helper">
 <h1>nn_test_helper<a class="headerlink" href="#nn-test-helper" title="Permalink to this headline">¶</a></h1>
-<section id="is-differentiable">
-<h2>is_differentiable<a class="headerlink" href="#is-differentiable" title="Permalink to this headline">¶</a></h2>
+<section id="module-ding.torch_utils.nn_test_helper.is_differentiable">
+<span id="is-differentiable"></span><h2>is_differentiable<a class="headerlink" href="#module-ding.torch_utils.nn_test_helper.is_differentiable" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Judge whether the model/models are differentiable. First check whether module’s grad is None,
+then do loss’s back propagation, finally check whether module’s grad are torch.Tensor.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): loss tensor of the model</p></li>
+<li><p>model (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[torch.nn.Module,</span> <span class="pre">List[torch.nn.Module]]</span></code>): model or models to be checked</p></li>
+<li><p>print_instead (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to print module’s final grad result,             instead of asserting. Default set to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 

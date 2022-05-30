@@ -207,6 +207,95 @@
 <h2>red_irl_model<a class="headerlink" href="#red-irl-model" title="Permalink to this headline">¶</a></h2>
 <section id="redrewardmodel">
 <h3>RedRewardModel<a class="headerlink" href="#redrewardmodel" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.reward_model.red_irl_model.RedRewardModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.reward_model.red_irl_model.</span></span><span class="sig-name descname"><span class="pre">RedRewardModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/reward_model/red_irl_model.html#RedRewardModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.red_irl_model.RedRewardModel" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>The implement of reward model in RED (<a class="reference external" href="https://arxiv.org/abs/1905.06750">https://arxiv.org/abs/1905.06750</a>)</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">estimate</span></code>, <code class="docutils literal notranslate"><span class="pre">train</span></code>, <code class="docutils literal notranslate"><span class="pre">load_expert_data</span></code>, <code class="docutils literal notranslate"><span class="pre">collect_data</span></code>, <code class="docutils literal notranslate"><span class="pre">clear_date</span></code>,             <code class="docutils literal notranslate"><span class="pre">__init__</span></code>, <code class="docutils literal notranslate"><span class="pre">_train</span></code></p>
+</dd>
+<dt>Properties:</dt><dd><ul class="simple">
+<li><p>online_net (:obj: <cite>SENet</cite>): The reward model, in default initialized once as the training begins.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.red_irl_model.RedRewardModel.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/red_irl_model.html#RedRewardModel.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.red_irl_model.RedRewardModel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Initialize <code class="docutils literal notranslate"><span class="pre">self.</span></code> See <code class="docutils literal notranslate"><span class="pre">help(type(self))</span></code> for accurate signature.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Dict</span></code>): Training config</p></li>
+<li><p>device (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Device usage, i.e. “cpu” or “cuda”</p></li>
+<li><p>tb_logger (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Logger, defaultly set as ‘SummaryWriter’ for model summary</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.red_irl_model.RedRewardModel.clear_data">
+<span class="sig-name descname"><span class="pre">clear_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/reward_model/red_irl_model.html#RedRewardModel.clear_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.red_irl_model.RedRewardModel.clear_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Collecting clearing data, not implemented if reward model (i.e. online_net) is only trained ones,                 if online_net is trained continuously, there should be some implementations in clear_data method</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.red_irl_model.RedRewardModel.collect_data">
+<span class="sig-name descname"><span class="pre">collect_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/red_irl_model.html#RedRewardModel.collect_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.red_irl_model.RedRewardModel.collect_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Collecting training data, not implemented if reward model (i.e. online_net) is only trained ones,                 if online_net is trained continuously, there should be some implementations in collect_data method</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.red_irl_model.RedRewardModel.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/red_irl_model.html#RedRewardModel.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.red_irl_model.RedRewardModel.estimate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Estimate reward by rewriting the reward key</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code>): the list of data used for estimation,                 with at least <code class="docutils literal notranslate"><span class="pre">obs</span></code> and <code class="docutils literal notranslate"><span class="pre">action</span></code> keys.</p></li>
+</ul>
+</dd>
+<dt>Effects:</dt><dd><ul class="simple">
+<li><p>This is a side effect function which updates the reward values in place.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.red_irl_model.RedRewardModel.load_expert_data">
+<span class="sig-name descname"><span class="pre">load_expert_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/red_irl_model.html#RedRewardModel.load_expert_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.red_irl_model.RedRewardModel.load_expert_data" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Getting the expert data from <code class="docutils literal notranslate"><span class="pre">config['expert_data_path']</span></code> attribute in self.</p>
+</dd>
+<dt>Effects:</dt><dd><p>This is a side effect function which updates the expert data attribute (e.g.  <code class="docutils literal notranslate"><span class="pre">self.expert_data</span></code>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.reward_model.red_irl_model.RedRewardModel.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/reward_model/red_irl_model.html#RedRewardModel.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.reward_model.red_irl_model.RedRewardModel.train" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Training the RED reward model. In default, RED model should be trained once.</p>
+</dd>
+<dt>Effects:</dt><dd><ul class="simple">
+<li><p>This is a side effect function which updates the reward model and increment the train iteration count.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 </section>

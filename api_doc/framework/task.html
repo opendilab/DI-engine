@@ -205,6 +205,144 @@
 <h2>task<a class="headerlink" href="#task" title="Permalink to this headline">¶</a></h2>
 <section id="id1">
 <h3>Task<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.framework.task.Task">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.framework.task.</span></span><span class="sig-name descname"><span class="pre">Task</span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tash will manage the execution order of the entire pipeline, register new middleware,
+and generate new context objects.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ding.framework.task.Task.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.backward">
+<span class="sig-name descname"><span class="pre">backward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backward_stack</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Generator</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.backward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.backward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Execute the rest part of middleware, by the reversed order of registry.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>backward_stack (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Dict[str,</span> <span class="pre">Generator]]</span></code>): Replace global backward_stack with a customized                 stack.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.emit">
+<span class="sig-name descname"><span class="pre">emit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_remote</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">only_local</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.emit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.emit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Emit an event, call listeners.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>event (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Event name.</p></li>
+<li><p>only_remote (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Only broadcast the event to the connected nodes, default is False.</p></li>
+<li><p>only_local (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Only emit local event, default is False.</p></li>
+<li><p>args (<code class="xref py py-obj docutils literal notranslate"><span class="pre">any</span></code>): Rest arguments for listeners.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="context.html#ding.framework.context.Context" title="ding.framework.context.Context"><span class="pre">ding.framework.context.Context</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Generator</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>This function will execute the middleware until the first yield statment,
+or the end of the middleware.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): Function with contain the ctx argument in middleware.</p></li>
+<li><p>ctx (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Context]</span></code>): Replace global ctx with a customized ctx.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>g (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Generator]</span></code>): The generator if the return value of fn is a generator.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.on">
+<span class="sig-name descname"><span class="pre">on</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.on"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.on" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Subscribe to an event, execute this function every time the event is emitted.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>event (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Event name.</p></li>
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): The function.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.once">
+<span class="sig-name descname"><span class="pre">once</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.once"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.once" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Subscribe to an event, execute this function only once when the event is emitted.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>event (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Event name.</p></li>
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): The function.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.renew">
+<span class="sig-name descname"><span class="pre">renew</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.framework.task.Task" title="ding.framework.task.Task"><span class="pre">ding.framework.task.Task</span></a></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.renew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.renew" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Renew the context instance, this function should be called after backward in the end of iteration.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1000000000000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Execute the iterations, when reach the max_step or task.finish is true,
+The loop will be break.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>max_step (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): Max step of iterations.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.stop" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Stop and cleanup every thing in the runtime of task.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.framework.task.Task.use">
+<span class="sig-name descname"><span class="pre">use</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span> </span><span class="pre">_thread.allocate_lock</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#ding.framework.task.Task" title="ding.framework.task.Task"><span class="pre">ding.framework.task.Task</span></a></span></span><a class="reference internal" href="../../_modules/ding/framework/task.html#Task.use"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.framework.task.Task.use" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Register middleware to task. The middleware will be executed by it’s registry order.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): A middleware is a function with only one argument: ctx.</p></li>
+<li><p>lock (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Union[bool,</span> <span class="pre">Lock]</span></code>): There can only be one middleware execution under lock at any one time.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>task (<a class="reference internal" href="#ding.framework.task.Task" title="ding.framework.task.Task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Task</span></code></a>): The task.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 </section>

@@ -1,0 +1,743 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.config.config &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ding.config.config</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ding.config.config</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">osp</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">import_module</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">NoReturn</span>
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">deep_merge_dicts</span>
+<span class="kn">from</span> <span class="nn">ding.envs</span> <span class="kn">import</span> <span class="n">get_env_cls</span><span class="p">,</span> <span class="n">get_env_manager_cls</span><span class="p">,</span> <span class="n">BaseEnvManager</span>
+<span class="kn">from</span> <span class="nn">ding.policy</span> <span class="kn">import</span> <span class="n">get_policy_cls</span>
+<span class="kn">from</span> <span class="nn">ding.worker</span> <span class="kn">import</span> <span class="n">BaseLearner</span><span class="p">,</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">BaseSerialCommander</span><span class="p">,</span> <span class="n">Coordinator</span><span class="p">,</span> \
+    <span class="n">AdvancedReplayBuffer</span><span class="p">,</span> <span class="n">get_parallel_commander_cls</span><span class="p">,</span> <span class="n">get_parallel_collector_cls</span><span class="p">,</span> <span class="n">get_buffer_cls</span><span class="p">,</span> \
+    <span class="n">get_serial_collector_cls</span><span class="p">,</span> <span class="n">MetricSerialEvaluator</span><span class="p">,</span> <span class="n">BattleInteractionSerialEvaluator</span>
+<span class="kn">from</span> <span class="nn">ding.reward_model</span> <span class="kn">import</span> <span class="n">get_reward_model_cls</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">parallel_transform</span><span class="p">,</span> <span class="n">parallel_transform_slurm</span><span class="p">,</span> <span class="n">parallel_transform_k8s</span><span class="p">,</span> <span class="n">save_config_formatted</span>
+
+
+<div class="viewcode-block" id="Config"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.Config">[docs]</a><span class="k">class</span> <span class="nc">Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Base class for config.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        __init__, file_to_dict</span>
+<span class="sd">    Property:</span>
+<span class="sd">        cfg_dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Config.__init__"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.Config.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">cfg_dict</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">cfg_text</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init method. Create config including dict type config and text type config.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - cfg_dict (:obj:`Optional[dict]`): dict type config</span>
+<span class="sd">            - cfg_text (:obj:`Optional[str]`): text type config</span>
+<span class="sd">            - filename (:obj:`Optional[str]`): config file name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cfg_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cfg_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cfg_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid type for cfg_dict: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cfg_dict</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cfg_dict</span> <span class="o">=</span> <span class="n">cfg_dict</span>
+        <span class="k">if</span> <span class="n">cfg_text</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">cfg_text</span>
+        <span class="k">elif</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_text</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filename</span> <span class="o">=</span> <span class="n">filename</span></div>
+
+<div class="viewcode-block" id="Config.file_to_dict"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.Config.file_to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Config&#39;</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Read config file and create config.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - filename (:obj:`Optional[str]`): config file name.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - cfg_dict (:obj:`Config`): config class</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cfg_dict</span><span class="p">,</span> <span class="n">cfg_text</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">_file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Config</span><span class="p">(</span><span class="n">cfg_dict</span><span class="p">,</span> <span class="n">cfg_text</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Config._file_to_dict"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.Config._file_to_dict">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_file_to_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Read config file and convert the config file to dict type config and text type config.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - filename (:obj:`Optional[str]`): config file name.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - cfg_dict (:obj:`Optional[dict]`): dict type config</span>
+<span class="sd">            - cfg_text (:obj:`Optional[str]`): text type config</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">osp</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="c1"># TODO check exist</span>
+        <span class="c1"># TODO check suffix</span>
+        <span class="n">ext_name</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">temp_config_dir</span><span class="p">:</span>
+            <span class="n">temp_config_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">temp_config_dir</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="n">ext_name</span><span class="p">)</span>
+            <span class="n">temp_config_name</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">temp_config_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">temp_config_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">temp_config_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="n">temp_module_name</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">temp_config_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">temp_config_dir</span><span class="p">)</span>
+            <span class="c1"># TODO validate py syntax</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="n">temp_module_name</span><span class="p">)</span>
+            <span class="n">cfg_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">module</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)}</span>
+            <span class="k">del</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="n">temp_module_name</span><span class="p">]</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">cfg_text</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">cfg_text</span> <span class="o">+=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">cfg_dict</span><span class="p">,</span> <span class="n">cfg_text</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cfg_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg_dict</span></div>
+
+
+<div class="viewcode-block" id="read_config_yaml"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.read_config_yaml">[docs]</a><span class="k">def</span> <span class="nf">read_config_yaml</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        read configuration from path</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - path (:obj:`str`): Path of source yaml</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - (:obj:`EasyDict`): Config data from this file with dict type</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">config_</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">config_</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="save_config_yaml"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.save_config_yaml">[docs]</a><span class="k">def</span> <span class="nf">save_config_yaml</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        save configuration to path</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - config (:obj:`dict`): Config dict</span>
+<span class="sd">        - path (:obj:`str`): Path of target yaml</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config_string</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">config_</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config_string</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="save_config_py"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.save_config_py">[docs]</a><span class="k">def</span> <span class="nf">save_config_py</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        save configuration to python file</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - config (:obj:`dict`): Config dict</span>
+<span class="sd">        - path (:obj:`str`): Path of target yaml</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># config_string = json.dumps(config_, indent=4)</span>
+    <span class="n">config_string</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config_</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">yapf.yapflib.yapf_api</span> <span class="kn">import</span> <span class="n">FormatCode</span>
+    <span class="n">config_string</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">FormatCode</span><span class="p">(</span><span class="n">config_string</span><span class="p">)</span>
+    <span class="n">config_string</span> <span class="o">=</span> <span class="n">config_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;inf,&#39;</span><span class="p">,</span> <span class="s1">&#39;float(&quot;inf&quot;),&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;exp_config = &#39;</span> <span class="o">+</span> <span class="n">config_string</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">read_config_directly</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Read configuration from a file path(now only suport python file) and directly return results.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - path (:obj:`str`): Path of configuration file</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - cfg (:obj:`Tuple[dict, dict]`): Configuration dict.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Config</span><span class="o">.</span><span class="n">file_to_dict</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">cfg_dict</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="read_config"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.read_config">[docs]</a><span class="k">def</span> <span class="nf">read_config</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Read configuration from a file path(now only suport python file). And select some proper parts.</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - path (:obj:`str`): Path of configuration file</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - cfg (:obj:`Tuple[dict, dict]`): A collection(tuple) of configuration dict, divided into `main_config` and \</span>
+<span class="sd">            `create_cfg` two parts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">file_to_dict</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">cfg_dict</span>
+        <span class="k">assert</span> <span class="s2">&quot;main_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;main_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;create_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;create_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">return</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;main_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;create_config&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">read_config_with_system</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Read configuration from a file path(now only suport python file). And select some proper parts</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - path (:obj:`str`): Path of configuration file</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - cfg (:obj:`Tuple[dict, dict]`): A collection(tuple) of configuration dict, divided into `main_config`, \</span>
+<span class="sd">            `create_cfg` and `system_config` three parts.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">file_to_dict</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">cfg_dict</span>
+        <span class="k">assert</span> <span class="s2">&quot;main_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;main_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;create_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;create_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;system_config&quot;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;Please make sure a &#39;system_config&#39; variable is declared in config python file!&quot;</span>
+        <span class="k">return</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;main_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;create_config&#39;</span><span class="p">],</span> <span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;system_config&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;invalid config file suffix: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="save_config"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.save_config">[docs]</a><span class="k">def</span> <span class="nf">save_config</span><span class="p">(</span><span class="n">config_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;py&#39;</span><span class="p">,</span> <span class="n">save_formatted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        save configuration to python file or yaml file</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - config (:obj:`dict`): Config dict</span>
+<span class="sd">        - path (:obj:`str`): Path of target yaml or target python file</span>
+<span class="sd">        - type (:obj:`str`): If type is ``yaml`` , save configuration to yaml file. If type is ``py`` , save\</span>
+<span class="sd">             configuration to python file.</span>
+<span class="sd">        - save_formatted (:obj:`bool`): If save_formatted is true, save formatted config to path.\</span>
+<span class="sd">            Formatted config can be read by serial_pipeline directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">type_</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;yaml&#39;</span><span class="p">,</span> <span class="s1">&#39;py&#39;</span><span class="p">],</span> <span class="n">type_</span>
+    <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;yaml&#39;</span><span class="p">:</span>
+        <span class="n">save_config_yaml</span><span class="p">(</span><span class="n">config_</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;py&#39;</span><span class="p">:</span>
+        <span class="n">save_config_py</span><span class="p">(</span><span class="n">config_</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">save_formatted</span><span class="p">:</span>
+            <span class="n">formated_path</span> <span class="o">=</span> <span class="n">osp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">osp</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="s1">&#39;formatted_&#39;</span> <span class="o">+</span> <span class="n">osp</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+            <span class="n">save_config_formatted</span><span class="p">(</span><span class="n">config_</span><span class="p">,</span> <span class="n">formated_path</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">compile_buffer_config</span><span class="p">(</span><span class="n">policy_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">user_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">buffer_cls</span><span class="p">:</span> <span class="s1">&#39;IBuffer&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>  <span class="c1"># noqa</span>
+
+    <span class="k">def</span> <span class="nf">_compile_buffer_config</span><span class="p">(</span><span class="n">policy_buffer_cfg</span><span class="p">,</span> <span class="n">user_buffer_cfg</span><span class="p">,</span> <span class="n">buffer_cls</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">buffer_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">policy_buffer_cfg</span><span class="p">,</span> <span class="s2">&quot;please indicate buffer type in create_cfg&quot;</span>
+            <span class="n">buffer_cls</span> <span class="o">=</span> <span class="n">get_buffer_cls</span><span class="p">(</span><span class="n">policy_buffer_cfg</span><span class="p">)</span>
+        <span class="n">buffer_cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">buffer_cls</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span> <span class="n">policy_buffer_cfg</span><span class="p">)</span>
+        <span class="n">buffer_cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">buffer_cfg</span><span class="p">,</span> <span class="n">user_buffer_cfg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">buffer_cfg</span>
+
+    <span class="n">policy_multi_buffer</span> <span class="o">=</span> <span class="n">policy_cfg</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;multi_buffer&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">user_multi_buffer</span> <span class="o">=</span> <span class="n">user_cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;other&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;replay_buffer&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;multi_buffer&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">user_multi_buffer</span> <span class="ow">or</span> <span class="n">user_multi_buffer</span> <span class="o">==</span> <span class="n">policy_multi_buffer</span><span class="p">,</span> <span class="s2">&quot;For multi_buffer, </span><span class="se">\</span>
+<span class="s2">        user_cfg(</span><span class="si">{}</span><span class="s2">) and policy_cfg(</span><span class="si">{}</span><span class="s2">) must be in accordance&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">user_multi_buffer</span><span class="p">,</span> <span class="n">policy_multi_buffer</span><span class="p">)</span>
+    <span class="n">multi_buffer</span> <span class="o">=</span> <span class="n">policy_multi_buffer</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">multi_buffer</span><span class="p">:</span>
+        <span class="n">policy_buffer_cfg</span> <span class="o">=</span> <span class="n">policy_cfg</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span>
+        <span class="n">user_buffer_cfg</span> <span class="o">=</span> <span class="n">user_cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;other&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;replay_buffer&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">return</span> <span class="n">_compile_buffer_config</span><span class="p">(</span><span class="n">policy_buffer_cfg</span><span class="p">,</span> <span class="n">user_buffer_cfg</span><span class="p">,</span> <span class="n">buffer_cls</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">return_cfg</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">buffer_name</span> <span class="ow">in</span> <span class="n">policy_cfg</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="p">:</span>  <span class="c1"># Only traverse keys in policy_cfg</span>
+            <span class="k">if</span> <span class="n">buffer_name</span> <span class="o">==</span> <span class="s1">&#39;multi_buffer&#39;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">policy_buffer_cfg</span> <span class="o">=</span> <span class="n">policy_cfg</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="p">[</span><span class="n">buffer_name</span><span class="p">]</span>
+            <span class="n">user_buffer_cfg</span> <span class="o">=</span> <span class="n">user_cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;other&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;replay_buffer&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;buffer_name&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">if</span> <span class="n">buffer_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">return_cfg</span><span class="p">[</span><span class="n">buffer_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_compile_buffer_config</span><span class="p">(</span><span class="n">policy_buffer_cfg</span><span class="p">,</span> <span class="n">user_buffer_cfg</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">return_cfg</span><span class="p">[</span><span class="n">buffer_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_compile_buffer_config</span><span class="p">(</span>
+                    <span class="n">policy_buffer_cfg</span><span class="p">,</span> <span class="n">user_buffer_cfg</span><span class="p">,</span> <span class="n">buffer_cls</span><span class="p">[</span><span class="n">buffer_name</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="n">return_cfg</span><span class="p">[</span><span class="n">buffer_name</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">buffer_name</span>
+        <span class="k">return</span> <span class="n">return_cfg</span>
+
+
+<span class="k">def</span> <span class="nf">compile_collector_config</span><span class="p">(</span>
+        <span class="n">policy_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
+        <span class="n">user_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
+        <span class="n">collector_cls</span><span class="p">:</span> <span class="s1">&#39;ISerialCollector&#39;</span>  <span class="c1"># noqa</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+    <span class="n">policy_collector_cfg</span> <span class="o">=</span> <span class="n">policy_cfg</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector</span>
+    <span class="n">user_collector_cfg</span> <span class="o">=</span> <span class="n">user_cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;collect&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;collector&#39;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="c1"># step1: get collector class</span>
+    <span class="c1"># two cases: create cfg merged in policy_cfg, collector class, and class has higher priority</span>
+    <span class="k">if</span> <span class="n">collector_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">policy_collector_cfg</span><span class="p">,</span> <span class="s2">&quot;please indicate collector type in create_cfg&quot;</span>
+        <span class="c1"># use type to get collector_cls</span>
+        <span class="n">collector_cls</span> <span class="o">=</span> <span class="n">get_serial_collector_cls</span><span class="p">(</span><span class="n">policy_collector_cfg</span><span class="p">)</span>
+    <span class="c1"># step2: policy collector cfg merge to collector cfg</span>
+    <span class="n">collector_cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">collector_cls</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span> <span class="n">policy_collector_cfg</span><span class="p">)</span>
+    <span class="c1"># step3: user collector cfg merge to the step2 config</span>
+    <span class="n">collector_cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">collector_cfg</span><span class="p">,</span> <span class="n">user_collector_cfg</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">collector_cfg</span>
+
+
+<span class="n">policy_config_template</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span>
+    <span class="n">learn</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">learner</span><span class="o">=</span><span class="nb">dict</span><span class="p">()),</span>
+    <span class="n">collect</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">collector</span><span class="o">=</span><span class="nb">dict</span><span class="p">()),</span>
+    <span class="nb">eval</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">evaluator</span><span class="o">=</span><span class="nb">dict</span><span class="p">()),</span>
+    <span class="n">other</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">replay_buffer</span><span class="o">=</span><span class="nb">dict</span><span class="p">()),</span>
+<span class="p">)</span>
+<span class="n">policy_config_template</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">policy_config_template</span><span class="p">)</span>
+<span class="n">env_config_template</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">manager</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span> <span class="p">)</span>
+<span class="n">env_config_template</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="n">env_config_template</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="compile_config"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.compile_config">[docs]</a><span class="k">def</span> <span class="nf">compile_config</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
+        <span class="n">env_manager</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">policy</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">learner</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">BaseLearner</span><span class="p">,</span>
+        <span class="n">collector</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">evaluator</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">InteractionSerialEvaluator</span><span class="p">,</span>
+        <span class="n">buffer</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">env</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">reward_model</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">auto</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">create_cfg</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_cfg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;total_config.py&#39;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Combine the input config information with other input information.</span>
+<span class="sd">        Compile config to make it easy to be called by other programs</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Input config dict which is to be used in the following pipeline</span>
+<span class="sd">        - env_manager (:obj:`type`): Env_manager class which is to be used in the following pipeline</span>
+<span class="sd">        - policy (:obj:`type`): Policy class which is to be used in the following pipeline</span>
+<span class="sd">        - learner (:obj:`type`): Input learner class, defaults to BaseLearner</span>
+<span class="sd">        - collector (:obj:`type`): Input collector class, defaults to BaseSerialCollector</span>
+<span class="sd">        - evaluator (:obj:`type`): Input evaluator class, defaults to InteractionSerialEvaluator</span>
+<span class="sd">        - buffer (:obj:`type`): Input buffer class, defaults to IBuffer</span>
+<span class="sd">        - env (:obj:`type`): Environment class which is to be used in the following pipeline</span>
+<span class="sd">        - reward_model (:obj:`type`): Reward model class which aims to offer various and valuable reward</span>
+<span class="sd">        - seed (:obj:`int`): Random number seed</span>
+<span class="sd">        - auto (:obj:`bool`): Compile create_config dict or not</span>
+<span class="sd">        - create_cfg (:obj:`dict`): Input create config dict</span>
+<span class="sd">        - save_cfg (:obj:`bool`): Save config or not</span>
+<span class="sd">        - save_path (:obj:`str`): Path of saving file</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Config after compiling</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">auto</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">create_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="c1"># for compatibility</span>
+        <span class="k">if</span> <span class="s1">&#39;collector&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">create_cfg</span><span class="p">:</span>
+            <span class="n">create_cfg</span><span class="o">.</span><span class="n">collector</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;replay_buffer&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">create_cfg</span><span class="p">:</span>
+            <span class="n">create_cfg</span><span class="o">.</span><span class="n">replay_buffer</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;advanced&#39;</span><span class="p">))</span>
+            <span class="n">buffer</span> <span class="o">=</span> <span class="n">AdvancedReplayBuffer</span>
+        <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">get_env_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">env_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">env_manager</span> <span class="o">=</span> <span class="n">get_env_manager_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env_manager</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">policy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">policy</span> <span class="o">=</span> <span class="n">get_policy_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;default_config&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">env</span><span class="p">):</span>
+            <span class="n">env_config</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">env_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">()</span>  <span class="c1"># env does not have default_config</span>
+        <span class="n">env_config</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">env_config_template</span><span class="p">,</span> <span class="n">env_config</span><span class="p">)</span>
+        <span class="n">env_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+        <span class="n">env_config</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">env_manager</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span> <span class="n">env_config</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">env_config</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env_manager</span><span class="p">)</span>
+        <span class="n">policy_config</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+        <span class="n">policy_config</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">policy_config_template</span><span class="p">,</span> <span class="n">policy_config</span><span class="p">)</span>
+        <span class="n">policy_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">)</span>
+        <span class="n">policy_config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">collector</span><span class="p">)</span>
+        <span class="n">policy_config</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">replay_buffer</span><span class="p">)</span>
+
+        <span class="n">policy_config</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">commander</span> <span class="o">=</span> <span class="n">BaseSerialCommander</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;reward_model&#39;</span> <span class="ow">in</span> <span class="n">create_cfg</span><span class="p">:</span>
+            <span class="n">reward_model</span> <span class="o">=</span> <span class="n">get_reward_model_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">reward_model</span><span class="p">)</span>
+            <span class="n">reward_model_config</span> <span class="o">=</span> <span class="n">reward_model</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reward_model_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;default_config&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">env</span><span class="p">):</span>
+            <span class="n">env_config</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">env_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">()</span>  <span class="c1"># env does not have default_config</span>
+        <span class="n">env_config</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">env_config_template</span><span class="p">,</span> <span class="n">env_config</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">env_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">env_manager</span> <span class="o">=</span> <span class="n">BaseEnvManager</span>  <span class="c1"># for compatibility</span>
+        <span class="n">env_config</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">env_manager</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span> <span class="n">env_config</span><span class="o">.</span><span class="n">manager</span><span class="p">)</span>
+        <span class="n">policy_config</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+        <span class="n">policy_config</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">policy_config_template</span><span class="p">,</span> <span class="n">policy_config</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reward_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">reward_model_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reward_model_config</span> <span class="o">=</span> <span class="n">reward_model</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span>
+        <span class="n">learner</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span>
+        <span class="n">policy_config</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">create_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">collector</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">policy_config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector</span> <span class="o">=</span> <span class="n">compile_collector_config</span><span class="p">(</span><span class="n">policy_config</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">collector</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">evaluator</span><span class="p">:</span>
+        <span class="n">policy_config</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span>
+            <span class="n">evaluator</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span>
+            <span class="n">policy_config</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">create_cfg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">policy_config</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span> <span class="o">=</span> <span class="n">compile_buffer_config</span><span class="p">(</span><span class="n">policy_config</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">buffer</span><span class="p">)</span>
+    <span class="n">default_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env&#39;</span><span class="p">:</span> <span class="n">env_config</span><span class="p">,</span> <span class="s1">&#39;policy&#39;</span><span class="p">:</span> <span class="n">policy_config</span><span class="p">})</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">reward_model_config</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">default_config</span><span class="p">[</span><span class="s1">&#39;reward_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">reward_model_config</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">default_config</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+    <span class="c1"># check important key in config</span>
+    <span class="k">if</span> <span class="n">evaluator</span> <span class="ow">in</span> <span class="p">[</span><span class="n">InteractionSerialEvaluator</span><span class="p">,</span> <span class="n">BattleInteractionSerialEvaluator</span><span class="p">]:</span>  <span class="c1"># env interaction evaluation</span>
+        <span class="k">if</span> <span class="s1">&#39;stop_value&#39;</span> <span class="ow">in</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="p">:</span>  <span class="c1"># data generation task doesn&#39;t need these fields</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">n_episode</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">n_evaluator_episode</span>
+            <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">eval</span><span class="o">.</span><span class="n">evaluator</span><span class="o">.</span><span class="n">stop_value</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">stop_value</span>
+    <span class="k">if</span> <span class="s1">&#39;exp_name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg</span><span class="p">:</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span> <span class="o">=</span> <span class="s1">&#39;default_experiment&#39;</span>
+    <span class="k">if</span> <span class="n">save_cfg</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">save_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">exp_name</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span>
+        <span class="n">save_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">save_path</span><span class="p">,</span> <span class="n">save_formatted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cfg</span></div>
+
+
+<div class="viewcode-block" id="compile_config_parallel"><a class="viewcode-back" href="../../../api_doc/config/config.html#ding.config.compile_config_parallel">[docs]</a><span class="k">def</span> <span class="nf">compile_config_parallel</span><span class="p">(</span>
+        <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
+        <span class="n">create_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
+        <span class="n">system_cfg</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">save_cfg</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;total_config.py&#39;</span><span class="p">,</span>
+        <span class="n">platform</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;local&#39;</span><span class="p">,</span>
+        <span class="n">coordinator_host</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">learner_host</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">collector_host</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">coordinator_port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">learner_port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">collector_port</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EasyDict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Combine the input parallel mode configuration information with other input information. Compile config\</span>
+<span class="sd">             to make it easy to be called by other programs</span>
+<span class="sd">    Arguments:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Input main config dict</span>
+<span class="sd">        - create_cfg (:obj:`dict`): Input create config dict, including type parameters, such as environment type</span>
+<span class="sd">        - system_cfg (:obj:`dict`): Input system config dict, including system parameters, such as file path,\</span>
+<span class="sd">            communication mode, use multiple GPUs or not</span>
+<span class="sd">        - seed (:obj:`int`): Random number seed</span>
+<span class="sd">        - save_cfg (:obj:`bool`): Save config or not</span>
+<span class="sd">        - save_path (:obj:`str`): Path of saving file</span>
+<span class="sd">        - platform (:obj:`str`): Where to run the program, &#39;local&#39; or &#39;slurm&#39;</span>
+<span class="sd">        - coordinator_host (:obj:`Optional[str]`): Input coordinator&#39;s host when platform is slurm</span>
+<span class="sd">        - learner_host (:obj:`Optional[str]`): Input learner&#39;s host when platform is slurm</span>
+<span class="sd">        - collector_host (:obj:`Optional[str]`): Input collector&#39;s host when platform is slurm</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        - cfg (:obj:`EasyDict`): Config after compiling</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># for compatibility</span>
+    <span class="k">if</span> <span class="s1">&#39;replay_buffer&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">create_cfg</span><span class="p">:</span>
+        <span class="n">create_cfg</span><span class="o">.</span><span class="n">replay_buffer</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;advanced&#39;</span><span class="p">))</span>
+    <span class="c1"># env</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">get_env_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;default_config&#39;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">env</span><span class="p">):</span>
+        <span class="n">env_config</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">env_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">()</span>  <span class="c1"># env does not have default_config</span>
+    <span class="n">env_config</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">env_config_template</span><span class="p">,</span> <span class="n">env_config</span><span class="p">)</span>
+    <span class="n">env_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env</span><span class="p">)</span>
+
+    <span class="n">env_manager</span> <span class="o">=</span> <span class="n">get_env_manager_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env_manager</span><span class="p">)</span>
+    <span class="n">env_config</span><span class="o">.</span><span class="n">manager</span> <span class="o">=</span> <span class="n">env_manager</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+    <span class="n">env_config</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">env_manager</span><span class="p">)</span>
+
+    <span class="c1"># policy</span>
+    <span class="n">policy</span> <span class="o">=</span> <span class="n">get_policy_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">)</span>
+    <span class="n">policy_config</span> <span class="o">=</span> <span class="n">policy</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+    <span class="n">policy_config</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">policy_config_template</span><span class="p">,</span> <span class="n">policy_config</span><span class="p">)</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">policy</span><span class="p">)</span>
+
+    <span class="n">collector</span> <span class="o">=</span> <span class="n">get_parallel_collector_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">collector</span><span class="p">)</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">collect</span><span class="o">.</span><span class="n">collector</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">collector</span><span class="p">)</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span> <span class="o">=</span> <span class="n">BaseLearner</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">learn</span><span class="o">.</span><span class="n">learner</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">learner</span><span class="p">)</span>
+    <span class="n">commander</span> <span class="o">=</span> <span class="n">get_parallel_commander_cls</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">commander</span><span class="p">)</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">commander</span> <span class="o">=</span> <span class="n">commander</span><span class="o">.</span><span class="n">default_config</span><span class="p">()</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">commander</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">commander</span><span class="p">)</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">create_cfg</span><span class="o">.</span><span class="n">replay_buffer</span><span class="p">)</span>
+    <span class="n">policy_config</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">replay_buffer</span> <span class="o">=</span> <span class="n">compile_buffer_config</span><span class="p">(</span><span class="n">policy_config</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">default_config</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;env&#39;</span><span class="p">:</span> <span class="n">env_config</span><span class="p">,</span> <span class="s1">&#39;policy&#39;</span><span class="p">:</span> <span class="n">policy_config</span><span class="p">})</span>
+    <span class="n">cfg</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">default_config</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+
+    <span class="n">cfg</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">other</span><span class="o">.</span><span class="n">commander</span><span class="o">.</span><span class="n">path_policy</span> <span class="o">=</span> <span class="n">system_cfg</span><span class="o">.</span><span class="n">path_policy</span>  <span class="c1"># league may use &#39;path_policy&#39;</span>
+
+    <span class="c1"># system</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;comm_learner&#39;</span><span class="p">,</span> <span class="s1">&#39;comm_collector&#39;</span><span class="p">]:</span>
+        <span class="n">system_cfg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">create_cfg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;local&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">parallel_transform</span><span class="p">(</span><span class="n">EasyDict</span><span class="p">({</span><span class="s1">&#39;main&#39;</span><span class="p">:</span> <span class="n">cfg</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">:</span> <span class="n">system_cfg</span><span class="p">}))</span>
+    <span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;slurm&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">parallel_transform_slurm</span><span class="p">(</span>
+            <span class="n">EasyDict</span><span class="p">({</span>
+                <span class="s1">&#39;main&#39;</span><span class="p">:</span> <span class="n">cfg</span><span class="p">,</span>
+                <span class="s1">&#39;system&#39;</span><span class="p">:</span> <span class="n">system_cfg</span>
+            <span class="p">}),</span> <span class="n">coordinator_host</span><span class="p">,</span> <span class="n">learner_host</span><span class="p">,</span> <span class="n">collector_host</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;k8s&#39;</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">parallel_transform_k8s</span><span class="p">(</span>
+            <span class="n">EasyDict</span><span class="p">({</span>
+                <span class="s1">&#39;main&#39;</span><span class="p">:</span> <span class="n">cfg</span><span class="p">,</span>
+                <span class="s1">&#39;system&#39;</span><span class="p">:</span> <span class="n">system_cfg</span>
+            <span class="p">}),</span>
+            <span class="n">coordinator_port</span><span class="o">=</span><span class="n">coordinator_port</span><span class="p">,</span>
+            <span class="n">learner_port</span><span class="o">=</span><span class="n">learner_port</span><span class="p">,</span>
+            <span class="n">collector_port</span><span class="o">=</span><span class="n">collector_port</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;not support platform type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">platform</span><span class="p">))</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">coordinator</span> <span class="o">=</span> <span class="n">deep_merge_dicts</span><span class="p">(</span><span class="n">Coordinator</span><span class="o">.</span><span class="n">default_config</span><span class="p">(),</span> <span class="n">cfg</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">coordinator</span><span class="p">)</span>
+    <span class="c1"># seed</span>
+    <span class="n">cfg</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+
+    <span class="k">if</span> <span class="n">save_cfg</span><span class="p">:</span>
+        <span class="n">save_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cfg</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

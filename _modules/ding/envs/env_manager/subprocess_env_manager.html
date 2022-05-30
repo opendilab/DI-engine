@@ -1,0 +1,1166 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.envs.env_manager.subprocess_env_manager &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ding.envs.env_manager.subprocess_env_manager</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ding.envs.env_manager.subprocess_env_manager</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pipe</span><span class="p">,</span> <span class="n">connection</span><span class="p">,</span> <span class="n">get_context</span><span class="p">,</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">ditk</span> <span class="kn">import</span> <span class="n">logging</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">gym</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">ctypes</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">cloudpickle</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">treetensor.numpy</span> <span class="k">as</span> <span class="nn">tnp</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">MethodType</span>
+
+<span class="kn">from</span> <span class="nn">ding.envs.env</span> <span class="kn">import</span> <span class="n">BaseEnvTimestep</span>
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">PropagatingThread</span><span class="p">,</span> <span class="n">LockContextType</span><span class="p">,</span> <span class="n">LockContext</span><span class="p">,</span> <span class="n">ENV_MANAGER_REGISTRY</span><span class="p">,</span> <span class="n">make_key_as_identifier</span>
+<span class="kn">from</span> <span class="nn">.base_env_manager</span> <span class="kn">import</span> <span class="n">BaseEnvManager</span><span class="p">,</span> <span class="n">EnvState</span><span class="p">,</span> <span class="n">timeout_wrapper</span>
+
+<span class="n">_NTYPE_TO_CTYPE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_bool</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint8</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">uint16</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint16</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint32</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_uint64</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int8</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int16</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int32</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int64</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_float</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span> <span class="n">ctypes</span><span class="o">.</span><span class="n">c_double</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">is_abnormal_timestep</span><span class="p">(</span><span class="n">timestep</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;abnormal&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;abnormal&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;abnormal&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;invalid env timestep type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">info</span><span class="p">)))</span>
+
+
+<div class="viewcode-block" id="ShmBuffer"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer">[docs]</a><span class="k">class</span> <span class="nc">ShmBuffer</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Shared memory buffer to store numpy array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">],</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">copy_on_get</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the buffer.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - dtype (:obj:`Union[type, np.dtype]`): The dtype of the data to limit the size of the buffer.</span>
+<span class="sd">            - shape (:obj:`Tuple[int]`): The shape of the data to limit the size of the buffer.</span>
+<span class="sd">            - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">):</span>  <span class="c1"># it is type of gym.spaces.dtype</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span><span class="o">.</span><span class="n">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buffer</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">_NTYPE_TO_CTYPE</span><span class="p">[</span><span class="n">dtype</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">copy_on_get</span> <span class="o">=</span> <span class="n">copy_on_get</span>
+
+<div class="viewcode-block" id="ShmBuffer.fill"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.fill">[docs]</a>    <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Fill the shared memory buffer with a numpy array. (Replace the original one.)</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - src_arr (:obj:`np.ndarray`): array to fill the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src_arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">src_arr</span><span class="p">)</span>
+        <span class="c1"># for np.array with shape (4, 84, 84) and float32 dtype, reshape is 15~20x faster than flatten</span>
+        <span class="c1"># for np.array with shape (4, 84, 84) and uint8 dtype, reshape is 5~7x faster than flatten</span>
+        <span class="c1"># so we reshape dst_arr rather than flatten src_arr</span>
+        <span class="n">dst_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">copyto</span><span class="p">(</span><span class="n">dst_arr</span><span class="p">,</span> <span class="n">src_arr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ShmBuffer.get"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBuffer.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the array stored in the buffer.</span>
+<span class="sd">        Return:</span>
+<span class="sd">            - data (:obj:`np.ndarray`): A copy of the data stored in the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copy_on_get</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># must use np.copy, torch.from_numpy and torch.as_tensor still use the same memory</span>
+        <span class="k">return</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="ShmBufferContainer"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer">[docs]</a><span class="k">class</span> <span class="nc">ShmBufferContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Support multiple shared memory buffers. Each key-value is name-buffer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">type</span><span class="p">],</span> <span class="nb">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">],</span>
+            <span class="n">shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">],</span>
+            <span class="n">copy_on_get</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the buffer container.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - dtype (:obj:`Union[type, np.dtype]`): The dtype of the data to limit the size of the buffer.</span>
+<span class="sd">            - shape (:obj:`Union[Dict[Any, tuple], tuple]`): If `Dict[Any, tuple]`, use a dict to manage \</span>
+<span class="sd">                multiple buffers; If `tuple`, use single buffer.</span>
+<span class="sd">            - copy_on_get (:obj:`bool`): Whether to copy data when calling get method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">ShmBufferContainer</span><span class="p">(</span><span class="n">dtype</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">v</span><span class="p">,</span> <span class="n">copy_on_get</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">shape</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">ShmBuffer</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">copy_on_get</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;not support shape: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span> <span class="o">=</span> <span class="n">shape</span>
+
+<div class="viewcode-block" id="ShmBufferContainer.fill"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.fill">[docs]</a>    <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_arr</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Fill the one or many shared memory buffer.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - src_arr (:obj:`Union[Dict[Any, np.ndarray], np.ndarray]`): array to fill the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">src_arr</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">src_arr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ShmBufferContainer.get"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.ShmBufferContainer.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the one or many arrays stored in the buffer.</span>
+<span class="sd">        Return:</span>
+<span class="sd">            - data (:obj:`np.ndarray`): The array(s) stored in the buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shape</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">CloudPickleWrapper</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        CloudPickleWrapper can be able to pickle more python object(e.g: an object with lambda expression)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cloudpickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>  <span class="c1"># pickle is faster</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">cloudpickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AsyncSubprocessEnvManager"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager">[docs]</a><span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;async_subprocess&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AsyncSubprocessEnvManager</span><span class="p">(</span><span class="n">BaseEnvManager</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Create an AsyncSubprocessEnvManager to manage multiple environments.</span>
+<span class="sd">        Each Environment is run by a respective subprocess.</span>
+<span class="sd">    Interfaces:</span>
+<span class="sd">        seed, launch, ready_obs, step, reset, active_env</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">episode_num</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">max_retry</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">step_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">auto_reset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">retry_type</span><span class="o">=</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span>
+        <span class="n">reset_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">retry_waiting_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="c1"># subprocess specified args</span>
+        <span class="n">shared_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">copy_on_get</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">context</span><span class="o">=</span><span class="s1">&#39;spawn&#39;</span> <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;windows&#39;</span> <span class="k">else</span> <span class="s1">&#39;fork&#39;</span><span class="p">,</span>
+        <span class="n">wait_num</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">step_wait_timeout</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+        <span class="n">connect_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">reset_inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">env_fn</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">],</span>
+            <span class="n">cfg</span><span class="p">:</span> <span class="n">EasyDict</span> <span class="o">=</span> <span class="n">EasyDict</span><span class="p">({}),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the AsyncSubprocessEnvManager.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - env_fn (:obj:`List[Callable]`): The function to create environment</span>
+<span class="sd">            - cfg (:obj:`EasyDict`): Config</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            - wait_num: for each time the minimum number of env return to gather</span>
+<span class="sd">            - step_wait_timeout: for each time the minimum number of env return to gather</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env_fn</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shared_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">shared_memory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_copy_on_get</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">copy_on_get</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wait_num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">wait_num</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_step_wait_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">step_wait_timeout</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">LockContext</span><span class="p">(</span><span class="n">LockContextType</span><span class="o">.</span><span class="n">THREAD_LOCK</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">connect_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_async_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;wait_num&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_wait_num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">),</span>
+                <span class="s1">&#39;timeout&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_wait_timeout</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_inplace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cfg</span><span class="o">.</span><span class="n">reset_inplace</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_reset</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_inplace</span><span class="p">,</span> <span class="s2">&quot;reset_inplace is unavailable when auto_reset=False.&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_create_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Fork/spawn sub-processes(Call ``_create_env_subprocess``) and create pipes to transfer the data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_memory</span><span class="p">:</span>
+            <span class="n">obs_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observation_space</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_space</span><span class="p">,</span> <span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">):</span>
+                <span class="c1"># For multi_agent case, such as multiagent_mujoco and petting_zoo mpe.</span>
+                <span class="c1"># Now only for the case that each agent in the team have the same obs structure</span>
+                <span class="c1"># and corresponding shape.</span>
+                <span class="n">shape</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shape</span> <span class="o">=</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">shape</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">obs_space</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_obs_buffers</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">env_id</span><span class="p">:</span> <span class="n">ShmBufferContainer</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">copy_on_get</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_copy_on_get</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_obs_buffers</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_children</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_num</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_create_env_subprocess</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;step&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_create_env_subprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">):</span>
+        <span class="c1"># start a new one</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_context</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_children</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">Pipe</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">Process</span><span class="p">(</span>
+            <span class="c1"># target=self.worker_fn,</span>
+            <span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">worker_fn_robust</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_children</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span>
+                <span class="n">CloudPickleWrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_fn</span><span class="p">[</span><span class="n">env_id</span><span class="p">]),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_obs_buffers</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">method_name_list</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_reset_timeout</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_step_timeout</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_reset_inplace</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;subprocess_env_manager</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_children</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">INIT</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;enable_save_replay&#39;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span><span class="p">[</span><span class="n">env_id</span><span class="p">]],</span> <span class="p">{}])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ready_env</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="n">active_env</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">active_env</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ready_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the next observations.</span>
+<span class="sd">        Return:</span>
+<span class="sd">            A dictionary with observations and their environment IDs.</span>
+<span class="sd">        Note:</span>
+<span class="sd">            The observations are returned in np.ndarray.</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt;     obs_dict = env_manager.ready_obs</span>
+<span class="sd">            &gt;&gt;&gt;     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">no_done_env_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">DONE</span><span class="p">]</span>
+        <span class="n">sleep_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">no_done_env_idx</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">sleep_count</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;VEC_ENV_MANAGER: all the not done envs are resetting, sleep </span><span class="si">{}</span><span class="s1"> times&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sleep_count</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+            <span class="n">sleep_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ready_env</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ready_imgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">render_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;rgb_array&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the next renderd frames.</span>
+<span class="sd">        Return:</span>
+<span class="sd">            A dictionary with rendered frames and their environment IDs.</span>
+<span class="sd">        Note:</span>
+<span class="sd">            The rendered frames are returned in np.ndarray.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ready_env</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;render&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;render_mode&#39;</span><span class="p">:</span> <span class="n">render_mode</span><span class="p">}])</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ready_env</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="AsyncSubprocessEnvManager.launch"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.launch">[docs]</a>    <span class="k">def</span> <span class="nf">launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Set up the environments and their parameters.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - reset_param (:obj:`Optional[Dict]`): Dict of reset parameters for each environment, key is the env_id, \</span>
+<span class="sd">                value is the cooresponding reset parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">,</span> <span class="s2">&quot;please first close the env manager&quot;</span>
+        <span class="k">if</span> <span class="n">reset_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">reset_param</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_fn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_state</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">reset_param</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AsyncSubprocessEnvManager.reset"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reset_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Reset the environments their parameters.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - reset_param (:obj:`List`): Dict of reset parameters for each environment, key is the env_id, \</span>
+<span class="sd">                value is the cooresponding reset parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_closed</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">reset_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">reset_env_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">env_id</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">reset_env_list</span> <span class="o">=</span> <span class="n">reset_param</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">reset_param</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span>
+
+        <span class="c1"># clear previous info</span>
+        <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">reset_env_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+
+        <span class="n">sleep_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RESET</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">reset_env_list</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">sleep_count</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;VEC_ENV_MANAGER: not all the envs finish resetting, sleep </span><span class="si">{}</span><span class="s1"> times&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sleep_count</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+            <span class="n">sleep_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># reset env</span>
+        <span class="n">reset_thread_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">reset_env_list</span><span class="p">):</span>
+            <span class="c1"># set seed</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_dynamic_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_dynamic_seed</span><span class="p">],</span> <span class="p">{}])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span><span class="p">[</span><span class="n">env_id</span><span class="p">]],</span> <span class="p">{}])</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">ret</span><span class="p">})</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_env_seed</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># seed only use once</span>
+                <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;subprocess reset set seed failed, ignore and continue...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RESET</span>
+            <span class="n">reset_thread</span> <span class="o">=</span> <span class="n">PropagatingThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="p">))</span>
+            <span class="n">reset_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">reset_thread_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reset_thread</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">reset_thread_list</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">reset_thread_list</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">reset_fn</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">poll</span><span class="p">():</span>
+                <span class="n">recv_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;unread data left before sending to the pipe: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">recv_data</span><span class="p">)))</span>
+            <span class="c1"># if self._reset_param[env_id] is None, just reset specific env, not pass reset param</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">],</span> <span class="nb">dict</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="p">[],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_param</span><span class="p">[</span><span class="n">env_id</span><span class="p">]])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span> <span class="p">[],</span> <span class="kc">None</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_connect_timeout</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ConnectionError</span><span class="p">(</span><span class="s2">&quot;env reset connection timeout&quot;</span><span class="p">)</span>  <span class="c1"># Leave it to try again</span>
+
+            <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">obs</span><span class="p">},</span> <span class="n">close</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_memory</span><span class="p">:</span>
+                <span class="n">obs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obs_buffers</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="c1"># it is necessary to add lock for the updates of env_state</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs</span>
+
+        <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">reset_fn</span><span class="p">()</span>
+                <span class="k">return</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retry_type</span> <span class="o">==</span> <span class="s1">&#39;renew&#39;</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_create_env_subprocess</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retry_waiting_time</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Env </span><span class="si">{}</span><span class="s2"> reset has exceeded max retries(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">))</span>
+        <span class="n">runtime_error</span> <span class="o">=</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Env </span><span class="si">{}</span><span class="s2"> reset has exceeded max retries(</span><span class="si">{}</span><span class="s2">), and the latest exception is: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">env_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_retry</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">runtime_error</span><span class="o">.</span><span class="n">__traceback__</span> <span class="o">=</span> <span class="n">exceptions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">__traceback__</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>  <span class="c1"># exception cased by main thread closing parent_remote</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">runtime_error</span>
+
+<div class="viewcode-block" id="AsyncSubprocessEnvManager.step"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Step all environments. Reset an env if done.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - actions (:obj:`Dict[int, Any]`): {env_id: action}</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \</span>
+<span class="sd">                ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt;     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}</span>
+<span class="sd">            &gt;&gt;&gt;     timesteps = env_manager.step(actions_dict):</span>
+<span class="sd">            &gt;&gt;&gt;     for env_id, timestep in timesteps.items():</span>
+<span class="sd">            &gt;&gt;&gt;         pass</span>
+
+<span class="sd">        .. note:</span>
+
+<span class="sd">            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.</span>
+<span class="sd">            - Each environment is run by a subprocess separately. Once an environment is done, it is reset immediately.</span>
+<span class="sd">            - Async subprocess env manager use ``connection.wait`` to poll.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_closed</span><span class="p">()</span>
+        <span class="n">env_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">actions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">env_ids</span><span class="p">]</span>
+                   <span class="p">),</span> <span class="s1">&#39;current env state are: </span><span class="si">{}</span><span class="s1">, please check whether the requested env is in reset or done&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                       <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">env_ids</span><span class="p">}</span>
+                   <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">actions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">act</span><span class="p">],</span> <span class="kc">None</span><span class="p">])</span>
+
+        <span class="n">timesteps</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">step_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_async_args</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span>
+        <span class="n">wait_num</span><span class="p">,</span> <span class="n">timeout</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">step_args</span><span class="p">[</span><span class="s1">&#39;wait_num&#39;</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">env_ids</span><span class="p">)),</span> <span class="n">step_args</span><span class="p">[</span><span class="s1">&#39;timeout&#39;</span><span class="p">]</span>
+        <span class="n">rest_env_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">env_ids</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]))</span>
+        <span class="n">ready_env_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cur_rest_env_ids</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">rest_env_ids</span><span class="p">)</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">rest_conn</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">cur_rest_env_ids</span><span class="p">]</span>
+            <span class="n">ready_conn</span><span class="p">,</span> <span class="n">ready_ids</span> <span class="o">=</span> <span class="n">AsyncSubprocessEnvManager</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">wait_num</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">)),</span> <span class="n">timeout</span><span class="p">)</span>
+            <span class="n">cur_ready_env_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_rest_env_ids</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">ready_ids</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_ready_env_ids</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">ready_conn</span><span class="p">)</span>
+            <span class="c1"># timesteps.update({env_id: p.recv() for env_id, p in zip(cur_ready_env_ids, ready_conn)})</span>
+            <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cur_ready_env_ids</span><span class="p">,</span> <span class="n">ready_conn</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">timesteps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">recv</span><span class="p">()})</span>
+                <span class="k">except</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">timestep</span> <span class="o">=</span> <span class="n">BaseEnvTimestep</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;abnormal&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+                    <span class="n">timesteps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">timestep</span><span class="p">})</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_create_env_subprocess</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span>
+            <span class="n">ready_env_ids</span> <span class="o">+=</span> <span class="n">cur_ready_env_ids</span>
+            <span class="n">cur_rest_env_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cur_rest_env_ids</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">cur_ready_env_ids</span><span class="p">)))</span>
+            <span class="c1"># At least one not done env timestep, or all envs&#39; steps are finished</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">done</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">ready_conn</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">):</span>
+                <span class="k">break</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]:</span> <span class="nb">set</span>
+        <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">rest_env_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">ready_env_ids</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_waiting_env</span><span class="p">[</span><span class="s1">&#39;step&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_memory</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timesteps</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="n">timesteps</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">obs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_buffers</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">is_abnormal_timestep</span><span class="p">(</span><span class="n">timestep</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">ERROR</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_num</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_reset</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_inplace</span><span class="p">:</span>  <span class="c1"># reset in subprocess at once</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># in this case, ready_obs is updated in ``self._reset``</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RESET</span>
+                            <span class="n">reset_thread</span> <span class="o">=</span> <span class="n">PropagatingThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;regular_reset&#39;</span><span class="p">)</span>
+                            <span class="n">reset_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="n">reset_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># in the case that auto_reset=False, caller should call ``env_manager.reset`` manually</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">NEED_RESET</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">DONE</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span>
+        <span class="k">return</span> <span class="n">timesteps</span></div>
+
+    <span class="c1"># This method must be staticmethod, otherwise there will be some resource conflicts(e.g. port or file)</span>
+    <span class="c1"># Env must be created in worker, which is a trick of avoiding env pickle errors.</span>
+    <span class="c1"># A more robust version is used by default. But this one is also preserved.</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">worker_fn</span><span class="p">(</span>
+            <span class="n">p</span><span class="p">:</span> <span class="n">connection</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span>
+            <span class="n">c</span><span class="p">:</span> <span class="n">connection</span><span class="o">.</span><span class="n">Connection</span><span class="p">,</span>
+            <span class="n">env_fn_wrapper</span><span class="p">:</span> <span class="s1">&#39;CloudPickleWrapper&#39;</span><span class="p">,</span>
+            <span class="n">obs_buffer</span><span class="p">:</span> <span class="n">ShmBuffer</span><span class="p">,</span>
+            <span class="n">method_name_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+            <span class="n">reset_inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Subprocess&#39;s target function to run.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">env_fn</span> <span class="o">=</span> <span class="n">env_fn_wrapper</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">env_fn</span><span class="p">()</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">cmd</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">EOFError</span><span class="p">:</span>  <span class="c1"># for the case when the pipe has been closed</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">break</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;getattr&#39;</span><span class="p">:</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">elif</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">method_name_list</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;step&#39;</span><span class="p">:</span>
+                            <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">is_abnormal_timestep</span><span class="p">(</span><span class="n">timestep</span><span class="p">):</span>
+                                <span class="n">ret</span> <span class="o">=</span> <span class="n">timestep</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">reset_inplace</span> <span class="ow">and</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+                                    <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+                                    <span class="n">timestep</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">obs</span><span class="o">=</span><span class="n">obs</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">obs_buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                    <span class="n">obs_buffer</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span>
+                                    <span class="n">timestep</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">obs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                                <span class="n">ret</span> <span class="o">=</span> <span class="n">timestep</span>
+                        <span class="k">elif</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;reset&#39;</span><span class="p">:</span>
+                            <span class="n">ret</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># obs</span>
+                            <span class="k">if</span> <span class="n">obs_buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="n">obs_buffer</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+                                <span class="n">ret</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="k">elif</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">ret</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)()</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">ret</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;not support env cmd: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="c1"># when there are some errors in env, worker_fn will send the errors to env manager</span>
+                    <span class="c1"># directly send error to another process will lose the stack trace, so we create a new Exception</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+                        <span class="n">e</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span>
+                            <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Env Process Exception:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_tb</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">__traceback__</span><span class="p">))</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;close&#39;</span><span class="p">:</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="k">break</span>
+        <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">worker_fn_robust</span><span class="p">(</span>
+            <span class="n">parent</span><span class="p">,</span>
+            <span class="n">child</span><span class="p">,</span>
+            <span class="n">env_fn_wrapper</span><span class="p">,</span>
+            <span class="n">obs_buffer</span><span class="p">,</span>
+            <span class="n">method_name_list</span><span class="p">,</span>
+            <span class="n">reset_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">step_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">reset_inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            A more robust version of subprocess&#39;s target function to run. Used by default.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">set_num_threads</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">env_fn</span> <span class="o">=</span> <span class="n">env_fn_wrapper</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">env_fn</span><span class="p">()</span>
+        <span class="n">parent</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="nd">@timeout_wrapper</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">step_timeout</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">step_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">timestep</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_abnormal_timestep</span><span class="p">(</span><span class="n">timestep</span><span class="p">):</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">timestep</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">reset_inplace</span> <span class="ow">and</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+                    <span class="n">obs</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+                    <span class="n">timestep</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">obs</span><span class="o">=</span><span class="n">obs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">obs_buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">obs_buffer</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">timestep</span><span class="o">.</span><span class="n">obs</span><span class="p">)</span>
+                    <span class="n">timestep</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">obs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">timestep</span>
+            <span class="k">return</span> <span class="n">ret</span>
+
+        <span class="nd">@timeout_wrapper</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">reset_timeout</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">reset_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">obs_buffer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">obs_buffer</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="n">ret</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">env</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cmd</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">EOFError</span><span class="p">:</span>  <span class="c1"># for the case when the pipe has been closed</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">break</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;getattr&#39;</span><span class="p">:</span>
+                    <span class="n">ret</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">method_name_list</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;step&#39;</span><span class="p">:</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">step_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;reset&#39;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">reset_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;render&#39;</span><span class="p">:</span>
+                        <span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">render</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="n">render</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">args</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ret</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;not support env cmd: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Sub env &#39;</span><span class="si">{}</span><span class="s2">&#39; error when executing </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">env</span><span class="p">),</span> <span class="n">cmd</span><span class="p">))</span>
+                <span class="c1"># when there are some errors in env, worker_fn will send the errors to env manager</span>
+                <span class="c1"># directly send error to another process will lose the stack trace, so we create a new Exception</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+                    <span class="n">e</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Env Process Exception:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_tb</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">__traceback__</span><span class="p">))</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">cmd</span> <span class="o">==</span> <span class="s1">&#39;close&#39;</span><span class="p">:</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">break</span>
+
+    <span class="k">def</span> <span class="nf">_check_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">close</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">exceptions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">ERROR</span>
+                <span class="n">exceptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="c1"># when receiving env Exception, env manager will safely close and raise this Exception to caller</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exceptions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">close</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">exceptions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># override</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_closed</span><span class="p">()</span>
+        <span class="c1"># we suppose that all the envs has the same attributes, if you need different envs, please</span>
+        <span class="c1"># create different env managers.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;env `</span><span class="si">{}</span><span class="s2">` doesn&#39;t have the attribute `</span><span class="si">{}</span><span class="s2">`&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="p">),</span> <span class="n">key</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_ref</span><span class="p">,</span> <span class="n">key</span><span class="p">),</span> <span class="n">MethodType</span><span class="p">)</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_name_list</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;env getattr doesn&#39;t supports method(</span><span class="si">{}</span><span class="s2">), please override method_name_list&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;getattr&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="p">{}])</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="c1"># override</span>
+<div class="viewcode-block" id="AsyncSubprocessEnvManager.enable_save_replay"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.enable_save_replay">[docs]</a>    <span class="k">def</span> <span class="nf">enable_save_replay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">replay_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Set each env&#39;s replay save path.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - replay_path (:obj:`Union[List[str], str]`): List of paths for each environment; \</span>
+<span class="sd">                Or one path for all environments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">replay_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">replay_path</span> <span class="o">=</span> <span class="p">[</span><span class="n">replay_path</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_num</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_env_replay_path</span> <span class="o">=</span> <span class="n">replay_path</span></div>
+
+    <span class="c1"># override</span>
+<div class="viewcode-block" id="AsyncSubprocessEnvManager.close"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.AsyncSubprocessEnvManager.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            CLose the env manager and release all related resources.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;close&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">poll</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_num</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">VOID</span>
+        <span class="c1"># disable process join for avoiding hang</span>
+        <span class="c1"># for p in self._subprocesses:</span>
+        <span class="c1">#     p.join()</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">wait_num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Wait at least enough(len(ready_conn) &gt;= wait_num) connections within timeout constraint.</span>
+<span class="sd">            If timeout is None and wait_num == len(ready_conn), means sync mode;</span>
+<span class="sd">            If timeout is not None, will return when len(ready_conn) &gt;= wait_num and</span>
+<span class="sd">            this method takes more than timeout seconds.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">wait_num</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rest_conn</span>
+                                    <span class="p">),</span> <span class="s1">&#39;please indicate proper wait_num: &lt;wait_num: </span><span class="si">{}</span><span class="s1">, rest_conn_num: </span><span class="si">{}</span><span class="s1">&gt;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                        <span class="n">wait_num</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">)</span>
+                                    <span class="p">)</span>
+        <span class="n">rest_conn_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">rest_conn</span><span class="p">)</span>
+        <span class="n">ready_conn</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">rest_conn_set</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ready_conn</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">wait_num</span> <span class="ow">and</span> <span class="n">timeout</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">timeout</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="n">finish_conn</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">connection</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">rest_conn_set</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">))</span>
+            <span class="n">ready_conn</span> <span class="o">=</span> <span class="n">ready_conn</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">finish_conn</span><span class="p">)</span>
+            <span class="n">rest_conn_set</span> <span class="o">=</span> <span class="n">rest_conn_set</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">finish_conn</span><span class="p">)</span>
+        <span class="n">ready_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">rest_conn</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ready_conn</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ready_conn</span><span class="p">),</span> <span class="n">ready_ids</span></div>
+
+
+<div class="viewcode-block" id="SyncSubprocessEnvManager"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager">[docs]</a><span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;subprocess&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">SyncSubprocessEnvManager</span><span class="p">(</span><span class="n">AsyncSubprocessEnvManager</span><span class="p">):</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">episode_num</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>
+        <span class="n">max_retry</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">step_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">auto_reset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">reset_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">retry_type</span><span class="o">=</span><span class="s1">&#39;reset&#39;</span><span class="p">,</span>
+        <span class="n">retry_waiting_time</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="c1"># subprocess specified args</span>
+        <span class="n">shared_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">copy_on_get</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">context</span><span class="o">=</span><span class="s1">&#39;spawn&#39;</span> <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;windows&#39;</span> <span class="k">else</span> <span class="s1">&#39;fork&#39;</span><span class="p">,</span>
+        <span class="n">wait_num</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">),</span>  <span class="c1"># inf mean all the environments</span>
+        <span class="n">step_wait_timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">connect_timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+        <span class="n">reset_inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># if reset_inplace=True in SyncSubprocessEnvManager, the interaction can be reproducible.</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="SyncSubprocessEnvManager.step"><a class="viewcode-back" href="../../../../api_doc/env/env_manager.html#ding.envs.env_manager.subprocess_env_manager.SyncSubprocessEnvManager.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">namedtuple</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Step all environments. Reset an env if done.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - actions (:obj:`Dict[int, Any]`): {env_id: action}</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - timesteps (:obj:`Dict[int, namedtuple]`): {env_id: timestep}. Timestep is a \</span>
+<span class="sd">                ``BaseEnvTimestep`` tuple with observation, reward, done, env_info.</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt;     actions_dict = {env_id: model.forward(obs) for env_id, obs in obs_dict.items())}</span>
+<span class="sd">            &gt;&gt;&gt;     timesteps = env_manager.step(actions_dict):</span>
+<span class="sd">            &gt;&gt;&gt;     for env_id, timestep in timesteps.items():</span>
+<span class="sd">            &gt;&gt;&gt;         pass</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            - The env_id that appears in ``actions`` will also be returned in ``timesteps``.</span>
+<span class="sd">            - Each environment is run by a subprocess separately. Once an environment is done, it is reset immediately.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_closed</span><span class="p">()</span>
+        <span class="n">env_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">actions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">env_ids</span><span class="p">]</span>
+                   <span class="p">),</span> <span class="s1">&#39;current env state are: </span><span class="si">{}</span><span class="s1">, please check whether the requested env is in reset or done&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                       <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">env_ids</span><span class="p">}</span>
+                   <span class="p">)</span>
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">act</span> <span class="ow">in</span> <span class="n">actions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># it is necessary to set kwargs as None for saving cost of serialization in some env like cartpole,</span>
+            <span class="c1"># and step method never uses kwargs in known envs.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">([</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">act</span><span class="p">],</span> <span class="kc">None</span><span class="p">])</span>
+
+        <span class="c1"># ===     This part is different from async one.     ===</span>
+        <span class="c1"># === Because operate in this way is more efficient. ===</span>
+        <span class="n">timesteps</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">ready_conn</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">env_id</span> <span class="ow">in</span> <span class="n">env_ids</span><span class="p">]</span>
+        <span class="c1"># timesteps.update({env_id: p.recv() for env_id, p in zip(env_ids, ready_conn)})</span>
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">env_ids</span><span class="p">,</span> <span class="n">ready_conn</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">timesteps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">recv</span><span class="p">()})</span>
+            <span class="k">except</span> <span class="n">pickle</span><span class="o">.</span><span class="n">UnpicklingError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">timestep</span> <span class="o">=</span> <span class="n">BaseEnvTimestep</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;abnormal&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+                <span class="n">timesteps</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">env_id</span><span class="p">:</span> <span class="n">timestep</span><span class="p">})</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pipe_parents</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_subprocesses</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_create_env_subprocess</span><span class="p">(</span><span class="n">env_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_data</span><span class="p">(</span><span class="n">timesteps</span><span class="p">)</span>
+        <span class="c1"># ======================================================</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_memory</span><span class="p">:</span>
+            <span class="c1"># TODO(nyz) optimize sync shm</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timesteps</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="n">timesteps</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="n">obs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_obs_buffers</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">is_abnormal_timestep</span><span class="p">(</span><span class="n">timestep</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">ERROR</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">timestep</span><span class="o">.</span><span class="n">done</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_episode_count</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_num</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auto_reset</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reset_inplace</span><span class="p">:</span>  <span class="c1"># reset in subprocess at once</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># in this case, ready_obs is updated in ``self._reset``</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RESET</span>
+                            <span class="n">reset_thread</span> <span class="o">=</span> <span class="n">PropagatingThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">env_id</span><span class="p">,</span> <span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;regular_reset&#39;</span><span class="p">)</span>
+                            <span class="n">reset_thread</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="n">reset_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># in the case that auto_reset=False, caller should call ``env_manager.reset`` manually</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">NEED_RESET</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">DONE</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">env_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">timestep</span><span class="o">.</span><span class="n">obs</span>
+        <span class="k">return</span> <span class="n">timesteps</span></div></div>
+
+
+<span class="nd">@ENV_MANAGER_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;subprocess_v2&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">SubprocessEnvManagerV2</span><span class="p">(</span><span class="n">SyncSubprocessEnvManager</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        SyncSubprocessEnvManager for new task pipeline and interfaces coupled with treetensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ready_obs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the ready (next) observation in ``tnp.array`` type, which is uniform for both async/sync scenarios.</span>
+<span class="sd">        Return:</span>
+<span class="sd">            - ready_obs (:obj:`tnp.array`): A stacked treenumpy-type observation data.</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; obs = env_manager.ready_obs</span>
+<span class="sd">            &gt;&gt;&gt; action = model(obs)  # model input np obs and output np action</span>
+<span class="sd">            &gt;&gt;&gt; timesteps = env_manager.step(action)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">no_done_env_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">DONE</span><span class="p">]</span>
+        <span class="n">sleep_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_env_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">EnvState</span><span class="o">.</span><span class="n">RUN</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">no_done_env_idx</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">sleep_count</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;VEC_ENV_MANAGER: all the not done envs are resetting, sleep </span><span class="si">{}</span><span class="s1"> times&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sleep_count</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+            <span class="n">sleep_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ready_obs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ready_env</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">tnp</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">tnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Execute env step according to input actions. And reset an env if done.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - actions (:obj:`List[tnp.ndarray]`): actions came from outer caller like policy</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - timesteps (:obj:`List[tnp.ndarray]`): Each timestep is a tnp.array with observation, reward, done, \</span>
+<span class="sd">                info, env_id.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">env_id</span><span class="p">:</span> <span class="n">a</span> <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ready_obs_id</span><span class="p">,</span> <span class="n">actions</span><span class="p">)}</span>
+        <span class="n">timesteps</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">env_id</span><span class="p">,</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="n">timesteps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">timestep</span>
+            <span class="c1"># make the type and content of key as similar as identifier,</span>
+            <span class="c1"># in order to call them as attribute (e.g. timestep.xxx), such as ``TimeLimit.truncated`` in cartpole info</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">make_key_as_identifier</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tnp</span><span class="o">.</span><span class="n">array</span><span class="p">({</span><span class="s1">&#39;obs&#39;</span><span class="p">:</span> <span class="n">obs</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">:</span> <span class="n">reward</span><span class="p">,</span> <span class="s1">&#39;done&#39;</span><span class="p">:</span> <span class="n">done</span><span class="p">,</span> <span class="s1">&#39;info&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">,</span> <span class="s1">&#39;env_id&#39;</span><span class="p">:</span> <span class="n">env_id</span><span class="p">}))</span>
+        <span class="k">return</span> <span class="n">new_data</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

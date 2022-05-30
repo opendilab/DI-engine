@@ -26,6 +26,7 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -114,8 +115,8 @@
 <li class="toctree-l3"><a class="reference internal" href="data_helper.html">data_helper</a></li>
 <li class="toctree-l3"><a class="reference internal" href="distribution.html">distribution</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">metric</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#levenshtein-distance">levenshtein_distance</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hamming-distance">hamming_distance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.metric.levenshtein_distance">levenshtein_distance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.metric.hamming_distance">hamming_distance</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="nn_test_helper.html">nn_test_helper</a></li>
@@ -215,11 +216,49 @@
             
   <section id="metric">
 <h1>metric<a class="headerlink" href="#metric" title="Permalink to this headline">¶</a></h1>
-<section id="levenshtein-distance">
-<h2>levenshtein_distance<a class="headerlink" href="#levenshtein-distance" title="Permalink to this headline">¶</a></h2>
+<section id="module-ding.torch_utils.metric.levenshtein_distance">
+<span id="levenshtein-distance"></span><h2>levenshtein_distance<a class="headerlink" href="#module-ding.torch_utils.metric.levenshtein_distance" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Levenshtein Distance, i.e. Edit Distance.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>pred (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): shape: (N1, )  (N1 &gt;= 0)</p></li>
+<li><p>target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): shape: (N2, )  (N2 &gt;= 0)</p></li>
+<li><p>pred_extra (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>)</p></li>
+<li><p>target_extra (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[torch.Tensor]</span></code>)</p></li>
+<li><p>extra_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[Callable]</span></code>): if specified, the distance metric of the extra input data</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>distance (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): distance(scalar), shape: (1, )</p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="hamming-distance">
-<h2>hamming_distance<a class="headerlink" href="#hamming-distance" title="Permalink to this headline">¶</a></h2>
+<section id="module-ding.torch_utils.metric.hamming_distance">
+<span id="hamming-distance"></span><h2>hamming_distance<a class="headerlink" href="#module-ding.torch_utils.metric.hamming_distance" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Hamming Distance</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>pred (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): pred input, boolean vector(0 or 1)</p></li>
+<li><p>target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): target input, boolean vector(0 or 1)</p></li>
+<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): weight to multiply</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>distance(<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): distance(scalar), shape (1, )</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>pred &amp; target (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): shape <span class="math notranslate nohighlight">\((B, N)\)</span>, </dt><dd><p>while B is the batch size, N is the dimension</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 

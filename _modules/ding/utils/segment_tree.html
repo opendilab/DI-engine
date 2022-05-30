@@ -1,0 +1,433 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.utils.segment_tree &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ding.utils.segment_tree</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ding.utils.segment_tree</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">lru_cache</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">ding</span>
+<span class="kn">from</span> <span class="nn">.default_helper</span> <span class="kn">import</span> <span class="n">one_time_warning</span>
+
+
+<span class="nd">@lru_cache</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">njit</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ding</span><span class="o">.</span><span class="n">enable_numba</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">numba</span>
+            <span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">njit</span> <span class="k">as</span> <span class="n">_njit</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="n">numba</span><span class="o">.</span><span class="n">__version__</span>
+            <span class="n">middle_version</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">middle_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">53</span><span class="p">:</span>
+                <span class="n">_njit</span> <span class="o">=</span> <span class="n">partial</span>  <span class="c1"># noqa</span>
+                <span class="n">one_time_warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Due to your numba version &lt;= 0.53.0, DI-engine disables it. And you can install </span><span class="se">\</span>
+<span class="s2">                    numba==0.53.0 if you want to speed up something&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_njit</span> <span class="o">=</span> <span class="n">partial</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">one_time_warning</span><span class="p">(</span><span class="s2">&quot;If you want to use numba to speed up segment tree, please install numba first&quot;</span><span class="p">)</span>
+        <span class="n">_njit</span> <span class="o">=</span> <span class="n">partial</span>
+    <span class="k">return</span> <span class="n">_njit</span>
+
+
+<div class="viewcode-block" id="SegmentTree"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.SegmentTree">[docs]</a><span class="k">class</span> <span class="nc">SegmentTree</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Segment tree data structure, implemented by the tree-like array. Only the leaf nodes are real value,</span>
+<span class="sd">        non-leaf nodes are to do some operations on its left and right child.</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``__init__``, ``reduce``, ``__setitem__``, ``__getitem__``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SegmentTree.__init__"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.SegmentTree.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">operation</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">neutral_element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Initialize the segment tree. Tree&#39;s root node is at index 1.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - capacity (:obj:`int`): Capacity of the tree (the number of the leaf nodes), should be the power of 2.</span>
+<span class="sd">            - operation (:obj:`function`): The operation function to construct the tree, e.g. sum, max, min, etc.</span>
+<span class="sd">            - neutral_element (:obj:`float` or :obj:`None`): The value of the neutral element, which is used to init \</span>
+<span class="sd">                all nodes value in the tree.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">capacity</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">capacity</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">capacity</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operation</span> <span class="o">=</span> <span class="n">operation</span>
+        <span class="c1"># Set neutral value(initial value) for all elements.</span>
+        <span class="k">if</span> <span class="n">neutral_element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+                <span class="n">neutral_element</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span>
+                <span class="n">neutral_element</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+                <span class="n">neutral_element</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;operation argument should be in min, max, sum (built in python functions).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neutral_element</span> <span class="o">=</span> <span class="n">neutral_element</span>
+        <span class="c1"># Index 1 is the root; Index ranging in [capacity, 2 * capacity - 1] are the leaf nodes.</span>
+        <span class="c1"># For each parent node with index i, left child is value[2*i] and right child is value[2*i+1].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">([</span><span class="n">capacity</span> <span class="o">*</span> <span class="mi">2</span><span class="p">],</span> <span class="n">neutral_element</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compile</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SegmentTree.reduce"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.SegmentTree.reduce">[docs]</a>    <span class="k">def</span> <span class="nf">reduce</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Reduce the tree in range ``[start, end)``</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - start (:obj:`int`): Start index(relative index, the first leaf node is 0), default set to 0</span>
+<span class="sd">            - end (:obj:`int` or :obj:`None`): End index(relative index), default set to ``self.capacity``</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - reduce_result (:obj:`float`): The reduce result value, which is dependent on data type and operation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO(nyz) check if directly reduce from the array(value) can be faster</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">)</span>
+        <span class="c1"># Change to absolute leaf index by adding capacity.</span>
+        <span class="n">start</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span>
+        <span class="n">end</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span>
+        <span class="k">return</span> <span class="n">_reduce</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neutral_element</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SegmentTree.__setitem__"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.SegmentTree.__setitem__">[docs]</a>    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Set ``leaf[idx] = val``; Then update the related nodes.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - idx (:obj:`int`): Leaf node index(relative index), should add ``capacity`` to change to absolute index.</span>
+<span class="sd">            - val (:obj:`float`): The value that will be assigned to ``leaf[idx]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">),</span> <span class="n">idx</span>
+        <span class="c1"># ``idx`` should add ``capacity`` to change to absolute index.</span>
+        <span class="n">_setitem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SegmentTree.__getitem__"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.SegmentTree.__getitem__">[docs]</a>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get ``leaf[idx]``</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - idx (:obj:`int`): Leaf node ``index(relative index)``, add ``capacity`` to change to absolute index.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - val (:obj:`float`): The value of ``leaf[idx]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_compile</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">f64</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">f32</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">i64</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">[</span><span class="n">f64</span><span class="p">,</span> <span class="n">f32</span><span class="p">,</span> <span class="n">i64</span><span class="p">]:</span>
+            <span class="n">_setitem</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+            <span class="n">_reduce</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">)</span>
+            <span class="n">_find_prefixsum_idx</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SumSegmentTree"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.SumSegmentTree">[docs]</a><span class="k">class</span> <span class="nc">SumSegmentTree</span><span class="p">(</span><span class="n">SegmentTree</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SumSegmentTree.__init__"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.SumSegmentTree.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init sum segment tree by passing ``operation=&#39;sum&#39;``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SumSegmentTree</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">capacity</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SumSegmentTree.find_prefixsum_idx"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.SumSegmentTree.find_prefixsum_idx">[docs]</a>    <span class="k">def</span> <span class="nf">find_prefixsum_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefixsum</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">trust_caller</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Find the highest non-zero index i, sum_{j}leaf[j] &lt;= ``prefixsum`` (where 0 &lt;= j &lt; i)</span>
+<span class="sd">            and sum_{j}leaf[j] &gt; ``prefixsum`` (where 0 &lt;= j &lt; i+1)</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - prefixsum (:obj:`float`): The target prefixsum.</span>
+<span class="sd">            - trust_caller (:obj:`bool`): Whether to trust caller, which means whether to check whether \</span>
+<span class="sd">                this tree&#39;s sum is greater than the input ``prefixsum`` by calling ``reduce`` function.</span>
+<span class="sd">                Default set to True.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - idx (:obj:`int`): Eligible index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">trust_caller</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">prefixsum</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduce</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="n">prefixsum</span>
+        <span class="k">return</span> <span class="n">_find_prefixsum_idx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">,</span> <span class="n">prefixsum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">neutral_element</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="MinSegmentTree"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.MinSegmentTree">[docs]</a><span class="k">class</span> <span class="nc">MinSegmentTree</span><span class="p">(</span><span class="n">SegmentTree</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MinSegmentTree.__init__"><a class="viewcode-back" href="../../../api_doc/utils/segment_tree.html#ding.utils.segment_tree.MinSegmentTree.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Init sum segment tree by passing ``operation=&#39;min&#39;``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MinSegmentTree</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">capacity</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span></div></div>
+
+
+<span class="nd">@njit</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">_setitem</span><span class="p">(</span><span class="n">tree</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">operation</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">tree</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="c1"># Update from specified node to the root node</span>
+    <span class="k">while</span> <span class="n">idx</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>  <span class="c1"># To parent node idx</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">tree</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span><span class="p">],</span> <span class="n">tree</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+            <span class="n">tree</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="n">right</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span>
+            <span class="n">tree</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">])</span>
+
+
+<span class="nd">@njit</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">_reduce</span><span class="p">(</span><span class="n">tree</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">neutral_element</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">operation</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="c1"># Nodes in 【start, end) will be aggregated</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">neutral_element</span>
+    <span class="k">while</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># If current start node (tree[start]) is a right child node, operate on start node and increase start by 1</span>
+            <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">+</span> <span class="n">tree</span><span class="p">[</span><span class="n">start</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">result</span><span class="p">,</span> <span class="n">tree</span><span class="p">[</span><span class="n">start</span><span class="p">]])</span>
+            <span class="n">start</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># If current end node (tree[end - 1]) is right child node, decrease end by 1 and operate on end node</span>
+            <span class="n">end</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">+</span> <span class="n">tree</span><span class="p">[</span><span class="n">end</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">result</span><span class="p">,</span> <span class="n">tree</span><span class="p">[</span><span class="n">end</span><span class="p">]])</span>
+        <span class="c1"># Both start and end transform to respective parent node</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">start</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">end</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="nd">@njit</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">_find_prefixsum_idx</span><span class="p">(</span><span class="n">tree</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">prefixsum</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">neutral_element</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="c1"># The function is to find a non-leaf node&#39;s index which satisfies:</span>
+    <span class="c1"># self.value[idx] &gt; input prefixsum and self.value[idx + 1] &lt;= input prefixsum</span>
+    <span class="c1"># In other words, we can assume that there are intervals: [num_0, num_1), [num_1, num_2), ... [num_k, num_k+1),</span>
+    <span class="c1"># the function is to find input prefixsum falls in which interval and return the interval&#39;s index.</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># start from root node</span>
+    <span class="k">while</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">capacity</span><span class="p">:</span>
+        <span class="n">child_base</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">idx</span>
+        <span class="k">if</span> <span class="n">tree</span><span class="p">[</span><span class="n">child_base</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">prefixsum</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">child_base</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefixsum</span> <span class="o">-=</span> <span class="n">tree</span><span class="p">[</span><span class="n">child_base</span><span class="p">]</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">child_base</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="c1"># Special case: The last element of ``self.value`` is neutral_element(0),</span>
+    <span class="c1"># and caller wants to ``find_prefixsum_idx(root_value)``.</span>
+    <span class="c1"># However, input prefixsum should be smaller than root_value.</span>
+    <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">capacity</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">tree</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">neutral_element</span><span class="p">:</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="k">while</span> <span class="n">tmp</span> <span class="o">&gt;=</span> <span class="n">capacity</span> <span class="ow">and</span> <span class="n">tree</span><span class="p">[</span><span class="n">tmp</span><span class="p">]</span> <span class="o">==</span> <span class="n">neutral_element</span><span class="p">:</span>
+            <span class="n">tmp</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">tmp</span> <span class="o">!=</span> <span class="n">capacity</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">tmp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;All elements in tree are the neutral_element(0), can&#39;t find non-zero element&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">tree</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">!=</span> <span class="n">neutral_element</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">idx</span> <span class="o">-</span> <span class="n">capacity</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

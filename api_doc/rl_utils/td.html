@@ -26,6 +26,7 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -211,23 +212,185 @@
 <h1>rl_tuils.td<a class="headerlink" href="#rl-tuils-td" title="Permalink to this headline">¶</a></h1>
 <section id="temporal-differnece">
 <h2>Temporal Differnece<a class="headerlink" href="#temporal-differnece" title="Permalink to this headline">¶</a></h2>
-<section id="dist-nstep-td-error">
-<h3>dist_nstep_td_error<a class="headerlink" href="#dist-nstep-td-error" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.rl_utils.td.dist_nstep_td_error">
+<span id="dist-nstep-td-error"></span><h3>dist_nstep_td_error<a class="headerlink" href="#module-ding.rl_utils.td.dist_nstep_td_error" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Multistep (1 step or n step) td_error for distributed q-learning based algorithm</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dist_nstep_td_data</span></code>): the input data, dist_nstep_td_data to calculate loss</p></li>
+<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): discount factor</p></li>
+<li><p>nstep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): nstep num, default set to 1</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): nstep td error, 0-dim tensor</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dist_nstep_td_data</span></code>): the dist_nstep_td_data containing</dt><dd><p>[‘dist’, ‘next_n_dist’, ‘act’, ‘reward’, ‘done’, ‘weight’]</p>
+</dd>
+</dl>
+</li>
+<li><p>dist (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N, n_atom)\)</span> i.e. [batch_size, action_dim, n_atom]</p></li>
+<li><p>next_n_dist (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N, n_atom)\)</span></p></li>
+<li><p>act (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>next_n_act (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span>, where T is timestep(nstep)</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <span class="math notranslate nohighlight">\((B, )\)</span>, whether done in last timestep</p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="q-nstep-td-error">
-<h3>q_nstep_td_error<a class="headerlink" href="#q-nstep-td-error" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.rl_utils.td.q_nstep_td_error">
+<span id="q-nstep-td-error"></span><h3>q_nstep_td_error<a class="headerlink" href="#module-ding.rl_utils.td.q_nstep_td_error" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Multistep (1 step or n step) td_error for q-learning based algorithm</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">q_nstep_td_data</span></code>): the input data, q_nstep_td_data to calculate loss</p></li>
+<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): discount factor</p></li>
+<li><p>cum_reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): whether to use cumulative nstep reward, which is figured out when collecting data</p></li>
+<li><p>value_gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): gamma discount value for target q_value</p></li>
+<li><p>criterion (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.modules</span></code>): loss function criterion</p></li>
+<li><p>nstep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): nstep num, default set to 1</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): nstep td error, 0-dim tensor</p></li>
+<li><p>td_error_per_sample (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): nstep td error, 1-dim tensor</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">q_nstep_td_data</span></code>): the q_nstep_td_data containing            [‘q’, ‘next_n_q’, ‘action’, ‘reward’, ‘done’]</p></li>
+<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span> i.e. [batch_size, action_dim]</p></li>
+<li><p>next_n_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>next_n_action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span>, where T is timestep(nstep)</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <span class="math notranslate nohighlight">\((B, )\)</span>, whether done in last timestep</p></li>
+<li><p>td_error_per_sample (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="q-nstep-td-error-with-rescale">
-<h3>q_nstep_td_error_with_rescale<a class="headerlink" href="#q-nstep-td-error-with-rescale" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.rl_utils.td.q_nstep_td_error_with_rescale">
+<span id="q-nstep-td-error-with-rescale"></span><h3>q_nstep_td_error_with_rescale<a class="headerlink" href="#module-ding.rl_utils.td.q_nstep_td_error_with_rescale" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Multistep (1 step or n step) td_error with value rescaling</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">q_nstep_td_data</span></code>): the input data, q_nstep_td_data to calculate loss</p></li>
+<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): discount factor</p></li>
+<li><p>nstep (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code>): nstep num, default set to 1</p></li>
+<li><p>criterion (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.modules</span></code>): loss function criterion</p></li>
+<li><p>trans_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): value transfrom function, default to value_transform            (refer to rl_utils/value_rescale.py)</p></li>
+<li><p>inv_trans_fn (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Callable</span></code>): value inverse transfrom function, default to value_inv_transform            (refer to rl_utils/value_rescale.py)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): nstep td error, 0-dim tensor</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">q_nstep_td_data</span></code>): the q_nstep_td_data containing        [‘q’, ‘next_n_q’, ‘action’, ‘reward’, ‘done’]</p></li>
+<li><p>q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span> i.e. [batch_size, action_dim]</p></li>
+<li><p>next_n_q (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((B, N)\)</span></p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>next_n_action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): <span class="math notranslate nohighlight">\((B, )\)</span></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span>, where T is timestep(nstep)</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.BoolTensor</span></code>) <span class="math notranslate nohighlight">\((B, )\)</span>, whether done in last timestep</p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="td-lambda-error">
-<h3>td_lambda_error<a class="headerlink" href="#td-lambda-error" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.rl_utils.td.td_lambda_error">
+<span id="td-lambda-error"></span><h3>td_lambda_error<a class="headerlink" href="#module-ding.rl_utils.td.td_lambda_error" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Computing TD(lambda) loss given constant gamma and lambda.
+There is no special handling for terminal state value,
+if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
+(<em>including the terminal state</em>, values[terminal] should also be 0)</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): td_lambda input data with fields [‘value’, ‘reward’, ‘weight’]</p></li>
+<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): constant discount factor gamma, should be in [0, 1], defaults to 0.9</p></li>
+<li><p>lambda (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): constant lambda, should be in [0, 1], defaults to 0.8</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Computed MSE loss, averaged over the batch</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T+1, B)\)</span>, where T is trajectory length and B is batch,            which is the estimation of the state value at step 0 to T</p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span>, the returns from time step 0 to T-1</p></li>
+<li><p>weight (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code> or None): <span class="math notranslate nohighlight">\((B, )\)</span>, the training sample weight</p></li>
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\(()\)</span>, 0-dim tensor</p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="generalized-lambda-returns">
-<h3>generalized_lambda_returns<a class="headerlink" href="#generalized-lambda-returns" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.rl_utils.td.generalized_lambda_returns">
+<span id="generalized-lambda-returns"></span><h3>generalized_lambda_returns<a class="headerlink" href="#module-ding.rl_utils.td.generalized_lambda_returns" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Functional equivalent to trfl.value_ops.generalized_lambda_returns
+<a class="reference external" href="https://github.com/deepmind/trfl/blob/2c07ac22512a16715cc759f0072be43a5d12ae45/trfl/value_ops.py#L74">https://github.com/deepmind/trfl/blob/2c07ac22512a16715cc759f0072be43a5d12ae45/trfl/value_ops.py#L74</a>
+Passing in a number instead of tensor to make the value constant for all samples in batch</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>bootstrap_values (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>):
+estimation of the value at step 0 to <em>T</em>, of size [T_traj+1, batchsize]</p></li>
+<li><p>rewards (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the returns from 0 to T-1, of size [T_traj, batchsize]</p></li>
+<li><p>gammas (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>):
+discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]</p></li>
+<li><p>lambda (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): determining the mix of bootstrapping
+vs further accumulation of multistep returns at each timestep, of size [T_traj, batchsize]</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>return (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Computed lambda return value
+for each state from 0 to T-1, of size [T_traj, batchsize]</p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="multistep-forward-view">
-<h3>multistep_forward_view<a class="headerlink" href="#multistep-forward-view" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.rl_utils.td.multistep_forward_view">
+<span id="multistep-forward-view"></span><h3>multistep_forward_view<a class="headerlink" href="#module-ding.rl_utils.td.multistep_forward_view" title="Permalink to this headline">¶</a></h3>
+<dl>
+<dt>Overview:</dt><dd><p>Same as trfl.sequence_ops.multistep_forward_view
+Implementing (12.18) in Sutton &amp; Barto</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">result[T-1]</span> <span class="pre">=</span> <span class="pre">rewards[T-1]</span> <span class="pre">+</span> <span class="pre">gammas[T-1]</span> <span class="pre">*</span> <span class="pre">bootstrap_values[T]</span>
+<span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">0...T-2</span> <span class="pre">:</span>
+<span class="pre">result[t]</span> <span class="pre">=</span> <span class="pre">rewards[t]</span> <span class="pre">+</span> <span class="pre">gammas[t]*(lambdas[t]*result[t+1]</span> <span class="pre">+</span> <span class="pre">(1-lambdas[t])*bootstrap_values[t+1])</span>
+<span class="pre">`</span></code></p>
+<p>Assuming the first dim of input tensors correspond to the index in batch
+There is no special handling for terminal state value,
+if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
+(including the terminal state, which is, bootstrap_values[terminal] should also be 0)</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>bootstrap_values (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): estimation of the value at <em>step 1 to T</em>, of size [T_traj, batchsize]</p></li>
+<li><p>rewards (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the returns from 0 to T-1, of size [T_traj, batchsize]</p></li>
+<li><p>gammas (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]</p></li>
+<li><dl class="simple">
+<dt>lambda (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): determining the mix of bootstrapping vs further accumulation of </dt><dd><p>multistep returns at each timestep of size [T_traj, batchsize], the element for T-1 is ignored and effectively set to 0, as there is no information about future rewards.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Computed lambda return value </dt><dd><p>for each state from 0 to T-1, of size [T_traj, batchsize]</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 </section>

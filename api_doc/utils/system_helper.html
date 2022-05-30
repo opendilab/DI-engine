@@ -215,20 +215,90 @@
 <section id="system-helper">
 <h2>system_helper<a class="headerlink" href="#system-helper" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/ding/utils/system_helper.py for usage.</p>
-<section id="get-ip">
-<h3>get_ip<a class="headerlink" href="#get-ip" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.system_helper.get_ip">
+<span id="get-ip"></span><h3>get_ip<a class="headerlink" href="#module-ding.utils.system_helper.get_ip" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get the <code class="docutils literal notranslate"><span class="pre">ip(host)</span></code> of socket</p>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>ip(<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The corresponding ip</p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="get-pid">
-<h3>get_pid<a class="headerlink" href="#get-pid" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.system_helper.get_pid">
+<span id="get-pid"></span><h3>get_pid<a class="headerlink" href="#module-ding.utils.system_helper.get_pid" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">os.getpid</span></code></p>
+</dd>
+</dl>
 </section>
-<section id="get-task-uid">
-<h3>get_task_uid<a class="headerlink" href="#get-task-uid" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.system_helper.get_task_uid">
+<span id="get-task-uid"></span><h3>get_task_uid<a class="headerlink" href="#module-ding.utils.system_helper.get_task_uid" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get the slurm <code class="docutils literal notranslate"><span class="pre">job_id</span></code>, <code class="docutils literal notranslate"><span class="pre">pid</span></code> and <code class="docutils literal notranslate"><span class="pre">uid</span></code></p>
+</dd>
+</dl>
 </section>
 <section id="propagatingthread">
 <h3>PropagatingThread<a class="headerlink" href="#propagatingthread" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.utils.system_helper.PropagatingThread">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.utils.system_helper.</span></span><span class="sig-name descname"><span class="pre">PropagatingThread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daemon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Subclass of Thread that propagates execution exception in the thread to the caller</p>
+</dd>
+<dt>Interface:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">run</span></code>, <code class="docutils literal notranslate"><span class="pre">join</span></code></p>
+</dd>
+<dt>Examples:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">func</span><span class="p">():</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">PropagatingThread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.utils.system_helper.PropagatingThread.join">
+<span class="sig-name descname"><span class="pre">join</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread.join"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread.join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait until the thread terminates.</p>
+<p>This blocks the calling thread until the thread whose join() method is
+called terminates – either normally or through an unhandled exception
+or until the optional timeout occurs.</p>
+<p>When the timeout argument is present and not None, it should be a
+floating point number specifying a timeout for the operation in seconds
+(or fractions thereof). As join() always returns None, you must call
+is_alive() after join() to decide whether a timeout happened – if the
+thread is still alive, the join() call timed out.</p>
+<p>When the timeout argument is not present or None, the operation will
+block until the thread terminates.</p>
+<p>A thread can be join()ed many times.</p>
+<p>join() raises a RuntimeError if an attempt is made to join the current
+thread as that would cause a deadlock. It is also an error to join() a
+thread before it has been started and attempts to do so raises the same
+exception.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.utils.system_helper.PropagatingThread.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/utils/system_helper.html#PropagatingThread.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.utils.system_helper.PropagatingThread.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method representing the thread’s activity.</p>
+<p>You may override this method in a subclass. The standard run() method
+invokes the callable object passed to the object’s constructor as the
+target argument, if any, with sequential and keyword arguments taken
+from the args and kwargs arguments, respectively.</p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="find-free-port">
-<h3>find_free_port<a class="headerlink" href="#find-free-port" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.system_helper.find_free_port">
+<span id="find-free-port"></span><h3>find_free_port<a class="headerlink" href="#module-ding.utils.system_helper.find_free_port" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Look up the free port list and return one</p>
+</dd>
+</dl>
 </section>
 </section>
 </section>

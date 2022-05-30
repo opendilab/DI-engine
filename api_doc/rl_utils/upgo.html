@@ -211,11 +211,61 @@
 <h1>rl_tuils.upgo<a class="headerlink" href="#rl-tuils-upgo" title="Permalink to this headline">¶</a></h1>
 <section id="upgo">
 <h2>UPGO<a class="headerlink" href="#upgo" title="Permalink to this headline">¶</a></h2>
-<section id="upgo-returns">
-<h3>upgo_returns<a class="headerlink" href="#upgo-returns" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.rl_utils.upgo.upgo_returns">
+<span id="upgo-returns"></span><h3>upgo_returns<a class="headerlink" href="#module-ding.rl_utils.upgo.upgo_returns" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Computing UPGO return targets. Also notice there is no special handling for the terminal state.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>rewards (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the returns from time step 0 to T-1, </dt><dd><p>of size [T_traj, batchsize]</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>bootstrap_values (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): estimation of the state value at step 0 to T, </dt><dd><p>of size [T_traj+1, batchsize]</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>ret (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Computed lambda return value for each state from 0 to T-1, </dt><dd><p>of size [T_traj, batchsize]</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="upgo-loss">
-<h3>upgo_loss<a class="headerlink" href="#upgo-loss" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.rl_utils.upgo.upgo_loss">
+<span id="upgo-loss"></span><h3>upgo_loss<a class="headerlink" href="#module-ding.rl_utils.upgo.upgo_loss" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Computing UPGO loss given constant gamma and lambda. There is no special handling for terminal state value,
+if the last state in trajectory is the terminal, just pass a 0 as bootstrap_terminal_value.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>target_output (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the output computed by the target policy network, </dt><dd><p>of size [T_traj, batchsize, n_output]</p>
+</dd>
+</dl>
+</li>
+<li><p>rhos (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the importance sampling ratio, of size [T_traj, batchsize]</p></li>
+<li><p>action (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the action taken, of size [T_traj, batchsize]</p></li>
+<li><p>rewards (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): the returns from time step 0 to T-1, of size [T_traj, batchsize]</p></li>
+<li><dl class="simple">
+<dt>bootstrap_values (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): estimation of the state value at step 0 to T, </dt><dd><p>of size [T_traj+1, batchsize]</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Computed importance sampled UPGO loss, averaged over the samples, of size []</p></li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 </section>

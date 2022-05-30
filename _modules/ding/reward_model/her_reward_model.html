@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.reward_model.her_reward_model &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ding.reward_model.her_reward_model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ding.reward_model.her_reward_model</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+
+<div class="viewcode-block" id="HerRewardModel"><a class="viewcode-back" href="../../../hands_on/her.html#ding.reward_model.her_reward_model.HerRewardModel">[docs]</a><span class="k">class</span> <span class="nc">HerRewardModel</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        Hindsight Experience Replay model.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        - her_strategy (:obj:`str`): Type of strategy that HER uses, should be in [&#39;final&#39;, &#39;future&#39;, &#39;episode&#39;]</span>
+<span class="sd">        - her_replay_k (:obj:`int`): Number of new episodes generated by an original episode. (Not used in episodic HER)</span>
+<span class="sd">        - episode_size (:obj:`int`): Sample how many episodes in one iteration.</span>
+<span class="sd">        - sample_per_episode (:obj:`int`): How many new samples are generated from an episode.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        In HER, we require episode trajectory to change the goals. However, episode lengths are different</span>
+<span class="sd">        and may have high variance. As a result, we **recommend** that you only use some transitions in</span>
+<span class="sd">        the complete episode by specifying ``episode_size`` and ``sample_per_episode`` in config.</span>
+<span class="sd">        Therefore, in one iteration, ``batch_size`` would be ``episode_size`` * ``sample_per_episode``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+            <span class="n">cuda</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span> <span class="o">=</span> <span class="n">cuda</span> <span class="ow">and</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_device</span> <span class="o">=</span> <span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cuda</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_her_strategy</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">her_strategy</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_her_strategy</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="s1">&#39;future&#39;</span><span class="p">,</span> <span class="s1">&#39;episode&#39;</span><span class="p">]</span>
+        <span class="c1"># `her_replay_k` may not be used in episodic HER, so default set to 1.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_her_replay_k</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;her_replay_k&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_episode_size</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;episode_size&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sample_per_episode</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sample_per_episode&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">episode</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+            <span class="n">merge_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">split_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">goal_reward_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get HER processed episodes from original episodes.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - episode (:obj:`List[Dict[str, Any]]`): Episode list, each element is a transition.</span>
+<span class="sd">            - merge_func (:obj:`Callable`): The merge function to use, default set to None. If None, \</span>
+<span class="sd">                then use ``__her_default_merge_func``</span>
+<span class="sd">            - split_func (:obj:`Callable`): The split function to use, default set to None. If None, \</span>
+<span class="sd">                then use ``__her_default_split_func``</span>
+<span class="sd">            - goal_reward_func (:obj:`Callable`): The goal_reward function to use, default set to None. If None, \</span>
+<span class="sd">                then use ``__her_default_goal_reward_func``</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - new_episode (:obj:`List[Dict[str, Any]]`): the processed transitions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">merge_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">merge_func</span> <span class="o">=</span> <span class="n">HerRewardModel</span><span class="o">.</span><span class="n">__her_default_merge_func</span>
+        <span class="k">if</span> <span class="n">split_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">split_func</span> <span class="o">=</span> <span class="n">HerRewardModel</span><span class="o">.</span><span class="n">__her_default_split_func</span>
+        <span class="k">if</span> <span class="n">goal_reward_func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">goal_reward_func</span> <span class="o">=</span> <span class="n">HerRewardModel</span><span class="o">.</span><span class="n">__her_default_goal_reward_func</span>
+        <span class="n">new_episodes</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_her_replay_k</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_per_episode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Use complete episode</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">episode</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Use some transitions in one episode</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">episode</span><span class="p">),</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sample_per_episode</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="n">obs</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">split_func</span><span class="p">(</span><span class="n">episode</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;obs&#39;</span><span class="p">])</span>
+            <span class="n">next_obs</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">achieved_goal</span> <span class="o">=</span> <span class="n">split_func</span><span class="p">(</span><span class="n">episode</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_her_replay_k</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_her_strategy</span> <span class="o">==</span> <span class="s1">&#39;final&#39;</span><span class="p">:</span>
+                    <span class="n">p_idx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_her_strategy</span> <span class="o">==</span> <span class="s1">&#39;episode&#39;</span><span class="p">:</span>
+                    <span class="n">p_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">episode</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_her_strategy</span> <span class="o">==</span> <span class="s1">&#39;future&#39;</span><span class="p">:</span>
+                    <span class="n">p_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">episode</span><span class="p">))</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">new_desired_goal</span> <span class="o">=</span> <span class="n">split_func</span><span class="p">(</span><span class="n">episode</span><span class="p">[</span><span class="n">p_idx</span><span class="p">][</span><span class="s1">&#39;next_obs&#39;</span><span class="p">])</span>
+                <span class="n">timestep</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">k</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">episode</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">,</span> <span class="s1">&#39;next_obs&#39;</span><span class="p">,</span> <span class="s1">&#39;reward&#39;</span><span class="p">]</span>
+                <span class="p">}</span>
+                <span class="n">timestep</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">merge_func</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">new_desired_goal</span><span class="p">)</span>
+                <span class="n">timestep</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">merge_func</span><span class="p">(</span><span class="n">next_obs</span><span class="p">,</span> <span class="n">new_desired_goal</span><span class="p">)</span>
+                <span class="n">timestep</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">goal_reward_func</span><span class="p">(</span><span class="n">achieved_goal</span><span class="p">,</span> <span class="n">new_desired_goal</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_device</span><span class="p">)</span>
+                <span class="n">new_episodes</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_episodes</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__her_default_merge_func</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            The function to merge obs in HER timestep</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`Any`): one of the timestep obs to merge</span>
+<span class="sd">            - y (:obj:`Any`): another timestep obs to merge</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - ret (:obj:`Any`): the merge obs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO(nyz) dict/list merge_func</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__her_default_split_func</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Split the input into obs, desired goal, and achieved goal.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - x (:obj:`Any`): The input to split</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - obs (:obj:`torch.Tensor`): Original obs.</span>
+<span class="sd">            - desired_goal (:obj:`torch.Tensor`): The final goal that wants to desired_goal</span>
+<span class="sd">            - achieved_goal (:obj:`torch.Tensor`): the achieved_goal</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO(nyz) dict/list split_func</span>
+        <span class="c1"># achieved_goal = f(obs), default: f == identical function</span>
+        <span class="n">obs</span><span class="p">,</span> <span class="n">desired_goal</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">achieved_goal</span> <span class="o">=</span> <span class="n">obs</span>
+        <span class="k">return</span> <span class="n">obs</span><span class="p">,</span> <span class="n">desired_goal</span><span class="p">,</span> <span class="n">achieved_goal</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__her_default_goal_reward_func</span><span class="p">(</span><span class="n">achieved_goal</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">desired_goal</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Get the corresponding merge reward according to whether the achieved_goal fit the desired_goal</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - achieved_goal (:obj:`torch.Tensor`): the achieved goal</span>
+<span class="sd">            - desired_goal (:obj:`torch.Tensor`): the desired_goal</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - goal_reward (:obj:`torch.Tensor`): the goal reward according to \</span>
+<span class="sd">            whether the achieved_goal fit the disired_goal</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">achieved_goal</span> <span class="o">==</span> <span class="n">desired_goal</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">episode_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_episode_size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sample_per_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_per_episode</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

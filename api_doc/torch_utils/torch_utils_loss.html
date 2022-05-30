@@ -119,7 +119,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">loss.cross_entropy_loss</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#labelsmoothceloss">LabelSmoothCELoss</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#softfocalloss">SoftFocalLoss</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#build-ce-criterion">build_ce_criterion</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-ding.torch_utils.loss.cross_entropy_loss.build_ce_criterion">build_ce_criterion</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#loss-multi-logits-loss">loss.multi_logits_loss</a><ul>
@@ -221,18 +221,117 @@
 <h1>loss.cross_entropy_loss<a class="headerlink" href="#loss-cross-entropy-loss" title="Permalink to this headline">¶</a></h1>
 <section id="labelsmoothceloss">
 <h2>LabelSmoothCELoss<a class="headerlink" href="#labelsmoothceloss" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.loss.cross_entropy_loss.</span></span><span class="sig-name descname"><span class="pre">LabelSmoothCELoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/cross_entropy_loss.html#LabelSmoothCELoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Label smooth cross entropy loss.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.LongTensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/cross_entropy_loss.html#LabelSmoothCELoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.cross_entropy_loss.LabelSmoothCELoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calculate label smooth cross entropy loss.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>logits (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Predicted logits.</p></li>
+<li><p>labels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Ground truth.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Calculated loss.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="softfocalloss">
 <h2>SoftFocalLoss<a class="headerlink" href="#softfocalloss" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.loss.cross_entropy_loss.</span></span><span class="sig-name descname"><span class="pre">SoftFocalLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_average</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduce</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/cross_entropy_loss.html#SoftFocalLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Soft focal loss.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.LongTensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/cross_entropy_loss.html#SoftFocalLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.cross_entropy_loss.SoftFocalLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calculate soft focal loss.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>logits (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Predicted logits.</p></li>
+<li><p>labels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Ground truth.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Calculated loss.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="build-ce-criterion">
-<h2>build_ce_criterion<a class="headerlink" href="#build-ce-criterion" title="Permalink to this headline">¶</a></h2>
+<section id="module-ding.torch_utils.loss.cross_entropy_loss.build_ce_criterion">
+<span id="build-ce-criterion"></span><h2>build_ce_criterion<a class="headerlink" href="#module-ding.torch_utils.loss.cross_entropy_loss.build_ce_criterion" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Get a cross enntropy loss instance according to given config.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>)</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">nn.Module</span></code>): loss function instance</p></li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 <section id="loss-multi-logits-loss">
 <h1>loss.multi_logits_loss<a class="headerlink" href="#loss-multi-logits-loss" title="Permalink to this headline">¶</a></h1>
 <section id="multilogitsloss">
 <h2>MultiLogitsLoss<a class="headerlink" href="#multilogitsloss" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.torch_utils.loss.multi_logits_loss.</span></span><span class="sig-name descname"><span class="pre">MultiLogitsLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">criterion</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth_ratio</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/multi_logits_loss.html#MultiLogitsLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Base class for supervised learning on linklink, including basic processes.</p>
+</dd>
+<dt>Interface:</dt><dd><p>forward</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logits</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.LongTensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">torch.Tensor</span></span></span><a class="reference internal" href="../../_modules/ding/torch_utils/loss/multi_logits_loss.html#MultiLogitsLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.torch_utils.loss.multi_logits_loss.MultiLogitsLoss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Calculate multiple logits loss.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>logits (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Predicted logits, whose shape must be 2-dim, like (B, N).</p></li>
+<li><p>labels (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.LongTensor</span></code>): Ground truth.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>loss (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): Calculated loss.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 

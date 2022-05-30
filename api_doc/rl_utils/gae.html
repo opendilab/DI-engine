@@ -26,6 +26,7 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -213,6 +214,27 @@
 <h2>gae<a class="headerlink" href="#gae" title="Permalink to this headline">¶</a></h2>
 <section id="id1">
 <h3>gae<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-ding.rl_utils.gae.gae"></span><dl class="simple">
+<dt>Overview:</dt><dd><p>Implementation of Generalized Advantage Estimator (arXiv:1506.02438)</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">namedtuple</span></code>): gae input data with fields [‘value’, ‘reward’], which contains some episodes or             trajectories data.</p></li>
+<li><p>gamma (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the future discount factor, should be in [0, 1], defaults to 0.99.</p></li>
+<li><p>lambda (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): the gae parameter lambda, should be in [0, 1], defaults to 0.97, when lambda -&gt; 0,             it induces bias, but when lambda -&gt; 1, it has high variance due to the sum of terms.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>adv (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): the calculated advantage</p></li>
+</ul>
+</dd>
+<dt>Shapes:</dt><dd><ul class="simple">
+<li><p>value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span>, where T is trajectory length and B is batch size</p></li>
+<li><p>next_value (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
+<li><p>reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
+<li><p>adv (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.FloatTensor</span></code>): <span class="math notranslate nohighlight">\((T, B)\)</span></p></li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 </section>

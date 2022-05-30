@@ -1,0 +1,444 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ding.reward_model.icm_reward_model &mdash; DI-engine 0.1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> DI-engine
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start/index.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../key_concept/index.html">Key Concept</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro_rl/index.html">Introduction to RL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../hands_on/index.html">RL Algorithm Cheat Sheet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_tutorial/index.html">RL Environments Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distributed/index.html">Distributed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../best_practice/index.html">Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_doc/index.html">API Doc</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../feature/index.html">Feature</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../guide/index.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_dev/index.html">Tutorial-Developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architecture/index.html">Architecture Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../specification/index.html">Middleware code specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DI-engine</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>ding.reward_model.icm_reward_model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for ding.reward_model.icm_reward_model</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">easydict</span> <span class="kn">import</span> <span class="n">EasyDict</span>
+
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="nn">optim</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+
+<span class="kn">from</span> <span class="nn">ding.utils</span> <span class="kn">import</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">REWARD_MODEL_REGISTRY</span>
+<span class="kn">from</span> <span class="nn">ding.model</span> <span class="kn">import</span> <span class="n">FCEncoder</span><span class="p">,</span> <span class="n">ConvEncoder</span>
+<span class="kn">from</span> <span class="nn">ding.torch_utils</span> <span class="kn">import</span> <span class="n">one_hot</span>
+<span class="kn">from</span> <span class="nn">.base_reward_model</span> <span class="kn">import</span> <span class="n">BaseRewardModel</span>
+
+
+<span class="k">def</span> <span class="nf">collect_states</span><span class="p">(</span><span class="n">iterator</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+    <span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">next_states</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">:</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;obs&#39;</span><span class="p">]</span>
+        <span class="n">next_state</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;next_obs&#39;</span><span class="p">]</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;action&#39;</span><span class="p">]</span>
+        <span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">next_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_state</span><span class="p">)</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">states</span><span class="p">,</span> <span class="n">next_states</span><span class="p">,</span> <span class="n">actions</span>
+
+
+<span class="k">class</span> <span class="nc">ICMNetwork</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Intrinsic Curiosity Model (ICM Module)</span>
+<span class="sd">    Implementation of:</span>
+<span class="sd">    [1] Curiosity-driven Exploration by Self-supervised Prediction</span>
+<span class="sd">    Pathak, Agrawal, Efros, and Darrell - UC Berkeley - ICML 2017.</span>
+<span class="sd">    https://arxiv.org/pdf/1705.05363.pdf</span>
+<span class="sd">    [2] Code implementation reference:</span>
+<span class="sd">    https://github.com/pathak22/noreward-rl</span>
+<span class="sd">    https://github.com/jcwleo/curiosity-driven-exploration-pytorch</span>
+
+<span class="sd">    1) Embedding observations into a latent space</span>
+<span class="sd">    2) Predicting the action logit given two consecutive embedded observations</span>
+<span class="sd">    3) Predicting the next embedded obs, given the embeded former observation and action</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">],</span> <span class="n">hidden_size_list</span><span class="p">:</span> <span class="n">SequenceType</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ICMNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature</span> <span class="o">=</span> <span class="n">FCEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature</span> <span class="o">=</span> <span class="n">ConvEncoder</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">hidden_size_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s2">&quot;not support obs_shape for pre-defined encoder: </span><span class="si">{}</span><span class="s2">, please customize your own ICM model&quot;</span><span class="o">.</span>
+                <span class="nb">format</span><span class="p">(</span><span class="n">obs_shape</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_shape</span> <span class="o">=</span> <span class="n">action_shape</span>
+        <span class="n">feature_output</span> <span class="o">=</span> <span class="n">hidden_size_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inverse_net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">feature_output</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="n">action_shape</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residual</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">action_shape</span> <span class="o">+</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">LeakyReLU</span><span class="p">(),</span>
+                    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+                <span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">action_shape</span> <span class="o">+</span> <span class="n">feature_output</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">LeakyReLU</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">action_shape</span> <span class="o">+</span> <span class="mi">512</span><span class="p">,</span> <span class="n">feature_output</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">next_state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+                <span class="n">action_long</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Overview:</span>
+<span class="sd">            Use observation, next_observation and action to genearte ICM module</span>
+<span class="sd">            Parameter updates with ICMNetwork forward setup.</span>
+<span class="sd">        Arguments:</span>
+<span class="sd">            - state (:obj:`torch.Tensor`):</span>
+<span class="sd">                The current state batch</span>
+<span class="sd">            - next_state (:obj:`torch.Tensor`):</span>
+<span class="sd">                The next state batch</span>
+<span class="sd">            - action_long (:obj:`torch.Tensor`):</span>
+<span class="sd">                The action batch</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            - real_next_state_feature (:obj:`torch.Tensor`):</span>
+<span class="sd">                Run with the encoder. Return the real next_state&#39;s embedded feature.</span>
+<span class="sd">            - pred_next_state_feature (:obj:`torch.Tensor`):</span>
+<span class="sd">                Run with the encoder and residual network. Return the predicted next_state&#39;s embedded feature.</span>
+<span class="sd">            - pred_action_logit (:obj:`torch.Tensor`):</span>
+<span class="sd">                Run with the encoder. Return the predicted action logit.</span>
+<span class="sd">        Shapes:</span>
+<span class="sd">            - state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is &#39;&#39;obs_shape&#39;&#39;</span>
+<span class="sd">            - next_state (:obj:`torch.Tensor`): :math:`(B, N)`, where B is the batch size and N is &#39;&#39;obs_shape&#39;&#39;</span>
+<span class="sd">            - action_long (:obj:`torch.Tensor`): :math:`(B)`, where B is the batch size&#39;&#39;</span>
+<span class="sd">            - real_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size</span>
+<span class="sd">              and M is embedded feature size</span>
+<span class="sd">            - pred_next_state_feature (:obj:`torch.Tensor`): :math:`(B, M)`, where B is the batch size</span>
+<span class="sd">              and M is embedded feature size</span>
+<span class="sd">            - pred_action_logit (:obj:`torch.Tensor`): :math:`(B, A)`, where B is the batch size</span>
+<span class="sd">              and A is the &#39;&#39;action_shape&#39;&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">one_hot</span><span class="p">(</span><span class="n">action_long</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">action_shape</span><span class="p">)</span>
+        <span class="n">encode_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">encode_next_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature</span><span class="p">(</span><span class="n">next_state</span><span class="p">)</span>
+        <span class="c1"># get pred action logit</span>
+        <span class="n">concat_state</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">encode_state</span><span class="p">,</span> <span class="n">encode_next_state</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">pred_action_logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inverse_net</span><span class="p">(</span><span class="n">concat_state</span><span class="p">)</span>
+        <span class="c1"># ---------------------</span>
+
+        <span class="c1"># get pred next state</span>
+        <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">encode_state</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_1</span><span class="p">(</span><span class="n">pred_next_state_feature_orig</span><span class="p">)</span>
+
+        <span class="c1"># residual</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span><span class="p">](</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">pred_next_state_feature_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">](</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span> <span class="o">+</span> <span class="n">pred_next_state_feature_orig</span>
+        <span class="n">pred_next_state_feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_net_2</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">pred_next_state_feature_orig</span><span class="p">,</span> <span class="n">action</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">real_next_state_feature</span> <span class="o">=</span> <span class="n">encode_next_state</span>
+        <span class="k">return</span> <span class="n">real_next_state_feature</span><span class="p">,</span> <span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">pred_action_logit</span>
+
+
+<div class="viewcode-block" id="ICMRewardModel"><a class="viewcode-back" href="../../../hands_on/icm_zh.html#ding.reward_model.icm_reward_model.ICMRewardModel">[docs]</a><span class="nd">@REWARD_MODEL_REGISTRY</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s1">&#39;icm&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ICMRewardModel</span><span class="p">(</span><span class="n">BaseRewardModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Overview:</span>
+<span class="sd">        The ICM reward model class (https://arxiv.org/pdf/1705.05363.pdf)</span>
+<span class="sd">    Interface:</span>
+<span class="sd">        ``estimate``, ``train``, ``collect_data``, ``clear_data``, \</span>
+<span class="sd">            ``__init__``, ``_train``,</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="c1"># (str) the type of the exploration method</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;icm&#39;</span><span class="p">,</span>
+        <span class="c1"># (str) the intrinsic reward type, including add, new, or assign</span>
+        <span class="n">intrinsic_reward_type</span><span class="o">=</span><span class="s1">&#39;add&#39;</span><span class="p">,</span>
+        <span class="c1"># (float) learning rate of the optimizer</span>
+        <span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+        <span class="c1"># (Tuple[int, list]), the observation shape,</span>
+        <span class="n">obs_shape</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="c1"># (int) the action shape, support discrete action only in this version</span>
+        <span class="n">action_shape</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+        <span class="c1"># (float) batch size</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+        <span class="c1"># (list) the MLP layer shape</span>
+        <span class="n">hidden_size_list</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">],</span>
+        <span class="c1"># (int) update how many times after each collect</span>
+        <span class="n">update_per_collect</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="c1"># (float) the importance weight of the forward and reverse loss</span>
+        <span class="n">reverse_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">EasyDict</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tb_logger</span><span class="p">:</span> <span class="s1">&#39;SummaryWriter&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ICMRewardModel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="k">assert</span> <span class="n">device</span> <span class="o">==</span> <span class="s2">&quot;cpu&quot;</span> <span class="ow">or</span> <span class="n">device</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb_logger</span> <span class="o">=</span> <span class="n">tb_logger</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span> <span class="o">=</span> <span class="n">ICMNetwork</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">obs_shape</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">hidden_size_list</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">action_shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intrinsic_reward_type</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">intrinsic_reward_type</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">intrinsic_reward_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="s1">&#39;new&#39;</span><span class="p">,</span> <span class="s1">&#39;assign&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_next_states</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_actions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opt</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">config</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ce</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">forward_mse</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reverse_scale</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">reverse_scale</span>
+
+    <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">train_data_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_states</span><span class="p">))]</span>
+        <span class="n">train_data_index</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">train_data_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span>
+        <span class="n">data_states</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">train_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">train_data_index</span><span class="p">]</span>
+        <span class="n">data_states</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">data_states</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">data_next_states</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">train_next_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">train_data_index</span><span class="p">]</span>
+        <span class="n">data_next_states</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">data_next_states</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">data_actions</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">train_actions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">train_data_index</span><span class="p">]</span>
+        <span class="n">data_actions</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">data_actions</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="n">real_next_state_feature</span><span class="p">,</span> <span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">pred_action_logit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="p">(</span>
+            <span class="n">data_states</span><span class="p">,</span> <span class="n">data_next_states</span><span class="p">,</span> <span class="n">data_actions</span>
+        <span class="p">)</span>
+        <span class="n">inverse_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ce</span><span class="p">(</span><span class="n">pred_action_logit</span><span class="p">,</span> <span class="n">data_actions</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
+        <span class="n">forward_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_mse</span><span class="p">(</span><span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">real_next_state_feature</span><span class="o">.</span><span class="n">detach</span><span class="p">())</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reverse_scale</span> <span class="o">*</span> <span class="n">inverse_loss</span> <span class="o">+</span> <span class="n">forward_loss</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ICMRewardModel.train"><a class="viewcode-back" href="../../../hands_on/icm_zh.html#ding.reward_model.icm_reward_model.ICMRewardModel.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">update_per_collect</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_train</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_data</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ICMRewardModel.estimate"><a class="viewcode-back" href="../../../hands_on/icm_zh.html#ding.reward_model.icm_reward_model.ICMRewardModel.estimate">[docs]</a>    <span class="k">def</span> <span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]:</span>
+        <span class="c1"># NOTE: deepcopy reward part of data is very important,</span>
+        <span class="c1"># otherwise the reward of data in the replay buffer will be incorrectly modified.</span>
+        <span class="n">train_data_augmented</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_deepcopy</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">states</span><span class="p">,</span> <span class="n">next_states</span><span class="p">,</span> <span class="n">actions</span> <span class="o">=</span> <span class="n">collect_states</span><span class="p">(</span><span class="n">train_data_augmented</span><span class="p">)</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">states</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">next_states</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">next_states</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">actions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">real_next_state_feature</span><span class="p">,</span> <span class="n">pred_next_state_feature</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reward_model</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">next_states</span><span class="p">,</span> <span class="n">actions</span><span class="p">)</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_mse</span><span class="p">(</span><span class="n">real_next_state_feature</span><span class="p">,</span> <span class="n">pred_next_state_feature</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="p">(</span><span class="n">reward</span> <span class="o">-</span> <span class="n">reward</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">reward</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">reward</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="n">reward</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">train_data_augmented</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">reward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">reward</span><span class="p">,</span> <span class="n">reward</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span><span class="p">,</span> <span class="n">rew</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">train_data_augmented</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intrinsic_reward_type</span> <span class="o">==</span> <span class="s1">&#39;add&#39;</span><span class="p">:</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rew</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">intrinsic_reward_type</span> <span class="o">==</span> <span class="s1">&#39;new&#39;</span><span class="p">:</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;intrinsic_reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rew</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">intrinsic_reward_type</span> <span class="o">==</span> <span class="s1">&#39;assign&#39;</span><span class="p">:</span>
+                <span class="n">item</span><span class="p">[</span><span class="s1">&#39;reward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rew</span>
+
+        <span class="k">return</span> <span class="n">train_data_augmented</span></div>
+
+<div class="viewcode-block" id="ICMRewardModel.collect_data"><a class="viewcode-back" href="../../../hands_on/icm_zh.html#ding.reward_model.icm_reward_model.ICMRewardModel.collect_data">[docs]</a>    <span class="k">def</span> <span class="nf">collect_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">collect_states</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">states</span><span class="p">,</span> <span class="n">next_states</span><span class="p">,</span> <span class="n">actions</span> <span class="o">=</span> <span class="n">collect_states</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_states</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_next_states</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">next_states</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_actions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ICMRewardModel.clear_data"><a class="viewcode-back" href="../../../hands_on/icm_zh.html#ding.reward_model.icm_reward_model.ICMRewardModel.clear_data">[docs]</a>    <span class="k">def</span> <span class="nf">clear_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_data</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_states</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_next_states</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_actions</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, OpenDILab Contributors
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

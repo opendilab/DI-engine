@@ -215,14 +215,80 @@
 <section id="log-helper">
 <h2>log_helper<a class="headerlink" href="#log-helper" title="Permalink to this headline">¶</a></h2>
 <p>Please Reference ding/ding/utils/log_helper.py for usage.</p>
-<section id="build-logger">
-<h3>build_logger<a class="headerlink" href="#build-logger" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.log_helper.build_logger">
+<span id="build-logger"></span><h3>build_logger<a class="headerlink" href="#module-ding.utils.log_helper.build_logger" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Build text logger and tensorboard logger.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Logger(<code class="docutils literal notranslate"><span class="pre">Textlogger</span></code> &amp; <code class="docutils literal notranslate"><span class="pre">SummaryWriter</span></code>)’s saved dir</p></li>
+<li><p>name (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The logger file name</p></li>
+<li><p>need_tb (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether <code class="docutils literal notranslate"><span class="pre">SummaryWriter</span></code> instance would be created and returned</p></li>
+<li><p>need_text (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether <code class="docutils literal notranslate"><span class="pre">loggingLogger</span></code> instance would be created and returned</p></li>
+<li><p>text_level (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int`</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Logging level of <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, default set to <code class="docutils literal notranslate"><span class="pre">logging.INFO</span></code></p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>logger (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional[logging.Logger]</span></code>): Logger that displays terminal output</p></li>
+<li><p>tb_logger (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Optional['SummaryWriter']</span></code>): Saves output to tfboard, only return when <code class="docutils literal notranslate"><span class="pre">need_tb</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
 </section>
-<section id="loggerfactory">
-<h3>LoggerFactory<a class="headerlink" href="#loggerfactory" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.log_helper.LoggerFactory">
+<span id="loggerfactory"></span><h3>LoggerFactory<a class="headerlink" href="#module-ding.utils.log_helper.LoggerFactory" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.utils.log_helper.LoggerFactory.create_logger">
+<span class="sig-prename descclassname"><span class="pre">ding.utils.log_helper.LoggerFactory.</span></span><span class="sig-name descname"><span class="pre">create_logger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">logging.Logger</span></span></span><a class="headerlink" href="#ding.utils.log_helper.LoggerFactory.create_logger" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Create logger using logging</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>name (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Logger’s name</p></li>
+<li><p>path (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Logger’s save dir</p></li>
+<li><p>level (<code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Used to set the level. Reference: <code class="docutils literal notranslate"><span class="pre">Logger.setLevel</span></code> method.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>(<code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.Logger</span></code>): new logging logger</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ding.utils.log_helper.LoggerFactory.get_tabulate_vars">
+<span class="sig-prename descclassname"><span class="pre">ding.utils.log_helper.LoggerFactory.</span></span><span class="sig-name descname"><span class="pre">get_tabulate_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variables</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ding.utils.log_helper.LoggerFactory.get_tabulate_vars" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Get the text description in tabular form of all vars</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>variables (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List[str]</span></code>): Names of the vars to query.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>string (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Text description in tabular form of all vars</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="pretty-print">
-<h3>pretty_print<a class="headerlink" href="#pretty-print" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.utils.log_helper.pretty_print">
+<span id="pretty-print"></span><h3>pretty_print<a class="headerlink" href="#module-ding.utils.log_helper.pretty_print" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Print a dict <code class="docutils literal notranslate"><span class="pre">result</span></code> in a pretty way</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>result (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): The result to print</p></li>
+<li><p>direct_print (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether to print directly</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>string (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): The pretty-printed result in str format</p></li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 </section>

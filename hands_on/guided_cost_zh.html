@@ -272,6 +272,51 @@ Z=\int exp(-c_\theta (\tau))d\tau\]</div>
 <section id="id6">
 <h2>实现<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <p>其中使用的奖励模型接口如下所示：</p>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.reward_model.guided_cost_reward_model.</span></span><span class="sig-name descname"><span class="pre">GuidedCostRewardModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tb_logger</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SummaryWriter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/reward_model/guided_cost_reward_model.html#GuidedCostRewardModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Policy class of Guided cost algorithm.</p>
+<p><a class="reference external" href="https://arxiv.org/pdf/1603.00448.pdf">https://arxiv.org/pdf/1603.00448.pdf</a></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/ding/reward_model/guided_cost_reward_model.html#GuidedCostRewardModel.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>estimate reward</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>): the list of data used for estimation</p></li>
+</ul>
+</dd>
+<dt>Returns / Effects:</dt><dd><ul class="simple">
+<li><p>This can be a side effect function which updates the reward value</p></li>
+<li><p>If this function returns, an example returned object can be reward (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): the estimated reward</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expert_demo</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ding/reward_model/guided_cost_reward_model.html#GuidedCostRewardModel.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Training the reward model</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>data (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code>): Data used for training</p></li>
+</ul>
+</dd>
+<dt>Effects:</dt><dd><ul class="simple">
+<li><p>This is mostly a side effect function which updates the reward model</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="benchmark">
 <h2>实验 Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h2>

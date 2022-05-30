@@ -206,12 +206,153 @@
 <h2>shared_payoff<a class="headerlink" href="#shared-payoff" title="Permalink to this headline">¶</a></h2>
 <section id="battlerecorddict">
 <h3>BattleRecordDict<a class="headerlink" href="#battlerecorddict" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.shared_payoff.BattleRecordDict">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.shared_payoff.</span></span><span class="sig-name descname"><span class="pre">BattleRecordDict</span></span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleRecordDict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleRecordDict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>A dict which is used to record battle game result.
+Initialized four fixed keys: <cite>wins</cite>, <cite>draws</cite>, <cite>losses</cite>, <cite>games</cite>; Each with value 0.</p>
+</dd>
+<dt>Interfaces:</dt><dd><p>__mul__</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.shared_payoff.BattleRecordDict.__mul__">
+<span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleRecordDict.__mul__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleRecordDict.__mul__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Multiply each key’s value with the input multiplier <code class="docutils literal notranslate"><span class="pre">decay</span></code></p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>decay (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): The multiplier.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>obj (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): A deepcopied RecordDict after multiplication decay.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="battlesharedpayoff">
 <h3>BattleSharedPayoff<a class="headerlink" href="#battlesharedpayoff" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="ding.league.shared_payoff.BattleSharedPayoff">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">ding.league.shared_payoff.</span></span><span class="sig-name descname"><span class="pre">BattleSharedPayoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">easydict.EasyDict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Payoff data structure to record historical match result, this payoff is shared among all the players.
+Use LockContext to ensure thread safe, since all players from all threads can access and modify it.</p>
+</dd>
+<dt>Interface:</dt><dd><p>__getitem__, add_player, update, get_key</p>
+</dd>
+<dt>Property:</dt><dd><p>players</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.shared_payoff.BattleSharedPayoff.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">players</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><dl>
+<dt>Overview:</dt><dd><p>Get win rates between home players and away players one by one</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>players (<code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code>): A tuple of (home, away), each one is a player or a player list.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>win_rates (<code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code>): Win rate (squeezed, see Shape for more details)                 between each player from home and each player from away.</p></li>
+</ul>
+</dd>
+<dt>Shape:</dt><dd><ul>
+<li><p>win_rates: Assume there are m home players and n away players.(m,n &gt; 0)</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>m != 1 and n != 1: shape is (m, n)</p></li>
+<li><p>m == 1: shape is (n)</p></li>
+<li><p>n == 1: shape is (m)</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.shared_payoff.BattleSharedPayoff.add_player">
+<span class="sig-name descname"><span class="pre">add_player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="player.html#ding.league.player.Player" title="ding.league.player.Player"><span class="pre">ding.league.player.Player</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.add_player"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.add_player" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Add a player to the shared payoff.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>player (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Player</span></code>): The player to be added. Usually is a new one to the league as well.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.shared_payoff.BattleSharedPayoff.get_key">
+<span class="sig-name descname"><span class="pre">get_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">home</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">away</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.get_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.get_key" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Join home player id and away player id in alphabetival order.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>home (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Home player id</p></li>
+<li><p>away (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Away player id</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>key (<code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>): Tow ids sorted in alphabetical order, and joined by ‘-‘.</p></li>
+<li><p>reverse (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether the two player ids are reordered.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ding.league.shared_payoff.BattleSharedPayoff.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">job_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../_modules/ding/league/shared_payoff.html#BattleSharedPayoff.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ding.league.shared_payoff.BattleSharedPayoff.update" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Overview:</dt><dd><p>Update payoff with job_info when a job is to be finished.
+If update succeeds, return True; If raises an exception when updating, resolve it and return False.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>job_info (<code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code>): A dict containing job result information.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>result (<code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code>): Whether update is successful.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>job_info has at least 5 keys [‘launch_player’, ‘player_id’, ‘env_num’, ‘episode_num’, ‘result’].
+Key <code class="docutils literal notranslate"><span class="pre">player_id</span></code> ‘s value is a tuple of (home_id, away_id).
+Key <code class="docutils literal notranslate"><span class="pre">result</span></code> ‘s value is a two-layer list with the length of (episode_num, env_num).</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="create-payoff">
-<h3>create_payoff<a class="headerlink" href="#create-payoff" title="Permalink to this headline">¶</a></h3>
+<section id="module-ding.league.shared_payoff.create_payoff">
+<span id="create-payoff"></span><h3>create_payoff<a class="headerlink" href="#module-ding.league.shared_payoff.create_payoff" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Overview:</dt><dd><p>Given the key (payoff type), now supports keys [‘solo’, ‘battle’],
+create a new payoff instance if in payoff_mapping’s values, or raise an KeyError.</p>
+</dd>
+<dt>Arguments:</dt><dd><ul class="simple">
+<li><p>cfg (<code class="xref py py-obj docutils literal notranslate"><span class="pre">EasyDict</span></code>): payoff config containing at least one key ‘type’</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><ul class="simple">
+<li><p>payoff (<code class="xref py py-obj docutils literal notranslate"><span class="pre">BattleSharedPayoff</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">SoloSharedPayoff</span></code>): the created new payoff,             should be an instance of one of payoff_mapping’s values</p></li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 </section>
