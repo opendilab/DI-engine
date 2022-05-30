@@ -2,7 +2,7 @@ from typing import Union, Optional, List, Any, Tuple
 import os
 import copy
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
@@ -17,7 +17,6 @@ from .utils import random_collect
 
 
 def save_ckpt_fn(learner, env_model, envstep):
-
     dirname = './{}/ckpt'.format(learner.exp_name)
     if not os.path.exists(dirname):
         try:

@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_ppo_rnd_config = dict(
-    exp_name="cartpole_ppo_rnd",
+    exp_name='cartpole_ppo_rnd_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -50,6 +50,7 @@ cartpole_ppo_rnd_config = dict(
             discount_factor=0.9,
             gae_lambda=0.95,
         ),
+        eval=dict(evaluator=dict(eval_freq=100))
     ),
 )
 cartpole_ppo_rnd_config = EasyDict(cartpole_ppo_rnd_config)
@@ -65,3 +66,10 @@ cartpole_ppo_rnd_create_config = dict(
 )
 cartpole_ppo_rnd_create_config = EasyDict(cartpole_ppo_rnd_create_config)
 create_config = cartpole_ppo_rnd_create_config
+
+if __name__ == "__main__":
+    from ding.entry import serial_pipeline_reward_model_onpolicy
+    serial_pipeline_reward_model_onpolicy((main_config, create_config), seed=0)
+    # you can use the following pipeline to execute pure PPO
+    # from ding.entry import serial_pipeline_onpolicy
+    # serial_pipeline_onpolicy((main_config, create_config), seed=0)

@@ -1,5 +1,5 @@
 import importlib
-import logging
+from ditk import logging
 from collections import OrderedDict
 from functools import wraps
 import ding

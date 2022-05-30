@@ -1,7 +1,7 @@
 from easydict import EasyDict
 
 cartpole_ppg_config = dict(
-    exp_name="cartpole_ppg",
+    exp_name='cartpole_ppg_seed0',
     env=dict(
         collector_env_num=8,
         evaluator_env_num=5,
@@ -63,3 +63,13 @@ cartpole_ppg_create_config = dict(
 )
 cartpole_ppg_create_config = EasyDict(cartpole_ppg_create_config)
 create_config = cartpole_ppg_create_config
+
+if __name__ == "__main__":
+    # This config file can be executed by `dizoo/classic_control/cartpole/entry/cartpole_ppg_main.py`
+    import os
+    import warnings
+    from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import main
+    from dizoo.classic_control.cartpole.entry.cartpole_ppg_main import __file__ as _origin_py_file
+    origin_py_file_rel = os.path.relpath(_origin_py_file, os.path.abspath(os.path.curdir))
+    warnings.warn(UserWarning(f"This config file can be executed by {repr(origin_py_file_rel)}"))
+    main(cartpole_ppg_config)

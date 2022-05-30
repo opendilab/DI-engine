@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 import os
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 import numpy as np
@@ -68,6 +68,8 @@ def serial_pipeline_gail(
         expert_cfg, expert_create_cfg = expert_cfg
     create_cfg.policy.type = create_cfg.policy.type + '_command'
     cfg = compile_config(cfg, seed=seed, auto=True, create_cfg=create_cfg, save_cfg=True)
+    if 'data_path' not in cfg.reward_model:
+        cfg.reward_model.data_path = cfg.exp_name
     # Load expert data
     if collect_data:
         if expert_cfg.policy.get('other', None) is not None and expert_cfg.policy.other.get('eps', None) is not None:

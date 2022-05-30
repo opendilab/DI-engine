@@ -1,8 +1,8 @@
 import pytest
-import time
+from threading import Lock
+from time import sleep
 import random
-from ding.framework import Task
-from ding.framework.parallel import Parallel
+from ding.framework import task, Context, Parallel
 
 
 @pytest.mark.unittest
@@ -16,7 +16,7 @@ def test_serial_pipeline():
         ctx.pipeline.append(1)
 
     # Execute step1, step2 twice
-    with Task() as task:
+    with task.start():
         for _ in range(2):
             task.forward(step0)
             task.forward(step1)
@@ -45,7 +45,7 @@ def test_serial_yield_pipeline():
     def step1(ctx):
         ctx.pipeline.append(1)
 
-    with Task() as task:
+    with task.start():
         task.forward(step0)
         task.forward(step1)
         task.backward()
@@ -64,12 +64,12 @@ def test_async_pipeline():
         ctx.pipeline.append(1)
 
     # Execute step1, step2 twice
-    with Task(async_mode=True) as task:
+    with task.start(async_mode=True):
         for _ in range(2):
             task.forward(step0)
-            time.sleep(0.1)
+            sleep(0.1)
             task.forward(step1)
-            time.sleep(0.1)
+            sleep(0.1)
         task.backward()
         assert task.ctx.pipeline == [0, 1, 0, 1]
         task.renew()
@@ -81,19 +81,19 @@ def test_async_yield_pipeline():
 
     def step0(ctx):
         ctx.setdefault("pipeline", [])
-        time.sleep(0.1)
+        sleep(0.1)
         ctx.pipeline.append(0)
         yield
         ctx.pipeline.append(0)
 
     def step1(ctx):
-        time.sleep(0.2)
+        sleep(0.2)
         ctx.pipeline.append(1)
 
-    with Task(async_mode=True) as task:
+    with task.start(async_mode=True):
         task.forward(step0)
         task.forward(step1)
-        time.sleep(0.3)
+        sleep(0.3)
         task.backward().sync()
         assert task.ctx.pipeline == [0, 1, 0]
         assert len(task._backward_stack) == 0
@@ -109,12 +109,12 @@ def parallel_main():
     def counter(task):
 
         def _counter(ctx):
-            time.sleep(0.2 + random.random() / 10)
+            sleep(0.2 + random.random() / 10)
             task.emit("count", only_remote=True)
 
         return _counter
 
-    with Task() as task:
+    with task.start():
         task.on("count", on_count)
         task.use(counter(task))
         task.run(max_step=10)
@@ -127,20 +127,8 @@ def test_parallel_pipeline():
 
 
 @pytest.mark.unittest
-def test_label():
-    with Task() as task:
-        result = {}
-        task.use(lambda _: result.setdefault("not_me", True), filter_labels=["async"])
-        task.use(lambda _: result.setdefault("has_me", True))
-        task.run(max_step=1)
-
-        assert "not_me" not in result
-        assert "has_me" in result
-
-
-@pytest.mark.unittest
 def test_emit():
-    with Task() as task:
+    with task.start():
         greets = []
         task.on("Greeting", lambda msg: greets.append(msg))
 
@@ -149,24 +137,24 @@ def test_emit():
 
         task.use(step1)
         task.run(max_step=10)
-        time.sleep(0.1)
+        sleep(0.1)
     assert len(greets) == 10
 
 
 def emit_remote_main():
-    with Task() as task:
+    with task.start():
         greets = []
         if task.router.node_id == 0:
             task.on("Greeting", lambda msg: greets.append(msg))
             for _ in range(20):
                 if greets:
                     break
-                time.sleep(0.1)
+                sleep(0.1)
             assert len(greets) > 0
         else:
             for _ in range(20):
                 task.emit("Greeting", "Hi", only_remote=True)
-                time.sleep(0.1)
+                sleep(0.1)
             assert len(greets) == 0
 
 
@@ -178,7 +166,7 @@ def test_emit_remote():
 @pytest.mark.unittest
 def test_wait_for():
     # Wait for will only work in async or parallel mode
-    with Task(async_mode=True, n_async_workers=2) as task:
+    with task.start(async_mode=True, n_async_workers=2):
         greets = []
 
         def step1(_):
@@ -197,7 +185,7 @@ def test_wait_for():
     assert all(map(lambda hi: hi == "Hi", greets))
 
     # Test timeout exception
-    with Task(async_mode=True, n_async_workers=2) as task:
+    with task.start(async_mode=True, n_async_workers=2):
 
         def step1(_):
             task.wait_for("Greeting", timeout=0.3, ignore_timeout_exception=False)
@@ -209,13 +197,13 @@ def test_wait_for():
 
 @pytest.mark.unittest
 def test_async_exception():
-    with Task(async_mode=True, n_async_workers=2) as task:
+    with task.start(async_mode=True, n_async_workers=2):
 
         def step1(_):
             task.wait_for("any_event")  # Never end
 
         def step2(_):
-            time.sleep(0.3)
+            sleep(0.3)
             raise Exception("Oh")
 
         task.use(step1)
@@ -227,8 +215,8 @@ def test_async_exception():
 
 
 def early_stop_main():
-    with Task() as task:
-        task.use(lambda _: time.sleep(0.5))
+    with task.start():
+        task.use(lambda _: sleep(0.5))
         if task.match_labels("node.0"):
             task.run(max_step=10)
         else:
@@ -239,3 +227,107 @@ def early_stop_main():
 @pytest.mark.unittest
 def test_early_stop():
     Parallel.runner(n_parallel_workers=2)(early_stop_main)
+
+
+@pytest.mark.unittest
+def test_parallel_in_sequencial():
+    result = []
+
+    def fast(_):
+        result.append("fast")
+
+    def slow(_):
+        sleep(0.1)
+        result.append("slow")
+
+    with task.start():
+        task.use(lambda _: result.append("begin"))
+        task.use(task.parallel(slow, fast))
+        task.run(max_step=1)
+        assert result == ["begin", "fast", "slow"]
+
+
+@pytest.mark.unittest
+def test_serial_in_parallel():
+    result = []
+
+    def fast(_):
+        result.append("fast")
+
+    def slow(_):
+        sleep(0.1)
+        result.append("slow")
+
+    with task.start(async_mode=True):
+        task.use(lambda _: result.append("begin"))
+        task.use(task.serial(slow, fast))
+        task.run(max_step=1)
+
+        assert result == ["begin", "slow", "fast"]
+
+
+@pytest.mark.unittest
+def test_nested_middleware():
+    """
+    When there is a yield in the middleware,
+    calling this middleware in another will lead to an unexpected result.
+    Use task.forward or task.wrap can fix this problem.
+    """
+    result = []
+
+    def child():
+
+        def _child(ctx: Context):
+            result.append(3 * ctx.total_step)
+            yield
+            result.append(2 + 3 * ctx.total_step)
+
+        return _child
+
+    def mother():
+        _child = task.wrap(child())
+
+        def _mother(ctx: Context):
+            child_back = _child(ctx)
+            result.append(1 + 3 * ctx.total_step)
+            child_back()
+
+        return _mother
+
+    with task.start():
+        task.use(mother())
+        task.run(2)
+        assert result == [0, 1, 2, 3, 4, 5]
+
+
+@pytest.mark.unittest
+def test_use_lock():
+
+    def slow(ctx):
+        sleep(0.1)
+        ctx.result = "slow"
+
+    def fast(ctx):
+        ctx.result = "fast"
+
+    with task.start(async_mode=True):
+        # The lock will turn async middleware into serial
+        task.use(slow, lock=True)
+        task.use(fast, lock=True)
+        task.run(1)
+        assert task.ctx.result == "fast"
+
+    # With custom lock, it will not affect the inner lock of task
+    lock = Lock()
+
+    def slowest(ctx):
+        sleep(0.3)
+        ctx.result = "slowest"
+
+    with task.start(async_mode=True):
+        task.use(slow, lock=lock)
+        # If it receives other locks, it will not be the last one to finish execution
+        task.use(slowest, lock=True)
+        task.use(fast, lock=lock)
+        task.run(1)
+        assert task.ctx.result == "slowest"

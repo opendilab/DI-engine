@@ -263,9 +263,12 @@ def compile_buffer_config(policy_cfg: EasyDict, user_cfg: EasyDict, buffer_cls: 
                 continue
             policy_buffer_cfg = policy_cfg.other.replay_buffer[buffer_name]
             user_buffer_cfg = user_cfg.policy.get('other', {}).get('replay_buffer', {}).get('buffer_name', {})
-            return_cfg[buffer_name] = _compile_buffer_config(
-                policy_buffer_cfg, user_buffer_cfg, buffer_cls[buffer_name]
-            )
+            if buffer_cls is None:
+                return_cfg[buffer_name] = _compile_buffer_config(policy_buffer_cfg, user_buffer_cfg, None)
+            else:
+                return_cfg[buffer_name] = _compile_buffer_config(
+                    policy_buffer_cfg, user_buffer_cfg, buffer_cls[buffer_name]
+                )
             return_cfg[buffer_name].name = buffer_name
         return return_cfg
 
@@ -396,10 +399,11 @@ def compile_config(
     )
     if create_cfg is not None or collector is not None:
         policy_config.collect.collector = compile_collector_config(policy_config, cfg, collector)
-    policy_config.eval.evaluator = deep_merge_dicts(
-        evaluator.default_config(),
-        policy_config.eval.evaluator,
-    )
+    if evaluator:
+        policy_config.eval.evaluator = deep_merge_dicts(
+            evaluator.default_config(),
+            policy_config.eval.evaluator,
+        )
     if create_cfg is not None or buffer is not None:
         policy_config.other.replay_buffer = compile_buffer_config(policy_config, cfg, buffer)
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
@@ -409,9 +413,9 @@ def compile_config(
     cfg.seed = seed
     # check important key in config
     if evaluator in [InteractionSerialEvaluator, BattleInteractionSerialEvaluator]:  # env interaction evaluation
-        assert all([k in cfg.env for k in ['n_evaluator_episode', 'stop_value']]), cfg.env
-        cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
-        cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+        if 'stop_value' in cfg.env:  # data generation task doesn't need these fields
+            cfg.policy.eval.evaluator.n_episode = cfg.env.n_evaluator_episode
+            cfg.policy.eval.evaluator.stop_value = cfg.env.stop_value
     if 'exp_name' not in cfg:
         cfg.exp_name = 'default_experiment'
     if save_cfg:

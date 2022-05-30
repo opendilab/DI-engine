@@ -90,6 +90,8 @@ class PPGPolicy(Policy):
         priority=False,
         # (bool) Whether use Importance Sampling Weight to correct biased update. If True, priority must be True.
         priority_IS_weight=False,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=True,
         learn=dict(
             # (bool) Whether to use multi gpu
             multi_gpu=False,
@@ -270,8 +272,10 @@ class PPGPolicy(Policy):
         self._aux_memories.append(copy.deepcopy(data))
 
         self._train_iteration += 1
+        total_loss = policy_loss + value_loss
         if self._train_iteration % self._cfg.learn.aux_freq == 0:
             aux_loss, bc_loss, aux_value_loss = self.learn_aux()
+            total_loss += aux_loss + bc_loss + aux_value_loss
             return {
                 'policy_cur_lr': self._optimizer_ac.defaults['lr'],
                 'value_cur_lr': self._optimizer_aux_critic.defaults['lr'],
@@ -284,6 +288,7 @@ class PPGPolicy(Policy):
                 'aux_value_loss': aux_value_loss,
                 'auxiliary_loss': aux_loss,
                 'behavioral_cloning_loss': bc_loss,
+                'total_loss': total_loss.item(),
             }
         else:
             return {
@@ -295,6 +300,7 @@ class PPGPolicy(Policy):
                 'policy_adv_abs_max': policy_adv.abs().max().item(),
                 'approx_kl': ppo_info.approx_kl,
                 'clipfrac': ppo_info.clipfrac,
+                'total_loss': total_loss.item(),
             }
 
     def _state_dict_learn(self) -> Dict[str, Any]:
@@ -380,6 +386,7 @@ class PPGPolicy(Policy):
         """
         transition = {
             'obs': obs,
+            'next_obs': timestep.obs,
             'logit': model_output['logit'],
             'action': model_output['action'],
             'value': model_output['value'],

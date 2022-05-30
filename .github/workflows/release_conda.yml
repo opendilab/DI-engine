@@ -1,12 +1,11 @@
-name: publish_conda
+name: package_release_conda
 
-on:
-  release:
-    types: [published]
+on: [push]
     
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     steps:
     - uses: actions/checkout@v2
     - name: publish-to-conda

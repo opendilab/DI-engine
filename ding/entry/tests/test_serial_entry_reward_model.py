@@ -1,11 +1,11 @@
 import pytest
 import os
-import logging
+from ditk import logging
 from easydict import EasyDict
 from copy import deepcopy
 
 from dizoo.classic_control.cartpole.config.cartpole_dqn_config import cartpole_dqn_config, cartpole_dqn_create_config
-from dizoo.classic_control.cartpole.config.cartpole_ppo_offpolicy_config import cartpole_ppo_offpolicy_config, cartpole_ppo_offpolicy_create_config  # noqa
+from dizoo.classic_control.cartpole.config.cartpole_offppo_config import cartpole_offppo_config, cartpole_offppo_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_rnd_onppo_config import cartpole_ppo_rnd_config, cartpole_ppo_rnd_create_config  # noqa
 from dizoo.classic_control.cartpole.config.cartpole_ppo_icm_config import cartpole_ppo_icm_config, cartpole_ppo_icm_create_config  # noqa
 from ding.entry import serial_pipeline, collect_demo_data, serial_pipeline_reward_model_offpolicy, \
@@ -44,13 +44,13 @@ cfg = [
 @pytest.mark.parametrize('reward_model_config', cfg)
 def test_irl(reward_model_config):
     reward_model_config = EasyDict(reward_model_config)
-    config = deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)
+    config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)
     expert_policy = serial_pipeline(config, seed=0, max_train_iter=2)
     # collect expert demo data
     collect_count = 10000
     expert_data_path = 'expert_data.pkl'
     state_dict = expert_policy.collect_mode.state_dict()
-    config = deepcopy(cartpole_ppo_offpolicy_config), deepcopy(cartpole_ppo_offpolicy_create_config)
+    config = deepcopy(cartpole_offppo_config), deepcopy(cartpole_offppo_create_config)
     collect_demo_data(
         config, seed=0, state_dict=state_dict, expert_data_path=expert_data_path, collect_count=collect_count
     )
