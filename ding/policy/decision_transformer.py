@@ -137,7 +137,7 @@ class DTPolicy(DQNPolicy):
         log_csv_path = os.path.join(self.log_dir, log_csv_name)
 
         self.csv_writer = csv.writer(open(log_csv_path, 'a', 1))
-        csv_header = (["duration", "num_updates", "action_loss",
+        csv_header = (["duration", "num_updates",
                     "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"])
 
         self.csv_writer.writerow(csv_header)
@@ -205,13 +205,9 @@ class DTPolicy(DQNPolicy):
         if not self._cfg.model.continuous:
             actions = one_hot(actions.squeeze(-1), num=self.act_dim)
 
-        print('before forward')
-
         state_preds, action_preds, return_preds = self._learn_model.forward(
             timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
         )
-
-        print('end forward')
 
         traj_mask = traj_mask.view(-1,)
 
@@ -338,38 +334,30 @@ class DTPolicy(DQNPolicy):
 
         return results
 
-    def evaluate(self, log_action_losses, state_mean=None, state_std=None, render=False):
+    def evaluate(self, state_mean=None, state_std=None, render=False):
         results = self.evaluate_on_env(state_mean, state_std, render)
 
         eval_avg_reward = results['eval/avg_reward']
         eval_avg_ep_len = results['eval/avg_ep_len']
         eval_d4rl_score = self.get_d4rl_normalized_score(results['eval/avg_reward'], self.env_name) * 100
 
-        mean_action_loss = np.mean(log_action_losses)
         time_elapsed = str(datetime.now().replace(microsecond=0) - self.start_time)
 
         self.total_updates += self.num_updates_per_iter * 10
 
         log_str = (
             "=" * 60 + '\n' + "time elapsed: " + time_elapsed + '\n' + "num of updates: " + str(self.total_updates) +
-            '\n' + "action loss: " + format(mean_action_loss, ".5f") + '\n' + "eval avg reward: " +
+            '\n' + '\n' + "eval avg reward: " +
             format(eval_avg_reward, ".5f") + '\n' + "eval avg ep len: " + format(eval_avg_ep_len, ".5f")  + '\n' +
             "eval d4rl score: " + format(eval_d4rl_score, ".5f")
         )
 
         print(log_str)
 
-        log_data = [time_elapsed, self.total_updates, mean_action_loss, eval_avg_reward, eval_avg_ep_len, eval_d4rl_score]
-        # log_data = [time_elapsed, self.total_updates, mean_action_loss, eval_avg_reward, eval_avg_ep_len]
-
+        log_data = [time_elapsed, self.total_updates, eval_avg_reward, eval_avg_ep_len, eval_d4rl_score]
         log_csv_name = self.prefix + "_log_" + self.start_time_str + ".csv"
         log_csv_path = os.path.join(self.log_dir, log_csv_name)
 
-        # csv_writer = csv.writer(open(log_csv_path, 'a', 1))
-        # csv_header = (
-        #     ["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len", "eval_d4rl_score"]
-        # )
-        # csv_header = (["duration", "num_updates", "action_loss", "eval_avg_reward", "eval_avg_ep_len"])
         self.csv_writer.writerow(log_data)
 
         # save model

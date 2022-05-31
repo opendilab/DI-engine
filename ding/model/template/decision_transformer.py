@@ -4,70 +4,19 @@ The code is transplanted from https://github.com/nikhilbarhate99/min-decision-tr
 
 from ding.utils import MODEL_REGISTRY
 from typing import Tuple
+from ding.torch_utils.network.transformer import Attention
 import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
-class MaskedCausalAttention(nn.Module):
-
-    def __init__(self, h_dim, max_T, n_heads, drop_p):
-        super().__init__()
-
-        self.n_heads = n_heads
-        self.max_T = max_T
-
-        self.q_net = nn.Linear(h_dim, h_dim)
-        self.k_net = nn.Linear(h_dim, h_dim)
-        self.v_net = nn.Linear(h_dim, h_dim)
-
-        self.proj_net = nn.Linear(h_dim, h_dim)
-
-        self.att_drop = nn.Dropout(drop_p)
-        self.proj_drop = nn.Dropout(drop_p)
-
-        ones = torch.ones((max_T, max_T))
-        mask = torch.tril(ones).view(1, 1, max_T, max_T)
-
-        # register buffer makes sure mask does not get updated
-        # during backpropagation
-        self.register_buffer('mask', mask)
-
-    def forward(self, x):
-        B, T, C = x.shape  # batch size, seq length, h_dim * n_heads
-
-        N, D = self.n_heads, C // self.n_heads  # N = num heads, D = attention dim
-
-        # rearrange q, k, v as (B, N, T, D)
-        q = self.q_net(x).view(B, T, N, D).transpose(1, 2)
-        k = self.k_net(x).view(B, T, N, D).transpose(1, 2)
-        v = self.v_net(x).view(B, T, N, D).transpose(1, 2)
-
-        # weights (B, N, T, T)
-        weights = q @ k.transpose(2, 3) / math.sqrt(D)
-        # causal mask applied to weights
-        weights = weights.masked_fill(self.mask[..., :T, :T] == 0, float('-inf'))
-        # normalize weights, all -inf -> 0 after softmax
-        normalized_weights = F.softmax(weights, dim=-1)
-
-        # attention (B, N, T, D)
-        # normalized_weights.shape: (B, N, T, T)
-        # v.shape: (B, N, T, D)
-        attention = self.att_drop(normalized_weights @ v)
-
-        # gather heads and project (B, N, T, D) -> (B, T, N*D)
-        attention = attention.transpose(1, 2).contiguous().view(B, T, N * D)
-
-        out = self.proj_drop(self.proj_net(attention))
-        return out
-
-
 class Block(nn.Module):
 
     def __init__(self, h_dim, max_T, n_heads, drop_p):
         super().__init__()
-        self.attention = MaskedCausalAttention(h_dim, max_T, n_heads, drop_p)
+        self.max_T = max_T
+        self.attention = Attention(h_dim, h_dim, h_dim, n_heads, nn.Dropout(drop_p))
         self.mlp = nn.Sequential(
             nn.Linear(h_dim, 4 * h_dim),
             nn.GELU(),
@@ -79,7 +28,9 @@ class Block(nn.Module):
 
     def forward(self, x):
         # Attention -> LayerNorm -> MLP -> LayerNorm
-        x = x + self.attention(x)  # residual
+        max_T = self.max_T
+        mask = torch.tril(torch.ones((max_T, max_T), dtype=torch.bool)).view(1, 1, max_T, max_T)
+        x = x + self.attention(x, mask)  # residual
         x = self.ln1(x)
         x = x + self.mlp(x)  # residual
         x = self.ln2(x)
@@ -126,7 +77,6 @@ class DecisionTransformer(nn.Module):
         else:
             action_tanh = False  # False for discrete actions
             self.embed_action = torch.nn.Linear(act_dim, h_dim)
-            # self.embed_action = torch.nn.Embedding(act_dim, h_dim)
 
         ### prediction heads
         self.predict_rtg = torch.nn.Linear(h_dim, 1)
@@ -159,12 +109,8 @@ class DecisionTransformer(nn.Module):
 
         h = self.embed_ln(h)
 
-        print('before transformer')
-
         # transformer and prediction
         h = self.transformer(h)
-
-        print('after transformer')
 
         # get h reshaped such that its size = (B x 3 x T x h_dim) and
         # h[:, 0, t] is conditioned on r_0, s_0, a_0 ... r_t

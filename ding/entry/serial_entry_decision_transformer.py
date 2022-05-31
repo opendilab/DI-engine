@@ -75,11 +75,9 @@ def serial_pipeline_dt(
     stop = False
     for i in range(max_train_iter):
         data_iter = iter(traj_data_loader)
-        log_action_losses = []
         for j in range(cfg.policy.num_updates_per_iter):
-            train_result = learner.train({'data_iter': data_iter, 'traj_data_loader': traj_data_loader})
-            log_action_losses.append(train_result['action_loss'])
+            learner.train({'data_iter': data_iter, 'traj_data_loader': traj_data_loader})
         if i % 10 == 0:
-            policy.evaluate(log_action_losses, state_mean, state_std)
+            policy.evaluate(state_mean, state_std)
     learner.call_hook('after_run')
     return policy, stop
