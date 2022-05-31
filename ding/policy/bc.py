@@ -2,7 +2,7 @@ import math
 import torch
 import torch.nn as nn
 import copy
-from torch.optim import Adam, SGD
+from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
 from typing import List, Dict, Any, Tuple, Union, Optional
 from collections import namedtuple, deque
@@ -201,7 +201,7 @@ class DiscreteBehaviourCloningPolicy(Policy):
 class ContinuousBehaviourCloningPolicy(Policy):
 
     def default_model(self) -> Tuple[str, List[str]]:
-        return 'qac', ['ding.model.template.qac']
+        return 'continuous_bC', ['ding.model.template.bc']
 
     config = dict(
         type='continuous_bc',
@@ -219,10 +219,10 @@ class ContinuousBehaviourCloningPolicy(Policy):
     )
 
     def _init_learn(self):
-        self._optimizer = SGD(
+        self._optimizer = Adam(
             self._model.parameters(),
-            lr=1e-5,
-            momentum=0.9,
+            lr=1e-4,
+            weight_decay=1e-5,
         )
         self._timer = EasyTimer(cuda=True)
 

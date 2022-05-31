@@ -12,11 +12,13 @@ from ding.policy import create_policy
 from ding.utils import set_pkg_seed
 from ding.utils.data import NaiveRLDataset
 
+
 def serial_pipeline_bc(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int,
         data_path: str,
         model: Optional[torch.nn.Module] = None,
+        max_iter=1e6,
 ) -> Union['Policy', bool]:  # noqa
     r"""
     Overview:
@@ -32,6 +34,8 @@ def serial_pipeline_bc(
         - policy (:obj:`Policy`): Converged policy.
         - convergence (:obj:`bool`): whether il training is converged
     """
+    cont = input_cfg.policy.type == 'continuous_bc'
+
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
@@ -50,8 +54,11 @@ def serial_pipeline_bc(
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     dataset = NaiveRLDataset(data_path)
     print('Dataset length' + str(len(dataset)))
-    dataloader = DataLoader(dataset[- len(dataset) // 10: ], cfg.policy.learn.batch_size, collate_fn=lambda x: x)
-    eval_loader = DataLoader(dataset[:- len(dataset) // 10], cfg.policy.learn.batch_size, )
+    dataloader = DataLoader(dataset[:-len(dataset) // 10], cfg.policy.learn.batch_size, collate_fn=lambda x: x)
+    eval_loader = DataLoader(
+        dataset[-len(dataset) // 10:],
+        cfg.policy.learn.batch_size,
+    )
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
     evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
@@ -61,19 +68,31 @@ def serial_pipeline_bc(
     # ==========
     learner.call_hook('before_run')
     stop = False
+    iter_cnt = 0
     for epoch in range(cfg.policy.learn.train_epoch):
         # Evaluate policy performance
         loss_list = []
         for _, bat in enumerate(eval_loader):
             res = policy._forward_eval(bat['obs'])
-            loss_list.append(torch.nn.L1Loss()(res['action'], bat['action']).item())
-        tb_logger.add_scalar("validation loss", sum(loss_list) / len(loss_list), epoch)
+            if cont:
+                loss_list.append(torch.nn.L1Loss()(res['action'], bat['action']).item())
+            else:
+                loss_list.append(
+                    torch.sum(res['action'] == bat['action'].squeeze(-1)).item() /
+                    (res['action'].shape[0] * res['action'].shape[1])
+                )
+        label = 'validation_loss' if cont else 'validation_accuracy'
+        tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
         for i, train_data in enumerate(dataloader):
             if evaluator.should_eval(learner.train_iter):
                 stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
                 if stop:
                     break
             learner.train(train_data)
+            iter_cnt += 1
+            if iter_cnt >= max_iter:
+                stop = True
+                break
         if stop:
             break
 
