@@ -29,26 +29,11 @@ class BattleCollector:
         self.policy_output_pool = CachePool('policy_output', self.env_num)
 
         self.total_envstep_count = 0
-        self.total_episode_count = 0
         self.end_flag = False
         self.n_rollout_samples = n_rollout_samples
 
         self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
-        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.obs_pool, self.policy_output_pool))
-    
-    def _reset_stat(self, env_id: int, ctx: OnlineRLContext) -> None:
-        """
-        Overview:
-            Reset the collector's state. Including reset the traj_buffer, obs_pool, policy_output_pool\
-                and env_info. Reset these states according to env_id. You can refer to base_serial_collector\
-                to get more messages.
-        Arguments:
-            - env_id (:obj:`int`): the id where we need to reset the collector's state
-        """
-        for i in range(ctx.agent_num):
-            ctx.traj_buffer[env_id][i].clear()
-        self.obs_pool.reset(env_id)
-        self.policy_output_pool.reset(env_id)
+        self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
 
     def __del__(self) -> None:
         """
@@ -93,25 +78,9 @@ class BattleCollector:
         ctx.remain_episode = ctx.n_episode
         while True:
             self._battle_inferencer(ctx)
-
-            # TODO(nyz) vectorize this for loop
-            for env_id, timestep in ctx.timesteps.items():
-                self.total_envstep_count += 1
-                ctx.envstep = self.total_envstep_count
-                ctx.env_id = env_id
-                ctx.timestep = timestep
-                self._battle_rolloutor(ctx)
-
-                # If env is done, record episode info and reset
-                if timestep.done:
-                    self.total_episode_count += 1
-                    ctx.collected_episode += 1
-                    for i, p in enumerate(ctx.policies):
-                        p.reset([env_id])
-                    self._reset_stat(env_id, ctx)
-                    ctx.ready_env_id.remove(env_id)
-                    for policy_id in range(ctx.agent_num):
-                        ctx.episode_info[policy_id].append(timestep.info[policy_id])
+            self._battle_rolloutor(ctx)
+            self.total_envstep_count = ctx.envstep
+            
             if ctx.collected_episode >= ctx.n_episode:
                 break
         

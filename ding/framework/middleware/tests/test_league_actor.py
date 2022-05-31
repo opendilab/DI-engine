@@ -65,7 +65,6 @@ def test_league_actor():
 
             def on_actor_greeting(actor_id):
                 assert actor_id == ACTOR_ID
-                task.emit("league_job_actor_{}".format(ACTOR_ID), job)
                 testcases["on_actor_greeting"] = True
         
             def on_actor_job(job_: Job):
@@ -82,6 +81,8 @@ def test_league_actor():
 
             def _test_actor(ctx):
                 sleep(0.3)
+                task.emit("league_job_actor_{}".format(ACTOR_ID), job)
+                sleep(0.3)
 
                 task.emit(
                     "learner_model",
@@ -89,7 +90,7 @@ def test_league_actor():
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
                 )
-                sleep(10)
+                sleep(5)
                 try:
                     print(testcases)
                     assert all(testcases.values())

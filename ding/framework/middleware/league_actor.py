@@ -15,6 +15,7 @@ from ding.policy import Policy
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware import BattleCollector
 from ding.framework.middleware.functional import policy_resetter
+import queue
 
 @dataclass
 class ActorData:
@@ -49,13 +50,14 @@ class LeagueActor:
         self.policy_fn = policy_fn
         self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
         self.n_rollout_samples = 0
-        self._running = False
+        # self._running = False
         self._collectors: Dict[str, BattleCollector] = {}
         self._policies: Dict[str, "Policy.collect_function"] = {}
         self._model_updated = True
         task.on("league_job_actor_{}".format(task.router.node_id), self._on_league_job)
         task.on("learner_model", self._on_learner_model)
         self._policy_resetter = task.wrap(policy_resetter(self.env_num))
+        self.job_queue = queue.Queue()
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
@@ -71,60 +73,7 @@ class LeagueActor:
         """
         Deal with job distributed by coordinator. Load historical model, generate traj and emit data.
         """
-        self._running = True
-
-        # Wait new active model for 10 seconds
-        for _ in range(10):
-            if self._model_updated:
-                self._model_updated = False
-                break
-            logging.info(
-                "Waiting for new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
-            )
-            sleep(1)
-        collector = self._get_collector(job.launch_player)
-        policies = []
-        main_player: "PlayerMeta" = None
-        for player in job.players:
-            policies.append(self._get_policy(player))
-            if player.player_id == job.launch_player:
-                main_player = player
-                # inferencer,rolloutor = self._get_collector(player.player_id)
-        assert main_player, "Can not find active player"
-
-        self.ctx.policies = policies
-        self._policy_resetter(self.ctx)
-
-        def send_actor_job(episode_info: List):
-            job.result = [e['result'] for e in episode_info]
-            task.emit("actor_job", job)
-
-        def send_actor_data(train_data: List):
-            # Don't send data in evaluation mode
-            if job.is_eval:
-                return
-            for d in train_data:
-                d["adv"] = d["reward"]
-
-            actor_data = ActorData(env_step=self.ctx.envstep, train_data=train_data)
-            task.emit("actor_data_player_{}".format(job.launch_player), actor_data)
-
-        self.ctx.n_episode = None
-        self.ctx.train_iter = main_player.total_agent_step
-        self.ctx.policy_kwargs = None
-
-        # if self.n_rollout_samples > 0:
-        #     pass
-        # else:
-        #     pass
-        
-        collector(self.ctx)
-        train_data, episode_info = self.ctx.train_data[0], self.ctx.episode_info[0]  # only use main player data for training
-        send_actor_data(train_data)
-        send_actor_job(episode_info)
-        
-        task.emit("actor_greeting", task.router.node_id)
-        self._running = False
+        self.job_queue.put(job)
     
     def _get_collector(self, player_id: str):
         if self._collectors.get(player_id):
@@ -150,9 +99,62 @@ class LeagueActor:
         return policy
 
     def __call__(self, ctx: "OnlineRLContext"):
-        self.ctx = ctx
-        if not self._running:
+        # if not self._running:
+        #     task.emit("actor_greeting", task.router.node_id)
+
+        if self.job_queue.empty():
             task.emit("actor_greeting", task.router.node_id)
-        sleep(3)
+
+        try:
+            job = self.job_queue.get(timeout = 5)
+        except queue.Empty:
+            logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
+            return
+
+        # self._running = True
+
+        # Wait new active model for 10 seconds
+        for _ in range(10):
+            if self._model_updated:
+                self._model_updated = False
+                break
+            logging.info(
+                "Waiting for new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
+            )
+            sleep(1)
+    
+        collector = self._get_collector(job.launch_player)
+        policies = []
+        main_player: "PlayerMeta" = None
+        for player in job.players:
+            policies.append(self._get_policy(player))
+            if player.player_id == job.launch_player:
+                main_player = player
+                # inferencer,rolloutor = self._get_collector(player.player_id)
+        assert main_player, "Can not find active player"
+
+        ctx.policies = policies
+        self._policy_resetter(ctx)
+
+        ctx.n_episode = None
+        ctx.train_iter = main_player.total_agent_step
+        ctx.policy_kwargs = None
+        
+        collector(ctx)
+        train_data, episode_info = ctx.train_data[0], ctx.episode_info[0]  # only use main player data for training
+        
+        # Send actor data. Don't send data in evaluation mode
+        if job.is_eval:
+            return
+        for d in train_data:
+            d["adv"] = d["reward"]
+
+        actor_data = ActorData(env_step=ctx.envstep, train_data=train_data)
+        task.emit("actor_data_player_{}".format(job.launch_player), actor_data)
+
+        # Send actor job
+        job.result = [e['result'] for e in episode_info]
+        task.emit("actor_job", job)
+
 
 

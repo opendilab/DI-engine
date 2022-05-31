@@ -181,31 +181,45 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, p
             actions[env_id] = []
             for output in policy_output:
                 actions[env_id].append(output[env_id]['action'])
-        actions = to_ndarray(actions)
-        ctx.timesteps = env.step(actions)
+        ctx.actions = to_ndarray(actions)
 
     return _battle_inferencer
 
-def battle_rolloutor(cfg: EasyDict, obs_pool: CachePool, policy_output_pool:CachePool):
+def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool:CachePool):
     def _battle_rolloutor(ctx: "OnlineRLContext"):
-        timestep = ctx.timestep
-        env_id = ctx.env_id
-        for policy_id, _ in enumerate(ctx.policies):
-            policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
-            policy_timestep = type(timestep)(*policy_timestep_data)
-            transition = ctx.policies[policy_id].process_transition(
-                obs_pool[env_id][policy_id], policy_output_pool[env_id][policy_id],
-                policy_timestep
-            )
-            transition['collect_iter'] = ctx.train_iter
-            ctx.traj_buffer[env_id][policy_id].append(transition)
-            # If env is done, prepare data
+        timesteps = env.step(ctx.actions)
+        for env_id, timestep in timesteps.items():
+            # TODO: self.total_envstep_count += 1
+            ctx.envstep += 1
+            for policy_id, _ in enumerate(ctx.policies):
+                policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
+                policy_timestep = type(timestep)(*policy_timestep_data)
+                transition = ctx.policies[policy_id].process_transition(
+                    obs_pool[env_id][policy_id], policy_output_pool[env_id][policy_id],
+                    policy_timestep
+                )
+                transition['collect_iter'] = ctx.train_iter
+                ctx.traj_buffer[env_id][policy_id].append(transition)
+                # If env is done, prepare data
+                if timestep.done:
+                    transitions = to_tensor_transitions(ctx.traj_buffer[env_id][policy_id])
+                    if cfg.get_train_sample:
+                        train_sample = ctx.policies[policy_id].get_train_sample(transitions)
+                        ctx.train_data[policy_id].extend(train_sample)
+                    else:
+                        ctx.train_data[policy_id].append(transitions)
+                    ctx.traj_buffer[env_id][policy_id].clear()
+
             if timestep.done:
-                transitions = to_tensor_transitions(ctx.traj_buffer[env_id][policy_id])
-                if cfg.get_train_sample:
-                    train_sample = ctx.policies[policy_id].get_train_sample(transitions)
-                    ctx.train_data[policy_id].extend(train_sample)
-                else:
-                    ctx.train_data[policy_id].append(transitions)
-                ctx.traj_buffer[env_id][policy_id].clear()
+                ctx.collected_episode += 1
+                for i, p in enumerate(ctx.policies):
+                    p.reset([env_id])
+                for i in range(ctx.agent_num):
+                    ctx.traj_buffer[env_id][i].clear()
+                obs_pool.reset(env_id)
+                policy_output_pool.reset(env_id)
+                ctx.ready_env_id.remove(env_id)
+                for policy_id in range(ctx.agent_num):
+                    ctx.episode_info[policy_id].append(timestep.info[policy_id])
+                    
     return _battle_rolloutor
