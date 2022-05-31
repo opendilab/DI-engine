@@ -1,23 +1,22 @@
 from easydict import EasyDict
 
-# TODO: move the pipeline to ding.entry
 from ding.world_model.entry.serial_entry_dyna import serial_pipeline_dyna
 
 # environment hypo
-env_id = 'Walker2d-v2'
-obs_shape = 17
-action_shape = 6
+env_id = 'Hopper-v2'
+obs_shape = 11
+action_shape = 3
 
 # gpu
 cuda = True
 
 main_config = dict(
-    exp_name='walker2d_sac_mbpo',
+    exp_name='hopper_sac_mbpo_seed0',
     env=dict(
         env_id=env_id,
         norm_obs=dict(use_norm=False, ),
         norm_reward=dict(use_norm=False, ),
-        collector_env_num=4,
+        collector_env_num=1,
         evaluator_env_num=8,
         use_act_scale=True,
         n_evaluator_episode=8,
@@ -37,7 +36,7 @@ main_config = dict(
         ),
         learn=dict(
             update_per_collect=20,
-            batch_size=2048,
+            batch_size=256,
             learning_rate_q=3e-4,
             learning_rate_policy=3e-4,
             learning_rate_alpha=3e-4,
@@ -49,11 +48,11 @@ main_config = dict(
             auto_alpha=False,
         ),
         collect=dict(
-            n_sample=8,
+            n_sample=1,
             unroll_len=1,
         ),
         command=dict(),
-        eval=dict(evaluator=dict(eval_freq=5000, )),
+        eval=dict(evaluator=dict(eval_freq=500, )), # w.r.t envstep
         other=dict(
             # environment buffer
             replay_buffer=dict(
@@ -63,8 +62,6 @@ main_config = dict(
         ),
     ),
     world_model=dict(
-        type='mbpo',
-        import_names=['ding.world_model.mbpo'],
         eval_freq=250,  # w.r.t envstep
         train_freq=250, # w.r.t envstep
         cuda=cuda,
@@ -73,7 +70,7 @@ main_config = dict(
             rollout_start_step=20000,
             rollout_end_step=150000,
             rollout_length_min=1,
-            rollout_length_max=1,
+            rollout_length_max=15,
         ),
         model=dict(
             network_size=7,
@@ -83,7 +80,7 @@ main_config = dict(
             reward_size=1,
             hidden_size=200,
             use_decay=True,
-            batch_size=2048,
+            batch_size=256,
             holdout_ratio=0.1,
             max_epochs_since_update=5,
             deterministic_rollout=True,
@@ -117,9 +114,13 @@ create_config = dict(
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
+    world_model=dict(
+        type='mbpo',
+        import_names=['ding.world_model.mbpo'],
+    ),
 )
 create_config = EasyDict(create_config)
 
 
 if __name__ == '__main__':
-    serial_pipeline_dyna((main_config, create_config), seed=0)
+    serial_pipeline_dyna((main_config, create_config), seed=0, max_env_step=100000)

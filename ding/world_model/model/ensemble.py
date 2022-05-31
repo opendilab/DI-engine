@@ -48,7 +48,8 @@ class EnsembleFC(nn.Module):
 
     def extra_repr(self) -> str:
         return 'in_features={}, out_features={}, ensemble_size={}, weight_decay={}'.format(
-            self.in_features, self.out_features, self.ensemble_size, self.weight_decay)
+            self.in_features, self.out_features, self.ensemble_size, self.weight_decay
+        )
 
 
 class EnsembleModel(nn.Module):
@@ -80,7 +81,7 @@ class EnsembleModel(nn.Module):
 
         def init_weights(m: nn.Module):
 
-            def truncated_normal_init(t, mean: float=0.0, std: float=0.01):
+            def truncated_normal_init(t, mean: float = 0.0, std: float = 0.01):
                 torch.nn.init.normal_(t, mean=mean, std=std)
                 while True:
                     cond = torch.logical_or(t < mean - 2 * std, t > mean + 2 * std)
@@ -98,7 +99,7 @@ class EnsembleModel(nn.Module):
 
         self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
 
-    def forward(self, x: torch.Tensor, ret_log_var: bool=False):
+    def forward(self, x: torch.Tensor, ret_log_var: bool = False):
         x = self.swish(self.nn1(x))
         x = self.swish(self.nn2(x))
         x = self.swish(self.nn3(x))
@@ -121,7 +122,7 @@ class EnsembleModel(nn.Module):
                 decay_loss += m.weight_decay * torch.sum(torch.square(m.weight)) / 2.
         return decay_loss
 
-    def loss(self, mean:torch.Tensor, logvar:torch.Tensor, labels:torch.Tensor):
+    def loss(self, mean: torch.Tensor, logvar: torch.Tensor, labels: torch.Tensor):
         """
         mean, logvar: Ensemble_size x N x dim
         labels: Ensemble_size x N x dim
@@ -137,7 +138,7 @@ class EnsembleModel(nn.Module):
         total_loss = mse_loss_inv.sum() + var_loss.sum()
         return total_loss, mse_loss
 
-    def train(self, loss:torch.Tensor):
+    def train(self, loss: torch.Tensor):
         self.optimizer.zero_grad()
 
         loss += 0.01 * torch.sum(self.max_logvar) - 0.01 * torch.sum(self.min_logvar)

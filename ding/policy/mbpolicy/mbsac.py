@@ -66,7 +66,7 @@ class MBSACPolicy(SACPolicy):
         # TODO: auto alpha
         self._auto_alpha = False
 
-        # TODO: TanhTransform
+        # TODO: TanhTransform leads to NaN
         def actor_fn(obs: Tensor):
             # (mu, sigma) = self._learn_model.forward(
             #     obs, mode='compute_actor')['logit']

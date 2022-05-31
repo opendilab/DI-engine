@@ -14,7 +14,7 @@ action_shape = 1
 cuda = False
 
 main_config = dict(
-    exp_name='pendulum_sac_ddppo_dyna_seed0',
+    exp_name='pendulum_sac_mbpo_dyna_seed0',
     env=dict(
         env_id=env_id,  # only for backward compatibility
         collector_env_num=10,
@@ -61,8 +61,6 @@ main_config = dict(
         ),
     ),
     world_model=dict(
-        type='ddppo',
-        import_names=['ding.world_model.ddppo'],
         eval_freq=100,  # w.r.t envstep
         train_freq=100,  # w.r.t envstep
         cuda=cuda,
@@ -74,12 +72,6 @@ main_config = dict(
             rollout_length_max=1,
         ),
         model=dict(
-            gradient_model=True,
-            k=3,
-            reg=50,
-            neighbor_pool_size=1000,
-            train_freq_gradient_model=500,
-            #
             network_size=5,
             elite_size=3,
             state_size=obs_shape,
@@ -121,6 +113,10 @@ create_config = dict(
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
+    world_model=dict(
+        type='mbpo',
+        import_names=['ding.world_model.mbpo'],
+    ),
 )
 create_config = EasyDict(create_config)
 

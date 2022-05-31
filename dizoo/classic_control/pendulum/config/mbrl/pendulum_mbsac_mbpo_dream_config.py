@@ -3,7 +3,7 @@
 """
 from easydict import EasyDict
 
-from ding.world_model.entry.serial_entry_dyna import serial_pipeline_dyna
+from ding.world_model.entry.serial_entry_dream import serial_pipeline_dream
 
 # environment hypo
 env_id = 'Pendulum-v0'
@@ -14,7 +14,7 @@ action_shape = 1
 cuda = False
 
 main_config = dict(
-    exp_name='pendulum_sac_mbpo_dyna_seed0',
+    exp_name='pendulum_mbsac_mbpo_dream_seed0',
     env=dict(
         env_id=env_id,  # only for backward compatibility
         collector_env_num=10,
@@ -38,6 +38,8 @@ main_config = dict(
             critic_head_hidden_size=128,
         ),
         learn=dict(
+            _lambda=0.8,
+            sample_state=False,
             update_per_collect=1,
             batch_size=128,
             learning_rate_q=0.001,
@@ -61,8 +63,6 @@ main_config = dict(
         ),
     ),
     world_model=dict(
-        type='mbpo',
-        import_names=['ding.world_model.mbpo'],
         eval_freq=100,  # w.r.t envstep
         train_freq=100,  # w.r.t envstep
         cuda=cuda,
@@ -70,8 +70,8 @@ main_config = dict(
             type='linear',
             rollout_start_step=2000,
             rollout_end_step=15000,
-            rollout_length_min=1,
-            rollout_length_max=1,
+            rollout_length_min=3,
+            rollout_length_max=3,
         ),
         model=dict(
             network_size=5,
@@ -86,19 +86,6 @@ main_config = dict(
             max_epochs_since_update=5,
             deterministic_rollout=True,
         ),
-        other=dict(
-            rollout_batch_size=10000,
-            rollout_retain=4,
-            real_ratio=0.05,
-            imagination_buffer=dict(
-                type='elastic',
-                replay_buffer_size=600000,
-                deepcopy=False,
-                enable_track_used_data=False,
-                # set_buffer_size=set_buffer_size,
-                periodic_thruput_seconds=60,
-            ),
-        ),
     ),
 )
 
@@ -111,12 +98,16 @@ create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(
-        type='sac',
-        import_names=['ding.policy.sac'],
+        type='mbsac',
+        import_names=['ding.policy.mbpolicy.mbsac'],
     ),
     replay_buffer=dict(type='naive', ),
+    world_model=dict(
+        type='mbpo',
+        import_names=['ding.world_model.mbpo'],
+    ),
 )
 create_config = EasyDict(create_config)
 
 if __name__ == '__main__':
-    serial_pipeline_dyna((main_config, create_config), seed=0)
+    serial_pipeline_dream((main_config, create_config), seed=0)

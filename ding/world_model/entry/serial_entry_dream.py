@@ -6,20 +6,39 @@ from ding.world_model.entry.utils import mbrl_entry_setup
 
 
 def serial_pipeline_dream(
-    input_cfg: Union[str, Tuple[dict, dict]],
-    seed: int = 0,
-    env_setting: Optional[List[Any]] = None,
-    model: Optional[torch.nn.Module] = None,
-    max_train_iter: Optional[int] = int(1e10),
-    max_env_step: Optional[int] = int(1e10),
-):
+        input_cfg: Union[str, Tuple[dict, dict]],
+        seed: int = 0,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+        max_train_iter: Optional[int] = int(1e10),
+        max_env_step: Optional[int] = int(1e10),
+) -> 'Policy':
+    """
+    Overview:
+        Serial pipeline entry for dreamer-style model-based RL.
+    Arguments:
+        - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
+            ``str`` type means config file path. \
+            ``Tuple[dict, dict]`` type means [user_config, create_cfg].
+        - seed (:obj:`int`): Random seed.
+        - env_setting (:obj:`Optional[List[Any]]`): A list with 3 elements: \
+            ``BaseEnv`` subclass, collector env config, and evaluator env config.
+        - model (:obj:`Optional[torch.nn.Module]`): Instance of torch.nn.Module.
+        - max_train_iter (:obj:`Optional[int]`): Maximum policy update iterations in training.
+        - max_env_step (:obj:`Optional[int]`): Maximum collected environment interaction steps.
+    Returns:
+        - policy (:obj:`Policy`): Converged policy.
+    """
     cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger = \
-        mbrl_entry_setup(input_cfg, seed, env_setting, model, max_train_iter, max_env_step)
+        mbrl_entry_setup(input_cfg, seed, env_setting, model)
+
+    learner.call_hook('before_run')
 
     if cfg.policy.get('random_collect_size', 0) > 0:
         random_collect(cfg.policy, policy, collector, collector_env, commander, env_buffer)
 
     while True:
+        collect_kwargs = commander.step()
         # eval the policy
         if evaluator.should_eval(collector.envstep):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
@@ -27,7 +46,7 @@ def serial_pipeline_dream(
                 break
 
         # fill environment buffer
-        data = collector.collect(train_iter=learner.train_iter)
+        data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
         env_buffer.push(data, cur_collector_envstep=collector.envstep)
 
         # eval&train world model and fill imagination buffer
@@ -51,3 +70,7 @@ def serial_pipeline_dream(
 
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
+
+    learner.call_hook('after_run')
+
+    return policy

@@ -1,16 +1,5 @@
 from easydict import EasyDict
 from typing import Callable
-from ding.utils import import_module, WORLD_MODEL_REGISTRY
-
-
-def get_world_model_cls(cfg):
-    import_module(cfg.get('import_names', []))
-    return WORLD_MODEL_REGISTRY.get(cfg.type)
-
-
-def create_world_model(cfg, *args, **kwargs):
-    import_module(cfg.get('import_names', []))
-    return WORLD_MODEL_REGISTRY.build(cfg.type, cfg, *args, **kwargs)
 
 
 def get_rollout_length_scheduler(cfg: EasyDict) -> Callable[[int], int]:

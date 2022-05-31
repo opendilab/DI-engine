@@ -11,6 +11,18 @@ from ding.envs import BaseEnv
 from ding.utils import deep_merge_dicts
 from .utils import get_rollout_length_scheduler
 
+from ding.utils import import_module, WORLD_MODEL_REGISTRY
+
+
+def get_world_model_cls(cfg):
+    import_module(cfg.get('import_names', []))
+    return WORLD_MODEL_REGISTRY.get(cfg.type)
+
+
+def create_world_model(cfg, *args, **kwargs):
+    import_module(cfg.get('import_names', []))
+    return WORLD_MODEL_REGISTRY.build(cfg.type, cfg, *args, **kwargs)
+
 
 class WorldModel(ABC):
     """
@@ -23,7 +35,7 @@ class WorldModel(ABC):
 
     config = dict(
         train_freq=250,  # w.r.t environment step
-        eval_freq=20,  # w.r.t environment step
+        eval_freq=250,  # w.r.t environment step
         cuda=True,
         rollout_length_scheduler=dict(
             type='linear',
@@ -283,7 +295,7 @@ class DreamWorldModel(WorldModel, ABC):
         device = 'cuda' if self._cuda else 'cpu'
         if isinstance(self, nn.Module):
             # Rollouts should propagate gradients only to policy,
-            # so make sure that the world model is not updated by rollout. 
+            # so make sure that the world model is not updated by rollout.
             self.requires_grad_(False)
         obss = [obs]
         actions = []
