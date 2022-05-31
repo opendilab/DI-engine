@@ -34,7 +34,7 @@ def serial_pipeline_bc(
         - policy (:obj:`Policy`): Converged policy.
         - convergence (:obj:`bool`): whether il training is converged
     """
-    cont = input_cfg.policy.type == 'continuous_bc'
+    cont = input_cfg[0].policy.type == 'continuous_bc'
 
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
