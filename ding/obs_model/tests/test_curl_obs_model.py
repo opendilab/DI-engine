@@ -1,9 +1,11 @@
 import pytest
-import numpy as np
 import torch
 import torch.nn as nn
+import numpy as np
 from ding.obs_model import CurlObsModel
 
+# encoder = nn.Linear(32, 50)
+# encoder_target = nn.Linear(32, 50)
 
 def test_curl_compute_logits():
     curl = CurlObsModel(CurlObsModel.default_config(), None)
@@ -31,7 +33,7 @@ def test_curl_train():
     for p in curl.encoder.parameters():
         assert p.grad is None
     curl.train(data)
-    assert curl.W.grad is not None and torch.ne(curl.W, torch.zeros(curl.W.shape)).all()  #
+    assert curl.W.grad is not None and torch.ne(curl.W, torch.zeros(curl.W.shape)).all()
     for p in curl.encoder.parameters():
         assert p.grad is not None
     # print(curl.encoder.parameters())
