@@ -76,14 +76,9 @@ def serial_pipeline_bc(
             res = policy._forward_eval(bat['obs'])
             if cont:
                 loss_list.append(torch.nn.L1Loss()(res['action'], bat['action']).item())
-            else:
-                print(res.keys())
-                loss_list.append(
-                    torch.sum(res == bat['action'].squeeze(-1)).item() /
-                    (res.shape[0] * res['action'].shape[1])
-                )
-        label = 'validation_loss' if cont else 'validation_accuracy'
-        tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
+        if cont:
+            label = 'validation_loss'
+            tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
         for i, train_data in enumerate(dataloader):
             if evaluator.should_eval(learner.train_iter):
                 stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter)
