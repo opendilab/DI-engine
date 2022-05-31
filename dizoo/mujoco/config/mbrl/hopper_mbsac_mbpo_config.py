@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-from ding.world_model.entry.serial_entry_dream import serial_pipeline_dream
+from ding.entry import serial_pipeline_dream
 
 # environment hypo
 env_id = 'Hopper-v2'
@@ -35,7 +35,7 @@ main_config = dict(
             critic_head_hidden_size=256,
         ),
         learn=dict(
-            _lambda=0.8,
+            lambda_=0.8,
             sample_state=False,
             update_per_collect=20,
             batch_size=256,
@@ -58,7 +58,7 @@ main_config = dict(
         other=dict(
             # environment buffer
             replay_buffer=dict(
-                replay_buffer_size=1000000, 
+                replay_buffer_size=1000000,
                 periodic_thruput_seconds=60
             ),
         ),
@@ -75,7 +75,7 @@ main_config = dict(
             rollout_length_max=3,
         ),
         model=dict(
-            network_size=7,
+            ensemble_size=7,
             elite_size=5,
             state_size=obs_shape,  # has to be specified
             action_size=action_shape, # has to be specified

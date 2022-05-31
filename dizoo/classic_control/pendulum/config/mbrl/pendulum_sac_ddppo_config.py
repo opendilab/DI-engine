@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-from ding.entry import serial_pipeline_dream
+from ding.entry import serial_pipeline_dyna
 
 # environment hypo
 env_id = 'Pendulum-v0'
@@ -11,7 +11,7 @@ action_shape = 1
 cuda = False
 
 main_config = dict(
-    exp_name='pendulum_mbsac_mbpo_seed0',
+    exp_name='pendulum_sac_ddppo_seed0',
     env=dict(
         env_id=env_id,  # only for backward compatibility
         collector_env_num=10,
@@ -35,8 +35,6 @@ main_config = dict(
             critic_head_hidden_size=128,
         ),
         learn=dict(
-            lambda_=0.8,
-            sample_state=False,
             update_per_collect=1,
             batch_size=128,
             learning_rate_q=0.001,
@@ -67,10 +65,16 @@ main_config = dict(
             type='linear',
             rollout_start_step=2000,
             rollout_end_step=15000,
-            rollout_length_min=3,
-            rollout_length_max=3,
+            rollout_length_min=1,
+            rollout_length_max=1,
         ),
         model=dict(
+            gradient_model=True,
+            k=3,
+            reg=50,
+            neighbor_pool_size=1000,
+            train_freq_gradient_model=500,
+            #
             ensemble_size=5,
             elite_size=3,
             state_size=obs_shape,
@@ -82,6 +86,12 @@ main_config = dict(
             holdout_ratio=0.1,
             max_epochs_since_update=5,
             deterministic_rollout=True,
+        ),
+        other=dict(
+            rollout_batch_size=10000,
+            rollout_retain=4,
+            real_ratio=0.05,
+            imagination_buffer=dict(replay_buffer_size=600000, ),
         ),
     ),
 )
@@ -95,16 +105,16 @@ create_config = dict(
     ),
     env_manager=dict(type='base'),
     policy=dict(
-        type='mbsac',
-        import_names=['ding.policy.mbpolicy.mbsac'],
+        type='sac',
+        import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
     world_model=dict(
-        type='mbpo',
-        import_names=['ding.world_model.mbpo'],
+        type='ddppo',
+        import_names=['ding.world_model.ddppo'],
     ),
 )
 create_config = EasyDict(create_config)
 
 if __name__ == '__main__':
-    serial_pipeline_dream((main_config, create_config), seed=0)
+    serial_pipeline_dyna((main_config, create_config), seed=0)

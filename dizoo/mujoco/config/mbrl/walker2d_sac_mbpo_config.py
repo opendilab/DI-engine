@@ -1,6 +1,6 @@
 from easydict import EasyDict
 
-from ding.world_model.entry.serial_entry_dyna import serial_pipeline_dyna
+from ding.entry import serial_pipeline_dyna
 
 # environment hypo
 env_id = 'Walker2d-v2'
@@ -73,7 +73,7 @@ main_config = dict(
             rollout_length_max=1,
         ),
         model=dict(
-            network_size=7,
+            ensemble_size=7,
             elite_size=5,
             state_size=obs_shape,  # has to be specified
             action_size=action_shape, # has to be specified
@@ -89,14 +89,7 @@ main_config = dict(
             rollout_batch_size=100000,
             rollout_retain=4,
             real_ratio=0.05,
-            imagination_buffer=dict(
-                type='elastic',
-                replay_buffer_size=6000000,
-                deepcopy=False,
-                enable_track_used_data=False,
-                # set_buffer_size=set_buffer_size,
-                periodic_thruput_seconds=60,
-            ),
+            imagination_buffer=dict(replay_buffer_size=6000000, ),
         ),
     ),
 )

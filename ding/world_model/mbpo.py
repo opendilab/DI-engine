@@ -14,7 +14,7 @@ from ding.world_model.model.ensemble import EnsembleModel, StandardScaler
 class MBPOWorldModel(HybridWorldModel, nn.Module):
     config = dict(
         model=dict(
-            network_size=7,
+            ensemble_size=7,
             elite_size=5,
             state_size=None,
             action_size=None,
@@ -33,7 +33,7 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         nn.Module.__init__(self)
 
         cfg = cfg.model
-        self.network_size = cfg.network_size
+        self.ensemble_size = cfg.ensemble_size
         self.elite_size = cfg.elite_size
         self.state_size = cfg.state_size
         self.action_size = cfg.action_size
@@ -49,7 +49,7 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
             self.state_size,
             self.action_size,
             self.reward_size,
-            self.network_size,
+            self.ensemble_size,
             self.hidden_size,
             use_decay=self.use_decay
         )
@@ -73,7 +73,7 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         # predict
         ensemble_mean, ensemble_var = [], []
         for i in range(0, inputs.shape[0], batch_size):
-            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.network_size, 1, 1)
+            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.ensemble_size, 1, 1)
             b_mean, b_var = self.ensemble_model(input, ret_log_var=False)
             ensemble_mean.append(b_mean)
             ensemble_var.append(b_var)
@@ -85,7 +85,7 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         if self.deterministic_rollout:
             ensemble_sample = ensemble_mean
         else:
-            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+            ensemble_sample = ensemble_mean + torch.randn_like(ensemble_mean).to(ensemble_mean) * ensemble_std
         # sample from ensemble
         model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
@@ -119,8 +119,8 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         inputs = self.scaler.transform(inputs)
 
         # repeat for ensemble
-        inputs = inputs[None, :, :].repeat(self.network_size, 1, 1)
-        labels = labels[None, :, :].repeat(self.network_size, 1, 1)
+        inputs = inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        labels = labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
 
         # eval
         with torch.no_grad():
@@ -173,16 +173,16 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
         #repeat for ensemble
-        holdout_inputs = holdout_inputs[None, :, :].repeat(self.network_size, 1, 1)
-        holdout_labels = holdout_labels[None, :, :].repeat(self.network_size, 1, 1)
+        holdout_inputs = holdout_inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        holdout_labels = holdout_labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
 
         self._epochs_since_update = 0
-        self._snapshots = {i: (-1, 1e10) for i in range(self.network_size)}
+        self._snapshots = {i: (-1, 1e10) for i in range(self.ensemble_size)}
         self._save_states()
         for epoch in itertools.count():
 
             train_idx = torch.stack([torch.randperm(train_inputs.shape[0])
-                                     for _ in range(self.network_size)]).to(train_inputs.device)
+                                     for _ in range(self.ensemble_size)]).to(train_inputs.device)
             self.mse_loss = []
             for start_pos in range(0, train_inputs.shape[0], self.batch_size):
                 idx = train_idx[:, start_pos:start_pos + self.batch_size]
@@ -211,7 +211,7 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
             sorted_loss_idx = sorted_loss_idx.detach().cpu().numpy().tolist()
             self.elite_model_idxes = sorted_loss_idx[:self.elite_size]
             self.top_holdout_mse_loss = sorted_loss[0]
-            self.middle_holdout_mse_loss = sorted_loss[self.network_size // 2]
+            self.middle_holdout_mse_loss = sorted_loss[self.ensemble_size // 2]
             self.bottom_holdout_mse_loss = sorted_loss[-1]
             self.best_holdout_mse_loss = holdout_mse_loss.mean().item()
         return {
@@ -252,7 +252,4 @@ class MBPOWorldModel(HybridWorldModel, nn.Module):
             self._epochs_since_update = 0
         else:
             self._epochs_since_update += 1
-        if self._epochs_since_update > self.max_epochs_since_update:
-            return True
-        else:
-            return False
+        return self._epochs_since_update > self.max_epochs_since_update

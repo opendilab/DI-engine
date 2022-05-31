@@ -9,7 +9,7 @@ from easydict import EasyDict
 from ding.worker import IBuffer
 from ding.envs import BaseEnv
 from ding.utils import deep_merge_dicts
-from .utils import get_rollout_length_scheduler
+from ding.world_model.utils import get_rollout_length_scheduler
 
 from ding.utils import import_module, WORLD_MODEL_REGISTRY
 
@@ -143,11 +143,21 @@ class DynaWorldModel(WorldModel, ABC):
         sample, fill_img_buffer, should_train, should_eval, train, eval, step
     """
 
-    config = dict(other=dict(
-        real_ratio=0.05,
-        rollout_retain=4,
-        rollout_batch_size=100000,
-    ))
+    config = dict(
+        other=dict(
+            real_ratio=0.05,
+            rollout_retain=4,
+            rollout_batch_size=100000,
+            imagination_buffer=dict(
+                type='elastic',
+                replay_buffer_size=6000000,
+                deepcopy=False,
+                enable_track_used_data=False,
+                # set_buffer_size=set_buffer_size,
+                periodic_thruput_seconds=60,
+            ),
+        )
+    )
 
     def __init__(self, cfg: dict, env: BaseEnv, tb_logger: 'SummaryWriter'):  # noqa
         super().__init__(cfg, env, tb_logger)

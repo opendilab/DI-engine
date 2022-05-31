@@ -19,7 +19,7 @@ from .utils import q_evaluation
 
 @POLICY_REGISTRY.register('mbsac')
 class MBSACPolicy(SACPolicy):
-    r"""
+    """
        Overview:
            Model based SAC with value expansion (arXiv: 1803.00101)\
                and value gradient (arXiv: 1510.09142)w.r.t lambda-return.
@@ -32,7 +32,7 @@ class MBSACPolicy(SACPolicy):
            2  ``learn.grad_clip`     float       100.0          | Max norm of the gradients.
            3  ``learn.sample_state`` bool        True           | Whether to sample states or tra-
                                                                 |   nsitions from environment buffer
-           --Note:
+           --note:
                For other configs, please refer to ding.policy.sac.SACPolicy.
            == ====================   ========    =============  ==================================
        """
@@ -40,7 +40,7 @@ class MBSACPolicy(SACPolicy):
     config = dict(
         learn=dict(
             # (float) Lambda for TD return.
-            _lambda=0.8,
+            lambda_=0.8,
             # (float) Gradient clip norm.
             grad_clip=100,
             # (bool) Whether to sample transitions or only states from environment buffer.
@@ -58,7 +58,7 @@ class MBSACPolicy(SACPolicy):
     def _init_learn(self) -> None:
         super()._init_learn()
 
-        self._lambda = self._cfg.learn._lambda
+        self._lambda = self._cfg.learn.lambda_
         self._grad_clip = self._cfg.learn.grad_clip
         self._sample_state = self._cfg.learn.sample_state
 
@@ -141,9 +141,7 @@ class MBSACPolicy(SACPolicy):
 
         # (T, B)
         # If S_t terminates, we should not consider loss from t+1,...
-        # note: torch.tensor(0).log().exp() = tensor(0.)
-        # example: tensor([0., 0., 1., 0.]).log().cumsum(dim=0).exp() = tensor([1., 1., 0., 0.])
-        weight = (1 - dones[:-1].detach()).log().cumsum(dim=0).exp()
+        weight = (1 - dones[:-1].detach()).cumprod(dim=0)
 
         # (T+1, B)
         q_values = q_evaluation(obss.detach(), actions.detach(), partial(self._critic_fn, model=self._learn_model))

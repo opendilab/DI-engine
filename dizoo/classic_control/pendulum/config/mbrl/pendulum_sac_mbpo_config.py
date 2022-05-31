@@ -1,9 +1,6 @@
-"""
-    In progress. Mujoco configs will be added here later.
-"""
 from easydict import EasyDict
 
-from ding.world_model.entry.serial_entry_dyna import serial_pipeline_dyna
+from ding.entry import serial_pipeline_dyna
 
 # environment hypo
 env_id = 'Pendulum-v0'
@@ -72,7 +69,7 @@ main_config = dict(
             rollout_length_max=1,
         ),
         model=dict(
-            network_size=5,
+            ensemble_size=5,
             elite_size=3,
             state_size=obs_shape,
             action_size=action_shape,
@@ -88,14 +85,7 @@ main_config = dict(
             rollout_batch_size=10000,
             rollout_retain=4,
             real_ratio=0.05,
-            imagination_buffer=dict(
-                type='elastic',
-                replay_buffer_size=600000,
-                deepcopy=False,
-                enable_track_used_data=False,
-                # set_buffer_size=set_buffer_size,
-                periodic_thruput_seconds=60,
-            ),
+            imagination_buffer=dict(replay_buffer_size=600000, ),
         ),
     ),
 )

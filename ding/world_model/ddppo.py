@@ -68,7 +68,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
     """rollout model + gradient model"""
     config = dict(
         model=dict(
-            network_size=7,
+            ensemble_size=7,
             elite_size=5,
             state_size=None,  # has to be specified
             action_size=None,  # has to be specified
@@ -93,7 +93,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         nn.Module.__init__(self)
 
         cfg = cfg.model
-        self.network_size = cfg.network_size
+        self.ensemble_size = cfg.ensemble_size
         self.elite_size = cfg.elite_size
         self.state_size = cfg.state_size
         self.action_size = cfg.action_size
@@ -115,7 +115,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             self.state_size,
             self.action_size,
             self.reward_size,
-            self.network_size,
+            self.ensemble_size,
             self.hidden_size,
             use_decay=self.use_decay
         )
@@ -130,7 +130,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
                 self.state_size,
                 self.action_size,
                 self.reward_size,
-                self.network_size,
+                self.ensemble_size,
                 self.hidden_size,
                 use_decay=self.use_decay
             )
@@ -172,7 +172,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         # predict
         ensemble_mean, ensemble_var = [], []
         for i in range(0, inputs.shape[0], batch_size):
-            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.network_size, 1, 1)
+            input = inputs[i:i + batch_size].unsqueeze(0).repeat(self.ensemble_size, 1, 1)
             if not torch.is_grad_enabled() or not self.gradient_model:
                 b_mean, b_var = self.rollout_model(input, ret_log_var=False)
             else:
@@ -189,7 +189,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         if self.deterministic_rollout:
             ensemble_sample = ensemble_mean
         else:
-            ensemble_sample = ensemble_mean + torch.randn(*ensemble_mean.shape).to(ensemble_mean) * ensemble_std
+            ensemble_sample = ensemble_mean + torch.randn_like(ensemble_mean).to(ensemble_mean) * ensemble_std
         # sample from ensemble
         model_idxes = torch.from_numpy(np.random.choice(self.elite_model_idxes, size=len(obs))).to(inputs.device)
         batch_idxes = torch.arange(len(obs)).to(inputs.device)
@@ -223,8 +223,8 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         inputs = self.scaler.transform(inputs)
 
         # repeat for ensemble
-        inputs = inputs[None, :, :].repeat(self.network_size, 1, 1)
-        labels = labels[None, :, :].repeat(self.network_size, 1, 1)
+        inputs = inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        labels = labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
 
         # eval
         with torch.no_grad():
@@ -294,16 +294,16 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
         #repeat for ensemble
-        holdout_inputs = holdout_inputs[None, :, :].repeat(self.network_size, 1, 1)
-        holdout_labels = holdout_labels[None, :, :].repeat(self.network_size, 1, 1)
+        holdout_inputs = holdout_inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        holdout_labels = holdout_labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
 
         self._epochs_since_update = 0
-        self._snapshots = {i: (-1, 1e10) for i in range(self.network_size)}
+        self._snapshots = {i: (-1, 1e10) for i in range(self.ensemble_size)}
         self._save_states()
         for epoch in itertools.count():
 
             train_idx = torch.stack([torch.randperm(train_inputs.shape[0])
-                                     for _ in range(self.network_size)]).to(train_inputs.device)
+                                     for _ in range(self.ensemble_size)]).to(train_inputs.device)
             self.mse_loss = []
             for start_pos in range(0, train_inputs.shape[0], self.batch_size):
                 idx = train_idx[:, start_pos:start_pos + self.batch_size]
@@ -332,7 +332,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             sorted_loss_idx = sorted_loss_idx.detach().cpu().numpy().tolist()
             self.elite_model_idxes = sorted_loss_idx[:self.elite_size]
             self.top_holdout_mse_loss = sorted_loss[0]
-            self.middle_holdout_mse_loss = sorted_loss[self.network_size // 2]
+            self.middle_holdout_mse_loss = sorted_loss[self.ensemble_size // 2]
             self.bottom_holdout_mse_loss = sorted_loss[-1]
             self.best_holdout_mse_loss = holdout_mse_loss.mean().item()
         return {
@@ -346,13 +346,13 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
 
     def _get_jacobian(self, model, train_input_reg):
         """
-            train_input_reg: [network_size, B, state_size+action_size]
+            train_input_reg: [ensemble_size, B, state_size+action_size]
 
-            ret: [network_size, B, state_size+reward_size, state_size+action_size]
+            ret: [ensemble_size, B, state_size+reward_size, state_size+action_size]
         """
 
         def func(x):
-            x = x.view(self.network_size, -1, self.state_size + self.action_size)
+            x = x.view(self.ensemble_size, -1, self.state_size + self.action_size)
             state = x[:, :, :self.state_size]
             x = self.scaler.transform(x)
             y, _ = model(x)
@@ -369,7 +369,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
 
         # reshape jacobian
         return jacobian.view(
-            self.network_size, -1, self.state_size + self.reward_size, self.state_size + self.action_size
+            self.ensemble_size, -1, self.state_size + self.reward_size, self.state_size + self.action_size
         )
 
     def _train_gradient_model(self, inputs, labels, inputs_reg, labels_reg):
@@ -384,8 +384,8 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         holdout_inputs = self.scaler.transform(holdout_inputs)
 
         #repeat for ensemble
-        holdout_inputs = holdout_inputs[None, :, :].repeat(self.network_size, 1, 1)
-        holdout_labels = holdout_labels[None, :, :].repeat(self.network_size, 1, 1)
+        holdout_inputs = holdout_inputs.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
+        holdout_labels = holdout_labels.unsqueeze(0).repeat(self.ensemble_size, 1, 1)
 
         #no split and normalization on regulation data
         train_inputs_reg, train_labels_reg = inputs_reg, labels_reg
@@ -397,15 +397,15 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
         neighbor_labels_distance = (neighbor_labels - train_labels_reg.unsqueeze(1))  # [N, k, state_size+reward_size]
 
         self._epochs_since_update = 0
-        self._snapshots = {i: (-1, 1e10) for i in range(self.network_size)}
+        self._snapshots = {i: (-1, 1e10) for i in range(self.ensemble_size)}
         self._save_states()
         for epoch in itertools.count():
 
             train_idx = torch.stack([torch.randperm(train_inputs.shape[0])
-                                     for _ in range(self.network_size)]).to(train_inputs.device)
+                                     for _ in range(self.ensemble_size)]).to(train_inputs.device)
 
             train_idx_reg = torch.stack([torch.randperm(train_inputs_reg.shape[0])
-                                         for _ in range(self.network_size)]).to(train_inputs_reg.device)
+                                         for _ in range(self.ensemble_size)]).to(train_inputs_reg.device)
 
             self.mse_loss = []
             self.grad_loss = []
@@ -425,17 +425,17 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
 
                 train_input_reg = train_inputs_reg[idx_reg]
                 neighbor_input_distance = neighbor_inputs_distance[idx_reg
-                                                                   ]  # [network_size, B, k, state_size+action_size]
+                                                                   ]  # [ensemble_size, B, k, state_size+action_size]
                 neighbor_label_distance = neighbor_labels_distance[idx_reg
-                                                                   ]  # [network_size, B, k, state_size+reward_size]
+                                                                   ]  # [ensemble_size, B, k, state_size+reward_size]
 
                 jacobian = self._get_jacobian(self.gradient_model, train_input_reg).unsqueeze(2).repeat_interleave(
                     self.k, dim=2
-                )  # [network_size, B, k(repeat), state_size+reward_size, state_size+action_size]
+                )  # [ensemble_size, B, k(repeat), state_size+reward_size, state_size+action_size]
 
                 directional_derivative = (jacobian @ neighbor_input_distance.unsqueeze(-1)).squeeze(
                     -1
-                )  # [network_size, B, k, state_size+reward_size]
+                )  # [ensemble_size, B, k, state_size+reward_size]
 
                 loss_reg = torch.pow((neighbor_label_distance - directional_derivative),
                                      2).sum(0).mean()  # sumed over network
@@ -464,7 +464,7 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             sorted_loss_idx = sorted_loss_idx.detach().cpu().numpy().tolist()
             self.elite_model_idxes_gradient_model = sorted_loss_idx[:self.elite_size]
             self.top_holdout_mse_loss = sorted_loss[0]
-            self.middle_holdout_mse_loss = sorted_loss[self.network_size // 2]
+            self.middle_holdout_mse_loss = sorted_loss[self.ensemble_size // 2]
             self.bottom_holdout_mse_loss = sorted_loss[-1]
             self.best_holdout_mse_loss = holdout_mse_loss.mean().item()
         return {
@@ -506,7 +506,4 @@ class DDPPOWorldMode(HybridWorldModel, nn.Module):
             self._epochs_since_update = 0
         else:
             self._epochs_since_update += 1
-        if self._epochs_since_update > self.max_epochs_since_update:
-            return True
-        else:
-            return False
+        return self._epochs_since_update > self.max_epochs_since_update
