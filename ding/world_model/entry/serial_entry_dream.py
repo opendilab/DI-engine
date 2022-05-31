@@ -12,7 +12,7 @@ def serial_pipeline_dream(
         model: Optional[torch.nn.Module] = None,
         max_train_iter: Optional[int] = int(1e10),
         max_env_step: Optional[int] = int(1e10),
-) -> 'Policy':
+) -> 'Policy':  # noqa
     """
     Overview:
         Serial pipeline entry for dreamer-style model-based RL.
