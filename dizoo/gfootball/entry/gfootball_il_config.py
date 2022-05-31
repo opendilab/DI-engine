@@ -2,7 +2,7 @@ from easydict import EasyDict
 
 env_num = 8
 gfootball_il_main_config = dict(
-    exp_name='gfootball_rule_seed0',
+    exp_name='gfootball_rule_il_seed0',
     env=dict(
         collector_env_num=env_num,
         evaluator_env_num=env_num,

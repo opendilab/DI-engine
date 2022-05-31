@@ -79,8 +79,6 @@ cfg = compile_config(cfg, seed=0, env=env_fn, auto=True, create_cfg=create_cfg, 
 football_rule_base_model = FootballRuleBaseModel()
 expert_policy = create_policy(cfg.policy, model=football_rule_base_model,
                               enable_field=['learn', 'collect', 'eval', 'command'])
-# if train policy
-# expert_policy = serial_pipeline(train_config, model=football_rule_base_model, seed=0)
 
 # collect expert demo data
 state_dict = expert_policy.collect_mode.state_dict()
@@ -88,8 +86,8 @@ collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_crea
 collect_config[0].policy.type = 'bc'
 collect_config[0].policy.other.eps = 0
 collect_demo_data(
-    collect_config, seed=0, model=football_rule_base_model, state_dict=state_dict, expert_data_path=expert_data_path,
-    demo_transitions=demo_transitions
+    collect_config, seed=0, expert_data_path=expert_data_path, collect_count=demo_transitions,
+    model=football_rule_base_model, state_dict=state_dict,
 )
 
 """
