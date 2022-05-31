@@ -16,6 +16,7 @@ from dizoo.league_demo.game_env import GameEnv
 
 from dataclasses import dataclass
 
+
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
@@ -44,18 +45,15 @@ def test_league_actor():
 
         def test_actor():
             job = Job(
-                launch_player='main_player_default_0', 
+                launch_player='main_player_default_0',
                 players=[
                     PlayerMeta(
-                        player_id='main_player_default_0', 
-                        checkpoint=FileStorage(path = None), 
-                        total_agent_step=0
-                    ), 
+                        player_id='main_player_default_0', checkpoint=FileStorage(path=None), total_agent_step=0
+                    ),
                     PlayerMeta(
-                        player_id='main_player_default_1', 
-                        checkpoint=FileStorage(path = None), 
-                        total_agent_step=0)
-                    ]
+                        player_id='main_player_default_1', checkpoint=FileStorage(path=None), total_agent_step=0
+                    )
+                ]
             )
             testcases = {
                 "on_actor_greeting": False,
@@ -83,7 +81,7 @@ def test_league_actor():
                 sleep(0.3)
                 task.emit("league_job_actor_{}".format(task.router.node_id), job)
                 sleep(0.3)
-                assert league_actor._model_updated == False
+                assert league_actor._model_updated is False
 
                 task.emit(
                     "learner_model",
@@ -92,7 +90,7 @@ def test_league_actor():
                     )
                 )
                 sleep(5)
-                assert league_actor._model_updated == True
+                assert league_actor._model_updated is True
                 try:
                     print(testcases)
                     assert all(testcases.values())
@@ -104,6 +102,3 @@ def test_league_actor():
         task.use(test_actor())
         task.use(league_actor)
         task.run()
-
-if __name__ == "__main__":
-    test_league_actor()

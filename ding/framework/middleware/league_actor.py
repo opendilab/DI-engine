@@ -2,7 +2,7 @@ from ding.framework import task
 from time import sleep
 import logging
 
-from typing import Dict, List, Any, Callable 
+from typing import Dict, List, Any, Callable
 from dataclasses import dataclass, field
 from abc import abstractmethod
 
@@ -17,10 +17,12 @@ from ding.framework.middleware import BattleCollector
 from ding.framework.middleware.functional import policy_resetter
 import queue
 
+
 @dataclass
 class ActorData:
     train_data: Any
     env_step: int = 0
+
 
 class Storage:
 
@@ -35,11 +37,13 @@ class Storage:
     def load(self) -> Any:
         raise NotImplementedError
 
+
 @dataclass
 class PlayerMeta:
     player_id: str
     checkpoint: "Storage"
     total_agent_step: int = 0
+
 
 class LeagueActor:
 
@@ -74,16 +78,12 @@ class LeagueActor:
         Deal with job distributed by coordinator. Load historical model, generate traj and emit data.
         """
         self.job_queue.put(job)
-    
+
     def _get_collector(self, player_id: str):
         if self._collectors.get(player_id):
             return self._collectors.get(player_id)
         cfg = self.cfg
-        collector = task.wrap(BattleCollector(
-            cfg.policy.collect.collector,
-            self.env,
-            self.n_rollout_samples
-        ))
+        collector = task.wrap(BattleCollector(cfg.policy.collect.collector, self.env, self.n_rollout_samples))
         self._collectors[player_id] = collector
         return collector
 
@@ -106,7 +106,7 @@ class LeagueActor:
             task.emit("actor_greeting", task.router.node_id)
 
         try:
-            job = self.job_queue.get(timeout = 5)
+            job = self.job_queue.get(timeout=5)
         except queue.Empty:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
             return
@@ -122,7 +122,7 @@ class LeagueActor:
                 "Waiting for new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
             )
             sleep(1)
-    
+
         collector = self._get_collector(job.launch_player)
         policies = []
         main_player: "PlayerMeta" = None
@@ -139,10 +139,10 @@ class LeagueActor:
         ctx.n_episode = None
         ctx.train_iter = main_player.total_agent_step
         ctx.policy_kwargs = None
-        
+
         collector(ctx)
         train_data, episode_info = ctx.train_data[0], ctx.episode_info[0]  # only use main player data for training
-        
+
         # Send actor data. Don't send data in evaluation mode
         if job.is_eval:
             return
@@ -155,6 +155,3 @@ class LeagueActor:
         # Send actor job
         job.result = [e['result'] for e in episode_info]
         task.emit("actor_job", job)
-
-
-
