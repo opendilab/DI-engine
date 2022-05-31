@@ -77,9 +77,10 @@ def serial_pipeline_bc(
             if cont:
                 loss_list.append(torch.nn.L1Loss()(res['action'], bat['action']).item())
             else:
+                print(res.keys())
                 loss_list.append(
-                    torch.sum(res['action'] == bat['action'].squeeze(-1)).item() /
-                    (res['action'].shape[0] * res['action'].shape[1])
+                    torch.sum(res == bat['action'].squeeze(-1)).item() /
+                    (res.shape[0] * res['action'].shape[1])
                 )
         label = 'validation_loss' if cont else 'validation_accuracy'
         tb_logger.add_scalar(label, sum(loss_list) / len(loss_list), iter_cnt)
