@@ -46,7 +46,7 @@ class WorldModel(ABC):
         )
     )
 
-    def __init__(self, cfg: dict, env: BaseEnv, tb_logger: 'SummaryWriter'):
+    def __init__(self, cfg: dict, env: BaseEnv, tb_logger: 'SummaryWriter'):  # noqa
         self.cfg = cfg
         self.env = env
         self.tb_logger = tb_logger
@@ -149,14 +149,13 @@ class DynaWorldModel(WorldModel, ABC):
         rollout_batch_size=100000,
     ))
 
-    def __init__(self, cfg: dict, env: BaseEnv, tb_logger: 'SummaryWriter'):
+    def __init__(self, cfg: dict, env: BaseEnv, tb_logger: 'SummaryWriter'):  # noqa
         super().__init__(cfg, env, tb_logger)
         self.real_ratio = cfg.other.real_ratio
         self.rollout_batch_size = cfg.other.rollout_batch_size
         self.rollout_retain = cfg.other.rollout_retain
         self.buffer_size_scheduler = \
-            lambda x: self.rollout_length_scheduler(x) \
-                * self.rollout_batch_size * self.rollout_retain
+            lambda x: self.rollout_length_scheduler(x) * self.rollout_batch_size * self.rollout_retain
 
     def sample(self, env_buffer: IBuffer, img_buffer: IBuffer, batch_size: int, train_iter: int) -> dict:
         """
@@ -251,7 +250,7 @@ class DreamWorldModel(WorldModel, ABC):
     """
     Overview:
         Dreamer-style world model which uses each imagination rollout only once\
-        and backpropagate through time(rollout) to optimize policy. 
+        and backpropagate through time(rollout) to optimize policy.
 
     Interfaces:
         rollout, should_train, should_eval, train, eval, step
@@ -283,7 +282,7 @@ class DreamWorldModel(WorldModel, ABC):
             - obss:        [N+1, B, O], where obss[0] are the real observations
             - actions:     [N+1, B, A]
             - rewards:     [N,   B]
-            - aug_rewards: [N+1, B] 
+            - aug_rewards: [N+1, B]
             - dones:       [N+1, B]
 
         .. note::
@@ -340,6 +339,6 @@ class HybridWorldModel(DynaWorldModel, DreamWorldModel):
         rollout, sample, fill_img_buffer, should_train, should_eval, train, eval, step
     """
 
-    def __init__(self, cfg: dict, env: BaseEnv, tb_logger: 'SummaryWriter'):
+    def __init__(self, cfg: dict, env: BaseEnv, tb_logger: 'SummaryWriter'):  # noqa
         DynaWorldModel.__init__(self, cfg, env, tb_logger)
         DreamWorldModel.__init__(self, cfg, env, tb_logger)

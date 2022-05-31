@@ -2,8 +2,6 @@ from typing import Callable, Tuple, Union
 
 from torch import Tensor, Size
 
-import torch
-
 
 def flatten_batch(x: Tensor, nonbatch_dims=1) -> Tuple[Tensor, Size]:
     """
@@ -13,7 +11,7 @@ def flatten_batch(x: Tensor, nonbatch_dims=1) -> Tuple[Tensor, Size]:
     Arguments:
         - x (:obj:`torch.Tensor`): the tensor to flatten
         - nonbatch_dims (:obj:`int`): the number of dimensions that is not flattened as\
-            batch dimension. 
+            batch dimension.z
     Returns:
         - x (:obj:`torch.Tensor`): the flattened tensor
         - batch_dim: the flattened dimension of the original tensor, which can be used to\

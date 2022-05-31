@@ -1028,10 +1028,10 @@ def multistep_forward_view(
     result[-1, :] = rewards[-1, :] + (1 - done[-1, :]) * gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
     for t in reversed(range(rewards.size()[0] - 1)):
-        result[t, :] = rewards[t, :] + (1 - done[t, :]) \
-                       * ( \
-                            discounts[t, :] * result[t + 1, :] \
-                         + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :] \
-                       )
+        result[t, :] = rewards[t, :] + (1 - done[t, :]) * \
+             (
+                discounts[t, :] * result[t + 1, :] +
+                (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+             )
 
     return result
