@@ -133,8 +133,8 @@ expert_pong_r2d3_config = dict(
             # Absolute path is recommended.
             model_path='./pong_r2d2_seed0/ckpt/ckpt_best.pth.tar',
             # Cut trajectories into pieces with length "unroll_len",
-            # which should set as self._learn_unroll_len_plus_burnin_step of r2d2
-            unroll_len=42,  # NOTE: should equals self._learn_unroll_len_plus_burnin_step in r2d2 policy
+            # which should set as self._sequence_len of r2d2
+            unroll_len=42,  # NOTE: should equals self._sequence_len in r2d2 policy
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, ),
