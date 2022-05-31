@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from typing import Callable, Optional
 from concurrent.futures import ThreadPoolExecutor
@@ -23,6 +24,12 @@ class EventLoop:
             - event (:obj:`str`): Event name.
             - fn (:obj:`Callable`): The function.
         """
+        # check if the event name contains unfilled parameters.
+        params = re.findall(r"\{(.*?)\}", event)
+        if params:
+            raise ValueError(
+                "Event name missing parameters: {}. Please use String.format() to fill up".format(", ".join(params))
+            )
         self._listeners[event].append(fn)
 
     def off(self, event: str, fn: Optional[Callable] = None) -> None:
@@ -65,6 +72,12 @@ class EventLoop:
         """
         if self._exception:
             raise self._exception
+        # check if the event name contains unfilled parameters.
+        params = re.findall(r"\{(.*?)\}", event)
+        if params:
+            raise ValueError(
+                "Event name missing parameters: {}. Please use String.format() to fill up".format(", ".join(params))
+            )
         if self._active:
             self._thread_pool.submit(self._trigger, event, *args, **kwargs)
 
