@@ -1,4 +1,4 @@
-注册（registry）
+注册器（registry）
 =========================
 
 在 DI-engine 中, 为了方便地通过配置文件启动训练任务, 我们 **建议** 您应该使用注册 ``Registry`` 机制去注册那些自己实现的模块。
@@ -35,7 +35,7 @@
 
    在键值 ``type`` 中，写下策略的名称。
 
-   在键值 ``import_names`` 中，写入文件路径。 ``import_names`` 被要求为 ``list``，并且它的每个元素都是一个由python导入的抽象路径（即我们可以在Python Idle中运行``import name1.name2``），例如：
+   在键值 ``import_names`` 中，写入文件路径。 ``import_names`` 被要求为 ``list``，并且它的每个元素都是一个由python导入的抽象路径（即我们可以在Python Idle中运行 ``import name1.name2``  ），例如：
 
       - ``ding.policy.dqn``
       - ``dizoo.atari.envs.atari_env``
