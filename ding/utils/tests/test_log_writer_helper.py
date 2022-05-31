@@ -5,12 +5,12 @@ import shutil
 import os
 from os import path
 from ding.framework import Parallel
-from ding.framework.task import Task
+from ding.framework.task import task
 from ding.utils import DistributedWriter
 
 
 def main_distributed_writer(tempdir):
-    with Task() as task:
+    with task.start():
         time.sleep(task.router.node_id * 1)  # Sleep 0 and 1, write to different files
 
         tblogger = DistributedWriter(tempdir).plugin(task.router, is_writer=(task.router.node_id == 0))

@@ -38,7 +38,7 @@ def test_qmix():
         assert output['total_q'].shape == (T, bs)
         assert output['logit'].shape == (T, bs, agent_num, action_dim)
         assert len(output['next_state']) == bs and all([len(n) == agent_num for n in output['next_state']])
-        print(output['next_state'][0][0][0].shape)
+        print(output['next_state'][0][0]['h'].shape)
         loss = output['total_q'].sum()
         is_differentiable(loss, qmix_model)
         data.pop('action')
@@ -76,7 +76,7 @@ def test_collaQ():
         assert len(output['next_state']) == bs and all([len(n) == 3 for n in output['next_state']]) and all(
             [len(q) == agent_num for n in output['next_state'] for q in n]
         )
-        print(output['next_state'][0][0][0][0].shape)
+        print(output['next_state'][0][0][0]['h'].shape)
         # data['prev_state'] = output['next_state']
         loss = output['total_q'].sum()
         is_differentiable(loss, collaQ_model)

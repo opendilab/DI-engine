@@ -1,13 +1,13 @@
 from typing import Union, Optional, List, Any, Tuple
 import os
 import torch
-import logging
+from ditk import logging
 from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.envs import get_vec_env_setting, create_env_manager
-from ding.worker import BaseLearner, BaseSerialCommander, create_buffer, create_serial_collector
-from ding.worker.collector.base_serial_evaluator_ngu import BaseSerialEvaluatorNGU as BaseSerialEvaluator
+from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
+    create_serial_collector
 from ding.config import read_config, compile_config
 from ding.policy import create_policy
 from ding.reward_model import create_reward_model
@@ -25,7 +25,8 @@ def serial_pipeline_ngu(
 ) -> 'Policy':  # noqa
     """
     Overview:
-        Serial pipeline entry with reward model.
+        Serial pipeline entry for NGU. The corresponding paper is
+        `never give up: learning directed exploration strategies`.
     Arguments:
         - input_cfg (:obj:`Union[str, Tuple[dict, dict]]`): Config in dict type. \
             ``str`` type means config file path. \
@@ -53,6 +54,9 @@ def serial_pipeline_ngu(
         env_fn, collector_env_cfg, evaluator_env_cfg = env_setting
     collector_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in collector_env_cfg])
     evaluator_env = create_env_manager(cfg.env.manager, [partial(env_fn, cfg=c) for c in evaluator_env_cfg])
+    # if you want to save replay, please uncomment this line
+    # evaluator_env.enable_save_replay(cfg.env.replay_path)
+
     collector_env.seed(cfg.seed)
     evaluator_env.seed(cfg.seed, dynamic_seed=False)
     set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
@@ -61,7 +65,6 @@ def serial_pipeline_ngu(
     # Create worker components: learner, collector, evaluator, replay buffer, commander.
     tb_logger = SummaryWriter(os.path.join('./{}/log/'.format(cfg.exp_name), 'serial'))
     learner = BaseLearner(cfg.policy.learn.learner, policy.learn_mode, tb_logger, exp_name=cfg.exp_name)
-    cfg.policy.collect.collector['type'] = 'sample_ngu'
     collector = create_serial_collector(
         cfg.policy.collect.collector,
         env=collector_env,
@@ -69,7 +72,7 @@ def serial_pipeline_ngu(
         tb_logger=tb_logger,
         exp_name=cfg.exp_name
     )
-    evaluator = BaseSerialEvaluator(
+    evaluator = InteractionSerialEvaluator(
         cfg.policy.eval.evaluator, evaluator_env, policy.eval_mode, tb_logger, exp_name=cfg.exp_name
     )
     replay_buffer = create_buffer(cfg.policy.other.replay_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
@@ -91,34 +94,44 @@ def serial_pipeline_ngu(
         random_collect(cfg.policy, policy, collector, collector_env, commander, replay_buffer)
 
     estimate_cnt = 0
-    count = 0
+    iter_ = 0
     while True:
-        collect_kwargs = commander.step()
+        """some hyper-parameters used in NGU"""
+        # index_to_eps = {i: 0.4 ** (1 + 8 * i / (self._env_num - 1)) for i in range(self._env_num)}
+        # index_to_beta = {
+        #     i: 0.3 * torch.sigmoid(torch.tensor(10 * (2 * i - (collector_env_num - 2)) / (collector_env_num - 2)))
+        #     for i in range(collector_env_num)
+        # }
+        # index_to_gamma = {
+        #     i: 1 - torch.exp(
+        #         (
+        #             (collector_env_num - 1 - i) * torch.log(torch.tensor(1 - 0.997)) +
+        #             i * torch.log(torch.tensor(1 - 0.99))
+        #         ) / (collector_env_num - 1)
+        #     )
+        #     for i in range(collector_env_num)
+        # }
+        iter_ += 1
+
         # Evaluate policy performance
         if evaluator.should_eval(learner.train_iter):
             stop, reward = evaluator.eval(learner.save_checkpoint, learner.train_iter, collector.envstep)
             if stop:
                 break
         # Collect data by default config n_sample/n_episode
-        if hasattr(cfg.policy.collect, "each_iter_n_sample"):
-            new_data = collector.collect(
-                n_sample=cfg.policy.collect.each_iter_n_sample,
-                train_iter=learner.train_iter,
-                policy_kwargs=collect_kwargs
-            )
-        else:
-            new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=collect_kwargs)
+        new_data = collector.collect(train_iter=learner.train_iter, policy_kwargs=None)
 
         # collect data for reward_model training
         rnd_reward_model.collect_data(new_data)
         episodic_reward_model.collect_data(new_data)
         replay_buffer.push(new_data, cur_collector_envstep=collector.envstep)
+
         # update reward_model
         rnd_reward_model.train()
-        if (count + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
+        if (iter_ + 1) % cfg.rnd_reward_model.clear_buffer_per_iters == 0:
             rnd_reward_model.clear_data()
         episodic_reward_model.train()
-        if (count + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
+        if (iter_ + 1) % cfg.episodic_reward_model.clear_buffer_per_iters == 0:
             episodic_reward_model.clear_data()
 
         # Learn policy from collected data
@@ -151,7 +164,6 @@ def serial_pipeline_ngu(
                 replay_buffer.update(learner.priority_info)
         if collector.envstep >= max_env_step or learner.train_iter >= max_train_iter:
             break
-        count += 1
 
     # Learner's after_run hook.
     learner.call_hook('after_run')

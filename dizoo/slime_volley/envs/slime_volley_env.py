@@ -112,7 +112,7 @@ class SlimeVolleyEnv(BaseEnv):
             self._observation_space = gym.spaces.Box(
                 low=float("-inf"),
                 high=float("inf"),
-                shape=(len(self.agents), ) + ori_shape if len(self.agents) > 2 else ori_shape,
+                shape=(len(self.agents), ) + ori_shape if len(self.agents) >= 2 else ori_shape,
                 dtype=np.float32
             )
             self._action_space = gym.spaces.Discrete(6)

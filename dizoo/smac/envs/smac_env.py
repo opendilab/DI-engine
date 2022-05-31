@@ -2,11 +2,12 @@ import copy
 import enum
 from collections import namedtuple
 from operator import attrgetter
+from functools import reduce
 
 import numpy as np
 import math
 import random
-import logging
+from ditk import logging
 from easydict import EasyDict
 import pysc2.env.sc2_env as sc2_env
 from pysc2.env.sc2_env import SC2Env, Agent, MAX_STEP_COUNT, get_default, crop_and_deduplicate_names
@@ -1316,7 +1317,9 @@ class SMACEnv(SC2Env, BaseEnv):
 
     def get_global_special_state_size(self, is_opponent=False):
         enemy_feats_dim = self.get_state_enemy_feats_size()
+        enemy_feats_dim = reduce(lambda x, y: x * y, enemy_feats_dim)
         ally_feats_dim = self.get_state_ally_feats_size()
+        ally_feats_dim = reduce(lambda x, y: x * y, ally_feats_dim)
         own_feats_dim = self.get_state_own_feats_size()
         size = enemy_feats_dim + ally_feats_dim + own_feats_dim + self.n_agents
         if self.state_timestep_number:
