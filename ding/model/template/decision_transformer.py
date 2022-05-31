@@ -2,11 +2,12 @@
 The code is transplanted from https://github.com/nikhilbarhate99/min-decision-transformer
 """
 
+from ding.utils import MODEL_REGISTRY
+from typing import Tuple
 import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ding.utils import MODEL_REGISTRY
 
 
 @MODEL_REGISTRY.register('dt')
