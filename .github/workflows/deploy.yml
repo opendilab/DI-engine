@@ -66,7 +66,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./
-          file: ./Dockerfile.base
+          file: ./docker/Dockerfile.base
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.prep.outputs.tags }}
@@ -131,7 +131,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./
-          file: ./Dockerfile.base
+          file: ./docker/Dockerfile.base
           target: doc
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.doctags }}
@@ -190,7 +190,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./
-          file: ./Dockerfile.env
+          file: ./docker/Dockerfile.env
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.ataritags }}
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -249,7 +249,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./
-          file: ./Dockerfile.env
+          file: ./docker/Dockerfile.env
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.prep.outputs.mujocotags }}
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -281,7 +281,7 @@ jobs:
       - name: Build and push
         id: docker_build
         run:  |
-          docker buildx build -f ./Dockerfile.env . -t opendilab/ding:nightly-smac --target=smac
+          docker buildx build -f ./docker/Dockerfile.env . -t opendilab/ding:nightly-smac --target=smac
           docker push opendilab/ding:nightly-smac
 
   docker_grf:
@@ -304,5 +304,5 @@ jobs:
       - name: Build and push
         id: docker_build
         run:  |
-          docker buildx build -f ./Dockerfile.env . -t opendilab/ding:nightly-grf --target=grf
+          docker buildx build -f ./docker/Dockerfile.env . -t opendilab/ding:nightly-grf --target=grf
           docker push opendilab/ding:nightly-grf

@@ -66,7 +66,7 @@ qbert_ppg_create_config = dict(
         import_names=['dizoo.atari.envs.atari_env'],
     ),
     env_manager=dict(type='subprocess'),
-    policy=dict(type='ppg'),
+    policy=dict(type='ppg_offpolicy'),
 )
 create_config = EasyDict(qbert_ppg_create_config)
 

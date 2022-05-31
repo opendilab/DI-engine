@@ -55,7 +55,7 @@ cartpole_ppg_create_config = dict(
         import_names=['dizoo.classic_control.cartpole.envs.cartpole_env'],
     ),
     env_manager=dict(type='base'),
-    policy=dict(type='ppg'),
+    policy=dict(type='ppg_offpolicy'),
     replay_buffer=dict(
         policy=dict(type='advanced'),
         value=dict(type='advanced'),

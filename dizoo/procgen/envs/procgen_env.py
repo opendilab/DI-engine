@@ -1,58 +1,68 @@
 from typing import Any, List, Union, Optional
+from easydict import EasyDict
 import time
 import gym
 import numpy as np
-from ding.envs import BaseEnv, BaseEnvTimestep, BaseEnvInfo
+from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.envs.common.env_element import EnvElement, EnvElementInfo
 from ding.torch_utils import to_ndarray, to_list
-from ding.utils import ENV_REGISTRY
+from ding.utils import ENV_REGISTRY, deep_merge_dicts
 
 
-@ENV_REGISTRY.register('coinrun')
-class CoinRunEnv(BaseEnv):
+@ENV_REGISTRY.register('procgen')
+class ProcgenEnv(BaseEnv):
+
+    #If control_level is True, you can control the specific level of the generated environment by controlling start_level and num_level.
     config = dict(
-        control_level = True,
-        start_level = 0,
-        num_levels = 0,
+        control_level=True,
+        start_level=0,
+        num_levels=0,
+        env_id='coinrun',
     )
+
     def __init__(self, cfg: dict) -> None:
+        cfg = deep_merge_dicts(EasyDict(self.config), cfg)
         self._cfg = cfg
         self._seed = 0
         self._init_flag = False
         self._observation_space = gym.spaces.Box(
-            low=np.zeros(shape=(3, 64, 64)),
-            high=np.ones(shape=(3, 64, 64)) * 255,
-            shape=(3, 64, 64),
-            dtype=np.float32
+            low=np.zeros(shape=(3, 64, 64)), high=np.ones(shape=(3, 64, 64)) * 255, shape=(3, 64, 64), dtype=np.float32
         )
-        
+
         self._action_space = gym.spaces.Discrete(15)
 
         self._reward_space = gym.spaces.Box(low=float("-inf"), high=float("inf"), shape=(1, ), dtype=np.float32)
         self._control_level = self._cfg.control_level
         self._start_level = self._cfg.start_level
         self._num_levels = self._cfg.num_levels
+        self._env_name = 'procgen:procgen-'+self._cfg.env_id+'-v0'
 
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             if self._control_level:
-                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._start_level, num_levels=self._num_levels)
+                self._env = gym.make(
+                    self._env_name, start_level=self._start_level, num_levels=self._num_levels
+                )
             else:
-                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=0, num_levels=1)
+                self._env = gym.make(self._env_name, start_level=0, num_levels=1)
             self._init_flag = True
         if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
             np_seed = 100 * np.random.randint(1, 1000)
             self._env.close()
             if self._control_level:
-                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._start_level, num_levels=self._num_levels)
+                self._env = gym.make(
+                    self._env_name, start_level=self._start_level, num_levels=self._num_levels
+                )
             else:
-                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed + np_seed, num_levels=1)
+                self._env = gym.make(self._env_name, start_level=self._seed + np_seed, num_levels=1)
         elif hasattr(self, '_seed'):
             self._env.close()
             if self._control_level:
-                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._start_level, num_levels=self._num_levels)
+                self._env = gym.make(
+                    self._env_name, start_level=self._start_level, num_levels=self._num_levels
+                )
             else:
-                self._env = gym.make('procgen:procgen-coinrun-v0', start_level=self._seed, num_levels=1)
+                self._env = gym.make(self._env_name, start_level=self._seed, num_levels=1)
         self._final_eval_reward = 0
         obs = self._env.reset()
         obs = to_ndarray(obs)

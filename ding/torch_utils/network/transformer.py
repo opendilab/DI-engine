@@ -69,7 +69,8 @@ class Attention(nn.Module):
         score = torch.matmul(query, key)  # B, head_num, N, N
         score /= math.sqrt(self.head_dim)
         if mask is not None:
-            score.masked_fill(~mask, value=-1e9)
+            # inplace modification for reasonable softmax
+            score.masked_fill_(~mask, value=-1e9)
 
         score = F.softmax(score, dim=-1)
         score = self.dropout(score)
@@ -222,7 +223,8 @@ class ScaledDotProductAttention(nn.Module):
     ) -> torch.Tensor:
         attn = torch.matmul(q / (self.d_k ** 0.5), k.transpose(2, 3))
         if mask is not None:
-            attn = attn.masked_fill(~mask, -1e9)
+            # inplace modification for reasonable softmax
+            attn.masked_fill_(~mask, -1e9)
         attn = self.dropout(F.softmax(attn, dim=-1))
         output = torch.matmul(attn, v)
         return output

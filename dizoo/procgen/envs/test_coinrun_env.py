@@ -1,14 +1,14 @@
 import pytest
 import numpy as np
 from easydict import EasyDict
-from dizoo.procgen.maze.envs import MazeEnv
+from dizoo.procgen.envs import ProcgenEnv
 
 
 @pytest.mark.envtest
-class TestMazeEnv:
+class TestProcgenEnv:
 
     def test_naive(self):
-        env = MazeEnv(EasyDict({}))
+        env = ProcgenEnv(EasyDict({}))
         env.seed(314)
         assert env._seed == 314
         obs = env.reset()

@@ -7,6 +7,6 @@ __AUTHOR__ = "OpenDILab Contributors"
 __AUTHOR_EMAIL__ = "opendilab.contact@gmail.com"
 __version__ = __VERSION__
 
-enable_hpc_rl = False
+enable_hpc_rl = os.environ.get('ENABLE_DI_HPC', 'false').lower() == 'true'
 enable_linklink = os.environ.get('ENABLE_LINKLINK', 'false').lower() == 'true'
 enable_numba = True
