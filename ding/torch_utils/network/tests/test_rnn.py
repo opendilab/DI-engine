@@ -32,7 +32,7 @@ class TestLstm:
             loss.backward()
             assert output.shape == (seq_len, batch_size, hidden_size)
             assert len(prev_state) == batch_size
-            assert prev_state[0][0].shape == (num_layers, 1, hidden_size)
+            assert prev_state[0]['h'].shape == (num_layers, 1, hidden_size)
             assert isinstance(input.grad, torch.Tensor)
 
             prev_state = None
@@ -41,7 +41,7 @@ class TestLstm:
                 output, prev_state = lstm(input_step, prev_state, list_next_state=True)
             assert output.shape == (1, batch_size, hidden_size)
             assert len(prev_state) == batch_size
-            assert prev_state[0][0].shape == (num_layers, 1, hidden_size)
+            assert prev_state[0]['h'].shape == (num_layers, 1, hidden_size)
             assert isinstance(input.grad, torch.Tensor)
 
             prev_state = None
@@ -50,12 +50,12 @@ class TestLstm:
                 output, prev_state = lstm(input_step, prev_state, list_next_state=False)
             assert output.shape == (1, batch_size, hidden_size)
             assert len(prev_state) == 2
-            assert prev_state[0].shape == (num_layers, batch_size, hidden_size)
+            assert prev_state['h'].shape == (num_layers, batch_size, hidden_size)
             assert isinstance(input.grad, torch.Tensor)
 
             randns = torch.randn(num_layers, 1, hidden_size)
             prev_state = [None for _ in range(batch_size)]
-            prev_state[0] = [randns, randns]
+            prev_state[0] = {'h': randns, 'c': randns}
             output, prev_state = lstm(input, prev_state, list_next_state=True)
 
 

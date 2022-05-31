@@ -3,6 +3,7 @@ from .cli_ditask import cli_ditask
 from .serial_entry import serial_pipeline
 from .serial_entry_td3_vae import serial_pipeline_td3_vae
 from .serial_entry_onpolicy import serial_pipeline_onpolicy
+from .serial_entry_onpolicy_ppg import serial_pipeline_onpolicy_ppg
 from .serial_entry_offline import serial_pipeline_offline
 from .serial_entry_ngu import serial_pipeline_ngu
 from .serial_entry_reward_model_offpolicy import serial_pipeline_reward_model_offpolicy

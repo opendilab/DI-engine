@@ -6,6 +6,7 @@ from ding.envs import BaseEnv, BaseEnvTimestep
 from ding.torch_utils import to_ndarray, to_list
 from ding.utils import ENV_REGISTRY
 from ding.envs.common import affine_transform
+from ding.envs import ObsPlusPrevActRewWrapper
 
 
 @ENV_REGISTRY.register('lunarlander')
@@ -24,6 +25,8 @@ class LunarLanderEnv(BaseEnv):
     def reset(self) -> np.ndarray:
         if not self._init_flag:
             self._env = gym.make(self._cfg.env_id)
+            if hasattr(self._cfg, 'obs_plus_prev_action_reward') and self._cfg.obs_plus_prev_action_reward:
+                self._env = ObsPlusPrevActRewWrapper(self._env)
             self._observation_space = self._env.observation_space
             self._action_space = self._env.action_space
             self._reward_space = gym.spaces.Box(
@@ -37,7 +40,8 @@ class LunarLanderEnv(BaseEnv):
             self._env.seed(self._seed)
         self._final_eval_reward = 0
         obs = self._env.reset()
-        obs = to_ndarray(obs).astype(np.float32)
+        obs = to_ndarray(obs)
+
         return obs
 
     def close(self) -> None:
@@ -63,7 +67,8 @@ class LunarLanderEnv(BaseEnv):
         self._final_eval_reward += rew
         if done:
             info['final_eval_reward'] = self._final_eval_reward
-        obs = to_ndarray(obs).astype(np.float32)
+
+        obs = to_ndarray(obs)
         rew = to_ndarray([rew]).astype(np.float32)  # wrapped to be transferred to a array with shape (1,)
         return BaseEnvTimestep(obs, rew, done, info)
 

@@ -1,38 +1,44 @@
 """
 Main entry
 """
-from functools import partial
-from ding.model import QAC
-from ding.utils import set_pkg_seed
-from ding.envs import BaseEnvManager, get_vec_env_setting
+import gym
+from ding.model import DQN
+from ding.policy import DQNPolicy
+from ding.envs import DingEnvWrapper, BaseEnvManager
+from ding.data import DequeBuffer
 from ding.config import compile_config
-from ding.policy import SACPolicy
+from ding.framework import task
+from ding.framework.context import OnlineRLContext
+from ding.framework.middleware import offpolicy_data_fetcher, trainer, step_collector, interaction_evaluator, \
+    eps_greedy_handler, CkptSaver
+from ding.utils import set_pkg_seed
+from dizoo.classic_control.cartpole.config.cartpole_dqn_config import main_config, create_config
 
-from ding.framework.middleware import basic_collector, basic_evaluator, basic_learner
-from ding.framework import Task
-from dizoo.classic_control.pendulum.config.pendulum_sac_config import main_config, create_config
-from ding.worker.buffer import DequeBuffer
 
-
-def main(cfg, model):
-    with Task(async_mode=False) as task:
-        env_fn, collector_env_cfg, evaluator_env_cfg = get_vec_env_setting(cfg.env)
-
-        collector_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in collector_env_cfg], cfg=cfg.env.manager)
-        evaluator_env = BaseEnvManager(env_fn=[partial(env_fn, cfg=c) for c in evaluator_env_cfg], cfg=cfg.env.manager)
+def main():
+    cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    with task.start(async_mode=False, ctx=OnlineRLContext()):
+        collector_env = BaseEnvManager(
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(8)], cfg=cfg.env.manager
+        )
+        evaluator_env = BaseEnvManager(
+            env_fn=[lambda: DingEnvWrapper(gym.make("CartPole-v0")) for _ in range(5)], cfg=cfg.env.manager
+        )
 
         set_pkg_seed(cfg.seed, use_cuda=cfg.policy.cuda)
 
-        buffer = DequeBuffer(size=20000)
-        policy = SACPolicy(cfg.policy, model=model)
+        model = DQN(**cfg.policy.model)
+        buffer_ = DequeBuffer(size=cfg.policy.other.replay_buffer.replay_buffer_size)
+        policy = DQNPolicy(cfg.policy, model=model)
 
-        task.use(basic_evaluator(task, cfg, policy, evaluator_env))
-        task.use(basic_collector(task, cfg, policy, collector_env, buffer))
-        task.use(basic_learner(task, cfg, policy, buffer))
+        task.use(interaction_evaluator(cfg, policy.eval_mode, evaluator_env))
+        task.use(eps_greedy_handler(cfg))
+        task.use(step_collector(cfg, policy.collect_mode, collector_env, buffer_))
+        task.use(offpolicy_data_fetcher(cfg, buffer_))
+        task.use(trainer(cfg, policy.learn_mode))
+        task.use(CkptSaver(cfg, policy, train_freq=100))
         task.run(max_step=100000)
 
 
 if __name__ == "__main__":
-    cfg = compile_config(main_config, create_cfg=create_config, auto=True)
-    model = QAC(**cfg.policy.model)
-    main(cfg, model)
+    main()

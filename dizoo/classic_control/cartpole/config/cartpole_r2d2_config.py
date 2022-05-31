@@ -1,13 +1,13 @@
 from easydict import EasyDict
 
 collector_env_num = 8
-evaluator_env_num = 5
+evaluator_env_num = 8
 cartpole_r2d2_config = dict(
     exp_name='cartpole_r2d2_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
-        n_evaluator_episode=5,
+        n_evaluator_episode=evaluator_env_num,
         stop_value=195,
     ),
     policy=dict(
@@ -19,27 +19,33 @@ cartpole_r2d2_config = dict(
             action_shape=2,
             encoder_hidden_size_list=[128, 128, 64],
         ),
-        discount_factor=0.997,
-        burnin_step=10,
+        discount_factor=0.995,
         nstep=5,
+        burnin_step=2,
         # (int) the whole sequence length to unroll the RNN network minus
         # the timesteps of burnin part,
-        # i.e., <the whole sequence length> = <burnin_step> + <unroll_len>
-        unroll_len=20,
+        # i.e., <the whole sequence length> = <unroll_len> = <burnin_step> + <learn_unroll_len>
+        learn_unroll_len=40,
         learn=dict(
             # according to the R2D2 paper, actor parameter update interval is 400
             # environment timesteps, and in per collect phase, we collect 32 sequence
             # samples, the length of each sample sequence is <burnin_step> + <unroll_len>,
             # which is 100 in our seeting, 32*100/400=8, so we set update_per_collect=8
             # in most environments
-            update_per_collect=8,
+            update_per_collect=5,
             batch_size=64,
             learning_rate=0.0005,
-            # according to the R2D2 paper, the target network update interval is 2500
-            target_update_freq=2500,
+            target_update_theta=0.001,
         ),
         collect=dict(
+            # NOTE: It is important that set key traj_len_inf=True here,
+            # to make sure self._traj_len=INF in serial_sample_collector.py.
+            # In R2D2 policy, for each collect_env, we want to collect data of length self._traj_len=INF
+            # unless the episode enters the 'done' state.
+            # In each collect phase, we collect a total of <n_sample> sequence samples.
             n_sample=32,
+            unroll_len=2 + 40,
+            traj_len_inf=True,
             env_num=collector_env_num,
         ),
         eval=dict(env_num=evaluator_env_num, evaluator=dict(eval_freq=20)),

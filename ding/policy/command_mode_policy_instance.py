@@ -2,7 +2,7 @@ from ding.utils import POLICY_REGISTRY
 from ding.rl_utils import get_epsilon_greedy_fn
 from .base_policy import CommandModePolicy
 
-from .dqn import DQNPolicy
+from .dqn import DQNPolicy, DQNSTDIMPolicy
 from .c51 import C51Policy
 from .qrdqn import QRDQNPolicy
 from .iqn import IQNPolicy
@@ -13,7 +13,7 @@ from .r2d2_collect_traj import R2D2CollectTrajPolicy
 from .sqn import SQNPolicy
 from .ppo import PPOPolicy, PPOOffPolicy
 from .offppo_collect_traj import OffPPOCollectTrajPolicy
-from .ppg import PPGPolicy
+from .ppg import PPGPolicy, PPGOffPolicy
 from .a2c import A2CPolicy
 from .impala import IMPALAPolicy
 from .ngu import NGUPolicy
@@ -92,6 +92,11 @@ class DQNCommandModePolicy(DQNPolicy, EpsCommandModePolicy):
     pass
 
 
+@POLICY_REGISTRY.register('dqn_stdim_command')
+class DQNSTDIMCommandModePolicy(DQNSTDIMPolicy, EpsCommandModePolicy):
+    pass
+
+
 @POLICY_REGISTRY.register('dqfd_command')
 class DQFDCommandModePolicy(DQFDPolicy, EpsCommandModePolicy):
     pass
@@ -157,7 +162,7 @@ class PPOOffCommandModePolicy(PPOOffPolicy, DummyCommandModePolicy):
     pass
 
 
-@POLICY_REGISTRY.register('ppo_offpolicy_collect_traj_command')
+@POLICY_REGISTRY.register('offppo_collect_traj_command')
 class PPOOffCollectTrajCommandModePolicy(OffPPOCollectTrajPolicy, DummyCommandModePolicy):
     pass
 
@@ -169,6 +174,11 @@ class A2CCommandModePolicy(A2CPolicy, DummyCommandModePolicy):
 
 @POLICY_REGISTRY.register('impala_command')
 class IMPALACommandModePolicy(IMPALAPolicy, DummyCommandModePolicy):
+    pass
+
+
+@POLICY_REGISTRY.register('ppg_offpolicy_command')
+class PPGOffCommandModePolicy(PPGOffPolicy, DummyCommandModePolicy):
     pass
 
 

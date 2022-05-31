@@ -1,19 +1,24 @@
-CI := $(shell echo ${CI})
+CI ?=
 
+# Directory variables
+DING_DIR   ?= ./ding
+DIZOO_DIR  ?= ./dizoo
+RANGE_DIR  ?=
+TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR})
+COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR})
+FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR})
+PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},${DING_DIR}/entry/tests/test_serial_entry.py ${DING_DIR}/entry/tests/test_serial_entry_onpolicy.py)
+
+# Workers command
 WORKERS         ?= 2
 WORKERS_COMMAND := $(if ${WORKERS},-n ${WORKERS} --dist=loadscope,)
 
+# Duration command
 DURATIONS         ?= 10
 DURATIONS_COMMAND := $(if ${DURATIONS},--durations=${DURATIONS},)
 
-RANGE_DIR  ?=
-TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
-COV_DIR    ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
-FORMAT_DIR ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding)
-PLATFORM_TEST_DIR   ?= $(if ${RANGE_DIR},${RANGE_DIR},./ding/entry/tests/test_serial_entry.py ./ding/entry/tests/test_serial_entry_onpolicy.py)
-
 docs:
-	$(MAKE) -C ./ding/docs html
+	$(MAKE) -C ${DING_DIR}/docs html
 
 unittest:
 	pytest ${TEST_DIR} \
@@ -38,7 +43,7 @@ envpooltest:
 		-sv -m envpooltest
 
 dockertest:
-	./ding/scripts/docker-test-entry.sh
+	${DING_DIR}/scripts/docker-test-entry.sh
 
 platformtest:
 	pytest ${PLATFORM_TEST_DIR} \

@@ -11,7 +11,7 @@ class TestTransformer:
         batch_size = 2
         num_entries = 2
         C = 2
-        masks = [None, torch.ones(batch_size, num_entries).bool()]
+        masks = [None, torch.rand(batch_size, num_entries).round().bool()]
         for mask in masks:
             output_dim = 4
             model = Transformer(

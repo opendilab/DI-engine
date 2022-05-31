@@ -4,15 +4,15 @@ import pytest
 import torch
 import numpy as np
 
-from ..base_env_manager import BaseEnvManager, EnvState
+from ..base_env_manager import BaseEnvManagerV2, EnvState
 
 
 @pytest.mark.unittest
-class TestBaseEnvManager:
+class TestBaseEnvManagerV2:
 
     def test_naive(self, setup_base_manager_cfg):
         env_fn = setup_base_manager_cfg.pop('env_fn')
-        env_manager = BaseEnvManager(env_fn, setup_base_manager_cfg)
+        env_manager = BaseEnvManagerV2(env_fn, setup_base_manager_cfg)
         env_manager.seed([314 for _ in range(env_manager.env_num)])
         assert env_manager._closed
         obs = env_manager.launch(reset_param={i: {'stat': 'stat_test'} for i in range(env_manager.env_num)})
@@ -34,13 +34,13 @@ class TestBaseEnvManager:
         count = 1
         start_time = time.time()
         while not env_manager.done:
-            env_id = env_manager.ready_obs.keys()
+            env_id = env_manager.ready_obs_id
             action = {i: np.random.randn(4) for i in env_id}
             timestep = env_manager.step(action)
             assert len(timestep) == len(env_id)
             print('Count {}'.format(count))
-            print([v.info for v in timestep.values()])
-            print([v.done for v in timestep.values()])
+            print([v.info for v in timestep])
+            print([v.done for v in timestep])
             count += 1
         end_time = time.time()
         print('total step time: {}'.format(end_time - start_time))
@@ -58,7 +58,7 @@ class TestBaseEnvManager:
 
     def test_error(self, setup_base_manager_cfg):
         env_fn = setup_base_manager_cfg.pop('env_fn')
-        env_manager = BaseEnvManager(env_fn, setup_base_manager_cfg)
+        env_manager = BaseEnvManagerV2(env_fn, setup_base_manager_cfg)
         # Test reset error
         with pytest.raises(RuntimeError):
             reset_param = {i: {'stat': 'error'} for i in range(env_manager.env_num)}
@@ -87,10 +87,10 @@ class TestBaseEnvManager:
         assert env_manager.time_id[0] != env_id_0
 
         # Test step catched error
-        action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
+        action = [np.random.randn(4) for i in range(env_manager.env_num)]
         action[0] = 'catched_error'
         timestep = env_manager.step(action)
-        assert timestep[0].info['abnormal']
+        assert timestep[0].info.abnormal
         assert all(['abnormal' not in timestep[i].info for i in range(1, env_manager.env_num)])
         assert all([env_manager._env_states[i] == EnvState.RUN for i in range(env_manager.env_num)])
         assert len(env_manager.ready_obs) == 4
@@ -112,7 +112,7 @@ class TestBaseEnvManager:
     def test_block(self, setup_base_manager_cfg):
         env_fn = setup_base_manager_cfg.pop('env_fn')
         setup_base_manager_cfg['max_retry'] = 1
-        env_manager = BaseEnvManager(env_fn, setup_base_manager_cfg)
+        env_manager = BaseEnvManagerV2(env_fn, setup_base_manager_cfg)
         assert env_manager._max_retry == 1
         # Test reset timeout
         with pytest.raises(RuntimeError):
@@ -128,7 +128,7 @@ class TestBaseEnvManager:
         timestep = env_manager.step({i: np.random.randn(4) for i in range(env_manager.env_num)})
         assert len(timestep) == env_manager.env_num
         # Test step timeout
-        action = {i: np.random.randn(4) for i in range(env_manager.env_num)}
+        action = [np.random.randn(4) for i in range(env_manager.env_num)]
         action[0] = 'block'
         with pytest.raises(RuntimeError):
             timestep = env_manager.step(action)
@@ -146,10 +146,12 @@ class TestBaseEnvManager:
         env_fn = setup_fast_base_manager_cfg.pop('env_fn')
         model = setup_model_type()
         # auto_reset = True
-        env_manager = BaseEnvManager(env_fn, setup_fast_base_manager_cfg)
+        env_manager = BaseEnvManagerV2(env_fn, setup_fast_base_manager_cfg)
         env_manager.launch()
         while True:
             obs = env_manager.ready_obs
+            env_id = env_manager.ready_obs_id
+            obs = {i: o for i, o in zip(env_id, obs)}
             action = model.forward(obs)
             timestep = env_manager.step(action)
             if env_manager.done:
@@ -162,11 +164,13 @@ class TestBaseEnvManager:
 
         # auto_reset = False
         setup_fast_base_manager_cfg['auto_reset'] = False
-        env_manager = BaseEnvManager(env_fn, setup_fast_base_manager_cfg)
+        env_manager = BaseEnvManagerV2(env_fn, setup_fast_base_manager_cfg)
         env_manager.launch()
 
         while True:
             obs = env_manager.ready_obs
+            env_id = env_manager.ready_obs_id
+            obs = {i: o for i, o in zip(env_id, obs)}
             action = model.forward(obs)
             timestep = env_manager.step(action)
             if env_manager.done:
@@ -176,16 +180,19 @@ class TestBaseEnvManager:
         assert all(env_manager._env_episode_count[i] == 2 for i in range(env_manager.env_num))
         assert all(env_manager._env_states[i] == EnvState.DONE for i in range(env_manager.env_num))
         # auto_reset = False and reset each env independently
-        env_manager = BaseEnvManager(env_fn, setup_fast_base_manager_cfg)
+        env_manager = BaseEnvManagerV2(env_fn, setup_fast_base_manager_cfg)
         env_manager.launch()
 
         while True:
             obs = env_manager.ready_obs
+            env_id = env_manager.ready_obs_id
+            obs = {i: o for i, o in zip(env_id, obs)}
             action = model.forward(obs)
             timestep = env_manager.step(action)
             if env_manager.done:
                 break
-            for env_id, t in timestep.items():
+            for t in timestep:
+                env_id = t.env_id.item()
                 if t.done and not env_manager.env_state_done(env_id):
                     env_manager.reset({env_id: {}})
         assert all(
