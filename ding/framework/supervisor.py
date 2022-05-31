@@ -133,7 +133,8 @@ class ChildProcess(Child):
             self._send_queue.put(SendPayload(proc_id=self._proc_id, method=ReserveMethod.SHUTDOWN))
             self._proc.terminate()
             self._proc.join(timeout=timeout)
-            self._proc.close()
+            if hasattr(self._proc, "close"):  # Compatible with 3.6
+                self._proc.close()
             self._proc = None
             self._send_queue.close()
             self._send_queue.join_thread()
