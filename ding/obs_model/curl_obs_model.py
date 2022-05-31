@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Dict
 # easydict: enable to access the value of the dictionary as an attribute
 from easydict import EasyDict
 import copy
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -22,14 +23,13 @@ class Encoder(nn.Module):
         self.obs_shape = obs_shape
         self.encoder_feature_size = encoder_feature_size
         self.num_layers = num_layers
-
         self.convs = nn.ModuleList([nn.Conv2d(obs_shape[0], num_filters, 3, stride=2)])
         for i in range(num_layers - 1):
             self.convs.append(nn.Conv2d(num_filters, num_filters, 3, stride=1))
         out_dim = OUT_DIM[num_layers]
         self.fc = nn.Linear(num_filters * out_dim * out_dim, self.encoder_feature_size)
         self.ln = nn.LayerNorm(self.encoder_feature_size)
-        self.outputs = dict()  # initialize
+        self.outputs = dict() # initialize
 
     def forward_conv(self, obs):
         obs = obs / 255.
@@ -45,7 +45,7 @@ class Encoder(nn.Module):
     def forward(self, obs, detach=False):
         h = self.forward_conv(obs)
         if detach:
-            h = h.detach()  # shut down back propogation here
+            h = h.detach() # shut down back propogation here
         h_fc = self.fc(h)
         self.outputs['fc'] = h_fc
         h_norm = self.ln(h_fc)
@@ -63,7 +63,6 @@ class CurlObsModel(nn.Module):
         cfg = EasyDict(copy.deepcopy(cls.config))
         cfg.cfg_type = cls.__name__ + 'Dict'
         return cfg
-
     config = dict(
         batch_size=64,
         encoder_lr=1e-3,
@@ -90,11 +89,13 @@ class CurlObsModel(nn.Module):
         self.cfg = cfg
         self.obs_shape = (3 * cfg.frame_stack, cfg.image_size, cfg.image_size)
         self.encoder = Encoder(self.obs_shape, cfg.encoder_feature_size, cfg.num_layers, cfg.num_filters)
-        # self.encoder_target = encoder_target
+        # with torch.no_grad():
+        #     self.encoder_target = Encoder(self.obs_shape, cfg.encoder_feature_size, cfg.num_layers, cfg.num_filters)
         self.tb_logger = tb_logger
 
         # parameter
         self.W = nn.Parameter(torch.rand(self.cfg.encoder_feature_size, self.cfg.encoder_feature_size))
+
         # optimizer
         self.encoder_optimizer = torch.optim.Adam(self.encoder.parameters(), lr=self.cfg.encoder_lr)
 
@@ -118,7 +119,7 @@ class CurlObsModel(nn.Module):
         logits = logits - torch.max(logits, 1)[0][:, None]
         return logits
 
-    def encode(self, obs: torch.Tensor) -> torch.Tensor:
+    def encode(self, obs: torch.Tensor, detach = False, ema=False) -> torch.Tensor:
         """
         Overview:
             Encode original observation into more compact embedding feature.
@@ -130,7 +131,13 @@ class CurlObsModel(nn.Module):
             - obs: :math:`(B, C, H, W)`, where ``B = batch_size`` and ``C = frame_stack``.
             - embedding: :math:`(B, N)`, where ``N = embedding_size``
         """
-        embedding = self.encoder(obs)
+        if ema:
+            with torch.no_grad():
+                embedding = self.encoder(obs)
+        else:
+            embedding = self.encoder(obs)
+        if detach:
+            embedding = embedding.detach()
         return embedding
 
     def train(self, data: Dict) -> None:
@@ -146,18 +153,18 @@ class CurlObsModel(nn.Module):
 
         # update_cpc
         z_anc = self.encode(obs_anchor)
-        z_pos = self.encode(obs_positive)
-        logits = self.compute_logits(z_anc, z_pos)
+        z_pos = self.encode(obs_positive, ema=True)
 
-        labels = torch.arange(logits.shape[0]).long()  # .to(self.device)
+        logits = self.compute_logits(z_anc, z_pos)
+        labels = torch.arange(logits.shape[0]).long() # .to(self.device)
         loss = self.cross_entropy_loss(logits, labels)
 
-        self.encoder_optimizer.zero_grad()  # zero model parameters grad
+        self.encoder_optimizer.zero_grad() # zero model parameters grad
         self.cpc_optimizer.zero_grad()
         loss.backward()
 
         self.encoder_optimizer.step()
-        self.cpc_optimizer.step()  # update all the parameters
+        self.cpc_optimizer.step() # update all the parameters
 
     def save(self) -> Dict:
         """
@@ -167,7 +174,7 @@ class CurlObsModel(nn.Module):
         state_dict = {
             'encoder': self.encoder.state_dict(),
             'W': self.W.detach(),
-            'encoder optimizer': self.encoder_optimizer.state_dict(),
+            'encoder optimizer': self.encoder_optimizer.state_dict() ,
             'cpc optimizer': self.cpc_optimizer.state_dict()
         }
         torch.save(state_dict, 'curl.pt')
@@ -180,7 +187,7 @@ class CurlObsModel(nn.Module):
         state_dict = {
             'encoder': self.encoder.state_dict(),
             'W': self.W.detach(),
-            'encoder optimizer': self.encoder_optimizer.state_dict(),
+            'encoder optimizer': self.encoder_optimizer.state_dict() ,
             'cpc optimizer': self.cpc_optimizer.state_dict()
         }
         self.encoder.load_state_dict(state_dict['encoder'])
@@ -197,14 +204,14 @@ class CurlObsModel(nn.Module):
         """
         anchor = self.random_crop(img, self.cfg.image_size)
         positive = self.random_crop(img, self.cfg.image_size)
+
         return dict(obs_anchor=anchor, obs_positive=positive)
 
-    @staticmethod
-    def random_crop(img: torch.Tensor, N):
+    def random_crop(self, img: torch.Tensor, N):
         B, C, H, W = img.shape
-
         h = torch.randint(0, H - N, (B, ))
         w = torch.randint(0, W - N, (B, ))
-        windows = F.unfold(img, (N, N), stride=1)  # B, CxNxN, (h+1)*(w+1)
+        windows = F.unfold(img, (N, N), stride=1) # B, CxNxN, (h+1)*(w+1)
         windows = windows.view(B, C, N, N, -1)
+
         return windows[torch.arange(B), ..., h * (W - N) + w]
