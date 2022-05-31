@@ -12,5 +12,5 @@ class EventEnum(str, Enum):
 
     # events emited by actors
     ACTOR_GREETING = "on_actor_greeting"
-    ACTOR_SEND_DATA = "on_actor_send_meta"
+    ACTOR_SEND_DATA = "on_actor_send_meta_player_{player}"
     ACTOR_FINISH_JOB = "on_actor_finish_job"

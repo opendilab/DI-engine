@@ -152,8 +152,10 @@ def policy_resetter(env_num: int):
                 for env_id in range(env_num)
             }
 
-        for p in ctx.policies:
-            p.reset()
+            for p in ctx.policies:
+                p.reset()
+        else:
+            raise RuntimeError('ctx.policies should not be None')
 
     return _policy_resetter
 

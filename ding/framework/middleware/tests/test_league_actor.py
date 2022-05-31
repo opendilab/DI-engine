@@ -13,7 +13,7 @@ from ding.model import VAC
 from ding.policy.ppo import PPOPolicy
 from dizoo.league_demo.game_env import GameEnv
 
-from dataclasses import dataclass
+from ding.framework import EventEnum
 
 
 def prepare_test():
@@ -69,17 +69,17 @@ def _main():
                 assert isinstance(actor_data, ActorData)
                 testcases["on_actor_data"] = True
 
-            task.on('actor_greeting', on_actor_greeting)
-            task.on("actor_job", on_actor_job)
-            task.on("actor_data_player_{}".format(job.launch_player), on_actor_data)
+            task.on(EventEnum.ACTOR_GREETING, on_actor_greeting)
+            task.on(EventEnum.ACTOR_FINISH_JOB, on_actor_job)
+            task.on(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), on_actor_data)
 
             def _test_actor(ctx):
                 sleep(0.3)
-                task.emit("league_job_actor_{}".format(ACTOR_ID), job)
+                task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=ACTOR_ID), job)
                 sleep(0.3)
 
                 task.emit(
-                    "learner_model",
+                    EventEnum.LEARNER_SEND_MODEL,
                     LearnerModel(
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
@@ -103,4 +103,8 @@ def _main():
 
 @pytest.mark.unittest
 def test_league_actor():
+    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)
+
+
+if __name__ == '__main__':
     Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)

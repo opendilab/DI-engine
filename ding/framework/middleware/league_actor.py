@@ -1,4 +1,4 @@
-from ding.framework import task
+from ding.framework import task, EventEnum
 from time import sleep
 import logging
 
@@ -58,8 +58,8 @@ class LeagueActor:
         self._collectors: Dict[str, BattleCollector] = {}
         self._policies: Dict[str, "Policy.collect_function"] = {}
         self._model_updated = True
-        task.on("league_job_actor_{}".format(task.router.node_id), self._on_league_job)
-        task.on("learner_model", self._on_learner_model)
+        task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
+        task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
         self._policy_resetter = task.wrap(policy_resetter(self.env_num))
         self.job_queue = queue.Queue()
 
@@ -103,7 +103,7 @@ class LeagueActor:
         #     task.emit("actor_greeting", task.router.node_id)
 
         if self.job_queue.empty():
-            task.emit("actor_greeting", task.router.node_id)
+            task.emit(EventEnum.ACTOR_GREETING, task.router.node_id)
 
         try:
             job = self.job_queue.get(timeout=5)
@@ -150,8 +150,8 @@ class LeagueActor:
             d["adv"] = d["reward"]
 
         actor_data = ActorData(env_step=ctx.envstep, train_data=train_data)
-        task.emit("actor_data_player_{}".format(job.launch_player), actor_data)
+        task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
 
         # Send actor job
         job.result = [e['result'] for e in episode_info]
-        task.emit("actor_job", job)
+        task.emit(EventEnum.ACTOR_FINISH_JOB, job)
