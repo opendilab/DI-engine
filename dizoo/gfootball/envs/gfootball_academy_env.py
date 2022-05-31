@@ -17,6 +17,7 @@ import os
 from matplotlib import animation
 import matplotlib.pyplot as plt
 
+
 @ENV_REGISTRY.register('gfootball-academy')
 class GfootballAcademyEnv(BaseEnv):
 

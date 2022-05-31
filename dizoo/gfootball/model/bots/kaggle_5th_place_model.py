@@ -6,7 +6,10 @@ import numpy as np
 from ding.torch_utils import tensor_to_list, one_hot
 from .TamakEriFever.submission import agent
 
+from ding.utils import MODEL_REGISTRY
 
+
+@MODEL_REGISTRY.register('football_kaggle_5th_place')
 class FootballKaggle5thPlaceModel(torch.nn.Module):
 
     def __init__(self):

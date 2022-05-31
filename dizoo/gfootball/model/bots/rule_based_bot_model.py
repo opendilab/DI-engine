@@ -9,10 +9,12 @@ from math import sqrt
 from enum import Enum
 
 import torch
+import torch.nn as nn
 import numpy as np
 from kaggle_environments.envs.football.helpers import *
 
-from ding.torch_utils import tensor_to_list, one_hot
+from ding.torch_utils import tensor_to_list, one_hot, to_ndarray
+
 """
 Readable Reminder
 *********************
@@ -149,7 +151,8 @@ SLIDE_AREA = [[-0.65, 0], [-0.42, 0.42]]
 takenSelfFactor = 0.5
 passFactors = {Action.HighPass: [1.0, 1.2, 3.0], Action.ShortPass: [1.1, 1.5, 1.5], Action.LongPass: [1.0, 1.2, 2]}
 
-#top right/ Bottom left corner are:
+
+# top right/ Bottom left corner are:
 #   [1, -0.42] and [-1, 0.42], respectively.
 
 
@@ -177,7 +180,7 @@ def vec2dir(vec):
 
 TOTAL_STEP = 3000
 
-#functions help moving
+# functions help moving
 
 directions = [
     [Action.TopLeft, Action.Top, Action.TopRight], [Action.Left, Action.Idle, Action.Right],
@@ -218,8 +221,11 @@ class Processer(object):
     def preprocess(self):
         self._game_mode = self._obs['game_mode']
         self._cur_player = self._obs['active']
+        if self._obs['score'].shape[0] == 2:
+            self._score_diff = self._obs['score'][0] - self._obs['score'][1]
+        else:
+            self._score_diff = self._obs['score']
 
-        self._score_diff = self._obs['score'][0] - self._obs['score'][1]
 
         self._curPos = self._obs['left_team'][self._obs['active']]
         self._curDir = self._obs['left_team_direction'][self._obs['active']]
@@ -254,7 +260,7 @@ class Processer(object):
 
         self._our_goalkeeper_active = self._cur_player == 0
 
-        #TODO
+        # TODO
         self._ball_dir = self._obs['ball_direction']
         self._ball_owner_dir = self.getBallOwnerDir()
         self._ball_owner_pos = self.getBallOwnerPos()
@@ -265,12 +271,12 @@ class Processer(object):
         if not self._shot_dir_ready:
             self._shot_buf_player = -1
 
-    #general helper
+    # general helper
     ################################
     def getRole(self, i):
         return roles[i]
 
-    #general helper for init
+    # general helper for init
     #################################
     def getBallOwnerPos(self):
         if self._ball_is_free:
@@ -361,7 +367,7 @@ class Processer(object):
         if self._we_have_ball:
             return insideArea(self._curPos, SPRINT_AREA)
 
-    #help Judge Shooting
+    # help Judge Shooting
     def shotWill(self):
         if insideArea(self._curPos, START_SHOT_AREA1) or insideArea(self._curPos, START_SHOT_AREA2):
             return True
@@ -371,7 +377,7 @@ class Processer(object):
             return True
         return False
 
-    #short pass
+    # short pass
     # def shortPassForShot(self):
     #     if insideArea(self._curPos, PASS_FOR_SHOT_AREA1) or insideArea(self._curPos, PASS_FOR_SHOT_AREA2):
     #         if not self.judgeOffside():
@@ -407,16 +413,16 @@ class Processer(object):
     def should_slide(self):
         if not self._enemy_have_ball:
             return False
-        #TODO
-        #replace 'and True' -> 'has yellow card'
+        # TODO
+        # replace 'and True' -> 'has yellow card'
         if self._curPos[0] < self._ball_owner_pos[0] - 0.01 and self._curPos[0] < self._ballPos[0] - 0.007 and dist(
                 self._curPos, self._ball_owner_pos) < 0.03 and self._curDir[0] < 0 and insideArea(self._curPos,
                                                                                                   SLIDE_AREA) and True:
             return True
         return False
 
-    #TODO
-    #can this be smarter?
+    # TODO
+    # can this be smarter?
     def should_chase(self):
         if self._curPos[0] > self._ball_owner_pos[0] + 0.02 and self._curPos[0] != self._closest_to_enemy_pos[0]:
             return False
@@ -426,9 +432,9 @@ class Processer(object):
             return False
         return True
 
-    #help not in our zone
+    # help not in our zone
     def shotAway(self):
-        #disable or enable ?
+        # disable or enable ?
         return False
         if self._curPos[0] < -0.7 and self._our_active_have_ball:
             return True
@@ -450,7 +456,7 @@ class Processer(object):
         maxRightTeam = self.getMostForwardEnemyPos()[0]
         return LeftTeam > maxRightTeam
 
-    #TODO
+    # TODO
     def passWill(self):
         curOffenceMark = self.offenseMark(self._cur_player)
         bestPassMark, bestPassType, bestPassIndex = self.getBestPass()
@@ -465,7 +471,7 @@ class Processer(object):
         else:
             return False, Action.ShortPass, -1
 
-    #TODO
+    # TODO
     def getBestPass(self):
         if not self._our_active_have_ball:
             return -1, Action.ShortPass, -1
@@ -473,7 +479,7 @@ class Processer(object):
         bestPassIndex = -1
         bestPassMark = -10
         for index in range(11):
-            #can't pass to yourself
+            # can't pass to yourself
             if index == self._cur_player:
                 continue
             passMark, passType = self.passMarkTo(index)
@@ -483,7 +489,7 @@ class Processer(object):
                 bestPassIndex = index
         return bestPassMark, bestPassType, bestPassIndex
 
-    #TODO
+    # TODO
     def passMarkTo(self, i):
         bestPassType = Action.ShortPass
         bestPassMark = -10
@@ -498,28 +504,28 @@ class Processer(object):
         adder, multier = offenseScore[r]
         return adder, multier
 
-    #TODO
-    #around 1.0 to 10.0
+    # TODO
+    # around 1.0 to 10.0
     def offenseMark(self, i):
         mark = 0.0
         mark += self.getClosestEnemyDist(i)
         mark += self.getAvgDefenceDistToPlayer(i)
-        #the closer to enemy goal the better
+        # the closer to enemy goal the better
         mark += 3.0 / (dist(self._ourPos[i], self._goalPos) + 0.2)
-        #but should be further to goalie
+        # but should be further to goalie
         mark -= 0.5 / (dist(self._ourPos[i], self._keeperPos) + 0.2)
-        #offense pluser for role
+        # offense pluser for role
         adder, multier = self.getRoleOffenceScore(i)
         mark *= multier
         mark += adder
-        #ADD tireness
+        # ADD tireness
         mark += 1.0 - self._our_tireness[i] * offenseTirenessFactor
         if insideArea(self._ourPos[i], PASS_FOR_SHOT_AREA1) or insideArea(self._ourPos[i], PASS_FOR_SHOT_AREA2):
             mark = mark * passForShotFactor
         return mark
 
-    #TODO
-    #range from
+    # TODO
+    # range from
     def getPassSuccessMark(self, i, passType):
         # you can't pass to yourself right?
         if i == self._cur_player:
@@ -528,7 +534,7 @@ class Processer(object):
         if self.judgeOffside(i):
             return -10
         mark = 0.0
-        #calculate intercept
+        # calculate intercept
         # if passType == Action.HighPass:
         #     interceptFactor = 1.0
         #     distFactor = 1.2
@@ -549,20 +555,20 @@ class Processer(object):
         for pos in self._enemyPos:
             minDist = min(minDist, l.distToLine(pos))
         mark += (minDist * interceptFactor)
-        #calculate taken
+        # calculate taken
         taken = self.getClosestEnemyDist(i) + takenSelfFactor * self.getClosestEnemyDist()
         mark += (taken * takenFactor)
-        #calculate dist
+        # calculate dist
         mark += (l.length * distFactor)
         return mark
 
-    #freeKick
+    # freeKick
     def shotFreeKick(self):
         if insideArea(self._curPos, FREEKICK_SHOT_AREA):
             return True
         return False
 
-    #TODO
+    # TODO
     def cutAngleWithClosest(self):
         x = self._keeperPos[0] / 2 + self._goalPos[0] / 2 - self._curPos[0]
         y = self._keeperPos[1] / 2 + self._goalPos[1] / 2 - self._curPos[1]
@@ -574,8 +580,8 @@ class Processer(object):
         self._obs = obs
         self.preprocess()
 
-        #TODO
-        #of course you can only shot in penalty
+        # TODO
+        # of course you can only shot in penalty
         if self._game_mode == GameMode.Penalty:
             return Action.Shot
 
@@ -619,8 +625,8 @@ class Processer(object):
                 self._shot_buf_player = self._cur_player
                 self._shot_buf_step = self._remain_step
                 self._shot_dir_ready = True
-                #TODO
-                #improve shot direction
+                # TODO
+                # improve shot direction
                 return self.gobetweenKeeperGate()
             if self._pass_dir_ready and self._cur_player == self._pass_buf_player and self._remain_step == self._pass_buf_step - 1:
                 self._pass_dir_ready = False
@@ -641,27 +647,27 @@ class Processer(object):
                     self._pass_buf_step = self._remain_step
                     self._pass_buf_player = self._cur_player
                     return self.gotoDst(self._ourPos[doPassIndex][0], self._ourPos[doPassIndex][1])
-                #ADD avoid opponent
+                # ADD avoid opponent
                 if self._closest_enemey_to_cur_vec[0] > 0:
-                    #closest enemy behind me and left
+                    # closest enemy behind me and left
                     if not self._sprinting and self.should_sprint():
                         return Action.Sprint
                     if self._dribbling and dist(self._curPos, self._closest_enemey_pos) > 0.02:
                         return Action.ReleaseDribble
                     return self.gobetweenKeeperGate()
                 elif dist(self._curPos, self._closest_enemey_pos) < 0.02:
-                    #enemy too close, start dribble
+                    # enemy too close, start dribble
                     # if not self._dribbling:
                     #     return Action.Dribble
-                    #enemy infront of me, try to cut an angle
+                    # enemy infront of me, try to cut an angle
                     return self.cutAngleWithClosest()
                 else:
-                    #no enemy near me
+                    # no enemy near me
                     if self._dribbling:
                         return Action.ReleaseDribble
                     if not self._sprinting:
                         return Action.Sprint
-                    #ADD release sprint
+                    # ADD release sprint
                     # if self._sprinting and not self.should_sprint():
                     #     return Action.ReleaseSprintt
                     # elif not insideArea(curPos, SPRINT_AREA) and Action.Sprint in obs['sticky_actions']:
@@ -679,7 +685,7 @@ class Processer(object):
             return self.gobetweenKeeperGate()
 
         self._shot_dir_ready = False
-        #ball in enemy or ball free
+        # ball in enemy or ball free
         if self._dribbling:
             return Action.ReleaseDribble
 
@@ -702,7 +708,7 @@ class Processer(object):
             """
             if not self._sprinting and self.should_sprint() and self.should_chase():
                 return Action.Sprint
-            #intersect the ball, see https://www.kaggle.com/c/google-football/discussion/191804
+            # intersect the ball, see https://www.kaggle.com/c/google-football/discussion/191804
             return self.gotoDst(
                 self._ballPos[0] + 1 * self._ball_dir[0] + 1 * self._ball_owner_dir[0],
                 self._ballPos[1] + 1 * self._ball_dir[1] + 1 * self._ball_owner_dir[1]
@@ -751,24 +757,31 @@ def random_agent(obs):
 
 agents_map = {"random": random_agent, "rule": rule_agent, "idel": idel_agent}
 
+from ding.utils import MODEL_REGISTRY
+from ding.torch_utils import to_tensor, to_dtype
 
+
+@MODEL_REGISTRY.register('football_rule')
 class FootballRuleBaseModel(torch.nn.Module):
 
     def __init__(self, cfg={}):
         super(FootballRuleBaseModel, self).__init__()
         self.agent_type = cfg.get('agent_type', 'rule')
         self._agent = agents_map[self.agent_type]
+        # avoid: ValueError: optimizer got an empty parameter list
+        self._dummy_param = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, data):
         actions = []
+        data = data['raw_obs']
+        # dict of numpy -> list of dict
+        data = [{k: v[i] for k, v in data.items()} for i in range(data['left_team'].shape[0])]
+        data = to_tensor(data)
         for d in data:
+            # each transition
             if isinstance(d['steps_left'], torch.Tensor):
-                for k, v in d.items():
-                    v = tensor_to_list(v)
-                    if len(v) == 1:
-                        v = int(v[0])
-                    else:
-                        v = np.array(v)
-                    d[k] = v
+                d = to_ndarray(d)
+                for k in ['active', 'designated', 'ball_owned_player']:
+                    d[k] = int(d[k])
                 actions.append(self._agent(d))
         return {'action': torch.LongTensor(actions), 'logit': one_hot(torch.LongTensor(actions), 19)}

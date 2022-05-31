@@ -3,7 +3,7 @@ import copy
 import torch
 from dizoo.gfootball.model.iql.iql_network import FootballIQL, ScalarEncoder, PlayerEncoder, FootballHead
 from ding.utils import deep_merge_dicts
-from ding.torch_utils import to_tensor
+from ding.torch_utils import to_tensor, to_dtype
 from dizoo.gfootball.envs.fake_dataset import FakeGfootballDataset
 import pprint
 
@@ -35,6 +35,7 @@ class TestModel:
 
             model = FootballIQL(cfg)
             assert isinstance(model, torch.nn.Module)
+            inputs = to_dtype(inputs, torch.float32)
             inputs = to_tensor(inputs)
             action = model(inputs)
             assert action.shape == (B, 19)

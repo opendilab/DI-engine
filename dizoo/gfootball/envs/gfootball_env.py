@@ -101,10 +101,19 @@ class GfootballEnv(BaseEnv):
         )
 
         self.obs = self._obs_helper.get(self)
+
+        if hasattr(self, '_seed') and hasattr(self, '_dynamic_seed') and self._dynamic_seed:
+            np_seed = 100 * np.random.randint(1, 1000)
+            self._env.seed(self._seed + np_seed)
+        elif hasattr(self, '_seed'):
+            self._env.seed(self._seed)
+
         return {'processed_obs': self.obs, 'raw_obs': self._football_obs}
 
-    def seed(self, seed: int) -> None:
+    def seed(self, seed: int, dynamic_seed: bool = True) -> None:
         self._seed = seed
+        self._dynamic_seed = dynamic_seed
+        np.random.seed(self._seed)
 
     def close(self) -> None:
         self._env.close()

@@ -10,8 +10,15 @@ from ding.utils import deep_merge_dicts, MODEL_REGISTRY
 from ding.utils.data import default_collate
 from ding.torch_utils import fc_block, Transformer, ResFCBlock, \
     conv2d_block, ResBlock, build_activation, ScatterConnection
+import os
+import yaml
+from easydict import EasyDict
 
-iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.yaml"))
+# iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.yaml"))
+# iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.py"))
+with open(os.path.join(os.path.dirname(__file__), 'iql_default_config.yaml')) as f:
+    cfg = yaml.safe_load(f)
+iql_default_config = EasyDict(cfg)
 
 
 @MODEL_REGISTRY.register('football_iql')
@@ -37,12 +44,14 @@ class FootballIQL(nn.Module):
         head_input_dim = scalar_dim + player_dim
         self.pred_head = FootballHead(input_dim=head_input_dim, cfg=self.cfg.policy)
 
-    def forward(self, x: dict) -> torch.Tensor:
+    def forward(self, x: dict) -> dict:
         """
         Shape:
             - input: dict{obs_name: obs_tensor(:math: `(B, obs_dim)`)}
             - output: :math: `(B, action_dim)`
         """
+        if isinstance(x, dict) and len(x) == 2:
+            x = x['processed_obs']
         scalar_encodings = self.scalar_encoder(x)
         if self.player_type == 'transformer':
             player_encodings = self.player_encoder(x['players'], x['active_player'])
@@ -51,7 +60,8 @@ class FootballIQL(nn.Module):
         encoding_list = list(scalar_encodings.values()) + [player_encodings]
         x = torch.cat(encoding_list, dim=1)
         x = self.pred_head(x)
-        return x
+        # return x
+        return {'logit': x, 'action': torch.argmax(x, dim=-1)}
 
 
 class ScalarEncoder(nn.Module):
@@ -96,6 +106,8 @@ def cat_player_attr(player_data: dict) -> torch.Tensor:
     ]
     attr = []
     for k in fixed_player_attr_sequence:
+        if len(player_data[k].shape) == 1:
+            player_data[k].unsqueeze_(-1)
         attr.append(player_data[k])
     attr = torch.cat(attr, dim=1)
     return attr
@@ -262,4 +274,4 @@ class FootballHead(nn.Module):
         x = self.pre_fc(x)
         x = self.res_blocks(x)
         x = self.pred(x)
-        return {'logit': x}
+        return x['logit']
