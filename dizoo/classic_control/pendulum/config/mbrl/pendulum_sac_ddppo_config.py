@@ -109,6 +109,7 @@ create_config = dict(
         import_names=['ding.policy.sac'],
     ),
     replay_buffer=dict(type='naive', ),
+    imagination_buffer=dict(type='elastic', ),
     world_model=dict(
         type='ddppo',
         import_names=['ding.world_model.ddppo'],

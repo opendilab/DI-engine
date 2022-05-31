@@ -6,21 +6,23 @@ from functools import partial
 from tensorboardX import SummaryWriter
 
 from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialCommander, create_buffer, \
-    create_serial_collector
+    get_buffer_cls, create_serial_collector
+from ding.world_model import WorldModel
+from ding.worker import IBuffer
 from ding.envs import get_vec_env_setting, create_env_manager
 from ding.config import read_config, compile_config
-from ding.utils import set_pkg_seed
+from ding.utils import set_pkg_seed, deep_merge_dicts
 from ding.policy import create_policy
 from ding.world_model import create_world_model
 from ding.entry.utils import random_collect
 
 
 def mbrl_entry_setup(
-    input_cfg: Union[str, Tuple[dict, dict]],
-    seed: int = 0,
-    env_setting: Optional[List[Any]] = None,
-    model: Optional[torch.nn.Module] = None,
-):
+        input_cfg: Union[str, Tuple[dict, dict]],
+        seed: int = 0,
+        env_setting: Optional[List[Any]] = None,
+        model: Optional[torch.nn.Module] = None,
+) -> Tuple:
     if isinstance(input_cfg, str):
         cfg, create_cfg = read_config(input_cfg)
     else:
@@ -81,6 +83,23 @@ def mbrl_entry_setup(
     )
 
 
+def create_img_buffer(
+        cfg: dict, input_cfg: Union[str, Tuple[dict, dict]], world_model: WorldModel, tb_logger: 'SummaryWriter'
+) -> IBuffer:  # noqa
+    if isinstance(input_cfg, str):
+        _, create_cfg = read_config(input_cfg)
+    else:
+        _, create_cfg = input_cfg
+    img_buffer_cfg = cfg.world_model.other.imagination_buffer
+    img_buffer_cfg.update(create_cfg.imagination_buffer)
+    buffer_cls = get_buffer_cls(img_buffer_cfg)
+    cfg.world_model.other.imagination_buffer.update(deep_merge_dicts(buffer_cls.default_config(), img_buffer_cfg))
+    if img_buffer_cfg.type == 'elastic':
+        img_buffer_cfg.set_buffer_size = world_model.buffer_size_scheduler
+    img_buffer = create_buffer(cfg.world_model.other.imagination_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
+    return img_buffer
+
+
 def serial_pipeline_dyna(
         input_cfg: Union[str, Tuple[dict, dict]],
         seed: int = 0,
@@ -108,11 +127,7 @@ def serial_pipeline_dyna(
     cfg, policy, world_model, env_buffer, learner, collector, collector_env, evaluator, commander, tb_logger = \
         mbrl_entry_setup(input_cfg, seed, env_setting, model)
 
-    # dyna-style algorithm maintains a imaginiation buffer from model rollouts
-    img_buffer_cfg = cfg.world_model.other.imagination_buffer
-    if img_buffer_cfg.type == 'elastic':
-        img_buffer_cfg.set_buffer_size = world_model.buffer_size_scheduler
-    img_buffer = create_buffer(cfg.world_model.other.imagination_buffer, tb_logger=tb_logger, exp_name=cfg.exp_name)
+    img_buffer = create_img_buffer(cfg, input_cfg, world_model, tb_logger)
 
     learner.call_hook('before_run')
 
