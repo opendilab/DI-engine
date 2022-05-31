@@ -1,23 +1,15 @@
 """
-The code is borrowed from https://github.com/nikhilbarhate99/min-decision-transformer
-"""
-"""
-this extremely minimal GPT model is based on:
-Misha Laskin's tweet:
-https://twitter.com/MishaLaskin/status/1481767788775628801?cxt=HHwWgoCzmYD9pZApAAAA
-
-and its corresponding notebook:
-https://colab.research.google.com/drive/1NUBqyboDcGte5qAJKOl8gaJC28V_73Iv?usp=sharing
-
-the above colab notebook has a bug while applying masked_fill 
-which is fixed in the following code
+The code is transplanted from https://github.com/nikhilbarhate99/min-decision-transformer
 """
 
+from ding.utils import MODEL_REGISTRY
+from ding.torch_utils.network.transformer import Attention
+from typing import Tuple
 import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ding.utils import MODEL_REGISTRY
+import ipdb
 
 
 class MaskedCausalAttention(nn.Module):
@@ -71,7 +63,6 @@ class MaskedCausalAttention(nn.Module):
 
         out = self.proj_drop(self.proj_net(attention))
         return out
-
 
 class Block(nn.Module):
 

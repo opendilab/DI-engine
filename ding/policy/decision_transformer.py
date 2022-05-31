@@ -3,27 +3,24 @@
 
 from typing import List, Dict, Any, Tuple, Union
 from collections import namedtuple
-import copy
-import numpy as np
-import torch
-import torch.nn.functional as F
 from torch.distributions import Normal, Independent
-
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import v_1step_td_data, v_1step_td_error, get_train_sample, \
-    qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_nstep_return_data, REF_MIN_SCORE, REF_MAX_SCORE
+    qrdqn_nstep_td_data, qrdqn_nstep_td_error, get_nstep_return_data
 from ding.model import model_wrap
+from ding.utils.data.dataset import D4RLTrajectoryDataset 
 from ding.utils import POLICY_REGISTRY
 from ding.utils.data import default_collate, default_decollate
-from .sac import SACPolicy
-from .dqn import DQNPolicy
-from .common_utils import default_preprocess_learn
-from ding.model.template.decision_transformer import DecisionTransformer
-import os
 from datetime import datetime
-import gym
 from ding.torch_utils import one_hot
+import numpy as np
+import torch.nn.functional as F
+import torch
+import gym
+import copy
+import os
 import csv
+from .dqn import DQNPolicy
 
 
 @POLICY_REGISTRY.register('dt')
@@ -53,7 +50,6 @@ class DTPolicy(DQNPolicy):
         max_eval_ep_len=1000,  # max len of one episode
         num_eval_ep=10,  # num of evaluation episodes
         batch_size=64,  # training batch size
-        lr=1e-4,
         wt_decay=1e-4,
         warmup_steps=10000,
         max_train_iters=200,
@@ -71,36 +67,16 @@ class DTPolicy(DQNPolicy):
             # collect data -> update policy-> collect data -> ...
             update_per_collect=1,
             # batch_size=64,
-            learning_rate=0.001,
+            learning_rate=1e-4,
             # ==============================================================
             # The following configs are algorithm-specific
             # ==============================================================
-            # (int) Frequence of target network update.
-            target_update_freq=100,
-            # (bool) Whether ignore done(usually for max step termination env)
-            ignore_done=False,
-            # (float) Loss weight for conservative item.
-            min_q_weight=1.0,
         ),
         # collect_mode config
-        collect=dict(
-            # (int) Cut trajectories into pieces with length "unroll_len".
-            unroll_len=1,
-        ),
+        collect=dict(),
         eval=dict(),
         # other config
-        other=dict(
-            # Epsilon greedy with decay.
-            eps=dict(
-                # (str) Decay type. Support ['exp', 'linear'].
-                type='exp',
-                start=0.95,
-                end=0.1,
-                # (int) Decay length(env step)
-                decay=10000,
-            ),
-            replay_buffer=dict(replay_buffer_size=10000, )
-        ),
+        other=dict(),
     )
 
     def _init_learn(self) -> None:
@@ -121,7 +97,7 @@ class DTPolicy(DQNPolicy):
         self.max_eval_ep_len = self._cfg.max_eval_ep_len  # max len of one episode
         self.num_eval_ep = self._cfg.num_eval_ep  # num of evaluation episodes
 
-        lr = self._cfg.lr  # learning rate
+        lr = self._cfg.learn.learning_rate  # learning rate
         wt_decay = self._cfg.wt_decay  # weight decay
         warmup_steps = self._cfg.warmup_steps  # warmup steps for lr scheduler
 
@@ -144,8 +120,8 @@ class DTPolicy(DQNPolicy):
             os.makedirs(self.log_dir)
 
         # training and evaluation device
-        self.device = torch.device(self._cfg.device)
-        device = torch.device(self._cfg.device)
+        self.device = torch.device(self._device)
+        device = torch.device(self._device)
 
         self.start_time = datetime.now().replace(microsecond=0)
         self.start_time_str = self.start_time.strftime("%y-%m-%d-%H-%M-%S")
@@ -202,62 +178,65 @@ class DTPolicy(DQNPolicy):
             Returns:
                 - info_dict (:obj:`Dict[str, Any]`): Including current lr and loss.
         """
+
+        self._learn_model.train()
+
         data_iter = data['data_iter']
         traj_data_loader = data['traj_data_loader']
 
-        self.log_action_losses = []
-        self._learn_model.train()
-        self._learn_model.to(self.device)  #TODO(pu)
+        try:
+            timesteps, states, actions, returns_to_go, traj_mask = next(data_iter)
+        except StopIteration:
+            data_iter = iter(traj_data_loader)
+            timesteps, states, actions, returns_to_go, traj_mask = next(data_iter)
 
-        for _ in range(self.num_updates_per_iter):
-            try:
-                timesteps, states, actions, returns_to_go, traj_mask = next(data_iter)
-            except StopIteration:
-                data_iter = iter(traj_data_loader)
-                timesteps, states, actions, returns_to_go, traj_mask = next(data_iter)
+        timesteps = timesteps.to(self.device)  # B x T
+        states = states.to(self.device)  # B x T x state_dim
+        actions = actions.to(self.device)  # B x T x act_dim
+        returns_to_go = returns_to_go.to(self.device)  # B x T x 1
+        traj_mask = traj_mask.to(self.device)  # B x T
+        action_target = torch.clone(actions).detach().to(self.device)
 
-            timesteps = timesteps.to(self.device)  # B x T
-            states = states.to(self.device)  # B x T x state_dim
-            actions = actions.to(self.device)  # B x T x act_dim
-            returns_to_go = returns_to_go.to(self.device)  # B x T x 1
-            traj_mask = traj_mask.to(self.device)  # B x T
-            action_target = torch.clone(actions).detach().to(self.device)
+        # The shape of `returns_to_go` may differ with different dataset (B x T or B x T x 1), and we need a 3-dim tensor
+        if len(returns_to_go.shape) == 2:
+            returns_to_go = returns_to_go.unsqueeze(-1)
 
-            if len(returns_to_go.shape) == 2:
-                returns_to_go = returns_to_go.unsqueeze(-1)
+        # if discrete
+        if not self._cfg.model.continuous:
+            actions = one_hot(actions.squeeze(-1), num=self.act_dim)
 
-            # if discrete
-            if not self._cfg.model.continuous:
-                actions = one_hot(actions.squeeze(-1), num=self.act_dim)
+        print('before forward')
 
-            returns_to_go = returns_to_go.float()
-            state_preds, action_preds, return_preds = self._learn_model.forward(
-                timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
-            )
-            # only consider non padded elements
-            action_preds = action_preds.view(-1, self.act_dim)[traj_mask.view(-1, ) > 0]
+        state_preds, action_preds, return_preds = self._learn_model.forward(
+            timesteps=timesteps, states=states, actions=actions, returns_to_go=returns_to_go
+        )
 
-            if self._cfg.model.continuous:
-                action_target = action_target.view(-1, self.act_dim)[traj_mask.view(-1, ) > 0]
-            else:
-                action_target = action_target.view(-1)[traj_mask.view(-1, ) > 0]
+        print('end forward')
 
-            if self._cfg.model.continuous:
-                action_loss = F.mse_loss(action_preds, action_target)
-            else:
-                action_loss = F.cross_entropy(action_preds, action_target)
+        traj_mask = traj_mask.view(-1,)
 
-            self._optimizer.zero_grad()
-            action_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), 0.25)
-            self._optimizer.step()
-            self._scheduler.step()
+        # only consider non padded elements
+        action_preds = action_preds.view(-1, self.act_dim)[traj_mask > 0]
 
-            self.log_action_losses.append(action_loss.detach().cpu().item())
+        if self._cfg.model.continuous:
+            action_target = action_target.view(-1, self.act_dim)[traj_mask > 0]
+        else:
+            action_target = action_target.view(-1)[traj_mask > 0]
+
+        if self._cfg.model.continuous:
+            action_loss = F.mse_loss(action_preds, action_target)
+        else:
+            action_loss = F.cross_entropy(action_preds, action_target)
+
+        self._optimizer.zero_grad()
+        action_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self._learn_model.parameters(), 0.25)
+        self._optimizer.step()
+        self._scheduler.step()
 
         return {
-            'cur_lr': self._optimizer.defaults['lr'],
-            'action_loss': action_loss.item(),
+            'cur_lr': self._optimizer.state_dict()['param_groups'][0]['lr'],
+            'action_loss': action_loss.detach().cpu().item(),
         }
 
     def evaluate_on_env(self, state_mean=None, state_std=None, render=False):
@@ -287,7 +266,6 @@ class DTPolicy(DQNPolicy):
         timesteps = timesteps.repeat(eval_batch_size, 1).to(self.device)
 
         self._learn_model.eval()
-        self._learn_model.to(self.device)  #TODO(pu)
 
         with torch.no_grad():
 
@@ -360,14 +338,14 @@ class DTPolicy(DQNPolicy):
 
         return results
 
-    def evaluate(self, state_mean=None, state_std=None, render=False):
+    def evaluate(self, log_action_losses, state_mean=None, state_std=None, render=False):
         results = self.evaluate_on_env(state_mean, state_std, render)
 
         eval_avg_reward = results['eval/avg_reward']
         eval_avg_ep_len = results['eval/avg_ep_len']
         eval_d4rl_score = self.get_d4rl_normalized_score(results['eval/avg_reward'], self.env_name) * 100
 
-        mean_action_loss = np.mean(self.log_action_losses)
+        mean_action_loss = np.mean(log_action_losses)
         time_elapsed = str(datetime.now().replace(microsecond=0) - self.start_time)
 
         self.total_updates += self.num_updates_per_iter * 10
@@ -420,8 +398,9 @@ class DTPolicy(DQNPolicy):
 
     def get_d4rl_normalized_score(self, score, env_name):
         env_key = env_name.split('-')[0].lower()
-        assert env_key in REF_MAX_SCORE, f'no reference score for {env_key} env to calculate d4rl score'
-        return (score - REF_MIN_SCORE[env_key]) / (REF_MAX_SCORE[env_key] - REF_MIN_SCORE[env_key])
+        assert env_key in D4RLTrajectoryDataset.get_d4rl_max_score(), f'no reference score for {env_key} env to calculate d4rl score'
+        d4rl_max_score, d4rl_min_score = D4RLTrajectoryDataset.get_d4rl_max_score(), D4RLTrajectoryDataset.get_d4rl_min_score()
+        return (score - d4rl_min_score[env_key]) / (d4rl_max_score[env_key] - d4rl_min_score[env_key])
 
     def _state_dict_learn(self) -> Dict[str, Any]:
         return {

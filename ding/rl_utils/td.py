@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 from collections import namedtuple
 from typing import Union, Optional, Callable
 
@@ -11,6 +12,15 @@ from ding.rl_utils.value_rescale import value_transform, value_inv_transform
 from ding.torch_utils import to_tensor
 
 q_1step_td_data = namedtuple('q_1step_td_data', ['q', 'next_q', 'act', 'next_act', 'reward', 'done', 'weight'])
+
+
+def discount_cumsum(x, gamma: float=1.0) -> np.ndarray:
+    assert abs(gamma - 1.) < 1e-5, "gamma equals to 1.0 in original decision transformer paper"
+    disc_cumsum = np.zeros_like(x)
+    disc_cumsum[-1] = x[-1]
+    for t in reversed(range(x.shape[0] - 1)):
+        disc_cumsum[t] = x[t] + gamma * disc_cumsum[t + 1]
+    return disc_cumsum
 
 
 def q_1step_td_error(

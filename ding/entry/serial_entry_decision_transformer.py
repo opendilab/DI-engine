@@ -21,7 +21,7 @@ import pickle
 import torch
 import numpy as np
 from torch.utils.data import Dataset
-from ding.rl_utils import discount_cumsum, get_d4rl_dataset_stats
+from ding.rl_utils import discount_cumsum
 from ding.utils.data.dataset import D4RLTrajectoryDataset
 
 
@@ -30,7 +30,7 @@ def serial_pipeline_dt(
         seed: int = 0,
         env_setting: Optional[List[Any]] = None,
         model: Optional[torch.nn.Module] = None,
-        max_train_iter: Optional[int] = int(1e10),
+        max_train_iter: Optional[int] = int(5e2),
 ) -> 'Policy':  # noqa
     """
     Overview:
@@ -59,7 +59,6 @@ def serial_pipeline_dt(
     traj_data_loader = DataLoader(
         traj_dataset, batch_size=cfg.policy.batch_size, shuffle=True, pin_memory=True, drop_last=True
     )
-    data_iter = iter(traj_data_loader)
     # get state stats from dataset
     state_mean, state_std = traj_dataset.get_state_stats()
 
@@ -74,12 +73,13 @@ def serial_pipeline_dt(
     # Learner's before_run hook.
     learner.call_hook('before_run')
     stop = False
-
     for i in range(max_train_iter):
-        learner.train({'data_iter': data_iter, 'traj_data_loader': traj_data_loader})
+        data_iter = iter(traj_data_loader)
+        log_action_losses = []
+        for j in range(cfg.policy.num_updates_per_iter):
+            train_result = learner.train({'data_iter': data_iter, 'traj_data_loader': traj_data_loader})
+            log_action_losses.append(train_result['action_loss'])
         if i % 10 == 0:
-            stop = policy.evaluate(state_mean, state_std)
-            if stop:
-                break
+            policy.evaluate(log_action_losses, state_mean, state_std)
     learner.call_hook('after_run')
     return policy, stop

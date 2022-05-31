@@ -10,7 +10,7 @@ from .td import q_nstep_td_data, q_nstep_td_error, q_1step_td_data, q_1step_td_e
     generalized_lambda_returns, dist_1step_td_data, dist_1step_td_error, dist_nstep_td_error, dist_nstep_td_data, \
     nstep_return_data, nstep_return, iqn_nstep_td_data, iqn_nstep_td_error, qrdqn_nstep_td_data, qrdqn_nstep_td_error,\
     q_nstep_sql_td_error, dqfd_nstep_td_error, dqfd_nstep_td_data, q_v_1step_td_error, q_v_1step_td_data,\
-    dqfd_nstep_td_error_with_rescale
+    dqfd_nstep_td_error_with_rescale, discount_cumsum
 from .vtrace import vtrace_loss, compute_importance_weights
 from .upgo import upgo_loss
 from .adder import get_gae, get_gae_with_default_last_value, get_nstep_return_data, get_train_sample
@@ -19,4 +19,3 @@ from .vtrace import vtrace_data, vtrace_error
 from .beta_function import beta_function_map
 from .retrace import compute_q_retraces
 from .acer import acer_policy_error, acer_value_error, acer_trust_region_update
-from .decision_transformer import discount_cumsum, get_d4rl_dataset_stats, REF_MIN_SCORE, REF_MAX_SCORE
