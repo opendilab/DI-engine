@@ -28,7 +28,7 @@ class MockLeague:
 
     def get_job_info(self, player_id):
         self.get_job_info_cnt += 1
-        return Job(player_id=player_id, players=[])
+        return Job(launch_player=player_id, players=[])
 
 
 def _main():
