@@ -15,6 +15,7 @@ from dizoo.league_demo.game_env import GameEnv
 
 from dataclasses import dataclass
 
+
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
@@ -34,22 +35,15 @@ def prepare_test():
     return cfg, env_fn, policy_fn
 
 
-def test_league_actor():
+def _main():
     cfg, env_fn, policy_fn = prepare_test()
     policy = policy_fn()
     job = Job(
-        launch_player='main_player_default_0', 
+        launch_player='main_player_default_0',
         players=[
-            PlayerMeta(
-                player_id='main_player_default_0', 
-                checkpoint=FileStorage(path = None), 
-                total_agent_step=0
-            ), 
-            PlayerMeta(
-                player_id='main_player_default_1', 
-                checkpoint=FileStorage(path = None), 
-                total_agent_step=0)
-            ]
+            PlayerMeta(player_id='main_player_default_0', checkpoint=FileStorage(path=None), total_agent_step=0),
+            PlayerMeta(player_id='main_player_default_1', checkpoint=FileStorage(path=None), total_agent_step=0)
+        ]
     )
     ACTOR_ID = 0
 
@@ -66,15 +60,15 @@ def test_league_actor():
             def on_actor_greeting(actor_id):
                 assert actor_id == ACTOR_ID
                 testcases["on_actor_greeting"] = True
-        
+
             def on_actor_job(job_: Job):
                 assert job_.launch_player == job.launch_player
                 testcases["on_actor_job"] = True
-            
+
             def on_actor_data(actor_data):
                 assert isinstance(actor_data, ActorData)
                 testcases["on_actor_data"] = True
-            
+
             task.on('actor_greeting', on_actor_greeting)
             task.on("actor_job", on_actor_job)
             task.on("actor_data_player_{}".format(job.launch_player), on_actor_data)
@@ -96,6 +90,7 @@ def test_league_actor():
                     assert all(testcases.values())
                 finally:
                     task.finish = True
+
             return _test_actor
 
         if task.router.node_id == ACTOR_ID:
@@ -105,5 +100,7 @@ def test_league_actor():
 
         task.run()
 
-if __name__ == "__main__":
-    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(test_league_actor)
+
+@pytest.mark.unittest
+def test_league_actor():
+    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)
