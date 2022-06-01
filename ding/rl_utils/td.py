@@ -207,7 +207,8 @@ def dist_nstep_td_error(
 ) -> torch.Tensor:
     r"""
     Overview:
-        Multistep (1 step or n step) td_error for distributed q-learning based algorithm
+        Multistep (1 step or n step) td_error for distributed q-learning based algorithm, support single\
+            agent case and multi agent case.
     Arguments:
         - data (:obj:`dist_nstep_td_data`): the input data, dist_nstep_td_data to calculate loss
         - gamma (:obj:`float`): discount factor
@@ -239,6 +240,8 @@ def dist_nstep_td_error(
         batch_range = torch.arange(batch_size)
         if weight is None:
             weight = torch.ones_like(reward)
+        elif isinstance(weight, float):
+            weight = torch.tensor(weight)
 
         next_n_dist = next_n_dist[batch_range, next_n_act].detach()
     else:
@@ -259,9 +262,14 @@ def dist_nstep_td_error(
         act = act.reshape(act.shape[0] * act.shape[1])
         if weight is None:
             weight = torch.ones_like(reward)
+        elif isinstance(weight, float):
+            weight = torch.tensor(weight)
 
     if value_gamma is None:
         target_z = reward + (1 - done) * (gamma ** nstep) * support
+    elif isinstance(value_gamma, float):
+        value_gamma = torch.tensor(value_gamma).unsqueeze(-1)
+        target_z = reward + (1 - done) * value_gamma * support
     else:
         value_gamma = value_gamma.unsqueeze(-1)
         target_z = reward + (1 - done) * value_gamma * support

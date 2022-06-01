@@ -143,7 +143,7 @@ def test_dist_nstep_multi_agent_td():
     nstep = 5
     dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs().requires_grad_(True)
     next_n_dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs()
-    done = torch.randn(batch_size)
+    done = torch.randint(0, 2, (batch_size, ))
     action = torch.randint(
         0, action_dim, size=(
             batch_size,
@@ -163,13 +163,22 @@ def test_dist_nstep_multi_agent_td():
     assert dist.grad is None
     loss.backward()
     assert isinstance(dist.grad, torch.Tensor)
-    weight = torch.tensor([0.9])
-    value_gamma = torch.tensor(0.9)
+    weight = 0.9
+    value_gamma = 0.9
     data = dist_nstep_td_data(dist, next_n_dist, action, next_action, reward, done, weight)
     loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep, value_gamma)
     assert loss.shape == ()
     loss.backward()
     assert isinstance(dist.grad, torch.Tensor)
+    agent_total_loss = 0
+    for i in range(agent_num):
+        data = dist_nstep_td_data(
+            dist[:, i, ], next_n_dist[:, i, ], action[:, i, ], next_action[:, i, ], reward, done, weight
+        )
+        agent_loss, _ = dist_nstep_td_error(data, 0.95, v_min, v_max, n_atom, nstep, value_gamma)
+        agent_total_loss = agent_total_loss + agent_loss
+    agent_average_loss = agent_total_loss / agent_num
+    assert abs(agent_average_loss.item() - loss.item()) < 1e-5
 
 
 @pytest.mark.unittest
@@ -266,7 +275,7 @@ def test_dist_1step_multi_agent_td():
     v_max = 10.0
     dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs().requires_grad_(True)
     next_dist = torch.randn(batch_size, agent_num, action_dim, n_atom).abs()
-    done = torch.randn(batch_size)
+    done = torch.randint(0, 2, (batch_size, ))
     action = torch.randint(
         0, action_dim, size=(
             batch_size,
@@ -286,6 +295,15 @@ def test_dist_1step_multi_agent_td():
     assert dist.grad is None
     loss.backward()
     assert isinstance(dist.grad, torch.Tensor)
+    agent_total_loss = 0
+    for i in range(agent_num):
+        data = dist_1step_td_data(
+            dist[:, i, ], next_dist[:, i, ], action[:, i, ], next_action[:, i, ], reward, done, None
+        )
+        agent_loss = dist_1step_td_error(data, 0.95, v_min, v_max, n_atom)
+        agent_total_loss = agent_total_loss + agent_loss
+    agent_average_loss = agent_total_loss / agent_num
+    assert abs(agent_average_loss.item() - loss.item()) < 1e-5
 
 
 @pytest.mark.unittest
