@@ -248,7 +248,10 @@ class FootballNet(BaseModel):
 
             p = F.relu(torch.cat([p_self, p_opp], dim=1))
             s_concat = s.view(bs, 1, -1).repeat(1, p.size(1), 1)
-            p = torch.cat([p, x['distance']['p2bo'].view(bs, p.size(1), -1), s_concat], dim=2)
+            # p = torch.cat([p, x['distance']['p2bo'].view(bs, p.size(1), -1), s_concat], dim=2)
+            # TODO(pu)
+            p = torch.cat([p, x['distance']['p2bo'].repeat(1,2,1).view(bs, p.size(1), -1), s_concat], dim=2)
+
 
             h = F.relu(self.fc(p))
 

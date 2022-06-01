@@ -4,16 +4,16 @@
 ## referenced https://www.kaggle.com/david1013/tunable-baseline-bot by @david1013
 
 """
-import random
+from kaggle_environments.envs.football.helpers import *
 from math import sqrt
 from enum import Enum
-
+import random
 import torch
 import torch.nn as nn
 import numpy as np
-from kaggle_environments.envs.football.helpers import *
-
 from ding.torch_utils import tensor_to_list, one_hot, to_ndarray
+from ding.utils import MODEL_REGISTRY
+from ding.torch_utils import to_tensor, to_dtype
 
 """
 Readable Reminder
@@ -756,9 +756,6 @@ def random_agent(obs):
 
 
 agents_map = {"random": random_agent, "rule": rule_agent, "idel": idel_agent}
-
-from ding.utils import MODEL_REGISTRY
-from ding.torch_utils import to_tensor, to_dtype
 
 
 @MODEL_REGISTRY.register('football_rule')

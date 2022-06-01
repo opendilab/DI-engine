@@ -2,31 +2,60 @@ from kaggle_environments.envs.football.helpers import *
 from math import sqrt
 from enum import Enum
 import torch
+import torch.nn as nn
 import numpy as np
-from ding.torch_utils import tensor_to_list, one_hot
+from ding.torch_utils import tensor_to_list, one_hot, to_ndarray, to_tensor, to_dtype
+from ding.utils import MODEL_REGISTRY
 from .TamakEriFever.submission import agent
 
-from ding.utils import MODEL_REGISTRY
+# backup
+# @MODEL_REGISTRY.register('football_kaggle_5th_place')
+# class FootballKaggle5thPlaceModel(torch.nn.Module):
+
+#     def __init__(self):
+#         super(FootballKaggle5thPlaceModel, self).__init__()
+
+#     def forward(self, data):
+#         actions = []
+#         for d in data:
+#             if isinstance(d['steps_left'], torch.Tensor):
+#                 for k, v in d.items():
+#                     v = tensor_to_list(v)
+#                     if len(v) == 1:
+#                         v = int(v[0])
+#                     # else:
+#                     #     v = np.array(v)
+#                     d[k] = v
+#                 d = {'controlled_players': 1, 'players_raw': [d]}
+#                 # print("current d = ", d)
+#                 actions.append(agent(d)[0])
+#         return {'action': torch.LongTensor(actions), 'logit': one_hot(torch.LongTensor(actions), 19)}
 
 
 @MODEL_REGISTRY.register('football_kaggle_5th_place')
 class FootballKaggle5thPlaceModel(torch.nn.Module):
-
+    
     def __init__(self):
         super(FootballKaggle5thPlaceModel, self).__init__()
+        # avoid: ValueError: optimizer got an empty parameter list
+        self._dummy_param = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, data):
         actions = []
+        data = data['raw_obs']
+        data['score'] = torch.stack(data['score'], dim=-1)
+        # dict of numpy -> list of dict
+        data = [{k: v[i] for k, v in data.items()} for i in range(data['left_team'].shape[0])]
+        # data = to_tensor(data)
         for d in data:
+            # each transition
             if isinstance(d['steps_left'], torch.Tensor):
-                for k, v in d.items():
-                    v = tensor_to_list(v)
-                    if len(v) == 1:
-                        v = int(v[0])
-                    # else:
-                    #     v = np.array(v)
-                    d[k] = v
+                d={k: v.cpu() for k, v in d.items()}
+                d = to_ndarray(d)
+                for k in ['active', 'designated', 'ball_owned_player', 'ball_owned_team']:
+                    d[k] = int(d[k])
+                for k in ['sticky_actions']:
+                    d[k] = list(d[k])
                 d = {'controlled_players': 1, 'players_raw': [d]}
-                # print("current d = ", d)
                 actions.append(agent(d)[0])
         return {'action': torch.LongTensor(actions), 'logit': one_hot(torch.LongTensor(actions), 19)}

@@ -1,5 +1,5 @@
 from dizoo.gfootball.entry.gfootball_il_config import gfootball_il_main_config, gfootball_il_create_config
-from dizoo.gfootball.model.bots.rule_based_bot_model import FootballRuleBaseModel
+from dizoo.gfootball.model.bots.kaggle_5th_place_model import FootballKaggle5thPlaceModel
 from dizoo.gfootball.model.iql.iql_network import FootballIQL
 
 from ding.config import read_config, compile_config
@@ -9,6 +9,8 @@ from typing import Tuple, List, Dict, Any
 import torch
 from collections import namedtuple
 import os
+path = os.path.abspath(__file__)
+dir_path = os.path.dirname(path)
 
 from ding.torch_utils import Adam, to_device
 from ding.rl_utils import get_train_sample, get_nstep_return_data
@@ -51,8 +53,16 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
         if isinstance(data, dict):
             data_id = list(data.keys())
             data = default_collate(list(data.values()))
-            o = default_decollate(self._eval_model.forward(data))
-            return {i: d for i, d in zip(data_id, o)}
+            # o = default_decollate(self._eval_model.forward(data))
+            if self._cuda:
+                data = to_device(data, self._device)
+            self._eval_model.eval()
+            with torch.no_grad():
+                output = self._eval_model.forward(data)
+            if self._cuda:
+                output = to_device(output, 'cpu')
+            output = default_decollate(output)
+            return {i: d for i, d in zip(data_id, output)}
         return self._model(data)
 
     def default_model(self) -> Tuple[str, List[str]]:
@@ -60,8 +70,10 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
 
 
 # demo_transitions = 2  # debug
-demo_transitions = int(1e6)  # key hyper-parameter
-expert_data_path = f'gfootball_rule_{demo_transitions}-demo-transitions.pkl'
+demo_transitions = int(1e5)  # key hyper-parameter
+expert_data_path = dir_path + f'/gfootball_kaggle5th_{demo_transitions}-demo-transitions.pkl'
+gfootball_il_main_config.exp_name = 'gfootball_il_kaggle5th_seed0'
+seed=0
 
 """
 phase 1: train/obtain expert policy
@@ -74,10 +86,10 @@ else:
     cfg, create_cfg = input_cfg
 create_cfg.policy.type = create_cfg.policy.type + '_command'
 env_fn = None
-cfg = compile_config(cfg, seed=0, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
+cfg = compile_config(cfg, seed=seed, env=env_fn, auto=True, create_cfg=create_cfg, save_cfg=True)
 
-football_rule_base_model = FootballRuleBaseModel()
-expert_policy = create_policy(cfg.policy, model=football_rule_base_model,
+football_kaggle_5th_place_model = FootballKaggle5thPlaceModel()
+expert_policy = create_policy(cfg.policy, model=football_kaggle_5th_place_model,
                               enable_field=['learn', 'collect', 'eval', 'command'])
 
 # collect expert demo data
@@ -86,8 +98,8 @@ collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_crea
 collect_config[0].policy.type = 'bc'
 collect_config[0].policy.other.eps = 0
 collect_demo_data(
-    collect_config, seed=0, expert_data_path=expert_data_path, collect_count=demo_transitions,
-    model=football_rule_base_model, state_dict=state_dict,
+    collect_config, seed=seed, expert_data_path=expert_data_path, collect_count=demo_transitions,
+    model=football_kaggle_5th_place_model, state_dict=state_dict,
 )
 
 """
@@ -99,6 +111,6 @@ il_config[0].policy.type = 'iql_bc'
 il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
 il_config[0].policy.eval.evaluator.multi_gpu = False
 football_iql_model = FootballIQL()
-_, converge_stop_flag = serial_pipeline_bc(il_config, seed=0, data_path=expert_data_path, model=football_iql_model)
+_, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=expert_data_path, model=football_iql_model)
 assert converge_stop_flag
 # os.popen('rm -rf ' + expert_data_path)

@@ -57,6 +57,9 @@ class GfootballEnv(BaseEnv):
         info = {'cum_reward': self._reward_helper.cum_reward}
         if self._is_done:
             info['final_eval_reward'] = self._reward_helper.cum_reward
+        # TODO
+        self.reward = to_ndarray(self.reward)
+
         return GfootballEnv.timestep(
             obs={
                 'processed_obs': self.obs,
