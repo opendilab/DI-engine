@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Callable, Optional, List
 from collections import namedtuple
 import numpy as np
@@ -5,6 +6,13 @@ from easydict import EasyDict
 
 from ding.utils import import_module, PLAYER_REGISTRY
 from .algorithm import pfsp
+from ding.framework.storage import Storage
+
+@dataclass
+class PlayerMeta:
+    player_id: str
+    checkpoint: "Storage"
+    total_agent_step: int = 0
 
 
 class Player:

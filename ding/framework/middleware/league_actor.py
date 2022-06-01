@@ -15,35 +15,8 @@ from ding.policy import Policy
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware import BattleCollector
 from ding.framework.middleware.functional import policy_resetter
+from ding.league.player import PlayerMeta
 import queue
-
-
-@dataclass
-class ActorData:
-    train_data: Any
-    env_step: int = 0
-
-
-class Storage:
-
-    def __init__(self, path: str) -> None:
-        self.path = path
-
-    @abstractmethod
-    def save(self, data: Any) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def load(self) -> Any:
-        raise NotImplementedError
-
-
-@dataclass
-class PlayerMeta:
-    player_id: str
-    checkpoint: "Storage"
-    total_agent_step: int = 0
-
 
 class LeagueActor:
 
@@ -52,7 +25,8 @@ class LeagueActor:
         self.env_fn = env_fn
         self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
-        self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
+        # self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
+        self.n_rollout_samples = 64
         self._collectors: Dict[str, BattleCollector] = {}
         self._policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
@@ -101,7 +75,7 @@ class LeagueActor:
             task.emit(EventEnum.ACTOR_GREETING, task.router.node_id)
 
         try:
-            job = self.job_queue.get(timeout=10)
+            ctx.job = self.job_queue.get(timeout=10)
         except queue.Empty:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
             return
@@ -109,28 +83,28 @@ class LeagueActor:
         new_model: "LearnerModel" = None
         try:
             logging.info(
-                "Getting new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
+                "Getting new model on actor: {}, player: {}".format(task.router.node_id, ctx.job.launch_player)
             )
             new_model = self.model_queue.get(timeout=10)
         except queue.Empty:
-            logging.warning('Cannot get new model, use old model instead on actor: {}, player: {}'.format(task.router.node_id, job.launch_player))
+            logging.warning('Cannot get new model, use old model instead on actor: {}, player: {}'.format(task.router.node_id, ctx.job.launch_player))
         
-        # TODO: 每次训练开始把 model_queue 清空
+        # TODO: 每次循环开始前把 model_queue 清空
         if new_model is not None:
             player_meta = PlayerMeta(player_id=new_model.player_id, checkpoint=None)
             policy = self._get_policy(player_meta)
             # update policy model
             policy.load_state_dict(new_model.state_dict)
             logging.info(
-                "Got new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
+                "Got new model on actor: {}, player: {}".format(task.router.node_id, ctx.job.launch_player)
             )
 
-        collector = self._get_collector(job.launch_player)
+        collector = self._get_collector(ctx.job.launch_player)
         current_policies = []
         main_player: "PlayerMeta" = None
-        for player in job.players:
+        for player in ctx.job.players:
             current_policies.append(self._get_policy(player))
-            if player.player_id == job.launch_player:
+            if player.player_id == ctx.job.launch_player:
                 main_player = player
                 # inferencer,rolloutor = self._get_collector(player.player_id)
         assert main_player, "can not find active player, on actor: {}".format(task.router.node_id)
@@ -143,17 +117,5 @@ class LeagueActor:
         ctx.policy_kwargs = None
 
         collector(ctx)
-        train_data, episode_info = ctx.train_data[0], ctx.episode_info[0]  # only use main player data for training
 
-        # Send actor data. Don't send data in evaluation mode
-        if job.is_eval:
-            return
-        for d in train_data:
-            d["adv"] = d["reward"]
 
-        actor_data = ActorData(env_step=ctx.envstep, train_data=train_data)
-        task.emit(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), actor_data)
-
-        # Send actor job
-        job.result = [e['result'] for e in episode_info]
-        task.emit(EventEnum.ACTOR_FINISH_JOB, job)

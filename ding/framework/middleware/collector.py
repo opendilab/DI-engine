@@ -1,16 +1,15 @@
 from distutils.log import info
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 from easydict import EasyDict
 from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
-from ding.framework import task
+from ding.framework import task, EventEnum
 from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor
+from .actor_data import ActorData
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext
 
 from ding.worker.collector.base_serial_collector import CachePool
-
 
 class BattleCollector:
 
@@ -27,6 +26,7 @@ class BattleCollector:
         self.total_envstep_count = 0
         self.end_flag = False
         self.n_rollout_samples = n_rollout_samples
+        self.streaming_sampling_flag = n_rollout_samples > 0
 
         self._battle_inferencer = task.wrap(
             battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool)
@@ -79,8 +79,21 @@ class BattleCollector:
             self._battle_rolloutor(ctx)
             self.total_envstep_count = ctx.envstep
 
+            if not ctx.job.is_eval and self.streaming_sampling_flag is True and len(ctx.train_data[0]) >= self.n_rollout_samples:
+                actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
+                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+                ctx.train_data = [[] for _ in range(ctx.agent_num)]
+
             if ctx.collected_episode >= ctx.n_episode:
+                ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
+                task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
+                if not ctx.job.is_eval and len(ctx.train_data[0]) > 0:
+                    actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
+                    task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+                    ctx.train_data = [[] for _ in range(ctx.agent_num)]
                 break
+
+
 
 
 class StepCollector:
