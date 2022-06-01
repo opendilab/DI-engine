@@ -33,12 +33,12 @@ class LeagueCoordinator:
         job.actor_id = actor_id
         task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=actor_id), job)
 
-    def _on_actor_job(self, job: "Job"):
-        self.league.update_payoff(job)
-
     def _on_learner_meta(self, player_meta: "PlayerMeta"):
         self.league.update_active_player(player_meta)
         self.league.create_historical_player(player_meta)
+    
+    def _on_actor_job(self, job: "Job"):
+        self.league.update_payoff(job)
 
     def __call__(self, ctx: "Context") -> None:
         sleep(1)
