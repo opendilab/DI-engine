@@ -57,21 +57,17 @@ class LeagueActor:
         # self._running = False
         self._collectors: Dict[str, BattleCollector] = {}
         self._policies: Dict[str, "Policy.collect_function"] = {}
-        self._model_updated = True
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
         self._policy_resetter = task.wrap(policy_resetter(self.env_num))
         self.job_queue = queue.Queue()
+        self.model_queue = queue.Queue()
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
-        If get newest learner model, update this actor's model.
+        If get newest learner model, put it inside model_queue.
         """
-        player_meta = PlayerMeta(player_id=learner_model.player_id, checkpoint=None)
-        policy = self._get_policy(player_meta)
-        # update policy model
-        policy.load_state_dict(learner_model.state_dict)
-        self._model_updated = True
+        self.model_queue.put(learner_model)
 
     def _on_league_job(self, job: "Job"):
         """
@@ -111,17 +107,23 @@ class LeagueActor:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
             return
 
-        # self._running = True
-
-        # Wait new active model for 10 seconds
-        for _ in range(10):
-            if self._model_updated:
-                self._model_updated = False
-                break
+        new_model = None
+        try:
             logging.info(
-                "Waiting for new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
+                "Getting new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
             )
-            sleep(1)
+            new_model = self.model_queue.get(timeout=10)
+        except queue.Empty:
+            logging.warning('Cannot get new model, use old model instead.')
+        
+        if new_model is not None:
+            player_meta = PlayerMeta(player_id=new_model.player_id, checkpoint=None)
+            policy = self._get_policy(player_meta)
+            # update policy model
+            policy.load_state_dict(new_model.state_dict)
+            logging.info(
+                "Got new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
+            )
 
         collector = self._get_collector(job.launch_player)
         policies = []

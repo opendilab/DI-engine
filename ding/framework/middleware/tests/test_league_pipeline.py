@@ -74,10 +74,11 @@ def _main():
         if task.router.node_id == 0:
             with patch("ding.league.BaseLeague", MockLeague):
                 task.use(coordinator)
-            sleep(10)
+            sleep(15)
             assert league.get_job_info_cnt == 1
             assert league.update_payoff_cnt == 1
         if task.router.node_id == ACTOR_ID:
+            # league_actor = LeagueActor()
             task.use(league_actor)
 
         task.run(max_step=1)
@@ -90,3 +91,5 @@ def test_league_actor():
 
 if __name__ == '__main__':
     Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)
+# replicas = 10
+# un parallel worker 改成1

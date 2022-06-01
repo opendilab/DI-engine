@@ -81,7 +81,6 @@ def test_league_actor():
                 sleep(0.3)
                 task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), job)
                 sleep(0.3)
-                assert league_actor._model_updated is False
 
                 task.emit(
                     EventEnum.LEARNER_SEND_MODEL,
@@ -90,7 +89,6 @@ def test_league_actor():
                     )
                 )
                 sleep(5)
-                assert league_actor._model_updated is True
                 try:
                     print(testcases)
                     assert all(testcases.values())
