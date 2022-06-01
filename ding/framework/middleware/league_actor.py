@@ -49,12 +49,10 @@ class LeagueActor:
 
     def __init__(self, cfg: EasyDict, env_fn: Callable, policy_fn: Callable):
         self.cfg = cfg
-        self.env = env_fn()
-        self.env_num = self.env.env_num
+        self.env_fn = env_fn
+        self.env_num = env_fn().env_num
         self.policy_fn = policy_fn
         self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
-        self.n_rollout_samples = 0
-        # self._running = False
         self._collectors: Dict[str, BattleCollector] = {}
         self._policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
@@ -71,7 +69,7 @@ class LeagueActor:
 
     def _on_league_job(self, job: "Job"):
         """
-        Deal with job distributed by coordinator. Load historical model, generate traj and emit data.
+        Deal with job distributed by coordinator, put it inside job_queue.
         """
         self.job_queue.put(job)
 
@@ -79,7 +77,8 @@ class LeagueActor:
         if self._collectors.get(player_id):
             return self._collectors.get(player_id)
         cfg = self.cfg
-        collector = task.wrap(BattleCollector(cfg.policy.collect.collector, self.env, self.n_rollout_samples))
+        env = self.env_fn()
+        collector = task.wrap(BattleCollector(cfg.policy.collect.collector, env, self.n_rollout_samples))
         self._collectors[player_id] = collector
         return collector
 
@@ -102,12 +101,12 @@ class LeagueActor:
             task.emit(EventEnum.ACTOR_GREETING, task.router.node_id)
 
         try:
-            job = self.job_queue.get(timeout=5)
+            job = self.job_queue.get(timeout=10)
         except queue.Empty:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
             return
 
-        new_model = None
+        new_model: "LearnerModel" = None
         try:
             logging.info(
                 "Getting new model on actor: {}, player: {}".format(task.router.node_id, job.launch_player)
@@ -116,6 +115,7 @@ class LeagueActor:
         except queue.Empty:
             logging.warning('Cannot get new model, use old model instead on actor: {}, player: {}'.format(task.router.node_id, job.launch_player))
         
+        # 每次训练开始把 model_queue 清空
         if new_model is not None:
             player_meta = PlayerMeta(player_id=new_model.player_id, checkpoint=None)
             policy = self._get_policy(player_meta)

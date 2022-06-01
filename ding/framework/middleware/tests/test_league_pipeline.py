@@ -73,9 +73,11 @@ def _main():
         if task.router.node_id == 0:
             league = MockLeague()
             coordinator = LeagueCoordinator(league)
+            sleep(2)
             with patch("ding.league.BaseLeague", MockLeague):
                 task.use(coordinator)
             sleep(15)
+            # print(league.get_job_info_cnt)
             assert league.get_job_info_cnt == N_ACTORS
             assert league.update_payoff_cnt == N_ACTORS
         else:
