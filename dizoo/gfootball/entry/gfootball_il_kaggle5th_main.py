@@ -70,7 +70,7 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
 
 
 # demo_transitions = 2  # debug
-demo_transitions = int(1e5)  # key hyper-parameter
+demo_transitions = int(3e5)  # key hyper-parameter
 expert_data_path = dir_path + f'/gfootball_kaggle5th_{demo_transitions}-demo-transitions.pkl'
 gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_kaggle5th_seed0'
 seed=0
