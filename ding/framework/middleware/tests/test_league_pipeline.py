@@ -14,6 +14,7 @@ from ding.policy.ppo import PPOPolicy
 from dizoo.league_demo.game_env import GameEnv
 
 from unittest.mock import patch
+import random
 
 def prepare_test():
     global cfg
@@ -53,43 +54,42 @@ class MockLeague:
 
     def get_job_info(self, player_id):
         self.get_job_info_cnt += 1
+        other_players = [i for i in self.active_players_ids if i != player_id]
+        another_palyer = random.choice(other_players)
         return Job(
             launch_player=player_id, 
             players=[
-                PlayerMeta(player_id='main_player_default_0', checkpoint=FileStorage(path=None), total_agent_step=0),
-                PlayerMeta(player_id='main_player_default_1', checkpoint=FileStorage(path=None), total_agent_step=0)
+                PlayerMeta(player_id=player_id, checkpoint=FileStorage(path=None), total_agent_step=0),
+                PlayerMeta(player_id=another_palyer, checkpoint=FileStorage(path=None), total_agent_step=0)
             ]
         )
 
+N_ACTORS = 5
 
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
-    ACTOR_ID = 1
 
     with task.start(async_mode=True):
-        league_actor = LeagueActor(cfg, env_fn, policy_fn)
-        league = MockLeague()
-        coordinator = LeagueCoordinator(league)
-
         if task.router.node_id == 0:
+            league = MockLeague()
+            coordinator = LeagueCoordinator(league)
             with patch("ding.league.BaseLeague", MockLeague):
                 task.use(coordinator)
             sleep(15)
-            assert league.get_job_info_cnt == 1
-            assert league.update_payoff_cnt == 1
-        if task.router.node_id == ACTOR_ID:
-            # league_actor = LeagueActor()
-            task.use(league_actor)
+            assert league.get_job_info_cnt == N_ACTORS
+            assert league.update_payoff_cnt == N_ACTORS
+        else:
+            task.use(LeagueActor(cfg, env_fn, policy_fn))
 
         task.run(max_step=1)
 
 
 @pytest.mark.unittest
 def test_league_actor():
-    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS+1, protocol="tcp", topology="mesh")(_main)
 
 
 if __name__ == '__main__':
-    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS+1, protocol="tcp", topology="mesh")(_main)
 # replicas = 10
 # un parallel worker 改成1

@@ -114,7 +114,7 @@ class LeagueActor:
             )
             new_model = self.model_queue.get(timeout=10)
         except queue.Empty:
-            logging.warning('Cannot get new model, use old model instead.')
+            logging.warning('Cannot get new model, use old model instead on actor: {}, player: {}'.format(task.router.node_id, job.launch_player))
         
         if new_model is not None:
             player_meta = PlayerMeta(player_id=new_model.player_id, checkpoint=None)
@@ -133,7 +133,7 @@ class LeagueActor:
             if player.player_id == job.launch_player:
                 main_player = player
                 # inferencer,rolloutor = self._get_collector(player.player_id)
-        assert main_player, "Can not find active player"
+        assert main_player, "can not find active player, on actor: {}".format(task.router.node_id)
 
         ctx.policies = policies
         self._policy_resetter(ctx)
