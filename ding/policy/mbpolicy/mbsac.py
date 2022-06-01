@@ -22,28 +22,29 @@ class MBSACPolicy(SACPolicy):
     """
        Overview:
            Model based SAC with value expansion (arXiv: 1803.00101)\
-               and value gradient (arXiv: 1510.09142)w.r.t lambda-return.
+               and value gradient (arXiv: 1510.09142) w.r.t lambda-return.
 
        Config:
            == ====================   ========    =============  ==================================
            ID Symbol                 Type        Default Value  Description
            == ====================   ========    =============  ==================================
-           1  ``learn._lambda``      float       0.8            | Lambda for TD-lambda return
-           2  ``learn.grad_clip`     float       100.0          | Max norm of the gradients.
+           1  ``learn._lambda``      float       0.8            | Lambda for TD-lambda return.
+           2  ``learn.grad_clip`     float       100.0          | Max norm of gradients.
            3  ``learn.sample_state`` bool        True           | Whether to sample states or tra-
-                                                                |   nsitions from environment buffer
-           --note:
-               For other configs, please refer to ding.policy.sac.SACPolicy.
+                                                                |   nsitions from environment buffer.
            == ====================   ========    =============  ==================================
+
+        .. note::
+            For other configs, please refer to ding.policy.sac.SACPolicy.
        """
 
     config = dict(
         learn=dict(
-            # (float) Lambda for TD return.
+            # (float) Lambda for TD-lambda return.
             lambda_=0.8,
-            # (float) Gradient clip norm.
+            # (float) Max norm of gradients.
             grad_clip=100,
-            # (bool) Whether to sample transitions or only states from environment buffer.
+            # (bool) Whether to sample states or transitions from environment buffer.
             sample_state=True,
         )
     )
