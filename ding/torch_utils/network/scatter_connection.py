@@ -77,11 +77,13 @@ class ScatterConnection(nn.Module):
         device = x.device
         B, M, N = x.shape
         H, W = spatial_size
-        index = location.view(-1, 2)
+        index = location.view(-1, 2).long()
         bias = torch.arange(B).mul_(H * W).unsqueeze(1).repeat(1, M).view(-1).to(device)
+
         index = index[:, 0] * W + index[:, 1]
         index += bias
         index = index.repeat(N, 1)
+
         x = x.view(-1, N).permute(1, 0)
         output = torch.zeros(N, B * H * W, device=device)
         if self.scatter_type == 'cover':

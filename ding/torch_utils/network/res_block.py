@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 
-from .nn_module import conv2d_block, fc_block
+from .nn_module import conv2d_block, fc_block, build_normalization
 
 
 class ResBlock(nn.Module):
@@ -78,19 +78,28 @@ class ResFCBlock(nn.Module):
         forward
     '''
 
-    def __init__(self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN'):
+    def __init__(
+        self, in_channels: int, activation: nn.Module = nn.ReLU(), norm_type: str = 'BN', final_norm: bool = False
+    ):
         r"""
         Overview:
             Init the Residual Block
         Arguments:
             - in_channels (:obj:`int`): Number of channels in the input tensor
             - activation (:obj:`nn.Module`): the optional activation function
-            - norm_type (:obj:`str`): type of the normalization, defalut set to 'BN'
+            - norm_type (:obj:`str`): type of the normalization, default set to 'BN'
+            - final_norm (:obj:`bool`): Whether to add norm in final residual output.
         """
         super(ResFCBlock, self).__init__()
         self.act = activation
-        self.fc1 = fc_block(in_channels, in_channels, activation=self.act, norm_type=norm_type)
-        self.fc2 = fc_block(in_channels, in_channels, activation=None, norm_type=norm_type)
+        self.final_norm = final_norm
+        if final_norm:
+            self.fc1 = fc_block(in_channels, in_channels, activation=self.act, norm_type=None)
+            self.fc2 = fc_block(in_channels, in_channels, activation=None, norm_type=None)
+            self.norm = build_normalization(norm_type)(in_channels)
+        else:
+            self.fc1 = fc_block(in_channels, in_channels, activation=self.act, norm_type=norm_type)
+            self.fc2 = fc_block(in_channels, in_channels, activation=None, norm_type=norm_type)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         r"""
@@ -99,10 +108,17 @@ class ResFCBlock(nn.Module):
         Arguments:
             - x (:obj:`torch.Tensor`): the input tensor
         Returns:
-            - x(:obj:`torch.Tensor`): the resblock output tensor
+            - x (:obj:`torch.Tensor`): the resblock output tensor
         """
-        residual = x
-        x = self.fc1(x)
-        x = self.fc2(x)
-        x = self.act(x + residual)
-        return x
+        if self.final_norm:
+            residual = x
+            x = self.fc1(x)
+            x = self.fc2(x)
+            x = self.norm(x + residual)
+            return x
+        else:
+            residual = x
+            x = self.fc1(x)
+            x = self.fc2(x)
+            x = self.act(x + residual)
+            return x
