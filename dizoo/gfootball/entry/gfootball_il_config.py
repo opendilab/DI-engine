@@ -2,9 +2,11 @@ from easydict import EasyDict
 
 collector_env_num = 8
 evaluator_env_num = 3
-# evaluator_env_num = 1  # debug
+# debug
+# collector_env_num = 1
+# evaluator_env_num = 1  
 gfootball_il_main_config = dict(
-    exp_name='data_gfootball/gfootball_il_rule_seed0',
+    exp_name='data_gfootball/gfootball_il_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,

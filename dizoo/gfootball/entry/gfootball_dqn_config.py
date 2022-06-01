@@ -2,7 +2,9 @@ from easydict import EasyDict
 
 collector_env_num = 8
 evaluator_env_num = 3
-# evaluator_env_num = 1  # debug
+# debug
+# collector_env_num = 1
+# evaluator_env_num = 1  
 gfootball_dqn_main_config = dict(
     exp_name='data_gfootball/gfootball_dqn_seed0',
     env=dict(
@@ -13,7 +15,7 @@ gfootball_dqn_main_config = dict(
     ),
     policy=dict(
         cuda=True,
-        nstep=1,
+        nstep=3,
         discount_factor=0.97,
         model=dict(),
         learn=dict(
@@ -22,7 +24,7 @@ gfootball_dqn_main_config = dict(
             learning_rate=0.0001,
             target_update_freq=500,
         ),
-        collect=dict(n_sample=4096),
+        collect=dict(n_sample=256),
         eval=dict(evaluator=dict(eval_freq=5000, n_episode=evaluator_env_num)),
         other=dict(
             eps=dict(
