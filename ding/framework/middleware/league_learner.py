@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class LearnerModel:
     player_id: str

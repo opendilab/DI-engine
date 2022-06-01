@@ -7,14 +7,15 @@ from ding.framework.middleware.tests.league_config import cfg
 from ding.framework.middleware.league_actor import ActorData, LeagueActor, PlayerMeta
 from ding.framework.storage import FileStorage
 
-from ding.framework.task import task, Parallel
+from ding.framework.task import task
 from ding.framework import OnlineRLContext
 from ding.league.v2.base_league import Job
 from ding.model import VAC
 from ding.policy.ppo import PPOPolicy
 from dizoo.league_demo.game_env import GameEnv
 
-from dataclasses import dataclass
+from ding.framework import EventEnum
+
 
 def prepare_test():
     global cfg
@@ -44,18 +45,15 @@ def test_league_actor():
 
         def test_actor():
             job = Job(
-                launch_player='main_player_default_0', 
+                launch_player='main_player_default_0',
                 players=[
                     PlayerMeta(
-                        player_id='main_player_default_0', 
-                        checkpoint=FileStorage(path = None), 
-                        total_agent_step=0
-                    ), 
+                        player_id='main_player_default_0', checkpoint=FileStorage(path=None), total_agent_step=0
+                    ),
                     PlayerMeta(
-                        player_id='main_player_default_1', 
-                        checkpoint=FileStorage(path = None), 
-                        total_agent_step=0)
-                    ]
+                        player_id='main_player_default_1', checkpoint=FileStorage(path=None), total_agent_step=0
+                    )
+                ]
             )
             testcases = {
                 "on_actor_greeting": False,
@@ -75,24 +73,22 @@ def test_league_actor():
                 assert isinstance(actor_data, ActorData)
                 testcases["on_actor_data"] = True
 
-            task.on("actor_greeting", on_actor_greeting)
-            task.on("actor_job", on_actor_job)
-            task.on("actor_data_player_{}".format(job.launch_player), on_actor_data)
+            task.on(EventEnum.ACTOR_GREETING, on_actor_greeting)
+            task.on(EventEnum.ACTOR_FINISH_JOB, on_actor_job)
+            task.on(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), on_actor_data)
 
             def _test_actor(ctx):
                 sleep(0.3)
-                task.emit("league_job_actor_{}".format(task.router.node_id), job)
+                task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), job)
                 sleep(0.3)
-                assert league_actor._model_updated == False
 
                 task.emit(
-                    "learner_model",
+                    EventEnum.LEARNER_SEND_MODEL,
                     LearnerModel(
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
                 )
                 sleep(5)
-                assert league_actor._model_updated == True
                 try:
                     print(testcases)
                     assert all(testcases.values())
@@ -105,5 +101,5 @@ def test_league_actor():
         task.use(league_actor)
         task.run()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     test_league_actor()

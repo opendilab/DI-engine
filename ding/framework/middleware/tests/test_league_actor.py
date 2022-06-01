@@ -13,7 +13,8 @@ from ding.model import VAC
 from ding.policy.ppo import PPOPolicy
 from dizoo.league_demo.game_env import GameEnv
 
-from dataclasses import dataclass
+from ding.framework import EventEnum
+
 
 def prepare_test():
     global cfg
@@ -34,22 +35,15 @@ def prepare_test():
     return cfg, env_fn, policy_fn
 
 
-def test_league_actor():
+def _main():
     cfg, env_fn, policy_fn = prepare_test()
     policy = policy_fn()
     job = Job(
-        launch_player='main_player_default_0', 
+        launch_player='main_player_default_0',
         players=[
-            PlayerMeta(
-                player_id='main_player_default_0', 
-                checkpoint=FileStorage(path = None), 
-                total_agent_step=0
-            ), 
-            PlayerMeta(
-                player_id='main_player_default_1', 
-                checkpoint=FileStorage(path = None), 
-                total_agent_step=0)
-            ]
+            PlayerMeta(player_id='main_player_default_0', checkpoint=FileStorage(path=None), total_agent_step=0),
+            PlayerMeta(player_id='main_player_default_1', checkpoint=FileStorage(path=None), total_agent_step=0)
+        ]
     )
     ACTOR_ID = 0
 
@@ -66,26 +60,26 @@ def test_league_actor():
             def on_actor_greeting(actor_id):
                 assert actor_id == ACTOR_ID
                 testcases["on_actor_greeting"] = True
-        
+
             def on_actor_job(job_: Job):
                 assert job_.launch_player == job.launch_player
                 testcases["on_actor_job"] = True
-            
+
             def on_actor_data(actor_data):
                 assert isinstance(actor_data, ActorData)
                 testcases["on_actor_data"] = True
-            
-            task.on('actor_greeting', on_actor_greeting)
-            task.on("actor_job", on_actor_job)
-            task.on("actor_data_player_{}".format(job.launch_player), on_actor_data)
+
+            task.on(EventEnum.ACTOR_GREETING, on_actor_greeting)
+            task.on(EventEnum.ACTOR_FINISH_JOB, on_actor_job)
+            task.on(EventEnum.ACTOR_SEND_DATA.format(player=job.launch_player), on_actor_data)
 
             def _test_actor(ctx):
                 sleep(0.3)
-                task.emit("league_job_actor_{}".format(ACTOR_ID), job)
+                task.emit(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=ACTOR_ID), job)
                 sleep(0.3)
 
                 task.emit(
-                    "learner_model",
+                    EventEnum.LEARNER_SEND_MODEL,
                     LearnerModel(
                         player_id='main_player_default_0', state_dict=policy.learn_mode.state_dict(), train_iter=0
                     )
@@ -96,6 +90,7 @@ def test_league_actor():
                     assert all(testcases.values())
                 finally:
                     task.finish = True
+
             return _test_actor
 
         if task.router.node_id == ACTOR_ID:
@@ -105,5 +100,11 @@ def test_league_actor():
 
         task.run()
 
-if __name__ == "__main__":
-    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(test_league_actor)
+
+@pytest.mark.unittest
+def test_league_actor():
+    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)
+
+
+if __name__ == '__main__':
+    Parallel.runner(n_parallel_workers=2, protocol="tcp", topology="mesh")(_main)

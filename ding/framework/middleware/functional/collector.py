@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING,Optional, Callable, List, Tuple, Any
+from typing import TYPE_CHECKING, Optional, Callable, List, Tuple, Any
 from easydict import EasyDict
 from functools import reduce
 import treetensor.torch as ttorch
@@ -85,8 +85,6 @@ def inferencer(cfg: EasyDict, policy: Policy, env: BaseEnvManager) -> Callable:
     return _inference
 
 
-
-
 def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: TransitionList) -> Callable:
     """
     Overview:
@@ -138,7 +136,9 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
 
     return _rollout
 
-def policy_resetter(env_num:int):
+
+def policy_resetter(env_num: int):
+
     def _policy_resetter(ctx: OnlineRLContext):
         if ctx.policies is not None:
             assert len(ctx.policies) > 1, "battle collector needs more than 1 policies"
@@ -148,17 +148,20 @@ def policy_resetter(env_num:int):
             # traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
             ctx.traj_buffer = {
                 env_id: {policy_id: TrajBuffer(maxlen=ctx.traj_len)
-                        for policy_id in range(ctx.agent_num)}
+                         for policy_id in range(ctx.agent_num)}
                 for env_id in range(env_num)
             }
 
-        for p in ctx.policies:
-            p.reset()
+            for p in ctx.policies:
+                p.reset()
+        else:
+            raise RuntimeError('ctx.policies should not be None')
 
     return _policy_resetter
 
 
-def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool:CachePool):
+def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool: CachePool):
+
     def _battle_inferencer(ctx: "OnlineRLContext"):
         # Get current env obs.
         obs = env.ready_obs
@@ -185,7 +188,9 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, p
 
     return _battle_inferencer
 
-def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool:CachePool):
+
+def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool: CachePool):
+
     def _battle_rolloutor(ctx: "OnlineRLContext"):
         timesteps = env.step(ctx.actions)
         for env_id, timestep in timesteps.items():
@@ -195,8 +200,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, po
                 policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                 policy_timestep = type(timestep)(*policy_timestep_data)
                 transition = ctx.policies[policy_id].process_transition(
-                    obs_pool[env_id][policy_id], policy_output_pool[env_id][policy_id],
-                    policy_timestep
+                    obs_pool[env_id][policy_id], policy_output_pool[env_id][policy_id], policy_timestep
                 )
                 transition['collect_iter'] = ctx.train_iter
                 ctx.traj_buffer[env_id][policy_id].append(transition)
@@ -221,5 +225,5 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, po
                 ctx.ready_env_id.remove(env_id)
                 for policy_id in range(ctx.agent_num):
                     ctx.episode_info[policy_id].append(timestep.info[policy_id])
-                    
+
     return _battle_rolloutor

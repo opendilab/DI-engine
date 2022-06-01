@@ -13,12 +13,8 @@ from ding.worker.collector.base_serial_collector import CachePool
 
 
 class BattleCollector:
-    def __init__(
-            self, 
-            cfg: EasyDict, 
-            env: BaseEnvManager, 
-            n_rollout_samples: int
-    ):
+
+    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int):
         self.cfg = cfg
         self.end_flag = False
         # self._reset(env)
@@ -32,7 +28,9 @@ class BattleCollector:
         self.end_flag = False
         self.n_rollout_samples = n_rollout_samples
 
-        self._battle_inferencer = task.wrap(battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
+        self._battle_inferencer = task.wrap(
+            battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool)
+        )
         self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
 
     def __del__(self) -> None:
@@ -67,7 +65,7 @@ class BattleCollector:
 
         if ctx.policy_kwargs is None:
             ctx.policy_kwargs = {}
-        
+
         if self.env.closed:
             self.env.launch()
 
@@ -80,10 +78,10 @@ class BattleCollector:
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
             self.total_envstep_count = ctx.envstep
-            
+
             if ctx.collected_episode >= ctx.n_episode:
                 break
-        
+
 
 class StepCollector:
     """
