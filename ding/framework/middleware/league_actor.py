@@ -16,6 +16,7 @@ from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware import BattleCollector
 from ding.framework.middleware.functional import policy_resetter
 from ding.league.player import PlayerMeta
+from threading import Lock
 import queue
 
 class LeagueActor:
@@ -33,13 +34,15 @@ class LeagueActor:
         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
         self._policy_resetter = task.wrap(policy_resetter(self.env_num))
         self.job_queue = queue.Queue()
-        self.model_queue = queue.Queue()
+        self.model_dict = {}
+        self.model_dict_lock = Lock()
 
     def _on_learner_model(self, learner_model: "LearnerModel"):
         """
         If get newest learner model, put it inside model_queue.
         """
-        self.model_queue.put(learner_model)
+        with self.model_dict_lock:
+            self.model_dict[learner_model.player_id] = learner_model
 
     def _on_league_job(self, job: "Job"):
         """
@@ -79,25 +82,18 @@ class LeagueActor:
         except queue.Empty:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
             return
-
-        new_model: "LearnerModel" = None
-        try:
-            logging.info(
-                "Getting new model on actor: {}, player: {}".format(task.router.node_id, ctx.job.launch_player)
-            )
-            new_model = self.model_queue.get(timeout=10)
-        except queue.Empty:
-            logging.warning('Cannot get new model, use old model instead on actor: {}, player: {}'.format(task.router.node_id, ctx.job.launch_player))
         
+        job_player_id_list = [player.player_id for player in ctx.job.players] 
+
         # TODO: 每次循环开始前把 model_queue 清空
-        if new_model is not None:
-            player_meta = PlayerMeta(player_id=new_model.player_id, checkpoint=None)
-            policy = self._get_policy(player_meta)
-            # update policy model
-            policy.load_state_dict(new_model.state_dict)
-            logging.info(
-                "Got new model on actor: {}, player: {}".format(task.router.node_id, ctx.job.launch_player)
-            )
+        with self.model_dict_lock:
+            for player_id, learner_model in self.model_dict.items():
+                if learner_model is not None and player_id in job_player_id_list:
+                    player_meta = PlayerMeta(player_id=player_id, checkpoint=None)
+                    policy = self._get_policy(player_meta)
+                    # update policy model
+                    policy.load_state_dict(learner_model.state_dict)
+                    self.model_dict[player_id] = None
 
         collector = self._get_collector(ctx.job.launch_player)
         current_policies = []
