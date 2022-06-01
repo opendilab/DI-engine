@@ -9,7 +9,7 @@ from abc import abstractmethod
 from easydict import EasyDict
 from ding.envs import BaseEnvManager
 
-from ding.framework import OnlineRLContext
+from ding.framework import BattleContext
 from ding.league.v2.base_league import Job
 from ding.policy import Policy
 from ding.framework.middleware.league_learner import LearnerModel
@@ -29,7 +29,7 @@ class LeagueActor:
         # self.n_rollout_samples = self.cfg.policy.collect.get("n_rollout_samples") or 0
         self.n_rollout_samples = 64
         self._collectors: Dict[str, BattleCollector] = {}
-        self._policies: Dict[str, "Policy.collect_function"] = {}
+        self.all_policies: Dict[str, "Policy.collect_function"] = {}
         task.on(EventEnum.COORDINATOR_DISPATCH_ACTOR_JOB.format(actor_id=task.router.node_id), self._on_league_job)
         task.on(EventEnum.LEARNER_SEND_MODEL, self._on_learner_model)
         self._policy_resetter = task.wrap(policy_resetter(self.env_num))
@@ -61,16 +61,16 @@ class LeagueActor:
 
     def _get_policy(self, player: "PlayerMeta") -> "Policy.collect_function":
         player_id = player.player_id
-        if self._policies.get(player_id):
-            return self._policies.get(player_id)
+        if self.all_policies.get(player_id):
+            return self.all_policies.get(player_id)
         policy: "Policy.collect_function" = self.policy_fn().collect_mode
-        self._policies[player_id] = policy
+        self.all_policies[player_id] = policy
         if "historical" in player.player_id:
             policy.load_state_dict(player.checkpoint.load())
 
         return policy
 
-    def __call__(self, ctx: "OnlineRLContext"):
+    def __call__(self, ctx: "BattleContext"):
         # if not self._running:
         #     task.emit("actor_greeting", task.router.node_id)
 
@@ -85,7 +85,6 @@ class LeagueActor:
         
         job_player_id_list = [player.player_id for player in ctx.job.players] 
 
-        # TODO: 每次循环开始前把 model_queue 清空
         with self.model_dict_lock:
             for player_id, learner_model in self.model_dict.items():
                 if learner_model is not None and player_id in job_player_id_list:
@@ -96,16 +95,15 @@ class LeagueActor:
                     self.model_dict[player_id] = None
 
         collector = self._get_collector(ctx.job.launch_player)
-        current_policies = []
+        ctx.current_policies = []
         main_player: "PlayerMeta" = None
         for player in ctx.job.players:
-            current_policies.append(self._get_policy(player))
+            ctx.current_policies.append(self._get_policy(player))
             if player.player_id == ctx.job.launch_player:
                 main_player = player
                 # inferencer,rolloutor = self._get_collector(player.player_id)
         assert main_player, "can not find active player, on actor: {}".format(task.router.node_id)
 
-        ctx.policies = current_policies
         self._policy_resetter(ctx)
 
         ctx.n_episode = None

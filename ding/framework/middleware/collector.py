@@ -7,7 +7,7 @@ from .functional import inferencer, rolloutor, TransitionList, battle_inferencer
 from .actor_data import ActorData
 
 # if TYPE_CHECKING:
-from ding.framework import OnlineRLContext
+from ding.framework import OnlineRLContext, BattleContext
 
 from ding.worker.collector.base_serial_collector import CachePool
 
@@ -44,7 +44,7 @@ class BattleCollector:
         self.end_flag = True
         self.env.close()
 
-    def __call__(self, ctx: "OnlineRLContext") -> None:
+    def __call__(self, ctx: "BattleContext") -> None:
         """
         Input of ctx:
             - n_episode (:obj:`int`): the number of collecting data episode
