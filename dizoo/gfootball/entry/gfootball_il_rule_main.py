@@ -72,7 +72,7 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
 # demo_transitions = 2  # debug
 demo_transitions = int(1e5)  # key hyper-parameter
 expert_data_path = dir_path + f'/gfootball_rule_{demo_transitions}-demo-transitions.pkl'
-gfootball_il_main_config.exp_name = 'gfootball_il_rule_seed0'
+gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_rule_seed0'
 seed=0
 
 """
@@ -105,8 +105,8 @@ collect_demo_data(
 phase 2: il training
 """
 il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
-il_config[0].policy.learn.train_epoch = 2  # debug
-# il_config[0].policy.learn.train_epoch = 20  # key hyper-parameter
+# il_config[0].policy.learn.train_epoch = 2  # debug
+il_config[0].policy.learn.train_epoch = 20  # key hyper-parameter
 
 
 il_config[0].policy.type = 'iql_bc'

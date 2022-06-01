@@ -3,7 +3,7 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 1
 gfootball_dqn_main_config = dict(
-    exp_name='gfootball_dqn_seed0',
+    exp_name='data_gfootball/gfootball_dqn_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -45,10 +45,6 @@ gfootball_dqn_create_config = dict(
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='dqn'),
-    replay_buffer=dict(
-        type='deque',
-        import_names=['ding.data.buffer.deque_buffer_wrapper']
-    ),
 )
 gfootball_dqn_create_config = EasyDict(gfootball_dqn_create_config)
 create_config = gfootball_dqn_create_config

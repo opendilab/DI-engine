@@ -3,7 +3,7 @@ from easydict import EasyDict
 collector_env_num = 8
 evaluator_env_num = 1
 gfootball_il_main_config = dict(
-    exp_name='gfootball_il_rule_seed0',
+    exp_name='data_gfootball/gfootball_il_rule_seed0',
     env=dict(
         collector_env_num=collector_env_num,
         evaluator_env_num=evaluator_env_num,
@@ -15,7 +15,7 @@ gfootball_il_main_config = dict(
         policy_type='IL',
         nstep=1,
         discount_factor=0.97,
-        model=dict(),
+        model=dict(
             update_per_collect=20,
             batch_size=512,
             learning_rate=0.0001,
@@ -45,10 +45,6 @@ gfootball_il_create_config = dict(
     # env_manager=dict(type='subprocess'),
     env_manager=dict(type='base'),
     policy=dict(type='bc'),
-    replay_buffer=dict(
-        type='deque',
-        import_names=['ding.data.buffer.deque_buffer_wrapper']
-    ),
 )
 gfootball_il_create_config = EasyDict(gfootball_il_create_config)
 create_config = gfootball_il_create_config
