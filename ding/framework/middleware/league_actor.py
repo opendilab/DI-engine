@@ -90,16 +90,19 @@ class LeagueActor:
         
         job_player_id_list = [player.player_id for player in ctx.job.players] 
 
-        with self.model_dict_lock:
-            for player_id, learner_model in self.model_dict.items():
-                if learner_model is not None and player_id in job_player_id_list:
-                    player_meta = PlayerMeta(player_id=player_id, checkpoint=None)
-                    policy = self._get_policy(player_meta)
-                    # update policy model
-                    policy.load_state_dict(learner_model.state_dict)
-                    self.model_dict[player_id] = None
+        for player_id in job_player_id_list:
+            if player_id not in self.model_dict.keys() or self.model_dict[player_id] == None:
+                continue
+            else:
+                learner_model = self.model_dict[player_id]
+                player_meta = PlayerMeta(player_id=player_id, checkpoint=None)
+                policy = self._get_policy(player_meta)
+                # update policy model
+                policy.load_state_dict(learner_model.state_dict)
+                self.model_dict[player_id] = None
 
         collector = self._get_collector(ctx.job.launch_player)
+
         ctx.current_policies = []
         main_player: "PlayerMeta" = None
         for player in ctx.job.players:
