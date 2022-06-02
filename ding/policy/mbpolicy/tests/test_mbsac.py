@@ -20,4 +20,4 @@ def test_TanhTransform():
 
     log_prob_2 = tanh_dist.log_prob(action)
 
-    assert (log_prob_1 - log_prob_2).sum() < 1e-6
+    assert (log_prob_1 - log_prob_2).mean().abs() < 1e-5
