@@ -55,7 +55,7 @@ class LeagueActor:
             return self._collectors.get(player_id)
         cfg = self.cfg
         env = self.env_fn()
-        collector = task.wrap(BattleCollector(cfg.policy.collect.collector, env, self.n_rollout_samples))
+        collector = task.wrap(BattleCollector(cfg.policy.collect.collector, env, self.n_rollout_samples, self.model_dict, self.all_policies))
         self._collectors[player_id] = collector
         return collector
 
@@ -82,34 +82,25 @@ class LeagueActor:
         
         return job 
 
+    def _get_current_policies(self, job):
+        current_policies = []
+        main_player: "PlayerMeta" = None
+        for player in job.players:
+            current_policies.append(self._get_policy(player))
+            if player.player_id == job.launch_player:
+                main_player = player
+        return main_player, current_policies
+
+
     def __call__(self, ctx: "BattleContext"):
 
         ctx.job = self._get_job()
         if ctx.job is None:
             return
         
-        job_player_id_list = [player.player_id for player in ctx.job.players] 
-
-        for player_id in job_player_id_list:
-            if player_id not in self.model_dict.keys() or self.model_dict[player_id] == None:
-                continue
-            else:
-                learner_model = self.model_dict[player_id]
-                player_meta = PlayerMeta(player_id=player_id, checkpoint=None)
-                policy = self._get_policy(player_meta)
-                # update policy model
-                policy.load_state_dict(learner_model.state_dict)
-                self.model_dict[player_id] = None
-
         collector = self._get_collector(ctx.job.launch_player)
 
-        ctx.current_policies = []
-        main_player: "PlayerMeta" = None
-        for player in ctx.job.players:
-            ctx.current_policies.append(self._get_policy(player))
-            if player.player_id == ctx.job.launch_player:
-                main_player = player
-                # inferencer,rolloutor = self._get_collector(player.player_id)
+        main_player, ctx.current_policies = self._get_current_policies(ctx.job)
         assert main_player, "can not find active player, on actor: {}".format(task.router.node_id)
 
         self._policy_resetter(ctx)

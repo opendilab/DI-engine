@@ -4,6 +4,7 @@ from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task, EventEnum
 from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor, job_data_sender
+from typing import Dict
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
@@ -12,7 +13,7 @@ from ding.worker.collector.base_serial_collector import CachePool
 
 class BattleCollector:
 
-    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int):
+    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict):
         self.cfg = cfg
         self.end_flag = False
         # self._reset(env)
@@ -26,6 +27,8 @@ class BattleCollector:
         self.end_flag = False
         self.n_rollout_samples = n_rollout_samples
         self.streaming_sampling_flag = n_rollout_samples > 0
+        self.model_dict = model_dict
+        self.all_policies = all_policies
 
         self._battle_inferencer = task.wrap(
             battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool)
@@ -44,6 +47,22 @@ class BattleCollector:
             return
         self.end_flag = True
         self.env.close()
+    
+    def _update_policies(self, job) -> None:
+        job_player_id_list = [player.player_id for player in job.players] 
+
+        for player_id in job_player_id_list:
+            if self.model_dict.get(player_id) is None:
+                continue
+            else:
+                learner_model = self.model_dict.get(player_id)
+                policy = self.all_policies.get(player_id)
+                assert policy, "for player{}, policy should have been initialized already"
+                # update policy model
+                policy.load_state_dict(learner_model.state_dict)
+                self.model_dict[player_id] = None
+
+
 
     def __call__(self, ctx: "BattleContext") -> None:
         """
@@ -76,6 +95,7 @@ class BattleCollector:
         ctx.ready_env_id = set()
         ctx.remain_episode = ctx.n_episode
         while True:
+            self._update_policies(ctx.job)
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
 
