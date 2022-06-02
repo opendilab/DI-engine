@@ -452,6 +452,13 @@ class QuantileHead(nn.Module):
         return {'logit': logit, 'q': q, 'quantiles': q_quantiles}
 
 
+def initialize_weights_xavier(m, gain=1.0):
+    if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
+        torch.nn.init.xavier_uniform_(m.weight, gain=gain)
+        if m.bias is not None:
+            torch.nn.init.constant_(m.bias, 0)
+
+
 class FQFHead(nn.Module):
 
     def __init__(
@@ -499,7 +506,9 @@ class FQFHead(nn.Module):
         self.fqf_fc = nn.Sequential(nn.Linear(self.quantile_embedding_size, hidden_size), nn.ReLU())
         self.sigma_pi = torch.arange(1, self.quantile_embedding_size + 1,
                                      1).view(1, 1, self.quantile_embedding_size) * math.pi
-        self.quantiles_proposal = nn.Sequential(nn.Linear(hidden_size, num_quantiles), nn.LogSoftmax(dim=1))
+        self.quantiles_proposal = nn.Sequential(nn.Linear(hidden_size, num_quantiles), nn.LogSoftmax(
+            dim=1
+        )).apply(lambda x: initialize_weights_xavier(x, gain=0.01))
 
     def quantile_net(self, quantiles: torch.Tensor) -> torch.Tensor:
         r"""
@@ -557,7 +566,7 @@ class FQFHead(nn.Module):
 
         log_q_quantiles = self.quantiles_proposal(x.detach())  # (batch, num_quantiles)
         q_quantiles = log_q_quantiles.exp()
-        
+
         # Calculate entropies of value distributions.
         entropies = -(log_q_quantiles * q_quantiles).sum(dim=-1, keepdim=True)  # (batch, 1)
         assert entropies.shape == (batch_size, 1)

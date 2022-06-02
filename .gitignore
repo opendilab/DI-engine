@@ -1435,3 +1435,4 @@ pendulum_ppo_seed0/
 dizoo/box2d/bipedalwalker/entry/
 dizoo/box2d/lunarlander/entry/lunarlander_dqn_main.py
 dizoo/gym_hybrid/entry/
+slime_volley_league_ppo_seed0/
