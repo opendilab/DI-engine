@@ -3,6 +3,7 @@ from collections import namedtuple
 import copy
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions import Normal, Independent
 
@@ -781,6 +782,22 @@ class SACPolicy(Policy):
                 running information.
         """
         loss_dict = {}
+        agent_data = default_preprocess_learn(
+            data[0:len(data) // 2],
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False
+        )
+
+        expert_data = default_preprocess_learn(
+            data[len(data) // 2:],
+            use_priority=self._priority,
+            use_priority_IS_weight=self._cfg.priority_IS_weight,
+            ignore_done=self._cfg.learn.ignore_done,
+            use_nstep=False
+        )
+
         data = default_preprocess_learn(
             data,
             use_priority=self._priority,
@@ -790,6 +807,8 @@ class SACPolicy(Policy):
         )
         if self._cuda:
             data = to_device(data, self._device)
+            agent_data = to_device(agent_data, self._device)
+            expert_data = to_device(expert_data, self._device)
 
         self._learn_model.train()
         self._target_model.train()
@@ -811,7 +830,6 @@ class SACPolicy(Policy):
             # target q value.
             with torch.no_grad():
                 (mu, sigma) = self._learn_model.forward(next_obs, mode='compute_actor')['logit']
-
                 dist = Independent(Normal(mu, sigma), 1)
                 pred = dist.rsample()
                 next_action = torch.tanh(pred)
@@ -849,8 +867,43 @@ class SACPolicy(Policy):
         self._optimizer_q.step()
 
         # 5. evaluate to get action distribution
+
+        # agent
+        (mu, sigma) = self._learn_model.forward(agent_data['obs'], mode='compute_actor')['logit']
+        dist = Independent(Normal(mu, sigma), 1)
+        pred = dist.rsample()
+        action = torch.tanh(pred)
+        y = 1 - action.pow(2) + 1e-6
+        # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
+        agent_log_prob = dist.log_prob(pred).unsqueeze(-1)
+        agent_log_prob = agent_log_prob - torch.log(y).sum(-1, keepdim=True)
+
+        eval_data = {'obs': agent_data['obs'], 'action': action}
+        agent_new_q_value = self._learn_model.forward(eval_data, mode='compute_critic')['q_value']
+        if self._twin_critic:
+            agent_new_q_value = torch.min(agent_new_q_value[0], agent_new_q_value[1])
+        # expert
+        (mu, sigma) = self._learn_model.forward(expert_data['obs'], mode='compute_actor')['logit']
+        dist = Independent(Normal(mu, sigma), 1)
+        pred = dist.rsample()
+        action = torch.tanh(pred)
+        y = 1 - action.pow(2) + 1e-6
+        # keep dimension for loss computation (usually for action space is 1 env. e.g. pendulum)
+        expert_log_prob = dist.log_prob(pred).unsqueeze(-1)
+        expert_log_prob = expert_log_prob - torch.log(y).sum(-1, keepdim=True)
+
+        eval_data = {'obs': expert_data['obs'], 'action': action}
+        expert_new_q_value = self._learn_model.forward(eval_data, mode='compute_critic')['q_value']
+        if self._twin_critic:
+            expert_new_q_value = torch.min(expert_new_q_value[0], expert_new_q_value[1])
+
+        # all data
         (mu, sigma) = self._learn_model.forward(data['obs'], mode='compute_actor')['logit']
         dist = Independent(Normal(mu, sigma), 1)
+        # for monitor the entropy of policy
+        dist_entropy = dist.entropy()
+        entropy = dist_entropy.mean()
+
         pred = dist.rsample()
         action = torch.tanh(pred)
         y = 1 - action.pow(2) + 1e-6
@@ -875,11 +928,22 @@ class SACPolicy(Policy):
             self._optimizer_value.step()
 
         # 7. compute policy loss
+        agent_policy_loss = (self._alpha * agent_log_prob - agent_new_q_value.unsqueeze(-1)).mean()
+        expert_policy_loss = (self._alpha * expert_log_prob - expert_new_q_value.unsqueeze(-1)).mean()
         policy_loss = (self._alpha * log_prob - new_q_value.unsqueeze(-1)).mean()
-
+        loss_dict['agent_policy_loss'] = agent_policy_loss
+        loss_dict['expert_policy_loss'] = expert_policy_loss
         loss_dict['policy_loss'] = policy_loss
 
         # 8. update policy network
+        self._optimizer_policy.zero_grad()
+        loss_dict['agent_policy_loss'].backward()
+        agent_grad = (list(list(self._learn_model.actor.children())[-1].children())[-1].weight.grad).mean()
+        self._optimizer_policy.zero_grad()
+        loss_dict['expert_policy_loss'].backward()
+        expert_grad = (list(list(self._learn_model.actor.children())[-1].children())[-1].weight.grad).mean()
+        cos = nn.CosineSimilarity(dim=0)
+        cos_similarity = cos(agent_grad, expert_grad)
         self._optimizer_policy.zero_grad()
         loss_dict['policy_loss'].backward()
         self._optimizer_policy.step()
@@ -916,8 +980,16 @@ class SACPolicy(Policy):
             'cur_lr_p': self._optimizer_policy.defaults['lr'],
             'priority': td_error_per_sample.abs().tolist(),
             'td_error': td_error_per_sample.detach().mean().item(),
+            'agent_td_error': td_error_per_sample.detach().chunk(2, dim=0)[0].mean().item(),
+            'expert_td_error': td_error_per_sample.detach().chunk(2, dim=0)[1].mean().item(),
             'alpha': self._alpha.item(),
             'target_q_value': target_q_value.detach().mean().item(),
+            'entropy': entropy.item(),
+            'mu': mu.detach().mean().item(),
+            'sigma': sigma.detach().mean().item(),
+            'q_value0': new_q_value[0].detach().mean().item(),
+            'q_value1': new_q_value[1].detach().mean().item(),
+            'cos_similarity': cos_similarity.item(),
             **loss_dict
         }
 
@@ -1078,4 +1150,12 @@ class SACPolicy(Policy):
             'target_q_value',
             'alpha',
             'td_error',
+            'agent_td_error',
+            'expert_td_error',
+            'entropy',
+            'mu',
+            'sigma',
+            'q_value0',
+            'q_value1',
+            'cos_similarity',
         ] + twin_critic + alpha_loss + value_loss
