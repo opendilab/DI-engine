@@ -340,7 +340,7 @@ class DreamWorldModel(WorldModel, ABC):
         )
 
 
-class HybridWorldModel(DynaWorldModel, DreamWorldModel):
+class HybridWorldModel(DynaWorldModel, DreamWorldModel, ABC):
     """
     Overview:
         The hybrid model that combines reused and on-the-fly rollouts.
