@@ -80,6 +80,3 @@ class BattleContext(Context):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.__dict__ = self
-
-        self.all_policies = []
-        self.keep('all_policies')

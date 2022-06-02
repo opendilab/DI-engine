@@ -70,17 +70,22 @@ class LeagueActor:
 
         return policy
 
-    def __call__(self, ctx: "BattleContext"):
-        # if not self._running:
-        #     task.emit("actor_greeting", task.router.node_id)
-
+    def _get_job(self):
         if self.job_queue.empty():
             task.emit(EventEnum.ACTOR_GREETING, task.router.node_id)
+        job = None
 
         try:
-            ctx.job = self.job_queue.get(timeout=10)
+            job = self.job_queue.get(timeout=10)
         except queue.Empty:
             logging.warning("For actor_{}, no Job get from coordinator".format(task.router.node_id))
+        
+        return job 
+
+    def __call__(self, ctx: "BattleContext"):
+
+        ctx.job = self._get_job()
+        if ctx.job is None:
             return
         
         job_player_id_list = [player.player_id for player in ctx.job.players] 

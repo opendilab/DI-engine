@@ -3,8 +3,7 @@ from easydict import EasyDict
 from ding.policy import Policy, get_random_policy
 from ding.envs import BaseEnvManager
 from ding.framework import task, EventEnum
-from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor
-from .actor_data import ActorData
+from .functional import inferencer, rolloutor, TransitionList, battle_inferencer, battle_rolloutor, job_data_sender
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
@@ -32,6 +31,8 @@ class BattleCollector:
             battle_inferencer(self.cfg, self.env, self.obs_pool, self.policy_output_pool)
         )
         self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
+        self._job_data_sender = task.wrap(job_data_sender(self.streaming_sampling_flag, self.n_rollout_samples))
+
 
     def __del__(self) -> None:
         """
@@ -77,20 +78,12 @@ class BattleCollector:
         while True:
             self._battle_inferencer(ctx)
             self._battle_rolloutor(ctx)
+
             self.total_envstep_count = ctx.envstep
 
-            if not ctx.job.is_eval and self.streaming_sampling_flag is True and len(ctx.train_data[0]) >= self.n_rollout_samples:
-                actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
-                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
-                ctx.train_data = [[] for _ in range(ctx.agent_num)]
+            self._job_data_sender(ctx)
 
             if ctx.collected_episode >= ctx.n_episode:
-                ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
-                task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
-                if not ctx.job.is_eval and len(ctx.train_data[0]) > 0:
-                    actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
-                    task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
-                    ctx.train_data = [[] for _ in range(ctx.agent_num)]
                 break
 
 

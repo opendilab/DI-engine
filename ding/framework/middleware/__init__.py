@@ -4,4 +4,3 @@ from .learner import OffPolicyLearner, HERLearner
 from .ckpt_handler import CkptSaver
 from .league_actor import LeagueActor
 from .league_coordinator import LeagueCoordinator
-from .actor_data import ActorData

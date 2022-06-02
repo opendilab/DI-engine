@@ -8,6 +8,10 @@ import torch
 from ding.utils import dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
 from ding.worker.collector.base_serial_collector import CachePool, TrajBuffer, to_tensor_transitions
+from threading import Lock
+from ding.league.player import PlayerMeta
+from ding.framework import task, EventEnum
+from .actor_data import ActorData
 
 # if TYPE_CHECKING:
 from ding.framework import OnlineRLContext, BattleContext
@@ -158,6 +162,25 @@ def policy_resetter(env_num: int):
             raise RuntimeError('ctx.current_policies should not be None')
 
     return _policy_resetter
+
+def job_data_sender(streaming_sampling_flag: bool, n_rollout_samples: int):
+   
+    def _job_data_sender(ctx: "BattleContext"):
+        if not ctx.job.is_eval and streaming_sampling_flag is True and len(ctx.train_data[0]) >= n_rollout_samples:
+            actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
+            task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+            ctx.train_data = [[] for _ in range(ctx.agent_num)]
+
+        if ctx.collected_episode >= ctx.n_episode:
+            ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
+            task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
+            if not ctx.job.is_eval and len(ctx.train_data[0]) > 0:
+                actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
+                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+                ctx.train_data = [[] for _ in range(ctx.agent_num)]
+    
+    return _job_data_sender
+
 
 
 def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool: CachePool):
