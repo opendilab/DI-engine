@@ -48,3 +48,20 @@ class TestMBPO:
 
         model = self.get_world_model(state_size, action_size, reward_size)
         model._train(inputs[:64], labels[:64])
+
+    @pytest.mark.parametrize('state_size, action_size, reward_size', args[:1])
+    def test_others(self, state_size, action_size, reward_size):
+        states = torch.rand(1280, state_size)
+        actions = torch.rand(1280, action_size)
+
+        next_states = states + actions.mean(1, keepdim=True)
+        rewards = next_states.mean(1, keepdim=True).repeat(1, reward_size)
+
+        inputs = torch.cat([states, actions], dim=1)
+        labels = torch.cat([rewards, next_states], dim=1)
+
+        model = self.get_world_model(state_size, action_size, reward_size)
+        model._train(inputs[:64], labels[:64])
+        model._save_states()
+        model._load_states()
+        model._save_best(0, [1, 2, 3])

@@ -60,7 +60,7 @@ class TestDDPPO:
         assert dones.shape == (128, )
 
     @pytest.mark.parametrize('state_size, action_size, reward_size', args)
-    def test_train_rolloutt_model(self, state_size, action_size, reward_size):
+    def test_train_rollout_model(self, state_size, action_size, reward_size):
         states = torch.rand(1280, state_size)
         actions = torch.rand(1280, action_size)
 
@@ -86,3 +86,21 @@ class TestDDPPO:
 
         model = self.get_world_model(state_size, action_size, reward_size)
         model._train_gradient_model(inputs[:64], labels[:64], inputs[:64], labels[:64])
+
+    @pytest.mark.parametrize('state_size, action_size, reward_size', args[:1])
+    def test_others(self, state_size, action_size, reward_size):
+        states = torch.rand(1280, state_size)
+        actions = torch.rand(1280, action_size)
+
+        next_states = states + actions.mean(1, keepdim=True)
+        rewards = next_states.mean(1, keepdim=True).repeat(1, reward_size)
+
+        inputs = torch.cat([states, actions], dim=1)
+        labels = torch.cat([rewards, next_states], dim=1)
+
+        model = self.get_world_model(state_size, action_size, reward_size)
+        model._train_rollout_model(inputs[:64], labels[:64])
+        model._train_gradient_model(inputs[:64], labels[:64], inputs[:64], labels[:64])
+        model._save_states()
+        model._load_states()
+        model._save_best(0, [1, 2, 3])
