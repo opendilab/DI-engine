@@ -19,9 +19,12 @@ def gym_env_register(id, max_episode_steps=1000):
 @gym_env_register('AntTruncatedObs-v2')
 class AntTruncatedObsEnv(AntEnv):
     """
+    Overview:
+        Modified ant with observation dim truncated to 27, which is used in MBPO (arXiv: 1906.08253).
+    .. note::
         External forces (sim.data.cfrc_ext) are removed from the observation.
-        Otherwise identical to Ant-v2 from
-        https://github.com/openai/gym/blob/master/gym/envs/mujoco/ant.py
+        Otherwise identical to Ant-v2 from\
+        <https://github.com/openai/gym/blob/master/gym/envs/mujoco/ant.py>.
     """
     def _get_obs(self):
         return np.concatenate([
@@ -33,10 +36,13 @@ class AntTruncatedObsEnv(AntEnv):
 @gym_env_register('HumanoidTruncatedObs-v2')
 class HumanoidTruncatedObsEnv(HumanoidEnv):
     """
-        COM inertia (cinert), COM velocity (cvel), actuator forces (qfrc_actuator), 
+    Overview:
+        Modified humanoid with observation dim truncated to 45, which is used in MBPO (arXiv: 1906.08253). 
+    .. note::
+        COM inertia (cinert), COM velocity (cvel), actuator forces (qfrc_actuator),\
         and external forces (cfrc_ext) are removed from the observation.
-        Otherwise identical to Humanoid-v2 from
-        https://github.com/openai/gym/blob/master/gym/envs/mujoco/humanoid.py
+        Otherwise identical to Humanoid-v2 from\
+        <https://github.com/openai/gym/blob/master/gym/envs/mujoco/humanoid.py>.
     """
     def _get_obs(self):
         data = self.sim.data

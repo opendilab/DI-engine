@@ -17,6 +17,7 @@ from ding.worker import BaseLearner, InteractionSerialEvaluator, BaseSerialComma
     AdvancedReplayBuffer, get_parallel_commander_cls, get_parallel_collector_cls, get_buffer_cls, \
     get_serial_collector_cls, MetricSerialEvaluator, BattleInteractionSerialEvaluator
 from ding.reward_model import get_reward_model_cls
+from ding.world_model import get_world_model_cls
 from .utils import parallel_transform, parallel_transform_slurm, parallel_transform_k8s, save_config_formatted
 
 
@@ -316,6 +317,7 @@ def compile_config(
         buffer: type = None,
         env: type = None,
         reward_model: type = None,
+        world_model: type = None,
         seed: int = 0,
         auto: bool = False,
         create_cfg: dict = None,
@@ -378,6 +380,12 @@ def compile_config(
             reward_model_config = reward_model.default_config()
         else:
             reward_model_config = EasyDict()
+        if 'world_model' in create_cfg:
+            world_model = get_world_model_cls(create_cfg.world_model)
+            world_model_config = world_model.default_config()
+            world_model_config.update(create_cfg.world_model)
+        else:
+            world_model_config = EasyDict()
     else:
         if 'default_config' in dir(env):
             env_config = env.default_config()
@@ -393,6 +401,11 @@ def compile_config(
             reward_model_config = EasyDict()
         else:
             reward_model_config = reward_model.default_config()
+        if world_model is None:
+            world_model_config = EasyDict()
+        else:
+            world_model_config = world_model.default_config()
+            world_model_config.update(create_cfg.world_model)
     policy_config.learn.learner = deep_merge_dicts(
         learner.default_config(),
         policy_config.learn.learner,
@@ -409,6 +422,8 @@ def compile_config(
     default_config = EasyDict({'env': env_config, 'policy': policy_config})
     if len(reward_model_config) > 0:
         default_config['reward_model'] = reward_model_config
+    if len(world_model_config) > 0:
+        default_config['world_model'] = world_model_config
     cfg = deep_merge_dicts(default_config, cfg)
     cfg.seed = seed
     # check important key in config
