@@ -1272,7 +1272,11 @@
 
 
 <span class="k">def</span> <span class="nf">generalized_lambda_returns</span><span class="p">(</span>
-        <span class="n">bootstrap_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">gammas</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span>
+        <span class="n">bootstrap_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">gammas</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">done</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -1287,6 +1291,8 @@
 <span class="sd">          discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]</span>
 <span class="sd">        - lambda (:obj:`torch.Tensor` or :obj:`float`): determining the mix of bootstrapping</span>
 <span class="sd">          vs further accumulation of multistep returns at each timestep, of size [T_traj, batchsize]</span>
+<span class="sd">        - done (:obj:`torch.Tensor` or :obj:`float`):</span>
+<span class="sd">          whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - return (:obj:`torch.Tensor`): Computed lambda return value</span>
 <span class="sd">          for each state from 0 to T-1, of size [T_traj, batchsize]</span>
@@ -1296,11 +1302,15 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lambda_</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
         <span class="n">lambda_</span> <span class="o">=</span> <span class="n">lambda_</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">rewards</span><span class="p">)</span>
     <span class="n">bootstrap_values_tp1</span> <span class="o">=</span> <span class="n">bootstrap_values</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
-    <span class="k">return</span> <span class="n">multistep_forward_view</span><span class="p">(</span><span class="n">bootstrap_values_tp1</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">gammas</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">multistep_forward_view</span><span class="p">(</span><span class="n">bootstrap_values_tp1</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">gammas</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">,</span> <span class="n">done</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">multistep_forward_view</span><span class="p">(</span>
-        <span class="n">bootstrap_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">gammas</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span>
+        <span class="n">bootstrap_values</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">rewards</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">gammas</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">done</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Overview:</span>
@@ -1314,9 +1324,6 @@
 <span class="sd">        ```</span>
 
 <span class="sd">        Assuming the first dim of input tensors correspond to the index in batch</span>
-<span class="sd">        There is no special handling for terminal state value,</span>
-<span class="sd">        if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal</span>
-<span class="sd">        (including the terminal state, which is, bootstrap_values[terminal] should also be 0)</span>
 <span class="sd">    Arguments:</span>
 <span class="sd">        - bootstrap_values (:obj:`torch.Tensor`): estimation of the value at *step 1 to T*, of size [T_traj, batchsize]</span>
 <span class="sd">        - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]</span>
@@ -1324,18 +1331,24 @@
 <span class="sd">        - lambda (:obj:`torch.Tensor`): determining the mix of bootstrapping vs further accumulation of \</span>
 <span class="sd">            multistep returns at each timestep of size [T_traj, batchsize], the element for T-1 is ignored \</span>
 <span class="sd">            and effectively set to 0, as there is no information about future rewards.</span>
+<span class="sd">        - done (:obj:`torch.Tensor` or :obj:`float`):</span>
+<span class="sd">          whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]</span>
 <span class="sd">    Returns:</span>
 <span class="sd">        - ret (:obj:`torch.Tensor`): Computed lambda return value \</span>
 <span class="sd">            for each state from 0 to T-1, of size [T_traj, batchsize]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">rewards</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">done</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">done</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">rewards</span><span class="p">)</span>
     <span class="c1"># Forced cutoff at the last one</span>
-    <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">gammas</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">bootstrap_values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">result</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span> <span class="o">*</span> <span class="n">gammas</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">bootstrap_values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
     <span class="n">discounts</span> <span class="o">=</span> <span class="n">gammas</span> <span class="o">*</span> <span class="n">lambda_</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">rewards</span><span class="o">.</span><span class="n">size</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)):</span>
-        <span class="n">result</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> \
-                       <span class="o">+</span> <span class="n">discounts</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">result</span><span class="p">[</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> \
-                       <span class="o">+</span> <span class="p">(</span><span class="n">gammas</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">discounts</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:])</span> <span class="o">*</span> <span class="n">bootstrap_values</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">rewards</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">done</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:])</span> <span class="o">*</span> \
+             <span class="p">(</span>
+                <span class="n">discounts</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">result</span><span class="p">[</span><span class="n">t</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span>
+                <span class="p">(</span><span class="n">gammas</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">discounts</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:])</span> <span class="o">*</span> <span class="n">bootstrap_values</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span>
+             <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">result</span>
 </pre></div>

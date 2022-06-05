@@ -97,6 +97,7 @@ Run the Code
 --------------
 
 The full example can be found in `DQN example <https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py>`_ and can be run via ``python dqn.py``.
+In addition, we also provide the `Colab Running Example <https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing>`_ from the DI-engine installation to training for reference.
 
 .. image::
     images/train_dqn.gif

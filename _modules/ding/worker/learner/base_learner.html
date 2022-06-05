@@ -450,7 +450,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">add_learner_hook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hooks</span><span class="p">,</span> <span class="n">hook</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="BaseLearner.train"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseLearner.train"><a class="viewcode-back" href="../../../../05_api_doc/worker/learner/learner.html#ding.worker.learner.base_learner.BaseLearner.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">envstep</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">policy_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Overview:</span>
 <span class="sd">            Given training data, implement network update for one iteration and update related variables.</span>
@@ -471,8 +471,11 @@
         <span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_policy&#39;</span><span class="p">),</span> <span class="s2">&quot;please set learner policy&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">call_hook</span><span class="p">(</span><span class="s1">&#39;before_iter&#39;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">policy_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">policy_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="c1"># Forward</span>
-        <span class="n">log_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">log_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_policy</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">policy_kwargs</span><span class="p">)</span>
 
         <span class="c1"># Update replay buffer&#39;s priority info</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">log_vars</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>

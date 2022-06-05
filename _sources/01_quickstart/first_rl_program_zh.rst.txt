@@ -89,7 +89,8 @@ DI-engine 覆盖了大部分强化学习策略，使用它们只需要选择正�
 运行代码
 --------------
 
-代码完整的示例代码可以在 `DQN example <https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py>`_ 中找到，通过 ``python dqn.py`` 即可运行代码
+代码完整的示例代码可以在 `DQN example <https://github.com/opendilab/DI-engine/blob/main/ding/example/dqn.py>`_ 中找到，通过 ``python dqn.py`` 即可运行代码。
+此外，我们提供了从 DI-engine 安装到训练的全过程 `Colab 运行示例 <https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing>`_ 作为参考。
 
 .. image::
     images/train_dqn.gif

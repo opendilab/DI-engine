@@ -421,6 +421,8 @@ estimation of the value at step 0 to <em>T</em>, of size [T_traj+1, batchsize]</
 discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]</p></li>
 <li><p>lambda (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>): determining the mix of bootstrapping
 vs further accumulation of multistep returns at each timestep, of size [T_traj, batchsize]</p></li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>):
+whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
@@ -440,10 +442,7 @@ Implementing (12.18) in Sutton &amp; Barto</p>
 <span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">0...T-2</span> <span class="pre">:</span>
 <span class="pre">result[t]</span> <span class="pre">=</span> <span class="pre">rewards[t]</span> <span class="pre">+</span> <span class="pre">gammas[t]*(lambdas[t]*result[t+1]</span> <span class="pre">+</span> <span class="pre">(1-lambdas[t])*bootstrap_values[t+1])</span>
 <span class="pre">`</span></code></p>
-<p>Assuming the first dim of input tensors correspond to the index in batch
-There is no special handling for terminal state value,
-if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
-(including the terminal state, which is, bootstrap_values[terminal] should also be 0)</p>
+<p>Assuming the first dim of input tensors correspond to the index in batch</p>
 </dd>
 <dt>Arguments:</dt><dd><ul class="simple">
 <li><p>bootstrap_values (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): estimation of the value at <em>step 1 to T</em>, of size [T_traj, batchsize]</p></li>
@@ -454,6 +453,8 @@ if some state has reached the terminal, just fill in zeros for values and reward
 </dd>
 </dl>
 </li>
+<li><p>done (<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.Tensor</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>):
+whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]</p></li>
 </ul>
 </dd>
 <dt>Returns:</dt><dd><ul class="simple">
