@@ -999,7 +999,11 @@ def td_lambda_error(data: namedtuple, gamma: float = 0.9, lambda_: float = 0.8) 
 
 
 def generalized_lambda_returns(
-        bootstrap_values: torch.Tensor, rewards: torch.Tensor, gammas: float, lambda_: float
+        bootstrap_values: torch.Tensor,
+        rewards: torch.Tensor,
+        gammas: float,
+        lambda_: float,
+        done: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     r"""
     Overview:
@@ -1014,6 +1018,8 @@ def generalized_lambda_returns(
           discount factor for each step (from 0 to T-1), of size [T_traj, batchsize]
         - lambda (:obj:`torch.Tensor` or :obj:`float`): determining the mix of bootstrapping
           vs further accumulation of multistep returns at each timestep, of size [T_traj, batchsize]
+        - done (:obj:`torch.Tensor` or :obj:`float`):
+          whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]
     Returns:
         - return (:obj:`torch.Tensor`): Computed lambda return value
           for each state from 0 to T-1, of size [T_traj, batchsize]
@@ -1023,11 +1029,15 @@ def generalized_lambda_returns(
     if not isinstance(lambda_, torch.Tensor):
         lambda_ = lambda_ * torch.ones_like(rewards)
     bootstrap_values_tp1 = bootstrap_values[1:, :]
-    return multistep_forward_view(bootstrap_values_tp1, rewards, gammas, lambda_)
+    return multistep_forward_view(bootstrap_values_tp1, rewards, gammas, lambda_, done)
 
 
 def multistep_forward_view(
-        bootstrap_values: torch.Tensor, rewards: torch.Tensor, gammas: float, lambda_: float
+        bootstrap_values: torch.Tensor,
+        rewards: torch.Tensor,
+        gammas: float,
+        lambda_: float,
+        done: Optional[torch.Tensor] = None
 ) -> torch.Tensor:
     r"""
     Overview:
@@ -1041,9 +1051,6 @@ def multistep_forward_view(
         ```
 
         Assuming the first dim of input tensors correspond to the index in batch
-        There is no special handling for terminal state value,
-        if some state has reached the terminal, just fill in zeros for values and rewards beyond terminal
-        (including the terminal state, which is, bootstrap_values[terminal] should also be 0)
     Arguments:
         - bootstrap_values (:obj:`torch.Tensor`): estimation of the value at *step 1 to T*, of size [T_traj, batchsize]
         - rewards (:obj:`torch.Tensor`): the returns from 0 to T-1, of size [T_traj, batchsize]
@@ -1051,17 +1058,23 @@ def multistep_forward_view(
         - lambda (:obj:`torch.Tensor`): determining the mix of bootstrapping vs further accumulation of \
             multistep returns at each timestep of size [T_traj, batchsize], the element for T-1 is ignored \
             and effectively set to 0, as there is no information about future rewards.
+        - done (:obj:`torch.Tensor` or :obj:`float`):
+          whether the episode done at current step (from 0 to T-1), of size [T_traj, batchsize]
     Returns:
         - ret (:obj:`torch.Tensor`): Computed lambda return value \
             for each state from 0 to T-1, of size [T_traj, batchsize]
     """
     result = torch.empty_like(rewards)
+    if done is None:
+        done = torch.zeros_like(rewards)
     # Forced cutoff at the last one
-    result[-1, :] = rewards[-1, :] + gammas[-1, :] * bootstrap_values[-1, :]
+    result[-1, :] = rewards[-1, :] + (1 - done[-1, :]) * gammas[-1, :] * bootstrap_values[-1, :]
     discounts = gammas * lambda_
     for t in reversed(range(rewards.size()[0] - 1)):
-        result[t, :] = rewards[t, :] \
-                       + discounts[t, :] * result[t + 1, :] \
-                       + (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+        result[t, :] = rewards[t, :] + (1 - done[t, :]) * \
+             (
+                discounts[t, :] * result[t + 1, :] +
+                (gammas[t, :] - discounts[t, :]) * bootstrap_values[t, :]
+             )
 
     return result
