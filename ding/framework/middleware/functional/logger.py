@@ -67,5 +67,5 @@ def offline_logger() -> Callable:
                     writer.add_histogram(new_k, v, ctx.train_iter)
                 else:
                     writer.add_scalar('basic/train_{}-train_iter'.format(k), v, ctx.train_iter)
-    return _logger
 
+    return _logger

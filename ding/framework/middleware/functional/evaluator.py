@@ -202,11 +202,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
                 )
             )
         elif isinstance(ctx, OfflineRLContext):
-            logging.info(
-                'Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(
-                    ctx.train_iter, eval_reward
-                )
-            )
+            logging.info('Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(ctx.train_iter, eval_reward))
         else:
             raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
