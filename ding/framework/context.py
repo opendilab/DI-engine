@@ -75,3 +75,8 @@ class OfflineRLContext(Context):
         self.last_eval_iter = -1
 
         self.keep('train_iter', 'last_eval_iter')
+
+class BattleContext(Context):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.__dict__ = self

@@ -4,7 +4,9 @@ from copy import deepcopy
 from ding.envs import BaseEnvManager
 from ding.framework.middleware.league_learner import LearnerModel
 from ding.framework.middleware.tests.league_config import cfg
-from ding.framework.middleware.league_actor import ActorData, LeagueActor, PlayerMeta
+from ding.framework.middleware import LeagueActor
+from ding.framework.middleware.functional import ActorData
+from ding.league.player import PlayerMeta
 from ding.framework.storage import FileStorage
 
 from ding.framework.task import task, Parallel

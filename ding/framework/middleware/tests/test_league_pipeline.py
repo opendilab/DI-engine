@@ -4,7 +4,7 @@ from copy import deepcopy
 from ding.envs import BaseEnvManager
 from ding.framework.middleware.tests.league_config import cfg
 from ding.framework.middleware import LeagueActor, LeagueCoordinator
-from ding.framework.middleware.league_actor import PlayerMeta
+from ding.league.player import PlayerMeta
 from ding.framework.storage import FileStorage
 
 from ding.framework.task import task, Parallel
@@ -73,9 +73,11 @@ def _main():
         if task.router.node_id == 0:
             league = MockLeague()
             coordinator = LeagueCoordinator(league)
+            sleep(2)
             with patch("ding.league.BaseLeague", MockLeague):
                 task.use(coordinator)
             sleep(15)
+            # print(league.get_job_info_cnt)
             assert league.get_job_info_cnt == N_ACTORS
             assert league.update_payoff_cnt == N_ACTORS
         else:

@@ -8,9 +8,13 @@ import torch
 from ding.utils import dicts_to_lists
 from ding.torch_utils import to_tensor, to_ndarray
 from ding.worker.collector.base_serial_collector import CachePool, TrajBuffer, to_tensor_transitions
+from threading import Lock
+from ding.league.player import PlayerMeta
+from ding.framework import task, EventEnum
+from .actor_data import ActorData
 
 # if TYPE_CHECKING:
-from ding.framework import OnlineRLContext
+from ding.framework import OnlineRLContext, BattleContext
 
 
 class TransitionList:
@@ -139,11 +143,11 @@ def rolloutor(cfg: EasyDict, policy: Policy, env: BaseEnvManager, transitions: T
 
 def policy_resetter(env_num: int):
 
-    def _policy_resetter(ctx: OnlineRLContext):
-        if ctx.policies is not None:
-            assert len(ctx.policies) > 1, "battle collector needs more than 1 policies"
-            ctx._default_n_episode = ctx.policies[0].get_attribute('cfg').collect.get('n_episode', None)
-            ctx.agent_num = len(ctx.policies)
+    def _policy_resetter(ctx: "BattleContext"):
+        if ctx.current_policies is not None:
+            assert len(ctx.current_policies) > 1, "battle collector needs more than 1 policies"
+            ctx._default_n_episode = ctx.current_policies[0].get_attribute('cfg').collect.get('n_episode', None)
+            ctx.agent_num = len(ctx.current_policies)
             ctx.traj_len = float("inf")
             # traj_buffer is {env_id: {policy_id: TrajBuffer}}, is used to store traj_len pieces of transitions
             ctx.traj_buffer = {
@@ -152,17 +156,36 @@ def policy_resetter(env_num: int):
                 for env_id in range(env_num)
             }
 
-            for p in ctx.policies:
+            for p in ctx.current_policies:
                 p.reset()
         else:
-            raise RuntimeError('ctx.policies should not be None')
+            raise RuntimeError('ctx.current_policies should not be None')
 
     return _policy_resetter
+
+def job_data_sender(streaming_sampling_flag: bool, n_rollout_samples: int):
+   
+    def _job_data_sender(ctx: "BattleContext"):
+        if not ctx.job.is_eval and streaming_sampling_flag is True and len(ctx.train_data[0]) >= n_rollout_samples:
+            actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
+            task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+            ctx.train_data = [[] for _ in range(ctx.agent_num)]
+
+        if ctx.collected_episode >= ctx.n_episode:
+            ctx.job.result = [e['result'] for e in ctx.episode_info[0]]
+            task.emit(EventEnum.ACTOR_FINISH_JOB, ctx.job)
+            if not ctx.job.is_eval and len(ctx.train_data[0]) > 0:
+                actor_data = ActorData(env_step=ctx.envstep, train_data=ctx.train_data[0])
+                task.emit(EventEnum.ACTOR_SEND_DATA.format(player=ctx.job.launch_player), actor_data)
+                ctx.train_data = [[] for _ in range(ctx.agent_num)]
+    
+    return _job_data_sender
+
 
 
 def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool: CachePool):
 
-    def _battle_inferencer(ctx: "OnlineRLContext"):
+    def _battle_inferencer(ctx: "BattleContext"):
         # Get current env obs.
         obs = env.ready_obs
         new_available_env_id = set(obs.keys()).difference(ctx.ready_env_id)
@@ -175,7 +198,7 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, p
         if cfg.transform_obs:
             obs = to_tensor(obs, dtype=torch.float32)
         obs = dicts_to_lists(obs)
-        policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx.policies)]
+        policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx.current_policies)]
         policy_output_pool.update(policy_output)
 
         # Interact with env.
@@ -191,15 +214,14 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, p
 
 def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, policy_output_pool: CachePool):
 
-    def _battle_rolloutor(ctx: "OnlineRLContext"):
+    def _battle_rolloutor(ctx: "BattleContext"):
         timesteps = env.step(ctx.actions)
         for env_id, timestep in timesteps.items():
-            # TODO: self.total_envstep_count += 1
             ctx.envstep += 1
-            for policy_id, _ in enumerate(ctx.policies):
+            for policy_id, _ in enumerate(ctx.current_policies):
                 policy_timestep_data = [d[policy_id] if not isinstance(d, bool) else d for d in timestep]
                 policy_timestep = type(timestep)(*policy_timestep_data)
-                transition = ctx.policies[policy_id].process_transition(
+                transition = ctx.current_policies[policy_id].process_transition(
                     obs_pool[env_id][policy_id], policy_output_pool[env_id][policy_id], policy_timestep
                 )
                 transition['collect_iter'] = ctx.train_iter
@@ -208,7 +230,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, po
                 if timestep.done:
                     transitions = to_tensor_transitions(ctx.traj_buffer[env_id][policy_id])
                     if cfg.get_train_sample:
-                        train_sample = ctx.policies[policy_id].get_train_sample(transitions)
+                        train_sample = ctx.current_policies[policy_id].get_train_sample(transitions)
                         ctx.train_data[policy_id].extend(train_sample)
                     else:
                         ctx.train_data[policy_id].append(transitions)
@@ -216,7 +238,7 @@ def battle_rolloutor(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, po
 
             if timestep.done:
                 ctx.collected_episode += 1
-                for i, p in enumerate(ctx.policies):
+                for i, p in enumerate(ctx.current_policies):
                     p.reset([env_id])
                 for i in range(ctx.agent_num):
                     ctx.traj_buffer[env_id][i].clear()
