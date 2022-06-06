@@ -198,7 +198,7 @@ def battle_inferencer(cfg: EasyDict, env: BaseEnvManager, obs_pool: CachePool, p
         if cfg.transform_obs:
             obs = to_tensor(obs, dtype=torch.float32)
         obs = dicts_to_lists(obs)
-        policy_output = [p.forward(obs[i], **ctx.policy_kwargs) for i, p in enumerate(ctx.current_policies)]
+        policy_output = [p.forward(obs[i], **ctx.collect_kwargs) for i, p in enumerate(ctx.current_policies)]
         policy_output_pool.update(policy_output)
 
         # Interact with env.

@@ -107,7 +107,7 @@ class LeagueActor:
 
         ctx.n_episode = None
         ctx.train_iter = main_player.total_agent_step
-        ctx.policy_kwargs = None
+        ctx.collect_kwargs = None
 
         collector(ctx)
 

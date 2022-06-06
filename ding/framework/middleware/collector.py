@@ -69,7 +69,7 @@ class BattleCollector:
         Input of ctx:
             - n_episode (:obj:`int`): the number of collecting data episode
             - train_iter (:obj:`int`): the number of training iteration
-            - policy_kwargs (:obj:`dict`): the keyword args for policy forward
+            - collect_kwargs (:obj:`dict`): the keyword args for policy forward
         Output of ctx:
             -  ctx.train_data (:obj:`Tuple[List, List]`): A tuple with training sample(data) and episode info, \
                 the former is a list containing collected episodes if not get_train_sample, \
@@ -83,8 +83,8 @@ class BattleCollector:
                 ctx.n_episode = ctx._default_n_episode
         assert ctx.n_episode >= self.env_num, "Please make sure n_episode >= env_num"
 
-        if ctx.policy_kwargs is None:
-            ctx.policy_kwargs = {}
+        if ctx.collect_kwargs is None:
+            ctx.collect_kwargs = {}
 
         if self.env.closed:
             self.env.launch()
