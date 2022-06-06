@@ -122,3 +122,29 @@ class ResFCBlock(nn.Module):
             x = self.fc2(x)
             x = self.act(x + residual)
             return x
+
+
+class GatedConvResBlock(nn.Module):
+
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding, activation=nn.ReLU(), norm_type='BN'):
+        super(GatedConvResBlock, self).__init__()
+        assert (stride == 1), stride
+        assert (in_channels == out_channels), '{}/{}'.format(in_channels, out_channels)
+        self.act = activation
+        self.conv1 = conv2d_block(in_channels, out_channels, 3, 1, 1, activation=self.act, norm_type=norm_type)
+        self.conv2 = conv2d_block(out_channels, out_channels, 3, 1, 1, activation=None, norm_type=norm_type)
+        self.gate = nn.Sequential(
+            conv2d_block(out_channels, out_channels, 1, 1, 0, activation=self.act, norm_type=None),
+            conv2d_block(out_channels, out_channels, 1, 1, 0, activation=self.act, norm_type=None),
+            conv2d_block(out_channels, out_channels, 1, 1, 0, activation=self.act, norm_type=None),
+            conv2d_block(out_channels, out_channels, 1, 1, 0, activation=None, norm_type=None)
+        )
+        self.update_sp = nn.Parameter(torch.full((1, ), fill_value=0.1))
+
+    def forward(self, x, noise_map):
+        residual = x
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = torch.tanh(x * torch.sigmoid(self.gate(noise_map))) * self.update_sp
+        x = self.act(x + residual)
+        return x

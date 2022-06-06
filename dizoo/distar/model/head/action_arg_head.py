@@ -17,9 +17,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ding.torch_utils import fc_block, conv2d_block, deconv2d_block, build_activation, ResBlock, NearestUpsample, \
-    BilinearUpsample, sequence_mask, GatedResBlock, FiLMedResBlock, AttentionPool
+    BilinearUpsample, sequence_mask, GatedConvResBlock, AttentionPool, script_lstm
 from dizoo.distar.envs import MAX_ENTITY_NUM, MAX_SELECTED_UNITS_NUM
-from ..lstm import script_lnlstm, script_lstm
 
 
 class DelayHead(nn.Module):
@@ -104,9 +103,8 @@ class SelectedUnitsHead(nn.Module):
         self.key_dim = self.cfg.key_dim
 
         self.num_layers = self.cfg.num_layers
-        self.test_iou = self.cfg.get('test_iou', False)
 
-        self.lstm = script_lnlstm(self.cfg.key_dim, self.cfg.hidden_dim, self.cfg.num_layers)
+        self.lstm = script_lstm(self.cfg.key_dim, self.cfg.hidden_dim, self.cfg.num_layers, LN=True)
         self.end_embedding = torch.nn.Parameter(torch.FloatTensor(1, self.key_dim))
         stdv = 1. / math.sqrt(self.end_embedding.size(1))
         self.end_embedding.data.uniform_(-stdv, stdv)
@@ -116,7 +114,7 @@ class SelectedUnitsHead(nn.Module):
             self.attention_pool = AttentionPool(
                 key_dim=self.cfg.key_dim, head_num=2, output_dim=self.cfg.input_dim, max_num=MAX_SELECTED_UNITS_NUM + 1
             )
-        self.extra_units = self.whole_cfg.get('agent', {}).get('extra_units', False)
+        self.extra_units = self.cfg.extra_units  # select extra units if selected units exceed max_entity_num=64
 
     def _get_key_mask(self, entity_embedding, entity_num):
         bs = entity_embedding.shape[0]
@@ -175,19 +173,11 @@ class SelectedUnitsHead(nn.Module):
 
         result: Optional[Tensor] = None
         results: Optional[Tensor] = None
-        extra_units = torch.zeros(bs, MAX_ENTITY_NUM + 1, device=ae.device)
         if selected_units is not None and selected_units_num is not None:  # train
             bs = selected_units.shape[0]
             seq_len = selected_units_num.max()
             queries = []
             selected_mask = sequence_mask(selected_units_num)  # b, s
-            if self.test_iou:
-                iou_ae = ae.detach().clone()
-                iou_logits_mask = logits_mask.detach().clone()
-                iou_state = [
-                    (torch.zeros(ae.shape[0], 32, device=ae.device), torch.zeros(ae.shape[0], 32, device=ae.device))
-                    for _ in range(self.num_layers)
-                ]
             logits_mask = logits_mask.repeat(max(seq_len, 1), 1, 1)  # b, n -> s, b, n
             logits_mask[0, torch.arange(bs), entity_num] = 0  # end flag is not available at first selection
             selected_units_one_hot = torch.zeros(*key_embeddings.shape[:2], device=ae.device).unsqueeze(dim=2)
@@ -233,54 +223,8 @@ class SelectedUnitsHead(nn.Module):
             logits = query_result.sum(dim=3)  # s, b, n
             logits = logits.masked_fill(~logits_mask, -1e9)
             logits = logits.permute(1, 0, 2).contiguous()
-            if self.test_iou:
-                with torch.no_grad():
-                    selected_units_one_hot = torch.zeros(*key_embeddings.shape[:2], device=ae.device).unsqueeze(dim=2)
-                    selected_units_num = torch.ones(bs, dtype=torch.long, device=ae.device) * seq_len
-                    key = key.squeeze(dim=0)
-                    for i in range(seq_len):
-                        if i > 0:
-                            if i == 1:  # end flag can be selected at second selection
-                                iou_logits_mask[torch.arange(bs),
-                                                entity_num] = torch.tensor([1], dtype=torch.bool, device=ae.device)
-                            if result is not None:
-                                iou_logits_mask[torch.arange(bs), result.detach()] = torch.tensor(
-                                    [0], dtype=torch.bool, device=ae.device
-                                )  # mask selected units
-                        lstm_input = self.query_fc2(self.query_fc1(iou_ae)).unsqueeze(0)
-                        lstm_output, iou_state = self.lstm(lstm_input, iou_state)
-                        queries = lstm_output.permute(1, 0, 2)  # b, 1, c
-                        query_result = queries * key
-                        step_logits = query_result.sum(dim=2)  # b, n
-                        step_logits = step_logits.masked_fill(~iou_logits_mask, -1e9)
-                        step_logits = step_logits.div(1)
-                        result = self._get_pred_with_logit(step_logits)
-                        selected_units_num[(result == entity_num) * ~(end_flag)] = torch.tensor(i + 1).to(result.device)
-                        end_flag[result == entity_num] = torch.tensor([1], dtype=torch.bool, device=ae.device)
-                        results_list.append(result)
-                        reduce_type = self.whole_cfg.model.entity_reduce_type
-                        if reduce_type == 'selected_units_num' or 'attention' in reduce_type:
-                            selected_units_one_hot[torch.arange(bs)[~end_flag], result[~end_flag], :] = 1
-                            if self.whole_cfg.model.entity_reduce_type == 'selected_units_num':
-                                selected_units_emebedding = (key_embeddings * selected_units_one_hot
-                                                             ).sum(dim=1) / selected_units_one_hot.sum(dim=1)
-                                selected_units_emebedding = self.embed_fc2(self.embed_fc1(selected_units_emebedding))
-                                iou_ae = autoregressive_embedding + selected_units_emebedding
-                            elif self.whole_cfg.model.entity_reduce_type == 'attention_pool':
-                                iou_ae = autoregressive_embedding + self.attention_pool(
-                                    key_embeddings, mask=selected_units_one_hot
-                                )
-                            elif self.whole_cfg.model.entity_reduce_type == 'attention_pool_add_num':
-                                iou_ae = autoregressive_embedding + self.attention_pool(
-                                    key_embeddings,
-                                    num=selected_units_one_hot.sum(dim=1).squeeze(dim=1),
-                                    mask=selected_units_one_hot,
-                                )
-                        else:
-                            iou_ae = iou_ae + key_embeddings[torch.arange(bs), result] * ~end_flag.unsqueeze(dim=1)
-                    results = torch.stack(results_list, dim=0)
-                    results = results.transpose(1, 0).contiguous()
-
+            results = selected_units
+            extra_units = None
         else:
             selected_units_num = torch.ones(bs, dtype=torch.long, device=ae.device) * self.max_select_num
             end_flag[~su_mask] = 1
@@ -391,7 +335,6 @@ class LocationHead(nn.Module):
         self.whole_cfg = cfg
         self.cfg = self.whole_cfg.model.policy.head.location_head
         self.act = build_activation(self.cfg.activation)
-        self.reshape_size = self.cfg.reshape_size
         self.reshape_channel = self.cfg.reshape_channel
 
         self.conv1 = conv2d_block(
@@ -406,25 +349,18 @@ class LocationHead(nn.Module):
         self.res = nn.ModuleList()
         self.res_act = nn.ModuleList()
         self.res_dim = self.cfg.res_dim
-        self.use_film = self.cfg.get('film', False)
-        self.use_gate = self.cfg.get('gate', False)
-        self.use_unet = self.cfg.get('unet', False)
+        self.use_gate = self.cfg.gate
         self.project_embed = fc_block(
             self.cfg.input_dim,
             self.whole_cfg.model.spatial_y // 8 * self.whole_cfg.model.spatial_x // 8 * 4,
             activation=build_activation(self.cfg.activation)
         )
-        if self.use_film:
-            self.film_fc = fc_block(self.cfg.input_dim, self.res_dim, activation=build_activation(self.cfg.activation))
-            self.film_gamma = nn.ModuleList()
-            self.film_beta = nn.ModuleList()
-            self.film = nn.ModuleList()
 
         self.res = nn.ModuleList()
         for i in range(self.cfg.res_num):
             if self.use_gate:
                 self.res.append(
-                    GatedResBlock(
+                    GatedConvResBlock(
                         self.res_dim,
                         self.res_dim,
                         3,
@@ -436,12 +372,6 @@ class LocationHead(nn.Module):
                 )
             else:
                 self.res.append(ResBlock(self.dim, build_activation(self.cfg.activation), norm_type=None))
-            if self.use_film:
-                self.film_gamma.append(nn.Linear(self.res_dim, self.res_dim))
-                self.film_beta.append(nn.Linear(self.res_dim, self.res_dim))
-                self.film.append(FiLMedResBlock(self.res_dim, with_cond=[True]))
-                torch.nn.init.xavier_uniform_(self.film_gamma[i].weight)
-                torch.nn.init.xavier_uniform_(self.film_beta[i].weight)
 
         self.upsample = nn.ModuleList()  # upsample list
         dims = [self.res_dim] + self.cfg.upsample_dims
@@ -468,8 +398,6 @@ class LocationHead(nn.Module):
 
         x1 = self.act(cat_feature)
         x = self.conv1(x1)
-        if self.use_film:
-            film_embedding = self.film_fc(embedding)
 
         # reverse cat_feature instead of reversing resblock
         for i in range(self.cfg.res_num):
@@ -478,15 +406,11 @@ class LocationHead(nn.Module):
                 x = self.res[i](x, x)
             else:
                 x = self.res[i](x)
-            if self.use_film:
-                x = self.film[i](x, gammas=self.film_gamma[i](film_embedding), betas=self.film_beta[i](film_embedding))
         for i, layer in enumerate(self.upsample):
             if self.cfg.upsample_type == 'nearest':
                 x = F.interpolate(x, scale_factor=2., mode='nearest')
             elif self.cfg.upsample_type == 'bilinear':
                 x = F.interpolate(x, scale_factor=2., mode='bilinear')
-            if self.use_unet:
-                x = x + map_skip[len(map_skip) - self.cfg.res_num - i - 1]
             x = layer(x)
 
         logits_flatten = x.view(x.shape[0], -1)

@@ -1,81 +1,10 @@
-from collections import namedtuple
 from typing import List, Tuple
-from torch import Tensor
-from torch.nn import Parameter
-import warnings
 import numbers
 import torch
 import torch.nn as nn
 import torch.jit as jit
-warnings.filterwarnings(
-    "ignore",
-    message=r"'layers' was found in ScriptModule constants,  but it is a non-constant submodule. Consider removing it."
-)
-
-
-def script_lstm(input_size, hidden_size, num_layers, dropout=False, bidirectional=False):
-    '''Returns a ScriptModule that mimics a PyTorch native LSTM.'''
-
-    if bidirectional:
-        stack_type = StackedLSTM2
-        layer_type = BidirLSTMLayer
-        dirs = 2
-    elif dropout:
-        stack_type = StackedLSTMWithDropout
-        layer_type = LSTMLayer
-        dirs = 1
-    else:
-        stack_type = StackedLSTM
-        layer_type = LSTMLayer
-        dirs = 1
-
-    return stack_type(
-        num_layers,
-        layer_type,
-        first_layer_args=[LSTMCell, input_size, hidden_size],
-        other_layer_args=[LSTMCell, hidden_size * dirs, hidden_size]
-    )
-
-
-def script_lnlstm(
-    input_size,
-    hidden_size,
-    num_layers,
-    bias=True,
-    batch_first=False,
-    dropout=False,
-    bidirectional=False,
-    decompose_layernorm=False
-):
-    '''Returns a ScriptModule that mimics a PyTorch native LSTM.'''
-
-    # The following are not implemented.
-    assert bias
-    assert not batch_first
-    assert not dropout
-
-    if bidirectional:
-        stack_type = StackedLSTM2
-        layer_type = BidirLSTMLayer
-        dirs = 2
-    else:
-        stack_type = StackedLSTM
-        layer_type = LSTMLayer
-        dirs = 1
-
-    return stack_type(
-        num_layers,
-        layer_type,
-        first_layer_args=[LayerNormLSTMCell, input_size, hidden_size, decompose_layernorm],
-        other_layer_args=[LayerNormLSTMCell, hidden_size * dirs, hidden_size, decompose_layernorm]
-    )
-
-
-LSTMState = namedtuple('LSTMState', ['hx', 'cx'])
-
-
-def reverse(lst: List[Tensor]) -> List[Tensor]:
-    return lst[::-1]
+from torch import Tensor
+from ditk import logging
 
 
 class LSTMCell(nn.Module):
@@ -84,10 +13,10 @@ class LSTMCell(nn.Module):
         super(LSTMCell, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.weight_ih = Parameter(torch.randn(4 * hidden_size, input_size))
-        self.weight_hh = Parameter(torch.randn(4 * hidden_size, hidden_size))
-        self.bias_ih = Parameter(torch.randn(4 * hidden_size))
-        self.bias_hh = Parameter(torch.randn(4 * hidden_size))
+        self.weight_ih = nn.Parameter(torch.randn(4 * hidden_size, input_size))
+        self.weight_hh = nn.Parameter(torch.randn(4 * hidden_size, hidden_size))
+        self.bias_ih = nn.Parameter(torch.randn(4 * hidden_size))
+        self.bias_hh = nn.Parameter(torch.randn(4 * hidden_size))
 
     def forward(self, input: Tensor, state: Tuple[Tensor, Tensor]) -> Tuple[Tensor, Tuple[Tensor, Tensor]]:
         hx, cx = state
@@ -105,45 +34,16 @@ class LSTMCell(nn.Module):
         return hy, (hy, cy)
 
 
-class LayerNorm(nn.Module):
-
-    def __init__(self, normalized_shape):
-        super(LayerNorm, self).__init__()
-        if isinstance(normalized_shape, numbers.Integral):
-            normalized_shape = (normalized_shape, )
-        normalized_shape = torch.Size(normalized_shape)
-
-        # XXX: This is true for our LSTM / NLP use case and helps simplify code
-        assert len(normalized_shape) == 1
-
-        self.weight = Parameter(torch.ones(normalized_shape))
-        self.bias = Parameter(torch.zeros(normalized_shape))
-        self.normalized_shape = normalized_shape
-
-    def compute_layernorm_stats(self, input):
-        mu = input.mean(-1, keepdim=True)
-        sigma = input.std(-1, keepdim=True, unbiased=False)
-        return mu, sigma
-
-    def forward(self, input):
-        mu, sigma = self.compute_layernorm_stats(input)
-        return (input - mu) / sigma * self.weight + self.bias
-
-
 class LayerNormLSTMCell(nn.Module):
 
-    def __init__(self, input_size, hidden_size, decompose_layernorm=False):
+    def __init__(self, input_size, hidden_size):
         super(LayerNormLSTMCell, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.weight_ih = Parameter(torch.randn(4 * hidden_size, input_size))
-        self.weight_hh = Parameter(torch.randn(4 * hidden_size, hidden_size))
-        # The layernorms provide learnable biases
+        self.weight_ih = nn.Parameter(torch.randn(4 * hidden_size, input_size))
+        self.weight_hh = nn.Parameter(torch.randn(4 * hidden_size, hidden_size))
 
-        if decompose_layernorm:
-            ln = LayerNorm
-        else:
-            ln = nn.LayerNorm
+        ln = nn.LayerNorm
 
         self.layernorm_i = ln(4 * hidden_size)
         self.layernorm_h = ln(4 * hidden_size)
@@ -180,6 +80,10 @@ class LSTMLayer(nn.Module):
             out, state = self.cell(inputs[i], state)
             outputs += [out]
         return torch.stack(outputs), state
+
+
+def reverse(lst: List[Tensor]) -> List[Tensor]:
+    return lst[::-1]
 
 
 class ReverseLSTMLayer(nn.Module):
@@ -287,7 +191,7 @@ class StackedLSTMWithDropout(nn.Module):
         self.num_layers = num_layers
 
         if (num_layers == 1):
-            warnings.warn(
+            logging.warning(
                 "dropout lstm adds dropout layers after all but last "
                 "recurrent layer, it expects num_layers greater than "
                 "1, but got num_layers = 1"
@@ -312,10 +216,29 @@ class StackedLSTMWithDropout(nn.Module):
         return output, output_states
 
 
-def test_script_stacked_lnlstm(seq_len, batch, input_size, hidden_size, num_layers):
-    inp = torch.randn(seq_len, batch, input_size)
-    states = [LSTMState(torch.randn(batch, hidden_size), torch.randn(batch, hidden_size)) for _ in range(num_layers)]
-    rnn = script_lnlstm(input_size, hidden_size, num_layers)
+def script_lstm(input_size, hidden_size, num_layers, dropout=False, bidirectional=False, LN=False):
+    '''Returns a ScriptModule that mimics a PyTorch native LSTM.'''
 
-    # just a smoke test
-    out, out_state = rnn(inp, states)
+    if bidirectional:
+        stack_type = StackedLSTM2
+        layer_type = BidirLSTMLayer
+        dirs = 2
+    elif dropout:
+        stack_type = StackedLSTMWithDropout
+        layer_type = LSTMLayer
+        dirs = 1
+    else:
+        stack_type = StackedLSTM
+        layer_type = LSTMLayer
+        dirs = 1
+    if LN:
+        cell = LayerNormLSTMCell
+    else:
+        cell = LSTMCell
+
+    return stack_type(
+        num_layers,
+        layer_type,
+        first_layer_args=[cell, input_size, hidden_size],
+        other_layer_args=[cell, hidden_size * dirs, hidden_size]
+    )

@@ -60,7 +60,7 @@ class Policy(nn.Module):
             lstm_output, scalar_context, action_info['action_type']
         )
 
-        #action arg delay
+        # action arg delay
         logit['delay'], action['delay'], embeddings = self.delay_head(embeddings, action_info['delay'])
 
         logit['queued'], action['queued'], embeddings = self.queued_head(embeddings, action_info['queued'])
