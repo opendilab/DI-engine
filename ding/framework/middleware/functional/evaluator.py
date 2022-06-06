@@ -207,6 +207,8 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
                     ctx.train_iter, eval_reward
                 )
             )
+        else:
+            raise TypeError("not supported ctx type: {}".format(type(ctx)))
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
 

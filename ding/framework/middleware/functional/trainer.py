@@ -43,7 +43,9 @@ def trainer(cfg: EasyDict, policy: Policy) -> Callable:
                     'Training: Train Iter({})\tLoss({:.3f})'.format(
                         ctx.train_iter, train_output['total_loss']
                     )
-                )                
+                )
+            else:
+                raise TypeError("not supported ctx type: {}".format(type(ctx)))            
         ctx.train_iter += 1
         ctx.train_output = train_output
 
