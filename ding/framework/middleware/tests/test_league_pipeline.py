@@ -64,7 +64,7 @@ class MockLeague:
             ]
         )
 
-N_ACTORS = 5
+N_ACTORS = 3
 
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
