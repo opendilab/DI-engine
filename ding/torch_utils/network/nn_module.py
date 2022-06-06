@@ -1,9 +1,9 @@
+from typing import Union, Tuple, List, Callable, Optional
 import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import xavier_normal_, kaiming_normal_, orthogonal_
-from typing import Union, Tuple, List, Callable
 from ding.compatibility import torch_gt_131
 
 from .normalization import build_normalization
@@ -214,7 +214,8 @@ def fc_block(
         activation: nn.Module = None,
         norm_type: str = None,
         use_dropout: bool = False,
-        dropout_probability: float = 0.5
+        dropout_probability: float = 0.5,
+        init_gain: Optional[float] = None,
 ) -> nn.Sequential:
     r"""
     Overview:
@@ -228,6 +229,7 @@ def fc_block(
         - norm_type (:obj:`str`): type of the normalization
         - use_dropout (:obj:`bool`) : whether to use dropout in the fully-connected block
         - dropout_probability (:obj:`float`) : probability of an element to be zeroed in the dropout. Default: 0.5
+        - init_gain (:obj:`float`): FC initialization gain argument, if specified, use xavier with init_gain.
     Returns:
         - block (:obj:`nn.Sequential`): a sequential list containing the torch layers of the fully-connected block
 
@@ -237,7 +239,10 @@ def fc_block(
     """
     block = []
     block.append(nn.Linear(in_channels, out_channels))
-    if norm_type is not None:
+    if init_gain is not None:
+        torch.nn.init.xavier_uniform_(block[-1].weight, init_gain)
+        torch.nn.init.constant_(block[-1].bias, 0.0)
+    if norm_type is not None and norm_type != 'none':
         block.append(build_normalization(norm_type, dim=1)(out_channels))
     if activation is not None:
         block.append(activation)

@@ -21,15 +21,15 @@ def is_sequence(data):
 
 
 def sequence_mask(lengths: torch.Tensor, max_len: Optional[int] = None) -> torch.BoolTensor:
-    r"""
+    """
     Overview:
-        create a mask for a batch sequences with different lengths
+        Create a mask for a batch sequences with different lengths.
     Arguments:
-        - lengths (:obj:`torch.Tensor`): lengths in each different sequences, shape could be (n, 1) or (n)
-        - max_len (:obj:`int`): the padding size, if max_len is None, the padding size is the \
-            max length of sequences
+        - lengths (:obj:`torch.Tensor`): Lengths in each different sequences, shape could be (n, 1) or (n).
+        - max_len (:obj:`int`): The padding size, if max_len is None, the padding size is the \
+            max length of sequences.
     Returns:
-        - masks (:obj:`torch.BoolTensor`): mask has the same device as lengths
+        - masks (:obj:`torch.BoolTensor`): Mask has the same device as lengths.
     """
     if len(lengths.shape) == 1:
         lengths = lengths.unsqueeze(dim=1)

@@ -1,0 +1,453 @@
+var1: &NUM_ADDON 9
+var2: &NUM_BUFFS 50
+var3: &NUM_UNIT_TYPES 260
+var4: &NUM_UPGRADES 90
+var5: &NUM_ACTIONS 327
+var6: &NUM_QUEUE_ACTIONS 49
+var7: &NUM_BEGINNING_ORDER_ACTIONS 174
+var8: &NUM_CUMULATIVE_STAT_ACTIONS 167
+var9: &SPATIAL_X 160
+var10: &SPATIAL_Y 152
+var11: &NUM_UNIT_MIX_ABILITIES 269
+
+
+learner:
+    use_value_feature: False
+model:
+    spatial_x: *SPATIAL_X
+    spatial_y: *SPATIAL_Y
+    temperature: 1.0
+    # ===== Tuning =====
+    freeze_targets: []
+    state_dict_mask: []
+    use_value_network: False
+    enable_baselines: ['winloss', 'build_order', 'built_unit', 'effect', 'upgrade', 'battle']
+    entity_reduce_type: 'selected_units_num'  # ['constant', 'entity_num', 'selected_units_num']
+    # ===== Value =====
+    value:
+        encoder:
+            modules:
+                enemy_unit_counts_bow:
+                    arc: fc
+                    input_dim: *NUM_UNIT_TYPES
+                    output_dim: 64
+                enemy_unit_type_bool:
+                    arc: fc
+                    input_dim: *NUM_UNIT_TYPES
+                    output_dim: 64
+                enemy_agent_statistics:
+                    arc: fc
+                    input_dim: 10
+                    output_dim: 64
+                enemy_upgrades:
+                    arc: fc
+                    input_dim: *NUM_UPGRADES
+                    output_dim: 32
+                unit_alliance:
+                    arc: one_hot
+                    num_embeddings: 2
+                    embedding_dim: 16
+                unit_type:
+                    arc: one_hot
+                    num_embeddings: *NUM_UNIT_TYPES
+                    embedding_dim: 48
+                beginning_order:
+                    arc: transformer
+                    action_one_hot_dim: *NUM_BEGINNING_ORDER_ACTIONS
+                    binary_dim: 10
+                    head_dim: 8
+                    output_dim: 64
+                    activation: 'relu'
+                cumulative_stat:
+                    arc: fc
+                    input_dim: *NUM_CUMULATIVE_STAT_ACTIONS
+                    output_dim: 128
+            scatter:
+                scatter_input_dim: 64
+                scatter_dim: 8
+                scatter_type: add
+            spatial:
+                input_dim: 10  # 8 + 2
+                project_dim: 16
+                down_channels: [16, 32, 32]
+                resblock_num: 4
+                spatial_fc_dim: 128
+
+        winloss:
+            name: winloss
+            cum_stat_keys: ['unit_build', 'research']
+            param:
+                name: 'winloss'
+                input_dim: 384 #1920
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+                atan: True
+        build_order:
+            name: build_order
+            cum_stat_keys: ['unit_build', 'effect', 'research']
+            param:
+                name: 'build_order'
+                input_dim: 384 #2016
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+                atan: False
+        built_unit:
+            name: built_unit
+            cum_stat_keys: ['unit_build']
+            param:
+                name: 'built_unit'
+                input_dim: 384 #1824
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+                atan: False
+        effect:
+            name: effect
+            cum_stat_keys: ['effect']
+            param:
+                name: 'effect'
+                input_dim: 384 #1824
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+                atan: False
+        upgrade:
+            name: upgrade
+            cum_stat_keys: ['research']
+            param:
+                name: 'upgrade'
+                input_dim: 384 #1824
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+                atan: False
+        battle:
+            name: battle
+            cum_stat_keys: ['unit_build', 'effect', 'research']
+            param:
+                name: 'battle'
+                input_dim: 384 #2016
+                activation: 'relu'
+                norm_type: 'LN'
+                res_dim: 256
+                res_num: 16
+                atan: False
+    # ===== Encoder =====
+    encoder:
+        obs_encoder:
+            encoder_names: [scalar_encoder, spatial_encoder, entity_encoder]
+            scalar_encoder:
+                module:
+                    agent_statistics:
+                        arc: fc
+                        input_dim: 10
+                        output_dim: 64
+                        baseline_feature: True
+                    home_race:
+                        arc: one_hot
+                        num_embeddings: 5
+                        embedding_dim: 32
+                        scalar_context: True
+                    away_race:
+                        arc: one_hot
+                        num_embeddings: 5
+                        embedding_dim: 32
+                        scalar_context: True
+                    upgrades:
+                        arc: fc
+                        input_dim: *NUM_UPGRADES
+                        output_dim: 128
+                        baseline_feature: True
+                    time:
+                        arc: identity
+                        output_dim: 32
+                    unit_counts_bow:
+                        arc: fc
+                        input_dim: *NUM_UNIT_TYPES
+                        output_dim: 128
+                        baseline_feature: True
+                    last_delay:
+                        arc: one_hot
+                        num_embeddings: 128
+                        embedding_dim: 64
+                    last_queued:
+                        arc: one_hot
+                        num_embeddings: 2
+                        embedding_dim: 32
+                    last_action_type:
+                        arc: one_hot
+                        num_embeddings: *NUM_ACTIONS
+                        embedding_dim: 128
+                    cumulative_stat:
+                        arc: fc
+                        input_dim: *NUM_CUMULATIVE_STAT_ACTIONS
+                        output_dim: 128
+                        scalar_context: True
+                        baseline_feature: True
+                    beginning_order:
+                        arc: transformer
+                        action_one_hot_dim: *NUM_BEGINNING_ORDER_ACTIONS
+                        binary_dim: 10
+                        head_dim: 8
+                        output_dim: 64
+                        scalar_context: True
+                        activation: 'relu'
+                        baseline_feature: True
+                    unit_type_bool:
+                        arc: fc
+                        input_dim: *NUM_UNIT_TYPES
+                        output_dim: 64
+                        scalar_context: True
+                    enemy_unit_type_bool:
+                        arc: fc
+                        input_dim: *NUM_UNIT_TYPES
+                        output_dim: 64
+                        scalar_context: True
+                    unit_order_type:
+                        arc: fc
+                        input_dim: *NUM_UNIT_MIX_ABILITIES
+                        output_dim: 64
+                        scalar_context: True
+                activation: 'relu'
+                output_dim: 1024
+            spatial_encoder:
+                module:
+                    height_map:
+                        arc: other
+                    visibility_map:
+                        arc: one_hot
+                        num_embeddings: 4
+                    creep:
+                        arc: one_hot
+                        num_embeddings: 2
+                    player_relative:
+                        arc: one_hot
+                        num_embeddings: 5
+                    alerts:
+                        arc: one_hot
+                        num_embeddings: 2
+                    pathable:
+                        arc: one_hot
+                        num_embeddings: 2
+                    buildable:
+                        arc: one_hot
+                        num_embeddings: 2
+                    effect_PsiStorm:
+                        arc: scatter
+                    effect_NukeDot:
+                        arc: scatter
+                    effect_LiberatorDefenderZone:
+                        arc: scatter
+                    effect_BlindingCloud:
+                        arc: scatter
+                    effect_CorrosiveBile:
+                        arc: scatter
+                    effect_LurkerSpines:
+                        arc: scatter
+                input_dim: 56
+                resblock_num: 4
+                fc_dim: 256
+                project_dim: 32
+                downsample_type: 'maxpool'
+                down_channels: [64, 128, 128]
+                activation: 'relu'
+                norm_type: 'none'
+                head_type: 'fc'
+            entity_encoder:
+                module:
+                    unit_type:
+                        arc: one_hot
+                        num_embeddings: *NUM_UNIT_TYPES
+                    alliance:
+                        arc: one_hot
+                        num_embeddings: 5
+                    cargo_space_taken:
+                        arc: one_hot
+                        num_embeddings: 9
+                    build_progress:
+                        arc: unsqueeze
+                    health_ratio:
+                        arc: unsqueeze
+                    shield_ratio:
+                        arc: unsqueeze
+                    energy_ratio:
+                        arc: unsqueeze
+                    display_type:
+                        arc: one_hot
+                        num_embeddings: 5
+                    x:
+                        arc: binary
+                        num_embeddings: 11
+                    y:
+                        arc: binary
+                        num_embeddings: 11
+                    cloak:
+                        arc: one_hot
+                        num_embeddings: 5
+                    is_blip:
+                        arc: one_hot
+                        num_embeddings: 2
+                    is_powered:
+                        arc: one_hot
+                        num_embeddings: 2
+                    mineral_contents:
+                        arc: unsqueeze
+                    vespene_contents:
+                        arc: unsqueeze
+                    cargo_space_max:
+                        arc: one_hot
+                        num_embeddings: 9
+                    assigned_harvesters:
+                        arc: one_hot
+                        num_embeddings: 24
+                    weapon_cooldown:
+                        arc: one_hot
+                        num_embeddings: 32
+                    order_length:
+                        arc: one_hot
+                        num_embeddings: 9
+                    order_id_0:
+                        arc: one_hot
+                        num_embeddings: *NUM_ACTIONS
+                    order_id_1:
+                        arc: one_hot
+                        num_embeddings: *NUM_QUEUE_ACTIONS
+                    is_hallucination:
+                        arc: one_hot
+                        num_embeddings: 2
+                    buff_id_0:
+                        arc: one_hot
+                        num_embeddings: *NUM_BUFFS
+                    buff_id_1:
+                        arc: one_hot
+                        num_embeddings: *NUM_BUFFS
+                    addon_unit_type:
+                        arc: one_hot
+                        num_embeddings: *NUM_ADDON
+                    is_active:
+                        arc: one_hot
+                        num_embeddings: 2
+                    order_progress_0:
+                        arc: unsqueeze
+                    order_progress_1:
+                        arc: unsqueeze
+                    order_id_2:
+                        arc: one_hot
+                        num_embeddings: *NUM_QUEUE_ACTIONS
+                    order_id_3:
+                        arc: one_hot
+                        num_embeddings: *NUM_QUEUE_ACTIONS
+                    is_in_cargo:
+                        arc: one_hot
+                        num_embeddings: 2
+                    attack_upgrade_level:
+                        arc: one_hot
+                        num_embeddings: 4
+                    armor_upgrade_level:
+                        arc: one_hot
+                        num_embeddings: 4
+                    shield_upgrade_level:
+                        arc: one_hot
+                        num_embeddings: 4
+                    last_selected_units:
+                        arc: one_hot
+                        num_embeddings: 2
+                    last_targeted_unit:
+                        arc: one_hot
+                        num_embeddings: 2
+                input_dim: 997 # cat all entity info
+                head_dim: 128
+                hidden_dim: 1024
+                output_dim: 256
+                head_num: 2
+                mlp_num: 2
+                layer_num: 3
+                dropout_ratio: 0
+                activation: 'relu'
+                ln_type: 'post'
+            use_score_cumulative: False
+        scatter:
+            input_dim: 256  # entity_encoder.output_dim
+            output_dim: 32
+            scatter_type: 'add'
+        core_lstm:
+            lstm_type: 'normal'
+            input_size: 1536  # spatial_encoder.fc_dim + entity_encoder.output_dim + scalar_encoder.output_dim
+            hidden_size: 384
+            num_layers: 3
+            dropout: 0.0
+        score_cumulative:
+            input_dim: 13
+            output_dim: 64
+            activation: 'relu'
+    # ===== Policy =====
+    policy:
+        head:
+            head_names: [action_type_head, delay_head, queued_head, selected_units_head, target_unit_head, location_head]
+            action_type_head:
+                input_dim: 384  # core.hidden_size
+                res_dim: 256
+                res_num: 2
+                action_num: *NUM_ACTIONS
+                action_map_dim: 256 # scalar context
+                gate_dim: 1024
+                context_dim: 448
+                activation: 'relu'
+                norm_type: 'LN'
+                ln_type: 'normal'
+                use_mask: False
+            delay_head:
+                input_dim: 1024  # action_type_head.gate_dim
+                decode_dim: 256
+                delay_dim: 128
+                delay_map_dim: 256
+                activation: 'relu'
+            queued_head:
+                input_dim: 1024  # action_type_head.gate_dim
+                decode_dim: 256
+                queued_dim: 2
+                queued_map_dim: 256
+                activation: 'relu'
+            selected_units_head:
+                lstm_type: 'pytorch'
+                lstm_norm_type: 'none'
+                lstm_dropout: 0.
+                input_dim: 1024  # action_type_head.gate_dim
+                entity_embedding_dim: 256  # entity_encoder.output_dim
+                key_dim: 32
+                unit_type_dim: 259
+                func_dim: 256
+                hidden_dim: 32
+                num_layers: 1
+                max_entity_num: 64
+                activation: 'relu'
+            target_unit_head:
+                input_dim: 1024  # action_type_head.gate_dim
+                entity_embedding_dim: 256  # entity_encoder.output_dim
+                key_dim: 32
+                unit_type_dim: 259
+                func_dim: 256
+                activation: 'relu'
+                embedding_norm: True
+            location_head:
+                input_dim: 1024
+                project_dim: 1024
+                upsample_type: 'bilinear'
+                upsample_dims: [64, 32, 1]  # len(upsample_dims)-len(down_channels)+1 = ratio
+                res_dim: 128
+                res_num: 4
+                film: False
+                gate: True
+                unet: False
+                reshape_size: [16, 16]
+                reshape_channel: 4  # entity_encoder.gate_dim / reshape_size
+                map_skip_dim: 128  # spatial_encoder.down_channels[-1]
+                activation: 'relu'
+            #             loc_type: 'alphastar'
