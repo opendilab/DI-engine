@@ -3,7 +3,7 @@ from collections import deque
 from ding.utils import DistributedWriter
 
 if TYPE_CHECKING:
-    from ding.framework import OnlineRLContext
+    from ding.framework import OnlineRLContext, OfflineRLContext
 
 
 def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -> Callable:
@@ -48,4 +48,33 @@ def online_logger(record_train_iter: bool = False, train_show_freq: int = 100) -
     return _logger
 
 
-# TODO offline logger
+def offline_logger(record_train_iter: bool = False) -> Callable:
+    writer = DistributedWriter.get_instance()
+
+    def _logger(ctx: "OfflineRLContext"):
+        if ctx.eval_value is not None:
+            if record_train_iter:
+                writer.add_scalar('basic/eval_episode_reward_mean-train_iter', ctx.eval_value, ctx.train_iter)
+        if ctx.train_output is not None:
+            if isinstance(ctx.train_output, deque):
+                output = ctx.train_output.pop()  # only use latest output
+            else:
+                output = ctx.train_output
+            # TODO(nyz) ppo train log case
+            if isinstance(output, List):
+                raise NotImplementedError
+            for k, v in output.items():
+                if k in ['priority']:
+                    continue
+                if "[scalars]" in k:
+                    new_k = k.split(']')[-1]
+                    raise NotImplementedError
+                elif "[histogram]" in k:
+                    new_k = k.split(']')[-1]
+                    if record_train_iter:
+                        writer.add_histogram(new_k, v, ctx.train_iter)
+                else:
+                    if record_train_iter:
+                        writer.add_scalar('basic/train_{}-train_iter'.format(k), v, ctx.train_iter)
+    return _logger
+
