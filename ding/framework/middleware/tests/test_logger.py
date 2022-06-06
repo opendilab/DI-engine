@@ -97,16 +97,6 @@ class TestOnlineLogger:
         with patch.object(DistributedWriter, 'get_instance', new=mock_get_online_instance):
             online_logger()(online_ctx_output_deque)
 
-    def test_online_logger_record_output_list(self, online_ctx_output_list):
-        with patch.object(DistributedWriter, 'get_instance', new=mock_get_online_instance):
-            with pytest.raises(NotImplementedError) as exc_info:
-                online_logger()(online_ctx_output_list)
-
-    def test_online_logger_scalars(self, online_scalar_ctx):
-        with patch.object(DistributedWriter, 'get_instance', new=mock_get_online_instance):
-            with pytest.raises(NotImplementedError) as exc_info:
-                online_logger()(online_scalar_ctx)
-
 
 def get_offline_ctx():
     ctx = OfflineRLContext()
