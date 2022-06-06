@@ -6,6 +6,9 @@ import os
 from os import path
 import shutil
 from collections import deque
+from unittest.mock import Mock, patch
+from ding.utils import DistributedWriter
+import copy
 
 test_folder = "test_exp"
 test_path = path.join(os.getcwd(), test_folder)
@@ -101,12 +104,10 @@ class TestOnlineLogger:
         with pytest.raises(NotImplementedError) as exc_info:
             online_logger()(online_scalar_ctx)
 
-
-@pytest.fixture(scope='function')
-def offline_ctx_output_dict():
+def get_offline_ctx():
     ctx = OfflineRLContext()
     ctx.eval_value = -10000000000
-    ctx.train_iter = 3323233
+    ctx.train_iter = 3333
     ctx.train_output = {
         'priority': [107],
         '[histogram]test_histogram': [1,2,3,4,5,6],
@@ -115,28 +116,51 @@ def offline_ctx_output_dict():
     return ctx
 
 @pytest.fixture(scope='function')
+def offline_ctx_output_dict():
+    ctx = get_offline_ctx()
+    return ctx
+
+@pytest.fixture(scope='function')
 def offline_scalar_ctx():
-    ctx = OfflineRLContext()
-    ctx.eval_value = -232
-    ctx.train_iter = 3333
+    ctx = get_offline_ctx()
     ctx.train_output = {
         '[scalars]': 1
     }
     return ctx
 
-@pytest.mark.zms
+class MockWriter:
+
+    def __init__(self):
+        self.ctx = get_offline_ctx()
+    
+    def add_scalar(self, tag, scalar_value, global_step):
+        assert global_step == self.ctx.train_iter
+        if tag == 'basic/eval_episode_reward_mean-train_iter':
+            assert scalar_value == self.ctx.eval_value
+        elif tag == 'basic/train_td_error-train_iter':
+            assert scalar_value == self.ctx.train_output['td_error']
+        else:
+            raise NotImplementedError('tag should be in the tags defined')
+
+    def add_histogram(self, tag, values, global_step):
+        assert tag == 'test_histogram'
+        assert values == [1,2,3,4,5,6]
+        assert global_step == self.ctx.train_iter
+
+def mock_get_instance():
+    return MockWriter()
+
+
+@pytest.mark.offline
 class TestOfflineLogger:
 
     def test_offline_logger_no_scalars(self, offline_ctx_output_dict):
-        ding_init(cfg)
-        offline_logger()(offline_ctx_output_dict)
+        with patch.object(DistributedWriter, 'get_instance', new=mock_get_instance):
+            offline_logger()(offline_ctx_output_dict)
     
     def test_offline_logger_scalars(self, offline_scalar_ctx):
-        ding_init(cfg)
-        with pytest.raises(NotImplementedError) as exc_info:
-            offline_logger()(offline_scalar_ctx)
-        
-        assert path.exists(test_path)
-        if path.exists(test_path):
-            shutil.rmtree(test_path)
+        with patch.object(DistributedWriter, 'get_instance', new=mock_get_instance):
+            with pytest.raises(NotImplementedError) as exc_info:
+                offline_logger()(offline_scalar_ctx)
+
 
