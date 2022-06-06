@@ -9,7 +9,7 @@ from ding.config import compile_config, read_config
 from ding.worker import SampleSerialCollector, InteractionSerialEvaluator, EpisodeSerialCollector
 from ding.envs import create_env_manager, get_vec_env_setting
 from ding.policy import create_policy
-from ding.torch_utils import to_device
+from ding.torch_utils import to_device, to_ndarray
 from ding.utils import set_pkg_seed
 from ding.utils.data import offline_data_save_type
 from ding.rl_utils import get_nstep_return_data
@@ -73,7 +73,7 @@ def eval(
     # Evaluate
     _, episode_info = evaluator.eval()
     reward = [e['final_eval_reward'] for e in episode_info]
-    eval_reward = np.mean(reward)
+    eval_reward = np.mean(to_ndarray(reward))
     print('Eval is over! The performance of your RL policy is {}'.format(eval_reward))
     return eval_reward
 
@@ -273,7 +273,7 @@ def episode_to_transitions_filter(data_path: str, expert_data_path: str, nstep: 
         _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
     post_process_data = []
     for i in range(len(_dict)):
-        episode_rewards = torch.stack([_dict[i][j]['reward'] for j in range(_dict[i].__len__())],axis=0)
+        episode_rewards = torch.stack([_dict[i][j]['reward'] for j in range(_dict[i].__len__())], axis=0)
         if episode_rewards.sum() < min_episode_return:
             continue
         data = get_nstep_return_data(_dict[i], nstep)

@@ -96,7 +96,7 @@ expert_policy = create_policy(cfg.policy, model=football_kaggle_5th_place_model,
 state_dict = expert_policy.collect_mode.state_dict()
 collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
 collect_demo_data(
-    collect_config, seed=seed, data_path_transitions=data_path_transitions, collect_count=demo_transitions,
+    collect_config, seed=seed, expert_data_path=data_path_transitions, collect_count=demo_transitions,
     model=football_kaggle_5th_place_model, state_dict=state_dict,
 )
 

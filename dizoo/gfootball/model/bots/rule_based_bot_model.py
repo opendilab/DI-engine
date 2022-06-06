@@ -772,6 +772,9 @@ class FootballRuleBaseModel(torch.nn.Module):
     def forward(self, data):
         actions = []
         data = data['raw_obs']
+        if isinstance(data['score'], list):
+            # to be compatiable with collect phase in subprocess mode
+            data['score'] = torch.stack(data['score'], dim=-1)
         # dict of raw observations -> list of dict, each element in the list is the raw obs in one timestep
         data = [{k: v[i] for k, v in data.items()} for i in range(data['left_team'].shape[0])]
         for d in data:

@@ -99,7 +99,7 @@ collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_crea
 
 eval_config = deepcopy(collect_config)
 # eval(eval_config, seed=seed, model=football_rule_base_model, replay_path=dir_path + f'/gfootball_rule_replay/')
-eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
+# eval(eval_config, seed=seed, model=football_rule_base_model, state_dict=state_dict)
 
 collect_episodic_demo_data(
     collect_config, seed=seed, expert_data_path=data_path_episode, collect_count=demo_episodes,

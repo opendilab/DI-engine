@@ -306,4 +306,3 @@ class SACDiscreteCommandModePolicy(SACDiscretePolicy, EpsCommandModePolicy):
 @POLICY_REGISTRY.register('bc_command')
 class BCCommandModePolicy(DiscreteBehaviourCloningPolicy, EpsCommandModePolicy):
     pass
-

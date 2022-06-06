@@ -14,8 +14,6 @@ import os
 import yaml
 from easydict import EasyDict
 
-# iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.yaml"))
-# iql_default_config = read_config(osp.join(osp.dirname(__file__), "iql_default_config.py"))
 with open(os.path.join(os.path.dirname(__file__), 'iql_default_config.yaml')) as f:
     cfg = yaml.safe_load(f)
 iql_default_config = EasyDict(cfg)
