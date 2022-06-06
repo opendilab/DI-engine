@@ -8,6 +8,7 @@ from ding.utils import import_module, PLAYER_REGISTRY
 from .algorithm import pfsp
 from ding.framework.storage import Storage
 
+
 @dataclass
 class PlayerMeta:
     player_id: str

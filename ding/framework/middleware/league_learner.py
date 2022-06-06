@@ -19,11 +19,13 @@ class LearnerModel:
     state_dict: dict
     train_iter: int = 0
 
+
 @dataclass
 class LearnerModel:
     player_id: str
     state_dict: dict
     train_iter: int = 0
+
 
 class LeagueLearner:
 

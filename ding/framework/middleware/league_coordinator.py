@@ -16,7 +16,7 @@ class LeagueCoordinator:
         self._lock = Lock()
         self._total_send_jobs = 0
         self._eval_frequency = 10
-        
+
         task.on(EventEnum.ACTOR_GREETING, self._on_actor_greeting)
         task.on(EventEnum.LEARNER_SEND_META, self._on_learner_meta)
         task.on(EventEnum.ACTOR_FINISH_JOB, self._on_actor_job)
@@ -36,7 +36,7 @@ class LeagueCoordinator:
     def _on_learner_meta(self, player_meta: "PlayerMeta"):
         self.league.update_active_player(player_meta)
         self.league.create_historical_player(player_meta)
-    
+
     def _on_actor_job(self, job: "Job"):
         self.league.update_payoff(job)
 

@@ -11,9 +11,12 @@ from ding.framework import OnlineRLContext, BattleContext
 
 from ding.worker.collector.base_serial_collector import CachePool
 
+
 class BattleCollector:
 
-    def __init__(self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict):
+    def __init__(
+        self, cfg: EasyDict, env: BaseEnvManager, n_rollout_samples: int, model_dict: Dict, all_policies: Dict
+    ):
         self.cfg = cfg
         self.end_flag = False
         # self._reset(env)
@@ -36,7 +39,6 @@ class BattleCollector:
         self._battle_rolloutor = task.wrap(battle_rolloutor(self.cfg, self.env, self.obs_pool, self.policy_output_pool))
         self._job_data_sender = task.wrap(job_data_sender(self.streaming_sampling_flag, self.n_rollout_samples))
 
-
     def __del__(self) -> None:
         """
         Overview:
@@ -47,9 +49,9 @@ class BattleCollector:
             return
         self.end_flag = True
         self.env.close()
-    
+
     def _update_policies(self, job) -> None:
-        job_player_id_list = [player.player_id for player in job.players] 
+        job_player_id_list = [player.player_id for player in job.players]
 
         for player_id in job_player_id_list:
             if self.model_dict.get(player_id) is None:
@@ -61,8 +63,6 @@ class BattleCollector:
                 # update policy model
                 policy.load_state_dict(learner_model.state_dict)
                 self.model_dict[player_id] = None
-
-
 
     def __call__(self, ctx: "BattleContext") -> None:
         """
@@ -105,8 +105,6 @@ class BattleCollector:
 
             if ctx.collected_episode >= ctx.n_episode:
                 break
-
-
 
 
 class StepCollector:

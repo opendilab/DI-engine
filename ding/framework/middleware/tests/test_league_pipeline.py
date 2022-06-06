@@ -16,6 +16,7 @@ from dizoo.league_demo.game_env import GameEnv
 from unittest.mock import patch
 import random
 
+
 def prepare_test():
     global cfg
     cfg = deepcopy(cfg)
@@ -33,6 +34,7 @@ def prepare_test():
         return policy
 
     return cfg, env_fn, policy_fn
+
 
 class MockLeague:
 
@@ -57,14 +59,16 @@ class MockLeague:
         other_players = [i for i in self.active_players_ids if i != player_id]
         another_palyer = random.choice(other_players)
         return Job(
-            launch_player=player_id, 
+            launch_player=player_id,
             players=[
                 PlayerMeta(player_id=player_id, checkpoint=FileStorage(path=None), total_agent_step=0),
                 PlayerMeta(player_id=another_palyer, checkpoint=FileStorage(path=None), total_agent_step=0)
             ]
         )
 
+
 N_ACTORS = 3
+
 
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
@@ -88,10 +92,10 @@ def _main():
 
 @pytest.mark.unittest
 def test_league_actor():
-    Parallel.runner(n_parallel_workers=N_ACTORS+1, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS + 1, protocol="tcp", topology="mesh")(_main)
 
 
 if __name__ == '__main__':
-    Parallel.runner(n_parallel_workers=N_ACTORS+1, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS + 1, protocol="tcp", topology="mesh")(_main)
 # replicas = 10
 # un parallel worker 改成1
