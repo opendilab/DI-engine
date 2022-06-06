@@ -116,7 +116,7 @@ The detailed documentation are hosted on [doc](https://di-engine-docs.readthedoc
 
 [3 Minutes Kickoff](https://di-engine-docs.readthedocs.io/en/latest/01_quickstart/first_rl_program.html)
 
-[3 Minutes Kickoff (colab)](https://colab.research.google.com/drive/1J29voOD2v9_FXjW-EyTVfRxY_Op_ygef#scrollTo=MIaKQqaZCpGz)
+[3 Minutes Kickoff (colab)](https://colab.research.google.com/drive/1K3DGi3dOT9fhFqa6bBtinwCDdWkOM3zE?usp=sharing)
 
 [3 分钟上手中文版 (kaggle)](https://www.kaggle.com/fallinx/di-engine/)
 
