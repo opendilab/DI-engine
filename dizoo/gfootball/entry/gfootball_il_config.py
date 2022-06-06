@@ -15,7 +15,6 @@ gfootball_il_main_config = dict(
     ),
     policy=dict(
         cuda=True,
-        policy_type='IL',
         nstep=1,
         discount_factor=0.97,
         model=dict(),
@@ -24,9 +23,10 @@ gfootball_il_main_config = dict(
             batch_size=512,
             learning_rate=0.0001,
             target_update_freq=500,
+            learner=dict(load_path=None),
         ),
         collect=dict(n_sample=4096),
-        eval=dict(evaluator=dict(eval_freq=5000, n_episode=evaluator_env_num)),
+        eval=dict(evaluator=dict(eval_freq=1000, n_episode=evaluator_env_num)),
         other=dict(
             eps=dict(
                 type='exp',

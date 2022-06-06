@@ -14,7 +14,7 @@ from .serial_entry_r2d3 import serial_pipeline_r2d3
 from .serial_entry_sqil import serial_pipeline_sqil
 from .parallel_entry import parallel_pipeline
 from .application_entry import eval, collect_demo_data, collect_episodic_demo_data, \
-      episode_to_transitions
+      episode_to_transitions, episode_to_transitions_filter
 from .application_entry_trex_collect_data import trex_collecting_data, collect_episodic_demo_data_for_trex
 from .serial_entry_guided_cost import serial_pipeline_guided_cost
 from .serial_entry_gail import serial_pipeline_gail

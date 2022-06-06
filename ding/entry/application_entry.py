@@ -256,3 +256,29 @@ def episode_to_transitions(data_path: str, expert_data_path: str, nstep: int) ->
         post_process_data,
         expert_data_path,
     )
+
+
+def episode_to_transitions_filter(data_path: str, expert_data_path: str, nstep: int, min_episode_return: int) -> None:
+    r"""
+    Overview:
+        Transfer episoded data into nstep transitions and only take the episode data whose return is larger than 
+        min_episode_return
+    Arguments:
+        - data_path (:obj:str): data path that stores the pkl file
+        - expert_data_path (:obj:`str`): File path of the expert demo data will be written to.
+        - nstep (:obj:`int`): {s_{t}, a_{t}, s_{t+n}}.
+
+    """
+    with open(data_path, 'rb') as f:
+        _dict = pickle.load(f)  # class is list; length is cfg.reward_model.collect_count
+    post_process_data = []
+    for i in range(len(_dict)):
+        episode_rewards = torch.stack([_dict[i][j]['reward'] for j in range(_dict[i].__len__())],axis=0)
+        if episode_rewards.sum() < min_episode_return:
+            continue
+        data = get_nstep_return_data(_dict[i], nstep)
+        post_process_data.extend(data)
+    offline_data_save_type(
+        post_process_data,
+        expert_data_path,
+    )

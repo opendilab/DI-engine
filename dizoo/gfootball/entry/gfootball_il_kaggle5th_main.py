@@ -71,7 +71,7 @@ class IQLILPolicy(DiscreteBehaviourCloningPolicy):
 
 # demo_transitions = 2  # debug
 demo_transitions = int(3e5)  # key hyper-parameter
-expert_data_path = dir_path + f'/gfootball_kaggle5th_{demo_transitions}-demo-transitions.pkl'
+data_path_transitions = dir_path + f'/gfootball_kaggle5th_{demo_transitions}-demo-transitions.pkl'
 gfootball_il_main_config.exp_name = 'data_gfootball/gfootball_il_kaggle5th_seed0'
 seed=0
 
@@ -95,11 +95,8 @@ expert_policy = create_policy(cfg.policy, model=football_kaggle_5th_place_model,
 # collect expert demo data
 state_dict = expert_policy.collect_mode.state_dict()
 collect_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
-collect_config[0].policy.type = 'bc'
-collect_config[0].policy.other.eps = 0
-# debug
 collect_demo_data(
-    collect_config, seed=seed, expert_data_path=expert_data_path, collect_count=demo_transitions,
+    collect_config, seed=seed, data_path_transitions=data_path_transitions, collect_count=demo_transitions,
     model=football_kaggle_5th_place_model, state_dict=state_dict,
 )
 
@@ -107,12 +104,12 @@ collect_demo_data(
 phase 2: il training
 """
 il_config = [deepcopy(gfootball_il_main_config), deepcopy(gfootball_il_create_config)]
-il_config[0].policy.learn.train_epoch = 20  # key hyper-parameter
+il_config[0].policy.learn.train_epoch = 50  # key hyper-parameter
 # il_config[0].policy.learn.train_epoch = 2  # debug
 il_config[0].policy.type = 'iql_bc'
 il_config[0].env.stop_value = 999  # Don't stop until training <train_epoch> epochs
 il_config[0].policy.eval.evaluator.multi_gpu = False
 football_iql_model = FootballIQL()
-_, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=expert_data_path, model=football_iql_model)
+_, converge_stop_flag = serial_pipeline_bc(il_config, seed=seed, data_path=data_path_transitions, model=football_iql_model)
 # assert converge_stop_flag
-# os.popen('rm -rf ' + expert_data_path)
+# os.popen('rm -rf ' + data_path_transitions)

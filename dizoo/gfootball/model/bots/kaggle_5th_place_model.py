@@ -37,18 +37,17 @@ class FootballKaggle5thPlaceModel(torch.nn.Module):
     
     def __init__(self):
         super(FootballKaggle5thPlaceModel, self).__init__()
-        # avoid: ValueError: optimizer got an empty parameter list
+        # be compatiable with bc policy
+        # to avoid: ValueError: optimizer got an empty parameter list
         self._dummy_param = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, data):
         actions = []
         data = data['raw_obs']
-        data['score'] = torch.stack(data['score'], dim=-1)
-        # dict of numpy -> list of dict
+        # dict of raw observations -> list of dict, each element in the list is the raw obs in a timestep
         data = [{k: v[i] for k, v in data.items()} for i in range(data['left_team'].shape[0])]
-        # data = to_tensor(data)
         for d in data:
-            # each transition
+            # the rew obs in one timestep
             if isinstance(d['steps_left'], torch.Tensor):
                 d={k: v.cpu() for k, v in d.items()}
                 d = to_ndarray(d)

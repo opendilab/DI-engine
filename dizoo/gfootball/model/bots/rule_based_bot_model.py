@@ -765,22 +765,21 @@ class FootballRuleBaseModel(torch.nn.Module):
         super(FootballRuleBaseModel, self).__init__()
         self.agent_type = cfg.get('agent_type', 'rule')
         self._agent = agents_map[self.agent_type]
-        # avoid: ValueError: optimizer got an empty parameter list
+        # be compatiable with bc policy
+        # to avoid: ValueError: optimizer got an empty parameter list
         self._dummy_param = nn.Parameter(torch.zeros(1, 1))
 
     def forward(self, data):
         actions = []
         data = data['raw_obs']
-        data['score'] = torch.stack(data['score'], dim=-1)
-        # dict of numpy -> list of dict
+        # dict of raw observations -> list of dict, each element in the list is the raw obs in one timestep
         data = [{k: v[i] for k, v in data.items()} for i in range(data['left_team'].shape[0])]
-        # data = to_tensor(data)
         for d in data:
-            # each transition
+            # the rew obs in one timestep
             if isinstance(d['steps_left'], torch.Tensor):
                 d={k: v.cpu() for k, v in d.items()}
                 d = to_ndarray(d)
-                for k in ['active', 'designated', 'ball_owned_player']:
+                for k in ['active', 'designated', 'ball_owned_player', 'ball_owned_team']:
                     d[k] = int(d[k])
                 actions.append(self._agent(d))
         return {'action': torch.LongTensor(actions), 'logit': one_hot(torch.LongTensor(actions), 19)}
