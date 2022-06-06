@@ -13,8 +13,7 @@ from ding.framework import task
 from ding.torch_utils import tensor_to_list
 from ding.utils import lists_to_dicts
 
-if TYPE_CHECKING:
-    from ding.framework import Context, OnlineRLContext
+from ding.framework import Context, OnlineRLContext, OfflineRLContext
 
 
 class IMetric(ABC):
@@ -157,7 +156,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
 
     env.seed(cfg.seed, dynamic_seed=False)
 
-    def _evaluate(ctx: "OnlineRLContext"):
+    def _evaluate(ctx: "Context"):
         """
         Overview:
             - The evaluation will be executed if the task begins and enough train_iter passed \
@@ -196,11 +195,18 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
         episode_reward = eval_monitor.get_episode_reward()
         eval_reward = np.mean(episode_reward)
         stop_flag = eval_reward >= cfg.env.stop_value and ctx.train_iter > 0
-        logging.info(
-            'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
-                ctx.train_iter, ctx.env_step, eval_reward
+        if isinstance(ctx, OnlineRLContext):
+            logging.info(
+                'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
+                    ctx.train_iter, ctx.env_step, eval_reward
+                )
             )
-        )
+        elif isinstance(ctx, OfflineRLContext):
+            logging.info(
+                'Evaluation: Train Iter({})\tEval Reward({:.3f})'.format(
+                    ctx.train_iter, eval_reward
+                )
+            )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
 

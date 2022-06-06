@@ -5,7 +5,7 @@ from .collector import inferencer, rolloutor, TransitionList
 from .evaluator import interaction_evaluator
 from .termination_checker import termination_checker
 from .pace_controller import pace_controller
-from .logger import online_logger
+from .logger import online_logger, offline_logger
 from .exchanger import context_exchanger, model_exchanger
 
 # algorithm
