@@ -156,7 +156,7 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
 
     env.seed(cfg.seed, dynamic_seed=False)
 
-    def _evaluate(ctx: "Context"):
+    def _evaluate(ctx: Union["OnlineRLContext", "OfflineRLContext"]):
         """
         Overview:
             - The evaluation will be executed if the task begins and enough train_iter passed \
