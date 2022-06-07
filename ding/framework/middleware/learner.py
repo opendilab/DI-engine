@@ -5,6 +5,7 @@ from collections import deque
 from ding.framework import task
 from ding.data import Buffer
 from .functional import trainer, offpolicy_data_fetcher, reward_estimator, her_data_enhancer
+from ding.utils import traffic
 
 if TYPE_CHECKING:
     from ding.framework import Context, OnlineRLContext
@@ -54,6 +55,7 @@ class OffPolicyLearner:
                 self._reward_estimator(ctx)
             self._trainer(ctx)
             train_output_queue.append(ctx.train_output)
+            traffic.record(info=ctx.train_output, train_iter=ctx.train_iter, __label=self.__class__.__name__)
         ctx.train_output = train_output_queue
 
 
@@ -95,4 +97,5 @@ class HERLearner:
                 break
             self._trainer(ctx)
             train_output_queue.append(ctx.train_output)
+            traffic.record(info=ctx.train_output, train_iter=ctx.train_iter, __label=self.__class__.__name__)
         ctx.train_output = train_output_queue

@@ -12,6 +12,7 @@ from ding.data import Dataset, DataLoader
 from ding.framework import task
 from ding.torch_utils import tensor_to_list
 from ding.utils import lists_to_dicts
+from ding.utils import traffic
 
 if TYPE_CHECKING:
     from ding.framework import Context, OnlineRLContext
@@ -200,6 +201,12 @@ def interaction_evaluator(cfg: EasyDict, policy: Policy, env: BaseEnvManager) ->
                 ctx.train_iter, ctx.env_step, eval_reward
             )
         )
+        traffic.record(
+            last_eval_iter=ctx.train_iter,
+            last_env_step=ctx.env_step,
+            eval_value=eval_reward.item(),
+            __label=interaction_evaluator.__name__
+        )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = eval_reward
 
@@ -232,6 +239,12 @@ def metric_evaluator(cfg: EasyDict, policy: Policy, dataset: Dataset, metric: IM
             'Evaluation: Train Iter({})\tEnv Step({})\tEval Reward({:.3f})'.format(
                 ctx.train_iter, ctx.env_step, avg_eval_output
             )
+        )
+        traffic.record(
+            last_eval_iter=ctx.train_iter,
+            last_env_step=ctx.env_step,
+            avg_eval_output=avg_eval_output,
+            __label=metric_evaluator.__name__
         )
         ctx.last_eval_iter = ctx.train_iter
         ctx.eval_value = avg_eval_output
