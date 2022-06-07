@@ -46,7 +46,7 @@ cfg = EasyDict(
                 },
                 'multi_gpu': False,
                 'epoch_per_collect': 10,
-                'batch_size': 32,
+                'batch_size': 16,
                 'learning_rate': 1e-05,
                 'value_weight': 0.5,
                 'entropy_weight': 0.0,
@@ -99,7 +99,7 @@ cfg = EasyDict(
                 },
                 'league': {
                     'player_category': ['default'],
-                    'path_policy': 'league_demo/policy',
+                    'path_policy': 'league_demo/ckpt',
                     'active_players': {
                         'main_player': 2
                     },

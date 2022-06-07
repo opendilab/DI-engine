@@ -1,1 +1,2 @@
-from .mock_for_test import MockEnv, MockPolicy, MockHerRewardModel, CONFIG
+from .mock_for_test import *
+from .league_config import cfg

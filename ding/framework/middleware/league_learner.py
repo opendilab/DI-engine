@@ -1,31 +1,24 @@
+import os
 from dataclasses import dataclass
+from threading import Lock
 from time import sleep
-from os import path as osp
+from typing import TYPE_CHECKING, Callable, Optional
+
 from ding.framework import task, EventEnum
 from ding.framework.storage import Storage, FileStorage
 from ding.league.player import PlayerMeta
 from ding.worker.learner.base_learner import BaseLearner
-from typing import TYPE_CHECKING, Callable, Optional
-from threading import Lock
+
 if TYPE_CHECKING:
     from ding.framework import Context
     from ding.framework.middleware.league_actor import ActorData
     from ding.league import ActivePlayer
 
-
 @dataclass
 class LearnerModel:
     player_id: str
     state_dict: dict
     train_iter: int = 0
-
-
-@dataclass
-class LearnerModel:
-    player_id: str
-    state_dict: dict
-    train_iter: int = 0
-
 
 class LeagueLearner:
 
@@ -36,8 +29,8 @@ class LeagueLearner:
         self.player_id = player.player_id
         self.checkpoint_prefix = cfg.policy.other.league.path_policy
         self._learner = self._get_learner()
-        task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._on_actor_data)
         self._lock = Lock()
+        task.on(EventEnum.ACTOR_SEND_DATA.format(player=self.player_id), self._on_actor_data)
 
     def _on_actor_data(self, actor_data: "ActorData"):
         with self._lock:
@@ -68,8 +61,10 @@ class LeagueLearner:
         return learner
 
     def _save_checkpoint(self) -> Optional[Storage]:
+        if not os.path.exists(self.checkpoint_prefix):
+            os.makedirs(self.checkpoint_prefix)
         storage = FileStorage(
-            path=osp.join(self.checkpoint_prefix, "{}_{}_ckpt.pth".format(self.player_id, self._learner.train_iter))
+            path=os.path.join(self.checkpoint_prefix, "{}_{}_ckpt.pth".format(self.player_id, self._learner.train_iter))
         )
         storage.save(self._learner.policy.state_dict())
         return storage

@@ -6,7 +6,7 @@ from ding.framework import task, EventEnum
 
 if TYPE_CHECKING:
     from ding.framework import Task, Context
-    from ding.league import BaseLeague
+    from ding.league.v2 import BaseLeague
 
 
 class LeagueCoordinator:

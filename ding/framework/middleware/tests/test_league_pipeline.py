@@ -1,21 +1,40 @@
-from time import sleep
-import pytest
+# from time import sleep
+# from boto import config
+# import pytest
+# from copy import deepcopy
+
+# from ding.framework.middleware.league_learner import LeagueLearner
+# from ding.framework.middleware.tests.league_config import cfg
+# from ding.framework.middleware import LeagueActor, LeagueCoordinator
+# from ding.league.player import PlayerMeta, create_player
+# from ding.league.v2 import BaseLeague
+# from ding.framework.storage import FileStorage
+
+# from ding.framework.task import task, Parallel
+# from ding.league.v2.base_league import Job
+# from ding.model import VAC
+# from ding.policy.ppo import PPOPolicy
+# from dizoo.league_demo.game_env import GameEnv
+
 from copy import deepcopy
-from ding.envs import BaseEnvManager
-from ding.framework.middleware.tests.league_config import cfg
-from ding.framework.middleware import LeagueActor, LeagueCoordinator
-from ding.league.player import PlayerMeta
-from ding.framework.storage import FileStorage
-
-from ding.framework.task import task, Parallel
-from ding.league.v2.base_league import Job
-from ding.model import VAC
-from ding.policy.ppo import PPOPolicy
-from dizoo.league_demo.game_env import GameEnv
-
-from unittest.mock import patch
+from time import sleep
+import torch
+import pytest
 import random
 
+from ding.envs import BaseEnvManager
+from ding.model import VAC
+from ding.policy import PPOPolicy
+from ding.framework import EventEnum
+from ding.framework.task import task, Parallel
+from ding.framework.middleware import LeagueCoordinator, LeagueActor, LeagueLearner
+from ding.framework.middleware.functional.actor_data import ActorData
+from ding.framework.middleware.tests import cfg, MockLeague, MockLogger
+from dizoo.league_demo.game_env import GameEnv
+
+
+N_ACTORS = 2
+N_LEARNERS = 2
 
 def prepare_test():
     global cfg
@@ -35,67 +54,29 @@ def prepare_test():
 
     return cfg, env_fn, policy_fn
 
-
-class MockLeague:
-
-    def __init__(self):
-        self.active_players_ids = ["main_player_default_0", "main_player_default_1", "main_player_default_2"]
-        self.update_payoff_cnt = 0
-        self.update_active_player_cnt = 0
-        self.create_historical_player_cnt = 0
-        self.get_job_info_cnt = 0
-
-    def update_payoff(self, job):
-        self.update_payoff_cnt += 1
-
-    def update_active_player(self, meta):
-        self.update_active_player_cnt += 1
-
-    def create_historical_player(self, meta):
-        self.create_historical_player_cnt += 1
-
-    def get_job_info(self, player_id):
-        self.get_job_info_cnt += 1
-        other_players = [i for i in self.active_players_ids if i != player_id]
-        another_palyer = random.choice(other_players)
-        return Job(
-            launch_player=player_id,
-            players=[
-                PlayerMeta(player_id=player_id, checkpoint=FileStorage(path=None), total_agent_step=0),
-                PlayerMeta(player_id=another_palyer, checkpoint=FileStorage(path=None), total_agent_step=0)
-            ]
-        )
-
-
-N_ACTORS = 3
-
-
 def _main():
     cfg, env_fn, policy_fn = prepare_test()
+    league = MockLeague(cfg.policy.other.league)
 
     with task.start(async_mode=True):
         if task.router.node_id == 0:
-            league = MockLeague()
-            coordinator = LeagueCoordinator(league)
-            sleep(2)
-            with patch("ding.league.BaseLeague", MockLeague):
-                task.use(coordinator)
-            sleep(15)
-            # print(league.get_job_info_cnt)
-            assert league.get_job_info_cnt == N_ACTORS
-            assert league.update_payoff_cnt == N_ACTORS
-        else:
+            task.use(LeagueCoordinator(league))
+        elif task.router.node_id <= N_ACTORS:
             task.use(LeagueActor(cfg, env_fn, policy_fn))
+        else:
+            n_players = len(league.active_players_ids)
+            player = league.active_players[task.router.node_id % n_players]
+            learner = LeagueLearner(cfg, policy_fn, player)
+            learner._learner._tb_logger = MockLogger()
+            task.use(learner)
 
-        task.run(max_step=1)
+        task.run(max_step=10)
 
 
 @pytest.mark.unittest
 def test_league_actor():
-    Parallel.runner(n_parallel_workers=N_ACTORS + 1, protocol="tcp", topology="mesh")(_main)
+    Parallel.runner(n_parallel_workers=N_ACTORS + N_LEARNERS + 1, protocol="tcp", topology="mesh")(_main)
 
 
 if __name__ == '__main__':
-    Parallel.runner(n_parallel_workers=N_ACTORS + 1, protocol="tcp", topology="mesh")(_main)
-# replicas = 10
-# un parallel worker 改成1
+    Parallel.runner(n_parallel_workers=N_ACTORS + N_LEARNERS + 1, protocol="tcp", topology="mesh")(_main)

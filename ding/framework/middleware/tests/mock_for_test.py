@@ -1,9 +1,14 @@
 from typing import Union, Any, List, Callable, Dict, Optional
 from collections import namedtuple
+import random
 import torch
 import treetensor.numpy as tnp
 from easydict import EasyDict
 from unittest.mock import Mock
+
+from ding.league.player import PlayerMeta
+from ding.league.v2 import BaseLeague, Job
+from ding.framework.storage import FileStorage
 
 obs_dim = [2, 2]
 action_space = 1
@@ -116,3 +121,46 @@ class MockHerRewardModel(Mock):
 
     def estimate(self, episode: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         return [[episode[0] for _ in range(self.episode_element_size)]]
+
+
+class MockLeague(BaseLeague):
+    def __init__(self, cfg) -> None:
+        super().__init__(cfg)
+        print(self.active_players)
+        self.update_payoff_cnt = 0
+        self.update_active_player_cnt = 0
+        self.create_historical_player_cnt = 0
+        self.get_job_info_cnt = 0
+
+    def update_payoff(self, job):
+        self.update_payoff_cnt += 1
+
+    def update_active_player(self, meta):
+        self.update_active_player_cnt += 1
+
+    def create_historical_player(self, meta):
+        self.create_historical_player_cnt += 1
+
+    def get_job_info(self, player_id):
+        self.get_job_info_cnt += 1
+        other_players = [i for i in self.active_players_ids if i != player_id]
+        another_palyer = random.choice(other_players)
+        return Job(
+            launch_player=player_id,
+            players=[
+                PlayerMeta(player_id=player_id, checkpoint=FileStorage(path=None), total_agent_step=0),
+                PlayerMeta(player_id=another_palyer, checkpoint=FileStorage(path=None), total_agent_step=0)
+            ]
+        )
+
+
+class MockLogger():
+
+    def add_scalar(*args):
+        pass
+
+    def close(*args):
+        pass
+
+    def flush(*args):
+        pass
