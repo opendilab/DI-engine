@@ -76,7 +76,6 @@ class SACDiscretePolicy(Policy):
         # on-policy setting influences the behaviour of buffer.
         # Default False in SAC.
         on_policy=False,
-        multi_agent=True,
         # (bool type) priority: Determine whether to use priority in buffer sample.
         # Default False in SAC.
         priority=False,
@@ -85,6 +84,10 @@ class SACDiscretePolicy(Policy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 10000 in SAC.
         random_collect_size=10000,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=True,
+        # (bool) Whether to enable multi-agent training setting
+        multi_agent=True,
         model=dict(
             # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
             # Please refer to TD3 about Clipped Double-Q Learning trick, which learns two Q-functions instead of one .
@@ -583,6 +586,9 @@ class SACPolicy(Policy):
         # (int) Number of training samples(randomly collected) in replay buffer when training starts.
         # Default 10000 in SAC.
         random_collect_size=10000,
+        # (bool) Whether to need policy data in process transition
+        transition_with_policy_data=True,
+        # (bool) Whether to enable multi-agent training setting
         multi_agent=False,
         model=dict(
             # (bool type) twin_critic: Determine whether to use double-soft-q-net for target q computation.
