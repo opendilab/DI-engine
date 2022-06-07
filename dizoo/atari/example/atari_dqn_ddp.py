@@ -6,39 +6,13 @@ from ding.envs import DingEnvWrapper, SubprocessEnvManagerV2
 from ding.data import DequeBuffer
 from ding.config import compile_config
 from ding.utils import DistContext, get_rank
-from ding.framework import task
+from ding.framework import task, ding_init
 from ding.framework.context import OnlineRLContext
 from ding.framework.middleware import OffPolicyLearner, StepCollector, interaction_evaluator, data_pusher, \
-    eps_greedy_handler, CkptSaver, nstep_reward_enhancer
+    eps_greedy_handler, CkptSaver, nstep_reward_enhancer, online_logger, ddp_termination_checker
 from ding.utils import set_pkg_seed
 from dizoo.atari.envs.atari_env import AtariEnv
 from dizoo.atari.config.serial.pong.pong_dqn_config import main_config, create_config
-
-
-def ddp_termination_checker(max_env_step=None, max_train_iter=None, rank=0):
-    import numpy as np
-    import torch
-    from ding.utils import broadcast
-    if rank == 0:
-        if max_env_step is None:
-            max_env_step = np.inf
-        if max_train_iter is None:
-            max_train_iter = np.inf
-
-    def _check(ctx):
-        if rank == 0:
-            if ctx.env_step > max_env_step:
-                finish = torch.ones(1).long().cuda()
-            elif ctx.train_iter > max_train_iter:
-                finish = torch.ones(1).long().cuda()
-            else:
-                finish = torch.LongTensor([task.finish]).cuda()
-        else:
-            finish = torch.zeros(1).long().cuda()
-        broadcast(finish, 0)
-        task.finish = finish.cpu().bool().item()
-
-    return _check
 
 
 def main():
@@ -46,6 +20,7 @@ def main():
     main_config.exp_name = 'pong_dqn_seed0_ddp'
     main_config.policy.learn.multi_gpu = True
     cfg = compile_config(main_config, create_cfg=create_config, auto=True)
+    ding_init(cfg)
     with DistContext():
         rank = get_rank()
         with task.start(async_mode=False, ctx=OnlineRLContext()):
@@ -75,6 +50,7 @@ def main():
             task.use(OffPolicyLearner(cfg, policy.learn_mode, buffer_))
             if rank == 0:
                 task.use(CkptSaver(cfg, policy, train_freq=1000))
+                task.use(online_logger(record_train_iter=True))
             task.use(ddp_termination_checker(max_env_step=int(1e7), rank=rank))
             task.run()
 
